@@ -38,15 +38,18 @@ public class PolicyExtractor {
 					obsVector = new ArrayList<String>();
 				}
 				
-				StateVar obs = obsVars.get(varIndex);
-				
-				for (int i=0; i<obs.valNames.length; i++) {
-					List<String> newObsVector = obsVector.subList(0, obsVector.size());
-					newObsVector.add(obs.valNames[i]);
-					System.out.println("obsVector: " + obsVector);
-					System.out.println("newObsVector: " + newObsVector);
-					recursiveObsGen(obsComb, obsVars, newObsVector, finalLen, varIndex + 1);
-					break;
+				else {
+					StateVar obs = obsVars.get(varIndex);
+					
+					for (int i=0; i<obs.valNames.length; i++) {
+						List<String> newObsVector = obsVector.subList(0, obsVector.size());
+						newObsVector.add(obs.valNames[i]);
+						System.out.println("obsVector: " + obsVector);
+						System.out.println("newObsVector: " + newObsVector);
+						recursiveObsGen(obsComb, obsVars, newObsVector, finalLen, varIndex + 1);
+						break;
+					}
+					
 				}
 			}
 		}
