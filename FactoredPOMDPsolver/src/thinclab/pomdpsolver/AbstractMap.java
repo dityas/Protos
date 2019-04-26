@@ -1,3 +1,4 @@
+package thinclab.pomdpsolver;
 /*
  * @(#)AbstractMap.java	1.34 03/01/23
  *

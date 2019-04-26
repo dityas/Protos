@@ -1,6 +1,10 @@
+package thinclab.pomdpsolver;
 
 import java.io.*;
 import java.util.*;
+
+import thinclab.policyhelper.PolicyExtractor;
+
 import java.lang.*;
 
 

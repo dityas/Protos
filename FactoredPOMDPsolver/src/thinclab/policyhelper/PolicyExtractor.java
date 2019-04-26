@@ -1,8 +1,16 @@
-import java.util.*;
+package thinclab.policyhelper;
 import java.util.Map;
+
+import thinclab.pomdpsolver.DD;
+import thinclab.pomdpsolver.POMDP;
+import thinclab.pomdpsolver.StateVar;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Collections;
+import java.util.*;
 
 public class PolicyExtractor {
 		/*
@@ -28,7 +36,7 @@ public class PolicyExtractor {
 		
 		private void recursiveObsGen(List<List<String>> obsComb, List<StateVar> obsVars, List<String> obsVector, int finalLen, int varIndex){
 			/* 
-			 *  Recursively generates a list of all possible combination values of the observation variables
+			 *  Recursively generates a list of all possible combinations of values of the observation variables
 			 */
 			
 			if (varIndex < obsVars.size()) {
@@ -73,6 +81,8 @@ public class PolicyExtractor {
 		public PolicyExtractor(POMDP p) {
 			PolicyNode nodeCurr = new PolicyNode();
 			
+			// Start policy graph from the initial belief
+			// Get relevant alpha vector and action related to the node in the graph
 			nodeCurr.belief = p.initialBelState;
 			nodeCurr.alphaId = p.policyQuery(nodeCurr.belief, p.alphaVectors, p.policy);
 			nodeCurr.actId = p.policy[nodeCurr.alphaId];
@@ -80,16 +90,28 @@ public class PolicyExtractor {
 			List<PolicyNode> policyLeaves = new ArrayList<PolicyNode>();
 			policyLeaves.add(nodeCurr);
 			
-			// Generate all observations
+			// Generate all possible observations
 			List<StateVar> obsVars = new LinkedList<StateVar>(Arrays.asList(p.obsVars));
-			
 			List<List<String>> obs = recursiveObsCombinations(obsVars);
-			System.out.println("\r\n\r\n" + obs);
+			System.out.println("Total possible observations: " + obs.size());
+			
+			// Do till there are no terminal policy leaves
 			while(!policyLeaves.isEmpty()) {
 				
 				nodeCurr = policyLeaves.remove(policyLeaves.size() - 1);
-				
 				List<PolicyNode> newLeaves = new ArrayList<PolicyNode>();
+				
+				// For all observations, perform belief updates and get best action nodes
+				Enumeration<List<String>> obsEnum = Collections.enumeration(obs);
+				while(obsEnum.hasMoreElements()) {
+					List<String> theObs = obsEnum.nextElement();
+					
+					// Perform belief update and make next policy node
+					PolicyNode nextNode = new PolicyNode();
+					nextNode.belief = p.beliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
+					nextNode.alphaId = p.policyQuery(nextNode.belief, p.alphaVectors, p.policy);
+					nextNode.actId = p.policy[nextNode.alphaId];
+				}
 				
 				break;
 			}

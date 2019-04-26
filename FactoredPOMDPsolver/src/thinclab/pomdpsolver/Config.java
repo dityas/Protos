@@ -1,3 +1,4 @@
+package thinclab.pomdpsolver;
 class Config {
 
     public static int[][] empty = new int[2][0];

@@ -1,3 +1,4 @@
+package thinclab.pomdpsolver;
 import java.math.*;
 import java.util.*;
 import java.io.*;

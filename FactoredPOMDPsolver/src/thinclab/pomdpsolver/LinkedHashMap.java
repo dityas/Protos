@@ -1,3 +1,4 @@
+package thinclab.pomdpsolver;
 /*
  * @(#)LinkedHashMap.java	1.11 03/01/23
  *

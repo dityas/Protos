@@ -1,3 +1,4 @@
+package thinclab.pomdpsolver;
 class TripletConfig {
 		private DD dd1;
 		private DD dd2;

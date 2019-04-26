@@ -1,7 +1,8 @@
+package thinclab.pomdpsolver;
 import java.util.*;
 import java.io.*;
 
-abstract class DD implements Serializable {
+public abstract class DD implements Serializable {
 		public static DD one = DDleaf.myNew(1);
 		public static DD zero = DDleaf.myNew(0);
 

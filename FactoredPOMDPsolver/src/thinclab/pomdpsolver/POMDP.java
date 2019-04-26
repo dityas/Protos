@@ -1,3 +1,4 @@
+package thinclab.pomdpsolver;
 import java.io.*;
 import java.util.*;
 import java.lang.*;
@@ -6,7 +7,7 @@ import java.lang.reflect.Array;
 
 
 
-class POMDP implements Serializable {
+public class POMDP implements Serializable {
 
 	/**
 	 * 

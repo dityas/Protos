@@ -1,3 +1,4 @@
+package thinclab.pomdpsolver;
 class MyDoubleArray {
 
 		public double[] doubleArray;
