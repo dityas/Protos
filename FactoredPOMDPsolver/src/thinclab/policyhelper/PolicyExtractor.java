@@ -20,19 +20,8 @@ public class PolicyExtractor {
 		 * 
 		 * Author: Aditya Shinde
 		 */
-		class PolicyNode {
-			int alphaId=-1;
-			int actId = 1;
-			DD belief;
-			Map<String,Integer> nextNode = new HashMap<String,Integer>();
 
-			@Override
-			public String toString() {
-				return "PolicyNode [alphaId=" + alphaId + ", actId=" + actId + ", belief=" + belief + ", nextNode="
-						+ nextNode.toString() + "]\r\n";
-			}	}
-		
-		List<PolicyNode> policyNodes = new ArrayList<PolicyNode>();
+		public List<PolicyNode> policyNodes = new ArrayList<PolicyNode>();
 		
 		private void recursiveObsGen(List<List<String>> obsComb, List<StateVar> obsVars, List<String> obsVector, int finalLen, int varIndex){
 			/* 
@@ -96,8 +85,11 @@ public class PolicyExtractor {
 			System.out.println("Total possible observations: " + obs.size());
 			
 			// Do till there are no terminal policy leaves
+//			int j = 5;
+//			while(j!=0) {
 			while(!policyLeaves.isEmpty()) {
-				
+				System.out.println("Policy has " + policyNodes.size() + " nodes... ");
+				System.out.println("Computing for " + policyLeaves.size() + " leaves... ");
 				nodeCurr = policyLeaves.remove(policyLeaves.size() - 1);
 				List<PolicyNode> newLeaves = new ArrayList<PolicyNode>();
 				
@@ -107,13 +99,43 @@ public class PolicyExtractor {
 					List<String> theObs = obsEnum.nextElement();
 					
 					// Perform belief update and make next policy node
-					PolicyNode nextNode = new PolicyNode();
-					nextNode.belief = p.beliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
-					nextNode.alphaId = p.policyQuery(nextNode.belief, p.alphaVectors, p.policy);
-					nextNode.actId = p.policy[nextNode.alphaId];
+					PolicyNode nodeNext = new PolicyNode();
+					nodeNext.belief = p.beliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
+					
+					// Zero probability observations
+					if (nodeNext.belief != DD.one) {
+						nodeNext.alphaId = p.policyQuery(nodeNext.belief, p.alphaVectors, p.policy);
+//						System.out.println(nodeNext.alphaId);
+						nodeNext.actId = p.policy[nodeNext.alphaId];
+						
+						// Link new node to parent
+						String obsString = String.join("|", theObs);
+						nodeCurr.nextNode.put(obsString, nodeNext.alphaId);
+						
+						// Add nextNode to list of newly generated leaves
+						newLeaves.add(nodeNext);
+					}
+					
+					else {
+						System.out.println("Skipping node");
+					}
 				}
 				
-				break;
+				// Check for duplicate node in policyNodes
+				Iterator<PolicyNode> policyNodeIter = policyNodes.iterator();
+				boolean hasDuplicate = false;
+				while(policyNodeIter.hasNext()) {
+					PolicyNode existingNode = policyNodeIter.next();
+					if (nodeCurr.shallowEquals(existingNode)) {
+						hasDuplicate = true;
+					}
+				}
+				
+				// If node is unique, add to policy
+				if (!hasDuplicate) {
+					policyNodes.add(nodeCurr);
+					policyLeaves.addAll(newLeaves);
+				}
 			}
 //				2.times { collNum ->
 //					System.out.println(collNum);

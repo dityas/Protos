@@ -241,6 +241,7 @@ class Solver implements Serializable {
 //		printDotDDs(pomdp);
 //		pomdp.displayPolicyDotDD();
 		PolicyExtractor extractor = new PolicyExtractor(pomdp);
+//		System.out.println(extractor.policyNodes);
 	    }
 	    
 //	    pomdp.displayPolicy();
