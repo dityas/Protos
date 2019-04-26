@@ -196,6 +196,7 @@ class Solver implements Serializable {
 	}
     }
     public static void main(String args[]) {
+
 	if (args.length < 1 || args[0].startsWith("-")) {
 	    usage();
 	    return;

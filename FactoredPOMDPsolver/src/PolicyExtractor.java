@@ -5,6 +5,13 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class PolicyExtractor {
+		/*
+		 * Creates policy graph from the given solved POMDP
+		 * 
+		 * Technique is based on Gary Turovsky's flyhighplato policy extractor written in groovy
+		 * 
+		 * Author: Aditya Shinde
+		 */
 		class PolicyNode {
 			int alphaId=-1;
 			int actId = 1;
@@ -21,40 +28,39 @@ public class PolicyExtractor {
 		
 		private void recursiveObsGen(List<List<String>> obsComb, List<StateVar> obsVars, List<String> obsVector, int finalLen, int varIndex){
 			/* 
-			 * Recursively generates a list of all possible combination values
-			*/
-			System.out.println("obsVector: " + obsVector);
-			System.out.println("obsVars: " + obsVars);
-			System.out.println("obsComb: " + obsComb);
-			System.out.println("vecLen: " + obsVector.size());
-			System.out.println("Reqd: " + finalLen);
-			System.out.println("varIndex: " + varIndex);
-			System.out.println();
+			 *  Recursively generates a list of all possible combination values of the observation variables
+			 */
 			
-			if (varIndex <= obsVars.size()) {
+			if (varIndex < obsVars.size()) {
+				
 				if (obsVector.size() == finalLen) {
 					obsComb.add(obsVector);
-					varIndex = 0;
-					obsVector = new ArrayList<String>();
 				}
 				
 				else {
+					
+					List<String> obsVectorCopy = new ArrayList<String>(obsVector);
 					StateVar obs = obsVars.get(varIndex);
-					
-					for (int i=0; i<obs.valNames.length; i++) {
-						List<String> newObsVector = obsVector.subList(0, obsVector.size());
-						newObsVector.add(obs.valNames[i]);
-						System.out.println("obsVector: " + obsVector);
-						System.out.println("newObsVector: " + newObsVector);
-						recursiveObsGen(obsComb, obsVars, newObsVector, finalLen, varIndex + 1);
-						break;
+					for (int i=0;i<obs.valNames.length;i++) {
+						List<String> anotherObsVecCopy = new ArrayList<String>(obsVectorCopy);
+						anotherObsVecCopy.add(obs.valNames[i]);
+//						System.out.println("another obsVector: " + anotherObsVecCopy);
+						recursiveObsGen(obsComb, obsVars, anotherObsVecCopy, finalLen, varIndex + 1);
 					}
-					
 				}
+				
+			}
+			
+			else {
+//				System.out.println("REACHED END of obsVars");
+				obsComb.add(obsVector);
 			}
 		}
 		
 		private List<List<String>> recursiveObsCombinations(List<StateVar> obsVars){
+			/*
+			 * Driver program for generating observations recursively
+			 */
 			int finalLen = obsVars.size();
 			List<String> obsVec = new ArrayList<String>();
 			List<List<String>> obsComb = new ArrayList<List<String>>();
@@ -78,12 +84,13 @@ public class PolicyExtractor {
 			List<StateVar> obsVars = new LinkedList<StateVar>(Arrays.asList(p.obsVars));
 			
 			List<List<String>> obs = recursiveObsCombinations(obsVars);
-			
+			System.out.println("\r\n\r\n" + obs);
 			while(!policyLeaves.isEmpty()) {
 				
 				nodeCurr = policyLeaves.remove(policyLeaves.size() - 1);
 				
 				List<PolicyNode> newLeaves = new ArrayList<PolicyNode>();
+				
 				break;
 			}
 //				2.times { collNum ->
