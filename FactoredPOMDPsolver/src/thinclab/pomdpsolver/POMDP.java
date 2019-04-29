@@ -875,6 +875,25 @@ public class POMDP implements Serializable {
 		}
 		return -1;
 	}
+	
+	public int getBestAlphaVector(DD belState, DD[] alphaVectors) {
+		/*
+		 *  Gives the best alpha vector to get highest value given the belief state and action
+		 */
+		double bestVal = Double.NEGATIVE_INFINITY;
+		double val;
+		int bestAlphaId = 0;
+		for (int alphaId = 0; alphaId < alphaVectors.length; alphaId++) {
+			val = OP.dotProduct(belState, alphaVectors[alphaId], varIndices);
+			if (val > bestVal) {
+				bestVal = val;
+				bestAlphaId = alphaId;
+			}
+			
+		}
+			
+		return bestAlphaId;
+	}
 
 	public int policyQuery(DD belState, DD[] alphaVectors, int[] policy) {
 		// single DD belief state
@@ -1170,7 +1189,7 @@ public class POMDP implements Serializable {
 						mdpprob);
 			}
 			// possibly print this out (for debugging)
-			printBelRegion();
+//			printBelRegion();
 			// run symbolic Perseus
 			if (debug)
 				Global.setSeed(8837328);

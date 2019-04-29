@@ -1,0 +1,47 @@
+digraph Policy {
+ 8 [shape=record label="action= west"]
+ 0 [shape=record label="action= north"]
+ 3 [shape=record label="action= south"]
+ 2 [shape=record label="action= west"]
+ 0 [shape=record label="action= north"]
+ 8 -> 8
+ 8 -> 0
+ 8 -> 8
+ 8 -> 2
+ 8 -> 0
+ 8 -> 8
+ 8 -> 8
+ 8 -> 3
+ 0 -> 8
+ 0 -> 8
+ 0 -> 8
+ 0 -> 8
+ 0 -> 0
+ 0 -> 8
+ 0 -> 8
+ 0 -> 3
+ 3 -> 8
+ 3 -> 8
+ 3 -> 8
+ 3 -> 2
+ 3 -> 8
+ 3 -> 8
+ 3 -> 8
+ 3 -> 8
+ 2 -> 8
+ 2 -> 0
+ 2 -> 8
+ 2 -> 2
+ 2 -> 8
+ 2 -> 8
+ 2 -> 8
+ 2 -> 8
+ 0 -> 8
+ 0 -> 8
+ 0 -> 8
+ 0 -> 8
+ 0 -> 0
+ 0 -> 8
+ 0 -> 8
+ 0 -> 8
+}

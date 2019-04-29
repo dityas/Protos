@@ -12,13 +12,13 @@ class Solver implements Serializable {
 
     // default values
     public static int nRounds = 5;
-    public static int nIterations =30;  // backup iterations  per round
+    public static int nIterations =50;  // backup iterations  per round
     public static int maxAlphaSetSize = 100;
     public static int numBelStates = 100;
-    public static int maxBelStates = 10000;
+    public static int maxBelStates = 100;
     public static int episodeLength = 50;  // when generating belief points
     public static double threshold = 0.001;
-    public static double explorProb=0.4;
+    public static double explorProb=0.0;
 
     public static String iofile;
     public static String belfile;
@@ -240,8 +240,23 @@ class Solver implements Serializable {
 //		System.out.println("Printing Dot DDs.");
 //		printDotDDs(pomdp);
 //		pomdp.displayPolicyDotDD();
+//		System.out.println(pomdp.getPolicy().length);
+//		System.out.println(pomdp.getAlphaVectors().length);
 		PolicyExtractor extractor = new PolicyExtractor(pomdp);
-//		System.out.println(extractor.policyNodes);
+		System.out.println(extractor.policyNodes);
+		try {
+			PrintWriter dotWriter = new PrintWriter(new FileWriter("policy.dot"));
+			extractor.writeDot(dotWriter);
+			System.out.println("Written to dot file");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String sA = "Hello";
+		String sB = "Hello";
+		System.out.println(sA.hashCode());
+		System.out.println(sB.hashCode());
 	    }
 	    
 //	    pomdp.displayPolicy();
