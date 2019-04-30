@@ -91,12 +91,12 @@ class DDleaf extends DD {
 		}
 
 		public void display(String space) {
-				System.out.print(space + "leaf: " + Double.toString(val) + "  " 
+				System.out.println(space + "leaf: " + Double.toString(val) + "  " 
 													 + Config.toString(config));
 		}
 
 		public void display(String space, String prefix) {
-				System.out.print(space + prefix + Double.toString(val) + "  " 
+				System.out.println(space + prefix + Double.toString(val) + "  " 
 													 + Config.toString(config));
 		}
     public void printSpuddDD(PrintStream ps) {

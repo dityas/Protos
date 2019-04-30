@@ -477,8 +477,8 @@ public class POMDP implements Serializable {
 		nextBelState = OP.primeVars(nextBelState, -nVars);
 		DD obsProb = OP.addMultVarElim(nextBelState, varIndices);
 		if (obsProb.getVal() < 1e-8) {
-//			System.out
-//					.println("WARNING: Zero-probability observation, resetting belief state to a uniform distribution");
+			System.out
+					.println("WARNING: Zero-probability observation, resetting belief state to a uniform distribution");
 			nextBelState = DD.one;
 		}
 		nextBelState = OP.div(nextBelState, OP.addMultVarElim(nextBelState, varIndices));
@@ -1030,6 +1030,23 @@ public class POMDP implements Serializable {
 	public void printBeliefState(DD[] belState) {
 		for (int j = 0; j < belState.length; j++) {
 			belState[j].display();
+		}
+	}
+	
+	public void getBeliefStateMap(DD belState) {
+		/*
+		 * Collapses belief state DD into a hashmap of state to belief mappings
+		 */
+		// Factor the belief state
+		DD[] fbs = new DD[nStateVars];
+		for (int varId = 0; varId < nStateVars; varId++) {
+			fbs[varId] = OP.addMultVarElim(belState, MySet.remove(varIndices, varId + 1));
+		} // for (int varId = 0; varId < nStateVars; varId++)
+		
+		// Make a map from it
+		for (int j = 0; j < fbs.length; j++) {
+			fbs[j].printSpuddDD(System.out);
+			System.out.println();
 		}
 	}
 

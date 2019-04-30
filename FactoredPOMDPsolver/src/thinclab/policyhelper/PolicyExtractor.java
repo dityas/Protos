@@ -24,6 +24,7 @@ public class PolicyExtractor {
 		 */
 
 		public List<PolicyNode> policyNodes = new ArrayList<PolicyNode>();
+		public List<PolicyNode> printablePolicyNodes = new ArrayList<PolicyNode>();
 		private POMDP p = null;
 		
 		private void recursiveObsGen(List<List<String>> obsComb, List<StateVar> obsVars, List<String> obsVector, int finalLen, int varIndex){
@@ -91,7 +92,6 @@ public class PolicyExtractor {
 			
 			// Do till there are no terminal policy leaves
 			while(!policyLeaves.isEmpty()) {
-				System.out.println("Policy has " + policyNodes.size() + " nodes and " + policyLeaves.size() + " unexplored leaves ");
 
 				nodeCurr = policyLeaves.remove(policyLeaves.size() - 1);
 				List<PolicyNode> newLeaves = new ArrayList<PolicyNode>();
@@ -100,24 +100,29 @@ public class PolicyExtractor {
 				// For all observations, perform belief updates and get best action nodes
 				Enumeration<List<String>> obsEnum = Collections.enumeration(obs);
 				while(obsEnum.hasMoreElements()) {
+					System.out.println("Policy has " + policyNodes.size() + " nodes and " + policyLeaves.size() + " unexplored leaves ");
 					List<String> theObs = obsEnum.nextElement();
-					
+
 					// Perform belief update and make next policy node
 					PolicyNode nodeNext = new PolicyNode();
 					nodeNext.belief = p.beliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
 					
 					// Zero probability observations
 					if (nodeNext.belief != DD.one) {
+//						nodeNext.belief.display(" ");
+						
+						System.out.println("Showing belief state");
+						this.p.getBeliefStateMap(nodeNext.belief);
 						nodeNext.alphaId = p.getBestAlphaVector(nodeNext.belief, p.alphaVectors);
 						nodeNext.actId = p.policy[nodeNext.alphaId];
 						
 						// Link new node to parent
-						String obsString = String.join("|", theObs);
-						nodeCurr.nextNode.put(obsString, nodeNext.alphaId);
+//						String obsString = String.join("|", theObs);
+						nodeCurr.nextNode.put(theObs, nodeNext.alphaId);
 						
 						// Add nextNode to list of newly generated leaves
 						newLeaves.add(nodeNext);
-					}
+					} // if (nodeNext.belief != DD.one)
 					
 					else {
 						System.out.println("Skipping node");
@@ -130,7 +135,8 @@ public class PolicyExtractor {
 				boolean hasDuplicate = false;
 				while(policyNodeIter.hasNext()) {
 					PolicyNode existingNode = policyNodeIter.next();
-					if (nodeCurr.shallowEquals(existingNode)) {
+//					if (nodeCurr.actId == existingNode.actId && nodeCurr.alphaId == existingNode.alphaId) {
+					if (existingNode.shallowEquals(nodeCurr)) {
 						hasDuplicate = true;
 //						policyNodes.remove(existingNode);
 					}
@@ -146,8 +152,17 @@ public class PolicyExtractor {
 				else {
 					System.out.println("Found same node");
 				}
+				
+				System.out.println("" + policyNodes.size() + " policy nodes");
 			} // while(!policyLeaves.isEmpty())
 		} // public PolicyExtractor
+		
+		public void makePolicyRepresentation() {
+			/*
+			 * Combines observations leading to the same next nodes in the policy in order to display it properly
+			 */
+			
+		}
 
 		@Override
 		public String toString() {
@@ -171,9 +186,9 @@ public class PolicyExtractor {
 			nodeIterator = policyNodes.iterator();
 			while(nodeIterator.hasNext()) {
 				PolicyNode theNode = nodeIterator.next();
-				Iterator<Map.Entry<String, Integer>> mapIter = theNode.nextNode.entrySet().iterator();
+				Iterator<Map.Entry<List<String>, Integer>> mapIter = theNode.nextNode.entrySet().iterator();
 				while(mapIter.hasNext()) {
-					Map.Entry<String, Integer> entry = mapIter.next();
+					Map.Entry<List<String>, Integer> entry = mapIter.next();
 					dotFileWriter.println(" " + theNode.alphaId + " -> " + entry.getValue());
 				}
 			} // while(nodeIterator.hasNext())

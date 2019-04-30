@@ -3,6 +3,7 @@ package thinclab.policyhelper;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.*;
 
 import thinclab.pomdpsolver.DD;
 
@@ -11,13 +12,13 @@ public class PolicyNode {
 	int alphaId=-1;
 	int actId = 1;
 	DD belief;
-	Map<String, Integer> nextNode = new HashMap<String, Integer>();
+	Map<List<String>, Integer> nextNode = new HashMap<List<String>, Integer>();
 	
 	public boolean shallowEquals(PolicyNode other) {
 		/*
 		 * Takes another policy and compares its alphaId, actId and nexNodes
 		 */
-		System.out.println("" + this.nextNode + "\r\n" + other.nextNode);
+//		System.out.println("" + this.nextNode + "\r\n" + other.nextNode);
 		if (this.actId == other.actId && this.alphaId == other.alphaId && this.nextNode.equals(other.nextNode)) {
 			return true;
 		}
@@ -48,7 +49,7 @@ public class PolicyNode {
 	
 	public String getDotHeader(String actionName) {
 	/*
-	 * Return Dot node defnintion for current node as string
+	 * Return Dot node definition for current node as string
 	 */
 		String header = " " + this.alphaId + " ";
 		header = header + "[shape=record label=\"action= " + actionName + "\"]";
