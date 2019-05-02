@@ -1,9 +1,9 @@
 package thinclab.policyhelper;
 import java.util.Map;
 
-import thinclab.pomdpsolver.DD;
-import thinclab.pomdpsolver.POMDP;
-import thinclab.pomdpsolver.StateVar;
+import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.POMDP;
+import thinclab.symbolicperseus.StateVar;
 import thinclab.policyhelper.PolicyNode;
 
 import java.util.HashMap;
@@ -77,7 +77,7 @@ public class PolicyExtractor {
 			// Start policy graph from the initial belief
 			// Get relevant alpha vector and action related to the node in the graph
 			nodeCurr.belief = p.initialBelState;
-			nodeCurr.alphaId = p.getBestAlphaVector(nodeCurr.belief, p.alphaVectors);
+			nodeCurr.alphaId = p.policyBestAlphaMatch(nodeCurr.belief, p.alphaVectors, p.policy);
 			nodeCurr.actId = p.policy[nodeCurr.alphaId];
 			
 //			System.out.println("Suggesting action " + p.actions[nodeCurr.actId].name);
@@ -100,7 +100,7 @@ public class PolicyExtractor {
 				// For all observations, perform belief updates and get best action nodes
 				Enumeration<List<String>> obsEnum = Collections.enumeration(obs);
 				while(obsEnum.hasMoreElements()) {
-					System.out.println("Policy has " + policyNodes.size() + " nodes and " + policyLeaves.size() + " unexplored leaves ");
+//					System.out.println("Policy has " + policyNodes.size() + " nodes and " + policyLeaves.size() + " unexplored leaves ");
 					List<String> theObs = obsEnum.nextElement();
 
 					// Perform belief update and make next policy node
@@ -111,9 +111,9 @@ public class PolicyExtractor {
 					if (nodeNext.belief != DD.one) {
 //						nodeNext.belief.display(" ");
 						
-						System.out.println("Showing belief state");
-						this.p.getBeliefStateMap(nodeNext.belief);
-						nodeNext.alphaId = p.getBestAlphaVector(nodeNext.belief, p.alphaVectors);
+//						System.out.println("Showing belief state");
+//						this.p.getBeliefStateMap(nodeNext.belief);
+						nodeNext.alphaId = p.policyBestAlphaMatch(nodeCurr.belief, p.alphaVectors, p.policy);
 						nodeNext.actId = p.policy[nodeNext.alphaId];
 						
 						// Link new node to parent
@@ -129,7 +129,7 @@ public class PolicyExtractor {
 					}
 				} // while(obsEnum.hasMoreElements())
 				
-				nodeCurr.belief = null;
+//				nodeCurr.belief = null;
 				// Check for duplicate node in policyNodes
 				Iterator<PolicyNode> policyNodeIter = policyNodes.iterator();
 				boolean hasDuplicate = false;
@@ -150,10 +150,10 @@ public class PolicyExtractor {
 				}
 				
 				else {
-					System.out.println("Found same node");
+//					System.out.println("Found same node");
 				}
 				
-				System.out.println("" + policyNodes.size() + " policy nodes");
+//				System.out.println("" + policyNodes.size() + " policy nodes");
 			} // while(!policyLeaves.isEmpty())
 		} // public PolicyExtractor
 		

@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.*;
 
-import thinclab.pomdpsolver.DD;
+import thinclab.symbolicperseus.DD;
 
 public class PolicyNode {
 	

@@ -1,32 +1,28 @@
-package thinclab.pomdpsolver;
+package thinclab.symbolicperseus;
+
 
 import java.io.*;
 import java.util.*;
-
-import thinclab.policyhelper.PolicyExtractor;
-
 import java.lang.*;
 
 
-class Solver implements Serializable {
+public class Solver implements Serializable {
 
     // default values
     public static int nRounds = 5;
-    public static int nIterations =50;  // backup iterations  per round
-    public static int maxAlphaSetSize = 1000;
+    public static int nIterations =30;  // backup iterations  per round
+    public static int maxAlphaSetSize = 100;
     public static int numBelStates = 100;
-    public static int maxBelStates = 1000;
-    public static int episodeLength = 500;  // when generating belief points
+    public static int maxBelStates = 10000;
+    public static int episodeLength = 50;  // when generating belief points
     public static double threshold = 0.001;
-    public static double explorProb=0.0;
+    public static double explorProb=0.4;
 
     public static String iofile;
-    public static String belfile;
     public static boolean generate=false;
     public static boolean multinits=false;
     public static boolean simulate=false;
     public static boolean havepolicy=false;
-    public static boolean belstored = false;
     public static int nits=100;
     
 
@@ -47,7 +43,6 @@ class Solver implements Serializable {
 	    System.out.println("\t\t -x <double>\t - exploration probability to use when generating belief points [0.4]");
 	    System.out.println("\t\t -h <double>\t - threshold for beliefs [0.001]");
 	    System.out.println("\t\t -r <int>\t - number of rounds to run [5]");
-	    System.out.println("\t\t -b [filename]\t - filename of where the belief state is stored");
 	    
     }
     public static void printDotDDs(POMDP pomdp) {
@@ -57,7 +52,7 @@ class Solver implements Serializable {
 
 	try {
 	    for (int i=0; i<pomdp.nActions; i++) {
-		fname="action_"+pomdp.actions[i].name+"_rewFn.dot";
+		fname="action_"+i+"_rewFn.dot";
 		f_out = new FileOutputStream (fname);
 		outp = new PrintStream(f_out);
 		pomdp.actions[i].rewFn.printDotDD(outp);
@@ -67,7 +62,7 @@ class Solver implements Serializable {
 		System.out.println("number of state vars "+pomdp.nStateVars);
 		for (int k=0; k<pomdp.nStateVars; k++) {
 		    
-		    fname="action_"+pomdp.actions[i].name+"_CPT_"+pomdp.stateVars[k].name+".dot";
+		    fname="action_"+i+"_CPT_"+k+".dot";
 		    f_out = new FileOutputStream (fname);
 		    outp = new PrintStream(f_out);
 		    pomdp.actions[i].transFn[k].printDotDD(outp);
@@ -76,7 +71,7 @@ class Solver implements Serializable {
 		}
 		for (int k=0; k<pomdp.nObsVars; k++) {
 		    
-		    fname="action_"+pomdp.actions[i].name+"_OBSF_"+pomdp.obsVars[k].name+".dot";
+		    fname="action_"+i+"_OBSF_"+k+".dot";
 		    f_out = new FileOutputStream (fname);
 		    outp = new PrintStream(f_out);
 		    pomdp.actions[i].obsFn[k].printDotDD(outp);
@@ -116,17 +111,7 @@ class Solver implements Serializable {
 		    } else {
 			numargs=0;
 		    }
-		} 
-		else if (ioarg.equals("-b")){
-			if (numargs-1 > 0 &&  !(args[thearg+1].startsWith("-"))) {
-				belstored=true;
-				belfile = args[thearg+1];
-				thearg+=2;
-			    } else {
-				numargs=0;
-			    }
-		}
-		else if (ioarg.equals("-g")) {
+		} else if (ioarg.equals("-g")) {
 		    generate=true;
 		    thearg++;
 		    numargs++;
@@ -200,7 +185,6 @@ class Solver implements Serializable {
 	}
     }
     public static void main(String args[]) {
-
 	if (args.length < 1 || args[0].startsWith("-")) {
 	    usage();
 	    return;
@@ -227,39 +211,9 @@ class Solver implements Serializable {
 	    //System.out.println("is goal? "+isgoal);
 
 	    if (generate) {
-	    	System.out.println("In main(): nRounds" + nRounds);
-	    	System.out.println("In main(): numBelStates" + numBelStates);
-	    	System.out.println("In main(): maxBelStates" + maxBelStates);
-	    	System.out.println("In main(): episodeLength" + episodeLength);
-	    	System.out.println("In main(): threshold" + threshold);
-	    	System.out.println("In main(): nIterations"+ nIterations);
-	    	System.out.println("In main(): maxAlphaSetSize"+ maxAlphaSetSize);
-	    	System.out.println("In main(): basename"+ basename);
-	    	
 		pomdp.solve(nRounds, numBelStates, maxBelStates, episodeLength, threshold, explorProb, nIterations, maxAlphaSetSize, basename, multinits);
-//		System.out.println("Printing Dot DDs.");
-//		printDotDDs(pomdp);
-//		pomdp.displayPolicyDotDD();
-//		System.out.println(pomdp.getPolicy().length);
-//		System.out.println(pomdp.getAlphaVectors().length);
-//		PolicyExtractor extractor = new PolicyExtractor(pomdp);
-		System.out.println(extractor.policyNodes);
-		try {
-			PrintWriter dotWriter = new PrintWriter(new FileWriter("policy.dot"));
-			extractor.writeDot(dotWriter);
-			System.out.println("Written to dot file");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		String sA = "Hello";
-		String sB = "Hello";
-		System.out.println(sA.hashCode());
-		System.out.println(sB.hashCode());
 	    }
-	    
-//	    pomdp.displayPolicy();
+
 
 	    //double [] obsfit = pomdp.evaluateObservations(1);
 	    //for (int i =0; i<obsfit.length; i++) 
@@ -351,7 +305,7 @@ class Solver implements Serializable {
 		    tmp = OP.mult(tmp,pomdp.actions[0].obsFn[1]);
 		    tmp.display();
 		    */
-//		    pomdp.displayPolicy();
+		    //pomdp.displayPolicy();
 		    //pomdp.addbeldiff = true;
 		    //System.out.println("addbeldiff is "+pomdp.addbeldiff);
 		    
@@ -389,19 +343,12 @@ class Solver implements Serializable {
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 			
 			while (nits > 0) {
-				System.out.println("Reading belief state stored in: "+belfile);
 			    System.out.println("current belief state: ");
 			    pomdp.printBeliefState(belState);
-			    //System.out.println(belState.toString());
-//			    String holder = new String();
-//			    PrintStream = new PrintStream(holder);
-			    
-//			    belState.printSpuddDD(System.out);
 			    actId = pomdp.policyQuery(belState,heuristic);
 			    System.out.println("action suggested by policy: "+actId+" which is "+pomdp.actions[actId].name);
 			    System.out.print("enter action to use:");
 			    inact = in.readLine();
-			    System.out.println("Action entered is :"+ inact);
 			    cactId = pomdp.findActionByName(inact);
 			    if (cactId >= 0) {
 				actId = cactId;
@@ -409,9 +356,9 @@ class Solver implements Serializable {
 			    System.out.println("action used: "+actId+" which is "+pomdp.actions[actId].name);
 			    
 			    // to see a distribution over observations given the belief state and the action selected
-//			    obsDist = OP.addMultVarElim(pomdp.concatenateArray(belState,pomdp.actions[actId].transFn,pomdp.actions[actId].obsFn), 
-//			    pomdp.concatenateArray(pomdp.varIndices,pomdp.primeVarIndices));
-//			    obsDist.display();
+			    //obsDist = OP.addMultVarElim(pomdp.concatenateArray(belState,pomdp.actions[actId].transFn,pomdp.actions[actId].obsFn), 
+			    //pomdp.concatenateArray(pomdp.varIndices,pomdp.primeVarIndices));
+			    //obsDist.display();
 
 
 			    for (int o=0; o<pomdp.nObsVars; o++) {
