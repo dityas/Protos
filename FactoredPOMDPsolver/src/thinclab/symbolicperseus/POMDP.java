@@ -9,6 +9,8 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.*;
+import java.util.HashMap;
 
 import thinclab.symbolicperseus.StateVar;
 
@@ -1011,6 +1013,42 @@ public class POMDP implements Serializable {
 					MySet.remove(varIndices, varId + 1));
 		}
 		printBeliefState(fbs);
+	}
+	
+	public HashMap<String, ArrayList<Float>> getBeliefStateMap(DD belState) {
+		/*
+		 * Makes a hashmap of belief state and values and returns it
+		 */
+		
+		HashMap<String, ArrayList<Float>> beliefs = new HashMap<String, ArrayList<Float>>();
+		DD[] fbs = new DD[nStateVars];
+		for (int varId = 0; varId < nStateVars; varId++) {
+			fbs[varId] = OP.addMultVarElim(belState,
+					MySet.remove(varIndices, varId + 1));
+			
+			// Make state variable name
+			String name = varName[varId];
+			
+			// Get respective belief for the variable
+			DD[] varChildren = fbs[varId].getChildren();
+			ArrayList<Float> childVals = new ArrayList<Float>();
+			
+			if (varChildren == null) {
+				for (int i=0; i < stateVars[varId].arity; i++) {
+					childVals.add(new Float(fbs[varId].getVal()));
+				}
+			}
+			
+			else {
+				for (int i=0; i < stateVars[varId].arity; i++) {
+					childVals.add(new Float(varChildren[i].getVal()));
+				}
+			}
+			
+			beliefs.put(name, childVals);
+		}
+		
+		return beliefs;
 	}
 
 	public void printBeliefState(DD[] belState) {

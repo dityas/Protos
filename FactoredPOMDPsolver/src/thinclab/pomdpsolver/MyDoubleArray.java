@@ -1,9 +1,0 @@
-package thinclab.pomdpsolver;
-class MyDoubleArray {
-
-		public double[] doubleArray;
-
-		public MyDoubleArray(double[] doubleArray) {
-				this.doubleArray = doubleArray;
-		}
-}

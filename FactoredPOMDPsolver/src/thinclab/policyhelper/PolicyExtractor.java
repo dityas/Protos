@@ -92,32 +92,39 @@ public class PolicyExtractor {
 			
 			// Do till there are no terminal policy leaves
 			while(!policyLeaves.isEmpty()) {
-
-				nodeCurr = policyLeaves.remove(policyLeaves.size() - 1);
+//				System.out.println(policyNodes);
+				System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+				System.out.println("LEAVES: " + policyLeaves);
+				nodeCurr = policyLeaves.remove(0);
 				List<PolicyNode> newLeaves = new ArrayList<PolicyNode>();
-//				System.out.println("Starting from action " + p.actions[nodeCurr.actId].name);
+				System.out.println("CURRNODE: " + nodeCurr);
+				System.out.println("LEAVES: " + policyLeaves);
+				System.out.println("POLICY: " + policyNodes);
 				
 				// For all observations, perform belief updates and get best action nodes
 				Enumeration<List<String>> obsEnum = Collections.enumeration(obs);
 				while(obsEnum.hasMoreElements()) {
-//					System.out.println("Policy has " + policyNodes.size() + " nodes and " + policyLeaves.size() + " unexplored leaves ");
+					System.out.println("==============================================================================");
+					System.out.println("Policy has " + policyNodes.size() + " nodes and " + policyLeaves.size() + " unexplored leaves ");
 					List<String> theObs = obsEnum.nextElement();
 
 					// Perform belief update and make next policy node
+					System.out.println("CURRENT BELIEF: " + this.p.getBeliefStateMap(nodeCurr.belief));
 					PolicyNode nodeNext = new PolicyNode();
 					nodeNext.belief = p.beliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
 					
 					// Zero probability observations
 					if (nodeNext.belief != DD.one) {
-//						nodeNext.belief.display(" ");
+						System.out.println("FOR OBSERVATION: " + theObs + " ACTION: " + nodeCurr.actId);
+						System.out.println("NEXTNODE BELIEF: " + this.p.getBeliefStateMap(nodeNext.belief));
 						
 //						System.out.println("Showing belief state");
-//						this.p.getBeliefStateMap(nodeNext.belief);
-						nodeNext.alphaId = p.policyBestAlphaMatch(nodeCurr.belief, p.alphaVectors, p.policy);
+						nodeNext.alphaId = p.policyBestAlphaMatch(nodeNext.belief, p.alphaVectors, p.policy);
 						nodeNext.actId = p.policy[nodeNext.alphaId];
+						System.out.println("NEXT ALPHA: " + nodeNext.alphaId);
+						System.out.println("NEXT ACT: " + nodeNext.actId);
 						
 						// Link new node to parent
-//						String obsString = String.join("|", theObs);
 						nodeCurr.nextNode.put(theObs, nodeNext.alphaId);
 						
 						// Add nextNode to list of newly generated leaves
@@ -129,28 +136,31 @@ public class PolicyExtractor {
 					}
 				} // while(obsEnum.hasMoreElements())
 				
-//				nodeCurr.belief = null;
+				nodeCurr.belief = null;
 				// Check for duplicate node in policyNodes
+				System.out.println("CURRENT POLICY: " + policyNodes);
+				System.out.println("LOOKING FOR: " + nodeCurr);
 				Iterator<PolicyNode> policyNodeIter = policyNodes.iterator();
 				boolean hasDuplicate = false;
 				while(policyNodeIter.hasNext()) {
 					PolicyNode existingNode = policyNodeIter.next();
-//					if (nodeCurr.actId == existingNode.actId && nodeCurr.alphaId == existingNode.alphaId) {
-					if (existingNode.shallowEquals(nodeCurr)) {
+					if (nodeCurr.actId == existingNode.actId && nodeCurr.alphaId == existingNode.alphaId) {
+//					if (existingNode.shallowEquals(nodeCurr)) {
 						hasDuplicate = true;
+						System.out.println("SAME NODE: " + existingNode);
 //						policyNodes.remove(existingNode);
 					}
 				}
 				
 				// If node is unique, add to policy
 				if (!hasDuplicate) {
-					
+					System.out.println("UNIQUE NODE: " + nodeCurr);
 					policyNodes.add(nodeCurr);
 					policyLeaves.addAll(newLeaves);
 				}
 				
 				else {
-//					System.out.println("Found same node");
+					System.out.println("Found same node");
 				}
 				
 //				System.out.println("" + policyNodes.size() + " policy nodes");

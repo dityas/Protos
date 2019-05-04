@@ -6,14 +6,14 @@ import thinclab.policyhelper.PolicyExtractor;
 
 public class IPOMDPSolver {
 	
-	public static int nRounds = 5;
-    public static int nIterations =30;  // backup iterations  per round
+	public static int nRounds = 1;
+    public static int nIterations =50;  // backup iterations  per round
     public static int maxAlphaSetSize = 100;
     public static int numBelStates = 100;
-    public static int maxBelStates = 10000;
+    public static int maxBelStates = 100;
     public static int episodeLength = 50;  // when generating belief points
     public static double threshold = 0.001;
-    public static double explorProb=0.4;
+    public static double explorProb=0.0;
     
 	public static void main(String[] args) {
 		
