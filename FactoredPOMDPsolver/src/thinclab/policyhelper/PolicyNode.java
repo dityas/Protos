@@ -44,7 +44,7 @@ public class PolicyNode {
 
 	@Override
 	public String toString() {
-		return "PolicyNode [alphaId=" + this.alphaId + " actId=" + actId + ", belief=" + belief + ", nextNode="
+		return "PolicyNode [alphaId=" + this.alphaId + " actId=" + actId + ", belief=" + this.factoredBelief + ", nextNode="
 				+ nextNode.toString() + "]\r\n";
 	}
 	

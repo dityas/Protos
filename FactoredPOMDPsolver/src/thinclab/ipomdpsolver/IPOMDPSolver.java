@@ -6,10 +6,10 @@ import thinclab.policyhelper.PolicyExtractor;
 
 public class IPOMDPSolver {
 	
-	public static int nRounds = 1;
+	public static int nRounds = 2;
     public static int nIterations =50;  // backup iterations  per round
     public static int maxAlphaSetSize = 100;
-    public static int numBelStates = 100;
+    public static int numBelStates = 1000;
     public static int maxBelStates = 100;
     public static int episodeLength = 50;  // when generating belief points
     public static double threshold = 0.001;
@@ -18,7 +18,8 @@ public class IPOMDPSolver {
 	public static void main(String[] args) {
 		
 		// Attacker SPUDD
-		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/coffee3po.dat";
+//		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/coffee3po.dat";
+		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
 		
 		// Solve attacker POMDP
 		POMDP attackerPomdp = new POMDP(attacker_SPUDD, false);
