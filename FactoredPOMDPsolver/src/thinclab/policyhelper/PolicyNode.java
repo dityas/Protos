@@ -12,6 +12,7 @@ public class PolicyNode {
 	int alphaId=-1;
 	int actId = 1;
 	DD belief;
+	HashMap<String, ArrayList<Float>> factoredBelief = new HashMap<String, ArrayList<Float>>();
 	Map<List<String>, Integer> nextNode = new HashMap<List<String>, Integer>();
 	
 	public boolean shallowEquals(PolicyNode other) {

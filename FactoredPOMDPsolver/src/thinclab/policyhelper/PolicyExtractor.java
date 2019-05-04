@@ -121,6 +121,7 @@ public class PolicyExtractor {
 //						System.out.println("Showing belief state");
 						nodeNext.alphaId = p.policyBestAlphaMatch(nodeNext.belief, p.alphaVectors, p.policy);
 						nodeNext.actId = p.policy[nodeNext.alphaId];
+						nodeNext.factoredBelief = this.p.getBeliefStateMap(nodeNext.belief);
 						System.out.println("NEXT ALPHA: " + nodeNext.alphaId);
 						System.out.println("NEXT ACT: " + nodeNext.actId);
 						
