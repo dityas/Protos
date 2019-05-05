@@ -79,6 +79,7 @@ public class PolicyExtractor {
 			nodeCurr.belief = p.initialBelState;
 			nodeCurr.alphaId = p.policyBestAlphaMatch(nodeCurr.belief, p.alphaVectors, p.policy);
 			nodeCurr.actId = p.policy[nodeCurr.alphaId];
+			nodeCurr.actName = this.p.actions[nodeCurr.actId].name;
 			nodeCurr.factoredBelief = this.p.getBeliefStateMap(nodeCurr.belief);
 //			System.out.println("Suggesting action " + p.actions[nodeCurr.actId].name);
 			
@@ -122,6 +123,7 @@ public class PolicyExtractor {
 						nodeNext.alphaId = p.policyBestAlphaMatch(nodeNext.belief, p.alphaVectors, p.policy);
 						nodeNext.actId = p.policy[nodeNext.alphaId];
 						nodeNext.factoredBelief = this.p.getBeliefStateMap(nodeNext.belief);
+						nodeNext.actName = this.p.actions[nodeNext.actId].name;
 						System.out.println("NEXT ALPHA: " + nodeNext.alphaId);
 						System.out.println("NEXT ACT: " + nodeNext.actId);
 						

@@ -3,6 +3,8 @@ package thinclab.ipomdpsolver;
 import thinclab.symbolicperseus.POMDP;
 //import thinclab.symbolicperseus.Solver;
 import thinclab.policyhelper.PolicyExtractor;
+import thinclab.policyhelper.PolicyVisualizer;
+import thinclab.policyhelper.PolicyGraph;
 
 public class IPOMDPSolver {
 	
@@ -15,10 +17,12 @@ public class IPOMDPSolver {
     public static double threshold = 0.001;
     public static double explorProb=0.0;
     
+    private static PolicyVisualizer visualizer;
+    
 	public static void main(String[] args) {
 		
 		// Attacker SPUDD
-//		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/coffee3po.dat";
+//		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/new_attacker.txt";
 		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
 		
 		// Solve attacker POMDP
@@ -35,7 +39,13 @@ public class IPOMDPSolver {
 		
 		// Extract attacker policy
 		PolicyExtractor attackerPolicy = new PolicyExtractor(attackerPomdp);
-		System.out.println(attackerPolicy.policyNodes);
+		
+		// Make Policy Graph
+		System.out.println("Making graph");
+		PolicyGraph attackerPolicyGraph = new PolicyGraph(attackerPolicy.policyNodes);
+		attackerPolicyGraph.printPolicyGraph();
+		
+		visualizer = new PolicyVisualizer(attackerPolicyGraph);
 		
 	}
 }

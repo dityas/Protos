@@ -2,22 +2,22 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/collections-generic-4.01.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/colt-1.2.0.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/concurrent-1.3.4.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/j3d-core-1.3.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/jung-3d-2.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/jung-3d-demos-2.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/jung-algorithms-2.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/jung-api-2.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/jung-graph-impl-2.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/jung-io-2.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/jung-jai-2.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/jung-jai-samples-2.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/jung-samples-2.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/jung-visualization-2.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/stax-api-1.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/vecmath-1.3.1.jar"/>
-	<classpathentry kind="lib" path="/home/adityas/Downloads/wstx-asl-3.2.6.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/collections-generic-4.01.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/colt-1.2.0.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/concurrent-1.3.4.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/j3d-core-1.3.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/jung-3d-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/jung-3d-demos-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/jung-algorithms-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/jung-api-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/jung-graph-impl-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/jung-io-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/jung-jai-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/jung-jai-samples-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/jung-samples-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/jung-visualization-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/stax-api-1.0.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/vecmath-1.3.1.jar"/>
+	<classpathentry kind="lib" path="/home/adityas/Downloads/jung/wstx-asl-3.2.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
