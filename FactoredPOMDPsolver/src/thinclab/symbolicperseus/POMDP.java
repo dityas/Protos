@@ -467,8 +467,8 @@ public class POMDP implements Serializable {
 		nextBelState = OP.primeVars(nextBelState, -nVars);
 		DD obsProb = OP.addMultVarElim(nextBelState, varIndices);
 		if (obsProb.getVal() < 1e-8) {
-			System.out
-					.println("WARNING: Zero-probability observation, resetting belief state to a uniform distribution");
+//			System.out
+//					.println("WARNING: Zero-probability observation, resetting belief state to a uniform distribution");
 			nextBelState = DD.one;
 		}
 		nextBelState = OP.div(nextBelState,

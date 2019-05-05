@@ -76,9 +76,9 @@ public class PolicyGraph {
 		} // while(nodeIter.hasNext())
 	} // public PolicyGraph(List<PolicyNode> policyNodes)
 	
-	public void printPolicyGraph() {
+	public void printPrettyPolicyGraph() {
 		System.out.println("POLICY GRAPH: ");
-		System.out.println(this.policyGraph);
+		System.out.println(this.prettyPolicyGraph);
 	} // public void printPolicyGraph()
 	
 	public void visualizePolicyGraph() {

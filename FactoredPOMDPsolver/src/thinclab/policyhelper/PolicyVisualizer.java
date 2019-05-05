@@ -62,7 +62,7 @@ public class PolicyVisualizer {
 		Transformer<PolicyEdge, String>transformer = new Transformer<PolicyEdge, String>() {
 			@Override
 			public String transform(PolicyEdge polEdge) {
-				return "OBS: " + polEdge.observation;
+				return "<html><bold>OBS: " + polEdge.observation + "</bold>";
 			}
 		};
 
