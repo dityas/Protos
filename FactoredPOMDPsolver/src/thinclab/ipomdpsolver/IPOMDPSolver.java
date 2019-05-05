@@ -8,7 +8,7 @@ import thinclab.policyhelper.PolicyGraph;
 
 public class IPOMDPSolver {
 	
-	public static int nRounds = 5;
+	public static int nRounds = 1;
     public static int nIterations =100;  // backup iterations  per round
     public static int maxAlphaSetSize = 100;
     public static int numBelStates = 1000;
@@ -22,8 +22,8 @@ public class IPOMDPSolver {
 	public static void main(String[] args) {
 		
 		// Attacker SPUDD
-		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker.txt";
-//		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
+//		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/coffee3po.dat";
+		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
 		
 		// Solve attacker POMDP
 		POMDP attackerPomdp = new POMDP(attacker_SPUDD, false);

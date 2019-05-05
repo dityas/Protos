@@ -78,7 +78,7 @@ public class PolicyGraph {
 	
 	public void printPrettyPolicyGraph() {
 		System.out.println("POLICY GRAPH: ");
-		System.out.println(this.prettyPolicyGraph);
+		System.out.println(this.policyGraph);
 	} // public void printPolicyGraph()
 	
 	public void visualizePolicyGraph() {

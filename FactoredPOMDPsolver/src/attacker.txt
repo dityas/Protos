@@ -105,8 +105,8 @@ dd compromised_exploit
 	(M_COMPROMISED
 		(yes	(M_COMPROMISED'	(yes	(1.0))
 								(no		(0.0))))
-		(no		(M_COMPROMISED'	(yes	(0.5))
-								(no		(0.5))))
+		(no		(M_COMPROMISED'	(yes	(0.9))
+								(no		(0.1))))
 	)
 enddd
 
@@ -295,8 +295,8 @@ dd exploit_success_exploit
 					(no		(M_FAKEROOTED'
 								(yes	(EXPLOIT_SUCCESS'	(yes	(0.7))
 															(no		(0.3))))
-								(no		(EXPLOIT_SUCCESS'	(yes	(0.0))
-															(no		(1.0))))))))
+								(no		(EXPLOIT_SUCCESS'	(yes	(0.001))
+															(no		(0.999))))))))
 	)
 enddd
 
@@ -305,8 +305,8 @@ dd persist_success_exploit
 	(M_BACKDOORED'
 		(yes	(PERSIST_SUCCESS'	(yes	(0.7))
 									(no		(0.3))))
-		(no		(PERSIST_SUCCESS'	(yes	(0.0))
-									(no		(1.0))))
+		(no		(PERSIST_SUCCESS'	(yes	(0.001))
+									(no		(0.999))))
 	)
 enddd
 
@@ -499,4 +499,4 @@ reward	[+
 ]
 
 discount 0.9
-tolerance 0.01
+tolerance 0.0001

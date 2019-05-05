@@ -26,19 +26,6 @@ public class PolicyNode {
 		else {
 			return false;
 		}
-//			Iterator<String> keys = this.nextNode.keySet().iterator();
-//			
-//			while(keys.hasNext()) {
-//				String theKey = keys.next();
-//				
-//				if (this.nextNode.get(theKey) != other.nextNode.get(theKey)) {
-////					System.out.println("DEBUG: Maps differ");
-//					return false;
-//				} 
-//			}
-//			
-//			return true;
-//		}
 	}
 
 	@Override
@@ -105,6 +92,11 @@ public class PolicyNode {
 			// Add compressed observation to compressed hash map
 			this.compressedNextNode.put(Arrays.asList(compressedObs), child);
 		} // while (reverseMapIter.hasNext())
+		
+//		System.out.println("BEFORE: ");
+//		System.out.println(this.nextNode);
+//		System.out.println("AFTER: ");
+//		System.out.println(this.compressedNextNode);
 	} // void compressNextNodes()
 	
 	public String getBeliefLabel() {
