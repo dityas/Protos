@@ -3,7 +3,7 @@ package thinclab.symbolicperseus;
 import java.util.*;
 import java.io.*;
 
-class OP {
+public class OP {
 
     //////////////////////////////////////////////////////
     // add 2 DDs

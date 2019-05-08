@@ -2,6 +2,7 @@ package thinclab.policyhelper;
 import java.util.Map;
 
 import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.policyhelper.PolicyNode;
@@ -26,6 +27,24 @@ public class PolicyExtractor {
 		public List<PolicyNode> policyNodes = new ArrayList<PolicyNode>();
 		public List<PolicyNode> printablePolicyNodes = new ArrayList<PolicyNode>();
 		private POMDP p = null;
+		
+		private boolean checkZeroProbabObs(DD belstate) {
+			/*
+			 * method to check if the belief state was a result of a zero probability obs
+			 */
+			DD uniformBelState = DD.one;
+			uniformBelState = OP.div(uniformBelState,
+					OP.addMultVarElim(uniformBelState, this.p.varIndices));
+			
+			if (belstate == uniformBelState) {
+				return true;
+			}
+			
+			else {
+				return false;
+			}
+			
+		} // private boolean checkZeroProbabObs(DD belstate)
 		
 		private void recursiveObsGen(List<List<String>> obsComb, List<StateVar> obsVars, List<String> obsVector, int finalLen, int varIndex){
 			/* 
@@ -109,16 +128,17 @@ public class PolicyExtractor {
 //					System.out.println("Policy has " + policyNodes.size() + " nodes and " + policyLeaves.size() + " unexplored leaves ");
 					List<String> theObs = obsEnum.nextElement();
 					
-					System.out.println("COMPUTING NEXT NODES FOR NODE " + nodeCurr.alphaId + 
-							" TAKING ACTION " + this.p.actions[nodeCurr.actId].name +
-							" AND OBSERVING " + theObs);
+//					System.out.println("COMPUTING NEXT NODES FOR NODE " + nodeCurr.alphaId + 
+//							" TAKING ACTION " + this.p.actions[nodeCurr.actId].name +
+//							" AND OBSERVING " + theObs);
 					// Perform belief update and make next policy node
 //					System.out.println("CURRENT BELIEF: " + this.p.getBeliefStateMap(nodeCurr.belief));
 					PolicyNode nodeNext = new PolicyNode();
 					nodeNext.belief = p.beliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
 					
 					// Zero probability observations
-					if (nodeNext.belief != DD.one) {
+//					if (!this.checkZeroProbabObs(nodeNext.belief)) {
+					if (true) {
 //						System.out.println("FOR OBSERVATION: " + theObs + " ACTION: " + nodeCurr.actId);
 //						System.out.println("NEXTNODE BELIEF: " + this.p.getBeliefStateMap(nodeNext.belief));
 						
