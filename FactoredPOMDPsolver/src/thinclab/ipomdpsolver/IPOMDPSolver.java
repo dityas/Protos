@@ -10,10 +10,10 @@ public class IPOMDPSolver {
 	
 	public static int nRounds = 5;
     public static int nIterations = 50;  // backup iterations  per round
-    public static int maxAlphaSetSize = 1000;
-    public static int numBelStates = 1000;
-    public static int maxBelStates = 1000;
-    public static int episodeLength = 100;  // when generating belief points
+    public static int maxAlphaSetSize = 100;
+    public static int numBelStates = 100;
+    public static int maxBelStates = 100;
+    public static int episodeLength = 50;  // when generating belief points
     public static double threshold = 0.0001;
     public static double explorProb=0.0;
     
