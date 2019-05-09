@@ -414,7 +414,7 @@ action EXPLOIT
 		OBS (exploit_obs)
 	endobserve
 	
-	cost (1.0)
+	cost (2.0)
 endaction
 
 reward
@@ -426,4 +426,5 @@ reward
 )
 
 discount 0.9
-tolerance 0.001
+tolerance 0.00001
+

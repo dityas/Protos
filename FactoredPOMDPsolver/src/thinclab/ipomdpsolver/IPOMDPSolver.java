@@ -8,7 +8,7 @@ import thinclab.policyhelper.PolicyGraph;
 
 public class IPOMDPSolver {
 	
-	public static int nRounds = 5;
+	public static int nRounds = 10;
     public static int nIterations =100;  // backup iterations  per round
     public static int maxAlphaSetSize = 100;
     public static int numBelStates = 100;
@@ -36,7 +36,7 @@ public class IPOMDPSolver {
 							explorProb, 
 							nIterations, 
 							maxAlphaSetSize, 
-							attacker_SPUDD.substring(0,attacker_SPUDD.lastIndexOf("."))+".pomdp", false);
+							attacker_SPUDD.substring(0,attacker_SPUDD.lastIndexOf(".")), false);
 		
 		// Extract attacker policy
 		PolicyExtractor attackerPolicy = new PolicyExtractor(attackerPomdp);
