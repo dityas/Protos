@@ -31,9 +31,9 @@ public class PolicyVisualizer {
 		this.policyGraph = policyGraph;
 
 		SpringLayout<PolicyNode, PolicyEdge> layout = 
-				new SpringLayout<PolicyNode, PolicyEdge>(this.policyGraph.prettyPolicyGraph);
+				new SpringLayout<PolicyNode, PolicyEdge>(this.policyGraph.getGraph());
 		CircleLayout<PolicyNode, PolicyEdge> circleLayout = 
-				new CircleLayout<PolicyNode, PolicyEdge>(this.policyGraph.prettyPolicyGraph);
+				new CircleLayout<PolicyNode, PolicyEdge>(this.policyGraph.getGraph());
 		
 //		System.out.println(layout.getForceMultiplier());
 //		System.out.println(layout.getRepulsionRange());
