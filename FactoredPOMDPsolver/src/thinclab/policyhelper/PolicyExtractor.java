@@ -5,6 +5,7 @@ import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
+import thinclab.symbolicperseus.ZeroProbabilityObsException;
 import thinclab.policyhelper.PolicyNode;
 
 import java.util.HashMap;
@@ -134,11 +135,9 @@ public class PolicyExtractor {
 					// Perform belief update and make next policy node
 //					System.out.println("CURRENT BELIEF: " + this.p.getBeliefStateMap(nodeCurr.belief));
 					PolicyNode nodeNext = new PolicyNode();
-					nodeNext.belief = p.beliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
 					
-					// Zero probability observations
-//					if (!this.checkZeroProbabObs(nodeNext.belief)) {
-					if (true) {
+					try {
+						nodeNext.belief = p.safeBeliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
 //						System.out.println("FOR OBSERVATION: " + theObs + " ACTION: " + nodeCurr.actId);
 //						System.out.println("NEXTNODE BELIEF: " + this.p.getBeliefStateMap(nodeNext.belief));
 						
@@ -155,11 +154,14 @@ public class PolicyExtractor {
 						
 						// Add nextNode to list of newly generated leaves
 						newLeaves.add(nodeNext);
-					} // if (nodeNext.belief != DD.one)
+					}
 					
-					else {
+					catch (ZeroProbabilityObsException e) {
+//						System.out.println("Exception " + e.getMessage());
 //						System.out.println("Skipping node");
 					}
+					// Zero probability observations
+//					if (!this.checkZeroProbabObs(nodeNext.belief)) {
 				} // while(obsEnum.hasMoreElements())
 				
 				nodeCurr.belief = null;

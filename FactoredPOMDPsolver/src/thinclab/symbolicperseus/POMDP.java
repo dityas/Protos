@@ -439,6 +439,37 @@ public class POMDP implements Serializable {
 		}
 
 	}
+	
+	public DD safeBeliefUpdate(DD belState, int actId, String[] obsnames) throws ZeroProbabilityObsException {
+		/*
+		 * Throws exception on zero probability observations
+		 */
+		if (obsnames.length != nObsVars)
+			return null;
+		int[] obsvals = new int[obsnames.length];
+		for (int o = 0; o < obsnames.length; o++) {
+			obsvals[o] = findObservationByName(o, obsnames[o]) + 1;
+			if (obsvals[o] < 0)
+				return null;
+		}
+		
+		int[][] obsVals = stackArray(primeObsIndices, obsvals);
+		
+		DD[] restrictedObsFn = OP.restrictN(actions[actId].obsFn, obsVals);
+		DD nextBelState = OP.addMultVarElim(
+				concatenateArray(belState, actions[actId].transFn,
+						restrictedObsFn), varIndices);
+		nextBelState = OP.primeVars(nextBelState, -nVars);
+		DD obsProb = OP.addMultVarElim(nextBelState, varIndices);
+		if (obsProb.getVal() < 1e-8) {
+			throw new ZeroProbabilityObsException(
+					"OBSERVATION " + obsnames + " is zero probability");
+		}
+		nextBelState = OP.div(nextBelState,
+				OP.addMultVarElim(nextBelState, varIndices));
+		return nextBelState;
+		
+	}
 
 	public DD beliefUpdate(DD belState, int actId, String[] obsnames) {
 		if (obsnames.length != nObsVars)

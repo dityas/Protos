@@ -134,13 +134,13 @@ dd session_privs_exploit
 				(HAS_ROOT_VULN
 					(yes
 						(SESSION_PRIVS'
-							(none	(0.0))
-							(user	(1.0))
+							(none	(1.0))
+							(user	(0.0))
 							(admin	(0.0))))
 					(no
 						(SESSION_PRIVS'
-							(none	(0.0))
-							(user	(1.0))
+							(none	(1.0))
+							(user	(0.0))
 							(admin	(0.0))))))
 		)
 	)
@@ -157,8 +157,8 @@ dd session_privs_exploit
 					(no
 						(SESSION_PRIVS'
 							(none	(0.0))
-							(user	(0.0))
-							(admin	(1.0))))))
+							(user	(1.0))
+							(admin	(0.0))))))
 			(no
 				(HAS_ROOT_VULN
 					(yes
@@ -168,9 +168,9 @@ dd session_privs_exploit
 							(admin	(1.0))))
 					(no
 						(SESSION_PRIVS'
-							(none	(0.0))
+							(none	(1.0))
 							(user	(0.0))
-							(admin	(1.0))))))
+							(admin	(0.0))))))
 		)
 	)
 
@@ -414,7 +414,8 @@ action EXPLOIT
 		OBS (exploit_obs)
 	endobserve
 	
-	cost (2.0)
+	cost (HAS_VULN	(yes (0.0))
+					(no  (1.0)))
 endaction
 
 reward
