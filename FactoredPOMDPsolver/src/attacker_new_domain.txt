@@ -2,16 +2,16 @@
 (variables
 	(HAS_VULN			yes no)
 	(HAS_ROOT_VULN		yes no)
-	(HAS_NC_DATA		yes no)
+	(HAS_NC_DATA		yes no) // useful??? All systems may have this
 	(HAS_C_DATA			yes no)
 	(HAS_FAKE_DATA		yes no)
 	(C_DATA_VIS			user admin)
 	(FAKE_DATA_VIS		user admin)
 
-	(SESSION_PRIVS		none user admin)
-	(PERSIST_GAINED		none user admin)
+	(SESSION_PRIVS		none user admin) 	// combined M_COMPROMISED and M_ROOTED
+	(PERSIST_GAINED		none user admin) // M_COMPROMISED and M_BACKDOORED
 
-	(DATA_ACCESSED		none c nc f)
+	(DATA_ACCESSED		none c nc f) // 
 	(EXFIL_ONGOING		yes no)
 )
 
@@ -490,7 +490,73 @@ dd exploit_obs
 )
 enddd
 
+dd persist_level
+(SESSION_PRIVS
+	(none
+		(PERSIST_GAINED'
+			(none 	(1.0))
+			(user 	(0.0))
+			(admin  (0.0))
+		)
+	)
+	
+	(user
+		(PERSIST_GAINED'
+			(none 	(0.1))
+			(user 	(0.9))
+			(admin  (0.0))
+		)
+	)
+	
+	(admin
+		(PERSIST_GAINED'
+			(none 	(0.0))
+			(user 	(0.0))
+			(admin  (1.0))
+		)
+	)
+)
+enddd
 
+dd persist_obs
+(PERSIST_GAINED'
+	(none
+		(OBS'
+			(success	(0.0))
+			(none		(1.0))
+			(vuln		(0.0))
+			(data_c		(0.0))
+			(data_nc 	(0.0))
+			(user 		(0.0))
+			(admin 		(0.0))
+		)					
+	)
+	
+	(user
+		(OBS'
+			(success	(1.0))
+			(none		(0.0))
+			(vuln		(0.0))
+			(data_c		(0.0))
+			(data_nc 	(0.0))
+			(user 		(0.0))
+			(admin 		(0.0))
+		)
+	)
+	
+	(admin
+		(OBS'
+			(success	(1.0))
+			(none		(0.0))
+			(vuln		(0.0))
+			(data_c		(0.0))
+			(data_nc 	(0.0))
+			(user 		(0.0))
+			(admin 		(0.0))
+		)
+	)
+)
+enddd
 
 // NOP action causes no state transitions and no observations
 //	Actions
@@ -547,7 +613,7 @@ action VULN_SCAN
 		OBS (vuln_scan_obs)
 	endobserve
 
-//	cost(0.5)
+	cost(0.1)
 
 endaction
 
@@ -570,7 +636,7 @@ action PERM_SCAN
 		OBS (perm_scan_obs)
 	endobserve
 
-//	cost (0.5)
+	cost (0.1)
 
 endaction
 
@@ -595,14 +661,35 @@ action EXPLOIT
 	cost (1.0)
 endaction
 
+action PERSIST
+
+	HAS_VULN (SAMEHAS_VULN)
+	HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
+	HAS_C_DATA (SAMEHAS_C_DATA)
+	HAS_NC_DATA (SAMEHAS_NC_DATA)
+	HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
+	C_DATA_VIS (SAMEC_DATA_VIS)
+	FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
+	SESSION_PRIVS (SAMESESSION_PRIVS)
+	PERSIST_GAINED (persist_level)
+	DATA_ACCESSED (SAMEDATA_ACCESSED)
+	EXFIL_ONGOING (SAMEEXFIL_ONGOING)
+
+	observe
+		OBS (persist_obs)
+	endobserve
+	
+	cost (1.0)
+endaction
+
 reward
 
-(SESSION_PRIVS
+(PERSIST_GAINED
 	(none	(0.0))
 	(user	(0.0))
 	(admin	(2.0))
 )
 
 discount 0.9
-tolerance 0.00001
+tolerance 0.0001
 

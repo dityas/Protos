@@ -8,10 +8,10 @@ import thinclab.policyhelper.PolicyGraph;
 
 public class IPOMDPSolver {
 	
-	public static int nRounds = 5;
-    public static int nIterations = 50;  // backup iterations  per round
+	public static int nRounds = 2;
+    public static int nIterations = 100;  // backup iterations  per round
     public static int maxAlphaSetSize = 100;
-    public static int numBelStates = 100;
+    public static int numBelStates = 10000;
     public static int maxBelStates = 100;
     public static int episodeLength = 50;  // when generating belief points
     public static double threshold = 0.0001;

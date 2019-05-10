@@ -183,7 +183,7 @@ public class POMDP implements Serializable {
 	}
 
 	public void solveQMDP() {
-		solveQMDP(50);
+		solveQMDP(500);
 	}
 
 	// solves the POMDP as an MDP
@@ -945,7 +945,7 @@ public class POMDP implements Serializable {
 		int bestAlphaId = 0;
 		for (int alphaId = 0; alphaId < alphaVectors.length; alphaId++) {
 			val = OP.dotProduct(belState, alphaVectors[alphaId], varIndices);
-			if (val > bestVal) {
+			if (val >= bestVal) {
 				bestVal = val;
 				bestAlphaId = alphaId;
 			}
@@ -1255,10 +1255,11 @@ public class POMDP implements Serializable {
 			if (!multinits) {
 				reachableBelRegionCurrentPolicy(maxSize, maxTries,
 						episodeLength, threshold, explorProb, mdpprob);
-			} else {
-				reachableBelRegionCurrentPolicyMultipleInits(maxSize, maxTries,
-						episodeLength, threshold, explorProb, mdpprob);
-			}
+			} 
+//			else {
+//				reachableBelRegionCurrentPolicyMultipleInits(maxSize, maxTries,
+//						episodeLength, threshold, explorProb, mdpprob);
+//			}
 			// possibly print this out (for debugging)
 			// printBelRegion();
 			// run symbolic Perseus
@@ -1441,9 +1442,11 @@ public class POMDP implements Serializable {
 				isMDP = false;
 			else
 				isMDP = true;
-			if (isMDP)
+			if (isMDP) {
+//				System.out.println("USING MDP");
 				stateConfig = OP.sampleMultinomial(belState, varIndices);
-			for (int stepId = 0; count < maxSize & stepId < episodeLength; stepId++) {
+			}
+			for (int stepId = 0; count < maxSize /* & stepId < episodeLength*/; stepId++) {
 				// sample action
 				choice = OP.sampleMultinomial(eprob);
 				actId = 1;
@@ -1453,7 +1456,8 @@ public class POMDP implements Serializable {
 								qFn, qPolicy);
 					else
 						actId = policyQuery(belState);
-				} else {
+				} 
+				else {
 					actId = Global.random.nextInt(nActions);
 				}
 				// System.out.println("choice "+choice+" action "+actId);
@@ -1689,9 +1693,9 @@ public class POMDP implements Serializable {
 		double maxAbsVal = 0;
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 			steptolerance = tolerance;
-
-			System.out.println(" there are " + alphaVectors.length
-					+ " alpha vectors:");
+			System.out.println("STEP ID: " + stepId);
+//			System.out.println(" there are " + alphaVectors.length
+//					+ " alpha vectors:");
 
 			primedV = new DD[alphaVectors.length];
 			for (int i = 0; i < alphaVectors.length; i++) {
@@ -1748,24 +1752,24 @@ public class POMDP implements Serializable {
 					diff = permutedIds.getDiffs(maxcurrpbv, maxnewpbv,
 							steptolerance);
 
-					if (debug) {
-						System.out.print("diff is ");
-						for (int k = 0; k < diff.length; k++)
-							System.out.print(" " + k + ":" + diff[k]);
-						System.out.println();
-					}
+//					if (true) {
+//						System.out.print("diff is ");
+//						for (int k = 0; k < diff.length; k++)
+//							System.out.print(" " + k + ":" + diff[k]);
+//						System.out.println();
+//					}
 					if (permutedIds.isempty())
 						break;
 					choice = OP.sampleMultinomial(diff);
 				}
-				if (debug) {
-					permutedIds.display();
-				}
+//				if (true) {
+//					permutedIds.display();
+//				}
 				int i = permutedIds.getSetDone(choice);
-				System.out.println(" num backups so far " + nDpBackups
-						+ " num belief points left " + permutedIds.getNumLeft()
-						+ " choice " + choice + " i " + i + "tolerance "
-						+ steptolerance);
+//				System.out.println(" num backups so far " + nDpBackups
+//						+ " num belief points left " + permutedIds.getNumLeft()
+//						+ " choice " + choice + " i " + i + "tolerance "
+//						+ steptolerance);
 				if (numNewAlphaVectors < 1
 						|| (OP.max(newPointBasedValues[i], numNewAlphaVectors)
 								- OP.max(currentPointBasedValues[i]) < steptolerance)) {
@@ -1778,10 +1782,10 @@ public class POMDP implements Serializable {
 									/ 2.0, onezero);
 					newVector.setWitness(i);
 
-					System.out.print(" " + OP.nEdges(newVector.alphaVector)
-							+ " edges, " + OP.nNodes(newVector.alphaVector)
-							+ " nodes, " + OP.nLeaves(newVector.alphaVector)
-							+ " leaves");
+//					System.out.print(" " + OP.nEdges(newVector.alphaVector)
+//							+ " edges, " + OP.nNodes(newVector.alphaVector)
+//							+ " nodes, " + OP.nLeaves(newVector.alphaVector)
+//							+ " leaves");
 					nDpBackups = nDpBackups + 1;
 
 					// merge and trim
@@ -1802,9 +1806,9 @@ public class POMDP implements Serializable {
 				}
 			}
 			// iteration is over,
-			System.out.println("iteration " + stepId
-					+ " is over...number of new alpha vectors: "
-					+ numNewAlphaVectors + "   numdp backupds " + nDpBackups);
+//			System.out.println("iteration " + stepId
+//					+ " is over...number of new alpha vectors: "
+//					+ numNewAlphaVectors + "   numdp backupds " + nDpBackups);
 
 			// compute statistics
 			//
@@ -1813,7 +1817,7 @@ public class POMDP implements Serializable {
 			// save data and copy over new to old
 			alphaVectors = new DD[numNewAlphaVectors];
 			currentPointBasedValues = new double[newPointBasedValues.length][numNewAlphaVectors];
-			System.out.println("policy/values are: ");
+//			System.out.println("policy/values are: ");
 			policy = new int[numNewAlphaVectors];
 			policyvalue = new double[numNewAlphaVectors];
 			for (int j = 0; j < nActions; j++)
@@ -1821,23 +1825,23 @@ public class POMDP implements Serializable {
 
 			for (int j = 0; j < numNewAlphaVectors; j++) {
 				alphaVectors[j] = newAlphaVectors[j].alphaVector;
-				System.out.println(" " + newAlphaVectors[j].actId + "/"
-						+ newAlphaVectors[j].value);
+//				System.out.println(" " + newAlphaVectors[j].actId + "/"
+//						+ newAlphaVectors[j].value);
 				policy[j] = newAlphaVectors[j].actId;
 				policyvalue[j] = newAlphaVectors[j].value;
 				uniquePolicy[policy[j]] = true;
 			}
-			System.out.println("unique policy :");
-			for (int j = 0; j < nActions; j++)
-				if (uniquePolicy[j])
-					System.out.print(" " + j);
-			System.out.println();
+//			System.out.println("unique policy :");
+//			for (int j = 0; j < nActions; j++)
+//				if (uniquePolicy[j])
+//					System.out.print(" " + j);
+//			System.out.println();
 
-			for (int i = 0; i < alphaVectors.length; i++) {
-				double bval = OP.factoredExpectationSparseNoMem(
-						belRegion[newAlphaVectors[i].witness], alphaVectors[i]);
-				System.err.println(" " + stepId + " " + policy[i] + " " + bval);
-			}
+//			for (int i = 0; i < alphaVectors.length; i++) {
+//				double bval = OP.factoredExpectationSparseNoMem(
+//						belRegion[newAlphaVectors[i].witness], alphaVectors[i]);
+//				System.err.println(" " + stepId + " " + policy[i] + " " + bval);
+//			}
 			for (int j = 0; j < belRegion.length; j++) {
 				System.arraycopy(newPointBasedValues[j], 0,
 						currentPointBasedValues[j], 0, numNewAlphaVectors);
@@ -1845,6 +1849,7 @@ public class POMDP implements Serializable {
 			System.out.println("best improvement: " + bestImprovement
 					+ "  worstDecline " + worstDecline);
 			bellmanErr = Math.min(10, Math.max(bestImprovement, -worstDecline));
+			System.out.println("BELLMAN ERROR: " + bellmanErr);
 		}
 
 	}
