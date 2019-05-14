@@ -1,14 +1,14 @@
 
 (variables
-	(HAS_VULN			yes no)
+//	(HAS_VULN			yes no)
 	(HAS_ROOT_VULN		yes no)
-	(HAS_NC_DATA		yes no) // useful??? All systems may have this
+//	(HAS_NC_DATA		yes no) // useful??? All systems may have this
 	(HAS_C_DATA			yes no)
 	(HAS_FAKE_DATA		yes no)
 	(C_DATA_VIS			user admin)
 	(FAKE_DATA_VIS		user admin)
 
-	(SESSION_PRIVS		none user admin) 	// combined M_COMPROMISED and M_ROOTED
+	(SESSION_PRIVS		user admin) 	// combined M_COMPROMISED and M_ROOTED
 	(PERSIST_GAINED		none user admin) // M_COMPROMISED and M_BACKDOORED
 
 	(DATA_ACCESSED		none c nc f) // 
@@ -20,18 +20,8 @@
 )
 
 init [*
-	
-	(HAS_VULN 
-		(yes (0.5)) 
-		(no (0.5))
-	)
-	
+		
 	(HAS_ROOT_VULN 
-		(yes (0.5)) 
-		(no (0.5))
-	)
-
-	(HAS_NC_DATA 
 		(yes (0.5)) 
 		(no (0.5))
 	)
@@ -56,9 +46,8 @@ init [*
 		(admin (0.5))
 	)
 
-	(SESSION_PRIVS		
-		(none (1.0)) 
-		(user (0.0)) 
+	(SESSION_PRIVS		 
+		(user (1.0)) 
 		(admin (0.0))
 	)
 
@@ -85,162 +74,61 @@ unnormalized
 
 // DD for ACCESS_LEVEL on EXPLOIT
 
-dd session_privs_exploit
-(SESSION_PRIVS
-	(none
-		(HAS_VULN
-			(yes
-				(HAS_ROOT_VULN
-					(yes
-						(SESSION_PRIVS'
-							(none	(0.1))
-							(user	(0.45))
-							(admin	(0.45))))
-					(no
-						(SESSION_PRIVS'
-							(none	(0.1))
-							(user	(0.9))
-							(admin	(0.0))))))
-			(no
-				(HAS_ROOT_VULN
-					(yes
-						(SESSION_PRIVS'
-							(none	(0.1))
-							(user	(0.0))
-							(admin	(0.9))))
-					(no
-						(SESSION_PRIVS'
-							(none	(1.0))
-							(user	(0.0))
-							(admin	(0.0))))))
+dd session_privs_esc
+(HAS_ROOT_VULN
+	(yes
+		(SESSION_PRIVS
+			(user
+				(SESSION_PRIVS'
+					(user (0.1))
+					(admin (0.9))
+				)
+			)
+			
+			(admin
+				(SESSION_PRIVS'
+					(user (0.0))
+					(admin (1.0))
+				)
+			)
 		)
 	)
-
-	(user
-		(HAS_VULN
-			(yes
-				(HAS_ROOT_VULN
-					(yes
-						(SESSION_PRIVS'
-							(none	(0.0))
-							(user	(0.1))
-							(admin	(0.9))))
-					(no
-						(SESSION_PRIVS'
-							(none	(0.0))
-							(user	(1.0))
-							(admin	(0.0))))))
-			(no
-				(HAS_ROOT_VULN
-					(yes
-						(SESSION_PRIVS'
-							(none	(1.0))
-							(user	(0.0))
-							(admin	(0.0))))
-					(no
-						(SESSION_PRIVS'
-							(none	(1.0))
-							(user	(0.0))
-							(admin	(0.0))))))
+	
+	(no
+		(SESSION_PRIVS
+			(user
+				(SESSION_PRIVS'
+					(user (1.0))
+					(admin (0.0))
+				)
+			)
+			
+			(admin
+				(SESSION_PRIVS'
+					(user (0.0))
+					(admin (1.0))
+				)
+			)
 		)
 	)
-
-	(admin
-		(HAS_VULN
-			(yes
-				(HAS_ROOT_VULN
-					(yes
-						(SESSION_PRIVS'
-							(none	(0.0))
-							(user	(0.0))
-							(admin	(1.0))))
-					(no
-						(SESSION_PRIVS'
-							(none	(0.0))
-							(user	(1.0))
-							(admin	(0.0))))))
-			(no
-				(HAS_ROOT_VULN
-					(yes
-						(SESSION_PRIVS'
-							(none	(0.0))
-							(user	(0.0))
-							(admin	(1.0))))
-					(no
-						(SESSION_PRIVS'
-							(none	(1.0))
-							(user	(0.0))
-							(admin	(0.0))))))
-		)
-	)
-
 )
 enddd
 
 dd vuln_scan_obs
 (HAS_ROOT_VULN'
 	(yes
-		(HAS_VULN'
-			(yes
-				(OBS'
-					(success	(0.0))
-					(none		(0.1))
-					(vuln		(0.9))
-					(data_c		(0.0))
-					(data_nc 	(0.0))
-					(user 		(0.0))
-					(admin 		(0.0))
-				)	
-			)
-
-			(no
-				(OBS'
-					(success	(0.0))
-					(none		(0.1))
-					(vuln		(0.9))
-					(data_c		(0.0))
-					(data_nc 	(0.0))
-					(user 		(0.0))
-					(admin 		(0.0))
-				)
-			)
+		(OBS'
+			(success	(0.0))
+			(none		(0.1))
+			(vuln		(0.9))
+			(data_c		(0.0))
+			(data_nc 	(0.0))
+			(user 		(0.0))
+			(admin 		(0.0))
 		)
 	)
-
+	
 	(no
-		(HAS_VULN'
-			(yes
-				(OBS'
-					(success	(0.0))
-					(none		(0.1))
-					(vuln		(0.9))
-					(data_c		(0.0))
-					(data_nc 	(0.0))
-					(user 		(0.0))
-					(admin 		(0.0))
-				)
-			)
-
-			(no
-				(OBS'
-					(success	(0.0))
-					(none		(1.0))
-					(vuln		(0.0))
-					(data_c		(0.0))
-					(data_nc 	(0.0))
-					(user 		(0.0))
-					(admin 		(0.0))
-				)
-			)
-		)
-	)
-)
-enddd
-
-
-dd perm_scan_obs
-(SESSION_PRIVS'
-	(none
 		(OBS'
 			(success	(0.0))
 			(none		(1.0))
@@ -251,7 +139,12 @@ dd perm_scan_obs
 			(admin 		(0.0))
 		)
 	)
+)
+enddd
 
+
+dd perm_scan_obs
+(SESSION_PRIVS'
 	(user
 		(OBS'
 			(success	(0.0))
@@ -318,173 +211,29 @@ enddd
 //)
 //enddd
 
-dd exploit_obs
-(HAS_ROOT_VULN'
-	(yes
-		(HAS_VULN'
-			(yes
-				(SESSION_PRIVS'
-					(none
-						(OBS'
-							(success	(0.0))
-							(none		(1.0))
-							(vuln		(0.0))
-							(data_c		(0.0))
-							(data_nc 	(0.0))
-							(user 		(0.0))
-							(admin 		(0.0))
-						)					
-					)
-					
-					(user
-						(OBS'
-							(success	(0.9))
-					    	(none		(0.1))
-					    	(vuln		(0.0))
-					    	(data_c		(0.0))
-					    	(data_nc 	(0.0))
-					    	(user 		(0.0))
-					    	(admin 		(0.0))
-						)   
-					)
-					
-					(admin
-						(OBS'
-					    	(success	(0.9))
-					    	(none		(0.1))
-					    	(vuln		(0.0))
-					    	(data_c		(0.0))
-					    	(data_nc 	(0.0))
-					    	(user 		(0.0))
-					    	(admin 		(0.0))
-					    )
-					)
-				)	
-			)
-			
-			(no
-				(SESSION_PRIVS'
-					(none
-						(OBS'
-							(success	(0.0))
-							(none		(1.0))
-							(vuln		(0.0))
-							(data_c		(0.0))
-							(data_nc 	(0.0))
-							(user 		(0.0))
-							(admin 		(0.0))
-						)					
-					)
-					
-					(user
-						(OBS'
-							(success	(0.0))
-					    	(none		(1.0))
-					    	(vuln		(0.0))
-					    	(data_c		(0.0))
-					    	(data_nc 	(0.0))
-					    	(user 		(0.0))
-					    	(admin 		(0.0))
-						)   
-					)
-					
-					(admin
-						(OBS'
-					    	(success	(0.9))
-					    	(none		(0.1))
-					    	(vuln		(0.0))
-					    	(data_c		(0.0))
-					    	(data_nc 	(0.0))
-					    	(user 		(0.0))
-					    	(admin 		(0.0))
-					    )
-					)
-				)
-			)
+dd priv_esc_obs
+(SESSION_PRIVS'
+	(user
+		(OBS'
+			(success	(0.0))
+			(none		(1.0))
+			(vuln		(0.0))
+			(data_c		(0.0))
+			(data_nc 	(0.0))
+			(user 		(0.0))
+			(admin 		(0.0))
 		)
 	)
 	
-	(no
-		(HAS_VULN'
-			(yes
-				(SESSION_PRIVS'
-					(none
-						(OBS'
-							(success	(0.0))
-							(none		(1.0))
-							(vuln		(0.0))
-							(data_c		(0.0))
-							(data_nc 	(0.0))
-							(user 		(0.0))
-							(admin 		(0.0))
-						)					
-					)
-					
-					(user
-						(OBS'
-							(success	(0.9))
-					    	(none		(0.1))
-					    	(vuln		(0.0))
-					    	(data_c		(0.0))
-					    	(data_nc 	(0.0))
-					    	(user 		(0.0))
-					    	(admin 		(0.0))
-						)   
-					)
-					
-					(admin
-						(OBS'
-					    	(success	(0.0))
-					    	(none		(1.0))
-					    	(vuln		(0.0))
-					    	(data_c		(0.0))
-					    	(data_nc 	(0.0))
-					    	(user 		(0.0))
-					    	(admin 		(0.0))
-					    )
-					)
-				)	
-			)
-			
-			(no
-				(SESSION_PRIVS'
-					(none
-						(OBS'
-							(success	(0.0))
-							(none		(1.0))
-							(vuln		(0.0))
-							(data_c		(0.0))
-							(data_nc 	(0.0))
-							(user 		(0.0))
-							(admin 		(0.0))
-						)					
-					)
-					
-					(user
-						(OBS'
-							(success	(0.0))
-					    	(none		(1.0))
-					    	(vuln		(0.0))
-					    	(data_c		(0.0))
-					    	(data_nc 	(0.0))
-					    	(user 		(0.0))
-					    	(admin 		(0.0))
-						)   
-					)
-					
-					(admin
-						(OBS'
-					    	(success	(0.0))
-					    	(none		(1.0))
-					    	(vuln		(0.0))
-					    	(data_c		(0.0))
-					    	(data_nc 	(0.0))
-					    	(user 		(0.0))
-					    	(admin 		(0.0))
-					    )
-					)
-				)
-			)
+	(admin
+		(OBS'
+			(success	(0.9))
+			(none		(0.1))
+			(vuln		(0.0))
+			(data_c		(0.0))
+			(data_nc 	(0.0))
+			(user 		(0.0))
+			(admin 		(0.0))
 		)
 	)
 )
@@ -492,14 +241,6 @@ enddd
 
 dd persist_level
 (SESSION_PRIVS
-	(none
-		(PERSIST_GAINED'
-			(none 	(1.0))
-			(user 	(0.0))
-			(admin  (0.0))
-		)
-	)
-	
 	(user
 		(PERSIST_GAINED'
 			(none 	(0.1))
@@ -568,10 +309,8 @@ enddd
 
 action NOP
 
-	HAS_VULN (SAMEHAS_VULN)
 	HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
 	HAS_C_DATA (SAMEHAS_C_DATA)
-	HAS_NC_DATA (SAMEHAS_NC_DATA)
 	HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
 	C_DATA_VIS (SAMEC_DATA_VIS)
 	FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
@@ -597,10 +336,10 @@ endaction
 
 action VULN_SCAN
 	
-	HAS_VULN (SAMEHAS_VULN)
+//	HAS_VULN (SAMEHAS_VULN)
 	HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
 	HAS_C_DATA (SAMEHAS_C_DATA)
-	HAS_NC_DATA (SAMEHAS_NC_DATA)
+//	HAS_NC_DATA (SAMEHAS_NC_DATA)
 	HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
 	C_DATA_VIS (SAMEC_DATA_VIS)
 	FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
@@ -620,10 +359,10 @@ endaction
 
 action PERM_SCAN
 	
-	HAS_VULN (SAMEHAS_VULN)
+//	HAS_VULN (SAMEHAS_VULN)
 	HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
 	HAS_C_DATA (SAMEHAS_C_DATA)
-	HAS_NC_DATA (SAMEHAS_NC_DATA)
+//	HAS_NC_DATA (SAMEHAS_NC_DATA)
 	HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
 	C_DATA_VIS (SAMEC_DATA_VIS)
 	FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
@@ -640,22 +379,22 @@ action PERM_SCAN
 
 endaction
 
-action EXPLOIT
+action PRIV_ESC
 	
-	HAS_VULN (SAMEHAS_VULN)
+//	HAS_VULN (SAMEHAS_VULN)
 	HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
 	HAS_C_DATA (SAMEHAS_C_DATA)
-	HAS_NC_DATA (SAMEHAS_NC_DATA)
+//	HAS_NC_DATA (SAMEHAS_NC_DATA)
 	HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
 	C_DATA_VIS (SAMEC_DATA_VIS)
 	FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
-	SESSION_PRIVS (session_privs_exploit)
+	SESSION_PRIVS (session_privs_esc)
 	PERSIST_GAINED (SAMEPERSIST_GAINED)
 	DATA_ACCESSED (SAMEDATA_ACCESSED)
 	EXFIL_ONGOING (SAMEEXFIL_ONGOING)
 
 	observe
-		OBS (exploit_obs)
+		OBS (priv_esc_obs)
 	endobserve
 	
 	cost (1.0)
@@ -663,10 +402,10 @@ endaction
 
 action PERSIST
 
-	HAS_VULN (SAMEHAS_VULN)
+//	HAS_VULN (SAMEHAS_VULN)
 	HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
 	HAS_C_DATA (SAMEHAS_C_DATA)
-	HAS_NC_DATA (SAMEHAS_NC_DATA)
+//	HAS_NC_DATA (SAMEHAS_NC_DATA)
 	HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
 	C_DATA_VIS (SAMEC_DATA_VIS)
 	FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)

@@ -1081,6 +1081,71 @@ public class POMDP implements Serializable {
 		
 		return beliefs;
 	}
+	
+	public HashMap<String, ArrayList<Float>> getBeliefStateMap(DD[] belState) {
+		/*
+		 * Makes a hashmap of belief state and values and returns it
+		 */
+		
+		HashMap<String, ArrayList<Float>> beliefs = new HashMap<String, ArrayList<Float>>();
+//		DD[] fbs = new DD[nStateVars];
+		if (belState.length != nStateVars) {
+			System.err.println("SOMETHINGS SERIOUSLY WRONG WITH THE BELIEF STATE");
+		}
+		for (int i = 0; i < belState.length; i++) {
+			
+			// Make state variable name
+			String name = varName[i];
+			
+			// Get respective belief for the variable
+			DD[] varChildren = belState[i].getChildren();
+			ArrayList<Float> childVals = new ArrayList<Float>();
+			
+			if (varChildren == null) {
+				for (int j=0; j < stateVars[i].arity; j++) {
+					childVals.add(new Float(belState[i].getVal()));
+				}
+			}
+			
+			else {
+				for (int j=0; j < stateVars[i].arity; j++) {
+					childVals.add(new Float(varChildren[j].getVal()));
+				}
+			}
+			
+			beliefs.put(name, childVals);
+		}
+		
+		return beliefs;
+	}
+	
+	public void prettyPrintBeliefRegion() {
+		/*
+		 * Mainly used for debugging. Prints the region as a hashmap.
+		 */
+		System.out.println("CURRENT BELIEF REGION:");
+		for (int i = 0; i < belRegion.length; i++) {
+			System.out.println(getBeliefStateMap(belRegion[i]));
+		}
+		System.out.println("BELIEF REGION END.");
+	}
+	
+	public void prettyPrintTmpBeliefRegion(DD[][] tmpBelRegion) {
+		/*
+		 * Mainly used for debugging. Prints the region as a hashmap.
+		 */
+		System.out.println("TEMP BELIEF REGION:");
+		for (int i = 0; i < tmpBelRegion.length; i++) {
+			if (tmpBelRegion[i] != null)
+				System.out.println(getBeliefStateMap(tmpBelRegion[i]));
+			else {
+				System.out.println("ZERO LENGTH BELIEF");
+				break;
+			}
+		}
+		System.out.println("TEMP BELIEF REGION END.");
+	}
+	
 
 	public void printBeliefState(DD[] belState) {
 		for (int j = 0; j < belState.length; j++) {
@@ -1093,6 +1158,7 @@ public class POMDP implements Serializable {
 			System.out.println("belief " + i + ":");
 			for (int j = 0; j < belRegion[i].length; j++) {
 				belRegion[i][j].display();
+//				System.out.println(getBeliefStateMap(belRegion[i][j]));
 			}
 		}
 	}
@@ -1253,8 +1319,11 @@ public class POMDP implements Serializable {
 		for (int r = 0; r < nRounds; r++) {
 			// generate a set of reachable belief points
 			if (!multinits) {
+				System.out.println("EXPANDING BELIEF REGION");
 				reachableBelRegionCurrentPolicy(maxSize, maxTries,
 						episodeLength, threshold, explorProb, mdpprob);
+				prettyPrintBeliefRegion();
+				System.out.println("BELIEF REGION HAS: " + belRegion.length + " POINTS.");
 			} 
 //			else {
 //				reachableBelRegionCurrentPolicyMultipleInits(maxSize, maxTries,
@@ -1432,6 +1501,8 @@ public class POMDP implements Serializable {
 		nextStateConfig = null;
 		double maxbeldiff, beldiff;
 		while (count < maxSize && numtries < maxTries) {
+			System.out.println("-------------");
+			System.out.println("NUMTRIES: " + numtries);
 			belState = iBelState_f;
 			// figure out if we'll use the mdp or pomdp
 			if (mdpp < 1.0)
@@ -1442,11 +1513,15 @@ public class POMDP implements Serializable {
 				isMDP = false;
 			else
 				isMDP = true;
+			
+			System.out.println("MDPP: " + mdpp + " CHOICE: " + choice);
+			System.out.println("BELSTATE: " + getBeliefStateMap(belState));
 			if (isMDP) {
 //				System.out.println("USING MDP");
 				stateConfig = OP.sampleMultinomial(belState, varIndices);
+				System.out.println("STATE CONFIG: " + Arrays.deepToString(stateConfig));
 			}
-			for (int stepId = 0; count < maxSize /* & stepId < episodeLength*/; stepId++) {
+			for (int stepId = 0; count < maxSize  & stepId < episodeLength; stepId++) {
 				// sample action
 				choice = OP.sampleMultinomial(eprob);
 				actId = 1;
@@ -1460,7 +1535,7 @@ public class POMDP implements Serializable {
 				else {
 					actId = Global.random.nextInt(nActions);
 				}
-				// System.out.println("choice "+choice+" action "+actId);
+				 System.out.println("choice "+choice+" action "+actions[actId].name + " MDP? " + isMDP);
 				// sample observation
 				if (isMDP) {
 					restrictedTransFn = OP.restrictN(actions[actId].transFn,
@@ -1504,8 +1579,12 @@ public class POMDP implements Serializable {
 				numtries++;
 				// make sure belief state has changed
 				// System.out.println(" maxbeldiff "+maxbeldiff+" threshold "+threshold);
-				if (stepId > 0 && maxbeldiff < threshold)
+				if (stepId > 0 && maxbeldiff < threshold) {
+					System.out.println("BREAKING: STEP ID: " + stepId + " maxbeldiff: " + maxbeldiff);
+					System.out.println("-------------");
+					System.out.println("NUMTRIES: " + numtries);
 					break;
+				}
 
 				belState = OP.primeVarsN(nextBelState, -nVars);
 				if (isMDP)
@@ -1524,6 +1603,7 @@ public class POMDP implements Serializable {
 						tmpBelRegion[count] = new DD[belState.length];
 						System.arraycopy(belState, 0, tmpBelRegion[count], 0,
 								belState.length);
+						prettyPrintTmpBeliefRegion(tmpBelRegion);
 						if (count % 10 == 0)
 							System.out.println(" " + count
 									+ " belief states sampled");

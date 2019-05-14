@@ -2492,6 +2492,7 @@ public class OP {
 	    }
 
 	    // otherwise there is a bug
+	    System.err.println("Bug in sample multinomial");
 	    return config;
 	}
     }
