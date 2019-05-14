@@ -1125,8 +1125,11 @@ public class POMDP implements Serializable {
 		 */
 		System.out.println("CURRENT BELIEF REGION:");
 		for (int i = 0; i < belRegion.length; i++) {
-			System.out.println(getBeliefStateMap(belRegion[i]));
+//			System.out.println(belRegion);
+			if (belRegion[i] != null)
+				System.out.println(getBeliefStateMap(belRegion[i]));
 		}
+		System.out.println("ALLOCATED SIZE: " + belRegion.length);
 		System.out.println("BELIEF REGION END.");
 	}
 	
@@ -1143,6 +1146,7 @@ public class POMDP implements Serializable {
 				break;
 			}
 		}
+		System.out.println("ALLOCATED SIZE: " + tmpBelRegion.length);
 		System.out.println("TEMP BELIEF REGION END.");
 	}
 	
@@ -1523,6 +1527,7 @@ public class POMDP implements Serializable {
 			}
 			for (int stepId = 0; count < maxSize  & stepId < episodeLength; stepId++) {
 				// sample action
+				System.out.println("STEPID: " + stepId + " COUNT: " + count);
 				choice = OP.sampleMultinomial(eprob);
 				actId = 1;
 				if (choice == 0) {
@@ -1535,7 +1540,7 @@ public class POMDP implements Serializable {
 				else {
 					actId = Global.random.nextInt(nActions);
 				}
-				 System.out.println("choice "+choice+" action "+actions[actId].name + " MDP? " + isMDP);
+				 
 				// sample observation
 				if (isMDP) {
 					restrictedTransFn = OP.restrictN(actions[actId].transFn,
@@ -1552,7 +1557,9 @@ public class POMDP implements Serializable {
 							concatenateArray(varIndices, primeVarIndices));
 					obsConfig = OP.sampleMultinomial(obsDist, primeObsIndices);
 				}
+				
 				restrictedObsFn = OP.restrictN(actions[actId].obsFn, obsConfig);
+				System.out.println("choice "+choice+" action "+actions[actId].name + " MDP? " + isMDP + " obs " + Arrays.deepToString(obsConfig));
 
 				// update belState
 
@@ -1576,13 +1583,12 @@ public class POMDP implements Serializable {
 					if (beldiff > maxbeldiff)
 						maxbeldiff = beldiff;
 				}
+				System.out.println("NEXT BELIEF: " + getBeliefStateMap(nextBelState));
 				numtries++;
 				// make sure belief state has changed
 				// System.out.println(" maxbeldiff "+maxbeldiff+" threshold "+threshold);
 				if (stepId > 0 && maxbeldiff < threshold) {
 					System.out.println("BREAKING: STEP ID: " + stepId + " maxbeldiff: " + maxbeldiff);
-					System.out.println("-------------");
-					System.out.println("NUMTRIES: " + numtries);
 					break;
 				}
 
@@ -1603,7 +1609,7 @@ public class POMDP implements Serializable {
 						tmpBelRegion[count] = new DD[belState.length];
 						System.arraycopy(belState, 0, tmpBelRegion[count], 0,
 								belState.length);
-						prettyPrintTmpBeliefRegion(tmpBelRegion);
+//						prettyPrintTmpBeliefRegion(tmpBelRegion);
 						if (count % 10 == 0)
 							System.out.println(" " + count
 									+ " belief states sampled");
@@ -1638,9 +1644,15 @@ public class POMDP implements Serializable {
 				}
 				Global.newHashtables();
 			}
+			prettyPrintTmpBeliefRegion(tmpBelRegion);
+			System.out.println("LOOP DONE");
 			// System.out.println("resetting to initial belief - "+count+" belief states so far");
 		}
 		// copy over
+		
+		System.out.println("AFTER SAMPLING:");
+		if (belRegion != null)
+			prettyPrintBeliefRegion();
 		if (count < maxSize)
 			count = count + 1; // means we never found enough, so count is one
 								// less than total we found
@@ -1648,6 +1660,7 @@ public class POMDP implements Serializable {
 				+ tmpBelRegion.length);
 		int ii = 0;
 		if (iBelRegion != null) {
+			System.out.println("[!][!][!]iBel not none.");
 			belRegion = new DD[count + iBelRegion.length][];
 			// copy over the ones that were passed in
 			for (ii = 0; ii < iBelRegion.length; ii++) {
@@ -1657,6 +1670,7 @@ public class POMDP implements Serializable {
 			}
 
 		} else {
+			System.out.println("[!][!][!]iBel none.");
 			belRegion = new DD[count][];
 			ii = 0;
 		}
@@ -1666,6 +1680,8 @@ public class POMDP implements Serializable {
 			System.arraycopy(tmpBelRegion[i - ii], 0, belRegion[i], 0,
 					tmpBelRegion[i - ii].length);
 		}
+		System.out.println("AFTER UPDATES");
+		prettyPrintBeliefRegion();
 	}
 
 	public void boundedPerseus(int nIterations, int maxAlpha, int firstStep,
