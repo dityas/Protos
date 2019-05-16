@@ -1693,14 +1693,36 @@ public class POMDP implements Serializable {
 		// Attempt to maintain belief region across rounds
 		
 		// First add all tmp beliefs to list
+		
+		List<DD[]> newBeliefs = new ArrayList<DD[]>();
 		for (int j=0; j< tmpBelRegion.length; j++) {
 			if (tmpBelRegion[j] != null) {
-				if (!beliefRegionList.contains(tmpBelRegion[j])) {
-					beliefRegionList.add(tmpBelRegion[j]);
+				
+				boolean unique = true;
+				Iterator<DD[]> beliefIter = beliefRegionList.iterator();
+				
+				while (beliefIter.hasNext()) {
+					DD[] currentBelief = beliefIter.next();
+					if (getBeliefStateMap(currentBelief).equals(getBeliefStateMap(tmpBelRegion[j]))) {
+//						System.out.println("[!][!][!] Found same");
+						unique = false;
+					}
 				}
+				
+				if (unique) {
+					newBeliefs.add(tmpBelRegion[j]);
+				}
+//				if (!beliefRegionList.contains(tmpBelRegion[j])) {
+//					beliefRegionList.add(tmpBelRegion[j]);
+//				}
+//				else {
+//					System.out.println("[!][!][!] Found same");
+//				}
 			}
 		}
 		
+		beliefRegionList.addAll(newBeliefs);
+		// Then replace belregion with the list
 		belRegion = beliefRegionList.toArray(new DD[beliefRegionList.size()][]);
 		
 //		System.out.println("ADDING TO LIST");
@@ -1812,7 +1834,7 @@ public class POMDP implements Serializable {
 		double maxAbsVal = 0;
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 			steptolerance = tolerance;
-			System.out.println("STEP ID: " + stepId);
+//			System.out.println("STEP ID: " + stepId);
 //			System.out.println(" there are " + alphaVectors.length
 //					+ " alpha vectors:");
 
@@ -1823,7 +1845,7 @@ public class POMDP implements Serializable {
 			maxAbsVal = Math.max(
 					OP.maxabs(concatenateArray(OP.maxAllN(alphaVectors),
 							OP.minAllN(alphaVectors))), 1e-10);
-			System.out.println("maxAbsVal: " + maxAbsVal);
+//			System.out.println("maxAbsVal: " + maxAbsVal);
 
 			int count = 0;
 			int choice;
@@ -1857,8 +1879,8 @@ public class POMDP implements Serializable {
 				}
 				Global.newHashtables();
 				count = count + 1;
-				if (count % 100 == 0)
-					System.out.println("count is " + count);
+//				if (count % 100 == 0)
+//					System.out.println("count is " + count);
 				if (numNewAlphaVectors == 0) {
 					choice = 0;
 				} else {
@@ -1965,10 +1987,18 @@ public class POMDP implements Serializable {
 				System.arraycopy(newPointBasedValues[j], 0,
 						currentPointBasedValues[j], 0, numNewAlphaVectors);
 			}
-			System.out.println("best improvement: " + bestImprovement
-					+ "  worstDecline " + worstDecline);
+//			System.out.println("best improvement: " + bestImprovement
+//					+ "  worstDecline " + worstDecline);
 			bellmanErr = Math.min(10, Math.max(bestImprovement, -worstDecline));
-			System.out.println("BELLMAN ERROR: " + bellmanErr);
+			System.out.println("STEP: " + stepId 
+					+ " BELLMAN ERROR: " + bellmanErr
+					+ " MAXABSVAL: " + maxAbsVal
+					+ " A VECTORS: " + alphaVectors.length);
+			
+			if (bellmanErr < 0.001) {
+				System.out.println("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
+				break;
+			}
 		}
 
 	}
