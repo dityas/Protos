@@ -29,7 +29,7 @@ public class PolicyGraph {
 		
 		while(nodeIter.hasNext()) {
 			PolicyNode nodeCurr = nodeIter.next(); 
-			System.out.println(nodeCurr);
+//			System.out.println(nodeCurr);
 			this.policyNodeHashMap.put(new Integer(nodeCurr.alphaId), nodeCurr);
 			
 			// compress observations for pretty graph

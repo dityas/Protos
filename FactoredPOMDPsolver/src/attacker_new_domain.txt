@@ -1,8 +1,8 @@
 
 (variables
-//	(HAS_VULN			yes no)
+
 	(HAS_ROOT_VULN		yes no)
-//	(HAS_NC_DATA		yes no) // useful??? All systems may have this
+
 	(HAS_C_DATA			yes no)
 	(HAS_FAKE_DATA		yes no)
 	(C_DATA_VIS			user admin)
@@ -11,7 +11,8 @@
 	(SESSION_PRIVS		user admin) 	// combined M_COMPROMISED and M_ROOTED
 	(PERSIST_GAINED		none user admin) // M_COMPROMISED and M_BACKDOORED
 
-	(DATA_ACCESSED		none c nc f) // 
+	(C_DATA_ACCESSED	yes no)
+	(FAKE_DATA_ACCESSED	yes no)
 	(EXFIL_ONGOING		yes no)
 )
 
@@ -57,11 +58,14 @@ init [*
 		(admin (0.0))
 	)
 
-	(DATA_ACCESSED		
-		(none (1.0)) 
-		(c (0.0)) 
-		(nc (0.0)) 
-		(f (0.0))
+	(C_DATA_ACCESSED
+		(yes (0.0))
+		(no  (1.0))
+	)
+	
+	(FAKE_DATA_ACCESSED
+		(yes (0.0))
+		(no  (1.0))
 	)
 
 	(EXFIL_ONGOING		
@@ -71,6 +75,41 @@ init [*
 ]
 
 unnormalized
+
+// DDs for FILE_RECON
+
+// one or both types visible at user
+//dd one_or_both_vis_user
+//(SESSION_PRIVS'
+//	(user
+//		(OBS'
+//			(success	(0.9))
+//			(none		(0.1))
+//			(vuln		(0.0))
+//			(data_c		(0.0))
+//			(data_nc 	(0.0))
+//			(user 		(0.0))
+//			(admin 		(0.0))
+//		)
+//	)
+//	
+//	(admin
+//		(OBS'
+//			(success	(0.9))
+//			(none		(0.1))
+//			(vuln		(0.0))
+//			(data_c		(0.0))
+//			(data_nc 	(0.0))
+//			(user 		(0.0))
+//			(admin 		(0.0))
+//		)
+//	)
+//)
+//enddd
+//
+//
+//dd fr
+//enddd
 
 // DD for ACCESS_LEVEL on EXPLOIT
 
@@ -160,7 +199,7 @@ dd perm_scan_obs
 	(admin
 		(OBS'
 			(success	(0.0))
-			(none		(1.0))
+			(none		(0.0))
 			(vuln		(0.0))
 			(data_c		(0.0))
 			(data_nc 	(0.0))
@@ -316,7 +355,8 @@ action NOP
 	FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
 	SESSION_PRIVS (SAMESESSION_PRIVS)
 	PERSIST_GAINED (SAMEPERSIST_GAINED)
-	DATA_ACCESSED (SAMEDATA_ACCESSED)
+	C_DATA_ACCESSED (SAMEC_DATA_ACCESSED)
+	FAKE_DATA_ACCESSED (SAMEFAKE_DATA_ACCESSED)
 	EXFIL_ONGOING (SAMEEXFIL_ONGOING)
 
 	observe
@@ -345,7 +385,8 @@ action VULN_SCAN
 	FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
 	SESSION_PRIVS (SAMESESSION_PRIVS)
 	PERSIST_GAINED (SAMEPERSIST_GAINED)
-	DATA_ACCESSED (SAMEDATA_ACCESSED)
+	C_DATA_ACCESSED (SAMEC_DATA_ACCESSED)
+	FAKE_DATA_ACCESSED (SAMEFAKE_DATA_ACCESSED)
 	EXFIL_ONGOING (SAMEEXFIL_ONGOING)
 
 	observe
@@ -368,7 +409,8 @@ action PERM_SCAN
 	FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
 	SESSION_PRIVS (SAMESESSION_PRIVS)
 	PERSIST_GAINED (SAMEPERSIST_GAINED)
-	DATA_ACCESSED (SAMEDATA_ACCESSED)
+	C_DATA_ACCESSED (SAMEC_DATA_ACCESSED)
+	FAKE_DATA_ACCESSED (SAMEFAKE_DATA_ACCESSED)
 	EXFIL_ONGOING (SAMEEXFIL_ONGOING)
 
 	observe
@@ -390,7 +432,8 @@ action PRIV_ESC
 	FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
 	SESSION_PRIVS (session_privs_esc)
 	PERSIST_GAINED (SAMEPERSIST_GAINED)
-	DATA_ACCESSED (SAMEDATA_ACCESSED)
+	C_DATA_ACCESSED (SAMEC_DATA_ACCESSED)
+	FAKE_DATA_ACCESSED (SAMEFAKE_DATA_ACCESSED)
 	EXFIL_ONGOING (SAMEEXFIL_ONGOING)
 
 	observe
@@ -411,7 +454,8 @@ action PERSIST
 	FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
 	SESSION_PRIVS (SAMESESSION_PRIVS)
 	PERSIST_GAINED (persist_level)
-	DATA_ACCESSED (SAMEDATA_ACCESSED)
+	C_DATA_ACCESSED (SAMEC_DATA_ACCESSED)
+	FAKE_DATA_ACCESSED (SAMEFAKE_DATA_ACCESSED)
 	EXFIL_ONGOING (SAMEEXFIL_ONGOING)
 
 	observe

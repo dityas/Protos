@@ -8,13 +8,13 @@ import thinclab.policyhelper.PolicyGraph;
 
 public class IPOMDPSolver {
 	
-	public static int nRounds = 10;
-    public static int nIterations = 200;  // backup iterations  per round
-    public static int maxAlphaSetSize = 100;
+	public static int nRounds = 40;
+    public static int nIterations = 100;  // backup iterations  per round
+    public static int maxAlphaSetSize = 1000;
     public static int numBelStates = 100;
     public static int maxBelStates = 100;
     public static int episodeLength = 50;  // when generating belief points
-    public static double threshold = 0.001;
+    public static double threshold = 0.01;
     public static double explorProb=0.0;
     
     private static PolicyVisualizer visualizer;
@@ -46,7 +46,7 @@ public class IPOMDPSolver {
 		// Make Policy Graph
 		System.out.println("Making graph");
 		PolicyGraph attackerPolicyGraph = new PolicyGraph(attackerPolicy.policyNodes);
-		attackerPolicyGraph.printPrettyPolicyGraph();
+//		attackerPolicyGraph.printPrettyPolicyGraph();
 		
 		visualizer = new PolicyVisualizer(attackerPolicyGraph);
 		

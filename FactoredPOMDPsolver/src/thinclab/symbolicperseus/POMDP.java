@@ -67,6 +67,11 @@ public class POMDP implements Serializable {
 	public AlphaVector[] newAlphaVectors;
 	public int numNewAlphaVectors;
 	public double bestImprovement, worstDecline;
+	
+	// class variables for PBVI belief expansion
+	private List<DD> beliefLeaves = new ArrayList<DD>();
+	private List<DD[]> beliefPoints = new ArrayList<DD[]>();
+	// end PBVI belief expansion variables
 
 	public static DD[] concatenateArray(DD a, DD[] b, DD c) {
 		DD[] d = new DD[b.length + 2];
@@ -508,6 +513,19 @@ public class POMDP implements Serializable {
 				OP.addMultVarElim(nextBelState, varIndices));
 		return nextBelState;
 	}
+	
+	public DD[] factorBeliefPoint(DD beliefPoint) {
+		/*
+		 * factors belief state into a DD array
+		 */
+		DD[] fbs = new DD[nStateVars];
+		for (int varId = 0; varId < nStateVars; varId++) {
+			fbs[varId] = OP.addMultVarElim(beliefPoint,
+					MySet.remove(varIndices, varId + 1));
+		}
+		
+		return fbs;
+	} // public DD[] factorBeliefPoint
 
 	public DD getGoalDD() {
 		double[] onezero = { 0 };
@@ -1330,8 +1348,9 @@ public class POMDP implements Serializable {
 			if (!multinits) {
 				System.out.println("=============================");
 				System.out.println("EXPANDING BELIEF REGION");
-				reachableBelRegionCurrentPolicy(maxSize, maxTries,
-						episodeLength, threshold, explorProb, mdpprob);
+//				reachableBelRegionCurrentPolicy(maxSize, maxTries,
+//						episodeLength, threshold, explorProb, mdpprob);
+				this.expandBeliefRegion(100);
 //				prettyPrintBeliefRegion();
 				System.out.println("BELIEF REGION HAS: " + belRegion.length + " POINTS.");
 				System.out.println("=============================");
@@ -1728,6 +1747,96 @@ public class POMDP implements Serializable {
 //		System.out.println("ADDING TO LIST");
 //		prettyPrintBeliefRegion();
 	}
+	
+	private boolean checkBeliefPointExists(List<DD[]> existingPoints, DD point) {
+		/*
+		 * Returns true if arg point exists in existingPoints
+		 */
+		boolean unique = true;
+		
+		Iterator<DD[]> exisitingPointsIterator = existingPoints.iterator();
+		while (exisitingPointsIterator.hasNext()) {
+			if (getBeliefStateMap(exisitingPointsIterator.next()).equals(getBeliefStateMap(point))) {
+				unique = false;
+			}
+		}
+		
+		return unique;
+
+	} // private boolean checkBeliefPointExists
+	
+	public void expandBeliefRegion(int count) {
+		/*
+		 * Adds next level of belief points to the belief region
+		 */
+		int numNewPoints = 0;
+		List<DD> newBeliefPoints = new ArrayList<DD>();
+		
+		// If first iteration, add initial belief
+		if (beliefLeaves.size() == 0 && beliefPoints.size() == 0) {
+			beliefLeaves.add(this.initialBelState);
+			beliefPoints.add(factorBeliefPoint(this.initialBelState));
+			numNewPoints+=1;
+		}
+		
+		// Build the next stage of the belief tree
+		else {
+//			System.out.println("EXPANDING FROM LEAVES");
+			List<List<String>> obsList = this.getAllObservationsList();
+			// For all belief leaves
+//			Iterator<DD> beliefLeavesIterator = this.beliefLeaves.iterator();
+			while (count >= 0 && this.beliefLeaves.size() >= 1) {
+//				System.out.println(this.beliefLeaves.size());
+				int index = new Random().nextInt(this.beliefLeaves.size());
+				
+				DD toExpand = beliefLeaves.remove(index);
+				// For all actions
+				for (int act=0; act < actions.length; act++) {
+					// For all observations
+					for (int obs=0; obs < obsList.size(); obs++) {
+						
+						List<String> currentObs = obsList.get(obs);
+
+						// Get next belief
+						try {
+							DD nextBelief = safeBeliefUpdate(
+									toExpand,
+									act,
+									currentObs.toArray(new String[currentObs.size()]));
+							
+							// Add if does not already exist
+							if (this.checkBeliefPointExists(this.beliefPoints, nextBelief)) {
+								newBeliefPoints.add(nextBelief);
+								beliefPoints.add(factorBeliefPoint(nextBelief));
+//								System.out.println("FOUND NEW BELIEF POINT");
+								numNewPoints+=1;
+							}
+						} 
+						
+						catch (ZeroProbabilityObsException e) {
+//							System.out.println("ZERO PROB OBS");
+							continue;
+						}
+						
+						count--;
+					} // for obs
+				} // for act
+				
+//				System.out.println("SAMPLED " + newBeliefPoints.size() + " NEW BELIEFS.");
+			}// while beliefLeavesIterator
+			
+			// replace beliefLeaves
+			this.beliefLeaves.addAll(newBeliefPoints);
+
+		} // else
+		
+		// replace beliefRegion
+		this.belRegion = this.beliefPoints.toArray(new DD[this.beliefPoints.size()][]);
+		
+		System.out.println("[*][*] ADDED " + numNewPoints + " NEW BELIEF POINTS | "
+				+ this.beliefLeaves.size() + " NOT YET SAMPLED. ");
+		
+	} // public void expandBeliefRegion
 
 	public void boundedPerseus(int nIterations, int maxAlpha, int firstStep,
 			int nSteps) {
@@ -1991,9 +2100,9 @@ public class POMDP implements Serializable {
 //					+ "  worstDecline " + worstDecline);
 			bellmanErr = Math.min(10, Math.max(bestImprovement, -worstDecline));
 			System.out.println("STEP: " + stepId 
-					+ " BELLMAN ERROR: " + bellmanErr
-					+ " MAXABSVAL: " + maxAbsVal
-					+ " A VECTORS: " + alphaVectors.length);
+					+ " \tBELLMAN ERROR: " + bellmanErr
+					+ " \tBELIEF POINTS: " + this.belRegion.length
+					+ " \tA VECTORS: " + alphaVectors.length);
 			
 			if (bellmanErr < 0.001) {
 				System.out.println("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
@@ -2391,5 +2500,51 @@ public class POMDP implements Serializable {
 			statevec[i]++;
 		}
 		return statevec;
+	}
+	
+	private void recursiveObsGen(List<List<String>> obsComb, List<StateVar> obsVars, List<String> obsVector, int finalLen, int varIndex){
+		/* 
+		 *  Recursively generates a list of all possible combinations of values of the observation variables
+		 */
+		
+		if (varIndex < obsVars.size()) {
+			
+			if (obsVector.size() == finalLen) {
+				obsComb.add(obsVector);
+			}
+			
+			else {
+				
+				List<String> obsVectorCopy = new ArrayList<String>(obsVector);
+				StateVar obs = obsVars.get(varIndex);
+				for (int i=0;i<obs.valNames.length;i++) {
+					List<String> anotherObsVecCopy = new ArrayList<String>(obsVectorCopy);
+					anotherObsVecCopy.add(obs.valNames[i]);
+					recursiveObsGen(obsComb, obsVars, anotherObsVecCopy, finalLen, varIndex + 1);
+				}
+			}
+			
+		}
+		
+		else {
+			obsComb.add(obsVector);
+		}
+	} // private void recursiveObsGen
+	
+	private List<List<String>> recursiveObsCombinations(List<StateVar> obsVars){
+		/*
+		 * Driver program for generating observations recursively
+		 */
+		int finalLen = obsVars.size();
+		List<String> obsVec = new ArrayList<String>();
+		List<List<String>> obsComb = new ArrayList<List<String>>();
+		
+		recursiveObsGen(obsComb, obsVars, obsVec, finalLen, 0);
+		
+		return obsComb;
+	} // private List<List<String>> recursiveObsCombinations
+	
+	public List<List<String>> getAllObservationsList() {
+		return recursiveObsCombinations(Arrays.asList(this.obsVars));
 	}
 }
