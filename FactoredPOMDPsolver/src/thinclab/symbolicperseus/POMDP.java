@@ -478,6 +478,23 @@ public class POMDP implements Serializable {
 		
 	}
 
+	public DD safeBeliefUpdate(DD belState, int actId, int[][] obsVals) throws ZeroProbabilityObsException {
+
+		DD[] restrictedObsFn = OP.restrictN(actions[actId].obsFn, obsVals);
+		DD nextBelState = OP.addMultVarElim(
+				concatenateArray(belState, actions[actId].transFn,
+						restrictedObsFn), varIndices);
+		nextBelState = OP.primeVars(nextBelState, -nVars);
+		DD obsProb = OP.addMultVarElim(nextBelState, varIndices);
+		if (obsProb.getVal() < 1e-8) {
+			throw new ZeroProbabilityObsException(
+					"OBSERVATION is zero probability");
+		}
+		nextBelState = OP.div(nextBelState,
+				OP.addMultVarElim(nextBelState, varIndices));
+		return nextBelState;
+	}
+	
 	public DD beliefUpdate(DD belState, int actId, String[] obsnames) {
 		if (obsnames.length != nObsVars)
 			return null;
@@ -1350,7 +1367,8 @@ public class POMDP implements Serializable {
 				System.out.println("EXPANDING BELIEF REGION");
 //				reachableBelRegionCurrentPolicy(maxSize, maxTries,
 //						episodeLength, threshold, explorProb, mdpprob);
-				this.expandBeliefRegion(100);
+//				this.expandBeliefRegion(100);
+				this.expandBeliefRegionSSEA(100);
 //				prettyPrintBeliefRegion();
 				System.out.println("BELIEF REGION HAS: " + belRegion.length + " POINTS.");
 				System.out.println("=============================");
@@ -1379,6 +1397,21 @@ public class POMDP implements Serializable {
 			firstStep += nIterations;
 			if (r == 0)
 				mdpprob = 0.5;
+		}
+	}
+	
+	public void solvePBVI(int rounds, int numDpBackups) {
+		
+		expandBeliefRegion(100);
+		
+		// initialize T
+		alphaVectors = new DD[1];
+		alphaVectors[0] = DD.one;
+
+		for (int r=0; r < rounds; r++) {
+			boundedPerseusStartFromCurrent(100, r * numDpBackups, numDpBackups);
+			expandBeliefRegionSSEA(100);
+//			expandBeliefRegion(100);
 		}
 	}
 
@@ -1576,7 +1609,8 @@ public class POMDP implements Serializable {
 					obsDistn = OP.restrictN(actions[actId].obsFn,
 							concatenateArray(stateConfig, nextStateConfig));
 					obsConfig = OP.sampleMultinomial(obsDistn, primeObsIndices);
-				} else {
+				} 
+				else {
 					obsDist = OP.addMultVarElim(
 							concatenateArray(belState, actions[actId].transFn,
 									actions[actId].obsFn),
@@ -1619,8 +1653,8 @@ public class POMDP implements Serializable {
 				}
 
 				belState = OP.primeVarsN(nextBelState, -nVars);
-				if (isMDP)
-					stateConfig = Config.primeVars(nextStateConfig, -nVars);
+//				if (isMDP)
+//					stateConfig = Config.primeVars(nextStateConfig, -nVars);
 
 				// add belState to tmpBelRegion
 				// printBeliefState(belState);
@@ -1636,9 +1670,9 @@ public class POMDP implements Serializable {
 						System.arraycopy(belState, 0, tmpBelRegion[count], 0,
 								belState.length);
 //						prettyPrintTmpBeliefRegion(tmpBelRegion);
-						if (count % 10 == 0)
-							System.out.println(" " + count
-									+ " belief states sampled");
+//						if (count % 10 == 0)
+//							System.out.println(" " + count
+//									+ " belief states sampled");
 					}
 				}
 				// System.out.println("Count is "+count);
@@ -1838,61 +1872,148 @@ public class POMDP implements Serializable {
 		
 	} // public void expandBeliefRegion
 
+	
+	public void expandBeliefRegionSSEA(int count) {
+		/*
+		 * Adds next level of belief points to the belief region
+		 */
+		int numNewPoints = 0;
+		List<DD> newBeliefPoints = new ArrayList<DD>();
+		DD currentLeaf = this.initialBelState;
+		
+		// multinomial for action sampling
+		double[] explore = new double[2];
+		explore[0] = 0.6;
+		explore[1] = 0.4;
+	
+		// Add initial belief we are starting from scratch
+		if (beliefPoints.size() == 0 && beliefLeaves.size() == 0) {
+//			beliefLeaves.add(this.initialBelState);
+			beliefPoints.add(factorBeliefPoint(this.initialBelState));
+		}
+		
+		// Build the next stage of the belief tree 
+		System.out.println("USING SSEA belief expansion");
+
+		while (count >= 0) {
+			
+			int usePolicy = OP.sampleMultinomial(explore);
+			
+			// action sampling
+			int act;
+			if (usePolicy == 0) {
+				act = this.policyQuery(currentLeaf);
+			}
+			
+			else {
+//				System.out.println("USING RANDOM ACTION");
+				act = Global.random.nextInt(nActions);
+			}
+
+			// sample obs
+			DD obsDist = OP.addMultVarElim(concatenateArray(currentLeaf,
+															actions[act].transFn,
+															actions[act].obsFn),
+										   concatenateArray(varIndices, primeVarIndices));
+
+			int[][] obsConfig = OP.sampleMultinomial(obsDist, primeObsIndices);
+//			DD[] restrictedObsFn = OP.restrictN(actions[act].obsFn, obsConfig);
+			
+			// Get next belief
+			try {
+				DD nextBelief = safeBeliefUpdate(currentLeaf,
+												 act, 
+												 obsConfig);
+				
+				// Add if does not already exist
+				if (this.checkBeliefPointExists(this.beliefPoints, nextBelief)) {
+//					newBeliefPoints.add(nextBelief);
+					beliefPoints.add(factorBeliefPoint(nextBelief));
+//								System.out.println("FOUND NEW BELIEF POINT");
+					numNewPoints+=1;
+				}
+				currentLeaf = nextBelief;
+			} 
+			
+			catch (ZeroProbabilityObsException e) {
+				System.out.println("ZERO PROB OBS. STARTING FROM INITIAL BELIEF");
+				currentLeaf = this.initialBelState;
+				continue;
+			}
+					
+			count--;
+			
+//				System.out.println("SAMPLED " + newBeliefPoints.size() + " NEW BELIEFS.");
+		}// while beliefLeavesIterator
+		
+		// replace beliefLeaves
+//		this.beliefLeaves.addAll(newBeliefPoints);
+		
+		// replace beliefRegion
+		this.belRegion = this.beliefPoints.toArray(new DD[this.beliefPoints.size()][]);
+		
+		System.out.println("[*][*] ADDED " + numNewPoints + " NEW BELIEF POINTS");
+//				+ this.beliefLeaves.size() + " NOT YET SAMPLED. ");
+	} // public void expandBeliefRegionSSEA
+	
+	
 	public void boundedPerseus(int nIterations, int maxAlpha, int firstStep,
 			int nSteps) {
-		DD newAlpha, prevAlpha;
-		double bellmanErr;
-		double[] onezero = { 0 };
-		boolean dominated;
-
-		// check if the value function exists yet
-		DD[] tmpalphaVectors = new DD[nActions];
-
-		maxAlphaSetSize = maxAlpha;
-
-		numNewAlphaVectors = 0;
-
-		// this is done in pureStrategies now- still to do
-		for (int actId = 0; actId < nActions; actId++) {
-			System.out.println("computing pure strategy for action " + actId);
-			newAlpha = DD.zero;
-			bellmanErr = tolerance;
-			for (int i = 0; i < 50; i++) {
-				// prevAlpha = OP.sub(newAlpha,DDleaf.myNew(2*tolerance+1));
-				// while (OP.maxAll(OP.abs(OP.sub(newAlpha,prevAlpha))) >
-				// tolerance) {
-				prevAlpha = newAlpha;
-				newAlpha = OP.primeVars(newAlpha, nVars);
-				newAlpha = OP.addMultVarElim(
-						concatenateArray(ddDiscFact, actions[actId].transFn,
-								newAlpha), primeVarIndices);
-				newAlpha = OP.addN(concatenateArray(actions[actId].rewFn,
-						newAlpha));
-				newAlpha = OP.approximate(newAlpha, bellmanErr * (1 - discFact)
-						/ 2.0, onezero);
-				bellmanErr = OP.maxAll(OP.abs(OP.sub(newAlpha, prevAlpha)));
-				if (bellmanErr <= tolerance)
-					break;
-				Global.newHashtables();
+		if (firstStep == 0) {
+			DD newAlpha, prevAlpha;
+			double bellmanErr;
+			double[] onezero = { 0 };
+			boolean dominated;
+	//		System.out.println("FirstStep: " + firstStep);
+			// check if the value function exists yet
+			DD[] tmpalphaVectors = new DD[nActions];
+	
+			maxAlphaSetSize = maxAlpha;
+	
+			numNewAlphaVectors = 0;
+	
+			// this is done in pureStrategies now- still to do
+			for (int actId = 0; actId < nActions; actId++) {
+				System.out.println("computing pure strategy for action " + actId);
+				newAlpha = DD.zero;
+				bellmanErr = tolerance;
+				for (int i = 0; i < 50; i++) {
+					// prevAlpha = OP.sub(newAlpha,DDleaf.myNew(2*tolerance+1));
+					// while (OP.maxAll(OP.abs(OP.sub(newAlpha,prevAlpha))) >
+					// tolerance) {
+					prevAlpha = newAlpha;
+					newAlpha = OP.primeVars(newAlpha, nVars);
+					newAlpha = OP.addMultVarElim(
+							concatenateArray(ddDiscFact, actions[actId].transFn,
+									newAlpha), primeVarIndices);
+					newAlpha = OP.addN(concatenateArray(actions[actId].rewFn,
+							newAlpha));
+					newAlpha = OP.approximate(newAlpha, bellmanErr * (1 - discFact)
+							/ 2.0, onezero);
+					bellmanErr = OP.maxAll(OP.abs(OP.sub(newAlpha, prevAlpha)));
+					if (bellmanErr <= tolerance)
+						break;
+					Global.newHashtables();
+				}
+				// now add this vector only if not dominated
+				dominated = false;
+				int aid = 0;
+				while (!dominated && aid < numNewAlphaVectors) {
+					if (OP.maxAll(OP.sub(newAlpha, tmpalphaVectors[aid])) < tolerance)
+						dominated = true;
+					aid++;
+				}
+				if (!dominated) {
+					tmpalphaVectors[numNewAlphaVectors] = newAlpha;
+					numNewAlphaVectors++;
+				}
 			}
-			// now add this vector only if not dominated
-			dominated = false;
-			int aid = 0;
-			while (!dominated && aid < numNewAlphaVectors) {
-				if (OP.maxAll(OP.sub(newAlpha, tmpalphaVectors[aid])) < tolerance)
-					dominated = true;
-				aid++;
+			alphaVectors = new DD[numNewAlphaVectors];
+			origAlphaVectors = new DD[numNewAlphaVectors];
+			for (int aid = 0; aid < numNewAlphaVectors; aid++) {
+				alphaVectors[aid] = tmpalphaVectors[aid];
+				origAlphaVectors[aid] = tmpalphaVectors[aid];
 			}
-			if (!dominated) {
-				tmpalphaVectors[numNewAlphaVectors] = newAlpha;
-				numNewAlphaVectors++;
-			}
-		}
-		alphaVectors = new DD[numNewAlphaVectors];
-		origAlphaVectors = new DD[numNewAlphaVectors];
-		for (int aid = 0; aid < numNewAlphaVectors; aid++) {
-			alphaVectors[aid] = tmpalphaVectors[aid];
-			origAlphaVectors[aid] = tmpalphaVectors[aid];
 		}
 		boundedPerseusStartFromCurrent(maxAlpha, firstStep, nSteps);
 	}

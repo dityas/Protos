@@ -24,21 +24,24 @@ public class IPOMDPSolver {
 		// Attacker SPUDD
 //		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/coffee3po.dat";
 //		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
-		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_new_domain.txt";
-//		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/new_attacker.txt";
+//		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_new_domain.txt";
+		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/new_attacker.txt";
 //		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker.txt";
 		
 		// Solve attacker POMDP
 		POMDP attackerPomdp = new POMDP(attacker_SPUDD, false);
-		attackerPomdp.solve(nRounds, 
-							numBelStates, 
-							maxBelStates, 
-							episodeLength, 
-							threshold, 
-							explorProb, 
-							nIterations, 
-							maxAlphaSetSize, 
-							attacker_SPUDD.substring(0,attacker_SPUDD.lastIndexOf(".")), false);
+//		attackerPomdp.solve(nRounds, 
+//							numBelStates, 
+//							maxBelStates, 
+//							episodeLength, 
+//							threshold, 
+//							explorProb, 
+//							nIterations, 
+//							maxAlphaSetSize, 
+//							attacker_SPUDD.substring(0,attacker_SPUDD.lastIndexOf(".")), false);
+		
+//		attackerPomdp.solvePBVI(nRounds, nIterations);
+		attackerPomdp.solvePBVI(15, nIterations);
 		
 		// Extract attacker policy
 		PolicyExtractor attackerPolicy = new PolicyExtractor(attackerPomdp);
