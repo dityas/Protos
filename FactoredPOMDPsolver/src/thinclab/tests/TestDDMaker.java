@@ -1,0 +1,37 @@
+package thinclab.tests;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import thinclab.ddmaker.DDMaker;
+import thinclab.ddmaker.DDTree;
+
+class TestDDMaker {
+
+	private DDMaker ddmaker = null;
+	@BeforeEach
+	void setUp() throws Exception {
+		this.ddmaker = new DDMaker();
+		this.ddmaker.addVariable("SESSION_PRIVS", new String[] {"user", "admin"});
+		this.ddmaker.addVariable("PERSIST_LEVEL", new String[] {"none", "user", "admin"});
+		this.ddmaker.primeVariables();
+	}
+
+	@AfterEach
+	void tearDown() throws Exception {
+	}
+
+	@Test
+	void testDDCreationFromOnlySequences() {
+		System.out.println("Running testDDCreationFromOnlySequences()");
+		DDTree DD = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"SESSION_PRIVS",
+							  "PERSIST_LEVEL",
+							  "PERSIST_LEVEL'"});
+		System.out.println(DD.toSPUDD());
+	}
+
+}
