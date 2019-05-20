@@ -33,5 +33,19 @@ class TestDDMaker {
 							  "PERSIST_LEVEL'"});
 		System.out.println(DD.toSPUDD());
 	}
+	
+	@Test
+	void testDDCreationFromSequencesWithValues() {
+		System.out.println("Running testDDCreationFromSequencesWithValues()");
+		DDTree DD = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"SESSION_PRIVS",
+							  "PERSIST_LEVEL",
+							  "PERSIST_LEVEL'"},
+				new String[][] {{"user", "none", "user", "1.0"},
+								{"admin", "none", "admin", "1.0"}}
+								);
+		
+		System.out.println(DD.toSPUDD());
+	}
 
 }

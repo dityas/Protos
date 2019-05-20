@@ -123,8 +123,20 @@ public class DDTree {
 		 */
 		if (this.children.containsKey(childName)) {
 			if (this.children.get(childName) instanceof DDTreeLeaf) {
-				
+				this.theLogger.info("Changing value of " + childName + " to " + val + " for " + this.varName);
+				this.children.put(childName, new DDTreeLeaf(val));
+			}
+			
+			else {
+				this.theLogger.severe(childName + " for " + varName + " is not a leaf.");
+				throw new Exception(childName + " for " + varName + " is not a leaf.");
 			}
 		}
-	}
-}
+		
+		else {
+			this.theLogger.severe(varName + " does not contain child " + childName);
+			throw new Exception(varName + " does not contain child " + childName);
+		}
+	} // public void setValueAt
+
+} // public class DDTree

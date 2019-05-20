@@ -100,7 +100,30 @@ public class DDMaker {
 		DDTree defaultTree = this.getDDTreeFromSequence(varSequence);
 		DDTree topTreeRef = defaultTree;
 		
+		// for all records
 		for (int record=0; record < values.length; record ++) {
+			
+			String[] currentRecord = values[record];
+			DDTree currentNode = topTreeRef;
+			
+			// for each child value
+			for (int c=0; c < currentRecord.length-2; c++) {
+				try {
+					currentNode = currentNode.atChild(currentRecord[c]);
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			} // for (int c=0; c < currentRecord.length; c++)
+			
+			try {
+				currentNode.setValueAt(currentRecord[currentRecord.length-2],
+								   	   new Double(currentRecord[currentRecord.length-1]));
+			}
+			
+			catch (Exception e) {
+				e.printStackTrace();
+			}
 			
 		} // for (int record=0; record < values.length; record ++)
 		
