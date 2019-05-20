@@ -1368,7 +1368,7 @@ public class POMDP implements Serializable {
 //				reachableBelRegionCurrentPolicy(maxSize, maxTries,
 //						episodeLength, threshold, explorProb, mdpprob);
 //				this.expandBeliefRegion(100);
-				this.expandBeliefRegionSSEA(100);
+				this.expandBeliefRegionSSGA(100);
 //				prettyPrintBeliefRegion();
 				System.out.println("BELIEF REGION HAS: " + belRegion.length + " POINTS.");
 				System.out.println("=============================");
@@ -1410,7 +1410,7 @@ public class POMDP implements Serializable {
 
 		for (int r=0; r < rounds; r++) {
 			boundedPerseusStartFromCurrent(100, r * numDpBackups, numDpBackups);
-			expandBeliefRegionSSEA(100);
+			expandBeliefRegionSSGA(100);
 //			expandBeliefRegion(100);
 		}
 	}
@@ -1873,7 +1873,7 @@ public class POMDP implements Serializable {
 	} // public void expandBeliefRegion
 
 	
-	public void expandBeliefRegionSSEA(int count) {
+	public void expandBeliefRegionSSGA(int count) {
 		/*
 		 * Adds next level of belief points to the belief region
 		 */
@@ -1893,7 +1893,7 @@ public class POMDP implements Serializable {
 		}
 		
 		// Build the next stage of the belief tree 
-		System.out.println("USING SSEA belief expansion");
+		System.out.println("USING SSGA belief expansion");
 
 		while (count >= 0) {
 			
