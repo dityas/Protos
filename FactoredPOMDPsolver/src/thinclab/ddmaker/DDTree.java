@@ -22,9 +22,9 @@ public class DDTree {
 		this.theLogger.setLevel(Level.ALL);
 		this.theLogger.setUseParentHandlers(false);
 		ConsoleHandler consoleHandler = new ConsoleHandler();
-		consoleHandler.setLevel(Level.ALL);
+		consoleHandler.setLevel(Level.INFO);
 		this.theLogger.addHandler(consoleHandler);
-		this.theLogger.log(Level.INFO, this + "DDTree rooted at variable " + varName + " initialised.");
+		this.theLogger.log(Level.FINE, this + "DDTree rooted at variable " + varName + " initialised.");
 	}
 	
 	public String toSPUDD(String prefix) {
@@ -123,7 +123,7 @@ public class DDTree {
 		 */
 		if (this.children.containsKey(childName)) {
 			if (this.children.get(childName) instanceof DDTreeLeaf) {
-				this.theLogger.info("Changing value of " + childName + " to " + val + " for " + this.varName);
+				this.theLogger.fine("Changing value of " + childName + " to " + val + " for " + this.varName);
 				this.children.put(childName, new DDTreeLeaf(val));
 			}
 			
