@@ -980,13 +980,18 @@ public class POMDP implements Serializable {
 		double bestVal = Double.NEGATIVE_INFINITY;
 		double val;
 		int bestAlphaId = 0;
+		
+		double[] values = new double[alphaVectors.length];
 		for (int alphaId = 0; alphaId < alphaVectors.length; alphaId++) {
 			val = OP.dotProduct(belState, alphaVectors[alphaId], varIndices);
+			values[alphaId] = val;
 			if (val >= bestVal) {
 				bestVal = val;
 				bestAlphaId = alphaId;
 			}
 		}
+		
+//		System.out.println("BELIEF VALS: " + Arrays.toString(values));
 		return bestAlphaId;
 	}
 	
@@ -1365,10 +1370,10 @@ public class POMDP implements Serializable {
 			if (!multinits) {
 				System.out.println("=============================");
 				System.out.println("EXPANDING BELIEF REGION");
-//				reachableBelRegionCurrentPolicy(maxSize, maxTries,
-//						episodeLength, threshold, explorProb, mdpprob);
+				reachableBelRegionCurrentPolicy(maxSize, maxTries,
+						episodeLength, threshold, explorProb, mdpprob);
 //				this.expandBeliefRegion(100);
-				this.expandBeliefRegionSSGA(100);
+//				this.expandBeliefRegionSSGA(100);
 //				prettyPrintBeliefRegion();
 				System.out.println("BELIEF REGION HAS: " + belRegion.length + " POINTS.");
 				System.out.println("=============================");

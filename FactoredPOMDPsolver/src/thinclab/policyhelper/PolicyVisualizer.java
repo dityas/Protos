@@ -10,7 +10,10 @@ import javax.swing.JFrame;
 
 import org.apache.commons.collections15.Transformer;
 
+import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
+import edu.uci.ics.jung.algorithms.layout.DAGLayout;
+import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.DirectedOrderedSparseMultigraph;
@@ -30,10 +33,12 @@ public class PolicyVisualizer {
 		
 		this.policyGraph = policyGraph;
 
-		SpringLayout<PolicyNode, PolicyEdge> layout = 
-				new SpringLayout<PolicyNode, PolicyEdge>(this.policyGraph.getGraph());
-		CircleLayout<PolicyNode, PolicyEdge> circleLayout = 
-				new CircleLayout<PolicyNode, PolicyEdge>(this.policyGraph.getGraph());
+//		SpringLayout<PolicyNode, PolicyEdge> layout = 
+//				new SpringLayout<PolicyNode, PolicyEdge>(this.policyGraph.getGraph());
+		FRLayout<PolicyNode, PolicyEdge> layout = 
+				new FRLayout<PolicyNode, PolicyEdge>(this.policyGraph.getGraph());
+//		CircleLayout<PolicyNode, PolicyEdge> layout = 
+//				new CircleLayout<PolicyNode, PolicyEdge>(this.policyGraph.getGraph());
 		
 //		System.out.println(layout.getForceMultiplier());
 //		System.out.println(layout.getRepulsionRange());
@@ -45,7 +50,7 @@ public class PolicyVisualizer {
 //		layout.setStretch((double) 1.0);
 
 		VisualizationViewer<PolicyNode, PolicyEdge> vv = 
-				new VisualizationViewer<PolicyNode, PolicyEdge>(circleLayout, new Dimension(1000, 1000));
+				new VisualizationViewer<PolicyNode, PolicyEdge>(layout, new Dimension(1000, 1000));
 
 		// Define transformer to print Node
 		Transformer<PolicyNode, String> nodeTransformer = new Transformer<PolicyNode, String>() {

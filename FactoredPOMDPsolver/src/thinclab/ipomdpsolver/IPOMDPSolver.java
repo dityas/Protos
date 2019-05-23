@@ -40,8 +40,8 @@ public class IPOMDPSolver {
 //							maxAlphaSetSize, 
 //							attacker_SPUDD.substring(0,attacker_SPUDD.lastIndexOf(".")), false);
 		
-//		attackerPomdp.solvePBVI(nRounds, nIterations);
-		attackerPomdp.solvePBVI(5, nIterations);
+		attackerPomdp.solvePBVI(nRounds, nIterations);
+//		attackerPomdp.solvePBVI(5, nIterations);
 		
 		// Extract attacker policy
 		PolicyExtractor attackerPolicy = new PolicyExtractor(attackerPomdp);
