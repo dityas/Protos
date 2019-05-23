@@ -19,6 +19,8 @@ public abstract class DomainMaker {
 	
 	public String domainString;
 	
+	public DDMaker ddmaker = new DDMaker();
+	
 	public void writeVariablesDef() {
 	/*
 	 * Populates the variablesDef String in SPUDD format
@@ -63,9 +65,22 @@ public abstract class DomainMaker {
 		
 		this.domainString = this.variablesDef
 				+ this.obsDef
-				+ this.actionsDef
 				+ this.initDef
+				+ this.newLine + "unnormalized" + this.newLine
+				+ this.actionsDef
 				+ this.rewardDef;
+	}
+	
+	public void addVariablesToDDMaker() {
+		for (int v=0; v<this.variables.length; v++) {
+			this.ddmaker.addVariable(this.variables[v], this.varValues[v]);
+		}
+		
+		for (int o=0; o<this.observations.length; o++) {
+			this.ddmaker.addVariable(this.observations[o], this.obsValues[o]);
+		}
+		
+		this.ddmaker.primeVariables();
 	}
 
 }
