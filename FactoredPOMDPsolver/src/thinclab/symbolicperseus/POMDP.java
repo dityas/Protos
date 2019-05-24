@@ -1901,7 +1901,7 @@ public class POMDP implements Serializable {
 		System.out.println("USING SSGA belief expansion");
 
 		while (count >= 0) {
-			
+//			System.out.println(Arrays.toString(explore));
 			int usePolicy = OP.sampleMultinomial(explore);
 			
 			// action sampling

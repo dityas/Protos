@@ -1,6 +1,7 @@
 package thinclab.ipomdpsolver;
 
 import thinclab.symbolicperseus.POMDP;
+import thinclab.ddmaker.AttackerDomainMaker;
 //import thinclab.symbolicperseus.Solver;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyVisualizer;
@@ -24,12 +25,20 @@ public class IPOMDPSolver {
 		// Attacker SPUDD
 //		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/coffee3po.dat";
 //		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
-		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_new_domain.txt";
+//		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_new_domain.txt";
 //		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/new_attacker.txt";
 //		String attacker_SPUDD = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker.txt";
 		
+		String attackerL0 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
+		
+		AttackerDomainMaker attl0Domain = new AttackerDomainMaker();
+		attl0Domain.makeDomain();
+		attl0Domain.writeToFile(attackerL0);
+		
 		// Solve attacker POMDP
-		POMDP attackerPomdp = new POMDP(attacker_SPUDD, false);
+		POMDP attackerPomdp = new POMDP(attackerL0, false);
+		
+//		POMDP attackerPomdp = new POMDP(attacker_SPUDD, false);
 //		attackerPomdp.solve(nRounds, 
 //							numBelStates, 
 //							maxBelStates, 

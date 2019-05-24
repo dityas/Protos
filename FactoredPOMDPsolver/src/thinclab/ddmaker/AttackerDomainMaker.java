@@ -196,6 +196,7 @@ public class AttackerDomainMaker extends DomainMaker {
 		obsDD = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"HAS_ROOT_VULN'", "OBS'"},
 				new String[][] {
+					{"no", "none", "1.0"},
 					{"yes", "vuln", "0.9"},
 					{"yes", "none", "0.1"}
 				});
@@ -203,6 +204,7 @@ public class AttackerDomainMaker extends DomainMaker {
 		this.actionsDef += "OBS " + obsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
+		this.actionsDef += "cost (0.1)" + this.newLine;
 		this.actionsDef += "endaction" + this.newLine + this.newLine;
 		// end VULN_SCAN
 		
@@ -228,6 +230,7 @@ public class AttackerDomainMaker extends DomainMaker {
 		this.actionsDef += "OBS " + obsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
+		this.actionsDef += "cost (0.1)" + this.newLine;
 		this.actionsDef += "endaction" + this.newLine + this.newLine;
 		// end PERM_SCAN
 		
@@ -269,12 +272,14 @@ public class AttackerDomainMaker extends DomainMaker {
 				new String[] {"SESSION_PRIVS'", "OBS'"},
 				new String[][] {
 					{"user", "none", "1.0"},
-					{"admin", "success", "1.0"}
+					{"admin", "success", "0.9"},
+					{"admin", "none", "0.1"},
 				});
 		
 		this.actionsDef += "OBS " + obsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
+		this.actionsDef += "cost (1.0)" + this.newLine;
 		this.actionsDef += "endaction" + this.newLine + this.newLine;
 		// end PRIV_ESC
 		
@@ -325,6 +330,7 @@ public class AttackerDomainMaker extends DomainMaker {
 		this.actionsDef += "OBS " + pobsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
+		this.actionsDef += "cost (0.5)" + this.newLine;
 		this.actionsDef += "endaction" + this.newLine + this.newLine;
 		// end PERSIST
 		
@@ -334,6 +340,14 @@ public class AttackerDomainMaker extends DomainMaker {
 	public void writeRewardDef() {
 
 		this.rewardDef = this.newLine;
+		this.rewardDef += "reward" + this.newLine;
+		
+		DDTree rewardDD = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"PERSIST_GAINED"},
+				new String[][] {
+					{"admin", "2.0"}
+				});
+		this.rewardDef += rewardDD.toSPUDD() + this.newLine;
 	}
 
 }

@@ -1,5 +1,9 @@
 package thinclab.ddmaker;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 public abstract class DomainMaker {
 	/*
 	 * Abstract class for L0Domains
@@ -68,7 +72,23 @@ public abstract class DomainMaker {
 				+ this.initDef
 				+ this.newLine + "unnormalized" + this.newLine
 				+ this.actionsDef
-				+ this.rewardDef;
+				+ this.rewardDef
+				+ this.newLine + "discount 0.9"
+				+ this.newLine + "tolerance 0.001" + this.newLine;
+	}
+	
+	public void writeToFile(String domainFile) {
+		/*
+		 * Writes out the SPUDD file 
+		 */
+		try {
+			PrintWriter domWriter = new PrintWriter(new FileWriter(domainFile));
+			domWriter.println(this.domainString);
+			domWriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.err.println("WRITE ERROR: " + domainFile);
+		}
 	}
 	
 	public void addVariablesToDDMaker() {
