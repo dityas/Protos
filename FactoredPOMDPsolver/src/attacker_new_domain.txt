@@ -5,14 +5,13 @@
 
 	(HAS_C_DATA			yes no)
 	(HAS_FAKE_DATA		yes no)
-	(C_DATA_VIS			user admin)
-	(FAKE_DATA_VIS		user admin)
+
+	(C_DATA_ACCESSED	yes no)
+	(FAKE_DATA_ACCESSED	yes no)
 
 	(SESSION_PRIVS		user admin) 	// combined M_COMPROMISED and M_ROOTED
 	(PERSIST_GAINED		none user admin) // M_COMPROMISED and M_BACKDOORED
 
-	(C_DATA_ACCESSED	yes no)
-	(FAKE_DATA_ACCESSED	yes no)
 	(EXFIL_ONGOING		yes no)
 )
 

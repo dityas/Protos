@@ -14,8 +14,8 @@ public class AttackerDomainMaker extends DomainMaker {
 				new String[] {"HAS_ROOT_VULN",
 							  "HAS_C_DATA",
 							  "HAS_FAKE_DATA",
-							  "C_DATA_VIS",
-							  "FAKE_DATA_VIS",
+//							  "C_DATA_VIS",
+//							  "FAKE_DATA_VIS",
 							  "SESSION_PRIVS",
 							  "PERSIST_GAINED",
 							  "C_DATA_ACCESSED",
@@ -26,8 +26,8 @@ public class AttackerDomainMaker extends DomainMaker {
 				new String[][] {{"yes", "no"},
 								{"yes", "no"},
 								{"yes", "no"},
-								{"user", "admin"},
-								{"user", "admin"},
+//								{"user", "admin"},
+//								{"user", "admin"},
 								{"user", "admin"},
 								{"none", "user", "admin"},
 								{"yes", "no"},
@@ -84,23 +84,23 @@ public class AttackerDomainMaker extends DomainMaker {
 				);
 		this.initDef += stateInit.toSPUDD() + this.newLine;
 		
-		stateInit = this.ddmaker.getDDTreeFromSequence(
-				new String[] {"C_DATA_VIS"},
-				new String[][] {
-					{"user", "0.5"},
-					{"admin", "0.5"}
-				}
-				);
-		this.initDef += stateInit.toSPUDD() + this.newLine;
+//		stateInit = this.ddmaker.getDDTreeFromSequence(
+//				new String[] {"C_DATA_VIS"},
+//				new String[][] {
+//					{"user", "0.5"},
+//					{"admin", "0.5"}
+//				}
+//				);
+//		this.initDef += stateInit.toSPUDD() + this.newLine;
 		
-		stateInit = this.ddmaker.getDDTreeFromSequence(
-				new String[] {"FAKE_DATA_VIS"},
-				new String[][] {
-					{"user", "0.5"},
-					{"admin", "0.5"}
-				}
-				);
-		this.initDef += stateInit.toSPUDD() + this.newLine;
+//		stateInit = this.ddmaker.getDDTreeFromSequence(
+//				new String[] {"FAKE_DATA_VIS"},
+//				new String[][] {
+//					{"user", "0.5"},
+//					{"admin", "0.5"}
+//				}
+//				);
+//		this.initDef += stateInit.toSPUDD() + this.newLine;
 		
 		stateInit = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"SESSION_PRIVS"},
@@ -334,6 +334,107 @@ public class AttackerDomainMaker extends DomainMaker {
 		this.actionsDef += "endaction" + this.newLine + this.newLine;
 		// end PERSIST
 		
+		// action FILE_RECON
+		this.actionsDef += "action FILE_RECON" + this.newLine;
+		
+		// same states
+		for (int v=0; v<this.variables.length; v++) {
+			
+			// C_DATA_ACCESSED TRANSITION
+			if (this.variables[v] == "C_DATA_ACCESSED") {
+				DDTree sessPrivsDD = this.ddmaker.getDDTreeFromSequence(
+						new String[] {"HAS_C_DATA",
+									  "SESSION_PRIVS",
+									  "C_DATA_ACCESSED",
+									  "C_DATA_ACCESSED'"},
+						
+						new String[][] {
+							{"yes", "*", "yes", "yes", "1.0"},
+//							{"yes", "user", "no", "yes", "0.75"},
+							{"yes", "user", "no", "no", "1.0"},
+							{"yes", "admin", "no", "yes", "0.9"},
+							{"yes", "admin", "no", "no", "0.1"},
+							{"*", "*", "*", "no", "1.0"}
+						});
+				
+				this.actionsDef += this.variables[v] + " " + sessPrivsDD.toSPUDD() + this.newLine;
+			}
+			
+			else {
+				this.actionsDef += this.variables[v] + " " + "(SAME" + this.variables[v]
+						+ ")" + this.newLine;
+			}
+		}
+		
+		this.actionsDef += "observe" + this.newLine;
+				
+		// observation DD
+		DDTree fobsDD = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"C_DATA_ACCESSED'",
+							  "OBS'"},
+				new String[][] {
+					{"yes", "success", "1.0"},
+					{"no", "none", "1.0"}
+				});
+		
+		this.actionsDef += "OBS " + fobsDD.toSPUDD() + this.newLine;
+		
+		this.actionsDef += "endobserve" + this.newLine;
+		this.actionsDef += "cost (0.5)" + this.newLine;
+		this.actionsDef += "endaction" + this.newLine + this.newLine;
+		// end FILE_RECON
+		
+		
+		// action EXFIL
+		this.actionsDef += "action EXFIL" + this.newLine;
+		
+		// same states
+		for (int v=0; v<this.variables.length; v++) {
+			
+			// C_DATA_ACCESSED TRANSITION
+			if (this.variables[v] == "EXFIL_ONGOING") {
+				DDTree sessPrivsDD = this.ddmaker.getDDTreeFromSequence(
+						new String[] {"C_DATA_ACCESSED",
+									  "SESSION_PRIVS",
+									  "EXFIL_ONGOING",
+									  "EXFIL_ONGOING'"},
+						
+						new String[][] {
+							{"yes", "*", "yes", "yes", "1.0"},
+							{"yes", "user", "no", "yes", "0.75"},
+							{"yes", "user", "no", "no", "0.25"},
+							{"yes", "admin", "no", "yes", "0.9"},
+							{"yes", "admin", "no", "no", "0.1"},
+							{"no", "*", "*", "no", "1.0"}
+						});
+				
+				this.actionsDef += this.variables[v] + " " + sessPrivsDD.toSPUDD() + this.newLine;
+			}
+			
+			else {
+				this.actionsDef += this.variables[v] + " " + "(SAME" + this.variables[v]
+						+ ")" + this.newLine;
+			}
+		}
+		
+		this.actionsDef += "observe" + this.newLine;
+				
+		// observation DD
+		DDTree eobsDD = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"EXFIL_ONGOING'",
+							  "OBS'"},
+				new String[][] {
+					{"yes", "success", "1.0"},
+					{"no", "none", "1.0"}
+				});
+		
+		this.actionsDef += "OBS " + eobsDD.toSPUDD() + this.newLine;
+		
+		this.actionsDef += "endobserve" + this.newLine;
+		this.actionsDef += "cost (0.1)" + this.newLine;
+		this.actionsDef += "endaction" + this.newLine + this.newLine;
+		// end FILE_RECON
+
 	}
 
 	@Override
@@ -343,9 +444,11 @@ public class AttackerDomainMaker extends DomainMaker {
 		this.rewardDef += "reward" + this.newLine;
 		
 		DDTree rewardDD = this.ddmaker.getDDTreeFromSequence(
-				new String[] {"PERSIST_GAINED"},
+				new String[] {"C_DATA_ACCESSED",
+							  "EXFIL_ONGOING"},
 				new String[][] {
-					{"admin", "2.0"}
+					{"yes", "yes", "5.0"},
+					{"no", "yes", "0.0"}
 				});
 		this.rewardDef += rewardDD.toSPUDD() + this.newLine;
 	}

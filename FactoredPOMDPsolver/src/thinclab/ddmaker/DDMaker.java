@@ -1,5 +1,7 @@
 package thinclab.ddmaker;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -103,11 +105,31 @@ public class DDMaker {
 		// for all records
 		for (int record=0; record < values.length; record ++) {
 			
+			boolean star = false;
 			String[] currentRecord = values[record];
 			DDTree currentNode = topTreeRef;
 			
 			// for each child value
 			for (int c=0; c < currentRecord.length-2; c++) {
+//				System.out.println(Arrays.deepToString(values));
+//				System.out.println(Arrays.toString(currentRecord));
+//				System.out.println("-----------------------------");
+				if (currentRecord[c] == "*") {
+				
+					String[] children = this.variablesHashMap.get(varSequence[c]);
+					
+					for (int i=0; i<children.length;i++) {
+						String[] copyRecord = currentRecord.clone();
+						copyRecord[c] = children[i];
+						ArrayList<String[]> valuesList = new ArrayList<String[]>(Arrays.asList(values));
+						valuesList.add(copyRecord);
+						values = valuesList.toArray(new String[valuesList.size()][]);
+					}
+					star = true;
+					break;
+					
+				}
+			
 				try {
 					currentNode = currentNode.atChild(currentRecord[c]);
 				}
@@ -116,13 +138,16 @@ public class DDMaker {
 				}
 			} // for (int c=0; c < currentRecord.length; c++)
 			
-			try {
-				currentNode.setValueAt(currentRecord[currentRecord.length-2],
-								   	   new Double(currentRecord[currentRecord.length-1]));
-			}
-			
-			catch (Exception e) {
-				e.printStackTrace();
+			if (!star) {
+				
+				try {
+					currentNode.setValueAt(currentRecord[currentRecord.length-2],
+									   	   new Double(currentRecord[currentRecord.length-1]));
+				}
+				
+				catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 			
 		} // for (int record=0; record < values.length; record ++)

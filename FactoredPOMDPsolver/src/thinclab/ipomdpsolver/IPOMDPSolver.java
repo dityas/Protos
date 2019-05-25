@@ -47,7 +47,7 @@ public class IPOMDPSolver {
 //							explorProb, 
 //							nIterations, 
 //							maxAlphaSetSize, 
-//							attacker_SPUDD.substring(0,attacker_SPUDD.lastIndexOf(".")), false);
+//							attackerL0.substring(0, attackerL0.lastIndexOf(".")), false);
 		
 		attackerPomdp.solvePBVI(nRounds, nIterations);
 //		attackerPomdp.solvePBVI(5, nIterations);

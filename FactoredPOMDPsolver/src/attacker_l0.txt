@@ -3,8 +3,6 @@
 (HAS_ROOT_VULN yes no)
 (HAS_C_DATA yes no)
 (HAS_FAKE_DATA yes no)
-(C_DATA_VIS user admin)
-(FAKE_DATA_VIS user admin)
 (SESSION_PRIVS user admin)
 (PERSIST_GAINED none user admin)
 (C_DATA_ACCESSED yes no)
@@ -33,18 +31,6 @@ init[*
 	(no
 	(0.5))
 	(yes
-	(0.5))
-)
-(C_DATA_VIS
-	(admin
-	(0.5))
-	(user
-	(0.5))
-)
-(FAKE_DATA_VIS
-	(admin
-	(0.5))
-	(user
 	(0.5))
 )
 (SESSION_PRIVS
@@ -88,8 +74,6 @@ action NOP
 HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
 HAS_C_DATA (SAMEHAS_C_DATA)
 HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
-C_DATA_VIS (SAMEC_DATA_VIS)
-FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
 SESSION_PRIVS (SAMESESSION_PRIVS)
 PERSIST_GAINED (SAMEPERSIST_GAINED)
 C_DATA_ACCESSED (SAMEC_DATA_ACCESSED)
@@ -119,8 +103,6 @@ action VULN_SCAN
 HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
 HAS_C_DATA (SAMEHAS_C_DATA)
 HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
-C_DATA_VIS (SAMEC_DATA_VIS)
-FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
 SESSION_PRIVS (SAMESESSION_PRIVS)
 PERSIST_GAINED (SAMEPERSIST_GAINED)
 C_DATA_ACCESSED (SAMEC_DATA_ACCESSED)
@@ -171,8 +153,6 @@ action PERM_SCAN
 HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
 HAS_C_DATA (SAMEHAS_C_DATA)
 HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
-C_DATA_VIS (SAMEC_DATA_VIS)
-FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
 SESSION_PRIVS (SAMESESSION_PRIVS)
 PERSIST_GAINED (SAMEPERSIST_GAINED)
 C_DATA_ACCESSED (SAMEC_DATA_ACCESSED)
@@ -223,8 +203,6 @@ action PRIV_ESC
 HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
 HAS_C_DATA (SAMEHAS_C_DATA)
 HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
-C_DATA_VIS (SAMEC_DATA_VIS)
-FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
 SESSION_PRIVS (HAS_ROOT_VULN
 	(no
 	(SESSION_PRIVS
@@ -310,8 +288,6 @@ action PERSIST
 HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
 HAS_C_DATA (SAMEHAS_C_DATA)
 HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
-C_DATA_VIS (SAMEC_DATA_VIS)
-FAKE_DATA_VIS (SAMEFAKE_DATA_VIS)
 SESSION_PRIVS (SAMESESSION_PRIVS)
 PERSIST_GAINED (SESSION_PRIVS
 	(admin
@@ -436,15 +412,273 @@ endobserve
 cost (0.5)
 endaction
 
+action FILE_RECON
+HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
+HAS_C_DATA (SAMEHAS_C_DATA)
+HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
+SESSION_PRIVS (SAMESESSION_PRIVS)
+PERSIST_GAINED (SAMEPERSIST_GAINED)
+C_DATA_ACCESSED (HAS_C_DATA
+	(no
+	(SESSION_PRIVS
+		(admin
+			(C_DATA_ACCESSED
+			(no
+					(C_DATA_ACCESSED'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
+			(yes
+					(C_DATA_ACCESSED'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
+		))
+		(user
+			(C_DATA_ACCESSED
+			(no
+					(C_DATA_ACCESSED'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
+			(yes
+					(C_DATA_ACCESSED'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
+		))
+	))
+	(yes
+	(SESSION_PRIVS
+		(admin
+			(C_DATA_ACCESSED
+			(no
+					(C_DATA_ACCESSED'
+				(no
+							(1.0))
+				(yes
+							(0.9))
+			))
+			(yes
+					(C_DATA_ACCESSED'
+				(no
+							(1.0))
+				(yes
+							(1.0))
+			))
+		))
+		(user
+			(C_DATA_ACCESSED
+			(no
+					(C_DATA_ACCESSED'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
+			(yes
+					(C_DATA_ACCESSED'
+				(no
+							(1.0))
+				(yes
+							(1.0))
+			))
+		))
+	))
+)
+FAKE_DATA_ACCESSED (SAMEFAKE_DATA_ACCESSED)
+EXFIL_ONGOING (SAMEEXFIL_ONGOING)
+observe
+OBS (C_DATA_ACCESSED'
+	(no
+	(OBS'
+		(success
+			(0.0))
+		(vuln
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(1.0))
+		(user
+			(0.0))
+		(data_c
+			(0.0))
+		(data_nc
+			(0.0))
+	))
+	(yes
+	(OBS'
+		(success
+			(1.0))
+		(vuln
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(0.0))
+		(user
+			(0.0))
+		(data_c
+			(0.0))
+		(data_nc
+			(0.0))
+	))
+)
+endobserve
+cost (0.5)
+endaction
+
+action EXFIL
+HAS_ROOT_VULN (SAMEHAS_ROOT_VULN)
+HAS_C_DATA (SAMEHAS_C_DATA)
+HAS_FAKE_DATA (SAMEHAS_FAKE_DATA)
+SESSION_PRIVS (SAMESESSION_PRIVS)
+PERSIST_GAINED (SAMEPERSIST_GAINED)
+C_DATA_ACCESSED (SAMEC_DATA_ACCESSED)
+FAKE_DATA_ACCESSED (SAMEFAKE_DATA_ACCESSED)
+EXFIL_ONGOING (C_DATA_ACCESSED
+	(no
+	(SESSION_PRIVS
+		(admin
+			(EXFIL_ONGOING
+			(no
+					(EXFIL_ONGOING'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
+			(yes
+					(EXFIL_ONGOING'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
+		))
+		(user
+			(EXFIL_ONGOING
+			(no
+					(EXFIL_ONGOING'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
+			(yes
+					(EXFIL_ONGOING'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
+		))
+	))
+	(yes
+	(SESSION_PRIVS
+		(admin
+			(EXFIL_ONGOING
+			(no
+					(EXFIL_ONGOING'
+				(no
+							(0.1))
+				(yes
+							(0.9))
+			))
+			(yes
+					(EXFIL_ONGOING'
+				(no
+							(0.0))
+				(yes
+							(1.0))
+			))
+		))
+		(user
+			(EXFIL_ONGOING
+			(no
+					(EXFIL_ONGOING'
+				(no
+							(0.25))
+				(yes
+							(0.75))
+			))
+			(yes
+					(EXFIL_ONGOING'
+				(no
+							(0.0))
+				(yes
+							(1.0))
+			))
+		))
+	))
+)
+observe
+OBS (EXFIL_ONGOING'
+	(no
+	(OBS'
+		(success
+			(0.0))
+		(vuln
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(1.0))
+		(user
+			(0.0))
+		(data_c
+			(0.0))
+		(data_nc
+			(0.0))
+	))
+	(yes
+	(OBS'
+		(success
+			(1.0))
+		(vuln
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(0.0))
+		(user
+			(0.0))
+		(data_c
+			(0.0))
+		(data_nc
+			(0.0))
+	))
+)
+endobserve
+cost (0.1)
+endaction
+
 
 reward
-(PERSIST_GAINED
-	(admin
-	(2.0))
-	(none
-	(0.0))
-	(user
-	(0.0))
+(C_DATA_ACCESSED
+	(no
+	(EXFIL_ONGOING
+		(no
+			(0.0))
+		(yes
+			(0.0))
+	))
+	(yes
+	(EXFIL_ONGOING
+		(no
+			(0.0))
+		(yes
+			(5.0))
+	))
 )
 
 discount 0.9
