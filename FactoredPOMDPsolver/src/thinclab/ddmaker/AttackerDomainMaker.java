@@ -1,11 +1,14 @@
 package thinclab.ddmaker;
 
+import java.util.HashMap;
+
 import thinclab.ddmaker.DDMaker;
 
 public class AttackerDomainMaker extends DomainMaker {
 	/*
 	 * Defines L0 domain for attacker
 	 */
+	public HashMap<String, DDTree> ddMap = new HashMap<String, DDTree>();
 	
 	public AttackerDomainMaker() {
 		
@@ -174,6 +177,8 @@ public class AttackerDomainMaker extends DomainMaker {
 					{"none", "1.0"}
 				});
 		
+		this.ddMap.put("NOP_obs_OBS", obsDD);
+		
 		this.actionsDef += "OBS " + obsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
@@ -193,7 +198,7 @@ public class AttackerDomainMaker extends DomainMaker {
 		this.actionsDef += "observe" + this.newLine;
 				
 		// observation DD
-		obsDD = this.ddmaker.getDDTreeFromSequence(
+		DDTree vobsDD = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"HAS_ROOT_VULN'", "OBS'"},
 				new String[][] {
 					{"no", "none", "1.0"},
@@ -201,7 +206,9 @@ public class AttackerDomainMaker extends DomainMaker {
 					{"yes", "none", "0.1"}
 				});
 		
-		this.actionsDef += "OBS " + obsDD.toSPUDD() + this.newLine;
+		this.ddMap.put("VULN_SCAN_obs_OBS", vobsDD);
+		
+		this.actionsDef += "OBS " + vobsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
 		this.actionsDef += "cost (0.1)" + this.newLine;
@@ -220,14 +227,16 @@ public class AttackerDomainMaker extends DomainMaker {
 		this.actionsDef += "observe" + this.newLine;
 				
 		// observation DD
-		obsDD = this.ddmaker.getDDTreeFromSequence(
+		DDTree pobsDD = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"SESSION_PRIVS'", "OBS'"},
 				new String[][] {
 					{"user", "user", "1.0"},
 					{"admin", "admin", "1.0"}
 				});
 		
-		this.actionsDef += "OBS " + obsDD.toSPUDD() + this.newLine;
+		this.ddMap.put("PERM_SCAN_obs_OBS", pobsDD);
+		
+		this.actionsDef += "OBS " + pobsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
 		this.actionsDef += "cost (0.1)" + this.newLine;
@@ -255,6 +264,7 @@ public class AttackerDomainMaker extends DomainMaker {
 							{"no", "admin", "admin", "1.0"}
 						});
 				
+				this.ddMap.put("PRIV_ESC_SESSION_PRIVS", sessPrivsDD);
 				this.actionsDef += this.variables[v] + " " + sessPrivsDD.toSPUDD() + this.newLine;
 			}
 			
@@ -276,10 +286,11 @@ public class AttackerDomainMaker extends DomainMaker {
 					{"admin", "none", "0.1"},
 				});
 		
+		this.ddMap.put("PRIV_ESC_obs_OBS", obsDD);
 		this.actionsDef += "OBS " + obsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
-		this.actionsDef += "cost (1.0)" + this.newLine;
+		this.actionsDef += "cost (0.5)" + this.newLine;
 		this.actionsDef += "endaction" + this.newLine + this.newLine;
 		// end PRIV_ESC
 		
@@ -306,6 +317,7 @@ public class AttackerDomainMaker extends DomainMaker {
 							{"admin", "user", "admin", "1.0"}
 						});
 				
+				this.ddMap.put("PERSIST_PERSIST_GAINED", sessPrivsDD);
 				this.actionsDef += this.variables[v] + " " + sessPrivsDD.toSPUDD() + this.newLine;
 			}
 			
@@ -319,7 +331,7 @@ public class AttackerDomainMaker extends DomainMaker {
 		this.actionsDef += "observe" + this.newLine;
 				
 		// observation DD
-		DDTree pobsDD = this.ddmaker.getDDTreeFromSequence(
+		pobsDD = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"PERSIST_GAINED'", "OBS'"},
 				new String[][] {
 					{"none", "none", "1.0"},
@@ -327,6 +339,7 @@ public class AttackerDomainMaker extends DomainMaker {
 					{"admin", "success", "1.0"},
 				});
 		
+		this.ddMap.put("PERSIST_obs_OBS", pobsDD);
 		this.actionsDef += "OBS " + pobsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
@@ -342,7 +355,7 @@ public class AttackerDomainMaker extends DomainMaker {
 			
 			// C_DATA_ACCESSED TRANSITION
 			if (this.variables[v] == "C_DATA_ACCESSED") {
-				DDTree sessPrivsDD = this.ddmaker.getDDTreeFromSequence(
+				DDTree dataDD = this.ddmaker.getDDTreeFromSequence(
 						new String[] {"HAS_C_DATA",
 									  "SESSION_PRIVS",
 									  "C_DATA_ACCESSED",
@@ -354,10 +367,11 @@ public class AttackerDomainMaker extends DomainMaker {
 							{"yes", "user", "no", "no", "1.0"},
 							{"yes", "admin", "no", "yes", "0.9"},
 							{"yes", "admin", "no", "no", "0.1"},
-							{"*", "*", "*", "no", "1.0"}
+							{"no", "*", "*", "no", "1.0"}
 						});
 				
-				this.actionsDef += this.variables[v] + " " + sessPrivsDD.toSPUDD() + this.newLine;
+				this.actionsDef += this.variables[v] + " " + dataDD.toSPUDD() + this.newLine;
+				this.ddMap.put("FILE_RECON_C_DATA_ACCESSED", dataDD);
 			}
 			
 			else {
@@ -377,10 +391,11 @@ public class AttackerDomainMaker extends DomainMaker {
 					{"no", "none", "1.0"}
 				});
 		
+		this.ddMap.put("FILE_RECON_obs_OBS", fobsDD);
 		this.actionsDef += "OBS " + fobsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
-		this.actionsDef += "cost (0.5)" + this.newLine;
+		this.actionsDef += "cost (0.1)" + this.newLine;
 		this.actionsDef += "endaction" + this.newLine + this.newLine;
 		// end FILE_RECON
 		
@@ -408,6 +423,7 @@ public class AttackerDomainMaker extends DomainMaker {
 							{"no", "*", "*", "no", "1.0"}
 						});
 				
+				this.ddMap.put("EXFIL_EXFIL_ONGOING", sessPrivsDD);
 				this.actionsDef += this.variables[v] + " " + sessPrivsDD.toSPUDD() + this.newLine;
 			}
 			
@@ -428,12 +444,13 @@ public class AttackerDomainMaker extends DomainMaker {
 					{"no", "none", "1.0"}
 				});
 		
+		this.ddMap.put("EXFIL_obs_OBS", eobsDD);
 		this.actionsDef += "OBS " + eobsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
-		this.actionsDef += "cost (0.1)" + this.newLine;
+		this.actionsDef += "cost (0.25)" + this.newLine;
 		this.actionsDef += "endaction" + this.newLine + this.newLine;
-		// end FILE_RECON
+		// end EXFIL
 
 	}
 

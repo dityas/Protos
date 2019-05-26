@@ -1658,8 +1658,8 @@ public class POMDP implements Serializable {
 				}
 
 				belState = OP.primeVarsN(nextBelState, -nVars);
-//				if (isMDP)
-//					stateConfig = Config.primeVars(nextStateConfig, -nVars);
+				if (isMDP)
+					stateConfig = Config.primeVars(nextStateConfig, -nVars);
 
 				// add belState to tmpBelRegion
 				// printBeliefState(belState);
@@ -1964,7 +1964,7 @@ public class POMDP implements Serializable {
 	
 	public void boundedPerseus(int nIterations, int maxAlpha, int firstStep,
 			int nSteps) {
-		if (firstStep == 0) {
+//		if (firstStep == 0) {
 			DD newAlpha, prevAlpha;
 			double bellmanErr;
 			double[] onezero = { 0 };
@@ -2019,7 +2019,7 @@ public class POMDP implements Serializable {
 				alphaVectors[aid] = tmpalphaVectors[aid];
 				origAlphaVectors[aid] = tmpalphaVectors[aid];
 			}
-		}
+//		}
 		boundedPerseusStartFromCurrent(maxAlpha, firstStep, nSteps);
 	}
 
@@ -2232,7 +2232,7 @@ public class POMDP implements Serializable {
 			
 			if (bellmanErr < 0.001) {
 				System.out.println("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
-				break;
+//				break;
 			}
 		}
 

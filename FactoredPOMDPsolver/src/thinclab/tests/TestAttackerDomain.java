@@ -24,6 +24,7 @@ class TestAttackerDomain {
 		AttackerDomainMaker AD = new AttackerDomainMaker();
 		AD.makeDomain();
 		System.out.println(AD.domainString);
+		System.out.println(AD.ddMap);
 	}
 
 }

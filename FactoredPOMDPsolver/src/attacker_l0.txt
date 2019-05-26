@@ -281,7 +281,7 @@ OBS (SESSION_PRIVS'
 	))
 )
 endobserve
-cost (1.0)
+cost (0.5)
 endaction
 
 action PERSIST
@@ -463,14 +463,14 @@ C_DATA_ACCESSED (HAS_C_DATA
 			(no
 					(C_DATA_ACCESSED'
 				(no
-							(1.0))
+							(0.1))
 				(yes
 							(0.9))
 			))
 			(yes
 					(C_DATA_ACCESSED'
 				(no
-							(1.0))
+							(0.0))
 				(yes
 							(1.0))
 			))
@@ -487,7 +487,7 @@ C_DATA_ACCESSED (HAS_C_DATA
 			(yes
 					(C_DATA_ACCESSED'
 				(no
-							(1.0))
+							(0.0))
 				(yes
 							(1.0))
 			))
@@ -534,7 +534,7 @@ OBS (C_DATA_ACCESSED'
 	))
 )
 endobserve
-cost (0.5)
+cost (0.1)
 endaction
 
 action EXFIL
@@ -659,7 +659,7 @@ OBS (EXFIL_ONGOING'
 	))
 )
 endobserve
-cost (0.1)
+cost (0.25)
 endaction
 
 
