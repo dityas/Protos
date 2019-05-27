@@ -6,6 +6,7 @@ import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.symbolicperseus.ZeroProbabilityObsException;
+import thinclab.ddmaker.DDMaker;
 import thinclab.policyhelper.PolicyNode;
 
 import java.util.HashMap;
@@ -233,4 +234,5 @@ public class PolicyExtractor {
 			dotFileWriter.println("}");
 			dotFileWriter.close();
 		} // public void writeDot
+		
 }

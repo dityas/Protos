@@ -1,6 +1,9 @@
 package thinclab.ipomdpsolver;
 
 import thinclab.symbolicperseus.POMDP;
+
+import java.util.Arrays;
+
 import thinclab.ddmaker.AttackerDomainMaker;
 //import thinclab.symbolicperseus.Solver;
 import thinclab.policyhelper.PolicyExtractor;
@@ -49,8 +52,8 @@ public class IPOMDPSolver {
 //							maxAlphaSetSize, 
 //							attackerL0.substring(0, attackerL0.lastIndexOf(".")), false);
 		
-		attackerPomdp.solvePBVI(nRounds, nIterations);
-//		attackerPomdp.solvePBVI(5, nIterations);
+//		attackerPomdp.solvePBVI(nRounds, nIterations);
+		attackerPomdp.solvePBVI(5, nIterations);
 		
 		// Extract attacker policy
 		PolicyExtractor attackerPolicy = new PolicyExtractor(attackerPomdp);
@@ -58,10 +61,11 @@ public class IPOMDPSolver {
 		// Make Policy Graph
 		System.out.println("Making graph");
 		PolicyGraph attackerPolicyGraph = new PolicyGraph(attackerPolicy.policyNodes);
+		System.out.println(attackerPolicyGraph.getGraphAsDD(attackerPomdp).toSPUDD());
 //		attackerPolicyGraph.printPrettyPolicyGraph();
 		
 		visualizer = new PolicyVisualizer(attackerPolicyGraph);
-//		attackerPolicyGraph.toTriples();
+//		System.out.println(attackerPolicyGraph.getGraphAsDDPaths());
 		
 	}
 }
