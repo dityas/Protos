@@ -83,8 +83,9 @@ public class PolicyGraph {
 	} // public void printPolicyGraph()
 	
 	public void visualizePolicyGraph() {
-		VisualizationImageServer vs = new VisualizationImageServer(new CircleLayout(this.policyGraph),
-																   new Dimension(500, 500));
+		VisualizationImageServer vs = 
+				new VisualizationImageServer(new CircleLayout(this.policyGraph),
+											 new Dimension(500, 500));
 			 
 	    JFrame frame = new JFrame();
 	    frame.getContentPane().add(vs);
@@ -151,8 +152,8 @@ public class PolicyGraph {
 		for (int i=0; i < p.obsVars.length; i++) {
 //			System.out.println(p.obsVars[i].name);
 //			System.out.println(p.obsVars[i].valNames);
-			ddmaker.addVariable(p.obsVars[i].name, p.obsVars[i].valNames);
-			obsNames.add(p.obsVars[i].name);
+			ddmaker.addVariable("OPP_" + p.obsVars[i].name, p.obsVars[i].valNames);
+			obsNames.add("OPP_" + p.obsVars[i].name);
 		}
 		
 		obsNames.add("OPP_POLICY'");

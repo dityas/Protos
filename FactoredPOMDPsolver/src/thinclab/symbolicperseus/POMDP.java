@@ -2673,4 +2673,29 @@ public class POMDP implements Serializable {
 	public List<List<String>> getAllObservationsList() {
 		return recursiveObsCombinations(Arrays.asList(this.obsVars));
 	}
+	
+	public String[] getObsVarsArray() {
+		/*
+		 * Returns an array of observation variable names
+		 */
+		String[] obsVarsArray = new String[this.obsVars.length];
+		
+		for (int i=0; i<this.obsVars.length;i++) {
+			obsVarsArray[i] = this.obsVars[i].name;
+		}
+		
+		return obsVarsArray;
+	}
+	
+	public String[][] getObsValArray() {
+		/*
+		 * Returns array of observation variable values
+		 */
+		String[][] obsValsArray = new String[this.nObsVars][];
+		for (int i=0 ; i < nObsVars ; i++) {
+			obsValsArray[i] = this.obsVars[i].valNames;
+		}
+		
+		return obsValsArray;
+	}
 }
