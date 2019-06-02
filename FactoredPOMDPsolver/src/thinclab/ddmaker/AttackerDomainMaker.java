@@ -448,7 +448,7 @@ public class AttackerDomainMaker extends DomainMaker {
 		this.actionsDef += "OBS " + eobsDD.toSPUDD() + this.newLine;
 		
 		this.actionsDef += "endobserve" + this.newLine;
-		this.actionsDef += "cost (0.25)" + this.newLine;
+		this.actionsDef += "cost (0.5)" + this.newLine;
 		this.actionsDef += "endaction" + this.newLine + this.newLine;
 		// end EXFIL
 

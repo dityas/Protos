@@ -61,5 +61,11 @@ class TestDDMaker {
 		
 		System.out.println(DD.toSPUDD());
 	}
+	
+	@Test
+	void testDDAppend() {
+		System.out.println("Running testDDAppend()");
+		
+	}
 
 }

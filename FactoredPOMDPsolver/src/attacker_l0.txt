@@ -659,7 +659,7 @@ OBS (EXFIL_ONGOING'
 	))
 )
 endobserve
-cost (0.25)
+cost (0.5)
 endaction
 
 

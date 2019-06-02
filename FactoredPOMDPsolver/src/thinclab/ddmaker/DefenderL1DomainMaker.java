@@ -85,6 +85,13 @@ public class DefenderL1DomainMaker extends DomainMaker {
 		this.actionsDef += "dd opp_policy_dd" + this.newLine;
 		this.actionsDef += this.policyDD.toSPUDD() + this.newLine;
 		this.actionsDef += "enddd" + this.newLine;
+		
+		DDTree attStateTrans = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"OPP_POLICY"});
+		this.actionsDef += this.newLine;
+		this.actionsDef += "dd attacker_state_trans" + this.newLine;
+		this.actionsDef += attStateTrans.toSPUDD();
+		this.actionsDef += "enddd" + this.newLine;
 
 	}
 

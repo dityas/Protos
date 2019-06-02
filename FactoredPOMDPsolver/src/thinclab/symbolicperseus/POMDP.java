@@ -2232,7 +2232,7 @@ public class POMDP implements Serializable {
 			
 			if (bellmanErr < 0.001) {
 				System.out.println("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
-//				break;
+				break;
 			}
 		}
 

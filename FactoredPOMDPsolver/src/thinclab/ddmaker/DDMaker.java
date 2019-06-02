@@ -154,5 +154,32 @@ public class DDMaker {
 		
 		return topTreeRef;
 	} // public DDTree getDDTreeFromSequence
+	
+	public DDTree appendDDtoEnd(DDTree parent,
+								String[][] childSequence,
+								DDTree ddToAppend) {
+		/*
+		 * Adds given DD symmetrically to all children of the param
+		 */
+		DDTree topRef = parent;
+		DDTree currNode = topRef;
+		for (int s=0; s < childSequence.length; s++) {
+			
+			currNode = topRef;
+			String[] seq = childSequence[s];
+
+			for (int c=0; c < seq.length; c++) {
+				try {
+					currNode = currNode.atChild(seq[c]);
+				} catch (Exception e) {
+					// TODO: handle exception
+					System.out.println("SOMETHING WENT WRONG WHILE VISITING CHILD " + seq[c]);
+					e.printStackTrace();
+				}
+				
+			}
+		}
+		return parent;
+	}
 
 }

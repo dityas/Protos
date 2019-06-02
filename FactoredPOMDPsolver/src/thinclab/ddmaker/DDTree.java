@@ -138,5 +138,27 @@ public class DDTree {
 			throw new Exception(varName + " does not contain child " + childName);
 		}
 	} // public void setValueAt
+	
+	public void setDDAt(String childName, DDTree ddToAppend) throws Exception {
+		/*
+		 * Sets the value of the leaf at childName to param val
+		 */
+		if (this.children.containsKey(childName)) {
+			if (this.children.get(childName) instanceof DDTreeLeaf) {
+				this.theLogger.fine("Appending " + ddToAppend.toSPUDD() + " to " + this.toSPUDD());
+				this.children.put(childName, ddToAppend.getCopy());
+			}
+			
+			else {
+				this.theLogger.severe(childName + " for " + varName + " is not a leaf.");
+				throw new Exception(childName + " for " + varName + " is not a leaf.");
+			}
+		}
+		
+		else {
+			this.theLogger.severe(varName + " does not contain child " + childName);
+			throw new Exception(varName + " does not contain child " + childName);
+		}
+	} // public void setDDAt
 
 } // public class DDTree

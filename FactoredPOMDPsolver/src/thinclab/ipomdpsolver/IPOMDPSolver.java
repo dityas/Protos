@@ -12,7 +12,7 @@ import thinclab.policyhelper.PolicyGraph;
 
 public class IPOMDPSolver {
 	
-	public static int nRounds = 20;
+	public static int nRounds = 15;
     public static int nIterations = 100;  // backup iterations  per round
     public static int maxAlphaSetSize = 1000;
     public static int numBelStates = 100;
