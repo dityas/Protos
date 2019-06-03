@@ -13,6 +13,7 @@ public class PolicyNode {
 	HashMap<String, ArrayList<Float>> factoredBelief = new HashMap<String, ArrayList<Float>>();
 	Map<List<String>, Integer> nextNode = new HashMap<List<String>, Integer>();
 	Map<List<String>, Integer> compressedNextNode = new HashMap<List<String>, Integer>();
+	public boolean startNode = false;
 	
 	public boolean shallowEquals(PolicyNode other) {
 		/*

@@ -53,7 +53,7 @@ public class IPOMDPSolver {
 //							attackerL0.substring(0, attackerL0.lastIndexOf(".")), false);
 		
 		attackerPomdp.solvePBVI(nRounds, nIterations);
-//		attackerPomdp.solvePBVI(5, nIterations);
+//		attackerPomdp.solvePBVI(10, nIterations);
 		
 		// Extract attacker policy
 		PolicyExtractor attackerPolicy = new PolicyExtractor(attackerPomdp);
