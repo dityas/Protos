@@ -18,6 +18,8 @@ public class ActionSPUDD {
 	public String[] obsNames;
 	public String[][] obsValNames;
 	
+	public String newLine = "\r\n";
+	
 	public HashSet<String> varNameSet = new HashSet<String>();
 	
 	public HashMap<String, DDTree> varToDDMap = new HashMap<String, DDTree>();
@@ -80,6 +82,38 @@ public class ActionSPUDD {
 			
 		} // while (ddMapIter.hasNext())
 	} // public void fillNullDDs
+	
+	// -----------------------------------------------------------------------------------
+	
+	// -----------------------------------------------------------------------------------
+	// Methods to write SPUDD strings
+	
+	public String toSPUDD() {
+		/*
+		 * Returns SPUDD representation of the action DD
+		 */
+		String SPUDD = "";
+		SPUDD += this.newLine;
+		SPUDD += "action" + " " + this.actionName + this.newLine;
+		
+		// Write states
+		for (int s=0; s < this.varNames.length; s++) {
+			String state = this.varNames[s];
+			SPUDD += state + "\t" + this.varToDDMap.get(state).toSPUDD() + this.newLine;
+		}
+		
+		SPUDD += "observe" + this.newLine;
+		
+		// Write observations
+		for (int o=0; o < this.obsNames.length; o++) {
+			String obs = this.obsNames[o];
+			SPUDD += obs + "\t" + this.varToDDMap.get(obs).toSPUDD() + this.newLine;
+		}
+		
+		SPUDD += "endobserve" + this.newLine;
+		SPUDD += "endaction" + this.newLine;
+		return SPUDD;
+	}
 	
 	// -----------------------------------------------------------------------------------
 }

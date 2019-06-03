@@ -74,7 +74,7 @@ class TestAttackerSPUDD {
 		
 		nopSPUDD.fillNullDDs();
 		
-		System.out.println(nopSPUDD.varToDDMap.toString());
+		System.out.println(nopSPUDD.toSPUDD());
 	}
 
 }
