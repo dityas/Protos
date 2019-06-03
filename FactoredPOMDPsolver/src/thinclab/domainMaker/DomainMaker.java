@@ -1,4 +1,4 @@
-package thinclab.ddmaker;
+package thinclab.domainMaker;
 
 import java.io.FileWriter;
 import java.io.IOException;

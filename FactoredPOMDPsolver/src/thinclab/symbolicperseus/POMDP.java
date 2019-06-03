@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.HashMap;
 
+import thinclab.policyhelper.PolicyCache;
 import thinclab.symbolicperseus.StateVar;
 
 public class POMDP implements Serializable {
@@ -72,6 +73,9 @@ public class POMDP implements Serializable {
 	private List<DD> beliefLeaves = new ArrayList<DD>();
 	private List<DD[]> beliefPoints = new ArrayList<DD[]>();
 	// end PBVI belief expansion variables
+	
+	// Policy cache
+	public PolicyCache pCache = new PolicyCache(5);
 
 	public static DD[] concatenateArray(DD a, DD[] b, DD c) {
 		DD[] d = new DD[b.length + 2];
@@ -1414,10 +1418,16 @@ public class POMDP implements Serializable {
 		alphaVectors[0] = DD.one;
 
 		for (int r=0; r < rounds; r++) {
+			this.pCache.resetOscillationTracking();
+			this.pCache.resetAlphaVecsMap();
+
 			boundedPerseusStartFromCurrent(100, r * numDpBackups, numDpBackups);
 			expandBeliefRegionSSGA(100);
 //			expandBeliefRegion(100);
 		}
+		
+		this.alphaVectors = this.pCache.getMaxAlphaVecs();
+		this.policy = this.pCache.getMaxPolicy();
 	}
 
 	public double evaluatePolicyStationary(int nRuns, int nSteps) {
@@ -2234,6 +2244,21 @@ public class POMDP implements Serializable {
 				System.out.println("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
 				break;
 			}
+			
+			if (stepId % 100 < 50) {
+				continue;
+			}
+			
+			else {
+				this.pCache.cachePolicy(this.alphaVectors.length,
+										this.alphaVectors,
+										this.policy);
+				
+				if (this.pCache.isOscillating(new Float(bellmanErr))) {
+					System.out.println("BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
+					break;
+				}
+			} // else
 		}
 
 	}

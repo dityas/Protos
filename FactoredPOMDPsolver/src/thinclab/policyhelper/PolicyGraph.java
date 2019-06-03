@@ -8,9 +8,9 @@ import edu.uci.ics.jung.graph.DirectedOrderedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.visualization.VisualizationImageServer;
-import thinclab.ddmaker.DDMaker;
+import thinclab.domainMaker.DDMaker;
+import thinclab.domainMaker.DDTree;
 import thinclab.symbolicperseus.POMDP;
-import thinclab.ddmaker.DDTree;
 
 public class PolicyGraph {
 	

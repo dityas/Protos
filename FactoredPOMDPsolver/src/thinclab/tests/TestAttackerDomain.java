@@ -6,7 +6,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.ddmaker.AttackerDomainMaker;
+import thinclab.domainMaker.AttackerDomainMaker;
 
 class TestAttackerDomain {
 

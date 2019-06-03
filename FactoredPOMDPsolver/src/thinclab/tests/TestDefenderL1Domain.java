@@ -6,8 +6,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.ddmaker.AttackerDomainMaker;
-import thinclab.ddmaker.DefenderL1DomainMaker;
+import thinclab.domainMaker.AttackerDomainMaker;
+import thinclab.domainMaker.DefenderL1DomainMaker;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
 import thinclab.symbolicperseus.POMDP;

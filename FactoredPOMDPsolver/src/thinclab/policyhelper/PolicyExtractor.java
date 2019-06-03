@@ -6,7 +6,7 @@ import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.symbolicperseus.ZeroProbabilityObsException;
-import thinclab.ddmaker.DDMaker;
+import thinclab.domainMaker.DDMaker;
 import thinclab.policyhelper.PolicyNode;
 
 import java.util.HashMap;

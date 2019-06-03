@@ -1,8 +1,8 @@
-package thinclab.ddmaker;
+package thinclab.domainMaker;
 
 import java.util.HashMap;
 
-import thinclab.ddmaker.DDMaker;
+import thinclab.domainMaker.DDMaker;
 
 public class AttackerDomainMaker extends DomainMaker {
 	/*
