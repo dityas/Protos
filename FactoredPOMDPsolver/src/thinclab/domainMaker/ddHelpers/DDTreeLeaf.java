@@ -1,4 +1,4 @@
-package thinclab.domainMaker;
+package thinclab.domainMaker.ddHelpers;
 
 public class DDTreeLeaf extends DDTree {
 	

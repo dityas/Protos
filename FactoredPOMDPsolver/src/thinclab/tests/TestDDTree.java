@@ -6,8 +6,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.domainMaker.DDTree;
-import thinclab.domainMaker.DDTreeLeaf;
+import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.domainMaker.ddHelpers.DDTreeLeaf;
 
 class TestDDTree {
 

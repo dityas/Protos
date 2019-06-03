@@ -4,6 +4,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import thinclab.domainMaker.ddHelpers.DDMaker;
+
 public abstract class DomainMaker {
 	/*
 	 * Abstract class for L0Domains

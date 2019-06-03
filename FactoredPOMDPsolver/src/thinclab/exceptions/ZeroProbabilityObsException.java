@@ -1,4 +1,4 @@
-package thinclab.symbolicperseus;
+package thinclab.exceptions;
 
 public class ZeroProbabilityObsException extends Exception{
 	

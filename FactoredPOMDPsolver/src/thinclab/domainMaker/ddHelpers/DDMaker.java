@@ -1,4 +1,4 @@
-package thinclab.domainMaker;
+package thinclab.domainMaker.ddHelpers;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import thinclab.domainMaker.ddHelpers.DDTree;
+
 public class DefenderL1DomainMaker extends DomainMaker {
 
 	DDTree policyDD;

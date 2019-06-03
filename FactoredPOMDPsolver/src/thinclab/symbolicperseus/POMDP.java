@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.HashMap;
 
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.policyhelper.PolicyCache;
 import thinclab.symbolicperseus.StateVar;
 
