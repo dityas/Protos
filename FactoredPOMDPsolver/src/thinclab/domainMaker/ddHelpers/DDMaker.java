@@ -25,6 +25,9 @@ public class DDMaker {
 		theLogger.addHandler(cHandler);
 	}
 	
+	// ----------------------------------------------------------------------------
+	// Methods for variables addition
+	
 	public void addVariable(String varName, String[] children) {
 		/*
 		 * Stores the state or observation variable info.
@@ -57,6 +60,28 @@ public class DDMaker {
 		this.variablesHashMap.putAll(primeHashMap);
 		this.primed = true;
 	}
+	
+	public void addAllAndPrime(String[] varNames,
+			String[][] varValNames,
+			String[] obsNames,
+			String[][] obsValNames) {
+		/*
+		 * Adds all variables at once and primes them
+		 */
+		
+		for (int i=0; i < varNames.length; i++) {
+			this.addVariable(varNames[i], varValNames[i]);
+		}
+		
+		for (int o=0; o < obsNames.length; o++) {
+			this.addVariable(obsNames[o], obsValNames[o]);
+		}
+		
+		this.primeVariables();
+		
+	} // public void addAll
+	
+	// -----------------------------------------------------------------------------
 	
 	public DDTree getDDTreeFromSequence(String[] varSequence) {
 		/*
