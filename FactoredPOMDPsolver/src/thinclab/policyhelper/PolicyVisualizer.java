@@ -56,7 +56,7 @@ public class PolicyVisualizer {
 		Transformer<PolicyNode, String> nodeTransformer = new Transformer<PolicyNode, String>() {
 			@Override
 			public String transform(PolicyNode node) {
-				return "<html> ACTION: " + node.actName + node.getBeliefLabel();
+				return "<html> ACTION: " + node.actName;// + node.getBeliefLabel();
 			}
 		};
 

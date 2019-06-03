@@ -2245,7 +2245,7 @@ public class POMDP implements Serializable {
 				break;
 			}
 			
-			if (stepId % 100 < 50) {
+			if (stepId % 100 < 10) {
 				continue;
 			}
 			

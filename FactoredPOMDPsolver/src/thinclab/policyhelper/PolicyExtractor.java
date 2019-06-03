@@ -102,6 +102,7 @@ public class PolicyExtractor {
 			nodeCurr.actId = p.policy[nodeCurr.alphaId];
 			nodeCurr.actName = this.p.actions[nodeCurr.actId].name;
 			nodeCurr.factoredBelief = this.p.getBeliefStateMap(nodeCurr.belief);
+			nodeCurr.actName += " [STARTNODE] ";
 //			System.out.println("Suggesting action " + p.actions[nodeCurr.actId].name);
 			
 			List<PolicyNode> policyLeaves = new ArrayList<PolicyNode>();
