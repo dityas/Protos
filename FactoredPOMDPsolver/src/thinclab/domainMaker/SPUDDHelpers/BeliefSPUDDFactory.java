@@ -35,5 +35,25 @@ public class BeliefSPUDDFactory {
 		bSPUDD.setAdjName(adjName);
 		return bSPUDD;
 	} // public static BeliefSPUDD getAdjunctBeliefSPUDD
+	
+	public static BeliefSPUDD getAdjunctBeliefSPUDD(BeliefSPUDD prevBSPUDD,
+			String[] ddVars,
+			DDTree[] dds,
+			String adjName) {
+		
+		for (int i = 0; i < ddVars.length; i++) {
+
+			try {
+				prevBSPUDD.putDD(ddVars[i], dds[i]);
+			}
+
+			catch (VariableNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} // for (int i=0; i < ddVars.length; i ++)
+		
+		return prevBSPUDD;
+	} // public static BeliefSPUDD getAdjunctBeliefSPUDD
 
 }
