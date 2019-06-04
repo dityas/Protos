@@ -1,4 +1,4 @@
-package thinclab.domainMaker;
+package thinclab.domainMaker.SPUDDHelpers;
 
 import java.util.HashSet;
 

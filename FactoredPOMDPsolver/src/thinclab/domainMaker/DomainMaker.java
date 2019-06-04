@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
+import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 
 public abstract class DomainMaker {

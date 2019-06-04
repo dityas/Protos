@@ -1,6 +1,5 @@
 package thinclab.domainMaker.SPUDDHelpers;
 
-import thinclab.domainMaker.VariablesContext;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
 
