@@ -3,6 +3,8 @@ package thinclab.domainMaker;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
+import thinclab.domainMaker.SPUDDHelpers.ActionSPUDDFactory;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 
