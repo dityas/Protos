@@ -3,6 +3,8 @@ package thinclab.domainMaker;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import thinclab.domainMaker.ddHelpers.DDMaker;
 
@@ -25,7 +27,14 @@ public abstract class DomainMaker {
 	
 	public String domainString;
 	
+	public List<ActionSPUDD> actionSPUDDs = new ArrayList<ActionSPUDD>();
+	
 	public DDMaker ddmaker = new DDMaker();
+	public VariablesContext varContext;
+	
+	// --------------------------------------------------------------------
+	
+	// Domain creation methods
 	
 	public void writeVariablesDef() {
 	/*
@@ -93,6 +102,12 @@ public abstract class DomainMaker {
 		}
 	}
 	
+	// --------------------------------------------------------------------------
+	
+	// --------------------------------------------------------------------------
+	
+	// Tool init methods
+	
 	public void addVariablesToDDMaker() {
 		for (int v=0; v<this.variables.length; v++) {
 			this.ddmaker.addVariable(this.variables[v], this.varValues[v]);
@@ -103,6 +118,17 @@ public abstract class DomainMaker {
 		}
 		
 		this.ddmaker.primeVariables();
-	}
+	} // public void addVariablesToDDMaker
+	
+	public void makeVarContext() {
+		this.varContext = new VariablesContext(
+				this.variables,
+				this.varValues,
+				this.observations,
+				this.obsValues);
+				
+	} // public void makeVarContext
+	
+	// --------------------------------------------------------------------------
 
 }

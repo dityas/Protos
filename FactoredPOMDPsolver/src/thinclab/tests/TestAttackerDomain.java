@@ -19,12 +19,12 @@ class TestAttackerDomain {
 	}
 
 	@Test
-	void testAttackerDomain() {
-		System.out.println("Running testAttackerDomain()");
+	void testAttackerDomainActionSPUDD() {
+		System.out.println("Running testAttackerDomainActionSPUDD()");
 		AttackerDomainMaker AD = new AttackerDomainMaker();
-		AD.makeDomain();
-		System.out.println(AD.domainString);
-		System.out.println(AD.ddMap);
+		AD.makeActionsSPUDD();
+		AD.writeActionsDef();
+		System.out.println(AD.actionsDef);
 	}
 
 }
