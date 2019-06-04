@@ -13,41 +13,26 @@ import thinclab.exceptions.VariableNotFoundException;
 public class ActionSPUDD {
 
 	public String actionName;
-	public String[] varNames;
-	public String[][] varValNames;
-	public String[] obsNames;
-	public String[][] obsValNames;
+	public VariablesContext varContext;
+	public double cost;
 	
 	public String newLine = "\r\n";
-	
-	public HashSet<String> varNameSet = new HashSet<String>();
 	
 	public HashMap<String, DDTree> varToDDMap = new HashMap<String, DDTree>();
 	
 	public ActionSPUDD(String actionName,
-					   String[] varNames,
-					   String[][] varValNames,
-					   String[] obsNames,
-					   String[][] obsValNames) {
+					   VariablesContext varContext,
+					   double cost) {
 		
 		this.actionName = actionName;
-		this.varNames = varNames;
-		this.varValNames = varValNames;
-		this.obsNames = obsNames;
-		this.obsValNames = obsValNames;
+		this.varContext = varContext;
+		this.cost = cost;
 		
-		// populate state var keys
-		for (int i=0; i < this.varNames.length; i++) {
-			this.varToDDMap.put(this.varNames[i], null);
-			this.varNameSet.add(this.varNames[i]);
+		// populate DD map
+		Iterator<String> varIter = this.varContext.varNameSet.iterator();
+		while (varIter.hasNext()) {
+			this.varToDDMap.put(varIter.next(), null);
 		}
-		
-		// populate obs var keys
-		for (int i=0; i < this.obsNames.length; i++) {
-			this.varToDDMap.put(this.obsNames[i], null);
-			this.varNameSet.add(this.obsNames[i]);
-		}
-		
 	}
 	
 	// ------------------------------------------------------------------------------
@@ -57,7 +42,7 @@ public class ActionSPUDD {
 		/*
 		 * Map given DD to the variable name
 		 */
-		if (this.varNameSet.contains(varName)) {
+		if (this.varContext.hasVariable(varName)) {
 			this.varToDDMap.put(varName, dd);
 		}
 		
@@ -97,20 +82,25 @@ public class ActionSPUDD {
 		SPUDD += "action" + " " + this.actionName + this.newLine;
 		
 		// Write states
-		for (int s=0; s < this.varNames.length; s++) {
-			String state = this.varNames[s];
+		for (int s=0; s < this.varContext.varNames.length; s++) {
+			String state = this.varContext.varNames[s];
 			SPUDD += state + "\t" + this.varToDDMap.get(state).toSPUDD() + this.newLine;
 		}
 		
 		SPUDD += "observe" + this.newLine;
 		
 		// Write observations
-		for (int o=0; o < this.obsNames.length; o++) {
-			String obs = this.obsNames[o];
+		for (int o=0; o < this.varContext.obsNames.length; o++) {
+			String obs = this.varContext.obsNames[o];
 			SPUDD += obs + "\t" + this.varToDDMap.get(obs).toSPUDD() + this.newLine;
 		}
 		
 		SPUDD += "endobserve" + this.newLine;
+		
+		if (this.cost > 0.0) {
+			SPUDD += "cost (" + this.cost + ")" + this.newLine;
+		}
+		
 		SPUDD += "endaction" + this.newLine;
 		return SPUDD;
 	}
