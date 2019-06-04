@@ -84,7 +84,7 @@ public class PolicyVisualizer {
 		// Define Shape transformer
 
 		Transformer<PolicyNode, Shape> vertexShapeTransformer = new Transformer<PolicyNode, Shape>() {
-			float size = 20;
+			float size = 30;
 
 			@Override
 			public Shape transform(PolicyNode node) {
@@ -143,7 +143,7 @@ public class PolicyVisualizer {
 		    public Stroke transform(PolicyEdge s) {
 //		        return new BasicStroke(1.0f, BasicStroke.CAP_BUTT,
 //		                BasicStroke.JOIN_MITER, 10.0f, dash, 0.0f);
-		    	return new BasicStroke(new Float(1.0));
+		    	return new BasicStroke(new Float(0.5));
 		    }
 		};
 		
@@ -151,8 +151,8 @@ public class PolicyVisualizer {
 		
 		// --------------------------------------------------------------------
 
-		vv.getRenderer().getEdgeRenderer()
-				.setEdgeArrowRenderingSupport(new CenterEdgeArrowRenderingSupport<PolicyNode, PolicyEdge>());
+//		vv.getRenderer().getEdgeRenderer()
+//				.setEdgeArrowRenderingSupport(new CenterEdgeArrowRenderingSupport<PolicyNode, PolicyEdge>());
 //		vv.getRenderContext().setArrowPlacementTolerance((float) 100.0);
 //		vv.setVertexToolTipTransformer(vv.getRenderContext().getVertexLabelTransformer());
 
