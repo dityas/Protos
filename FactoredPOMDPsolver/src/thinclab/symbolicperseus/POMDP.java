@@ -1815,6 +1815,10 @@ public class POMDP implements Serializable {
 
 	} // private boolean checkBeliefPointExists
 	
+	// -----------------------------------------------------------------------------------------
+	
+	// Belief expansion stuff
+	
 	public void expandBeliefRegion(int count) {
 		/*
 		 * Adds next level of belief points to the belief region
@@ -1889,13 +1893,14 @@ public class POMDP implements Serializable {
 	} // public void expandBeliefRegion
 
 	
-	public void expandBeliefRegionSSGA(int count) {
+	public void expandFromBeliefSSGA(DD startBel, int count) {
 		/*
-		 * Adds next level of belief points to the belief region
+		 * Starts SSGA expansion from param startBel
 		 */
 		int numNewPoints = 0;
-		List<DD> newBeliefPoints = new ArrayList<DD>();
-		DD currentLeaf = this.initialBelState;
+		DD currentLeaf = startBel;
+		
+//		System.out.println(Arrays.toString(this.adjunctNames));
 		
 		// multinomial for action sampling
 		double[] explore = new double[2];
@@ -1905,7 +1910,7 @@ public class POMDP implements Serializable {
 		// Add initial belief we are starting from scratch
 		if (beliefPoints.size() == 0 && beliefLeaves.size() == 0) {
 //			beliefLeaves.add(this.initialBelState);
-			beliefPoints.add(factorBeliefPoint(this.initialBelState));
+			beliefPoints.add(factorBeliefPoint(startBel));
 		}
 		
 		// Build the next stage of the belief tree 
@@ -1962,15 +1967,29 @@ public class POMDP implements Serializable {
 //				System.out.println("SAMPLED " + newBeliefPoints.size() + " NEW BELIEFS.");
 		}// while beliefLeavesIterator
 		
-		// replace beliefLeaves
-//		this.beliefLeaves.addAll(newBeliefPoints);
+		System.out.println("[*][*] ADDED " + numNewPoints + " NEW BELIEF POINTS");
+	}
+	
+	
+	
+	public void expandBeliefRegionSSGA(int count) {
+		/*
+		 * Adds next level of belief points to the belief region
+		 */
+		
+		this.expandFromBeliefSSGA(this.initialBelState, count);
+		
+		for (int i=0; i < this.adjuncts.length; i++) {
+			this.expandFromBeliefSSGA(this.adjuncts[i], count);
+		}
 		
 		// replace beliefRegion
 		this.belRegion = this.beliefPoints.toArray(new DD[this.beliefPoints.size()][]);
-		
-		System.out.println("[*][*] ADDED " + numNewPoints + " NEW BELIEF POINTS");
 //				+ this.beliefLeaves.size() + " NOT YET SAMPLED. ");
 	} // public void expandBeliefRegionSSEA
+	
+	
+	// -----------------------------------------------------------------------------------------
 	
 	
 	public void boundedPerseus(int nIterations, int maxAlpha, int firstStep,
@@ -2241,12 +2260,7 @@ public class POMDP implements Serializable {
 					+ " \tBELIEF POINTS: " + this.belRegion.length
 					+ " \tA VECTORS: " + alphaVectors.length);
 			
-			if (bellmanErr < 0.001) {
-				System.out.println("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
-				break;
-			}
-			
-			if (stepId % 100 < 10) {
+			if (stepId % 100 < 5) {
 				continue;
 			}
 			
@@ -2260,6 +2274,11 @@ public class POMDP implements Serializable {
 					break;
 				}
 			} // else
+			
+			if (bellmanErr < 0.001) {
+				System.out.println("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
+				break;
+			}
 		}
 
 	}

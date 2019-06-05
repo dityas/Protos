@@ -35,7 +35,7 @@ public class IPOMDPSolver {
 		String attackerL0 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
 		
 		AttackerDomainMaker attl0Domain = new AttackerDomainMaker();
-		attl0Domain.makeDomain();
+		attl0Domain.makeAll();
 		attl0Domain.writeToFile(attackerL0);
 		
 		// Solve attacker POMDP
@@ -61,7 +61,7 @@ public class IPOMDPSolver {
 		// Make Policy Graph
 		System.out.println("Making graph");
 		PolicyGraph attackerPolicyGraph = new PolicyGraph(attackerPolicy.policyNodes);
-//		System.out.println(attackerPolicyGraph.getGraphAsDD(attackerPomdp).toSPUDD());
+		System.out.println(attackerPolicyGraph.getGraphAsDD(attackerPomdp).toSPUDD());
 //		attackerPolicyGraph.printPrettyPolicyGraph();
 		
 		visualizer = new PolicyVisualizer(attackerPolicyGraph);

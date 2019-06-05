@@ -108,6 +108,22 @@ public class PolicyExtractor {
 			List<PolicyNode> policyLeaves = new ArrayList<PolicyNode>();
 			policyLeaves.add(nodeCurr);
 			
+			// Add other initial beliefs
+			for (int i=0; i < this.p.adjuncts.length; i ++) {
+				PolicyNode other = new PolicyNode();
+				other.belief = this.p.adjuncts[i];
+				other.alphaId = this.p.policyBestAlphaMatch(other.belief, 
+						this.p.alphaVectors, 
+						this.p.policy);
+				other.actId = this.p.policy[other.alphaId];
+				other.actName = this.p.actions[other.actId].name;
+				other.factoredBelief = this.p.getBeliefStateMap(other.belief);
+				other.startNode = true;
+				
+				policyLeaves.add(other);
+			}
+			
+			
 			// Generate all possible observations
 			List<StateVar> obsVars = new LinkedList<StateVar>(Arrays.asList(p.obsVars));
 			List<List<String>> obs = recursiveObsCombinations(obsVars);

@@ -198,6 +198,23 @@ public class AttackerDomainMaker extends DomainMaker {
 		
 		this.otherBeliefSPUDDs.add(dontKnowPrivsBelief);
 		
+		
+		// No C Data
+		
+		DDTree yesCDataInit = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"HAS_C_DATA"},
+				new String[][] {
+					{"yes", "1.0"},
+					{"no", "0.0"} });
+		
+		BeliefSPUDD yesCDataBelief = BeliefSPUDDFactory.getAdjunctBeliefSPUDD(
+				bSPUDD, 
+				new String[] {"HAS_C_DATA"}, 
+				new DDTree[] {yesCDataInit},
+				"noCData");
+		
+		this.otherBeliefSPUDDs.add(yesCDataBelief);
+		
 	}
 
 	// --------------------------------------------------------------------
@@ -245,7 +262,7 @@ public class AttackerDomainMaker extends DomainMaker {
 				this.varContext, actName,
 				new String[] {"OBS"},
 				new DDTree[] {vulnScanObsDD},
-				1.0);
+				0.1);
 		
 		this.actionSPUDDs.add(vulnScanSPUDD);
 		
@@ -294,8 +311,8 @@ public class AttackerDomainMaker extends DomainMaker {
 		DDTree privEscObsDD = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"SESSION_PRIVS'", "OBS'"},
 				new String[][] {
-					{"user", "user", "1.0"},
-					{"admin", "admin", "1.0"}
+					{"user", "none", "1.0"},
+					{"admin", "success", "1.0"}
 				});
 		
 		ActionSPUDD privEscSPUDD = ActionSPUDDFactory.getActionSPUDD(
@@ -340,7 +357,7 @@ public class AttackerDomainMaker extends DomainMaker {
 				this.varContext, actName,
 				new String[] {"PERSIST_GAINED", "OBS"},
 				new DDTree[] {persistGainedDD, persistObsDD},
-				0.5);
+				0.2);
 		
 		this.actionSPUDDs.add(persistSPUDD);
 		
@@ -360,6 +377,7 @@ public class AttackerDomainMaker extends DomainMaker {
 				new String[][] {
 					{"yes", "*", "yes", "yes", "1.0"},
 					{"yes", "user", "no", "no", "1.0"},
+//					{"yes", "user", "no", "yes", "0.1"},
 					{"yes", "admin", "no", "yes", "0.9"},
 					{"yes", "admin", "no", "no", "0.1"},
 					{"no", "*", "*", "no", "1.0"}
@@ -377,7 +395,7 @@ public class AttackerDomainMaker extends DomainMaker {
 				this.varContext, actName,
 				new String[] {"C_DATA_ACCESSED", "OBS"},
 				new DDTree[] {cDataAccessedDD, fileReconObsDD},
-				0.5);
+				0.1);
 		
 		this.actionSPUDDs.add(fileReconSPUDD);
 		
@@ -431,7 +449,7 @@ public class AttackerDomainMaker extends DomainMaker {
 				new String[] {"C_DATA_ACCESSED",
 							  "EXFIL_ONGOING"},
 				new String[][] {
-					{"yes", "yes", "5.0"},
+					{"yes", "yes", "2.0"},
 					{"no", "yes", "0.0"}
 				});
 	}
