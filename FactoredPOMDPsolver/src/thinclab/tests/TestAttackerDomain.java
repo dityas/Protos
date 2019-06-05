@@ -22,9 +22,8 @@ class TestAttackerDomain {
 	void testAttackerDomainActionSPUDD() {
 		System.out.println("Running testAttackerDomainActionSPUDD()");
 		AttackerDomainMaker AD = new AttackerDomainMaker();
-		AD.makeActionsSPUDD();
-		AD.writeActionsDef();
-		System.out.println(AD.actionsDef);
+		AD.makeAll();
+		System.out.println(AD.domainString);
 	}
 
 }

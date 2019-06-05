@@ -25,6 +25,8 @@ class TestBeliefSPUDD {
 	public DDMaker ddmaker;
 
 	public VariablesContext varContext;
+	
+	public BeliefSPUDD bSPUDD;
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -57,7 +59,8 @@ class TestBeliefSPUDD {
 		// ----------------------------------------------------------------------------
 		// HAS_ROOT_VULN
 
-		DDTree hasRootVulnInit = this.ddmaker.getDDTreeFromSequence(new String[] { "HAS_ROOT_VULN" },
+		DDTree hasRootVulnInit = this.ddmaker.getDDTreeFromSequence(
+				new String[] { "HAS_ROOT_VULN" },
 				new String[][] { { "yes", "0.5" }, { "no", "0.5" } });
 
 		// ----------------------------------------------------------------------------
@@ -144,7 +147,7 @@ class TestBeliefSPUDD {
 
 		// ----------------------------------------------------------------------------
 		
-		BeliefSPUDD bSPUDD = BeliefSPUDDFactory.getBeliefSPUDD(this.varContext,
+		this.bSPUDD = BeliefSPUDDFactory.getBeliefSPUDD(this.varContext,
 				
 				new String[] {"HAS_ROOT_VULN",
 							  "HAS_C_DATA",
@@ -169,9 +172,21 @@ class TestBeliefSPUDD {
 	}
 
 	@Test
-	void testActionSPUDDFactory() {
-		System.out.println("Running testActionSPUDDFactory()");
-
+	void testBeliefSPUDDAdjunct() {
+		System.out.println("Running testBeliefSPUDDAdjunct()");
+		
+//		DDTree dontKnowSessionPrivsInit = this.ddmaker.getDDTreeFromSequence(
+//				new String[] {"SESSION_PRIVS"},
+//				new String[][] {
+//					{"user", "1.0"},
+//					{"admin", "0.0"} });
+//		
+//		BeliefSPUDD dontKnowPrivsSPUDD = BeliefSPUDDFactory.getAdjunctBeliefSPUDD(
+//				this.bSPUDD, new String[] {"SESSION_PRIVS"}, new DDTree[] {dontKnowSessionPrivsInit}, 
+//				"dontKnowPrivs");
+//		
+//		System.out.println(dontKnowPrivsSPUDD.toSPUDD());
+		
 	} // void testActionSPUDDFactory
 
 }

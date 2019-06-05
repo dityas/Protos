@@ -71,4 +71,22 @@ public class BeliefSPUDD {
 		return SPUDD;
 	}	
 	// -----------------------------------------------------------------------------------
+	
+	public BeliefSPUDD getCopy() {
+		BeliefSPUDD copySPUDD = new BeliefSPUDD(this.varContext);
+		
+		Iterator<Entry<String, DDTree>> mapIter = this.varToDDMap.entrySet().iterator();
+		while (mapIter.hasNext()) {
+			Entry<String, DDTree> entry = mapIter.next();
+			
+			try {
+				copySPUDD.putDD(entry.getKey(), entry.getValue().getCopy());
+			} 
+			catch (VariableNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return copySPUDD;
+	} // public BeliefSPUDD getCopy
 }

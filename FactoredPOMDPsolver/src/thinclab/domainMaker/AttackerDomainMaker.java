@@ -5,6 +5,8 @@ import java.util.Iterator;
 
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDDFactory;
+import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDD;
+import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDDFactory;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 
@@ -58,118 +60,150 @@ public class AttackerDomainMaker extends DomainMaker {
 		this.addVariablesToDDMaker();
 		this.makeVarContext();
 	}
-
+	
 	@Override
-	public void writeinitDef() {
+	public void makeBeliefsSPUDD() {
+		/*
+		 * Make Belief SPUDD
+		 */
+		// ----------------------------------------------------------------------------
+		// HAS_ROOT_VULN
 
-		this.initDef = this.newLine;
-		this.initDef += "init[*" + this.newLine;
-		
-		DDTree stateInit = this.ddmaker.getDDTreeFromSequence(
-				new String[] {"HAS_ROOT_VULN"},
-				new String[][] {
-					{"yes", "0.5"},
-					{"no", "0.5"}
-				}
-				);
-		this.initDef += stateInit.toSPUDD() + this.newLine;
-		
-		stateInit = this.ddmaker.getDDTreeFromSequence(
+		DDTree hasRootVulnInit = this.ddmaker.getDDTreeFromSequence(
+				new String[] { "HAS_ROOT_VULN" },
+				new String[][] { 
+					{ "yes", "0.5" }, { "no", "0.5" } });
+
+		// ----------------------------------------------------------------------------
+
+		// ----------------------------------------------------------------------------
+		// HAS_C_DATA
+
+		DDTree hasCDataInit = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"HAS_C_DATA"},
 				new String[][] {
 					{"yes", "0.5"},
-					{"no", "0.5"}
-				}
-				);
-		this.initDef += stateInit.toSPUDD() + this.newLine;
-		
-		stateInit = this.ddmaker.getDDTreeFromSequence(
+					{"no", "0.5"} });
+
+		// ----------------------------------------------------------------------------
+
+		// ----------------------------------------------------------------------------
+		// HAS_FAKE_DATA
+
+		DDTree hasFakeDataInit = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"HAS_FAKE_DATA"},
 				new String[][] {
 					{"yes", "0.5"},
-					{"no", "0.5"}
-				}
-				);
-		this.initDef += stateInit.toSPUDD() + this.newLine;
-		
-//		stateInit = this.ddmaker.getDDTreeFromSequence(
-//				new String[] {"C_DATA_VIS"},
-//				new String[][] {
-//					{"user", "0.5"},
-//					{"admin", "0.5"}
-//				}
-//				);
-//		this.initDef += stateInit.toSPUDD() + this.newLine;
-		
-//		stateInit = this.ddmaker.getDDTreeFromSequence(
-//				new String[] {"FAKE_DATA_VIS"},
-//				new String[][] {
-//					{"user", "0.5"},
-//					{"admin", "0.5"}
-//				}
-//				);
-//		this.initDef += stateInit.toSPUDD() + this.newLine;
-		
-		stateInit = this.ddmaker.getDDTreeFromSequence(
+					{"no", "0.5"} });
+
+		// ----------------------------------------------------------------------------
+
+		// ----------------------------------------------------------------------------
+		// SESSION_PRIVS
+
+		DDTree sessionPrivsInit = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"SESSION_PRIVS"},
 				new String[][] {
 					{"user", "1.0"},
-					{"admin", "0.0"}
-				}
-				);
-		this.initDef += stateInit.toSPUDD() + this.newLine;
+					{"admin", "0.0"} });
+
+		// ----------------------------------------------------------------------------
 		
-		stateInit = this.ddmaker.getDDTreeFromSequence(
+		// ----------------------------------------------------------------------------
+		// PERSIST_GAINED
+
+		DDTree persistGainedInit = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"PERSIST_GAINED"},
 				new String[][] {
 					{"none", "1.0"},
 					{"user", "0.0"},
 					{"admin", "0.0"}
-				}
-				);
-		this.initDef += stateInit.toSPUDD() + this.newLine;
+				});
+
+		// ----------------------------------------------------------------------------
 		
-		stateInit = this.ddmaker.getDDTreeFromSequence(
+		// ----------------------------------------------------------------------------
+		// C_DATA_ACCESSED
+
+		DDTree cDataAccessedInit = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"C_DATA_ACCESSED"},
 				new String[][] {
 					{"yes", "0.0"},
 					{"no", "1.0"}
-				}
-				);
-		this.initDef += stateInit.toSPUDD() + this.newLine;
+				});
+
+		// ----------------------------------------------------------------------------
 		
-		stateInit = this.ddmaker.getDDTreeFromSequence(
+		// ----------------------------------------------------------------------------
+		// FAKE_DATA_ACCESSED
+
+		DDTree fakeDataAccessedInit = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"FAKE_DATA_ACCESSED"},
 				new String[][] {
 					{"yes", "0.0"},
 					{"no", "1.0"}
-				}
-				);
-		this.initDef += stateInit.toSPUDD() + this.newLine;
+				});
+
+		// ----------------------------------------------------------------------------
 		
-		stateInit = this.ddmaker.getDDTreeFromSequence(
+		// ----------------------------------------------------------------------------
+		// EXFIL_ONGOING
+
+		DDTree exfilOngoingInit = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"EXFIL_ONGOING"},
 				new String[][] {
 					{"yes", "0.0"},
 					{"no", "1.0"}
-				}
-				);
-		this.initDef += stateInit.toSPUDD() + this.newLine;
+				});
+
+		// ----------------------------------------------------------------------------
 		
-		this.initDef += "]" + this.newLine + this.newLine;
-	}
-	
-	@Override
-	public void writeActionsDef() {
-		this.actionsDef += this.newLine;
+		BeliefSPUDD bSPUDD = BeliefSPUDDFactory.getBeliefSPUDD(this.varContext,
+				
+				new String[] {"HAS_ROOT_VULN",
+							  "HAS_C_DATA",
+							  "HAS_FAKE_DATA",
+							  "SESSION_PRIVS",
+							  "PERSIST_GAINED",
+							  "C_DATA_ACCESSED",
+							  "FAKE_DATA_ACCESSED",
+							  "EXFIL_ONGOING"},
+				
+				new DDTree[] {hasRootVulnInit,
+							  hasCDataInit,
+							  hasFakeDataInit,
+							  sessionPrivsInit,
+							  persistGainedInit,
+							  cDataAccessedInit,
+							  fakeDataAccessedInit,
+							  exfilOngoingInit});
+		this.beliefSPUDD = bSPUDD;
 		
-		Iterator<ActionSPUDD> actionIter = this.actionSPUDDs.iterator();
+		// ----------------------------------------------------------------------------
+		// Adjuncts
 		
-		while (actionIter.hasNext()) {
-			this.actionsDef += actionIter.next().toSPUDD() + this.newLine;
-		}
+		// Don't know privs
+		
+		DDTree dontKnowSessionPrivsInit = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"SESSION_PRIVS"},
+				new String[][] {
+					{"user", "0.5"},
+					{"admin", "0.5"} });
+		
+		BeliefSPUDD dontKnowPrivsBelief = BeliefSPUDDFactory.getAdjunctBeliefSPUDD(
+				bSPUDD, 
+				new String[] {"SESSION_PRIVS"}, 
+				new DDTree[] {dontKnowSessionPrivsInit},
+				"dontKnowPrivs");
+		
+		this.otherBeliefSPUDDs.add(dontKnowPrivsBelief);
+		
 	}
 
+	// --------------------------------------------------------------------
+	// Actions
+
+	@Override
 	public void makeActionsSPUDD() {
 		
 		// -----------------------------------------------------------------
@@ -391,19 +425,15 @@ public class AttackerDomainMaker extends DomainMaker {
 	}
 
 	@Override
-	public void writeRewardDef() {
-
-		this.rewardDef = this.newLine;
-		this.rewardDef += "reward" + this.newLine;
+	public void makeRewardDD() {
 		
-		DDTree rewardDD = this.ddmaker.getDDTreeFromSequence(
+		this.rewardFn = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"C_DATA_ACCESSED",
 							  "EXFIL_ONGOING"},
 				new String[][] {
 					{"yes", "yes", "5.0"},
 					{"no", "yes", "0.0"}
 				});
-		this.rewardDef += rewardDD.toSPUDD() + this.newLine;
 	}
 
 }

@@ -41,6 +41,8 @@ public class BeliefSPUDDFactory {
 			DDTree[] dds,
 			String adjName) {
 		
+		prevBSPUDD = prevBSPUDD.getCopy();
+		
 		for (int i = 0; i < ddVars.length; i++) {
 
 			try {
@@ -53,6 +55,7 @@ public class BeliefSPUDDFactory {
 			}
 		} // for (int i=0; i < ddVars.length; i ++)
 		
+		prevBSPUDD.setAdjName(adjName);
 		return prevBSPUDD;
 	} // public static BeliefSPUDD getAdjunctBeliefSPUDD
 

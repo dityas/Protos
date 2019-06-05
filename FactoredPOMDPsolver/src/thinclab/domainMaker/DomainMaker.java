@@ -4,11 +4,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
+import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.domainMaker.ddHelpers.DDMaker;
+import thinclab.domainMaker.ddHelpers.DDTree;
 
 public abstract class DomainMaker {
 	/*
@@ -23,13 +26,18 @@ public abstract class DomainMaker {
 	
 	public String variablesDef;
 	public String obsDef;
-	public String initDef;
-	public String actionsDef;
-	public String rewardDef;
+	public String beliefSection;
+	public String actionSection;
+	public String rewardSection;
 	
 	public String domainString;
 	
+	// SPUDD objects
+	public BeliefSPUDD beliefSPUDD;
+	public List<BeliefSPUDD> otherBeliefSPUDDs = new ArrayList<BeliefSPUDD>();
 	public List<ActionSPUDD> actionSPUDDs = new ArrayList<ActionSPUDD>();
+	public DDTree rewardFn;
+	
 	
 	public DDMaker ddmaker = new DDMaker();
 	public VariablesContext varContext;
@@ -67,27 +75,70 @@ public abstract class DomainMaker {
 		
 		this.obsDef += ")" + this.newLine;
 	}
-
-	public abstract void writeinitDef();
-	public abstract void writeActionsDef();
-	public abstract void writeRewardDef();
 	
-	public void makeDomain() {
+	public void writeBeliefs() {
+		/*
+		 * Populates belief SPUDD string
+		 */
+		this.beliefSection = "";
+		this.beliefSection += this.newLine;
 		
+		this.beliefSection += this.beliefSPUDD.toSPUDD() + this.newLine;
+		
+		Iterator<BeliefSPUDD> beliefIter = this.otherBeliefSPUDDs.iterator();
+		while (beliefIter.hasNext()) {
+			this.beliefSection += this.newLine;
+			this.beliefSection += beliefIter.next().toSPUDD();
+		}
+		
+	}
+	
+	public void writeActions() {
+		this.actionSection = "";
+		this.actionSection += this.newLine;
+		
+		Iterator<ActionSPUDD> actSPUDD = this.actionSPUDDs.iterator();
+		while (actSPUDD.hasNext()) {
+			this.actionSection += this.newLine;
+			this.actionSection += actSPUDD.next().toSPUDD();
+		}
+
+	}
+	
+	public void writeReward() {
+		this.rewardSection = this.newLine;
+		this.rewardSection += "reward" + this.newLine;
+		this.rewardSection += this.rewardFn.toSPUDD() + this.newLine;
+	}
+	
+	// ----------------------------------------------------------------------------------------
+
+	public abstract void makeBeliefsSPUDD();
+	public abstract void makeActionsSPUDD();
+	public abstract void makeRewardDD();
+	
+	// ----------------------------------------------------------------------------------------
+	
+	public void makeAll() {
 		this.writeVariablesDef();
 		this.writeObsDef();
-		this.writeinitDef();
-		this.writeActionsDef();
-		this.writeRewardDef();
+		this.makeBeliefsSPUDD();
+		this.makeActionsSPUDD();
+		this.makeRewardDD();
 		
-		this.domainString = this.variablesDef
-				+ this.obsDef
-				+ this.initDef
-				+ this.newLine + "unnormalized" + this.newLine
-				+ this.actionsDef
-				+ this.rewardDef
-				+ this.newLine + "discount 0.9"
-				+ this.newLine + "tolerance 0.001" + this.newLine;
+		this.writeBeliefs();
+		this.writeActions();
+		this.writeReward();
+		
+		this.domainString = "";
+		this.domainString += this.variablesDef + this.newLine;
+		this.domainString += this.obsDef + this.newLine;
+		this.domainString += this.beliefSection + this.newLine;
+		this.domainString += "unnormalized" + this.newLine;
+		this.domainString += this.actionSection + this.newLine;
+		this.domainString += this.rewardSection;
+		this.domainString += "tolerance 0.001" + this.newLine;
+		this.domainString += "discount 0.9";
 	}
 	
 	public void writeToFile(String domainFile) {
@@ -111,6 +162,7 @@ public abstract class DomainMaker {
 	// Tool init methods
 	
 	public void addVariablesToDDMaker() {
+		
 		for (int v=0; v<this.variables.length; v++) {
 			this.ddmaker.addVariable(this.variables[v], this.varValues[v]);
 		}
