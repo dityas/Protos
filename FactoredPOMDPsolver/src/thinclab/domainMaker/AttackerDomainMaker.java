@@ -7,6 +7,7 @@ import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDDFactory;
 import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDDFactory;
+import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 
@@ -19,24 +20,20 @@ public class AttackerDomainMaker extends DomainMaker {
 	public AttackerDomainMaker() {
 		
 		// State Variables
-		this.variables = 
+		variables = 
 				new String[] {"HAS_ROOT_VULN",
 							  "HAS_C_DATA",
 							  "HAS_FAKE_DATA",
-//							  "C_DATA_VIS",
-//							  "FAKE_DATA_VIS",
 							  "SESSION_PRIVS",
 							  "PERSIST_GAINED",
 							  "C_DATA_ACCESSED",
 							  "FAKE_DATA_ACCESSED",
 							  "EXFIL_ONGOING"};
 		
-		this.varValues = 
+		varValues = 
 				new String[][] {{"yes", "no"},
 								{"yes", "no"},
 								{"yes", "no"},
-//								{"user", "admin"},
-//								{"user", "admin"},
 								{"user", "admin"},
 								{"none", "user", "admin"},
 								{"yes", "no"},
@@ -44,9 +41,9 @@ public class AttackerDomainMaker extends DomainMaker {
 								{"yes", "no"}
 							   };
 						
-		this.observations = new String[] {"OBS"};
+		observations = new String[] {"OBS"};
 		
-		this.obsValues =
+		obsValues =
 				new String[][] {
 									{"success",
 									 "none",
@@ -57,8 +54,9 @@ public class AttackerDomainMaker extends DomainMaker {
 									 "admin"}
 							   };
 		
-		this.addVariablesToDDMaker();
-		this.makeVarContext();
+//		this.addVariablesToDDMaker();
+//		this.makeVarContext();
+		this.varContext = new VariablesContext(variables, varValues, observations, obsValues);
 	}
 	
 	@Override

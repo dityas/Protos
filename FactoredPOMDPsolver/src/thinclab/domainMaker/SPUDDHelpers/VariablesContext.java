@@ -35,4 +35,40 @@ public class VariablesContext {
 	public boolean hasVariable(String varName) {
 		return this.varNameSet.contains(varName);
 	}
+	
+	// ---------------------------------------------------------
+	// Getters
+	
+	public String[] getVarNames() {
+		return this.varNames;
+	}
+
+	/**
+	 * @return the varValNames
+	 */
+	public String[][] getVarValNames() {
+		return varValNames;
+	}
+
+	/**
+	 * @return the obsNames
+	 */
+	public String[] getObsNames() {
+		return obsNames;
+	}
+
+	/**
+	 * @return the obsValNames
+	 */
+	public String[][] getObsValNames() {
+		return obsValNames;
+	}
+
+	/**
+	 * @return the varNameSet
+	 */
+	public HashSet<String> getVarNameSet() {
+		return varNameSet;
+	}
+
 }

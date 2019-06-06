@@ -10,6 +10,8 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
+
 public class DDMaker {
 	/*
 	 * Helper class for making DDs from variable sequences and triples and all that
@@ -80,6 +82,13 @@ public class DDMaker {
 		this.primeVariables();
 		
 	} // public void addAll
+	
+	public void addFromVariablesContext(VariablesContext varContext) {
+		this.addAllAndPrime(varContext.getVarNames(),
+				varContext.getVarValNames(), 
+				varContext.getObsNames(), 
+				varContext.getObsValNames());
+	}
 	
 	// -----------------------------------------------------------------------------
 	

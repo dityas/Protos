@@ -53,9 +53,9 @@ public abstract class DomainMaker {
 		this.variablesDef = this.newLine;
 		this.variablesDef += "(variables" + this.newLine;
 		
-		for (int v=0; v < this.variables.length; v++) {
-			this.variablesDef += "(" + this.variables[v] + " " 
-					+ String.join(" ", this.varValues[v]) + ")" + this.newLine;
+		for (int v=0; v < this.varContext.getVarNames().length; v++) {
+			this.variablesDef += "(" + this.varContext.getVarNames()[v] + " " 
+					+ String.join(" ", this.varContext.getVarValNames()[v]) + ")" + this.newLine;
 		}
 		
 		this.variablesDef += ")" + this.newLine;
@@ -68,9 +68,9 @@ public abstract class DomainMaker {
 		this.obsDef = this.newLine;
 		this.obsDef += "(observations" + this.newLine;
 		
-		for (int v=0; v < this.observations.length; v++) {
-			this.obsDef += "(" + this.observations[v] + " " 
-					+ String.join(" ", this.obsValues[v]) + ")" + this.newLine;
+		for (int v=0; v < this.varContext.getObsNames().length; v++) {
+			this.obsDef += "(" + this.varContext.getObsNames()[v] + " " 
+					+ String.join(" ", this.varContext.getObsValNames()[v]) + ")" + this.newLine;
 		}
 		
 		this.obsDef += ")" + this.newLine;
@@ -120,6 +120,7 @@ public abstract class DomainMaker {
 	// ----------------------------------------------------------------------------------------
 	
 	public void makeAll() {
+		this.makeDDMaker();
 		this.writeVariablesDef();
 		this.writeObsDef();
 		this.makeBeliefsSPUDD();
@@ -161,18 +162,11 @@ public abstract class DomainMaker {
 	
 	// Tool init methods
 	
-	public void addVariablesToDDMaker() {
+	public void makeDDMaker() {
 		
-		for (int v=0; v<this.variables.length; v++) {
-			this.ddmaker.addVariable(this.variables[v], this.varValues[v]);
-		}
-		
-		for (int o=0; o<this.observations.length; o++) {
-			this.ddmaker.addVariable(this.observations[o], this.obsValues[o]);
-		}
-		
-		this.ddmaker.primeVariables();
-	} // public void addVariablesToDDMaker
+		this.ddmaker = new DDMaker();
+		this.ddmaker.addFromVariablesContext(this.varContext);
+	} // public void makeDDMaker
 	
 	public void makeVarContext() {
 		this.varContext = new VariablesContext(
