@@ -57,7 +57,13 @@ public class PolicyVisualizer {
 		Transformer<PolicyNode, String> nodeTransformer = new Transformer<PolicyNode, String>() {
 			@Override
 			public String transform(PolicyNode node) {
-				return "<html>" + node.actName;// + node.getBeliefLabel();
+				if (node.startNode) {
+					return "<html>" + node.actName + node.getBeliefLabel();
+				}
+				
+				else {
+					return "<html>" + node.actName;// + node.getBeliefLabel();
+				}
 			}
 		};
 
@@ -84,11 +90,20 @@ public class PolicyVisualizer {
 		// Define Shape transformer
 
 		Transformer<PolicyNode, Shape> vertexShapeTransformer = new Transformer<PolicyNode, Shape>() {
-			float size = 30;
+//			float size = 30;
 
 			@Override
 			public Shape transform(PolicyNode node) {
-				return new Rectangle2D.Float(-2 * size, -1 * size / 2, size * 4, size);
+				
+				if (node.startNode) {
+					float height = (float) node.factoredBelief.size() * 20 + 40;
+					return new Rectangle2D.Float(-110 , -1 * height / 2, 220, height);
+				}
+				
+				else {
+					float size = node.actName.length() * 5;
+					return new Rectangle2D.Float(-1 * size, -15, size * 2, 30);
+				}
 			}
 		};
 

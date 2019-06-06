@@ -1914,7 +1914,7 @@ public class POMDP implements Serializable {
 		}
 		
 		// Build the next stage of the belief tree 
-		System.out.println("USING SSGA belief expansion");
+//		System.out.println("USING SSGA belief expansion");
 
 		while (count >= 0) {
 //			System.out.println(Arrays.toString(explore));
@@ -1967,7 +1967,7 @@ public class POMDP implements Serializable {
 //				System.out.println("SAMPLED " + newBeliefPoints.size() + " NEW BELIEFS.");
 		}// while beliefLeavesIterator
 		
-		System.out.println("[*][*] ADDED " + numNewPoints + " NEW BELIEF POINTS");
+//		System.out.println("[*][*] ADDED " + numNewPoints + " NEW BELIEF POINTS");
 	}
 	
 	
