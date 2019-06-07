@@ -11,16 +11,20 @@ import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 
-public class AttackerDomainMaker extends DomainMaker {
+public class AttackerDomain extends Domain {
 	/*
 	 * Defines L0 domain for attacker
 	 */
 	public HashMap<String, DDTree> ddMap = new HashMap<String, DDTree>();
 	
-	public AttackerDomainMaker() {
+	public AttackerDomain() {
+		
+	}
+	
+	public void makeVarContext() {
 		
 		// State Variables
-		variables = 
+		String[] variables = 
 				new String[] {"HAS_ROOT_VULN",
 							  "HAS_C_DATA",
 							  "HAS_FAKE_DATA",
@@ -30,7 +34,7 @@ public class AttackerDomainMaker extends DomainMaker {
 							  "FAKE_DATA_ACCESSED",
 							  "EXFIL_ONGOING"};
 		
-		varValues = 
+		String[][] varValues = 
 				new String[][] {{"yes", "no"},
 								{"yes", "no"},
 								{"yes", "no"},
@@ -41,9 +45,9 @@ public class AttackerDomainMaker extends DomainMaker {
 								{"yes", "no"}
 							   };
 						
-		observations = new String[] {"OBS"};
+		String[] observations = new String[] {"OBS"};
 		
-		obsValues =
+		String[][] obsValues =
 				new String[][] {
 									{"success",
 									 "none",
@@ -53,9 +57,6 @@ public class AttackerDomainMaker extends DomainMaker {
 									 "user",
 									 "admin"}
 							   };
-		
-//		this.addVariablesToDDMaker();
-//		this.makeVarContext();
 		this.varContext = new VariablesContext(variables, varValues, observations, obsValues);
 	}
 	
@@ -197,7 +198,7 @@ public class AttackerDomainMaker extends DomainMaker {
 		this.otherBeliefSPUDDs.add(dontKnowPrivsBelief);
 		
 		
-		// No C Data
+		// Yes C Data
 		
 		DDTree yesCDataInit = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"HAS_C_DATA"},
@@ -209,9 +210,25 @@ public class AttackerDomainMaker extends DomainMaker {
 				bSPUDD, 
 				new String[] {"HAS_C_DATA"}, 
 				new DDTree[] {yesCDataInit},
-				"noCData");
+				"yesCData");
 		
 		this.otherBeliefSPUDDs.add(yesCDataBelief);
+		
+		// No Root Vuln
+		
+		DDTree noRootVulnInit = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"HAS_ROOT_VULN"},
+				new String[][] {
+					{"yes", "0.0"},
+					{"no", "1.0"} });
+		
+		BeliefSPUDD noRootVulnBelief = BeliefSPUDDFactory.getAdjunctBeliefSPUDD(
+				bSPUDD, 
+				new String[] {"HAS_ROOT_VULN"}, 
+				new DDTree[] {noRootVulnInit},
+				"noRootVuln");
+		
+		this.otherBeliefSPUDDs.add(noRootVulnBelief);
 		
 	}
 
@@ -443,6 +460,7 @@ public class AttackerDomainMaker extends DomainMaker {
 	@Override
 	public void makeRewardDD() {
 		
+		// For EXFIL
 		this.rewardFn = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"C_DATA_ACCESSED",
 							  "EXFIL_ONGOING"},
@@ -450,6 +468,24 @@ public class AttackerDomainMaker extends DomainMaker {
 					{"yes", "yes", "2.0"},
 					{"no", "yes", "0.0"}
 				});
+		
+		// For PERSIST
+//		this.rewardFn = this.ddmaker.getDDTreeFromSequence(
+//				new String[] {"PERSIST_GAINED"},
+//				new String[][] {
+//					{"user", "1.0"},
+//					{"admin", "2.0"}
+//				});
+		
+		// For EXFIL AND PERSIST
+//		this.rewardFn = this.ddmaker.getDDTreeFromSequence(
+//				new String[] {"C_DATA_ACCESSED",
+//							  "EXFIL_ONGOING",
+//							  "PERSIST_GAINED"},
+//				new String[][] {
+//					{"yes", "yes", "admin", "5.0"},
+//					{"yes", "yes", "user", "2.0"}
+//				});
 	}
 
 }

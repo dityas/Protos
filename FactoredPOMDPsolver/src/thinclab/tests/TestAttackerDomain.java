@@ -6,7 +6,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.domainMaker.AttackerDomainMaker;
+import thinclab.domainMaker.AttackerDomain;
 
 class TestAttackerDomain {
 
@@ -21,7 +21,7 @@ class TestAttackerDomain {
 	@Test
 	void testAttackerDomainActionSPUDD() {
 		System.out.println("Running testAttackerDomainActionSPUDD()");
-		AttackerDomainMaker AD = new AttackerDomainMaker();
+		AttackerDomain AD = new AttackerDomain();
 		AD.makeAll();
 		System.out.println(AD.domainString);
 	}

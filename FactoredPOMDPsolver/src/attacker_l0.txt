@@ -144,7 +144,7 @@ dontKnowPrivs [*
 
 
 adjunct
-noCData [*
+yesCData [*
 
 (C_DATA_ACCESSED
 	(no
@@ -172,6 +172,69 @@ noCData [*
 	(0.0))
 	(yes
 	(1.0))
+)
+
+(HAS_FAKE_DATA
+	(no
+	(0.5))
+	(yes
+	(0.5))
+)
+
+(PERSIST_GAINED
+	(admin
+	(0.0))
+	(none
+	(1.0))
+	(user
+	(0.0))
+)
+
+(FAKE_DATA_ACCESSED
+	(no
+	(1.0))
+	(yes
+	(0.0))
+)
+
+(SESSION_PRIVS
+	(admin
+	(0.0))
+	(user
+	(1.0))
+)
+]
+
+
+adjunct
+noRootVuln [*
+
+(C_DATA_ACCESSED
+	(no
+	(1.0))
+	(yes
+	(0.0))
+)
+
+(EXFIL_ONGOING
+	(no
+	(1.0))
+	(yes
+	(0.0))
+)
+
+(HAS_ROOT_VULN
+	(no
+	(1.0))
+	(yes
+	(0.0))
+)
+
+(HAS_C_DATA
+	(no
+	(0.5))
+	(yes
+	(0.5))
 )
 
 (HAS_FAKE_DATA

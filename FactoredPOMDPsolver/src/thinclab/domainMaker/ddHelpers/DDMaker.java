@@ -10,6 +10,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import thinclab.domainMaker.SPUDDHelpers.NextLevelVariablesContext;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 
 public class DDMaker {
@@ -83,12 +84,21 @@ public class DDMaker {
 		
 	} // public void addAll
 	
+	// ------------------------------------------------------------------------------
+	// Create instance from variables context
+	
 	public void addFromVariablesContext(VariablesContext varContext) {
 		this.addAllAndPrime(varContext.getVarNames(),
 				varContext.getVarValNames(), 
 				varContext.getObsNames(), 
 				varContext.getObsValNames());
 	}
+	
+	public void addFromNextLevelVariablesContext(NextLevelVariablesContext varContext) {
+		String[] varNames = 
+	}
+	
+	// ------------------------------------------------------------------------------
 	
 	// -----------------------------------------------------------------------------
 	

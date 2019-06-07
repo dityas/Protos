@@ -6,8 +6,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.domainMaker.AttackerDomainMaker;
-import thinclab.domainMaker.DefenderL1DomainMaker;
+import thinclab.domainMaker.AttackerDomain;
+import thinclab.domainMaker.DefenderL1Domain;
+import thinclab.domainMaker.Domain;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
 import thinclab.symbolicperseus.POMDP;
@@ -16,18 +17,20 @@ class TestDefenderL1Domain {
 	
 	PolicyGraph attackerPolicyGraph;
 	POMDP attackerPomdp;
+	Domain attl0Domain;
 
 	@BeforeEach
 	void setUp() throws Exception {
 		String attackerL0 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
-		AttackerDomainMaker attl0Domain = new AttackerDomainMaker();
-		attl0Domain.makeDomain();
-		attl0Domain.writeToFile(attackerL0);
-		this.attackerPomdp = new POMDP(attackerL0, false);
-		attackerPomdp.solvePBVI(10, 100);
+		this.attl0Domain = new AttackerDomain();
+		this.attl0Domain.solve(attackerL0, 10, 100);
+//		attl0Domain.makeAll();
+//		attl0Domain.writeToFile(attackerL0);
+//		this.attackerPomdp = new POMDP(attackerL0, false);
+//		attackerPomdp.solvePBVI(10, 100);
 		
-		PolicyExtractor attackerPolicy = new PolicyExtractor(attackerPomdp);
-		this.attackerPolicyGraph = new PolicyGraph(attackerPolicy.policyNodes);
+//		PolicyExtractor attackerPolicy = new PolicyExtractor(attackerPomdp);
+//		this.attackerPolicyGraph = new PolicyGraph(attackerPolicy.policyNodes);
 	}
 
 	@AfterEach
@@ -37,13 +40,7 @@ class TestDefenderL1Domain {
 	@Test
 	void testMakeDomain() {
 		System.out.println("Running testMakeDomain");
-		DefenderL1DomainMaker defDomain = new DefenderL1DomainMaker(
-				this.attackerPolicyGraph.getGraphAsDD(this.attackerPomdp),
-				this.attackerPolicyGraph.getGraphNodeVarVals(),
-				this.attackerPomdp.getObsVarsArray(),
-				this.attackerPomdp.getObsValArray());
-		defDomain.makeDomain();
-		System.out.println(defDomain.domainString);
+		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
 	}
 
 }

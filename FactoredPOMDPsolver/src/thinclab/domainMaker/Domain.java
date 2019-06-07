@@ -12,17 +12,15 @@ import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.policyhelper.PolicyExtractor;
+import thinclab.policyhelper.PolicyGraph;
+import thinclab.symbolicperseus.POMDP;
 
-public abstract class DomainMaker {
+public abstract class Domain {
 	/*
 	 * Abstract class for L0Domains
 	 */
 	public String newLine = "\r\n";
-	
-	public String[] variables;
-	public String[][] varValues;
-	public String[] observations;
-	public String[][] obsValues;
 	
 	public String variablesDef;
 	public String obsDef;
@@ -41,6 +39,17 @@ public abstract class DomainMaker {
 	
 	public DDMaker ddmaker = new DDMaker();
 	public VariablesContext varContext;
+	
+	// --------------------------------------------------------------------
+	
+	// Solver stuff
+	public POMDP pomdp;
+	
+	// Policy Stuff
+	
+	public PolicyExtractor policyExtractor;
+	public PolicyGraph policyGraph;
+	
 	
 	// --------------------------------------------------------------------
 	
@@ -113,6 +122,7 @@ public abstract class DomainMaker {
 	
 	// ----------------------------------------------------------------------------------------
 
+	public abstract void makeVarContext();
 	public abstract void makeBeliefsSPUDD();
 	public abstract void makeActionsSPUDD();
 	public abstract void makeRewardDD();
@@ -120,6 +130,7 @@ public abstract class DomainMaker {
 	// ----------------------------------------------------------------------------------------
 	
 	public void makeAll() {
+		this.makeVarContext();
 		this.makeDDMaker();
 		this.writeVariablesDef();
 		this.writeObsDef();
@@ -168,15 +179,48 @@ public abstract class DomainMaker {
 		this.ddmaker.addFromVariablesContext(this.varContext);
 	} // public void makeDDMaker
 	
-	public void makeVarContext() {
-		this.varContext = new VariablesContext(
-				this.variables,
-				this.varValues,
-				this.observations,
-				this.obsValues);
-				
-	} // public void makeVarContext
+	// --------------------------------------------------------------------------
+	
 	
 	// --------------------------------------------------------------------------
+	
+	// Solution stuff
+	
+	public void solve(String domainFile,
+					  int nRounds,
+					  int nDpBackups) {
+		this.makeAll();
+		this.writeToFile(domainFile);
+		this.pomdp = new POMDP(domainFile, false);
+		this.pomdp.solvePBVI(nRounds, nDpBackups);
+		
+		this.policyExtractor = new PolicyExtractor(this.pomdp);
+		this.policyGraph = new PolicyGraph(this.policyExtractor.policyNodes);
+		
+	}
+	
+	// --------------------------------------------------------------------------
+	
+	// Getters
+	
+	public String[] getObsNames() {
+		return this.varContext.getObsNames();
+	}
+	
+	public String[][] getObsValNames() {
+		return this.varContext.getObsValNames();
+	}
+	
+	public VariablesContext getVarContext() {
+		return this.varContext;
+	}
+	
+	public String[] getPolicyValNames() {
+		return this.policyGraph.getGraphNodeVarVals();
+	}
+	
+	public DDTree getPolicyGraphDD() {
+		return this.policyGraph.getGraphAsDD(this.pomdp);
+	}
 
 }
