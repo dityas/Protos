@@ -95,7 +95,35 @@ public class DDMaker {
 	}
 	
 	public void addFromNextLevelVariablesContext(NextLevelVariablesContext varContext) {
-		String[] varNames = 
+		/*
+		 * For using DDMaker with higher domains. This adds variables just like VariablesContext does
+		 * but also adds policy and opp obs in the state vars
+		 */
+		
+		String[] varNames = varContext.getVarNames();
+		String[][] varValNames = varContext.getVarValNames();
+		String[] oppObsNames = varContext.getOppObsNames();
+		String[][] oppObsValNames = varContext.getOppObsValNames();
+		String oppPolicyName = varContext.getOppPolicyName();
+		String[] oppPolicyValNames = varContext.getOppPolicyValNames();
+		
+		String[] obsNames = varContext.getObsNames();
+		String[][] obsValNames = varContext.getObsValNames();
+		
+		List<String> stateVars = new ArrayList<String>();
+		stateVars.addAll(Arrays.asList(varNames));
+		stateVars.addAll(Arrays.asList(oppObsNames));
+		stateVars.add(oppPolicyName);
+		
+		List<String[]> stateVarVals = new ArrayList<String[]>();
+		stateVarVals.addAll(Arrays.asList(varValNames));
+		stateVarVals.addAll(Arrays.asList(oppObsValNames));
+		stateVarVals.add(oppPolicyValNames);
+		
+		this.addAllAndPrime(stateVars.toArray(new String[stateVars.size()]),
+				stateVarVals.toArray(new String[stateVarVals.size()][]), 
+				obsNames, 
+				obsValNames);
 	}
 	
 	// ------------------------------------------------------------------------------

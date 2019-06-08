@@ -41,6 +41,12 @@ class TestDefenderL1Domain {
 	void testMakeDomain() {
 		System.out.println("Running testMakeDomain");
 		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
+		defDomain.makeVarContext();
+		defDomain.makeDDMaker();
+		defDomain.writeVariablesDef();
+		defDomain.writeObsDef();
+		System.out.println(defDomain.variablesDef);
+		System.out.println(defDomain.obsDef);
 	}
 
 }
