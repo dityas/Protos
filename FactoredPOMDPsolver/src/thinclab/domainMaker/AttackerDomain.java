@@ -256,7 +256,8 @@ public class AttackerDomain extends Domain {
 				new DDTree[] {nopObsDD},
 				0.0);
 		
-		this.actionSPUDDs.add(nopSPUDD);
+//		this.actionSPUDDs.add(nopSPUDD);
+		this.actionSPUDDMap.put(actName, nopSPUDD);
 		
 		// -----------------------------------------------------------------
 		
@@ -279,7 +280,8 @@ public class AttackerDomain extends Domain {
 				new DDTree[] {vulnScanObsDD},
 				0.1);
 		
-		this.actionSPUDDs.add(vulnScanSPUDD);
+//		this.actionSPUDDs.add(vulnScanSPUDD);
+		this.actionSPUDDMap.put(actName, vulnScanSPUDD);
 		
 		// -----------------------------------------------------------------
 		
@@ -301,7 +303,8 @@ public class AttackerDomain extends Domain {
 				new DDTree[] {permScanObsDD},
 				0.1);
 		
-		this.actionSPUDDs.add(permScanSPUDD);
+//		this.actionSPUDDs.add(permScanSPUDD);
+		this.actionSPUDDMap.put(actName, permScanSPUDD);
 		
 		// -----------------------------------------------------------------
 		
@@ -336,7 +339,8 @@ public class AttackerDomain extends Domain {
 				new DDTree[] {sessPrivsDD, privEscObsDD},
 				0.5);
 		
-		this.actionSPUDDs.add(privEscSPUDD);
+//		this.actionSPUDDs.add(privEscSPUDD);
+		this.actionSPUDDMap.put(actName, privEscSPUDD);
 		
 		// -----------------------------------------------------------------
 		
@@ -374,7 +378,8 @@ public class AttackerDomain extends Domain {
 				new DDTree[] {persistGainedDD, persistObsDD},
 				0.2);
 		
-		this.actionSPUDDs.add(persistSPUDD);
+//		this.actionSPUDDs.add(persistSPUDD);
+		this.actionSPUDDMap.put(actName, persistSPUDD);
 		
 		// -----------------------------------------------------------------
 		
@@ -412,7 +417,8 @@ public class AttackerDomain extends Domain {
 				new DDTree[] {cDataAccessedDD, fileReconObsDD},
 				0.1);
 		
-		this.actionSPUDDs.add(fileReconSPUDD);
+//		this.actionSPUDDs.add(fileReconSPUDD);
+		this.actionSPUDDMap.put(actName, fileReconSPUDD);
 		
 		// -----------------------------------------------------------------
 		
@@ -451,7 +457,8 @@ public class AttackerDomain extends Domain {
 				new DDTree[] {exfilOngoingDD, exfilObsDD},
 				0.5);
 		
-		this.actionSPUDDs.add(exfilSPUDD);
+//		this.actionSPUDDs.add(exfilSPUDD);
+		this.actionSPUDDMap.put(actName, exfilSPUDD);
 		
 		// -----------------------------------------------------------------
 

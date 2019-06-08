@@ -2,6 +2,7 @@ package thinclab.domainMaker;
 
 import thinclab.domainMaker.SPUDDHelpers.NextLevelVariablesContext;
 import thinclab.domainMaker.ddHelpers.DDMaker;
+import thinclab.domainMaker.ddHelpers.DDTools;
 import thinclab.domainMaker.ddHelpers.DDTree;
 
 public abstract class NextLevelDomain extends Domain {
@@ -10,6 +11,9 @@ public abstract class NextLevelDomain extends Domain {
 	 */
 	public DDTree oppPolicy;
 	public DDTree oppObs;
+	
+	public String oppPolicyDDDef;
+	public String oppObsDDDef;
 	
 	public NextLevelVariablesContext nextLevelVarContext;
 	public Domain lowerDomain;
@@ -64,5 +68,51 @@ public abstract class NextLevelDomain extends Domain {
 	}
 	
 	// ----------------------------------------------------------------------------
+	
+	// Set opponent policy variables
+	
+	public void setOppPolicyDD() {
+		this.oppPolicy = this.lowerDomain.getPolicyGraphDD();
+	}
+	
+	public void setOppObsDD() {
+		
+	}
+	
+	public void writeOppPolicyDD() {
+		this.oppPolicyDDDef = "" + this.newLine;
+		this.oppPolicyDDDef += DDTools.defineDDInSPUDD("oppPolicy", this.oppPolicy);
+		this.oppPolicyDDDef += this.newLine;
+	}
+	
+	// ------------------------------------------------------------------------------
+	
+	public void makeAll() {
+		this.makeVarContext();
+		this.makeDDMaker();
+		this.setOppPolicyDD();
+		this.setOppObsDD();
+		this.writeVariablesDef();
+		this.writeObsDef();
+		this.makeBeliefsSPUDD();
+		this.makeActionsSPUDD();
+		this.makeRewardDD();
+		
+		this.writeBeliefs();
+		this.writeOppPolicyDD();
+		this.writeActions();
+		this.writeReward();
+		
+		this.domainString = "";
+		this.domainString += this.variablesDef + this.newLine;
+		this.domainString += this.obsDef + this.newLine;
+		this.domainString += this.beliefSection + this.newLine;
+		this.domainString += "unnormalized" + this.newLine;
+		this.domainString += this.oppPolicyDDDef + this.newLine;
+		this.domainString += this.actionSection + this.newLine;
+		this.domainString += this.rewardSection;
+		this.domainString += "tolerance 0.001" + this.newLine;
+		this.domainString += "discount 0.9";
+	}
 	
 }

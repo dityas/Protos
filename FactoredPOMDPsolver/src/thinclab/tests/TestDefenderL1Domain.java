@@ -43,10 +43,13 @@ class TestDefenderL1Domain {
 		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
 		defDomain.makeVarContext();
 		defDomain.makeDDMaker();
+		defDomain.setOppPolicyDD();
 		defDomain.writeVariablesDef();
 		defDomain.writeObsDef();
+		defDomain.writeOppPolicyDD();
 		System.out.println(defDomain.variablesDef);
 		System.out.println(defDomain.obsDef);
+		System.out.println(defDomain.oppPolicyDDDef);
 	}
 
 }

@@ -272,138 +272,6 @@ unnormalized
 
 
 
-action NOP
-HAS_ROOT_VULN	 (SAMEHAS_ROOT_VULN)
-HAS_C_DATA	 (SAMEHAS_C_DATA)
-HAS_FAKE_DATA	 (SAMEHAS_FAKE_DATA)
-SESSION_PRIVS	 (SAMESESSION_PRIVS)
-PERSIST_GAINED	 (SAMEPERSIST_GAINED)
-C_DATA_ACCESSED	 (SAMEC_DATA_ACCESSED)
-FAKE_DATA_ACCESSED	 (SAMEFAKE_DATA_ACCESSED)
-EXFIL_ONGOING	 (SAMEEXFIL_ONGOING)
-observe
-OBS	(OBS'
-	(success
-	(0.0))
-	(vuln
-	(0.0))
-	(admin
-	(0.0))
-	(none
-	(1.0))
-	(user
-	(0.0))
-	(data_c
-	(0.0))
-	(data_nc
-	(0.0))
-)
-endobserve
-endaction
-
-
-action VULN_SCAN
-HAS_ROOT_VULN	 (SAMEHAS_ROOT_VULN)
-HAS_C_DATA	 (SAMEHAS_C_DATA)
-HAS_FAKE_DATA	 (SAMEHAS_FAKE_DATA)
-SESSION_PRIVS	 (SAMESESSION_PRIVS)
-PERSIST_GAINED	 (SAMEPERSIST_GAINED)
-C_DATA_ACCESSED	 (SAMEC_DATA_ACCESSED)
-FAKE_DATA_ACCESSED	 (SAMEFAKE_DATA_ACCESSED)
-EXFIL_ONGOING	 (SAMEEXFIL_ONGOING)
-observe
-OBS	(HAS_ROOT_VULN'
-	(no
-	(OBS'
-		(success
-			(0.0))
-		(vuln
-			(0.0))
-		(admin
-			(0.0))
-		(none
-			(1.0))
-		(user
-			(0.0))
-		(data_c
-			(0.0))
-		(data_nc
-			(0.0))
-	))
-	(yes
-	(OBS'
-		(success
-			(0.0))
-		(vuln
-			(0.9))
-		(admin
-			(0.0))
-		(none
-			(0.1))
-		(user
-			(0.0))
-		(data_c
-			(0.0))
-		(data_nc
-			(0.0))
-	))
-)
-endobserve
-cost (0.1)
-endaction
-
-
-action PERM_SCAN
-HAS_ROOT_VULN	 (SAMEHAS_ROOT_VULN)
-HAS_C_DATA	 (SAMEHAS_C_DATA)
-HAS_FAKE_DATA	 (SAMEHAS_FAKE_DATA)
-SESSION_PRIVS	 (SAMESESSION_PRIVS)
-PERSIST_GAINED	 (SAMEPERSIST_GAINED)
-C_DATA_ACCESSED	 (SAMEC_DATA_ACCESSED)
-FAKE_DATA_ACCESSED	 (SAMEFAKE_DATA_ACCESSED)
-EXFIL_ONGOING	 (SAMEEXFIL_ONGOING)
-observe
-OBS	(SESSION_PRIVS'
-	(admin
-	(OBS'
-		(success
-			(0.0))
-		(vuln
-			(0.0))
-		(admin
-			(1.0))
-		(none
-			(0.0))
-		(user
-			(0.0))
-		(data_c
-			(0.0))
-		(data_nc
-			(0.0))
-	))
-	(user
-	(OBS'
-		(success
-			(0.0))
-		(vuln
-			(0.0))
-		(admin
-			(0.0))
-		(none
-			(0.0))
-		(user
-			(1.0))
-		(data_c
-			(0.0))
-		(data_nc
-			(0.0))
-	))
-)
-endobserve
-cost (0.1)
-endaction
-
-
 action PRIV_ESC
 HAS_ROOT_VULN	 (SAMEHAS_ROOT_VULN)
 HAS_C_DATA	 (SAMEHAS_C_DATA)
@@ -490,96 +358,93 @@ cost (0.5)
 endaction
 
 
-action PERSIST
+action EXFIL
 HAS_ROOT_VULN	 (SAMEHAS_ROOT_VULN)
 HAS_C_DATA	 (SAMEHAS_C_DATA)
 HAS_FAKE_DATA	 (SAMEHAS_FAKE_DATA)
 SESSION_PRIVS	 (SAMESESSION_PRIVS)
-PERSIST_GAINED	(SESSION_PRIVS
-	(admin
-	(PERSIST_GAINED
+PERSIST_GAINED	 (SAMEPERSIST_GAINED)
+C_DATA_ACCESSED	 (SAMEC_DATA_ACCESSED)
+FAKE_DATA_ACCESSED	 (SAMEFAKE_DATA_ACCESSED)
+EXFIL_ONGOING	(C_DATA_ACCESSED
+	(no
+	(SESSION_PRIVS
 		(admin
-			(PERSIST_GAINED'
-			(admin
-					(1.0))
-			(none
-					(0.0))
-			(user
-					(0.0))
-		))
-		(none
-			(PERSIST_GAINED'
-			(admin
-					(1.0))
-			(none
-					(0.0))
-			(user
-					(0.0))
+			(EXFIL_ONGOING
+			(no
+					(EXFIL_ONGOING'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
+			(yes
+					(EXFIL_ONGOING'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
 		))
 		(user
-			(PERSIST_GAINED'
-			(admin
-					(1.0))
-			(none
-					(0.0))
-			(user
-					(0.0))
+			(EXFIL_ONGOING
+			(no
+					(EXFIL_ONGOING'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
+			(yes
+					(EXFIL_ONGOING'
+				(no
+							(1.0))
+				(yes
+							(0.0))
+			))
 		))
 	))
-	(user
-	(PERSIST_GAINED
+	(yes
+	(SESSION_PRIVS
 		(admin
-			(PERSIST_GAINED'
-			(admin
-					(1.0))
-			(none
-					(0.0))
-			(user
-					(0.0))
-		))
-		(none
-			(PERSIST_GAINED'
-			(admin
-					(0.0))
-			(none
-					(0.1))
-			(user
-					(0.9))
+			(EXFIL_ONGOING
+			(no
+					(EXFIL_ONGOING'
+				(no
+							(0.1))
+				(yes
+							(0.9))
+			))
+			(yes
+					(EXFIL_ONGOING'
+				(no
+							(0.0))
+				(yes
+							(1.0))
+			))
 		))
 		(user
-			(PERSIST_GAINED'
-			(admin
-					(0.0))
-			(none
-					(0.0))
-			(user
-					(1.0))
+			(EXFIL_ONGOING
+			(no
+					(EXFIL_ONGOING'
+				(no
+							(0.25))
+				(yes
+							(0.75))
+			))
+			(yes
+					(EXFIL_ONGOING'
+				(no
+							(0.0))
+				(yes
+							(1.0))
+			))
 		))
 	))
 )
-C_DATA_ACCESSED	 (SAMEC_DATA_ACCESSED)
-FAKE_DATA_ACCESSED	 (SAMEFAKE_DATA_ACCESSED)
-EXFIL_ONGOING	 (SAMEEXFIL_ONGOING)
 observe
-OBS	(PERSIST_GAINED'
-	(admin
-	(OBS'
-		(success
-			(1.0))
-		(vuln
-			(0.0))
-		(admin
-			(0.0))
-		(none
-			(0.0))
-		(user
-			(0.0))
-		(data_c
-			(0.0))
-		(data_nc
-			(0.0))
-	))
-	(none
+OBS	(EXFIL_ONGOING'
+	(no
 	(OBS'
 		(success
 			(0.0))
@@ -596,7 +461,7 @@ OBS	(PERSIST_GAINED'
 		(data_nc
 			(0.0))
 	))
-	(user
+	(yes
 	(OBS'
 		(success
 			(1.0))
@@ -615,7 +480,58 @@ OBS	(PERSIST_GAINED'
 	))
 )
 endobserve
-cost (0.2)
+cost (0.5)
+endaction
+
+
+action PERM_SCAN
+HAS_ROOT_VULN	 (SAMEHAS_ROOT_VULN)
+HAS_C_DATA	 (SAMEHAS_C_DATA)
+HAS_FAKE_DATA	 (SAMEHAS_FAKE_DATA)
+SESSION_PRIVS	 (SAMESESSION_PRIVS)
+PERSIST_GAINED	 (SAMEPERSIST_GAINED)
+C_DATA_ACCESSED	 (SAMEC_DATA_ACCESSED)
+FAKE_DATA_ACCESSED	 (SAMEFAKE_DATA_ACCESSED)
+EXFIL_ONGOING	 (SAMEEXFIL_ONGOING)
+observe
+OBS	(SESSION_PRIVS'
+	(admin
+	(OBS'
+		(success
+			(0.0))
+		(vuln
+			(0.0))
+		(admin
+			(1.0))
+		(none
+			(0.0))
+		(user
+			(0.0))
+		(data_c
+			(0.0))
+		(data_nc
+			(0.0))
+	))
+	(user
+	(OBS'
+		(success
+			(0.0))
+		(vuln
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(0.0))
+		(user
+			(1.0))
+		(data_c
+			(0.0))
+		(data_nc
+			(0.0))
+	))
+)
+endobserve
+cost (0.1)
 endaction
 
 
@@ -745,7 +661,7 @@ cost (0.1)
 endaction
 
 
-action EXFIL
+action VULN_SCAN
 HAS_ROOT_VULN	 (SAMEHAS_ROOT_VULN)
 HAS_C_DATA	 (SAMEHAS_C_DATA)
 HAS_FAKE_DATA	 (SAMEHAS_FAKE_DATA)
@@ -753,84 +669,9 @@ SESSION_PRIVS	 (SAMESESSION_PRIVS)
 PERSIST_GAINED	 (SAMEPERSIST_GAINED)
 C_DATA_ACCESSED	 (SAMEC_DATA_ACCESSED)
 FAKE_DATA_ACCESSED	 (SAMEFAKE_DATA_ACCESSED)
-EXFIL_ONGOING	(C_DATA_ACCESSED
-	(no
-	(SESSION_PRIVS
-		(admin
-			(EXFIL_ONGOING
-			(no
-					(EXFIL_ONGOING'
-				(no
-							(1.0))
-				(yes
-							(0.0))
-			))
-			(yes
-					(EXFIL_ONGOING'
-				(no
-							(1.0))
-				(yes
-							(0.0))
-			))
-		))
-		(user
-			(EXFIL_ONGOING
-			(no
-					(EXFIL_ONGOING'
-				(no
-							(1.0))
-				(yes
-							(0.0))
-			))
-			(yes
-					(EXFIL_ONGOING'
-				(no
-							(1.0))
-				(yes
-							(0.0))
-			))
-		))
-	))
-	(yes
-	(SESSION_PRIVS
-		(admin
-			(EXFIL_ONGOING
-			(no
-					(EXFIL_ONGOING'
-				(no
-							(0.1))
-				(yes
-							(0.9))
-			))
-			(yes
-					(EXFIL_ONGOING'
-				(no
-							(0.0))
-				(yes
-							(1.0))
-			))
-		))
-		(user
-			(EXFIL_ONGOING
-			(no
-					(EXFIL_ONGOING'
-				(no
-							(0.25))
-				(yes
-							(0.75))
-			))
-			(yes
-					(EXFIL_ONGOING'
-				(no
-							(0.0))
-				(yes
-							(1.0))
-			))
-		))
-	))
-)
+EXFIL_ONGOING	 (SAMEEXFIL_ONGOING)
 observe
-OBS	(EXFIL_ONGOING'
+OBS	(HAS_ROOT_VULN'
 	(no
 	(OBS'
 		(success
@@ -849,6 +690,165 @@ OBS	(EXFIL_ONGOING'
 			(0.0))
 	))
 	(yes
+	(OBS'
+		(success
+			(0.0))
+		(vuln
+			(0.9))
+		(admin
+			(0.0))
+		(none
+			(0.1))
+		(user
+			(0.0))
+		(data_c
+			(0.0))
+		(data_nc
+			(0.0))
+	))
+)
+endobserve
+cost (0.1)
+endaction
+
+
+action NOP
+HAS_ROOT_VULN	 (SAMEHAS_ROOT_VULN)
+HAS_C_DATA	 (SAMEHAS_C_DATA)
+HAS_FAKE_DATA	 (SAMEHAS_FAKE_DATA)
+SESSION_PRIVS	 (SAMESESSION_PRIVS)
+PERSIST_GAINED	 (SAMEPERSIST_GAINED)
+C_DATA_ACCESSED	 (SAMEC_DATA_ACCESSED)
+FAKE_DATA_ACCESSED	 (SAMEFAKE_DATA_ACCESSED)
+EXFIL_ONGOING	 (SAMEEXFIL_ONGOING)
+observe
+OBS	(OBS'
+	(success
+	(0.0))
+	(vuln
+	(0.0))
+	(admin
+	(0.0))
+	(none
+	(1.0))
+	(user
+	(0.0))
+	(data_c
+	(0.0))
+	(data_nc
+	(0.0))
+)
+endobserve
+endaction
+
+
+action PERSIST
+HAS_ROOT_VULN	 (SAMEHAS_ROOT_VULN)
+HAS_C_DATA	 (SAMEHAS_C_DATA)
+HAS_FAKE_DATA	 (SAMEHAS_FAKE_DATA)
+SESSION_PRIVS	 (SAMESESSION_PRIVS)
+PERSIST_GAINED	(SESSION_PRIVS
+	(admin
+	(PERSIST_GAINED
+		(admin
+			(PERSIST_GAINED'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+		(none
+			(PERSIST_GAINED'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+		(user
+			(PERSIST_GAINED'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+	))
+	(user
+	(PERSIST_GAINED
+		(admin
+			(PERSIST_GAINED'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+		(none
+			(PERSIST_GAINED'
+			(admin
+					(0.0))
+			(none
+					(0.1))
+			(user
+					(0.9))
+		))
+		(user
+			(PERSIST_GAINED'
+			(admin
+					(0.0))
+			(none
+					(0.0))
+			(user
+					(1.0))
+		))
+	))
+)
+C_DATA_ACCESSED	 (SAMEC_DATA_ACCESSED)
+FAKE_DATA_ACCESSED	 (SAMEFAKE_DATA_ACCESSED)
+EXFIL_ONGOING	 (SAMEEXFIL_ONGOING)
+observe
+OBS	(PERSIST_GAINED'
+	(admin
+	(OBS'
+		(success
+			(1.0))
+		(vuln
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(0.0))
+		(user
+			(0.0))
+		(data_c
+			(0.0))
+		(data_nc
+			(0.0))
+	))
+	(none
+	(OBS'
+		(success
+			(0.0))
+		(vuln
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(1.0))
+		(user
+			(0.0))
+		(data_c
+			(0.0))
+		(data_nc
+			(0.0))
+	))
+	(user
 	(OBS'
 		(success
 			(1.0))
@@ -867,7 +867,7 @@ OBS	(EXFIL_ONGOING'
 	))
 )
 endobserve
-cost (0.5)
+cost (0.2)
 endaction
 
 

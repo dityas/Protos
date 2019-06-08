@@ -4,8 +4,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDD;
@@ -33,7 +35,8 @@ public abstract class Domain {
 	// SPUDD objects
 	public BeliefSPUDD beliefSPUDD;
 	public List<BeliefSPUDD> otherBeliefSPUDDs = new ArrayList<BeliefSPUDD>();
-	public List<ActionSPUDD> actionSPUDDs = new ArrayList<ActionSPUDD>();
+//	public List<ActionSPUDD> actionSPUDDs = new ArrayList<ActionSPUDD>();
+	public HashMap<String, ActionSPUDD> actionSPUDDMap = new HashMap<String, ActionSPUDD>();
 	public DDTree rewardFn;
 	
 	
@@ -106,10 +109,10 @@ public abstract class Domain {
 		this.actionSection = "";
 		this.actionSection += this.newLine;
 		
-		Iterator<ActionSPUDD> actSPUDD = this.actionSPUDDs.iterator();
+		Iterator<Entry<String, ActionSPUDD>> actSPUDD = this.actionSPUDDMap.entrySet().iterator();
 		while (actSPUDD.hasNext()) {
 			this.actionSection += this.newLine;
-			this.actionSection += actSPUDD.next().toSPUDD();
+			this.actionSection += actSPUDD.next().getValue().toSPUDD();
 		}
 
 	}
