@@ -240,7 +240,7 @@ public class DDMaker {
 			currNode = topRef;
 			String[] seq = childSequence[s];
 
-			for (int c=0; c < seq.length; c++) {
+			for (int c=0; c < seq.length - 1; c++) {
 				try {
 					currNode = currNode.atChild(seq[c]);
 				} catch (Exception e) {
@@ -249,6 +249,15 @@ public class DDMaker {
 					e.printStackTrace();
 				}
 				
+			}
+			
+			try {
+				currNode.setDDAt(seq[seq.length - 1], ddToAppend);
+			} 
+			
+			catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		return parent;
