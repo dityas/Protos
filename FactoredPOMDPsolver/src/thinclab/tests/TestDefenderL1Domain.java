@@ -47,9 +47,13 @@ class TestDefenderL1Domain {
 		defDomain.writeVariablesDef();
 		defDomain.writeObsDef();
 		defDomain.writeOppPolicyDD();
+		defDomain.setOppObsDD();
+		defDomain.writeOppObsDD();
 		System.out.println(defDomain.variablesDef);
 		System.out.println(defDomain.obsDef);
 		System.out.println(defDomain.oppPolicyDDDef);
+		System.out.println(defDomain.oppObsDDDef);
+		defDomain.setOppObsDD();
 	}
 
 }

@@ -1,5 +1,10 @@
 package thinclab.domainMaker;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
+
+import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.NextLevelVariablesContext;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTools;
@@ -75,14 +80,18 @@ public abstract class NextLevelDomain extends Domain {
 		this.oppPolicy = this.lowerDomain.getPolicyGraphDD();
 	}
 	
-	public void setOppObsDD() {
-		
-	}
+	public abstract void setOppObsDD();
 	
 	public void writeOppPolicyDD() {
 		this.oppPolicyDDDef = "" + this.newLine;
 		this.oppPolicyDDDef += DDTools.defineDDInSPUDD("oppPolicy", this.oppPolicy);
 		this.oppPolicyDDDef += this.newLine;
+	}
+	
+	public void writeOppObsDD() {
+		this.oppObsDDDef = "" + this.newLine;
+		this.oppObsDDDef += DDTools.defineDDInSPUDD("oppObs", this.oppObs);
+		this.oppObsDDDef += this.newLine;
 	}
 	
 	// ------------------------------------------------------------------------------

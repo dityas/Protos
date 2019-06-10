@@ -32,6 +32,11 @@ public class NextLevelVariablesContext {
 		this.obsNames = obsNames;
 		this.obsValNames = obsValNames;
 		this.oppPolicyValNames = oppPolicyValNames;
+		
+		for (int i = 0; i < oppObsNames.length; i++) {
+			oppObsNames[i] = "OPP_" + oppObsNames[i];
+		}
+		
 		this.oppObsNames = oppObsNames;
 		this.oppObsValNames = oppObsValNames;
 

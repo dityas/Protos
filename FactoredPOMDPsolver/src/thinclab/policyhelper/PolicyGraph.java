@@ -111,12 +111,12 @@ public class PolicyGraph {
 		while (edgeIter.hasNext()) {
 			PolicyEdge policyEdge = edgeIter.next();
 			List<String> tripleList = new ArrayList<String>();
-			tripleList.add("node_" 
-					+ policyEdge.from + "_"
+			tripleList.add("node-" 
+					+ policyEdge.from + "-"
 					+ this.policyNodeHashMap.get(policyEdge.from).actName);
 			tripleList.addAll(policyEdge.observation);
-			tripleList.add("node_" 
-					+ policyEdge.to + "_"
+			tripleList.add("node-" 
+					+ policyEdge.to + "-"
 					+ this.policyNodeHashMap.get(policyEdge.to).actName);
 			tripleList.add("1.0");
 			
@@ -135,7 +135,7 @@ public class PolicyGraph {
 		Iterator<PolicyNode> nodeIter = this.policyGraph.getVertices().iterator();
 		while (nodeIter.hasNext()) {
 			PolicyNode node = nodeIter.next();
-			vals.add("node_" + node.alphaId + "_" + node.actName);
+			vals.add("node-" + node.alphaId + "-" + node.actName);
 		}
 		
 		return vals.toArray(new String[vals.size()]);

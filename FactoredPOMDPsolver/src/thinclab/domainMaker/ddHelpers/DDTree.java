@@ -67,6 +67,22 @@ public class DDTree {
 		return copyTree;
 	}
 	
+	public void renameVar(String oldVar, String newVar) {
+		/*
+		 * Renames all nodes with varName oldVar to newVar
+		 */
+		if (this.varName == oldVar) {
+			this.varName = newVar;
+		}
+		
+		else {
+			Iterator<Entry<String, DDTree>> childIter = this.children.entrySet().iterator();
+			while (childIter.hasNext()) {
+				childIter.next().getValue().renameVar(oldVar, newVar);
+			}
+		}
+	}
+	
 	public boolean equals(DDTree other) {
 		/*
 		 * Checks if two DD trees are equal

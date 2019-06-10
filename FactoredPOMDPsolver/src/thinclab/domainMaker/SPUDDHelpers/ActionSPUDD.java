@@ -106,4 +106,19 @@ public class ActionSPUDD {
 	}
 	
 	// -----------------------------------------------------------------------------------
+	
+	// Getters for state and obs DDs
+	
+	public HashMap<String, DDTree> getObsVarToDDMap() {
+		HashMap<String, DDTree> obsVarDDs = new HashMap<String, DDTree>();
+		String[] obsNames = this.varContext.getObsNames();
+		
+		for (int i = 0; i < obsNames.length; i++) {
+			obsVarDDs.put(obsNames[i], this.varToDDMap.get(obsNames[i]));
+		}
+		
+		return obsVarDDs;
+	}
+	
+	// -----------------------------------------------------------------------------------
 }
