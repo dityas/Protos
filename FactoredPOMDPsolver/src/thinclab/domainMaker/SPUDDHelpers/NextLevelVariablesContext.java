@@ -1,13 +1,16 @@
 package thinclab.domainMaker.SPUDDHelpers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
-public class NextLevelVariablesContext {
+public class NextLevelVariablesContext extends VariablesContext {
 	
-	public String[] varNames;
-	public String[][] varValNames;
-	public String[] obsNames;
-	public String[][] obsValNames;
+//	public String[] varNames;
+//	public String[][] varValNames;
+//	public String[] obsNames;
+//	public String[][] obsValNames;
 	
 	public String oppPolicyName = "OPP_POLICY";
 	public String[] oppPolicyValNames;
@@ -15,7 +18,7 @@ public class NextLevelVariablesContext {
 	public String[] oppObsNames;
 	public String[][] oppObsValNames;
 
-	public HashSet<String> varNameSet = new HashSet<String>();
+//	public HashSet<String> varNameSet = new HashSet<String>();
 	
 	public VariablesContext lowerContext;
 
@@ -25,6 +28,8 @@ public class NextLevelVariablesContext {
 			String[] oppPolicyValNames,
 			String[] oppObsNames,
 			String[][] oppObsValNames) {
+		
+		super();
 		
 		this.lowerContext = lowerContext;
 		this.varNames = this.lowerContext.getVarNames();
@@ -55,13 +60,21 @@ public class NextLevelVariablesContext {
 		}
 		
 		this.varNameSet.add(this.oppPolicyName);
+//		System.out.println(this.varNameSet.toString());
 	} // public VariablesContext
 
 	/**
 	 * @return the varNames
 	 */
+	public String[] getStateVarNames() {
+		List<String> varNamesList = new ArrayList<String>();
+		varNamesList.addAll(Arrays.asList(this.varNames));
+		varNamesList.addAll(Arrays.asList(this.oppObsNames));
+		return varNamesList.toArray(new String[varNamesList.size()]);
+	}
+	
 	public String[] getVarNames() {
-		return varNames;
+		return this.varNames;
 	}
 
 	/**
@@ -113,5 +126,8 @@ public class NextLevelVariablesContext {
 		return oppObsValNames;
 	}
 	
+//	public boolean hasVariable(String varName) {
+//		return this.varNameSet.contains(varName);
+//	}
 	
 }

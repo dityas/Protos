@@ -12,6 +12,10 @@ public class VariablesContext {
 	public String[][] obsValNames;
 
 	public HashSet<String> varNameSet = new HashSet<String>();
+	
+	public VariablesContext() {
+		
+	}
 
 	public VariablesContext(String[] varNames, String[][] varValNames, String[] obsNames, String[][] obsValNames) {
 		this.varNames = varNames;
@@ -69,6 +73,10 @@ public class VariablesContext {
 	 */
 	public HashSet<String> getVarNameSet() {
 		return varNameSet;
+	}
+	
+	public String[] getStateVarNames() {
+		return this.varNames;
 	}
 
 }

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
+import thinclab.domainMaker.SPUDDHelpers.ActionSPUDDFactory;
 import thinclab.domainMaker.SPUDDHelpers.NextLevelVariablesContext;
 import thinclab.domainMaker.ddHelpers.DDTree;
 
@@ -74,6 +75,16 @@ public class DefenderL1Domain extends NextLevelDomain {
 	}
 	
 	public void makeActionsSPUDD() {
+		
+		ActionSPUDD nopSPUDD = ActionSPUDDFactory.makeFromLowerLevelActionSPUDD(
+				this.nextLevelVarContext, 
+				"NOP", 
+				new String[] {}, 
+				new DDTree[] {}, 
+				"oppPolicy",
+				new String[] {"oppObs"}, 0.1);
+		
+		this.actionSPUDDMap.put("NOP", nopSPUDD);
 		
 	}
 	

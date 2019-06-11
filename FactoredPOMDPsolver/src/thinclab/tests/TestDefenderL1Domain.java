@@ -23,7 +23,7 @@ class TestDefenderL1Domain {
 	void setUp() throws Exception {
 		String attackerL0 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
 		this.attl0Domain = new AttackerDomain();
-		this.attl0Domain.solve(attackerL0, 10, 100);
+		this.attl0Domain.solve(attackerL0, 5, 100);
 //		attl0Domain.makeAll();
 //		attl0Domain.writeToFile(attackerL0);
 //		this.attackerPomdp = new POMDP(attackerL0, false);
@@ -49,10 +49,13 @@ class TestDefenderL1Domain {
 		defDomain.writeOppPolicyDD();
 		defDomain.setOppObsDD();
 		defDomain.writeOppObsDD();
+		defDomain.makeActionsSPUDD();
+		defDomain.writeActions();
 		System.out.println(defDomain.variablesDef);
 		System.out.println(defDomain.obsDef);
 		System.out.println(defDomain.oppPolicyDDDef);
 		System.out.println(defDomain.oppObsDDDef);
+		System.out.println(defDomain.actionSection);
 		defDomain.setOppObsDD();
 	}
 
