@@ -34,6 +34,35 @@ public class ActionSPUDDFactory {
 		return actionSPUDD;
 	} // public static ActionSPUDD getActionSPUDD
 	
+	public static ActionSPUDD getPrefixedActionSPUDD(
+			String actName,
+			NextLevelVariablesContext varContext,
+			DDTree policyPrefix) {
+
+		/*
+		 * Makes an empty ActionSPUDD object, adds the opponent policy prefix to
+		 * each state variable except policy transitions and opp observation
+		 * transitions.
+		 */
+		
+		ActionSPUDD prefixedSPUDD = new ActionSPUDD(actName, varContext);
+		
+		for (int i=0; i < varContext.getVarNames().length; i++) {
+			
+			try {
+				prefixedSPUDD.putDD(varContext.getVarNames()[i], policyPrefix.getCopy());
+			} 
+			
+			catch (VariableNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return prefixedSPUDD;
+	}
+	
+	
 	public static ActionSPUDD makeFromLowerLevelActionSPUDD(
 			NextLevelVariablesContext varContext,
 			String actionName,
@@ -45,6 +74,7 @@ public class ActionSPUDDFactory {
 		
 		ActionSPUDD actionSPUDD = new ActionSPUDD(actionName, varContext, cost);
 		
+		// Add agent DDs
 		for (int i=0; i < ddVars.length; i++) {
 			
 			try {
@@ -57,9 +87,8 @@ public class ActionSPUDDFactory {
 			}
 		}
 		
+		// Add opponents observation DDs
 		String[] oppObsNames = varContext.getOppObsNames();
-//		System.out.println(Arrays.deepToString(oppObsNames));
-//		System.out.println(varContext.varNameSet.toString());
 		
 		for (int i=0; i < oppObsNames.length; i++) {
 			
@@ -69,11 +98,21 @@ public class ActionSPUDDFactory {
 			
 			catch (VariableNotFoundException e) {
 				// TODO Auto-generated catch block
-//				System.out.println("Breaking here");
 				e.printStackTrace();
 			}
 		}
 		
+		// Add opponents policy transition
+		try {
+			actionSPUDD.putDD(varContext.getOppPolicyName(), new DDRef(policyDDName));
+		} 
+		
+		catch (VariableNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Keep other DDs same
 		actionSPUDD.fillNullDDs();
 		return actionSPUDD;
 	}

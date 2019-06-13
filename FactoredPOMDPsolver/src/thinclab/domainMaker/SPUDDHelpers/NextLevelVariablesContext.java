@@ -7,20 +7,17 @@ import java.util.List;
 
 public class NextLevelVariablesContext extends VariablesContext {
 	
-//	public String[] varNames;
-//	public String[][] varValNames;
-//	public String[] obsNames;
-//	public String[][] obsValNames;
-	
 	public String oppPolicyName = "OPP_POLICY";
 	public String[] oppPolicyValNames;
 	
 	public String[] oppObsNames;
 	public String[][] oppObsValNames;
-
-//	public HashSet<String> varNameSet = new HashSet<String>();
 	
 	public VariablesContext lowerContext;
+	
+	/*
+	 * Handles all variable naming and assignments for higher level domain
+	 */
 
 	public NextLevelVariablesContext(VariablesContext lowerContext,
 			String[] obsNames,
@@ -70,9 +67,11 @@ public class NextLevelVariablesContext extends VariablesContext {
 		List<String> varNamesList = new ArrayList<String>();
 		varNamesList.addAll(Arrays.asList(this.varNames));
 		varNamesList.addAll(Arrays.asList(this.oppObsNames));
+		varNamesList.add(this.oppPolicyName);
 		return varNamesList.toArray(new String[varNamesList.size()]);
 	}
 	
+	@Override
 	public String[] getVarNames() {
 		return this.varNames;
 	}
@@ -80,6 +79,7 @@ public class NextLevelVariablesContext extends VariablesContext {
 	/**
 	 * @return the varValNames
 	 */
+	@Override
 	public String[][] getVarValNames() {
 		return varValNames;
 	}
@@ -87,6 +87,7 @@ public class NextLevelVariablesContext extends VariablesContext {
 	/**
 	 * @return the obsNames
 	 */
+	@Override
 	public String[] getObsNames() {
 		return obsNames;
 	}
@@ -94,6 +95,7 @@ public class NextLevelVariablesContext extends VariablesContext {
 	/**
 	 * @return the obsValNames
 	 */
+	@Override
 	public String[][] getObsValNames() {
 		return obsValNames;
 	}
@@ -129,5 +131,9 @@ public class NextLevelVariablesContext extends VariablesContext {
 //	public boolean hasVariable(String varName) {
 //		return this.varNameSet.contains(varName);
 //	}
+	
+	public String getOppObsDDName(String obsName) {
+		return "opp" + obsName.toLowerCase();
+	}
 	
 }

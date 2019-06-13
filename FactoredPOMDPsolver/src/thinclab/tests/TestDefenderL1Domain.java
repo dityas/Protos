@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.domainMaker.AttackerDomain;
 import thinclab.domainMaker.DefenderL1Domain;
 import thinclab.domainMaker.Domain;
+import thinclab.exceptions.DDNotDefinedException;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
 import thinclab.symbolicperseus.POMDP;
@@ -47,8 +48,14 @@ class TestDefenderL1Domain {
 		defDomain.writeVariablesDef();
 		defDomain.writeObsDef();
 		defDomain.writeOppPolicyDD();
-		defDomain.setOppObsDD();
-		defDomain.writeOppObsDD();
+		defDomain.setOppObsDDs();
+		try {
+			defDomain.writeOppObsDDs();
+		} 
+		catch (DDNotDefinedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		defDomain.makeActionsSPUDD();
 		defDomain.writeActions();
 		System.out.println(defDomain.variablesDef);
@@ -56,7 +63,6 @@ class TestDefenderL1Domain {
 		System.out.println(defDomain.oppPolicyDDDef);
 		System.out.println(defDomain.oppObsDDDef);
 		System.out.println(defDomain.actionSection);
-		defDomain.setOppObsDD();
 	}
 
 }

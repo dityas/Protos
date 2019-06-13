@@ -13,6 +13,14 @@ public class VariablesContext {
 
 	public HashSet<String> varNameSet = new HashSet<String>();
 	
+	/*
+	 * Contains the following fields
+	 * varNames - Names of state variables
+	 * varValNames - values of state variables
+	 * obsNames - Names of observation variables
+	 * obsValNames - Values taken by observation variables
+	 */
+	
 	public VariablesContext() {
 		
 	}
@@ -58,7 +66,7 @@ public class VariablesContext {
 	 * @return the obsNames
 	 */
 	public String[] getObsNames() {
-		return obsNames;
+		return obsNames.clone();
 	}
 
 	/**

@@ -6,6 +6,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.domainMaker.AttackerDomain;
+import thinclab.domainMaker.DefenderL1Domain;
+import thinclab.domainMaker.Domain;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDDFactory;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
@@ -21,6 +24,8 @@ class TestAttackerSPUDD {
 	public String[][] obsValues;
 
 	public DDMaker ddmaker;
+	
+	Domain attl0Domain;
 
 	public VariablesContext varContext;
 
@@ -41,6 +46,13 @@ class TestAttackerSPUDD {
 		this.ddmaker.addAllAndPrime(this.variables, this.varValues, this.observations, this.obsValues);
 
 		this.varContext = new VariablesContext(variables, varValues, observations, obsValues);
+		
+		String attackerL0 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
+		
+		if (this.attl0Domain == null) { 
+			this.attl0Domain = new AttackerDomain();
+			this.attl0Domain.solve(attackerL0, 5, 100);
+		}
 	}
 
 	@AfterEach
@@ -113,5 +125,30 @@ class TestAttackerSPUDD {
 		System.out.println(persistSPUDD.toSPUDD());
 
 	} // void testActionSPUDDFactory
+	
+	@Test
+	void testActionSPUDDPrefixing() {
+		System.out.println("Running testActionSPUDDPrefixing");
+		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
+		defDomain.makeVarContext();
+		defDomain.makeDDMaker();
+		
+		ActionSPUDD testSPUDD = ActionSPUDDFactory.getPrefixedActionSPUDD(
+				"TEST", 
+				defDomain.nextLevelVarContext, 
+				defDomain.ddmaker.getDDTreeFromSequence(
+						new String[] {defDomain.nextLevelVarContext.getOppPolicyName()}));
+		testSPUDD.fillNullDDs();
+		
+		String[] varNames = defDomain.nextLevelVarContext.getVarNames();
+		DDTree prefix = 
+				defDomain.ddmaker.getDDTreeFromSequence(
+						new String[] {defDomain.nextLevelVarContext.getOppPolicyName()});
+		
+		for (int i=0; i < varNames.length; i++) {
+			System.out.println("Testing prefix at " + varNames[i]);
+			assertTrue(prefix.equals(testSPUDD.varToDDMap.get(varNames[i])));
+		}
+	}
 
 }

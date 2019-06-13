@@ -24,19 +24,43 @@ public abstract class Domain {
 	 */
 	public String newLine = "\r\n";
 	
+	/*
+	 * These string contain the actual sections written in SPUDD format. Methods defined
+	 * later are supposed to fill them in. In the end, a single method will just append these
+	 * to the domainString variable seperated by new lines. The whole point of this is to make it
+	 * more flexible for the subclasses to write these sections but still maintain some
+	 * automation so that the subclass doesn't end up writing the whole domain by itself.
+	 */
 	public String variablesDef;
 	public String obsDef;
 	public String beliefSection;
 	public String actionSection;
 	public String rewardSection;
 	
+	// The string containing the whole SPUDD file.
 	public String domainString;
 	
+	// --------------------------------------------------------------------
 	// SPUDD objects
+	
+	/*
+	 * Belief SPUDD objects
+	 * 
+	 * The belief SPUDD objects contain the definitions of the initial belief and adjunct beliefs.
+	 * Has to be populated by the makeBeliefsSPUDD method to be implemented in the subclass
+	 */
 	public BeliefSPUDD beliefSPUDD;
 	public List<BeliefSPUDD> otherBeliefSPUDDs = new ArrayList<BeliefSPUDD>();
-//	public List<ActionSPUDD> actionSPUDDs = new ArrayList<ActionSPUDD>();
+	
+	/*
+	 * Action SPUDD map
+	 * 
+	 * This map contains a mapping from actionNames to ActionSPUDD objects. 
+	 * Should be populated by the makeActionsSPUDD method implemented in the subclass
+	 */
 	public HashMap<String, ActionSPUDD> actionSPUDDMap = new HashMap<String, ActionSPUDD>();
+	
+	
 	public DDTree rewardFn;
 	
 	

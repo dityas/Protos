@@ -34,14 +34,13 @@ public class ActionSPUDD {
 		}
 	}
 
-	public ActionSPUDD(String actionName, NextLevelVariablesContext varContext, double cost) {
+	public ActionSPUDD(String actionName, NextLevelVariablesContext varContext) {
 
 		this.actionName = actionName;
 		this.varContext = varContext;
-		this.cost = cost;
 
 		// populate DD map
-		System.out.println(this.varContext.varNameSet.toString());
+//		System.out.println(this.varContext.varNameSet.toString());
 		Iterator<String> varIter = this.varContext.varNameSet.iterator();
 		while (varIter.hasNext()) {
 			this.varToDDMap.put(varIter.next(), null);
@@ -55,7 +54,7 @@ public class ActionSPUDD {
 		/*
 		 * Map given DD to the variable name
 		 */
-		System.out.println(this.varContext.varNameSet.toString());
+//		System.out.println(this.varContext.varNameSet.toString());
 		if (this.varContext.hasVariable(varName)) {
 			this.varToDDMap.put(varName, dd);
 		}
