@@ -1,6 +1,7 @@
 package thinclab.domainMaker.SPUDDHelpers;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 import thinclab.domainMaker.ddHelpers.DDRef;
 import thinclab.domainMaker.ddHelpers.DDTree;
@@ -37,7 +38,8 @@ public class ActionSPUDDFactory {
 	public static ActionSPUDD getPrefixedActionSPUDD(
 			String actName,
 			NextLevelVariablesContext varContext,
-			DDTree policyPrefix) {
+			DDTree policyPrefix,
+			HashMap<String, DDRef> oppObsMap) {
 
 		/*
 		 * Makes an empty ActionSPUDD object, adds the opponent policy prefix to
@@ -47,6 +49,7 @@ public class ActionSPUDDFactory {
 		
 		ActionSPUDD prefixedSPUDD = new ActionSPUDD(actName, varContext);
 		
+		// Prefix all state variables
 		for (int i=0; i < varContext.getVarNames().length; i++) {
 			
 			try {
@@ -58,6 +61,8 @@ public class ActionSPUDDFactory {
 				e.printStackTrace();
 			}
 		}
+		
+		// Apply oppObs transitions
 		
 		return prefixedSPUDD;
 	}

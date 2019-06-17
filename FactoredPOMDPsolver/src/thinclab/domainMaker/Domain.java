@@ -25,7 +25,7 @@ public abstract class Domain {
 	public String newLine = "\r\n";
 	
 	/*
-	 * These string contain the actual sections written in SPUDD format. Methods defined
+	 * These strings contain the actual sections written in SPUDD format. Methods defined
 	 * later are supposed to fill them in. In the end, a single method will just append these
 	 * to the domainString variable seperated by new lines. The whole point of this is to make it
 	 * more flexible for the subclasses to write these sections but still maintain some

@@ -46,7 +46,7 @@ public class DefenderL1Domain extends NextLevelDomain {
 	// Implement abstract method to populate the oppObs HashMap
 	public void setOppObsDDs() {
 		String[] oppObsNames = this.lowerDomain.varContext.getObsNames();
-		System.out.println(Arrays.toString(oppObsNames));
+//		System.out.println(Arrays.toString(oppObsNames));
 		for (int i = 0; i < oppObsNames.length; i++) {
 			this.setOppObsDDs(oppObsNames[i]);
 		}
@@ -60,7 +60,7 @@ public class DefenderL1Domain extends NextLevelDomain {
 		/*
 		 * Access the ActionSPUDD object of the specific action corresponding to the
 		 * policy node and get the DD for the obsName observation. Repeat for all
-		 * policy nodes. This should really be in a seperate helper class or something
+		 * policy nodes. This should really be in a separate helper class or something
 		 */
 		String[] oppPolicyNodes = this.lowerDomain.getPolicyValNames();
 		for (int i = 0; i < oppPolicyNodes.length; i++) {
@@ -82,7 +82,7 @@ public class DefenderL1Domain extends NextLevelDomain {
 		Iterator<Entry<String, DDTree>> nodeToDDIter = nodeToObsDDMap.entrySet().iterator();
 		while (nodeToDDIter.hasNext()) {
 			Entry<String, DDTree> entry = nodeToDDIter.next();
-			System.out.println(entry);
+//			System.out.println(entry);
 			try {
 				DDTree dd = entry.getValue().getCopy();
 				dd.renameVar(obsName + "'", (this.nextLevelVarContext.oppObsNames[0] + "'"));

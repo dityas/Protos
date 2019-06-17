@@ -41,6 +41,11 @@ public abstract class NextLevelDomain extends Domain {
 	public DDTree oppPolicy;
 	public HashMap<String ,DDTree> oppObs = new HashMap<String, DDTree>();
 	
+	// Parallel String arrays for storing opponent observation information
+	public String[] orignalOppObsNames;
+	public String[] currentOppObsNames;
+	
+	
 	// DD names for policy DDs and obs DDs of opponent
 	public String oppPolicyDDDef;
 	public String oppObsDDDef;
@@ -104,6 +109,11 @@ public abstract class NextLevelDomain extends Domain {
 		for (int i=0; i < oppObsNames.length; i++) {
 			this.oppObs.put(oppObsNames[i].toLowerCase(), null);
 		}
+	}
+	
+	// makes opponents obs var -> higher level state var -> DDRef mapping
+	public void makeOppObsVarMappings() {
+		
 	}
 	
 	// Driver function for calling all initialization methods

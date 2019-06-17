@@ -5,42 +5,87 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.commons.lang3.ArrayUtils;
+
+
 public class NextLevelVariablesContext extends VariablesContext {
 	
+	// Variables for describing opponents policy
 	public String oppPolicyName = "OPP_POLICY";
 	public String[] oppPolicyValNames;
 	
-	public String[] oppObsNames;
-	public String[][] oppObsValNames;
+	/*
+	 * These variables store the opponents observation variables and their
+	 * values. For the agent's model, these will be included in the states so that
+	 * the agent can model the opponent's observation based on his observation function
+	 */
+	public String[] oppObsForStateNames;
+	public String[][] oppObsForStateValNames;
 	
-	public VariablesContext lowerContext;
+	/*
+	 * These variables contain the corresponding DD names and orignal observation
+	 * names for the lower level adversary. The obs names should be same as those given
+	 * by the opponent's varContext.
+	 */
+	public String[] oppOrigObsNames;
+	public String[] oppObsDDRefNames;
+	
+	public VariablesContext opponentsContext;
 	
 	/*
 	 * Handles all variable naming and assignments for higher level domain
 	 */
 
-	public NextLevelVariablesContext(VariablesContext lowerContext,
+	public NextLevelVariablesContext(VariablesContext opponentsContext,
 			String[] obsNames,
 			String[][] obsValNames,
-			String[] oppPolicyValNames,
-			String[] oppObsNames,
-			String[][] oppObsValNames) {
+			String[] oppPolicyValNames) {
+		/*
+		 * Builds varContext for higher level adversary. Assumes that the state
+		 * space stays common for both and only observation space changes
+		 * 
+		 * Args:
+		 * 		obsNames:			L1 obsNames for agent
+		 * 		obsValNames:		Values for agent's obsNames
+		 * 		oppPolicyValNames:	Array of node names of opponents policy
+		 * 		opponentsContext:	The varContext of lower level opponent. This will
+		 * 							be used to get the state variables
+		 */
 		
+		/*
+		 * Initialize empty superclass. Doing this because the super class takes the same
+		 * state vars and their values as the opponents context and we don't want to create
+		 * a conflict between them for the getters. It is a messed up way of making it work
+		 * I know, but I need to graduate by September.
+		 */
 		super();
 		
-		this.lowerContext = lowerContext;
-		this.varNames = this.lowerContext.getVarNames();
-		this.varValNames = this.lowerContext.getVarValNames();
+		this.opponentsContext = opponentsContext;
+		
+		/*
+		 *  Get varNames and varValNames from opponents context since these will be the
+		 *  same for the domain
+		 */
+		
+		this.varNames = this.opponentsContext.getVarNames();
+		this.varValNames = this.opponentsContext.getVarValNames();
+		
+		// Assign agents obsNames and obsValNames
 		this.obsNames = obsNames;
 		this.obsValNames = obsValNames;
 		this.oppPolicyValNames = oppPolicyValNames;
 		
-		for (int i = 0; i < oppObsNames.length; i++) {
-			oppObsNames[i] = "OPP_" + oppObsNames[i];
+		// populate orignal obs names from the opponents variable context
+		this.oppOrigObsNames = this.opponentsContext.getObsNames().clone();
+		
+		// populate oppObsForStateNames
+		this.oppObsForStateNames = this.opponentsContext.getObsNames().clone();
+		for (int i = 0; i < oppObsForStateNames.length; i++) {
+			oppObsForStateNames[i] = "OPP_" + oppObsForStateNames[i];
 		}
 		
-		this.oppObsNames = oppObsNames;
-		this.oppObsValNames = oppObsValNames;
+		// populate oppObsForStateValNames
+		this.oppObsForStateValNames = this.opponentsContext.getObsValNames().clone();
 
 		// populate state var keys
 		for (int i = 0; i < this.varNames.length; i++) {
@@ -52,8 +97,8 @@ public class NextLevelVariablesContext extends VariablesContext {
 			this.varNameSet.add(this.obsNames[i]);
 		}
 		
-		for (int i = 0; i < this.oppObsNames.length; i++) {
-			this.varNameSet.add(this.oppObsNames[i]);
+		for (int i = 0; i < this.oppObsForStateNames.length; i++) {
+			this.varNameSet.add(this.oppObsForStateNames[i]);
 		}
 		
 		this.varNameSet.add(this.oppPolicyName);
@@ -73,7 +118,7 @@ public class NextLevelVariablesContext extends VariablesContext {
 	
 	@Override
 	public String[] getVarNames() {
-		return this.varNames;
+		return this.varNames.clone();
 	}
 
 	/**
@@ -81,7 +126,7 @@ public class NextLevelVariablesContext extends VariablesContext {
 	 */
 	@Override
 	public String[][] getVarValNames() {
-		return varValNames;
+		return this.varValNames.clone();
 	}
 
 	/**
@@ -89,7 +134,7 @@ public class NextLevelVariablesContext extends VariablesContext {
 	 */
 	@Override
 	public String[] getObsNames() {
-		return obsNames;
+		return this.obsNames.clone();
 	}
 
 	/**
@@ -97,43 +142,48 @@ public class NextLevelVariablesContext extends VariablesContext {
 	 */
 	@Override
 	public String[][] getObsValNames() {
-		return obsValNames;
+		return this.obsValNames.clone();
 	}
 
 	/**
 	 * @return the oppPolicyName
 	 */
 	public String getOppPolicyName() {
-		return oppPolicyName;
+		return this.oppPolicyName;
 	}
 
 	/**
 	 * @return the oppPolicyValNames
 	 */
 	public String[] getOppPolicyValNames() {
-		return oppPolicyValNames;
+		return oppPolicyValNames.clone();
 	}
 
 	/**
 	 * @return the oppObsNames
 	 */
-	public String[] getOppObsNames() {
-		return oppObsNames;
+	public String[] getOppOrigObsNames() {
+		return this.oppOrigObsNames.clone();
 	}
 
 	/**
 	 * @return the oppObsValNames
 	 */
-	public String[][] getOppObsValNames() {
-		return oppObsValNames;
+	public String[][] getOppOrigObsValNames() {
+		return this.getOppOrigObsValNames().clone();
 	}
 	
-//	public boolean hasVariable(String varName) {
-//		return this.varNameSet.contains(varName);
-//	}
+	@Override
+	public boolean hasVariable(String varName) {
+		return this.varNameSet.contains(varName);
+	}
 	
-	public String getOppObsDDName(String obsName) {
-		return "opp" + obsName.toLowerCase();
+	/*
+	 * Used to get the corresponding DDRef name for the origObsName
+	 */
+	public String getOppObsDDRefFromOrigObsName(String origObsName) {
+		int i = ArrayUtils.indexOf(this.oppOrigObsNames, origObsName);
+		return this.oppObsDDRefNames[i];
 	}
 	
 }
