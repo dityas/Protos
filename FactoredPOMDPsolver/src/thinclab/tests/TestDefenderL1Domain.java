@@ -42,27 +42,25 @@ class TestDefenderL1Domain {
 	void testMakeDomain() {
 		System.out.println("Running testMakeDomain");
 		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
-		defDomain.makeVarContext();
-		defDomain.makeDDMaker();
-		defDomain.setOppPolicyDD();
+		defDomain.initializationDriver();
 		defDomain.writeVariablesDef();
 		defDomain.writeObsDef();
 		defDomain.writeOppPolicyDD();
-		defDomain.setOppObsDDs();
+		
 		try {
 			defDomain.writeOppObsDDs();
 		} 
+		
 		catch (DDNotDefinedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println(e.getMessage());
+			System.exit(-1);
 		}
-		defDomain.makeActionsSPUDD();
-		defDomain.writeActions();
+
 		System.out.println(defDomain.variablesDef);
 		System.out.println(defDomain.obsDef);
 		System.out.println(defDomain.oppPolicyDDDef);
 		System.out.println(defDomain.oppObsDDDef);
-		System.out.println(defDomain.actionSection);
+//		System.out.println(defDomain.actionSection);
 	}
 
 }

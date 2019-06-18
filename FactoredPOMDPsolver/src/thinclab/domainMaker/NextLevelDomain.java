@@ -1,8 +1,11 @@
 package thinclab.domainMaker;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.NextLevelVariablesContext;
@@ -10,6 +13,7 @@ import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTools;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.DDNotDefinedException;
+import thinclab.exceptions.VariableNotFoundException;
 
 public abstract class NextLevelDomain extends Domain {
 	/*
@@ -39,7 +43,22 @@ public abstract class NextLevelDomain extends Domain {
 	
 	// DDs for opponents information
 	public DDTree oppPolicy;
-	public HashMap<String ,DDTree> oppObs = new HashMap<String, DDTree>();
+	
+	/*
+	 * These following structures contain the maps for defining the opponents observation DDs
+	 * The oppObsForStateDDDefMap contains map from <oppObsForStateDDRefName, oppObsForStateDD>
+	 * The next map is used to get the reference names from the names given in the state vars.
+	 */
+	public HashMap<String, DDTree> oppObsForStateDDDefMap = new HashMap<String, DDTree>();
+	public HashMap<String, String> oppObsStateToOppObsDDRef = new HashMap<String, String>();
+	
+	/*
+	 * Maps between policy nodes and actions.
+	 */
+	public HashMap<String, List<String>> actionToPolicyNodeMap = 
+			new HashMap<String, List<String>>();
+	public HashMap<String, String> policyNodetoAction = 
+			new HashMap<String, String>();
 	
 	// Parallel String arrays for storing opponent observation information
 	public String[] orignalOppObsNames;
@@ -55,13 +74,96 @@ public abstract class NextLevelDomain extends Domain {
 	public Domain lowerDomain;
 	
 	// ------------------------------------------------------------------------------
-	// Abstract methods
 	
 	/*
-	 * This method should populate the this.oppObs hashmap. The hashmap contains DDs
-	 * which handle the opponents observation variables 
+	 * The next level domain of the adversary will contain the observations of the lower
+	 * level adversary as its state vars. These transitions have to be modelled. The
+	 * following method will create a DD prefix from the opponent's policy nodes and 
+	 * append respective observation functions from the lower level adversary's 
+	 * ActionSPUDD objects.
+	 * 
+	 * Each observation var transition of the opponent should have a DD
+	 * 
+	 *   Eg:
+	 *   
+	 *   dd oppobs
+	 *   (OPP_POLICY
+	 *   	(node1
+	 *   		<OBS DD for action repr by node 1>
+	 *   	)
+	 *   
+	 *   	(node2
+	 *   		<OBS DD for action repr by node 2>
+	 *   	)
+	 *   )
+	 *   
+	 * To do this, the oppObsForStateDDDefMap has to be populated.
+	 * The following method does this.
 	 */
-	public abstract void setOppObsDDs();
+	public void setOppObsForStateDDs() {
+		
+		// For each observation variable in the opponents domain
+		String[] oppOrigObsNames = this.nextLevelVarContext.getOppOrigObsNames();
+		for (int i=0;i < oppOrigObsNames.length; i++) {
+			String obsName = oppOrigObsNames[i];
+			// Create the policy node prefix
+			DDTree policyNodePrefix = 
+					this.ddmaker.getDDTreeFromSequence(
+							new String[] {this.nextLevelVarContext.getOppPolicyName()}).getCopy();
+			
+			// For each ActionSPUDD
+			Iterator<Entry<String, ActionSPUDD>> actSPUDDIter = 
+					this.lowerDomain.actionSPUDDMap.entrySet().iterator();
+			while (actSPUDDIter.hasNext()) {
+				Entry<String, ActionSPUDD> entry = actSPUDDIter.next();
+				ActionSPUDD theActSPUDD = entry.getValue();
+				DDTree theDD = null;
+				// Get the DD associated with obs var obsName for action entry.getKey()
+				try {
+					theDD = theActSPUDD.getDDForVar(obsName).getCopy();
+				} 
+				
+				catch (VariableNotFoundException e) {
+					System.err.println(e.getMessage());
+					System.exit(-1);
+				} 
+				
+				// append DD for each node associated with the action
+				List<String> relatedNodes = this.actionToPolicyNodeMap.get(entry.getKey());
+				
+				if (relatedNodes == null) {
+					continue;
+				}
+				
+				Iterator<String> relatedNodesIter = relatedNodes.iterator();
+				while (relatedNodesIter.hasNext()) {
+					String policyNode = relatedNodesIter.next();
+					
+					try {
+						policyNodePrefix.setDDAt(policyNode, theDD.getCopy());
+					} 
+					
+					catch (Exception e) {
+						System.err.println(e.getMessage());
+						System.exit(-1);
+					}
+				} // while (relatedNodesIter.hasNext())
+				
+			} // while (actSPUDDIter.hasNext())
+			
+			// Store DDRef to DDTree mapping
+			String refName = this.nextLevelVarContext.getOppObsDDRefFromOrigObsName(obsName); 
+			this.oppObsForStateDDDefMap.put(
+					refName, 
+					policyNodePrefix);
+			
+			// Store oppObsNameForState to DDRef mapping
+			this.oppObsStateToOppObsDDRef.put(
+					this.nextLevelVarContext.getOppObsForStateNameFromOrigObsName(obsName), 
+					refName);
+			
+		} // for (int i=0;i < oppOrigObsNames.length; i++)
+	}
 	
 	// ------------------------------------------------------------------------------
 	
@@ -82,14 +184,14 @@ public abstract class NextLevelDomain extends Domain {
 	 * policy nodes which now represent the actions taken by the lower level adversary. And returns
 	 * an ActionSPUDD object with these varibles prefixed with the policy nodes DD
 	 */
-	public void getActionSPUDDTemplateWithPrefixes(String actName) {
-		
-		// Make the prefix DDs defining adversary actions for next level state transitions
-		DDTree policyDDHead = this.ddmaker.getDDTreeFromSequence(new String[] {"OPP_POLICY"});
-		
-		ActionSPUDD templateSPUDD = 
-		
-	}
+//	public void getActionSPUDDTemplateWithPrefixes(String actName) {
+//		
+//		// Make the prefix DDs defining adversary actions for next level state transitions
+//		DDTree policyDDHead = this.ddmaker.getDDTreeFromSequence(new String[] {"OPP_POLICY"});
+//		
+//		ActionSPUDD templateSPUDD = 
+//		
+//	}
 	
 	// ------------------------------------------------------------------------------
 	
@@ -102,25 +204,48 @@ public abstract class NextLevelDomain extends Domain {
 		this.ddmaker.addFromNextLevelVariablesContext(this.nextLevelVarContext);
 	}
 	
-	// populate oppObs map with appropriate variable names and null DDs
-	public void initializeOppObsDDMap() {
-		String[] oppObsNames = this.nextLevelVarContext.getOppObsNames();
-		
-		for (int i=0; i < oppObsNames.length; i++) {
-			this.oppObs.put(oppObsNames[i].toLowerCase(), null);
+//	// populate oppObs map with appropriate variable names and null DDs
+//	public void initializeOppObsDDMap() {
+//		String[] oppObsNames = this.nextLevelVarContext.getOppObsForStateNames();
+//		
+//		for (int i=0; i < oppObsNames.length; i++) {
+//			this.oppObs.put(oppObsNames[i].toLowerCase(), null);
+//		}
+//	}
+	
+	// populate policy nodes to actions and vice versa
+	public void populateNodeToActionMaps() {
+		/*
+		 * Just iterates through the policy nodes, splits the name on "-", and extracts
+		 * the action name associated with the policy node.
+		 */
+		String[] policyNodes = this.lowerDomain.getPolicyValNames();
+		for (int i=0; i < policyNodes.length; i++) {
+			String actName = policyNodes[i].split("-")[2];
+			
+			// Add to reverse map
+			this.policyNodetoAction.put(policyNodes[i], actName);
+			
+			// Map action to policyNodes
+			if (this.actionToPolicyNodeMap.containsKey(actName)) {
+				 this.actionToPolicyNodeMap.get(actName).add(policyNodes[i]);
+			}
+			
+			else {
+				this.actionToPolicyNodeMap.put(actName, new ArrayList<String>());
+				this.actionToPolicyNodeMap.get(actName).add(policyNodes[i]);
+			}
 		}
 	}
 	
-	// makes opponents obs var -> higher level state var -> DDRef mapping
-	public void makeOppObsVarMappings() {
-		
-	}
 	
 	// Driver function for calling all initialization methods
 	public void initializationDriver() {
 		this.makeVarContext();
 		this.makeDDMaker();
-		this.initializeOppObsDDMap();
+		this.populateNodeToActionMaps();
+		this.setOppPolicyDD();
+		this.setOppObsForStateDDs();
 	}
 	
 	// ----------------------------------------------------------------------------
@@ -138,9 +263,9 @@ public abstract class NextLevelDomain extends Domain {
 					+ String.join(" ", this.nextLevelVarContext.getVarValNames()[v]) + ")" + this.newLine;
 		}
 		
-		for (int v=0; v < this.nextLevelVarContext.getOppObsNames().length; v++) {
-			this.variablesDef += "(" + this.nextLevelVarContext.getOppObsNames()[v] + " " 
-					+ String.join(" ", this.nextLevelVarContext.getOppObsValNames()[v]) + ")" + this.newLine;
+		for (int v=0; v < this.nextLevelVarContext.getOppObsForStateNames().length; v++) {
+			this.variablesDef += "(" + this.nextLevelVarContext.getOppObsForStateNames()[v] + " " 
+					+ String.join(" ", this.nextLevelVarContext.getOppObsForStateValNames()[v]) + ")" + this.newLine;
 		}
 		
 		this.variablesDef += "(" + this.nextLevelVarContext.getOppPolicyName() + " "
@@ -179,7 +304,7 @@ public abstract class NextLevelDomain extends Domain {
 	}
 	
 	public void writeOppObsDDs() throws DDNotDefinedException {
-		Iterator<Entry<String, DDTree>> obsDDs = this.oppObs.entrySet().iterator();
+		Iterator<Entry<String, DDTree>> obsDDs = this.oppObsForStateDDDefMap.entrySet().iterator();
 		
 		while (obsDDs.hasNext()) {
 			Entry<String, DDTree> entry = obsDDs.next();
@@ -199,7 +324,6 @@ public abstract class NextLevelDomain extends Domain {
 	public void makeAll() {
 		this.initializationDriver();
 		this.setOppPolicyDD();
-		this.setOppObsDDs();
 		this.writeVariablesDef();
 		this.writeObsDef();
 		this.makeBeliefsSPUDD();

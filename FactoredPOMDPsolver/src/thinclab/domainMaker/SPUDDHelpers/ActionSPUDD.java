@@ -132,6 +132,19 @@ public class ActionSPUDD {
 
 		return obsVarDDs;
 	}
+	
+	public DDTree getDDForVar(String varName) throws VariableNotFoundException {
+		/*
+		 * Returns a copy of the DD corresponding to the given variable name 
+		 */
+		if (this.varToDDMap.containsKey(varName)) {
+			return this.varToDDMap.get(varName).getCopy();
+		}
+		
+		else {
+			throw new VariableNotFoundException("Unknown variable " + varName);
+		}
+	}
 
 	// -----------------------------------------------------------------------------------
 }

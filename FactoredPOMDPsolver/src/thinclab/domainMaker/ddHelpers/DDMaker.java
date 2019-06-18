@@ -102,8 +102,8 @@ public class DDMaker {
 		
 		String[] varNames = varContext.getVarNames();
 		String[][] varValNames = varContext.getVarValNames();
-		String[] oppObsNames = varContext.getOppObsNames();
-		String[][] oppObsValNames = varContext.getOppObsValNames();
+		String[] oppObsForStateNames = varContext.getOppObsForStateNames();
+		String[][] oppObsForStateValNames = varContext.getOppObsForStateValNames();
 		String oppPolicyName = varContext.getOppPolicyName();
 		String[] oppPolicyValNames = varContext.getOppPolicyValNames();
 		
@@ -112,12 +112,12 @@ public class DDMaker {
 		
 		List<String> stateVars = new ArrayList<String>();
 		stateVars.addAll(Arrays.asList(varNames));
-		stateVars.addAll(Arrays.asList(oppObsNames));
+		stateVars.addAll(Arrays.asList(oppObsForStateNames));
 		stateVars.add(oppPolicyName);
 		
 		List<String[]> stateVarVals = new ArrayList<String[]>();
 		stateVarVals.addAll(Arrays.asList(varValNames));
-		stateVarVals.addAll(Arrays.asList(oppObsValNames));
+		stateVarVals.addAll(Arrays.asList(oppObsForStateValNames));
 		stateVarVals.add(oppPolicyValNames);
 		
 		this.addAllAndPrime(stateVars.toArray(new String[stateVars.size()]),

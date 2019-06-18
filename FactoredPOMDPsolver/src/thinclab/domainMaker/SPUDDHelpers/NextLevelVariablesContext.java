@@ -78,10 +78,12 @@ public class NextLevelVariablesContext extends VariablesContext {
 		// populate orignal obs names from the opponents variable context
 		this.oppOrigObsNames = this.opponentsContext.getObsNames().clone();
 		
-		// populate oppObsForStateNames
+		// populate oppObsForStateNames and DDRef names
 		this.oppObsForStateNames = this.opponentsContext.getObsNames().clone();
+		this.oppObsDDRefNames = this.opponentsContext.getObsNames().clone();
 		for (int i = 0; i < oppObsForStateNames.length; i++) {
 			oppObsForStateNames[i] = "OPP_" + oppObsForStateNames[i];
+			oppObsDDRefNames[i] = "opp" + oppObsDDRefNames[i].toLowerCase();
 		}
 		
 		// populate oppObsForStateValNames
@@ -111,7 +113,7 @@ public class NextLevelVariablesContext extends VariablesContext {
 	public String[] getStateVarNames() {
 		List<String> varNamesList = new ArrayList<String>();
 		varNamesList.addAll(Arrays.asList(this.varNames));
-		varNamesList.addAll(Arrays.asList(this.oppObsNames));
+		varNamesList.addAll(Arrays.asList(this.oppObsForStateNames));
 		varNamesList.add(this.oppPolicyName);
 		return varNamesList.toArray(new String[varNamesList.size()]);
 	}
@@ -178,12 +180,28 @@ public class NextLevelVariablesContext extends VariablesContext {
 		return this.varNameSet.contains(varName);
 	}
 	
+	public String[] getOppObsForStateNames() {
+		return this.oppObsForStateNames.clone();
+	}
+	
+	public String[][] getOppObsForStateValNames() {
+		return this.oppObsForStateValNames.clone();
+	}
+ 	
 	/*
 	 * Used to get the corresponding DDRef name for the origObsName
 	 */
 	public String getOppObsDDRefFromOrigObsName(String origObsName) {
 		int i = ArrayUtils.indexOf(this.oppOrigObsNames, origObsName);
 		return this.oppObsDDRefNames[i];
+	}
+	
+	/*
+	 * Get oppObsForStateName from oppOrigObsName
+	 */
+	public String getOppObsForStateNameFromOrigObsName(String origObsName) {
+		int i = ArrayUtils.indexOf(this.oppOrigObsNames, origObsName);
+		return this.oppObsForStateNames[i];
 	}
 	
 }
