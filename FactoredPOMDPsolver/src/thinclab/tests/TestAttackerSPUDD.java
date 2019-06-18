@@ -130,15 +130,17 @@ class TestAttackerSPUDD {
 	void testActionSPUDDPrefixing() {
 		System.out.println("Running testActionSPUDDPrefixing");
 		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
-		defDomain.makeVarContext();
-		defDomain.makeDDMaker();
+		defDomain.initializationDriver();
 		
 		ActionSPUDD testSPUDD = ActionSPUDDFactory.getPrefixedActionSPUDD(
 				"TEST", 
 				defDomain.nextLevelVarContext, 
 				defDomain.ddmaker.getDDTreeFromSequence(
-						new String[] {defDomain.nextLevelVarContext.getOppPolicyName()}));
+						new String[] {defDomain.nextLevelVarContext.getOppPolicyName()}),
+				defDomain.oppObsStateToOppObsDDRef);
 		testSPUDD.fillNullDDs();
+		
+		System.out.println(testSPUDD.toSPUDD());
 		
 		String[] varNames = defDomain.nextLevelVarContext.getVarNames();
 		DDTree prefix = 

@@ -2,13 +2,20 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
+
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.domainMaker.AttackerDomain;
 import thinclab.domainMaker.DefenderL1Domain;
 import thinclab.domainMaker.Domain;
+import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
+import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.DDNotDefinedException;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
@@ -36,6 +43,42 @@ class TestDefenderL1Domain {
 
 	@AfterEach
 	void tearDown() throws Exception {
+	}
+	
+	@Test
+	void testOppObsDDInit() {
+		System.out.println("Running testOppObsDDInit()");
+		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
+		defDomain.initializationDriver();
+		
+		String[] oppObsForStateNames = defDomain.nextLevelVarContext.getOppObsForStateNames();
+		for (int i=0; i < oppObsForStateNames.length; i++) {
+			assertTrue(defDomain.oppObsStateToOppObsDDRef.containsKey(oppObsForStateNames[i]));
+			assertTrue(
+					defDomain.oppObsForStateDDDefMap.containsKey(
+							defDomain.oppObsStateToOppObsDDRef.get(oppObsForStateNames[i])));
+		}
+	}
+	
+	@Test
+	void testActToVarToDDMapInit() {
+		System.out.println("Running testActToVarToDDMapInit");
+		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
+		defDomain.initializationDriver();
+		
+		HashMap<String, ActionSPUDD> actSPUDDMap = defDomain.lowerDomain.actionSPUDDMap;
+		Iterator<Entry<String, ActionSPUDD>> actSPUDDIter = actSPUDDMap.entrySet().iterator();
+		while (actSPUDDIter.hasNext()) {
+			Entry<String, ActionSPUDD> entry = actSPUDDIter.next();
+			String actName = entry.getKey();
+			
+			Iterator<Entry<String, DDTree>> DDMapIter = entry.getValue().varToDDMap.entrySet().iterator();
+			while (DDMapIter.hasNext()) {
+				Entry<String, DDTree> DDEntry = DDMapIter.next();
+				assertTrue(defDomain.actToVarToDDMap.get(actName).get(DDEntry.getKey()).equals(DDEntry.getValue()));
+			}
+			
+		}
 	}
 
 	@Test

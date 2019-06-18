@@ -60,6 +60,27 @@ public abstract class NextLevelDomain extends Domain {
 	public HashMap<String, String> policyNodetoAction = 
 			new HashMap<String, String>();
 	
+	/*
+	 * Maps action names to respective state transition DDs. This is a nested hashmap of the
+	 * format <action name> -> <state variable> -> <DD> .
+	 *  
+	 * 						Value
+	 * 	Key			   ----------------------------	
+	 * ------------    |						  |
+	 * <actName1> |	-> |	<stateVar1>	->	<DD>  |
+	 * <actName1> |	-> |	<stateVar2>	->	<DD>  |
+	 * <actName1> |	-> |	<stateVar3>	->	<DD>  |
+	 * <actName2> |	-> |	<stateVar1>	->	<DD>  |
+	 * ------------    |	                      |
+	 *  			   ----------------------------
+	 * .
+	 * 
+	 * It might be useful to maintain this structure and populate it with the lower level 
+	 * opponent's transitions for creating the ActionSPUDD of the agent
+	 */
+	public HashMap<String, HashMap<String, DDTree>> actToVarToDDMap = 
+			new HashMap<String, HashMap<String,DDTree>>();
+	
 	// Parallel String arrays for storing opponent observation information
 	public String[] orignalOppObsNames;
 	public String[] currentOppObsNames;
@@ -163,35 +184,50 @@ public abstract class NextLevelDomain extends Domain {
 					refName);
 			
 		} // for (int i=0;i < oppOrigObsNames.length; i++)
-	}
+	} // public void setOppObsForStateDDs()
 	
 	// ------------------------------------------------------------------------------
 	
 	/*
-	 * When defining DDs for opponents observation transitions, the names have to be 
-	 * specific so that the other functions can use those in ActionSPUDD or other DD
-	 * manipulation places. This function makes it more easier. It simply lower cases
-	 * the obs variables name and append "opp" to it.
+	 * The following method populates the actToVarToDDMap from the lowerDomain's
+	 * ActionSPUDDMap
 	 */
-	public String getObsDDRefName(String obsVarName) {
-		return "opp" + obsVarName.toLowerCase();
-	}
-	
-	/*
-	 * The lower level actionSPUDD objects contain the state transitions for each state
-	 * variable. In case of higher level adversary, unless his action overrides these transitions, these
-	 * they still take place. So the following method maps these old transitions to the
-	 * policy nodes which now represent the actions taken by the lower level adversary. And returns
-	 * an ActionSPUDD object with these varibles prefixed with the policy nodes DD
-	 */
-//	public void getActionSPUDDTemplateWithPrefixes(String actName) {
-//		
-//		// Make the prefix DDs defining adversary actions for next level state transitions
-//		DDTree policyDDHead = this.ddmaker.getDDTreeFromSequence(new String[] {"OPP_POLICY"});
-//		
-//		ActionSPUDD templateSPUDD = 
-//		
-//	}
+	public void populateActToVarToDDMap() {
+		HashMap<String, ActionSPUDD> lowerLevelActSPUDDMap = this.lowerDomain.actionSPUDDMap;
+		
+		// For all actionSPUDDs in the lower domain
+		Iterator<Entry<String, ActionSPUDD>> actSPUDDIter = 
+				lowerLevelActSPUDDMap.entrySet().iterator();
+		while (actSPUDDIter.hasNext()) {
+			Entry<String, ActionSPUDD> entry = actSPUDDIter.next();
+			String actName = entry.getKey();
+			
+			// For each variable
+			HashMap<String, DDTree> varToDDMap = entry.getValue().varToDDMap;
+			Iterator<Entry<String, DDTree>> varToDDIter = varToDDMap.entrySet().iterator();
+			while (varToDDIter.hasNext()) {
+				Entry<String, DDTree> entryVarToDD = varToDDIter.next();
+				
+				// if entry exists, add <state var> -> <DD> to the <action name> key
+				if (this.actToVarToDDMap.containsKey(actName)) {
+					this.actToVarToDDMap.get(actName).put(
+							entryVarToDD.getKey(), 
+							entryVarToDD.getValue());
+				}
+				
+				// else create new hashmap and put the entry
+				else {
+					this.actToVarToDDMap.put(actName, new HashMap<String, DDTree>());
+					this.actToVarToDDMap.get(actName).put(
+							entryVarToDD.getKey(), 
+							entryVarToDD.getValue());
+				}
+				
+			} // while (varToDDIter.hasNext())
+			
+		} // while (actSPUDDIter.hasNext())
+		
+	} // public void populateActToVarToDDMap()
 	
 	// ------------------------------------------------------------------------------
 	
@@ -244,6 +280,7 @@ public abstract class NextLevelDomain extends Domain {
 		this.makeVarContext();
 		this.makeDDMaker();
 		this.populateNodeToActionMaps();
+		this.populateActToVarToDDMap();
 		this.setOppPolicyDD();
 		this.setOppObsForStateDDs();
 	}
@@ -299,7 +336,9 @@ public abstract class NextLevelDomain extends Domain {
 	
 	public void writeOppPolicyDD() {
 		this.oppPolicyDDDef = "" + this.newLine;
-		this.oppPolicyDDDef += DDTools.defineDDInSPUDD("oppPolicy", this.oppPolicy);
+		this.oppPolicyDDDef += DDTools.defineDDInSPUDD(
+				this.nextLevelVarContext.getPolicyDDRefName(),
+				this.oppPolicy);
 		this.oppPolicyDDDef += this.newLine;
 	}
 	

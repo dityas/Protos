@@ -187,6 +187,10 @@ public class NextLevelVariablesContext extends VariablesContext {
 	public String[][] getOppObsForStateValNames() {
 		return this.oppObsForStateValNames.clone();
 	}
+	
+	public String getPolicyDDRefName() {
+		return this.oppPolicyName.toLowerCase();
+	}
  	
 	/*
 	 * Used to get the corresponding DDRef name for the origObsName
