@@ -308,7 +308,8 @@ public abstract class NextLevelDomain extends Domain {
 		
 		for (int v=0; v < this.nextLevelVarContext.getOppObsForStateNames().length; v++) {
 			this.variablesDef += "(" + this.nextLevelVarContext.getOppObsForStateNames()[v] + " " 
-					+ String.join(" ", this.nextLevelVarContext.getOppObsForStateValNames()[v]) + ")" + this.newLine;
+					+ String.join(" ", this.nextLevelVarContext.getOppObsForStateValNames()[v]) + ")"
+					+ this.newLine;
 		}
 		
 		this.variablesDef += "(" + this.nextLevelVarContext.getOppPolicyName() + " "
