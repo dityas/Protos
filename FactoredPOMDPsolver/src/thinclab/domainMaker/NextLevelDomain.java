@@ -162,6 +162,12 @@ public abstract class NextLevelDomain extends Domain {
 					
 					try {
 						policyNodePrefix.setDDAt(policyNode, theDD.getCopy());
+						
+						// Rename the origObsName to oppObsNameForState
+						// The "'" is added to indicate a primed variable for the next step
+						policyNodePrefix.renameVar(
+								obsName + "'",
+								this.nextLevelVarContext.getOppObsForStateNameFromOrigObsName(obsName) + "'");
 					} 
 					
 					catch (Exception e) {

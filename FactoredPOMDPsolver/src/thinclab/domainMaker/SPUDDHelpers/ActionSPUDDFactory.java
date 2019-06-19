@@ -98,9 +98,7 @@ public class ActionSPUDDFactory {
 			String actName,
 			NextLevelVariablesContext varContext,
 			DDTree policyPrefix,
-			HashMap<String, String> oppObsForStateToDDRefMap,
-			HashMap<String, ActionSPUDD> lowerLevelActSPUDDMap,
-			HashMap<String, String> policyNodeToActNameMap) {
+			HashMap<String, String> oppObsForStateToDDRefMap) {
 		/*
 		 * Gets an actionSPUDD object with the opponent's state transitions applied to the
 		 * respective state variables for proper actions.
