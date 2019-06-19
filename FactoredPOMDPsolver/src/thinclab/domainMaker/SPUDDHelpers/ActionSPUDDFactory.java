@@ -98,7 +98,9 @@ public class ActionSPUDDFactory {
 			String actName,
 			NextLevelVariablesContext varContext,
 			DDTree policyPrefix,
-			HashMap<String, String> oppObsForStateToDDRefMap) {
+			HashMap<String, String> oppObsForStateToDDRefMap,
+			HashMap<String, String> policyNodeToActName,
+			HashMap<String, HashMap<String, DDTree>> actToVarToDD) {
 		/*
 		 * Gets an actionSPUDD object with the opponent's state transitions applied to the
 		 * respective state variables for proper actions.
@@ -106,7 +108,7 @@ public class ActionSPUDDFactory {
 		
 		/*
 		 * First we will get the prefixed actionSPUDD for the higher level agent.
-		 * Then append the lower level agents default state transitions to the
+		 * Then append the opponent's default state transitions to the
 		 * children of the prefix DDs.
 		 */
 		ActionSPUDD actSPUDD = ActionSPUDDFactory.getPrefixedActionSPUDD(
@@ -114,6 +116,36 @@ public class ActionSPUDDFactory {
 				varContext,
 				policyPrefix,
 				oppObsForStateToDDRefMap);
+		
+		/*
+		 * Now append DDs for opponents state transitions from the lower level ActionSPUDD objects.
+		 * These DDs have already been extracted in the NextLevelDomain object.
+		 */
+		
+		/* For each state variable of the agent's model */
+		String[] stateVars = varContext.getVarNames();
+		for (int i=0;i < stateVars.length; i++) {
+			String varName = stateVars[i];
+			
+			/* For each policyNode in the opponent's policy */
+			for (int p=0; p < varContext.oppPolicyValNames.length; p++) {
+				String policyNode = varContext.oppPolicyValNames[p];
+				DDTree DDToAppend = actToVarToDD.get(
+						policyNodeToActName.get(
+								policyNode)).get(varName);
+				
+				/* Append the DD to the required child */
+				try {
+//					System.out.println("Variable: " + varName);
+					actSPUDD.varToDDMap.get(varName).setDDAt(policyNode, DDToAppend);
+				} 
+				
+				catch (Exception e) {
+					System.err.println(e.getMessage());
+					System.exit(-1);
+				}
+			} // for policyNodes
+		} // for stateVars
 		
 		return actSPUDD;
 	}

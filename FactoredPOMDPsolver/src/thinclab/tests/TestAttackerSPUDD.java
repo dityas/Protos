@@ -2,6 +2,9 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Iterator;
+import java.util.Map.Entry;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -140,7 +143,7 @@ class TestAttackerSPUDD {
 				defDomain.oppObsStateToOppObsDDRef);
 		testSPUDD.fillNullDDs();
 		
-		System.out.println(testSPUDD.toSPUDD());
+//		System.out.println(testSPUDD.toSPUDD());
 		
 		String[] varNames = defDomain.nextLevelVarContext.getVarNames();
 		DDTree prefix = 
@@ -152,5 +155,33 @@ class TestAttackerSPUDD {
 			assertTrue(prefix.equals(testSPUDD.varToDDMap.get(varNames[i])));
 		}
 	}
+	
+	@Test
+	void testActionSPUDDWithDefaultTransitions() {
+		System.out.println("Running testActionSPUDDWithDefaultTransitions");
+		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
+		defDomain.initializationDriver();
+		
+		ActionSPUDD actSPUDD = ActionSPUDDFactory.getPrefixedActSPUDDWithOppTransitions(
+				"TEST", 
+				defDomain.nextLevelVarContext, 
+				defDomain.ddmaker.getDDTreeFromSequence(
+						new String[] {defDomain.nextLevelVarContext.getOppPolicyName()}), 
+				defDomain.oppObsStateToOppObsDDRef, 
+				defDomain.policyNodetoAction, 
+				defDomain.actToVarToDDMap);
+		actSPUDD.fillNullDDs();
+		
+//		System.out.println(actSPUDD.toSPUDD());
+		DDTree prefix = 
+				defDomain.ddmaker.getDDTreeFromSequence(
+						new String[] {defDomain.nextLevelVarContext.getOppPolicyName()});
+		
+		Iterator<Entry<String, DDTree>> actSPUDDIter = actSPUDD.varToDDMap.entrySet().iterator();
+		while (actSPUDDIter.hasNext()) {
+			Entry<String, DDTree> entry = actSPUDDIter.next();
+			assertFalse(prefix.equals(entry.getValue()));
+		}
+	} // void testActionSPUDDWithDefaultTransitions()
 
 }
