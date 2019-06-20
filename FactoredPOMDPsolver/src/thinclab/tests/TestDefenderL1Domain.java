@@ -120,30 +120,15 @@ class TestDefenderL1Domain {
 		assertNotEquals(before, after);
 	}
 
-	
-//	@Test
-//	void testMakeDomain() {
-//		System.out.println("Running testMakeDomain");
-//		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
-//		defDomain.initializationDriver();
-//		defDomain.writeVariablesDef();
-//		defDomain.writeObsDef();
-//		defDomain.writeOppPolicyDD();
-//		
-//		try {
-//			defDomain.writeOppObsDDs();
-//		} 
-//		
-//		catch (DDNotDefinedException e) {
-//			System.err.println(e.getMessage());
-//			System.exit(-1);
-//		}
-//
-//		System.out.println(defDomain.variablesDef);
-//		System.out.println(defDomain.obsDef);
-//		System.out.println(defDomain.oppPolicyDDDef);
-//		System.out.println(defDomain.oppObsDDDef);
-////		System.out.println(defDomain.actionSection);
-//	}
+	@Test
+	void testDefenderDomainSolve() {
+		/*
+		 * Tests the automatic generation of the DefenderL1 SPUDD file and the solver
+		 */
+		System.out.println("Running testDefenderDomainSolve");
+		String defenderL1 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/defender_l1.txt";
+		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
+		defDomain.solve(defenderL1, 5, 100);
+	}
 
 }
