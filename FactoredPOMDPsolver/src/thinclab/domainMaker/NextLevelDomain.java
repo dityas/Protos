@@ -14,6 +14,7 @@ import thinclab.domainMaker.ddHelpers.DDTools;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.DDNotDefinedException;
 import thinclab.exceptions.VariableNotFoundException;
+import thinclab.policyhelper.PolicyNode;
 
 public abstract class NextLevelDomain extends Domain {
 	/*
@@ -59,6 +60,11 @@ public abstract class NextLevelDomain extends Domain {
 			new HashMap<String, List<String>>();
 	public HashMap<String, String> policyNodetoAction = 
 			new HashMap<String, String>();
+	
+	/*
+	 * Contains info about initial nodes in the policy graph
+	 */
+	public HashMap<String, Boolean> initNodesMap = new HashMap<String, Boolean>();
 	
 	/*
 	 * Maps action names to respective state transition DDs. This is a nested hashmap of the
@@ -301,8 +307,22 @@ public abstract class NextLevelDomain extends Domain {
 				spuddToEdit.overwriteDDForNode(varName, policyNode, ddToReplace);
 			} // while node iter
 		}
-//		return spuddToEdit;
 	}
+	
+	public void populateNodeInfoMaps() {
+		/*
+		 * Populates the information maps that contain info on which nodes are init beliefs.
+		 * 
+		 * Used mostly when the agent wants to create initial beliefs for the opponent's policy
+		 */
+		Iterator<Entry<Integer, PolicyNode>> nodeIter = 
+				this.lowerDomain.policyGraph.getNodeHashMap().entrySet().iterator();
+		while (nodeIter.hasNext()) {
+			Entry<Integer, PolicyNode> entry = nodeIter.next();
+			PolicyNode node = entry.getValue();
+			this.initNodesMap.put("node-" + entry.getKey() + "-" + node.actName, node.startNode);
+		}
+	} // public void populateNodeInfoMaps
 	
 	// -----------------------------------------------------------------------------------------
 	
@@ -311,6 +331,7 @@ public abstract class NextLevelDomain extends Domain {
 		this.makeVarContext();
 		this.makeDDMaker();
 		this.populateNodeToActionMaps();
+		this.populateNodeInfoMaps();
 		this.populateActToVarToDDMap();
 		this.setOppPolicyDD();
 		this.setOppObsForStateDDs();
@@ -394,17 +415,18 @@ public abstract class NextLevelDomain extends Domain {
 	
 	public void makeAll() {
 		this.initializationDriver();
-		this.setOppPolicyDD();
 		this.writeVariablesDef();
 		this.writeObsDef();
-		this.makeBeliefsSPUDD();
-		this.makeActionsSPUDD();
-		this.makeRewardDD();
-		
-		this.writeBeliefs();
 		this.writeOppPolicyDD();
+		this.makeBeliefsSPUDD();
+		this.writeBeliefs();
+		this.makeActionsSPUDD();
 		this.writeActions();
-		this.writeReward();
+//		this.makeRewardDD();
+		
+//		this.writeBeliefs();
+//		this.writeActions();
+//		this.writeReward();
 		
 		this.domainString = "";
 		this.domainString += this.variablesDef + this.newLine;
@@ -413,7 +435,7 @@ public abstract class NextLevelDomain extends Domain {
 		this.domainString += "unnormalized" + this.newLine;
 		this.domainString += this.oppPolicyDDDef + this.newLine;
 		this.domainString += this.actionSection + this.newLine;
-		this.domainString += this.rewardSection;
+//		this.domainString += this.rewardSection;
 		this.domainString += "tolerance 0.001" + this.newLine;
 		this.domainString += "discount 0.9";
 	}

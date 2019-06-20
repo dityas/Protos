@@ -8,7 +8,7 @@ public class PolicyNode {
 	
 	int alphaId=-1;
 	int actId = 1;
-	String actName = "";
+	public String actName = "";
 	DD belief;
 	HashMap<String, ArrayList<Float>> factoredBelief = new HashMap<String, ArrayList<Float>>();
 	Map<List<String>, Integer> nextNode = new HashMap<List<String>, Integer>();

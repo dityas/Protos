@@ -111,9 +111,20 @@ public class PolicyGraph {
 		while (edgeIter.hasNext()) {
 			PolicyEdge policyEdge = edgeIter.next();
 			List<String> tripleList = new ArrayList<String>();
+			
+			/* Trying to mark init nodes here */
+			
+//			if (this.policyNodeHashMap.get(policyEdge.from).startNode) {
+//				tripleList.add("init^node-" 
+//						+ policyEdge.from + "-"
+//						+ this.policyNodeHashMap.get(policyEdge.from).actName);
+//			}
+			
+//			else {
 			tripleList.add("node-" 
 					+ policyEdge.from + "-"
 					+ this.policyNodeHashMap.get(policyEdge.from).actName);
+//			}
 			tripleList.addAll(policyEdge.observation);
 			tripleList.add("node-" 
 					+ policyEdge.to + "-"
@@ -135,7 +146,13 @@ public class PolicyGraph {
 		Iterator<PolicyNode> nodeIter = this.policyGraph.getVertices().iterator();
 		while (nodeIter.hasNext()) {
 			PolicyNode node = nodeIter.next();
+//			if (node.startNode) {
+//				vals.add("init^node-" + node.alphaId + "-" + node.actName);
+//			}
+			
+//			else {
 			vals.add("node-" + node.alphaId + "-" + node.actName);
+//			}
 		}
 		
 		return vals.toArray(new String[vals.size()]);
@@ -167,6 +184,14 @@ public class PolicyGraph {
 				this.getGraphAsDDPaths());
 		
 		return policyDD;
+	} // public DDTree getGraphAsDD
+	
+	public HashMap<Integer, PolicyNode> getNodeHashMap() {
+		/*
+		 * Returns the policy node hash map.
+		 * Use full for finding init nodes in the policy for higher level domains.
+		 */
+		return this.policyNodeHashMap;
 	}
 	
 }

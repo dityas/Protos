@@ -116,7 +116,23 @@ class TestDefenderL1Domain {
 		defDomain.makeBeliefsSPUDD();
 		defDomain.writeBeliefs();
 		String after = defDomain.beliefSection;
+		System.out.println(after);
+		assertNotEquals(before, after);
+	}
+	
+	@Test
+	void testWriteVarsForDefender() {
+		/*
+		 * Runs the method to populate the variables section of the domain
+		 */
+		System.out.println("Running testWriteVarsForDefender");
+		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
+		defDomain.initializationDriver();
 
+		String before = defDomain.variablesDef;
+		defDomain.writeVariablesDef();
+		String after = defDomain.variablesDef;
+		System.out.println(after);
 		assertNotEquals(before, after);
 	}
 
@@ -129,6 +145,23 @@ class TestDefenderL1Domain {
 		String defenderL1 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/defender_l1.txt";
 		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
 		defDomain.solve(defenderL1, 5, 100);
+	}
+	
+	@Test
+	void testMakeAll() {
+		/*
+		 * Tests the automatic generation of the full SPUDD file.
+		 */
+		System.out.println("Running testDefenderDomainSolve");
+		String defenderL1 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/defender_l1.txt";
+		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
+		String before = defDomain.domainString;
+		defDomain.makeAll();
+		String after = defDomain.domainString;
+		assertNotNull(after);
+		System.out.println("-----------");
+		System.out.println(after);
+		System.out.println("-----------");
 	}
 
 }
