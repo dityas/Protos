@@ -94,17 +94,33 @@ class TestDefenderL1Domain {
 		defDomain.makeActionsSPUDD();
 		defDomain.writeActions();
 		String after = defDomain.actionSection;
-//		Iterator<Entry<String, ActionSPUDD>> actSPUDDMapIter = defDomain.actionSPUDDMap.entrySet().iterator();
-//		while (actSPUDDMapIter.hasNext()) {
-//			Entry<String, ActionSPUDD> entry = actSPUDDMapIter.next();
-//			System.out.println(entry);
-//			assertNotNull(entry);
-//		}
-//		assertNotNull(defDomain.actionSection);
+		
 		System.out.println(after);
 		assertNotEquals(before, after);
 	}
 
+	@Test
+	void testMakeBeliefSPUDDForDefender() {
+		/*
+		 * Runs the makeBeliefsSPUDD method and ensures that the BeliefSection of the domain
+		 * is properly written
+		 */
+		System.out.println("Running testMakeBeliefSPUDDForDefender");
+		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
+		defDomain.initializationDriver();
+		
+		/*
+		 * functionality to write actionSection of the domain
+		 */
+		String before = defDomain.beliefSection;
+		defDomain.makeBeliefsSPUDD();
+		defDomain.writeBeliefs();
+		String after = defDomain.beliefSection;
+
+		assertNotEquals(before, after);
+	}
+
+	
 //	@Test
 //	void testMakeDomain() {
 //		System.out.println("Running testMakeDomain");
