@@ -11,8 +11,36 @@ import thinclab.exceptions.VariableNotFoundException;
 
 public class ActionSPUDDFactory {
 	/*
-	 * Factory for getting ActionSPUDD objects
+	 * Factory class for getting ActionSPUDD objects.
+	 * 
+	 * For getting SPUDD objects for L0 domains (POMDPs), the static methods can be used.
+	 * For ActionSPUDD objects of higher level models, it may be difficult to pass all the data structures
+	 * related to the model into the static methods. In such cases, the ActionSPUDDFactory can be initialized
+	 * once with the data structures as args to the constructor and its class methods can be used to get
+	 * ActionSPUDD objects instead. 
 	 */
+	
+	public NextLevelVariablesContext nextLevelVariablesContext;
+	public DDTree policyPrefix;
+	public HashMap<String, String> oppObsForStateToDDRefMap;
+	public HashMap<String, String> policyNodeToActName;
+	public HashMap<String, HashMap<String, DDTree>> actToVarToDD;
+	
+	public ActionSPUDDFactory(
+			NextLevelVariablesContext varContext,
+			DDTree policyPrefix,
+			HashMap<String, String> oppObsForStateToDDRefMap,
+			HashMap<String, String> policyNodeToActName,
+			HashMap<String, HashMap<String, DDTree>> actToVarToDD) {
+		/*
+		 * Just set the class attributes to the given args
+		 */
+		this.nextLevelVariablesContext = varContext;
+		this.policyPrefix = policyPrefix;
+		this.oppObsForStateToDDRefMap = oppObsForStateToDDRefMap;
+		this.policyNodeToActName = policyNodeToActName;
+		this.actToVarToDD = actToVarToDD;
+	} // public ActionSPUDDFactory
 	
 	public static ActionSPUDD getActionSPUDD(VariablesContext varContext,
 								 			 String actionName,
@@ -148,6 +176,16 @@ public class ActionSPUDDFactory {
 		} // for stateVars
 		
 		return actSPUDD;
+	} // public static ActionSPUDD getPrefixedActSPUDDWithOppTransitions
+	
+	public ActionSPUDD getPrefixedActSPUDDWithOppTransitions(String actName) {
+		return ActionSPUDDFactory.getPrefixedActSPUDDWithOppTransitions(
+				actName, 
+				this.nextLevelVariablesContext, 
+				this.policyPrefix.getCopy(), 
+				this.oppObsForStateToDDRefMap, 
+				this.policyNodeToActName, 
+				this.actToVarToDD);
 	}
 	
 	

@@ -240,22 +240,17 @@ public abstract class NextLevelDomain extends Domain {
 	// ----------------------------------------------------------------------------
 	// Initialization methods to help sub class in domain definition
 	
-	// initialize dd makes
+	/*
+	 *  initialize dd makers
+	 */
 	public void makeDDMaker() {
 		this.ddmaker = new DDMaker();
 		this.ddmaker.addFromNextLevelVariablesContext(this.nextLevelVarContext);
 	}
 	
-//	// populate oppObs map with appropriate variable names and null DDs
-//	public void initializeOppObsDDMap() {
-//		String[] oppObsNames = this.nextLevelVarContext.getOppObsForStateNames();
-//		
-//		for (int i=0; i < oppObsNames.length; i++) {
-//			this.oppObs.put(oppObsNames[i].toLowerCase(), null);
-//		}
-//	}
-	
-	// populate policy nodes to actions and vice versa
+	/*
+	 *  populate policy nodes to actions and vice versa
+	 */
 	public void populateNodeToActionMaps() {
 		/*
 		 * Just iterates through the policy nodes, splits the name on "-", and extracts
@@ -280,6 +275,36 @@ public abstract class NextLevelDomain extends Domain {
 		}
 	}
 	
+	// -----------------------------------------------------------------------------------------
+	/*
+	 * Helper methods
+	 */
+	public void replaceStateTransDDForOppAction(
+			String varName,
+			String actionName,
+			ActionSPUDD spuddToEdit,
+			DDTree ddToReplace) {
+		
+		/*
+		 * Get iterator over list of policy nodes related to the given action. Then, for each node,
+		 * call ActionSPUDD.overwriteDDForNode
+		 */
+		
+		/*
+		 * In the event that the action is not present in the map, do nothing and return.
+		 * Note that this is a quick fix. May have unforeseen side effects
+		 */
+		if (this.actionToPolicyNodeMap.containsKey(actionName)) {
+			Iterator<String> nodeIter = this.actionToPolicyNodeMap.get(actionName).iterator();
+			while (nodeIter.hasNext()) {
+				String policyNode = nodeIter.next();
+				spuddToEdit.overwriteDDForNode(varName, policyNode, ddToReplace);
+			} // while node iter
+		}
+//		return spuddToEdit;
+	}
+	
+	// -----------------------------------------------------------------------------------------
 	
 	// Driver function for calling all initialization methods
 	public void initializationDriver() {

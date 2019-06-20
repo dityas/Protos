@@ -32,13 +32,6 @@ class TestDefenderL1Domain {
 		String attackerL0 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
 		this.attl0Domain = new AttackerDomain();
 		this.attl0Domain.solve(attackerL0, 5, 100);
-//		attl0Domain.makeAll();
-//		attl0Domain.writeToFile(attackerL0);
-//		this.attackerPomdp = new POMDP(attackerL0, false);
-//		attackerPomdp.solvePBVI(10, 100);
-		
-//		PolicyExtractor attackerPolicy = new PolicyExtractor(attackerPomdp);
-//		this.attackerPolicyGraph = new PolicyGraph(attackerPolicy.policyNodes);
 	}
 
 	@AfterEach
@@ -47,6 +40,9 @@ class TestDefenderL1Domain {
 	
 	@Test
 	void testOppObsDDInit() {
+		/*
+		 * Tests initialization of opponent's observation DD initialization
+		 */
 		System.out.println("Running testOppObsDDInit()");
 		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
 		defDomain.initializationDriver();
@@ -80,30 +76,58 @@ class TestDefenderL1Domain {
 			
 		}
 	}
-
+	
 	@Test
-	void testMakeDomain() {
-		System.out.println("Running testMakeDomain");
+	void testMakeActionSPUDDForDefender() {
+		/*
+		 * Runs the makeActionsSPUDD method and ensures that the actionSection of the domain
+		 * is properly written
+		 */
+		System.out.println("Running testMakeActionSPUDDForDefender");
 		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
 		defDomain.initializationDriver();
-		defDomain.writeVariablesDef();
-		defDomain.writeObsDef();
-		defDomain.writeOppPolicyDD();
 		
-		try {
-			defDomain.writeOppObsDDs();
-		} 
-		
-		catch (DDNotDefinedException e) {
-			System.err.println(e.getMessage());
-			System.exit(-1);
-		}
-
-		System.out.println(defDomain.variablesDef);
-		System.out.println(defDomain.obsDef);
-		System.out.println(defDomain.oppPolicyDDDef);
-		System.out.println(defDomain.oppObsDDDef);
-//		System.out.println(defDomain.actionSection);
+		/*
+		 * functionality to write actionSection of the domain
+		 */
+		String before = defDomain.actionSection;
+		defDomain.makeActionsSPUDD();
+		defDomain.writeActions();
+		String after = defDomain.actionSection;
+//		Iterator<Entry<String, ActionSPUDD>> actSPUDDMapIter = defDomain.actionSPUDDMap.entrySet().iterator();
+//		while (actSPUDDMapIter.hasNext()) {
+//			Entry<String, ActionSPUDD> entry = actSPUDDMapIter.next();
+//			System.out.println(entry);
+//			assertNotNull(entry);
+//		}
+//		assertNotNull(defDomain.actionSection);
+		System.out.println(after);
+		assertNotEquals(before, after);
 	}
+
+//	@Test
+//	void testMakeDomain() {
+//		System.out.println("Running testMakeDomain");
+//		DefenderL1Domain defDomain = new DefenderL1Domain(this.attl0Domain);
+//		defDomain.initializationDriver();
+//		defDomain.writeVariablesDef();
+//		defDomain.writeObsDef();
+//		defDomain.writeOppPolicyDD();
+//		
+//		try {
+//			defDomain.writeOppObsDDs();
+//		} 
+//		
+//		catch (DDNotDefinedException e) {
+//			System.err.println(e.getMessage());
+//			System.exit(-1);
+//		}
+//
+//		System.out.println(defDomain.variablesDef);
+//		System.out.println(defDomain.obsDef);
+//		System.out.println(defDomain.oppPolicyDDDef);
+//		System.out.println(defDomain.oppObsDDDef);
+////		System.out.println(defDomain.actionSection);
+//	}
 
 }

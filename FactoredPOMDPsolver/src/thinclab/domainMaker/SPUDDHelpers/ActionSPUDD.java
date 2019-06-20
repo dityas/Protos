@@ -63,6 +63,30 @@ public class ActionSPUDD {
 			throw new VariableNotFoundException(varName + " unknown");
 		}
 	}
+	
+	public void overwriteDDForNode(
+			String varName,
+			String policyNode,
+			DDTree ddToReplace) {
+		/*
+		 * Replaces DD for state var varName at policyNode child with ddToReplace
+		 * 
+		 * Used mostly with higher level ActionSPUDD objects in the even of clashes between opponent actions
+		 * and agent actions
+		 * 
+		 * For instance if agent's action changes the state var only for certain opponent actions, then this
+		 * method can be used to make such an ActionSPUDD 
+		 */
+		
+		try {
+			this.varToDDMap.get(varName).setDDAt(policyNode, ddToReplace.getCopy());
+		} 
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			System.exit(-1);
+		}
+	}
 
 	public void fillNullDDs() {
 		/*
