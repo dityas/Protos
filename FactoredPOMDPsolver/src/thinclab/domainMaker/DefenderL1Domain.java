@@ -220,14 +220,13 @@ public class DefenderL1Domain extends NextLevelDomain {
 		 * If opponent does PRIV_ESC exactly when agent does DROP_PRIVS, opponent wins. So all actions
 		 * except PRIV_ESC should have the above DD for SESSION_PRIVS state transition
 		 */
-		System.out.println("Running replace");
+
 		this.replaceStateTransDDForOppAction(
 				"SESSION_PRIVS", 
 				"NOP", 
 				dropPrivsSPUDD, 
 				sessPrivsDropPrivsDDNoClash);
 		
-		System.out.println("Running replace");
 		this.replaceStateTransDDForOppAction(
 				"SESSION_PRIVS", 
 				"VULN_SCAN", 
@@ -288,6 +287,15 @@ public class DefenderL1Domain extends NextLevelDomain {
 			System.err.println(e.getMessage());
 			System.exit(-1);
 		}
+		
+		DDTree dropPrivsCostDD = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"SESSION_PRIVS"}, 
+				new String[][] {
+					{"user", "1.0"},
+					{"admin", "0.0"}
+				});
+		
+		dropPrivsSPUDD.setCostDD(dropPrivsCostDD);
 		
 		this.actionSPUDDMap.put("DROP_PRIVS", dropPrivsSPUDD);
 		

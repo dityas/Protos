@@ -385,6 +385,11 @@ public abstract class NextLevelDomain extends Domain {
 	
 	public void setOppPolicyDD() {
 		this.oppPolicy = this.lowerDomain.getPolicyGraphDD();
+		String[] obsNames = this.nextLevelVarContext.oppOrigObsNames;
+		for (int i=0; i < obsNames.length; i++) {
+			this.oppPolicy.renameVar(obsNames[i] + "'", 
+					this.nextLevelVarContext.getOppObsForStateNameFromOrigObsName(obsNames[i]) + "'");
+		}
 	}
 	
 	public void writeOppPolicyDD() {
@@ -418,6 +423,15 @@ public abstract class NextLevelDomain extends Domain {
 		this.writeVariablesDef();
 		this.writeObsDef();
 		this.writeOppPolicyDD();
+		
+		try {
+			this.writeOppObsDDs();
+		} 
+		catch (DDNotDefinedException e) {
+			System.err.println(e.getMessage());
+			System.exit(-1);
+		}
+		
 		this.makeBeliefsSPUDD();
 		this.writeBeliefs();
 		this.makeActionsSPUDD();
@@ -433,6 +447,7 @@ public abstract class NextLevelDomain extends Domain {
 		this.domainString += this.obsDef + this.newLine;
 		this.domainString += this.beliefSection + this.newLine;
 		this.domainString += "unnormalized" + this.newLine;
+		this.domainString += this.oppObsDDDef + this.newLine;
 		this.domainString += this.oppPolicyDDDef + this.newLine;
 		this.domainString += this.actionSection + this.newLine;
 //		this.domainString += this.rewardSection;

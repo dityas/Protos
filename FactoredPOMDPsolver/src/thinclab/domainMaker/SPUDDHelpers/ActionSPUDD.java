@@ -16,6 +16,7 @@ public class ActionSPUDD {
 	public VariablesContext varContext;
 //	public NextLevelVariablesContext nextLevelVarContext;
 	public double cost;
+	public DDTree costDD;
 
 	public String newLine = "\r\n";
 
@@ -103,6 +104,13 @@ public class ActionSPUDD {
 
 		} // while (ddMapIter.hasNext())
 	} // public void fillNullDDs
+	
+	public void setCostDD(DDTree costDD) {
+		/*
+		 * Used to set cost DD for the action in case float costs are not enough
+		 */
+		this.costDD = costDD;
+	}
 
 	// -----------------------------------------------------------------------------------
 
@@ -133,9 +141,15 @@ public class ActionSPUDD {
 		}
 
 		SPUDD += "endobserve" + this.newLine;
-
-		if (this.cost > 0.0) {
-			SPUDD += "cost (" + this.cost + ")" + this.newLine;
+		
+		if (this.costDD == null) {
+			if (this.cost > 0.0) {
+				SPUDD += "cost (" + this.cost + ")" + this.newLine;
+			}
+		}
+		
+		else if (this.costDD != null) {
+			SPUDD += "cost " + this.costDD.toSPUDD() + this.newLine;
 		}
 
 		SPUDD += "endaction" + this.newLine;
