@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 import java.lang.*;
 
-class ParseSPUDD {
+public class ParseSPUDD {
     private HashMap existingDds;
     private StreamTokenizer stream;
 
@@ -24,34 +24,41 @@ class ParseSPUDD {
     public boolean unnormalized;
     public int nStateVars;
     public int nObsVars;
+    
+    /*
+     * Added empty constructor for use with IPOMDP subclass
+     */
+    public ParseSPUDD() {
+    	
+    }
 
     public ParseSPUDD(String fileName) {
-	existingDds = new HashMap();
-	varNames = new Vector<String>();
-	valNames = new Vector<Vector>();
-	actNames = new Vector<String>();
-	actTransitions = new Vector<DD[]>();
-	actObserve = new Vector<DD[]>();
-	actCosts = new Vector<DD>();
-	adjuncts = new Vector<DD>();
-	adjunctNames = new Vector<String>();
-	discount = null;
-	tolerance = null;
-	horizon = null;
-	init = DD.one;
-	reward = DD.zero;
-	unnormalized = false;
-	nStateVars = 0;
-	nObsVars = 0;
-
-	try {
-	    stream = new StreamTokenizer(new FileReader(fileName));
-	} catch (FileNotFoundException e) {             				
-	    System.out.println("Error: file not found\n");
-	    //System.exit(1);
-	} 
-	stream.wordChars('\'','\'');
-	stream.wordChars('_','_');
+		existingDds = new HashMap();
+		varNames = new Vector<String>();
+		valNames = new Vector<Vector>();
+		actNames = new Vector<String>();
+		actTransitions = new Vector<DD[]>();
+		actObserve = new Vector<DD[]>();
+		actCosts = new Vector<DD>();
+		adjuncts = new Vector<DD>();
+		adjunctNames = new Vector<String>();
+		discount = null;
+		tolerance = null;
+		horizon = null;
+		init = DD.one;
+		reward = DD.zero;
+		unnormalized = false;
+		nStateVars = 0;
+		nObsVars = 0;
+	
+		try {
+		    stream = new StreamTokenizer(new FileReader(fileName));
+		} catch (FileNotFoundException e) {             				
+		    System.out.println("Error: file not found\n");
+		    //System.exit(1);
+		} 
+		stream.wordChars('\'','\'');
+		stream.wordChars('_','_');
     }
 
     private void error(int id) {

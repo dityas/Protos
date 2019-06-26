@@ -1,5 +1,5 @@
 /*
- * 
+ *	THINC Lab at UGA | Cyber Deception Group
  *
  *	Author: Aditya Shinde
  * 
@@ -13,18 +13,18 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.ipomdpsolver.IPOMDPParser;
+
 /*
  * @author adityas
  *
  */
-class TestFrame {
-	
-	/*
-	 * Test parsing and solution of frames in an IPOMDP
-	 */
-	
+class TestIPOMDPParser {
+
+	public String testFileName;	
 	@BeforeEach
 	void setUp() throws Exception {
+		this.testFileName = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
 	}
 
 	@AfterEach
@@ -32,11 +32,10 @@ class TestFrame {
 	}
 
 	@Test
-	void testL0Frames() {
-		System.out.println("Running testL0Frames()");
-		String TigerL1 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tigerl1.txt";
-		IPOMDP tigerIPOMDP = new IPOMDP(TigerL1);
-		assertEquals(tigerIPOMDP.getFramesCount(), 2);
+	void testParserInit() {
+		System.out.println("Running testParserInit()");
+		IPOMDPParser parser = new IPOMDPParser(this.testFileName);
+		assertNotNull(parser);
 	}
 
 }
