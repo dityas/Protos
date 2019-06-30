@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.HashMap;
 
+import thinclab.domainMaker.L0Frame;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.policyhelper.PolicyCache;
 import thinclab.symbolicperseus.StateVar;
@@ -200,6 +201,7 @@ public class POMDP implements Serializable {
 
 	// solves the POMDP as an MDP
 	public void solveQMDP(int count) {
+		
 		System.out.println("Computing qMDP policy");
 		double bellmanErr = 2 * tolerance;
 		DD valFn = DD.zero;
@@ -210,10 +212,12 @@ public class POMDP implements Serializable {
 		DD[] tempQFn = new DD[nActions];
 		zerovalarray[0] = 0;
 		int iter = 0;
+		
 		while (bellmanErr > tolerance && iter < count) {
 			System.out.println("iteration " + iter++);
 			prevValFn = valFn;
 			valFn = OP.primeVars(valFn, nVars);
+			
 			for (actId = 0; actId < nActions; actId++) {
 				cdArray = concatenateArray(ddDiscFact, actions[actId].transFn,
 						valFn);
@@ -222,6 +226,7 @@ public class POMDP implements Serializable {
 				tempQFn[actId] = OP.approximate(tempQFn[actId], bellmanErr
 						* (1 - discFact) / 2.0, zerovalarray);
 			}
+			
 			valFn = OP.maxN(tempQFn);
 			bellmanErr = OP.maxAll(OP.abs(OP.sub(valFn, prevValFn)));
 			System.out.println("Bellman error: " + bellmanErr);
@@ -230,29 +235,40 @@ public class POMDP implements Serializable {
 		// remove dominated alphaVectors
 		boolean dominated;
 		boolean[] notDominated = new boolean[nActions];
+		
 		for (actId1 = 0; actId1 < nActions; actId1++)
 			notDominated[actId1] = false;
+		
 		for (actId1 = 0; actId1 < nActions; actId1++) {
 			dominated = false;
 			actId2 = 0;
+		
 			while (!dominated && actId2 < nActions) {
+			
 				if (notDominated[actId2]
 						&& OP.maxAll(OP.sub(tempQFn[actId1], tempQFn[actId2])) < tolerance)
 					dominated = true;
 				actId2++;
 			}
+			
 			if (!dominated)
 				notDominated[actId1] = true;
 		}
+		
 		int numleft = 0;
+		
 		for (actId1 = 0; actId1 < nActions; actId1++) {
+			
 			if (notDominated[actId1])
 				numleft++;
 		}
+		
 		qFn = new DD[numleft];
 		qPolicy = new int[numleft];
 		numleft = 0;
+		
 		for (actId1 = 0; actId1 < nActions; actId1++) {
+			
 			if (notDominated[actId1]) {
 				qFn[numleft] = tempQFn[actId1];
 				qPolicy[numleft] = actId1;
@@ -273,7 +289,7 @@ public class POMDP implements Serializable {
 	public POMDP(String fileName) {
 		readFromFile(fileName, false);
 	}
-
+	
 	public POMDP(String fileName, POMDP oldpomdp) {
 		readFromFile(fileName, false);
 		setAlphaVectors(oldpomdp.alphaVectors, oldpomdp.policy);

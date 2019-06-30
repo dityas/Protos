@@ -9,7 +9,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.domainMaker.AttackerDomain;
+import thinclab.Examples.AttackerDomainPOMDP;
 import thinclab.domainMaker.DefenderL1Domain;
 import thinclab.domainMaker.Domain;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
@@ -53,7 +53,7 @@ class TestAttackerSPUDD {
 		String attackerL0 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
 		
 		if (this.attl0Domain == null) { 
-			this.attl0Domain = new AttackerDomain();
+			this.attl0Domain = new AttackerDomainPOMDP();
 			this.attl0Domain.solve(attackerL0, 5, 100);
 		}
 	}

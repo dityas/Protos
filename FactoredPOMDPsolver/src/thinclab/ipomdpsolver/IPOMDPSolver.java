@@ -4,7 +4,7 @@ import thinclab.symbolicperseus.POMDP;
 
 import java.util.Arrays;
 
-import thinclab.domainMaker.AttackerDomain;
+import thinclab.Examples.AttackerDomainPOMDP;
 //import thinclab.symbolicperseus.Solver;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyVisualizer;
@@ -34,7 +34,7 @@ public class IPOMDPSolver {
 		
 		String attackerL0 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
 		
-		AttackerDomain attl0Domain = new AttackerDomain();
+		AttackerDomainPOMDP attl0Domain = new AttackerDomainPOMDP();
 		attl0Domain.makeAll();
 		attl0Domain.writeToFile(attackerL0);
 		

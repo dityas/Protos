@@ -1,8 +1,9 @@
-package thinclab.domainMaker;
+package thinclab.Examples;
 
 import java.util.HashMap;
 import java.util.Iterator;
 
+import thinclab.domainMaker.Domain;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDDFactory;
 import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDD;
@@ -11,13 +12,13 @@ import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 
-public class AttackerDomain extends Domain {
+public class AttackerDomainPOMDP extends Domain {
 	/*
 	 * Defines L0 domain for attacker
 	 */
 	public HashMap<String, DDTree> ddMap = new HashMap<String, DDTree>();
 	
-	public AttackerDomain() {
+	public AttackerDomainPOMDP() {
 		
 	}
 	
@@ -476,23 +477,6 @@ public class AttackerDomain extends Domain {
 					{"no", "yes", "0.0"}
 				});
 		
-		// For PERSIST
-//		this.rewardFn = this.ddmaker.getDDTreeFromSequence(
-//				new String[] {"PERSIST_GAINED"},
-//				new String[][] {
-//					{"user", "1.0"},
-//					{"admin", "2.0"}
-//				});
-		
-		// For EXFIL AND PERSIST
-//		this.rewardFn = this.ddmaker.getDDTreeFromSequence(
-//				new String[] {"C_DATA_ACCESSED",
-//							  "EXFIL_ONGOING",
-//							  "PERSIST_GAINED"},
-//				new String[][] {
-//					{"yes", "yes", "admin", "5.0"},
-//					{"yes", "yes", "user", "2.0"}
-//				});
 	}
 
 }

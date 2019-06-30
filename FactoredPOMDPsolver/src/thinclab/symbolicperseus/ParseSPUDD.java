@@ -31,6 +31,28 @@ public class ParseSPUDD {
     public ParseSPUDD() {
     	
     }
+    
+//    public ParseSPUDD(StringReader stream) {
+//    	existingDds = new HashMap();
+//		varNames = new Vector<String>();
+//		valNames = new Vector<Vector>();
+//		actNames = new Vector<String>();
+//		actTransitions = new Vector<DD[]>();
+//		actObserve = new Vector<DD[]>();
+//		actCosts = new Vector<DD>();
+//		adjuncts = new Vector<DD>();
+//		adjunctNames = new Vector<String>();
+//		discount = null;
+//		tolerance = null;
+//		horizon = null;
+//		init = DD.one;
+//		reward = DD.zero;
+//		unnormalized = false;
+//		nStateVars = 0;
+//		nObsVars = 0;
+//		
+//		this.stream = new StreamTokenizer(reader);
+//    }
 
     public ParseSPUDD(String fileName) {
 		existingDds = new HashMap();
@@ -61,20 +83,20 @@ public class ParseSPUDD {
 		stream.wordChars('_','_');
     }
 
-    private void error(int id) {
-	System.out.println("Parse error at line #" + stream.lineno());
-	//if (stream.ttype > 0)
-	//		System.out.println("ttype = " + Character('a'));
-	/* else */ System.out.println("ttype = " + stream.ttype); 
-	System.out.println("sval = " + stream.sval); 
-	System.out.println("nval = " + stream.nval); 
-	System.out.println("ID = " + id);
+    public void error(int id) {
+		System.out.println("Parse error at line #" + stream.lineno());
+		//if (stream.ttype > 0)
+		//		System.out.println("ttype = " + Character('a'));
+		/* else */ System.out.println("ttype = " + stream.ttype); 
+		System.out.println("sval = " + stream.sval); 
+		System.out.println("nval = " + stream.nval); 
+		System.out.println("ID = " + id);
 	//System.exit(1);
     }
 
-    private void error(String errorMessage) {
-	System.out.println("Parse error at " + stream.toString() + ": " + errorMessage);
-	//System.exit(1);
+    protected void error(String errorMessage) {
+    	System.out.println("Parse error at " + stream.toString() + ": " + errorMessage);
+    	System.exit(1);
     }
 
     public void parsePOMDP(boolean fullyObservable) {
@@ -498,6 +520,13 @@ public class ParseSPUDD {
 	}
 
     }
+    
+    public void parseAction(String actionSPUDD) {
+    	/*
+    	 * Added by Aditya Shinde. Parses action DDs and reward functions from 
+    	 */
+    }
+    
     public void parseAction() {
 
 	try {
@@ -625,6 +654,19 @@ public class ParseSPUDD {
 	ParseSPUDD file = new ParseSPUDD("/h/23/ppoupart/projects/vdcbpi/code/perseus+adds/zmj9p_hidden1_po.txt");
 	file.parsePOMDP(false);
     }
+    
+    /*
+     * Changes by Aditya Shinde
+     * 
+     */
+    
+    /*
+     * Define getter to provide access to private stream tokenizer for sub classes
+     */
+    protected StreamTokenizer getTokenizer() {
+		return this.stream;
+	}
+    
 }
 
 
