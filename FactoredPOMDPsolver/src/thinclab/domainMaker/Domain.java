@@ -142,9 +142,14 @@ public abstract class Domain {
 	}
 	
 	public void writeReward() {
-		this.rewardSection = this.newLine;
-		this.rewardSection += "reward" + this.newLine;
-		this.rewardSection += this.rewardFn.toSPUDD() + this.newLine;
+		
+		if (this.rewardFn != null) {
+			this.rewardSection = this.newLine;
+			this.rewardSection += "reward" + this.newLine;
+			this.rewardSection += this.rewardFn.toSPUDD() + this.newLine;
+		}
+		
+		else this.rewardSection = "";
 	}
 	
 	// ----------------------------------------------------------------------------------------

@@ -1995,8 +1995,10 @@ public class POMDP implements Serializable {
 		
 		this.expandFromBeliefSSGA(this.initialBelState, count);
 		
-		for (int i=0; i < this.adjuncts.length; i++) {
-			this.expandFromBeliefSSGA(this.adjuncts[i], count);
+		if (this.adjuncts != null) {
+			for (int i=0; i < this.adjuncts.length; i++) {
+				this.expandFromBeliefSSGA(this.adjuncts[i], count);
+			}
 		}
 		
 		// replace beliefRegion
