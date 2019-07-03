@@ -6,7 +6,7 @@ import java.lang.*;
 
 public class ParseSPUDD {
     private HashMap existingDds;
-    private StreamTokenizer stream;
+    public StreamTokenizer stream;
 
     public Vector<String> varNames;
     public Vector<Vector> valNames;
@@ -25,6 +25,33 @@ public class ParseSPUDD {
     public int nStateVars;
     public int nObsVars;
     
+    public int frameID;
+    public int level;
+    
+    public void initialize() {
+    	/*
+    	 * Initializes all attributes. This method has been created so that the attributes don't have to
+    	 * be initialized every time for the different constructors defined
+    	 */
+    	existingDds = new HashMap();
+		varNames = new Vector<String>();
+		valNames = new Vector<Vector>();
+		actNames = new Vector<String>();
+		actTransitions = new Vector<DD[]>();
+		actObserve = new Vector<DD[]>();
+		actCosts = new Vector<DD>();
+		adjuncts = new Vector<DD>();
+		adjunctNames = new Vector<String>();
+		discount = null;
+		tolerance = null;
+		horizon = null;
+		init = DD.one;
+		reward = DD.zero;
+		unnormalized = false;
+		nStateVars = 0;
+		nObsVars = 0;
+    }
+    
     /*
      * Added empty constructor for use with IPOMDP subclass
      */
@@ -32,27 +59,14 @@ public class ParseSPUDD {
     	
     }
     
-//    public ParseSPUDD(StringReader stream) {
-//    	existingDds = new HashMap();
-//		varNames = new Vector<String>();
-//		valNames = new Vector<Vector>();
-//		actNames = new Vector<String>();
-//		actTransitions = new Vector<DD[]>();
-//		actObserve = new Vector<DD[]>();
-//		actCosts = new Vector<DD>();
-//		adjuncts = new Vector<DD>();
-//		adjunctNames = new Vector<String>();
-//		discount = null;
-//		tolerance = null;
-//		horizon = null;
-//		init = DD.one;
-//		reward = DD.zero;
-//		unnormalized = false;
-//		nStateVars = 0;
-//		nObsVars = 0;
-//		
-//		this.stream = new StreamTokenizer(reader);
-//    }
+    public ParseSPUDD(StreamTokenizer stream) {
+    	/*
+    	 * Additional constructor for parsing IPOMDP frames for non root frames in the recursive
+    	 * IPOMDP definitions 
+    	 */
+    	this.initialize();
+		this.stream = stream;
+    }
 
     public ParseSPUDD(String fileName) {
 		existingDds = new HashMap();
@@ -100,94 +114,96 @@ public class ParseSPUDD {
     }
 
     public void parsePOMDP(boolean fullyObservable) {
-	try {
-	    boolean primeVarsCreated = false;
-	    while (true) {
-		if (!primeVarsCreated && nStateVars > 0 && (fullyObservable || nObsVars > 0)) {
-		    primeVarsCreated = true;
-		    createPrimeVars();
-		}
-		stream.nextToken();
-		switch(stream.ttype) {
-		case '(':
-		    stream.nextToken();
-		    if (stream.sval.compareTo("variables") == 0) {
-			parseVariables();
+		try {
+		    boolean primeVarsCreated = false;
+		    while (true) {
+			if (!primeVarsCreated && nStateVars > 0 && (fullyObservable || nObsVars > 0)) {
+			    primeVarsCreated = true;
+			    createPrimeVars();
+			}
+			stream.nextToken();
+			switch(stream.ttype) {
+			case '(':
+			    stream.nextToken();
+			    if (stream.sval.compareTo("variables") == 0) {
+				parseVariables();
+			    }
+			    else if (stream.sval.compareTo("observations") == 0) {
+				parseObservations();
+			    }
+			    else error("Expected \"variables\" or \"observations\"");
+			    break;
+			case StreamTokenizer.TT_WORD:
+			    if (stream.sval.compareTo("unnormalized") == 0) {
+				unnormalized = true;
+				break;
+			    }
+			    else if (stream.sval.compareTo("unnormalised") == 0) {
+				unnormalized = true;
+				break;
+			    }
+			    else if (stream.sval.compareTo("dd") == 0) {
+				parseDDdefinition();
+				break;
+			    }
+			    else if (stream.sval.compareTo("action") == 0) {
+				parseAction();
+				break;
+			    }
+			    else if (stream.sval.compareTo("adjunct") == 0) {
+				parseAdjunct();
+				break;
+			    }
+			    else if (stream.sval.compareTo("reward") == 0) {
+				parseReward();
+				break;
+			    }
+			    else if (stream.sval.compareTo("discount") == 0) {
+				parseDiscount();
+				break;
+			    }
+			    else if (stream.sval.compareTo("horizon") == 0) {
+				parseHorizon();
+				break;
+			    }
+			    else if (stream.sval.compareTo("tolerance") == 0) {
+				parseTolerance();
+				break;
+			    }
+			    else if (stream.sval.compareTo("init") == 0) {
+				parseInit();
+				break;
+			    }
+			    error("Expected \"unnormalized\" or \"dd\" or \"action\" or \"reward\"");
+			case StreamTokenizer.TT_EOF:
+	
+			    // set valNames for actions
+			    String[] actNamesArray = new String[actNames.size()];
+			    for (int actId=0; actId<actNames.size(); actId++) {
+				actNamesArray[actId] = (String)actNames.get(actId);
+			    }
+			    Global.setValNames(Global.valNames.length+1,actNamesArray);
+											
+											
+			    // set varDomSize with extra action variable
+			    int[] varDomSizeArray = new int[Global.varDomSize.length+1];
+			    for (int varId=0; varId<Global.varDomSize.length; varId++) {
+				varDomSizeArray[varId] = Global.varDomSize[varId];
+			    }
+			    varDomSizeArray[varDomSizeArray.length-1] = actNamesArray.length;
+			    Global.setVarDomSize(varDomSizeArray);
+			    return;
+			default:
+			    return;
+			}
 		    }
-		    else if (stream.sval.compareTo("observations") == 0) {
-			parseObservations();
-		    }
-		    else error("Expected \"variables\" or \"observations\"");
-		    break;
-		case StreamTokenizer.TT_WORD:
-		    if (stream.sval.compareTo("unnormalized") == 0) {
-			unnormalized = true;
-			break;
-		    }
-		    else if (stream.sval.compareTo("unnormalised") == 0) {
-			unnormalized = true;
-			break;
-		    }
-		    else if (stream.sval.compareTo("dd") == 0) {
-			parseDDdefinition();
-			break;
-		    }
-		    else if (stream.sval.compareTo("action") == 0) {
-			parseAction();
-			break;
-		    }
-		    else if (stream.sval.compareTo("adjunct") == 0) {
-			parseAdjunct();
-			break;
-		    }
-		    else if (stream.sval.compareTo("reward") == 0) {
-			parseReward();
-			break;
-		    }
-		    else if (stream.sval.compareTo("discount") == 0) {
-			parseDiscount();
-			break;
-		    }
-		    else if (stream.sval.compareTo("horizon") == 0) {
-			parseHorizon();
-			break;
-		    }
-		    else if (stream.sval.compareTo("tolerance") == 0) {
-			parseTolerance();
-			break;
-		    }
-		    else if (stream.sval.compareTo("init") == 0) {
-			parseInit();
-			break;
-		    }
-		    error("Expected \"unnormalized\" or \"dd\" or \"action\" or \"reward\"");
-		case StreamTokenizer.TT_EOF:
-
-		    // set valNames for actions
-		    String[] actNamesArray = new String[actNames.size()];
-		    for (int actId=0; actId<actNames.size(); actId++) {
-			actNamesArray[actId] = (String)actNames.get(actId);
-		    }
-		    Global.setValNames(Global.valNames.length+1,actNamesArray);
-										
-										
-		    // set varDomSize with extra action variable
-		    int[] varDomSizeArray = new int[Global.varDomSize.length+1];
-		    for (int varId=0; varId<Global.varDomSize.length; varId++) {
-			varDomSizeArray[varId] = Global.varDomSize[varId];
-		    }
-		    varDomSizeArray[varDomSizeArray.length-1] = actNamesArray.length;
-		    Global.setVarDomSize(varDomSizeArray);
-		    return;
-		default: 	
-		    error(3);
-		}
+	
+		} 
+		
+		catch (IOException e) {             
+		    System.out.println("Error: IOException\n");
+	            //System.exit(1);
 	    }
-
-	} catch (IOException e) {             
-	    System.out.println("Error: IOException\n");
-            //System.exit(1);
-        }
     }
 
     public void parseVariables() {
@@ -304,7 +320,7 @@ public class ParseSPUDD {
 	    } 
 	} catch (IOException e) {
             System.out.println("Error: IOException\n");
-            //System.exit(1);
+            System.exit(1);
         }
     }
 
@@ -543,6 +559,7 @@ public class ParseSPUDD {
 								
 		// endaction
 		stream.nextToken();
+//		System.out.println(stream);
 		if (stream.sval.compareTo("endaction") == 0) break;
 								
 		// cost

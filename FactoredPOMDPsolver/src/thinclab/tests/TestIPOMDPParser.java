@@ -35,7 +35,10 @@ class TestIPOMDPParser {
 	void testParserInit() {
 		System.out.println("Running testParserInit()");
 		IPOMDPParser parser = new IPOMDPParser(this.testFileName);
+		parser.parseDomain();
 		assertNotNull(parser);
+		assertTrue(parser.childFrames.size() > 0);
+		assertEquals(0, parser.childFrames.get(0).level);
 	}
 	
 	

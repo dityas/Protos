@@ -30,7 +30,7 @@ public class RunTigerProblemPOMDP {
 		try {
 			File domainFile = File.createTempFile("TigerPOMDP", ".POMDP");
 			tigerPOMDP.makeAll();
-			System.out.println(tigerPOMDP.domainString);
+//			System.out.println(tigerPOMDP.domainString);
 			tigerPOMDP.writeToFile(domainFile.getAbsolutePath());
 			POMDP pomdp = new POMDP(domainFile.getAbsolutePath());
 			pomdp.solvePBVI(10, 100);
@@ -44,6 +44,5 @@ public class RunTigerProblemPOMDP {
 			System.err.println(e.getMessage());
 			System.exit(1);
 		}
-
 	}
 }
