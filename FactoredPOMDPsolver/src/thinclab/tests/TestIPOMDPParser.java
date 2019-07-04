@@ -37,8 +37,9 @@ class TestIPOMDPParser {
 		IPOMDPParser parser = new IPOMDPParser(this.testFileName);
 		parser.parseDomain();
 		assertNotNull(parser);
-		assertTrue(parser.childFrames.size() > 0);
+		assertTrue(parser.childFrames.size() == 2);
 		assertEquals(0, parser.childFrames.get(0).level);
+		assertEquals(0, parser.childFrames.get(1).level);
 	}
 	
 	

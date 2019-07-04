@@ -189,45 +189,62 @@ public class IPOMDPParser extends ParseSPUDD {
 		/*
 		 * Parses the frame header in the SPUDD file for lower level opponents' models
 		 */
-		this.stream.nextToken();
+		while (true) {
+			/*
+			 * Loop the frame parser to parse possible multiple frames
+			 */
 		
-		if (this.stream.ttype == '(') {
-			
 			this.stream.nextToken();
 			
-			if (this.stream.sval.compareTo("frame") == 0) {
-				int frameID = this.parseFrameID();
-				int stratLevel = this.parseStratLevel();
+			/*
+			 * If the token is ')', we've reached the end of frame definitions section.
+			 * Break and return to the main parsing loop
+			 */
+			if (this.stream.ttype == ')') break;
+			
+			/*
+			 * If we get '(', this is the start of a new frame. 
+			 * Parse the frame using another parser object
+			 */
+			if (this.stream.ttype == '(') {
 				
-				/*
-				 * If the strat level is 0, the opponent's model is a POMDP.
-				 * So use Jesse Hoey's parser here as it is.
-				 */
-				if (stratLevel == 0) {
-					ParseSPUDD l0frame = new ParseSPUDD(this.stream);
-					l0frame.parsePOMDP(false);
-					l0frame.level = stratLevel;
-					l0frame.frameID = frameID;
-					this.childFrames.add(l0frame);
+				this.stream.nextToken();
+				
+				if (this.stream.sval.compareTo("frame") == 0) {
+					int frameID = this.parseFrameID();
+					int stratLevel = this.parseStratLevel();
+					
+					/*
+					 * If the strat level is 0, the opponent's model is a POMDP.
+					 * So use Jesse Hoey's parser here as it is.
+					 */
+					if (stratLevel == 0) {
+						ParseSPUDD l0frame = new ParseSPUDD(this.stream);
+						l0frame.parsePOMDP(false);
+						l0frame.level = stratLevel;
+						l0frame.frameID = frameID;
+						this.childFrames.add(l0frame);
+					}
+					
+					/*
+					 * For strat levels greater than 0, use an IPOMDP Parser.
+					 */
+					else {
+						IPOMDPParser lframe = new IPOMDPParser(this.stream);
+						lframe.parseDomain();
+						lframe.level = stratLevel;
+						lframe.frameID = frameID;
+						this.childFrames.add(lframe);
+					}
+					
 				}
 				
-				/*
-				 * For strat levels greater than 0, use an IPOMDP Parser.
-				 */
-				else {
-					IPOMDPParser lframe = new IPOMDPParser(this.stream);
-					lframe.parseDomain();
-					lframe.level = stratLevel;
-					lframe.frameID = frameID;
-					this.childFrames.add(lframe);
-				}
-				
+				else throw new ParserException("Expected frame definition got " + this.stream + " instead");
 			}
 			
 			else throw new ParserException("Expected frame definition got " + this.stream + " instead");
+			
 		}
-		
-		else throw new ParserException("Expected frame definition got " + this.stream + " instead");
 	}
 	
 	public int parseFrameID() throws Exception {
