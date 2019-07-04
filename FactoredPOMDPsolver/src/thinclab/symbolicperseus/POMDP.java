@@ -318,74 +318,95 @@ public class POMDP implements Serializable {
 	public void setIgnoreMore(boolean ig) {
 		ignoremore = ig;
 	}
+	
+	public void initializeFromParsers(ParseSPUDD parserObj) {
+		/*
+		 * Populates requried fields and attributes of the POMDP from the parser object.
+		 * 
+		 * The orignal POMDP implementation by Hoey does this in the parsePOMDP method. I have split
+		 * it into a separate method so that initialization can be done separately after upper frames
+		 * or lower frames have done required changes if any. 
+		 */
+		
+		debug = false;
 
-	public void readFromFile(String fileName, boolean debb) {
-		ParseSPUDD rawpomdp = new ParseSPUDD(fileName);
-		rawpomdp.parsePOMDP(false);
+		this.ignoremore = false;
+		this.addbeldiff = false;
+		this.nStateVars = parserObj.nStateVars;
+		this.nObsVars = parserObj.nObsVars;
+		this.nVars = nStateVars + nObsVars;
+		this.stateVars = new StateVar[nStateVars];
+		this.obsVars = new StateVar[nObsVars];
 
-		debug = debb;
+		this.varDomSize = new int[2 * (nStateVars + nObsVars)];
+		this.varName = new String[2 * (nStateVars + nObsVars)];
+		this.varIndices = new int[nStateVars];
+		this.primeVarIndices = new int[nStateVars];
+		this.obsIndices = new int[nObsVars];
+		this.primeObsIndices = new int[nObsVars];
 
-		ignoremore = false;
-		addbeldiff = false;
-		nStateVars = rawpomdp.nStateVars;
-		nObsVars = rawpomdp.nObsVars;
-		nVars = nStateVars + nObsVars;
-		stateVars = new StateVar[nStateVars];
-		obsVars = new StateVar[nObsVars];
-
-		varDomSize = new int[2 * (nStateVars + nObsVars)];
-		varName = new String[2 * (nStateVars + nObsVars)];
-		varIndices = new int[nStateVars];
-		primeVarIndices = new int[nStateVars];
-		obsIndices = new int[nObsVars];
-		primeObsIndices = new int[nObsVars];
-
-		// set up state variables
+		/*
+		 * set up state variables
+		 */
 		int k = 0;
 		for (int i = 0; i < nStateVars; i++) {
-			stateVars[i] = new StateVar(rawpomdp.valNames.get(i).size(),
-					rawpomdp.varNames.get(i), i);
+			this.stateVars[i] = new StateVar(parserObj.valNames.get(i).size(),
+					parserObj.varNames.get(i), i);
 			for (int j = 0; j < stateVars[i].arity; j++) {
-				stateVars[i].addValName(j, ((String) rawpomdp.valNames.get(i)
-						.get(j)));
+				this.stateVars[i].addValName(j, 
+						((String) parserObj.valNames.get(i).get(j)));
 			}
-			// must be indices as in Matlab!
-			varIndices[i] = i + 1;
-			primeVarIndices[i] = i + nVars + 1;
-			varDomSize[k] = stateVars[i].arity;
-			varName[k++] = stateVars[i].name;
+			
+			/*
+			 * must be indices as in Matlab!
+			 */
+			this.varIndices[i] = i + 1;
+			this.primeVarIndices[i] = i + nVars + 1;
+			this.varDomSize[k] = stateVars[i].arity;
+			this.varName[k++] = stateVars[i].name;
 		}
 
-		// set up observation variables
-		nObservations = 1;
-		obsVarsArity = new int[nObsVars];
+		/*
+		 * set up observation variables
+		 */
+		this.nObservations = 1;
+		this.obsVarsArity = new int[nObsVars];
+		
 		for (int i = 0; i < nObsVars; i++) {
-			obsVars[i] = new StateVar(rawpomdp.valNames.get(i + nStateVars)
-					.size(), rawpomdp.varNames.get(i + nStateVars), i
+			
+			obsVars[i] = new StateVar(parserObj.valNames.get(i + nStateVars)
+					.size(), parserObj.varNames.get(i + nStateVars), i
 					+ nStateVars);
+			
 			for (int j = 0; j < obsVars[i].arity; j++) {
-				obsVars[i]
-						.addValName(j,
-								((String) rawpomdp.valNames.get(nStateVars + i)
-										.get(j)));
+				obsVars[i].addValName(
+						j,
+						((String) parserObj.valNames.get(nStateVars + i).get(j)));
 			}
-			obsVarsArity[i] = obsVars[i].arity;
-			nObservations = nObservations * obsVars[i].arity;
-			obsIndices[i] = i + nStateVars + 1;
-			primeObsIndices[i] = i + nVars + nStateVars + 1;
-			varDomSize[k] = obsVars[i].arity;
-			varName[k++] = obsVars[i].name;
+			
+			this.obsVarsArity[i] = obsVars[i].arity;
+			this.nObservations = nObservations * obsVars[i].arity;
+			this.obsIndices[i] = i + nStateVars + 1;
+			this.primeObsIndices[i] = i + nVars + nStateVars + 1;
+			this.varDomSize[k] = obsVars[i].arity;
+			this.varName[k++] = obsVars[i].name;
 		}
+		
 		for (int i = 0; i < nStateVars; i++) {
+			
 			varDomSize[k] = stateVars[i].arity;
 			varName[k++] = stateVars[i].name + "_P";
 		}
+		
 		for (int i = 0; i < nObsVars; i++) {
+			
 			varDomSize[k] = obsVars[i].arity;
 			varName[k++] = obsVars[i].name + "_P";
 		}
 
-		// set up Globals
+		/*
+		 * set up Globals
+		 */
 		Global.setVarDomSize(varDomSize);
 		Global.setVarNames(varName);
 
@@ -402,44 +423,56 @@ public class POMDP implements Serializable {
 			Global.setValNames(nVars + nStateVars + i + 1, obsVars[i].valNames);
 		}
 
-		// set up dynamics
-		nActions = rawpomdp.actTransitions.size();
+		/*
+		 * set up dynamics
+		 */
+		nActions = parserObj.actTransitions.size();
 		actions = new Action[nActions];
 		uniquePolicy = new boolean[nActions];
 
 		qFn = new DD[nActions];
 
 		for (int a = 0; a < nActions; a++) {
-			actions[a] = new Action(rawpomdp.actNames.get(a));
-			actions[a].addTransFn(rawpomdp.actTransitions.get(a));
-			actions[a].addObsFn(rawpomdp.actObserve.get(a));
+			actions[a] = new Action(parserObj.actNames.get(a));
+			actions[a].addTransFn(parserObj.actTransitions.get(a));
+			actions[a].addObsFn(parserObj.actObserve.get(a));
 			actions[a].rewFn = OP
-					.sub(rawpomdp.reward, rawpomdp.actCosts.get(a));
+					.sub(parserObj.reward, parserObj.actCosts.get(a));
 			actions[a].buildRewTranFn();
 			actions[a].rewFn = OP.addMultVarElim(actions[a].rewTransFn,
 					primeVarIndices);
 
-			// find stochastic transitions (and deterministic varMappings)
-			// not done yet - where is this used?
+			/*
+			 * find stochastic transitions (and deterministic varMappings)
+			 * not done yet - where is this used?
+			 */
 		}
-		// discount factor
-		discFact = rawpomdp.discount.getVal();
+		/*
+		 *  discount factor
+		 */
+		discFact = parserObj.discount.getVal();
 
-		// make a DD version
+		/*
+		 *  make a DD version
+		 */
 		ddDiscFact = DDleaf.myNew(discFact);
 
-		// the adjunct models
-		nAdjuncts = rawpomdp.adjuncts.size();
+		/*
+		 *  the adjunct models
+		 */
+		nAdjuncts = parserObj.adjuncts.size();
 		if (nAdjuncts > 0) {
 			adjuncts = new DD[nAdjuncts];
 			adjunctNames = new String[nAdjuncts];
 			for (int a = 0; a < nAdjuncts; a++) {
-				adjuncts[a] = rawpomdp.adjuncts.get(a);
-				adjunctNames[a] = rawpomdp.adjunctNames.get(a);
+				adjuncts[a] = parserObj.adjuncts.get(a);
+				adjunctNames[a] = parserObj.adjunctNames.get(a);
 			}
 		}
 
-		// max reward value
+		/*
+		 * max reward value
+		 */
 
 		double maxVal = Double.NEGATIVE_INFINITY;
 		double minVal = Double.POSITIVE_INFINITY;
@@ -448,24 +481,43 @@ public class POMDP implements Serializable {
 			minVal = Math.min(minVal, OP.minAll(OP.addN(actions[a].rewFn)));
 		}
 		maxRewVal = maxVal / (1 - discFact);
-		// tolerance
-		if (rawpomdp.tolerance == null) {
+		
+		/*
+		 * tolerance
+		 */
+		if (parserObj.tolerance == null) {
 			double maxDiffRew = maxVal - minVal;
 			double maxDiffVal = maxDiffRew / (1 - Math.min(0.95, discFact));
 			tolerance = 1e-5 * maxDiffVal;
-		} else {
-			tolerance = rawpomdp.tolerance.getVal();
+		} 
+		
+		else {
+			tolerance = parserObj.tolerance.getVal();
 		}
-		// initial belief
-		initialBelState = rawpomdp.init;
+		
+		/*
+		 * initial belief
+		 */
+		initialBelState = parserObj.init;
 
-		// factored initial belief state
+		/*
+		 * factored initial belief state
+		 */
 		initialBelState_f = new DD[nStateVars];
 		for (int varId = 0; varId < nStateVars; varId++) {
 			initialBelState_f[varId] = OP.addMultVarElim(initialBelState,
 					MySet.remove(varIndices, varId + 1));
 		}
+	}
 
+	public void readFromFile(String fileName, boolean debb) {
+		/*
+		 * Read the POMDP directly from a domain file
+		 */
+		ParseSPUDD rawpomdp = new ParseSPUDD(fileName);
+		rawpomdp.parsePOMDP(false);
+
+		this.initializeFromParsers(rawpomdp);
 	}
 	
 	public DD safeBeliefUpdate(DD belState, int actId, String[] obsnames) throws ZeroProbabilityObsException {

@@ -5,7 +5,7 @@
 (observations 
  	(growl growl-left growl-right)
  	(creak creak-left creak-right silence)
- )
+)
 
 init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
 
