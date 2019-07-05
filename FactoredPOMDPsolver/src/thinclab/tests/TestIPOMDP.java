@@ -15,6 +15,9 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.domainMaker.L0Frame;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
+import thinclab.exceptions.ParserException;
+import thinclab.ipomdpsolver.IPOMDP;
+import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.symbolicperseus.POMDP;
 
 /*
@@ -23,8 +26,11 @@ import thinclab.symbolicperseus.POMDP;
  */
 class TestIPOMDP {
 
+	public String l1DomainFile;
+	
 	@BeforeEach
 	void setUp() throws Exception {
+		this.l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
 	}
 
 	@AfterEach
@@ -32,23 +38,29 @@ class TestIPOMDP {
 	}
 
 	@Test
-	void testPOMDPfromL0Frame() {
+	void testIPOMDPL1FrameInit() {
 		/*
 		 * Test POMDP creation from L0Frame
 		 */
-		System.out.println("Running testPOMDPfromL0Frame()");
+		System.out.println("Running testIPOMDPL1FrameInit()");
 		
-		String[] varNames = new String[] {"TigerLoc"};
-		String[][] varValNames = new String[][] {{"TL", "TR"}};
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
 		
-		String[] obsNames = new String[] {"GrowlLoc"};
-		String[][] obsValNames = new String[][] {{"GL", "GR"}};
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		try {
+			tigerL1IPOMDP.initializeFromParsers(parser);
+		} 
 		
-		VariablesContext varContext = new VariablesContext(varNames, varValNames, obsNames, obsValNames);
+		catch (ParserException e) {
+			System.err.println(e.getMessage());
+			fail();
+		}
 		
-		POMDP l0pomdp = new POMDP(new L0Frame(varContext));
-		
-		assertEquals(l0pomdp.nVars, varNames.length + obsNames.length);
+		assertEquals(tigerL1IPOMDP.lowerLevelFrames.size(), parser.childFrames.size());
 	}
 
 }

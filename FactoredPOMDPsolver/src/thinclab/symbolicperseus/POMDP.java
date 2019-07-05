@@ -285,6 +285,13 @@ public class POMDP implements Serializable {
 			qFn[i].display();
 		}
 	}
+	
+	public POMDP() {
+		/*
+		 * Empty constructor to allow for manipulation of object construction
+		 * by other objects
+		 */
+	}
 
 	public POMDP(String fileName) {
 		readFromFile(fileName, false);
