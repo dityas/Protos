@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.domainMaker.L0Frame;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.exceptions.ParserException;
+import thinclab.exceptions.SolverException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.symbolicperseus.POMDP;
@@ -61,6 +62,68 @@ class TestIPOMDP {
 		}
 		
 		assertEquals(tigerL1IPOMDP.lowerLevelFrames.size(), parser.childFrames.size());
+	}
+	
+	@Test
+	void testIPOMDPL1FrameSolve() {
+		/*
+		 * Test IPOMDP solve function for L1
+		 */
+		System.out.println("Running testIPOMDPL1FrameSolve()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		try {
+			tigerL1IPOMDP.initializeFromParsers(parser);
+		} 
+		
+		catch (ParserException e) {
+			System.err.println(e.getMessage());
+			fail();
+		}
+		
+//		tigerL1IPOMDP.solvePBVI(10, 100);
+	}
+	
+	@Test
+	void testIPOMDPL1GetOpponentModels() {
+		/*
+		 * Test Opponents solutions by L1 agents
+		 */
+		System.out.println("Running testIPOMDPL1GetOpponentModels()");
+		
+		/*
+		 * Create and Parse the IPOMDP as usual
+		 */
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		try {
+			tigerL1IPOMDP.initializeFromParsers(parser);
+		} 
+		
+		catch (ParserException e) {
+			System.err.println(e.getMessage());
+			fail();
+		}
+		
+		try {
+			tigerL1IPOMDP.solveOpponentModels();
+		} 
+		
+		catch (SolverException e) {
+			System.err.println(e.getMessage());
+			fail();
+		}
 	}
 
 }

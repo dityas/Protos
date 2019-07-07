@@ -8,11 +8,11 @@
 package thinclab.ipomdpsolver;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-import org.hamcrest.core.IsInstanceOf;
-
 import thinclab.exceptions.ParserException;
+import thinclab.exceptions.SolverException;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.ParseSPUDD;
 
@@ -72,6 +72,45 @@ public class IPOMDP extends POMDP {
 			this.lowerLevelFrames.add(lowerFrame);
 			
 		}
+	}
+	
+	public void solveOpponentModels() throws SolverException {
+		/*
+		 * Calls IPBVI or PBVI on the lower level frames depending on whether they are IPOMDPs
+		 * or POMDPs
+		 */
+		Iterator<POMDP> framIterator = this.lowerLevelFrames.iterator();
+		while (framIterator.hasNext()) {
+			POMDP opponentModel = framIterator.next();
+			
+			/*
+			 * Check if lower frame is POMDP or IPOMDP and call the solve method accordingly
+			 */
+			if (opponentModel instanceof IPOMDP) ((IPOMDP) opponentModel).solveIPBVI(15, 100);
+			
+			else if (opponentModel instanceof POMDP) {
+				/*
+				 * For solving the POMDP at lowest level, set the globals
+				 */
+				opponentModel.setGlobals();
+				opponentModel.solvePBVI(15, 100);
+			}
+			
+			else 
+				throw new SolverException("Frame " + 
+					this.lowerLevelFrames.indexOf(opponentModel) + 
+					" is not a POMDP or IPOMDP");
+			
+		}
+		
+	}
+	
+	public void solveIPBVI(int rounds, int numDpBackups) {
+		/*
+		 * Runs the interactive PBVI loop for solving the IPOMDP
+		 */
+		
+		
 	}
 
 }

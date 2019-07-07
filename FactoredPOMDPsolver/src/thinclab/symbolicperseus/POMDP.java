@@ -516,6 +516,34 @@ public class POMDP implements Serializable {
 					MySet.remove(varIndices, varId + 1));
 		}
 	}
+	
+	public void setGlobals() {
+		/*
+		 * Sets the globals statics according to the current frame
+		 * 
+		 * This actually done during initialization. But since the lower frames will overwrite
+		 * the globals during their initialization, this method has to be called manually whenever
+		 * the current frame is being solved for an IPOMDP
+		 */
+		Global.setVarDomSize(varDomSize);
+		Global.setVarNames(varName);
+
+		for (int i = 0; i < nStateVars; i++) {
+			Global.setValNames(i + 1, stateVars[i].valNames);
+		}
+		
+		for (int i = 0; i < nObsVars; i++) {
+			Global.setValNames(nStateVars + i + 1, obsVars[i].valNames);
+		}
+		
+		for (int i = 0; i < nStateVars; i++) {
+			Global.setValNames(nVars + i + 1, stateVars[i].valNames);
+		}
+		
+		for (int i = 0; i < nObsVars; i++) {
+			Global.setValNames(nVars + nStateVars + i + 1, obsVars[i].valNames);
+		}
+	}
 
 	public void readFromFile(String fileName, boolean debb) {
 		/*
@@ -611,18 +639,18 @@ public class POMDP implements Serializable {
 		return nextBelState;
 	}
 	
-	public DD[] factorBeliefPoint(DD beliefPoint) {
-		/*
-		 * factors belief state into a DD array
-		 */
-		DD[] fbs = new DD[nStateVars];
-		for (int varId = 0; varId < nStateVars; varId++) {
-			fbs[varId] = OP.addMultVarElim(beliefPoint,
-					MySet.remove(varIndices, varId + 1));
-		}
-		
-		return fbs;
-	} // public DD[] factorBeliefPoint
+//	public DD[] factorBeliefPoint(DD beliefPoint) {
+//		/*
+//		 * factors belief state into a DD array
+//		 */
+//		DD[] fbs = new DD[nStateVars];
+//		for (int varId = 0; varId < nStateVars; varId++) {
+//			fbs[varId] = OP.addMultVarElim(beliefPoint,
+//					MySet.remove(varIndices, varId + 1));
+//		}
+//		
+//		return fbs;
+//	} // public DD[] factorBeliefPoint
 
 	public DD getGoalDD() {
 		double[] onezero = { 0 };
@@ -1168,79 +1196,6 @@ public class POMDP implements Serializable {
 		printBeliefState(fbs);
 	}
 	
-	public HashMap<String, ArrayList<Float>> getBeliefStateMap(DD belState) {
-		/*
-		 * Makes a hashmap of belief state and values and returns it
-		 */
-		
-		HashMap<String, ArrayList<Float>> beliefs = new HashMap<String, ArrayList<Float>>();
-		DD[] fbs = new DD[nStateVars];
-		for (int varId = 0; varId < nStateVars; varId++) {
-			fbs[varId] = OP.addMultVarElim(belState,
-					MySet.remove(varIndices, varId + 1));
-			
-			// Make state variable name
-			String name = varName[varId];
-			
-			// Get respective belief for the variable
-			DD[] varChildren = fbs[varId].getChildren();
-			ArrayList<Float> childVals = new ArrayList<Float>();
-			
-			if (varChildren == null) {
-				for (int i=0; i < stateVars[varId].arity; i++) {
-					childVals.add(new Float(fbs[varId].getVal()));
-				}
-			}
-			
-			else {
-				for (int i=0; i < stateVars[varId].arity; i++) {
-					childVals.add(new Float(varChildren[i].getVal()));
-				}
-			}
-			
-			beliefs.put(name, childVals);
-		}
-		
-		return beliefs;
-	}
-	
-	public HashMap<String, ArrayList<Float>> getBeliefStateMap(DD[] belState) {
-		/*
-		 * Makes a hashmap of belief state and values and returns it
-		 */
-		
-		HashMap<String, ArrayList<Float>> beliefs = new HashMap<String, ArrayList<Float>>();
-//		DD[] fbs = new DD[nStateVars];
-		if (belState.length != nStateVars) {
-			System.err.println("SOMETHINGS SERIOUSLY WRONG WITH THE BELIEF STATE");
-		}
-		for (int i = 0; i < belState.length; i++) {
-			
-			// Make state variable name
-			String name = varName[i];
-			
-			// Get respective belief for the variable
-			DD[] varChildren = belState[i].getChildren();
-			ArrayList<Float> childVals = new ArrayList<Float>();
-			
-			if (varChildren == null) {
-				for (int j=0; j < stateVars[i].arity; j++) {
-					childVals.add(new Float(belState[i].getVal()));
-				}
-			}
-			
-			else {
-				for (int j=0; j < stateVars[i].arity; j++) {
-					childVals.add(new Float(varChildren[j].getVal()));
-				}
-			}
-			
-			beliefs.put(name, childVals);
-		}
-		
-		return beliefs;
-	}
-	
 	public void prettyPrintBeliefRegion() {
 		/*
 		 * Mainly used for debugging. Prints the region as a hashmap.
@@ -1249,7 +1204,7 @@ public class POMDP implements Serializable {
 		for (int i = 0; i < belRegion.length; i++) {
 //			System.out.println(belRegion);
 			if (belRegion[i] != null)
-				System.out.println(getBeliefStateMap(belRegion[i]));
+				System.out.println(Belief.toStateMap(this, belRegion[i]));
 			else {
 				System.out.println("NULL ENTRY");
 			}
@@ -1265,7 +1220,7 @@ public class POMDP implements Serializable {
 		System.out.println("TEMP BELIEF REGION:");
 		for (int i = 0; i < tmpBelRegion.length; i++) {
 			if (tmpBelRegion[i] != null)
-				System.out.println(getBeliefStateMap(tmpBelRegion[i]));
+				System.out.println(Belief.toStateMap(this, tmpBelRegion[i]));
 			else {
 				System.out.println("ZERO LENGTH BELIEF");
 				break;
@@ -1847,7 +1802,7 @@ public class POMDP implements Serializable {
 				
 				while (beliefIter.hasNext()) {
 					DD[] currentBelief = beliefIter.next();
-					if (getBeliefStateMap(currentBelief).equals(getBeliefStateMap(tmpBelRegion[j]))) {
+					if (Belief.toStateMap(this, currentBelief).equals(Belief.toStateMap(this, tmpBelRegion[j]))) {
 //						System.out.println("[!][!][!] Found same");
 						unique = false;
 					}
@@ -1881,7 +1836,7 @@ public class POMDP implements Serializable {
 		
 		Iterator<DD[]> exisitingPointsIterator = existingPoints.iterator();
 		while (exisitingPointsIterator.hasNext()) {
-			if (getBeliefStateMap(exisitingPointsIterator.next()).equals(getBeliefStateMap(point))) {
+			if (Belief.toStateMap(this, exisitingPointsIterator.next()).equals(Belief.toStateMap(this, point))) {
 				unique = false;
 			}
 		}
@@ -1904,7 +1859,7 @@ public class POMDP implements Serializable {
 		// If first iteration, add initial belief
 		if (beliefLeaves.size() == 0 && beliefPoints.size() == 0) {
 			beliefLeaves.add(this.initialBelState);
-			beliefPoints.add(factorBeliefPoint(this.initialBelState));
+			beliefPoints.add(Belief.factorBeliefPoint(this, this.initialBelState));
 			numNewPoints+=1;
 		}
 		
@@ -1936,7 +1891,7 @@ public class POMDP implements Serializable {
 							// Add if does not already exist
 							if (this.checkBeliefPointExists(this.beliefPoints, nextBelief)) {
 								newBeliefPoints.add(nextBelief);
-								beliefPoints.add(factorBeliefPoint(nextBelief));
+								beliefPoints.add(Belief.factorBeliefPoint(this, nextBelief));
 //								System.out.println("FOUND NEW BELIEF POINT");
 								numNewPoints+=1;
 							}
@@ -1985,7 +1940,7 @@ public class POMDP implements Serializable {
 		// Add initial belief we are starting from scratch
 		if (beliefPoints.size() == 0 && beliefLeaves.size() == 0) {
 //			beliefLeaves.add(this.initialBelState);
-			beliefPoints.add(factorBeliefPoint(startBel));
+			beliefPoints.add(Belief.factorBeliefPoint(this, startBel));
 		}
 		
 		// Build the next stage of the belief tree 
@@ -2024,7 +1979,7 @@ public class POMDP implements Serializable {
 				// Add if does not already exist
 				if (this.checkBeliefPointExists(this.beliefPoints, nextBelief)) {
 //					newBeliefPoints.add(nextBelief);
-					beliefPoints.add(factorBeliefPoint(nextBelief));
+					beliefPoints.add(Belief.factorBeliefPoint(this, nextBelief));
 //								System.out.println("FOUND NEW BELIEF POINT");
 					numNewPoints+=1;
 				}
