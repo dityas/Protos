@@ -52,12 +52,12 @@ class TestBelief {
 //		pomdp.prettyPrintBeliefRegion();
 //		pomdp.initialBelState.display();
 		DD nextBelief1 = pomdp.beliefUpdate(pomdp.initialBelState, 1, new String[] {"GL"});
-		nextBelief1.display();
+//		nextBelief1.display();
 		DD nextBelief2 = pomdp.beliefUpdate(nextBelief1, 1, new String[] {"GL"});
-		nextBelief2.display();
+//		nextBelief2.display();
 		Global.clearHashtables();
 		DD nextBelief3 = pomdp.beliefUpdate(nextBelief2, 1, new String[] {"GR"});
-		nextBelief3.display();
+//		nextBelief3.display();
 //		OP.sub(nextBelief1, nextBelief1).display();
 		assertFalse(Belief.checkEquals(nextBelief1, nextBelief2));
 		assertTrue(Belief.checkEquals(nextBelief1, nextBelief1));
@@ -67,6 +67,9 @@ class TestBelief {
 		beliefSet.add(nextBelief1);
 		System.out.println(beliefSet.contains(nextBelief2));
 		System.out.println(beliefSet.contains(nextBelief3));
+		System.out.println("Checking");
+		System.out.println(nextBelief1.equals(nextBelief2));
+		System.out.println(nextBelief1.equals(nextBelief3));
 	}
 
 }

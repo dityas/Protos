@@ -42,27 +42,29 @@ class DDnode extends DD {
 	return node;
     }
 
+    @Override
     public boolean equals(Object obj) {
 
-	if (obj.getClass() != getClass()) return false;
-	DDnode node = (DDnode)obj;
+		if (obj.getClass() != getClass()) return false;
 
-	if (var != node.var)
-	    return false;
-				
-	for (int i=0; i<children.length; i++) {
-	    if (children[i] != node.children[i]) return false;
-	}
-						
-	return true;
+		DDnode node = (DDnode)obj;
+	
+		if (var != node.var) return false;
+		    
+		for (int i=0; i<children.length; i++) {
+		    if (!children[i].equals(node.children[i])) return false;
+		}
+							
+		return true;
     }
 
+    @Override
     public int hashCode() {
-	int hashCode = 0;
-	for (int i=0; i<children.length; i++) {
-	    hashCode += children[i].getAddress();
-	}
-	return hashCode + var;
+		int hashCode = 0;
+		for (int i=0; i<children.length; i++) {
+		    hashCode += children[i].hashCode();
+		}
+		return hashCode + var;
     }
 
     public DD store() {
