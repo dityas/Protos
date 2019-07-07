@@ -1802,7 +1802,8 @@ public class POMDP implements Serializable {
 				
 				while (beliefIter.hasNext()) {
 					DD[] currentBelief = beliefIter.next();
-					if (Belief.toStateMap(this, currentBelief).equals(Belief.toStateMap(this, tmpBelRegion[j]))) {
+//					if (Belief.toStateMap(this, currentBelief).equals(Belief.toStateMap(this, tmpBelRegion[j]))) {
+					if (currentBelief.equals(tmpBelRegion[j])) {
 //						System.out.println("[!][!][!] Found same");
 						unique = false;
 					}
@@ -1836,9 +1837,10 @@ public class POMDP implements Serializable {
 		
 		Iterator<DD[]> exisitingPointsIterator = existingPoints.iterator();
 		while (exisitingPointsIterator.hasNext()) {
-			if (Belief.toStateMap(this, exisitingPointsIterator.next()).equals(Belief.toStateMap(this, point))) {
-				unique = false;
-			}
+			
+			DD[] existingPoint = exisitingPointsIterator.next();
+
+			if (Belief.checkEquals(this, existingPoint, point)) unique = false;
 		}
 		
 		return unique;

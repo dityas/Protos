@@ -1,6 +1,7 @@
 package thinclab.policyhelper;
 import java.util.Map;
 
+import thinclab.symbolicperseus.Belief;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
@@ -101,7 +102,7 @@ public class PolicyExtractor {
 			nodeCurr.alphaId = p.policyBestAlphaMatch(nodeCurr.belief, p.alphaVectors, p.policy);
 			nodeCurr.actId = p.policy[nodeCurr.alphaId];
 			nodeCurr.actName = this.p.actions[nodeCurr.actId].name;
-			nodeCurr.factoredBelief = this.p.getBeliefStateMap(nodeCurr.belief);
+			nodeCurr.factoredBelief = Belief.toStateMap(this.p, nodeCurr.belief);
 			nodeCurr.startNode = true;
 //			System.out.println("Suggesting action " + p.actions[nodeCurr.actId].name);
 			
@@ -119,7 +120,7 @@ public class PolicyExtractor {
 							this.p.policy);
 					other.actId = this.p.policy[other.alphaId];
 					other.actName = this.p.actions[other.actId].name;
-					other.factoredBelief = this.p.getBeliefStateMap(other.belief);
+					other.factoredBelief = Belief.toStateMap(this.p, other.belief);
 					other.startNode = true;
 					
 					policyLeaves.add(other);
@@ -164,7 +165,7 @@ public class PolicyExtractor {
 //						System.out.println("Showing belief state");
 						nodeNext.alphaId = p.policyBestAlphaMatch(nodeNext.belief, p.alphaVectors, p.policy);
 						nodeNext.actId = p.policy[nodeNext.alphaId];
-						nodeNext.factoredBelief = this.p.getBeliefStateMap(nodeNext.belief);
+						nodeNext.factoredBelief = Belief.toStateMap(this.p, nodeNext.belief);
 						nodeNext.actName = this.p.actions[nodeNext.actId].name;
 //						System.out.println("NEXT ALPHA: " + nodeNext.alphaId);
 //						System.out.println("NEXT ACT: " + nodeNext.actId);

@@ -111,9 +111,32 @@ public class Belief {
 		/*
 		 * Checks if belief is equal to other belief
 		 */
-		if (OP.sub(belief, otherBelief).getVal() == 0.0) return true;
-
-		else return false;
+		return belief.equals(otherBelief);
+	}
+	
+	public static boolean checkEquals(DD[] belief, DD[] otherBelief) {
+		/*
+		 * Equality for factored beliefs
+		 */
+		if (belief.length != otherBelief.length) return false;
+		
+		for (int i=0;i < belief.length; i++) {
+			if (!belief[i].equals(otherBelief[i])) return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean checkEquals(POMDP p, DD[] belief, DD otherBelief) {
+		
+		DD[] otherBeliefFactored = Belief.factorBeliefPoint(p, otherBelief);
+		return Belief.checkEquals(belief, otherBeliefFactored);
+	}
+	
+	public static boolean checkEquals(POMDP p, DD belief, DD[] otherBelief) {
+		
+		DD[] beliefFactored = Belief.factorBeliefPoint(p, belief);
+		return Belief.checkEquals(beliefFactored, otherBelief);
 	}
 
 }
