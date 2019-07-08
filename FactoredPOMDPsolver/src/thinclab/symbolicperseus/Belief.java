@@ -8,7 +8,9 @@
 package thinclab.symbolicperseus;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 /*
  * @author adityas
@@ -30,7 +32,26 @@ public class Belief {
 		}
 		
 		return fbs;
-	} 
+	}
+	
+	public static List<DD> factorBeliefPointAsList(POMDP pomdp, DD beliefPoint) {
+		/*
+		 * factors belief state into a DD List.
+		 * 
+		 * This is useful if a factored point has to be stored in a HashSet.
+		 * 
+		 * NOTE: 	hashing arrays is difficult because the hashCode() method includes
+		 * 			the array object's address. This is difficult to override. So it is
+		 * 			more convenient to use Lists instead. 
+		 */
+		DD[] fbs = new DD[pomdp.nStateVars];
+		for (int varId = 0; varId < pomdp.nStateVars; varId++) {
+			fbs[varId] = OP.addMultVarElim(beliefPoint,
+					MySet.remove(pomdp.varIndices, varId + 1));
+		}
+		
+		return  (List<DD>) Arrays.asList(fbs);
+	}
 	
 	// --------------------------------------------------------------------------------------
 	
