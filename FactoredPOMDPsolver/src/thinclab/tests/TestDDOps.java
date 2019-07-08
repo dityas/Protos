@@ -94,6 +94,17 @@ class TestDDOps {
 	}
 	
 	@Test
+	void testDDFactorAndUnFactor() {
+		System.out.println("Running testDDFactorAndUnFactor()");
+		
+		DD[] initBeliefF = Belief.factorBeliefPoint(this.pomdp, initBelief);
+		Global.clearHashtables();
+		
+		DD initBeliefUf = OP.multN(initBeliefF);
+		assertTrue(this.initBelief.equals(initBeliefUf));
+	}
+	
+	@Test
 	void testDDHashSets() {
 		System.out.println("Running testDDHashSets()");
 		
