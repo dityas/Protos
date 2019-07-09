@@ -192,32 +192,30 @@ public class BeliefSet {
 		
 	} // public void expandBeliefRegionBF
 	
-	public void expandBeliefRegionSSGA(POMDP p, int horizon) {
+	public void expandBeliefRegionSSGA(POMDP p, int depth) {
 		/*
-		 * Adds next level of belief points to the belief region using 
-		 * SSGA strategy
+		 * Traverses the belief tree using an SSGA strategy and extracts unique belief points
 		 */
 		
 		/*
-		 * Create multinomail for sampling actions
+		 * Create multinomial for sampling actions
 		 */
 		double[] explore = new double[2];
 		explore[0] = 0.6;
 		explore[1] = 0.4;
 		
-		for (int i=0; i < horizon; i++) {
-			/*
-			 * Initialize linked list to store new beliefs 
-			 */
-			LinkedList<DD> newLeaves = new LinkedList<DD>();
+		/*
+		 * Start traversal from initial beliefs
+		 */
+		Iterator<DD> initIterator = this.initialBeliefs.iterator();
+		while (initIterator.hasNext()) {
 			
-			/*
-			 * Expand from all current leaves
-			 */
-			Iterator<DD> leafIterator = this.leafBeliefs.iterator();
-			while (leafIterator.hasNext()) {
-				
-				DD leaf = leafIterator.next();
+			DD belief = initIterator.next();
+			
+			for (int i=0; i < depth; i++) {
+				/*
+				 * Initialize linked list to store new beliefs 
+				 */
 				int usePolicy = OP.sampleMultinomial(explore);
 				
 				/*
@@ -225,14 +223,14 @@ public class BeliefSet {
 				 */
 				int act;
 				
-				if (usePolicy == 0) act = p.policyQuery(leaf);
+				if (usePolicy == 0) act = p.policyQuery(belief);
 				
 				else act = Global.random.nextInt(p.nActions);
 
 				/*
 				 *  sample obs
 				 */
-				DD obsDist = OP.addMultVarElim(POMDP.concatenateArray(leaf,
+				DD obsDist = OP.addMultVarElim(POMDP.concatenateArray(belief,
 																p.actions[act].transFn,
 																p.actions[act].obsFn),
 											   POMDP.concatenateArray(p.varIndices, 
@@ -244,7 +242,7 @@ public class BeliefSet {
 				 *  Get next belief
 				 */
 				try {
-					DD nextBelief = Belief.beliefUpdate(p, leaf,
+					DD nextBelief = Belief.beliefUpdate(p, belief,
 													 act, 
 													 obsConfig);
 					
@@ -255,7 +253,7 @@ public class BeliefSet {
 						this.beliefSet.add(nextBelief);
 					}
 					
-					newLeaves.add(nextBelief);
+					belief = nextBelief;
 				} 
 				
 				catch (ZeroProbabilityObsException e) {
@@ -264,8 +262,6 @@ public class BeliefSet {
 				}
 				
 			} /* while leafIterator */
-			
-			if (newLeaves.size() > 0) this.leafBeliefs = newLeaves;
 			
 		} /* for horizon */
 		
