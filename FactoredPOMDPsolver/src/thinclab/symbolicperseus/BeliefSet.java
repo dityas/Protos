@@ -231,10 +231,10 @@ public class BeliefSet {
 				 *  sample obs
 				 */
 				DD obsDist = OP.addMultVarElim(POMDP.concatenateArray(belief,
-																p.actions[act].transFn,
-																p.actions[act].obsFn),
-											   POMDP.concatenateArray(p.varIndices, 
-													   p.primeVarIndices));
+						p.actions[act].transFn,
+						p.actions[act].obsFn),
+					POMDP.concatenateArray(p.varIndices, 
+						p.primeVarIndices));
 
 				int[][] obsConfig = OP.sampleMultinomial(obsDist, p.primeObsIndices);
 				
@@ -243,8 +243,8 @@ public class BeliefSet {
 				 */
 				try {
 					DD nextBelief = Belief.beliefUpdate(p, belief,
-													 act, 
-													 obsConfig);
+							act, 
+							obsConfig);
 					
 					/*
 					 * Add belief point if it doesn't already exist
