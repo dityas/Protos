@@ -142,13 +142,20 @@ public abstract class Domain {
 	}
 	
 	public void writeReward() {
-		this.rewardSection = this.newLine;
-		this.rewardSection += "reward" + this.newLine;
-		this.rewardSection += this.rewardFn.toSPUDD() + this.newLine;
+		
+		if (this.rewardFn != null) {
+			this.rewardSection = this.newLine;
+			this.rewardSection += "reward" + this.newLine;
+			this.rewardSection += this.rewardFn.toSPUDD() + this.newLine;
+		}
+		
+		else this.rewardSection = "";
 	}
 	
 	// ----------------------------------------------------------------------------------------
-
+	/*
+	 * Abstract methods to be implemented in the subclass
+	 */
 	public abstract void makeVarContext();
 	public abstract void makeBeliefsSPUDD();
 	public abstract void makeActionsSPUDD();
@@ -207,47 +214,4 @@ public abstract class Domain {
 	} // public void makeDDMaker
 	
 	// --------------------------------------------------------------------------
-	
-	
-	// --------------------------------------------------------------------------
-	
-	// Solution stuff
-	
-	public void solve(String domainFile,
-					  int nRounds,
-					  int nDpBackups) {
-		this.makeAll();
-		this.writeToFile(domainFile);
-		this.pomdp = new POMDP(domainFile, false);
-		this.pomdp.solvePBVI(nRounds, nDpBackups);
-		
-		this.policyExtractor = new PolicyExtractor(this.pomdp);
-		this.policyGraph = new PolicyGraph(this.policyExtractor.policyNodes);
-		
-	}
-	
-	// --------------------------------------------------------------------------
-	
-	// Getters
-	
-	public String[] getObsNames() {
-		return this.varContext.getObsNames();
-	}
-	
-	public String[][] getObsValNames() {
-		return this.varContext.getObsValNames();
-	}
-	
-	public VariablesContext getVarContext() {
-		return this.varContext;
-	}
-	
-	public String[] getPolicyValNames() {
-		return this.policyGraph.getGraphNodeVarVals();
-	}
-	
-	public DDTree getPolicyGraphDD() {
-		return this.policyGraph.getGraphAsDD(this.pomdp);
-	}
-
 }

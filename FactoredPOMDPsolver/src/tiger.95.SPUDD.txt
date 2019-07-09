@@ -1,30 +1,12 @@
-// -------------------------------------------------------------------------- *
-// libpomdp
-// ========
-// File: tiger.95.SPUDD
-// Description: encoding of the tiger problem in SPUDD to be
-//              parsed by Poupart's parsePOMDP class, included in the
-//              Symbolic Perseus package - see README reference [5]
-// Copyright (c) 2009, 2010 Diego Maniloff 
-// W3: http://www.cs.uic.edu/~dmanilof
-//--------------------------------------------------------------------------- *
 
-// variables
-// ---------
 (variables 
  (tiger-location tiger-left tiger-right))
 
-// observations
-// ------------
 (observations 
  (growl growl-left growl-right))
 
-// initial belief state (has to be a product of marginals!)
-// --------------------------------------------------------
 init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
 
-// actions
-// -------
 action listen
     tiger-location (SAMEtiger-location)
     observe

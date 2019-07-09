@@ -40,5 +40,42 @@ public abstract class DD implements Serializable {
 		abstract public DD store();
 
 		public static DD cast(DDleaf leaf) { return (DD)leaf; }
-		public static DD cast(DDnode node) { return (DD)node; }		
+		public static DD cast(DDnode node) { return (DD)node; }	
+		
+//		@Override
+//		public boolean equals(Object other) {
+//			/*
+//			 * Override for proper hashing
+//			 */
+//			if (!(other instanceof DD)) return false;
+//			
+//			DD otherDD = (DD) other;
+//			if (otherDD == null) return false;
+//			
+//			if (this.getVar() != otherDD.getVar()) {
+//				System.out.println("Var not equal");
+//				return false;
+//			}
+//			
+//			if (this.getVal() != otherDD.getVal()) {
+//				System.out.println("Val not equal");
+//				return false;
+//			}
+//			
+//			if (this.getChildren().length != otherDD.getChildren().length) {
+//				System.out.println("Children length not equal");
+//				return false;
+//			}
+//			
+//			DD[] children = this.getChildren();
+//			for (int i=0; i < children.length; i++) {
+//				if (!children[i].equals(otherDD.getChildren()[i])) {
+//					System.out.println("Children not equal");
+//					return false;
+//				}
+//			}
+//			
+//			System.out.println("equal");
+//			return true;
+//		}
 }

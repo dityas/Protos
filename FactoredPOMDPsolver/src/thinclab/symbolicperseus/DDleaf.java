@@ -71,17 +71,20 @@ class DDleaf extends DD {
 		public int getNumLeaves() {
 				return 1;
 		}
-
+		
+		@Override
 		public boolean equals(Object obj) {
 
 				if (obj.getClass() != getClass()) return false;
+					
 				DDleaf leaf = (DDleaf)obj;
-
-				if (val == leaf.val && Config.equals(config,leaf.config))
-						return true;
+				
+				if (val == leaf.val && Config.equals(config,leaf.config)) return true;
+						
 				else return false;
 		}
-
+		
+		@Override
 		public int hashCode() {
 				Double valD = new Double(val);
 				return valD.hashCode() + Config.hashCode(config);
@@ -115,5 +118,4 @@ class DDleaf extends DD {
     public void printDotDD(PrintStream ps, String name) {
 	ps.println("{ rank = same; node [shape=box, style=filled, color=goldenrod];\""+name+"\" [label=\""+Double.toString(val)+"\"];}");
     }
-
 }

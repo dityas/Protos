@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.HashMap;
 
+import thinclab.domainMaker.L0Frame;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.policyhelper.PolicyCache;
 import thinclab.symbolicperseus.StateVar;
@@ -200,6 +201,7 @@ public class POMDP implements Serializable {
 
 	// solves the POMDP as an MDP
 	public void solveQMDP(int count) {
+		
 		System.out.println("Computing qMDP policy");
 		double bellmanErr = 2 * tolerance;
 		DD valFn = DD.zero;
@@ -210,10 +212,12 @@ public class POMDP implements Serializable {
 		DD[] tempQFn = new DD[nActions];
 		zerovalarray[0] = 0;
 		int iter = 0;
+		
 		while (bellmanErr > tolerance && iter < count) {
 			System.out.println("iteration " + iter++);
 			prevValFn = valFn;
 			valFn = OP.primeVars(valFn, nVars);
+			
 			for (actId = 0; actId < nActions; actId++) {
 				cdArray = concatenateArray(ddDiscFact, actions[actId].transFn,
 						valFn);
@@ -222,6 +226,7 @@ public class POMDP implements Serializable {
 				tempQFn[actId] = OP.approximate(tempQFn[actId], bellmanErr
 						* (1 - discFact) / 2.0, zerovalarray);
 			}
+			
 			valFn = OP.maxN(tempQFn);
 			bellmanErr = OP.maxAll(OP.abs(OP.sub(valFn, prevValFn)));
 			System.out.println("Bellman error: " + bellmanErr);
@@ -230,29 +235,40 @@ public class POMDP implements Serializable {
 		// remove dominated alphaVectors
 		boolean dominated;
 		boolean[] notDominated = new boolean[nActions];
+		
 		for (actId1 = 0; actId1 < nActions; actId1++)
 			notDominated[actId1] = false;
+		
 		for (actId1 = 0; actId1 < nActions; actId1++) {
 			dominated = false;
 			actId2 = 0;
+		
 			while (!dominated && actId2 < nActions) {
+			
 				if (notDominated[actId2]
 						&& OP.maxAll(OP.sub(tempQFn[actId1], tempQFn[actId2])) < tolerance)
 					dominated = true;
 				actId2++;
 			}
+			
 			if (!dominated)
 				notDominated[actId1] = true;
 		}
+		
 		int numleft = 0;
+		
 		for (actId1 = 0; actId1 < nActions; actId1++) {
+			
 			if (notDominated[actId1])
 				numleft++;
 		}
+		
 		qFn = new DD[numleft];
 		qPolicy = new int[numleft];
 		numleft = 0;
+		
 		for (actId1 = 0; actId1 < nActions; actId1++) {
+			
 			if (notDominated[actId1]) {
 				qFn[numleft] = tempQFn[actId1];
 				qPolicy[numleft] = actId1;
@@ -269,11 +285,18 @@ public class POMDP implements Serializable {
 			qFn[i].display();
 		}
 	}
+	
+	public POMDP() {
+		/*
+		 * Empty constructor to allow for manipulation of object construction
+		 * by other objects
+		 */
+	}
 
 	public POMDP(String fileName) {
 		readFromFile(fileName, false);
 	}
-
+	
 	public POMDP(String fileName, POMDP oldpomdp) {
 		readFromFile(fileName, false);
 		setAlphaVectors(oldpomdp.alphaVectors, oldpomdp.policy);
@@ -302,74 +325,95 @@ public class POMDP implements Serializable {
 	public void setIgnoreMore(boolean ig) {
 		ignoremore = ig;
 	}
+	
+	public void initializeFromParsers(ParseSPUDD parserObj) {
+		/*
+		 * Populates requried fields and attributes of the POMDP from the parser object.
+		 * 
+		 * The orignal POMDP implementation by Hoey does this in the parsePOMDP method. I have split
+		 * it into a separate method so that initialization can be done separately after upper frames
+		 * or lower frames have done required changes if any. 
+		 */
+		
+		debug = false;
 
-	public void readFromFile(String fileName, boolean debb) {
-		ParseSPUDD rawpomdp = new ParseSPUDD(fileName);
-		rawpomdp.parsePOMDP(false);
+		this.ignoremore = false;
+		this.addbeldiff = false;
+		this.nStateVars = parserObj.nStateVars;
+		this.nObsVars = parserObj.nObsVars;
+		this.nVars = nStateVars + nObsVars;
+		this.stateVars = new StateVar[nStateVars];
+		this.obsVars = new StateVar[nObsVars];
 
-		debug = debb;
+		this.varDomSize = new int[2 * (nStateVars + nObsVars)];
+		this.varName = new String[2 * (nStateVars + nObsVars)];
+		this.varIndices = new int[nStateVars];
+		this.primeVarIndices = new int[nStateVars];
+		this.obsIndices = new int[nObsVars];
+		this.primeObsIndices = new int[nObsVars];
 
-		ignoremore = false;
-		addbeldiff = false;
-		nStateVars = rawpomdp.nStateVars;
-		nObsVars = rawpomdp.nObsVars;
-		nVars = nStateVars + nObsVars;
-		stateVars = new StateVar[nStateVars];
-		obsVars = new StateVar[nObsVars];
-
-		varDomSize = new int[2 * (nStateVars + nObsVars)];
-		varName = new String[2 * (nStateVars + nObsVars)];
-		varIndices = new int[nStateVars];
-		primeVarIndices = new int[nStateVars];
-		obsIndices = new int[nObsVars];
-		primeObsIndices = new int[nObsVars];
-
-		// set up state variables
+		/*
+		 * set up state variables
+		 */
 		int k = 0;
 		for (int i = 0; i < nStateVars; i++) {
-			stateVars[i] = new StateVar(rawpomdp.valNames.get(i).size(),
-					rawpomdp.varNames.get(i), i);
+			this.stateVars[i] = new StateVar(parserObj.valNames.get(i).size(),
+					parserObj.varNames.get(i), i);
 			for (int j = 0; j < stateVars[i].arity; j++) {
-				stateVars[i].addValName(j, ((String) rawpomdp.valNames.get(i)
-						.get(j)));
+				this.stateVars[i].addValName(j, 
+						((String) parserObj.valNames.get(i).get(j)));
 			}
-			// must be indices as in Matlab!
-			varIndices[i] = i + 1;
-			primeVarIndices[i] = i + nVars + 1;
-			varDomSize[k] = stateVars[i].arity;
-			varName[k++] = stateVars[i].name;
+			
+			/*
+			 * must be indices as in Matlab!
+			 */
+			this.varIndices[i] = i + 1;
+			this.primeVarIndices[i] = i + nVars + 1;
+			this.varDomSize[k] = stateVars[i].arity;
+			this.varName[k++] = stateVars[i].name;
 		}
 
-		// set up observation variables
-		nObservations = 1;
-		obsVarsArity = new int[nObsVars];
+		/*
+		 * set up observation variables
+		 */
+		this.nObservations = 1;
+		this.obsVarsArity = new int[nObsVars];
+		
 		for (int i = 0; i < nObsVars; i++) {
-			obsVars[i] = new StateVar(rawpomdp.valNames.get(i + nStateVars)
-					.size(), rawpomdp.varNames.get(i + nStateVars), i
+			
+			obsVars[i] = new StateVar(parserObj.valNames.get(i + nStateVars)
+					.size(), parserObj.varNames.get(i + nStateVars), i
 					+ nStateVars);
+			
 			for (int j = 0; j < obsVars[i].arity; j++) {
-				obsVars[i]
-						.addValName(j,
-								((String) rawpomdp.valNames.get(nStateVars + i)
-										.get(j)));
+				obsVars[i].addValName(
+						j,
+						((String) parserObj.valNames.get(nStateVars + i).get(j)));
 			}
-			obsVarsArity[i] = obsVars[i].arity;
-			nObservations = nObservations * obsVars[i].arity;
-			obsIndices[i] = i + nStateVars + 1;
-			primeObsIndices[i] = i + nVars + nStateVars + 1;
-			varDomSize[k] = obsVars[i].arity;
-			varName[k++] = obsVars[i].name;
+			
+			this.obsVarsArity[i] = obsVars[i].arity;
+			this.nObservations = nObservations * obsVars[i].arity;
+			this.obsIndices[i] = i + nStateVars + 1;
+			this.primeObsIndices[i] = i + nVars + nStateVars + 1;
+			this.varDomSize[k] = obsVars[i].arity;
+			this.varName[k++] = obsVars[i].name;
 		}
+		
 		for (int i = 0; i < nStateVars; i++) {
+			
 			varDomSize[k] = stateVars[i].arity;
 			varName[k++] = stateVars[i].name + "_P";
 		}
+		
 		for (int i = 0; i < nObsVars; i++) {
+			
 			varDomSize[k] = obsVars[i].arity;
 			varName[k++] = obsVars[i].name + "_P";
 		}
 
-		// set up Globals
+		/*
+		 * set up Globals
+		 */
 		Global.setVarDomSize(varDomSize);
 		Global.setVarNames(varName);
 
@@ -386,44 +430,56 @@ public class POMDP implements Serializable {
 			Global.setValNames(nVars + nStateVars + i + 1, obsVars[i].valNames);
 		}
 
-		// set up dynamics
-		nActions = rawpomdp.actTransitions.size();
+		/*
+		 * set up dynamics
+		 */
+		nActions = parserObj.actTransitions.size();
 		actions = new Action[nActions];
 		uniquePolicy = new boolean[nActions];
 
 		qFn = new DD[nActions];
 
 		for (int a = 0; a < nActions; a++) {
-			actions[a] = new Action(rawpomdp.actNames.get(a));
-			actions[a].addTransFn(rawpomdp.actTransitions.get(a));
-			actions[a].addObsFn(rawpomdp.actObserve.get(a));
+			actions[a] = new Action(parserObj.actNames.get(a));
+			actions[a].addTransFn(parserObj.actTransitions.get(a));
+			actions[a].addObsFn(parserObj.actObserve.get(a));
 			actions[a].rewFn = OP
-					.sub(rawpomdp.reward, rawpomdp.actCosts.get(a));
+					.sub(parserObj.reward, parserObj.actCosts.get(a));
 			actions[a].buildRewTranFn();
 			actions[a].rewFn = OP.addMultVarElim(actions[a].rewTransFn,
 					primeVarIndices);
 
-			// find stochastic transitions (and deterministic varMappings)
-			// not done yet - where is this used?
+			/*
+			 * find stochastic transitions (and deterministic varMappings)
+			 * not done yet - where is this used?
+			 */
 		}
-		// discount factor
-		discFact = rawpomdp.discount.getVal();
+		/*
+		 *  discount factor
+		 */
+		discFact = parserObj.discount.getVal();
 
-		// make a DD version
+		/*
+		 *  make a DD version
+		 */
 		ddDiscFact = DDleaf.myNew(discFact);
 
-		// the adjunct models
-		nAdjuncts = rawpomdp.adjuncts.size();
+		/*
+		 *  the adjunct models
+		 */
+		nAdjuncts = parserObj.adjuncts.size();
 		if (nAdjuncts > 0) {
 			adjuncts = new DD[nAdjuncts];
 			adjunctNames = new String[nAdjuncts];
 			for (int a = 0; a < nAdjuncts; a++) {
-				adjuncts[a] = rawpomdp.adjuncts.get(a);
-				adjunctNames[a] = rawpomdp.adjunctNames.get(a);
+				adjuncts[a] = parserObj.adjuncts.get(a);
+				adjunctNames[a] = parserObj.adjunctNames.get(a);
 			}
 		}
 
-		// max reward value
+		/*
+		 * max reward value
+		 */
 
 		double maxVal = Double.NEGATIVE_INFINITY;
 		double minVal = Double.POSITIVE_INFINITY;
@@ -432,24 +488,71 @@ public class POMDP implements Serializable {
 			minVal = Math.min(minVal, OP.minAll(OP.addN(actions[a].rewFn)));
 		}
 		maxRewVal = maxVal / (1 - discFact);
-		// tolerance
-		if (rawpomdp.tolerance == null) {
+		
+		/*
+		 * tolerance
+		 */
+		if (parserObj.tolerance == null) {
 			double maxDiffRew = maxVal - minVal;
 			double maxDiffVal = maxDiffRew / (1 - Math.min(0.95, discFact));
 			tolerance = 1e-5 * maxDiffVal;
-		} else {
-			tolerance = rawpomdp.tolerance.getVal();
+		} 
+		
+		else {
+			tolerance = parserObj.tolerance.getVal();
 		}
-		// initial belief
-		initialBelState = rawpomdp.init;
+		
+		/*
+		 * initial belief
+		 */
+		initialBelState = parserObj.init;
 
-		// factored initial belief state
+		/*
+		 * factored initial belief state
+		 */
 		initialBelState_f = new DD[nStateVars];
 		for (int varId = 0; varId < nStateVars; varId++) {
 			initialBelState_f[varId] = OP.addMultVarElim(initialBelState,
 					MySet.remove(varIndices, varId + 1));
 		}
+	}
+	
+	public void setGlobals() {
+		/*
+		 * Sets the globals statics according to the current frame
+		 * 
+		 * This actually done during initialization. But since the lower frames will overwrite
+		 * the globals during their initialization, this method has to be called manually whenever
+		 * the current frame is being solved for an IPOMDP
+		 */
+		Global.setVarDomSize(varDomSize);
+		Global.setVarNames(varName);
 
+		for (int i = 0; i < nStateVars; i++) {
+			Global.setValNames(i + 1, stateVars[i].valNames);
+		}
+		
+		for (int i = 0; i < nObsVars; i++) {
+			Global.setValNames(nStateVars + i + 1, obsVars[i].valNames);
+		}
+		
+		for (int i = 0; i < nStateVars; i++) {
+			Global.setValNames(nVars + i + 1, stateVars[i].valNames);
+		}
+		
+		for (int i = 0; i < nObsVars; i++) {
+			Global.setValNames(nVars + nStateVars + i + 1, obsVars[i].valNames);
+		}
+	}
+
+	public void readFromFile(String fileName, boolean debb) {
+		/*
+		 * Read the POMDP directly from a domain file
+		 */
+		ParseSPUDD rawpomdp = new ParseSPUDD(fileName);
+		rawpomdp.parsePOMDP(false);
+
+		this.initializeFromParsers(rawpomdp);
 	}
 	
 	public DD safeBeliefUpdate(DD belState, int actId, String[] obsnames) throws ZeroProbabilityObsException {
@@ -536,18 +639,18 @@ public class POMDP implements Serializable {
 		return nextBelState;
 	}
 	
-	public DD[] factorBeliefPoint(DD beliefPoint) {
-		/*
-		 * factors belief state into a DD array
-		 */
-		DD[] fbs = new DD[nStateVars];
-		for (int varId = 0; varId < nStateVars; varId++) {
-			fbs[varId] = OP.addMultVarElim(beliefPoint,
-					MySet.remove(varIndices, varId + 1));
-		}
-		
-		return fbs;
-	} // public DD[] factorBeliefPoint
+//	public DD[] factorBeliefPoint(DD beliefPoint) {
+//		/*
+//		 * factors belief state into a DD array
+//		 */
+//		DD[] fbs = new DD[nStateVars];
+//		for (int varId = 0; varId < nStateVars; varId++) {
+//			fbs[varId] = OP.addMultVarElim(beliefPoint,
+//					MySet.remove(varIndices, varId + 1));
+//		}
+//		
+//		return fbs;
+//	} // public DD[] factorBeliefPoint
 
 	public DD getGoalDD() {
 		double[] onezero = { 0 };
@@ -1093,79 +1196,6 @@ public class POMDP implements Serializable {
 		printBeliefState(fbs);
 	}
 	
-	public HashMap<String, ArrayList<Float>> getBeliefStateMap(DD belState) {
-		/*
-		 * Makes a hashmap of belief state and values and returns it
-		 */
-		
-		HashMap<String, ArrayList<Float>> beliefs = new HashMap<String, ArrayList<Float>>();
-		DD[] fbs = new DD[nStateVars];
-		for (int varId = 0; varId < nStateVars; varId++) {
-			fbs[varId] = OP.addMultVarElim(belState,
-					MySet.remove(varIndices, varId + 1));
-			
-			// Make state variable name
-			String name = varName[varId];
-			
-			// Get respective belief for the variable
-			DD[] varChildren = fbs[varId].getChildren();
-			ArrayList<Float> childVals = new ArrayList<Float>();
-			
-			if (varChildren == null) {
-				for (int i=0; i < stateVars[varId].arity; i++) {
-					childVals.add(new Float(fbs[varId].getVal()));
-				}
-			}
-			
-			else {
-				for (int i=0; i < stateVars[varId].arity; i++) {
-					childVals.add(new Float(varChildren[i].getVal()));
-				}
-			}
-			
-			beliefs.put(name, childVals);
-		}
-		
-		return beliefs;
-	}
-	
-	public HashMap<String, ArrayList<Float>> getBeliefStateMap(DD[] belState) {
-		/*
-		 * Makes a hashmap of belief state and values and returns it
-		 */
-		
-		HashMap<String, ArrayList<Float>> beliefs = new HashMap<String, ArrayList<Float>>();
-//		DD[] fbs = new DD[nStateVars];
-		if (belState.length != nStateVars) {
-			System.err.println("SOMETHINGS SERIOUSLY WRONG WITH THE BELIEF STATE");
-		}
-		for (int i = 0; i < belState.length; i++) {
-			
-			// Make state variable name
-			String name = varName[i];
-			
-			// Get respective belief for the variable
-			DD[] varChildren = belState[i].getChildren();
-			ArrayList<Float> childVals = new ArrayList<Float>();
-			
-			if (varChildren == null) {
-				for (int j=0; j < stateVars[i].arity; j++) {
-					childVals.add(new Float(belState[i].getVal()));
-				}
-			}
-			
-			else {
-				for (int j=0; j < stateVars[i].arity; j++) {
-					childVals.add(new Float(varChildren[j].getVal()));
-				}
-			}
-			
-			beliefs.put(name, childVals);
-		}
-		
-		return beliefs;
-	}
-	
 	public void prettyPrintBeliefRegion() {
 		/*
 		 * Mainly used for debugging. Prints the region as a hashmap.
@@ -1174,7 +1204,7 @@ public class POMDP implements Serializable {
 		for (int i = 0; i < belRegion.length; i++) {
 //			System.out.println(belRegion);
 			if (belRegion[i] != null)
-				System.out.println(getBeliefStateMap(belRegion[i]));
+				System.out.println(Belief.toStateMap(this, belRegion[i]));
 			else {
 				System.out.println("NULL ENTRY");
 			}
@@ -1190,7 +1220,7 @@ public class POMDP implements Serializable {
 		System.out.println("TEMP BELIEF REGION:");
 		for (int i = 0; i < tmpBelRegion.length; i++) {
 			if (tmpBelRegion[i] != null)
-				System.out.println(getBeliefStateMap(tmpBelRegion[i]));
+				System.out.println(Belief.toStateMap(this, tmpBelRegion[i]));
 			else {
 				System.out.println("ZERO LENGTH BELIEF");
 				break;
@@ -1412,7 +1442,16 @@ public class POMDP implements Serializable {
 	
 	public void solvePBVI(int rounds, int numDpBackups) {
 		
-		expandBeliefRegion(100);
+//		expandBeliefRegion(100);
+		List<DD> initBeliefList = new ArrayList<DD>();
+		initBeliefList.add(this.initialBelState);
+		
+		for (int i=0; i < this.nAdjuncts; i++) initBeliefList.add(this.adjuncts[i]);
+		
+		BeliefSet beliefSet = new BeliefSet(initBeliefList);
+		
+		beliefSet.expandBeliefRegionBF(this, 2);
+		this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 		
 		// initialize T
 		alphaVectors = new DD[1];
@@ -1423,8 +1462,10 @@ public class POMDP implements Serializable {
 			this.pCache.resetAlphaVecsMap();
 
 			boundedPerseusStartFromCurrent(100, r * numDpBackups, numDpBackups);
-			expandBeliefRegionSSGA(100);
-//			expandBeliefRegion(100);
+
+			beliefSet.expandBeliefRegionSSGA(this, 100);
+			this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
+
 		}
 		
 		this.alphaVectors = this.pCache.getMaxAlphaVecs();
@@ -1772,7 +1813,8 @@ public class POMDP implements Serializable {
 				
 				while (beliefIter.hasNext()) {
 					DD[] currentBelief = beliefIter.next();
-					if (getBeliefStateMap(currentBelief).equals(getBeliefStateMap(tmpBelRegion[j]))) {
+//					if (Belief.toStateMap(this, currentBelief).equals(Belief.toStateMap(this, tmpBelRegion[j]))) {
+					if (currentBelief.equals(tmpBelRegion[j])) {
 //						System.out.println("[!][!][!] Found same");
 						unique = false;
 					}
@@ -1806,9 +1848,10 @@ public class POMDP implements Serializable {
 		
 		Iterator<DD[]> exisitingPointsIterator = existingPoints.iterator();
 		while (exisitingPointsIterator.hasNext()) {
-			if (getBeliefStateMap(exisitingPointsIterator.next()).equals(getBeliefStateMap(point))) {
-				unique = false;
-			}
+			
+			DD[] existingPoint = exisitingPointsIterator.next();
+
+			if (Belief.checkEquals(this, existingPoint, point)) unique = false;
 		}
 		
 		return unique;
@@ -1829,7 +1872,7 @@ public class POMDP implements Serializable {
 		// If first iteration, add initial belief
 		if (beliefLeaves.size() == 0 && beliefPoints.size() == 0) {
 			beliefLeaves.add(this.initialBelState);
-			beliefPoints.add(factorBeliefPoint(this.initialBelState));
+			beliefPoints.add(Belief.factorBeliefPoint(this, this.initialBelState));
 			numNewPoints+=1;
 		}
 		
@@ -1861,7 +1904,7 @@ public class POMDP implements Serializable {
 							// Add if does not already exist
 							if (this.checkBeliefPointExists(this.beliefPoints, nextBelief)) {
 								newBeliefPoints.add(nextBelief);
-								beliefPoints.add(factorBeliefPoint(nextBelief));
+								beliefPoints.add(Belief.factorBeliefPoint(this, nextBelief));
 //								System.out.println("FOUND NEW BELIEF POINT");
 								numNewPoints+=1;
 							}
@@ -1910,7 +1953,7 @@ public class POMDP implements Serializable {
 		// Add initial belief we are starting from scratch
 		if (beliefPoints.size() == 0 && beliefLeaves.size() == 0) {
 //			beliefLeaves.add(this.initialBelState);
-			beliefPoints.add(factorBeliefPoint(startBel));
+			beliefPoints.add(Belief.factorBeliefPoint(this, startBel));
 		}
 		
 		// Build the next stage of the belief tree 
@@ -1949,7 +1992,7 @@ public class POMDP implements Serializable {
 				// Add if does not already exist
 				if (this.checkBeliefPointExists(this.beliefPoints, nextBelief)) {
 //					newBeliefPoints.add(nextBelief);
-					beliefPoints.add(factorBeliefPoint(nextBelief));
+					beliefPoints.add(Belief.factorBeliefPoint(this, nextBelief));
 //								System.out.println("FOUND NEW BELIEF POINT");
 					numNewPoints+=1;
 				}
@@ -1979,8 +2022,10 @@ public class POMDP implements Serializable {
 		
 		this.expandFromBeliefSSGA(this.initialBelState, count);
 		
-		for (int i=0; i < this.adjuncts.length; i++) {
-			this.expandFromBeliefSSGA(this.adjuncts[i], count);
+		if (this.adjuncts != null) {
+			for (int i=0; i < this.adjuncts.length; i++) {
+				this.expandFromBeliefSSGA(this.adjuncts[i], count);
+			}
 		}
 		
 		// replace beliefRegion

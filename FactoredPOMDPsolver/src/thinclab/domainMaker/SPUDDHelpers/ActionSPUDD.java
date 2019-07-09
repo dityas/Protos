@@ -9,6 +9,7 @@ import java.util.Iterator;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.domainMaker.ddHelpers.SameDDTree;
 import thinclab.exceptions.VariableNotFoundException;
+import thinclab.symbolicperseus.ParseSPUDD;
 
 public class ActionSPUDD {
 
@@ -21,6 +22,16 @@ public class ActionSPUDD {
 	public String newLine = "\r\n";
 
 	public HashMap<String, DDTree> varToDDMap = new HashMap<String, DDTree>();
+	
+	/*
+	 * 
+	 */
+	
+	/*
+	 * This is object contains Jesse Hoey's SPUDD Parser. It contains the code for parsing the whole
+	 * SPUDD file. But we are going to use it just to parse the Action DDs
+	 */
+	ParseSPUDD parser;
 
 	public ActionSPUDD(String actionName, VariablesContext varContext, double cost) {
 
@@ -111,9 +122,7 @@ public class ActionSPUDD {
 		 */
 		this.costDD = costDD;
 	}
-
-	// -----------------------------------------------------------------------------------
-
+	
 	// -----------------------------------------------------------------------------------
 	// Methods to write SPUDD strings
 
@@ -154,6 +163,10 @@ public class ActionSPUDD {
 
 		SPUDD += "endaction" + this.newLine;
 		return SPUDD;
+	}
+	
+	public void parseToActualDDs() {
+		this.parser = new ParseSPUDD();
 	}
 
 	// -----------------------------------------------------------------------------------

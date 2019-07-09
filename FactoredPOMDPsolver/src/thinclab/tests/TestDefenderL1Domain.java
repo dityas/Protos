@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.domainMaker.AttackerDomain;
+import thinclab.Examples.AttackerDomainPOMDP;
 import thinclab.domainMaker.DefenderL1Domain;
 import thinclab.domainMaker.Domain;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
@@ -30,7 +30,7 @@ class TestDefenderL1Domain {
 	@BeforeEach
 	void setUp() throws Exception {
 		String attackerL0 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
-		this.attl0Domain = new AttackerDomain();
+		this.attl0Domain = new AttackerDomainPOMDP();
 		this.attl0Domain.solve(attackerL0, 5, 100);
 	}
 

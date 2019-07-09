@@ -1248,7 +1248,7 @@ public class OP {
     }
 
     //////////////////////////////////////////////////////
-    // addMultarElim (summout variables from a product of DDs using variable elimincation)
+    // addMultarElim (summout variables from a product of DDs using variable elimination)
     //////////////////////////////////////////////////////
     public static DD addMultVarElim(DD[] dds, int[] vars) {
 
