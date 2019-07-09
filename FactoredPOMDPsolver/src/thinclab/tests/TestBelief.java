@@ -9,7 +9,10 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.awt.List;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 
 import org.junit.jupiter.api.AfterEach;
@@ -18,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.Examples.TigerProblemPOMDP;
 import thinclab.symbolicperseus.Belief;
+import thinclab.symbolicperseus.BeliefSet;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
@@ -62,14 +66,34 @@ class TestBelief {
 		assertFalse(Belief.checkEquals(nextBelief1, nextBelief2));
 		assertTrue(Belief.checkEquals(nextBelief1, nextBelief1));
 		assertTrue(Belief.checkEquals(nextBelief1, nextBelief3));
+	}
+	
+	@Test
+	void testBeliefSetBFSExpansion() {
+		System.out.println("Running testBeliefSetBFSExpansion()");
+		BeliefSet bSet = new BeliefSet(Arrays.asList(new DD[] {this.pomdp.initialBelState}));
 		
-		HashSet<DD> beliefSet = new HashSet<DD>();
-		beliefSet.add(nextBelief1);
-		System.out.println(beliefSet.contains(nextBelief2));
-		System.out.println(beliefSet.contains(nextBelief3));
-		System.out.println("Checking");
-		System.out.println(nextBelief1.equals(nextBelief2));
-		System.out.println(nextBelief1.equals(nextBelief3));
+		int previousSize = bSet.beliefSet.size();
+		for (int i=0; i < 100; i++) { 
+			bSet.expandBeliefRegionBF(this.pomdp, 1);
+			System.out.println("SET SIZE: " + bSet.beliefSet.size());
+		}
+		
+		assertTrue(bSet.beliefSet.size() > previousSize);
+	}
+	
+	@Test
+	void testBeliefSetSSGAExpansion() {
+		System.out.println("Running testBeliefSetSSGAExpansion()");
+		BeliefSet bSet = new BeliefSet(Arrays.asList(new DD[] {this.pomdp.initialBelState}));
+		
+		int previousSize = bSet.beliefSet.size();
+		for (int i=0; i < 100; i++) { 
+			bSet.expandBeliefRegionSSGA(this.pomdp, 50);
+			System.out.println("SET SIZE: " + bSet.beliefSet.size());
+		}
+		
+		assertTrue(bSet.beliefSet.size() > previousSize);
 	}
 
 }

@@ -33,7 +33,7 @@ public class RunTigerProblemPOMDP {
 //			System.out.println(tigerPOMDP.domainString);
 			tigerPOMDP.writeToFile(domainFile.getAbsolutePath());
 			POMDP pomdp = new POMDP(domainFile.getAbsolutePath());
-			pomdp.solvePBVI(10, 100);
+			pomdp.solvePBVI(15, 100);
 			domainFile.deleteOnExit();
 			PolicyExtractor policyExtractor = new PolicyExtractor(pomdp);
 			PolicyGraph policyGraph = new PolicyGraph(policyExtractor.policyNodes);

@@ -1442,7 +1442,16 @@ public class POMDP implements Serializable {
 	
 	public void solvePBVI(int rounds, int numDpBackups) {
 		
-		expandBeliefRegion(100);
+//		expandBeliefRegion(100);
+		List<DD> initBeliefList = new ArrayList<DD>();
+		initBeliefList.add(this.initialBelState);
+		
+		for (int i=0; i < this.nAdjuncts; i++) initBeliefList.add(this.adjuncts[i]);
+		
+		BeliefSet beliefSet = new BeliefSet(initBeliefList);
+		
+		beliefSet.expandBeliefRegionBF(this, 2);
+		this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 		
 		// initialize T
 		alphaVectors = new DD[1];
@@ -1453,8 +1462,10 @@ public class POMDP implements Serializable {
 			this.pCache.resetAlphaVecsMap();
 
 			boundedPerseusStartFromCurrent(100, r * numDpBackups, numDpBackups);
-			expandBeliefRegionSSGA(100);
-//			expandBeliefRegion(100);
+
+			beliefSet.expandBeliefRegionSSGA(this, 5);
+			this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
+
 		}
 		
 		this.alphaVectors = this.pCache.getMaxAlphaVecs();

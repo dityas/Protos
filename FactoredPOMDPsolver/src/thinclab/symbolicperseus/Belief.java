@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import thinclab.exceptions.ZeroProbabilityObsException;
+
 /*
  * @author adityas
  *
@@ -124,6 +126,81 @@ public class Belief {
 		}
 		
 		return beliefs;
+	}
+	
+	// --------------------------------------------------------------------------------------
+	
+	public static DD beliefUpdate(POMDP p,
+			DD belState, 
+			int actId, 
+			String[] obsnames) throws ZeroProbabilityObsException {
+		/*
+		 * Belief update with known action and Observations as Strings
+		 * 
+		 * Throws exception on zero probability observations. This is just an exact copy
+		 * of Jesse Hoey's belief update code in symbolic perseus with an added
+		 * exception for zero probability observations.
+		 */
+		if (obsnames.length != p.nObsVars) return null;
+		
+		int[] obsvals = new int[obsnames.length];
+		
+		for (int o = 0; o < obsnames.length; o++) {
+			obsvals[o] = p.findObservationByName(o, obsnames[o]) + 1;
+			
+			if (obsvals[o] < 0) return null;
+		}
+		
+		int[][] obsVals = POMDP.stackArray(p.primeObsIndices, obsvals);
+		DD[] restrictedObsFn = OP.restrictN(p.actions[actId].obsFn, obsVals);
+		
+		DD nextBelState = OP.addMultVarElim(
+				POMDP.concatenateArray(belState, 
+						p.actions[actId].transFn,
+						restrictedObsFn), 
+				p.varIndices);
+		
+		nextBelState = OP.primeVars(nextBelState, -p.nVars);
+		DD obsProb = OP.addMultVarElim(nextBelState, p.varIndices);
+		
+		if (obsProb.getVal() < 1e-8) {
+			throw new ZeroProbabilityObsException(
+					"OBSERVATION " + obsnames + " is zero probability");
+		}
+		
+		nextBelState = OP.div(nextBelState,
+				OP.addMultVarElim(nextBelState, 
+						p.varIndices));
+		
+		return nextBelState;
+	}
+
+	public static DD beliefUpdate(POMDP p, 
+			DD belState, 
+			int actId, 
+			int[][] obsVals) throws ZeroProbabilityObsException {
+		/*
+		 * Belief update with observation ID arrays instead of String arrays
+		 */
+
+		DD[] restrictedObsFn = OP.restrictN(p.actions[actId].obsFn, obsVals);
+		
+		DD nextBelState = OP.addMultVarElim(
+				POMDP.concatenateArray(belState, p.actions[actId].transFn,
+						restrictedObsFn), p.varIndices);
+		
+		nextBelState = OP.primeVars(nextBelState, -p.nVars);
+		DD obsProb = OP.addMultVarElim(nextBelState, p.varIndices);
+		
+		if (obsProb.getVal() < 1e-8) {
+			throw new ZeroProbabilityObsException(
+					"OBSERVATION is zero probability");
+		}
+		
+		nextBelState = OP.div(nextBelState,
+				OP.addMultVarElim(nextBelState, p.varIndices));
+		
+		return nextBelState;
 	}
 	
 	// --------------------------------------------------------------------------------------
