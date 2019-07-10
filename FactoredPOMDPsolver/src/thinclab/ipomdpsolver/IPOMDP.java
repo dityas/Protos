@@ -139,7 +139,7 @@ public class IPOMDP extends POMDP {
 								opponentFrame, 
 								beliefF), 
 						opponentFrame));
-			}
+			} /* belief iterator */
 			
 		} /* frame iterator */
 		
