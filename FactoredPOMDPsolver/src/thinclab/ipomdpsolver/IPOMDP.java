@@ -13,6 +13,9 @@ import java.util.List;
 
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
+import thinclab.symbolicperseus.Belief;
+import thinclab.symbolicperseus.BeliefSet;
+import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.ParseSPUDD;
 
@@ -79,9 +82,9 @@ public class IPOMDP extends POMDP {
 		 * Calls IPBVI or PBVI on the lower level frames depending on whether they are IPOMDPs
 		 * or POMDPs
 		 */
-		Iterator<POMDP> framIterator = this.lowerLevelFrames.iterator();
-		while (framIterator.hasNext()) {
-			POMDP opponentModel = framIterator.next();
+		Iterator<POMDP> frameIterator = this.lowerLevelFrames.iterator();
+		while (frameIterator.hasNext()) {
+			POMDP opponentModel = frameIterator.next();
 			
 			/*
 			 * Check if lower frame is POMDP or IPOMDP and call the solve method accordingly
@@ -101,15 +104,60 @@ public class IPOMDP extends POMDP {
 					this.lowerLevelFrames.indexOf(opponentModel) + 
 					" is not a POMDP or IPOMDP");
 			
-		}
+		} /* frame iterator */
 		
+	}
+	
+	public OpponentModel[] getOpponentModels() throws SolverException {
+		/*
+		 * Computes the models of the lower level agents and makes
+		 * (reachable beliefs X frames) number of opponent models 
+		 */
+		List<OpponentModel> oppModels = new ArrayList<OpponentModel>();
+		
+		this.solveOpponentModels();
+		
+		Iterator<POMDP> framIterator = this.lowerLevelFrames.iterator();
+		while (framIterator.hasNext()) {
+			POMDP opponentFrame = framIterator.next();
+			
+			List<DD[]> opponentBeliefSet = BeliefSet.getInitialReachableBeliefs(
+					opponentFrame, 3);
+			
+			/*
+			 * Make opponent model as (Belief X Frames). For each belief in belief set,
+			 * make a new model for the belief and frame combination
+			 */
+			Iterator<DD[]> beliefIterator = opponentBeliefSet.iterator();
+			while (beliefIterator.hasNext()) {
+				DD[] beliefF = beliefIterator.next();
+				/*
+				 * Create new model
+				 */
+				oppModels.add(new OpponentModel(
+						Belief.unFactorBeliefPoint(
+								opponentFrame, 
+								beliefF), 
+						opponentFrame));
+			}
+			
+		} /* frame iterator */
+		
+		return oppModels.toArray(new OpponentModel[oppModels.size()]);
 	}
 	
 	public void solveIPBVI(int rounds, int numDpBackups) {
 		/*
 		 * Runs the interactive PBVI loop for solving the IPOMDP
 		 */
+		try {
+			OpponentModel[] oppModels = this.getOpponentModels();
+		} 
 		
+		catch (SolverException e) {
+			System.err.println(e.getMessage());
+			System.exit(-1);
+		}
 		
 	}
 

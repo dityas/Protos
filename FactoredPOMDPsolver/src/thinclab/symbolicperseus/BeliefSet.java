@@ -243,8 +243,8 @@ public class BeliefSet {
 				 */
 				try {
 					DD nextBelief = Belief.beliefUpdate(p, belief,
-							act, 
-							obsConfig);
+						act, 
+						obsConfig);
 					
 					/*
 					 * Add belief point if it doesn't already exist
@@ -269,9 +269,35 @@ public class BeliefSet {
 	
 	// --------------------------------------------------------------------------------
 	
-	public DD[][] getFactoredBeliefRegionArray(POMDP p) {
+	public static List<DD[]> getReachableBeliefsFromBelief(POMDP p,
+			DD belief,
+			int horizon) {
 		/*
-		 * Returns a POMDP compatiable belRegion from the beliefSet
+		 * Perform breadth first expansion from the given belief
+		 */
+		BeliefSet reachabilitySet = new BeliefSet(Arrays.asList(new DD[] {belief}));
+		reachabilitySet.expandBeliefRegionBF(p, horizon);
+		
+		return reachabilitySet.getFactoredBeliefRegionList(p);
+	}
+	
+	public static List<DD[]> getInitialReachableBeliefs(POMDP p,
+			int horizon) {
+		/*
+		 * Initialize an empty belief set with initial beliefs and do breadth
+		 * first expansion
+		 */
+		BeliefSet reachabilitySet = new BeliefSet(p.getInitialBeliefsList());
+		reachabilitySet.expandBeliefRegionBF(p, horizon);
+		
+		return reachabilitySet.getFactoredBeliefRegionList(p);
+	}
+	
+	// --------------------------------------------------------------------------------
+	
+	public List<DD[]> getFactoredBeliefRegionList(POMDP p) {
+		/*
+		 * Factors the belefs in the beliefSet and returns a list of them
 		 */
 		List<DD[]> factoredBelRegion = new ArrayList<DD[]>();
 		Iterator<DD> beliefSetIterator = this.beliefSet.iterator();
@@ -280,6 +306,14 @@ public class BeliefSet {
 			factoredBelRegion.add(Belief.factorBeliefPoint(p, beliefSetIterator.next()));
 		}
 		
+		return factoredBelRegion;
+	}
+	
+	public DD[][] getFactoredBeliefRegionArray(POMDP p) {
+		/*
+		 * Returns a POMDP compatiable belRegion from the beliefSet
+		 */
+		List<DD[]> factoredBelRegion = this.getFactoredBeliefRegionList(p);
 		return factoredBelRegion.toArray(new DD[factoredBelRegion.size()][]);
 	}
 }

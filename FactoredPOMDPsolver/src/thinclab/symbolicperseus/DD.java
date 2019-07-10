@@ -2,6 +2,7 @@ package thinclab.symbolicperseus;
 
 import java.util.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public abstract class DD implements Serializable {
 		public static DD one = DDleaf.myNew(1);
@@ -40,7 +41,31 @@ public abstract class DD implements Serializable {
 		abstract public DD store();
 
 		public static DD cast(DDleaf leaf) { return (DD)leaf; }
-		public static DD cast(DDnode node) { return (DD)node; }	
+		public static DD cast(DDnode node) { return (DD)node; }
+
+		@Override
+		public String toString() {
+			/*
+			 * Using printSpuddDD to return String instead of printing.
+			 * 
+			 * Ref:
+			 * 	https://stackoverflow.com/questions/1760654/java-printstream-to-string
+			 */
+			final ByteArrayOutputStream stringOutStream = new ByteArrayOutputStream();
+			
+		    try (PrintStream ps = new PrintStream(stringOutStream, true, "UTF-8")) {
+		        this.printSpuddDD(ps);
+		    } 
+		    
+		    catch (UnsupportedEncodingException e) {
+				System.err.println(e.getMessage());
+				System.exit(-1);
+			}
+		    
+		    String data = new String(stringOutStream.toByteArray(), StandardCharsets.UTF_8);
+			return "DD [] " + data;
+		}	
+		
 		
 //		@Override
 //		public boolean equals(Object other) {

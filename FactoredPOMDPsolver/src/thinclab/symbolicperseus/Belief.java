@@ -23,20 +23,21 @@ public class Belief {
 	 * Handles operations with belief DDs for POMDPs
 	 */
 	
-	public static DD[] factorBeliefPoint(POMDP pomdp, DD beliefPoint) {
+	public static DD[] factorBeliefPoint(POMDP p, DD beliefPoint) {
 		/*
 		 * factors belief state into a DD array
 		 */
-		DD[] fbs = new DD[pomdp.nStateVars];
-		for (int varId = 0; varId < pomdp.nStateVars; varId++) {
+		p.setGlobals();
+		DD[] fbs = new DD[p.nStateVars];
+		for (int varId = 0; varId < p.nStateVars; varId++) {
 			fbs[varId] = OP.addMultVarElim(beliefPoint,
-					MySet.remove(pomdp.varIndices, varId + 1));
+					MySet.remove(p.varIndices, varId + 1));
 		}
 		
 		return fbs;
 	}
 	
-	public static List<DD> factorBeliefPointAsList(POMDP pomdp, DD beliefPoint) {
+	public static List<DD> factorBeliefPointAsList(POMDP p, DD beliefPoint) {
 		/*
 		 * factors belief state into a DD List.
 		 * 
@@ -46,13 +47,22 @@ public class Belief {
 		 * 			the array object's address. This is difficult to override. So it is
 		 * 			more convenient to use Lists instead. 
 		 */
-		DD[] fbs = new DD[pomdp.nStateVars];
-		for (int varId = 0; varId < pomdp.nStateVars; varId++) {
+		p.setGlobals();
+		DD[] fbs = new DD[p.nStateVars];
+		for (int varId = 0; varId < p.nStateVars; varId++) {
 			fbs[varId] = OP.addMultVarElim(beliefPoint,
-					MySet.remove(pomdp.varIndices, varId + 1));
+					MySet.remove(p.varIndices, varId + 1));
 		}
 		
 		return  (List<DD>) Arrays.asList(fbs);
+	}
+	
+	public static DD unFactorBeliefPoint(POMDP p, DD[] factoredBeliefPoint) {
+		/*
+		 * Returns a joint distribution from a factored distribution
+		 */
+		p.setGlobals();
+		return OP.multN(factoredBeliefPoint);
 	}
 	
 	// --------------------------------------------------------------------------------------
@@ -61,6 +71,7 @@ public class Belief {
 		/*
 		 * Makes a hashmap of belief state and values and returns it
 		 */
+		pomdp.setGlobals();
 		HashMap<String, ArrayList<Float>> beliefs = new HashMap<String, ArrayList<Float>>();
 		DD[] fbs = new DD[pomdp.nStateVars];
 		for (int varId = 0; varId < pomdp.nStateVars; varId++) {
@@ -96,6 +107,8 @@ public class Belief {
 		/*
 		 * Makes a hashmap of belief state and values and returns it
 		 */
+		
+		pomdp.setGlobals();
 		HashMap<String, ArrayList<Float>> beliefs = new HashMap<String, ArrayList<Float>>();
 
 		if (belState.length != pomdp.nStateVars) {
@@ -141,6 +154,7 @@ public class Belief {
 		 * of Jesse Hoey's belief update code in symbolic perseus with an added
 		 * exception for zero probability observations.
 		 */
+		p.setGlobals();
 		if (obsnames.length != p.nObsVars) return null;
 		
 		int[] obsvals = new int[obsnames.length];
@@ -182,7 +196,8 @@ public class Belief {
 		/*
 		 * Belief update with observation ID arrays instead of String arrays
 		 */
-
+		
+		p.setGlobals();
 		DD[] restrictedObsFn = OP.restrictN(p.actions[actId].obsFn, obsVals);
 		
 		DD nextBelState = OP.addMultVarElim(

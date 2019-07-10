@@ -26,6 +26,12 @@ public class POMDP implements Serializable {
 
 	public List<DD[]> beliefRegionList = new ArrayList<DD[]>();
 	
+	/*
+	 * For use as IPOMDP frames at level 0
+	 */
+	public int frameID;
+	public int level = 0;
+	
 	public int nStateVars;
 	public int nObsVars;
 	public int nVars;
@@ -336,6 +342,9 @@ public class POMDP implements Serializable {
 		 */
 		
 		debug = false;
+		
+		this.frameID = parserObj.frameID;
+		this.level = parserObj.level;
 
 		this.ignoremore = false;
 		this.addbeldiff = false;
@@ -2033,6 +2042,23 @@ public class POMDP implements Serializable {
 //				+ this.beliefLeaves.size() + " NOT YET SAMPLED. ");
 	} // public void expandBeliefRegionSSEA
 	
+	public List<DD> getInitialBeliefsList() {
+		/*
+		 * Returns the list of initial beliefs and adjunct beliefs
+		 */
+		List<DD> initList = new ArrayList<DD>();
+		/*
+		 * Add initial belief
+		 */
+		initList.add(this.initialBelState);
+		
+		/*
+		 * Add all adjuncts
+		 */
+		for (int i=0; i < this.nAdjuncts; i++) initList.add(this.adjuncts[i]);
+		
+		return initList;
+	}
 	
 	// -----------------------------------------------------------------------------------------
 	
@@ -2788,4 +2814,12 @@ public class POMDP implements Serializable {
 		
 		return obsValsArray;
 	}
+
+	@Override
+	public String toString() {
+		return "POMDP [frameID=" + frameID + ", level=" + level + 
+				", nStateVars=" + nStateVars + ", nObsVars=" + nObsVars + "]\r\n";
+	}
+	
+	
 }

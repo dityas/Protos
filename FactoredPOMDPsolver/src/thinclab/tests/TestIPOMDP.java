@@ -9,6 +9,8 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Arrays;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,7 @@ import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.ipomdpsolver.OpponentModel;
 import thinclab.symbolicperseus.POMDP;
 
 /*
@@ -117,7 +120,10 @@ class TestIPOMDP {
 		}
 		
 		try {
-			tigerL1IPOMDP.solveOpponentModels();
+			OpponentModel[] models = tigerL1IPOMDP.getOpponentModels(); 
+			assertTrue(models.length > 2);
+			
+			System.out.println(Arrays.deepToString(models));
 		} 
 		
 		catch (SolverException e) {
