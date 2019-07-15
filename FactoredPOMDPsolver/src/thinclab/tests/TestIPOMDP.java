@@ -10,6 +10,8 @@ package thinclab.tests;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +23,7 @@ import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.ipomdpsolver.InteractiveStateVar;
 import thinclab.ipomdpsolver.OpponentModel;
 import thinclab.symbolicperseus.POMDP;
 
@@ -90,19 +93,13 @@ class TestIPOMDP {
 			fail();
 		}
 		
-//		tigerL1IPOMDP.solvePBVI(10, 100);
+		tigerL1IPOMDP.solveIPBVI(10, 100);
 	}
 	
 	@Test
-	void testIPOMDPL1GetOpponentModels() {
-		/*
-		 * Test Opponents solutions by L1 agents
-		 */
-		System.out.println("Running testIPOMDPL1GetOpponentModels()");
+	void testIPOMDPISCreation() {
+		System.out.println("Running testIPOMDPISCreation()");
 		
-		/*
-		 * Create and Parse the IPOMDP as usual
-		 */
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
@@ -111,22 +108,19 @@ class TestIPOMDP {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP();
 		try {
-			tigerL1IPOMDP.initializeFromParsers(parser);
-		} 
-		
-		catch (ParserException e) {
-			System.err.println(e.getMessage());
-			fail();
-		}
-		
-		try {
-			OpponentModel[] models = tigerL1IPOMDP.getOpponentModels(); 
-			assertTrue(models.length > 2);
 			
-			System.out.println(Arrays.deepToString(models));
+			HashSet<OpponentModel> oppModelSet = new HashSet<OpponentModel>();
+			
+			tigerL1IPOMDP.initializeFromParsers(parser);
+			List<OpponentModel> oppModels = tigerL1IPOMDP.getOpponentModels();
+			oppModelSet.addAll(oppModels);
+			List<InteractiveStateVar> ISVars = 
+					tigerL1IPOMDP.makeInteractiveStateSpace(oppModelSet);
+			
+			assertEquals(ISVars.size(), (oppModels.size() * tigerL1IPOMDP.nStateVars));
 		} 
 		
-		catch (SolverException e) {
+		catch (Exception e) {
 			System.err.println(e.getMessage());
 			fail();
 		}

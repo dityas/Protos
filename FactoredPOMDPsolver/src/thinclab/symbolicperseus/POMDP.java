@@ -2814,11 +2814,38 @@ public class POMDP implements Serializable {
 		
 		return obsValsArray;
 	}
+	
+	// -------------------------------------------------------------------------------
 
 	@Override
 	public String toString() {
 		return "POMDP [frameID=" + frameID + ", level=" + level + 
 				", nStateVars=" + nStateVars + ", nObsVars=" + nObsVars + "]\r\n";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + frameID;
+		result = prime * result + level;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		POMDP other = (POMDP) obj;
+		if (frameID != other.frameID)
+			return false;
+		if (level != other.level)
+			return false;
+		return true;
 	}
 	
 	

@@ -8,6 +8,7 @@
 package thinclab.ipomdpsolver;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -77,6 +78,8 @@ public class IPOMDP extends POMDP {
 		}
 	}
 	
+	// ------------------------------------------------------------------------------------------
+	
 	public void solveOpponentModels() throws SolverException {
 		/*
 		 * Calls IPBVI or PBVI on the lower level frames depending on whether they are IPOMDPs
@@ -108,7 +111,7 @@ public class IPOMDP extends POMDP {
 		
 	}
 	
-	public OpponentModel[] getOpponentModels() throws SolverException {
+	public List<OpponentModel> getOpponentModels() throws SolverException {
 		/*
 		 * Computes the models of the lower level agents and makes
 		 * (reachable beliefs X frames) number of opponent models 
@@ -143,7 +146,7 @@ public class IPOMDP extends POMDP {
 			
 		} /* frame iterator */
 		
-		return oppModels.toArray(new OpponentModel[oppModels.size()]);
+		return oppModels;
 	}
 	
 	public void solveIPBVI(int rounds, int numDpBackups) {
@@ -151,7 +154,7 @@ public class IPOMDP extends POMDP {
 		 * Runs the interactive PBVI loop for solving the IPOMDP
 		 */
 		try {
-			OpponentModel[] oppModels = this.getOpponentModels();
+			List<OpponentModel> oppModels = this.getOpponentModels();
 		} 
 		
 		catch (SolverException e) {
@@ -159,6 +162,33 @@ public class IPOMDP extends POMDP {
 			System.exit(-1);
 		}
 		
+	}
+	
+	// ------------------------------------------------------------------------------------------
+	
+	public List<InteractiveStateVar> makeInteractiveStateSpace(HashSet<OpponentModel> uniqueModels) {
+		/*
+		 * Constructs the IS space from unique opponent models and physical states 
+		 * 
+		 * For the look ahead solver, the state space will differ at every t. So we will need
+		 * to construct a new IS space for every horizon
+		 */
+		List<InteractiveStateVar> ISVars = new ArrayList<InteractiveStateVar>();
+		
+		/*
+		 * For each unique model and state var, make a new IS
+		 */
+		Iterator<OpponentModel> uniqueModelsIter = uniqueModels.iterator();
+		while (uniqueModelsIter.hasNext()) {
+			OpponentModel opponentModel = (OpponentModel) uniqueModelsIter.next();
+			
+			for (int s=0; s < this.nStateVars; s++) {
+				ISVars.add(new InteractiveStateVar(this.stateVars[s], opponentModel));
+			}
+			
+		} /* oppnentModels iterator */
+		
+		return ISVars;
 	}
 
 }

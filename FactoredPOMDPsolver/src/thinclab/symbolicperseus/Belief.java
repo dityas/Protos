@@ -62,7 +62,7 @@ public class Belief {
 		 * Returns a joint distribution from a factored distribution
 		 */
 		p.setGlobals();
-		return OP.multN(factoredBeliefPoint);
+		return (DD) OP.multN(factoredBeliefPoint);
 	}
 	
 	// --------------------------------------------------------------------------------------
