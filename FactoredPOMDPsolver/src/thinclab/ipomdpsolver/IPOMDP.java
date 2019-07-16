@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Vector;
 
+import cern.colt.Arrays;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.symbolicperseus.Belief;
@@ -32,7 +34,12 @@ public class IPOMDP extends POMDP {
 	 * The strategy level and frame ID of the frame represented by the IPOMDP object
 	 */
 	public int frameID;
-	public int stratLevel; 
+	public int stratLevel;
+	
+	/*
+	 * Tabular transition and observation functions
+	 */
+	public Vector<Vector<Vector<Float>>> T = new Vector<Vector<Vector<Float>>>();
 	
 	public List<POMDP> lowerLevelFrames = new ArrayList<POMDP>();
 
@@ -43,6 +50,8 @@ public class IPOMDP extends POMDP {
 	public IPOMDP() {
 		super();
 	}
+	
+	// -----------------------------------------------------------------------------------------
 	
 	public void initializeFromParsers(IPOMDPParser parsedFrame) throws ParserException {
 		/*
@@ -74,6 +83,30 @@ public class IPOMDP extends POMDP {
 			 */
 			lowerFrame.initializeFromParsers(parsedLowerFrame);
 			this.lowerLevelFrames.add(lowerFrame);
+			
+		} /* for all child frames */
+		
+		this.makeTabularTransitionFunction();
+	}
+	
+	private void makeTabularTransitionFunction() {
+		/*
+		 * Converts the transition function represented as a DBN to a (S x A x S) matrix
+		 */
+		
+		/*
+		 * Flatten state space
+		 */
+		int totalFlatStates = 1;
+		for (int s=0; s < this.nStateVars; s++) {
+			totalFlatStates *= this.stateVars[s].arity;
+		}
+				
+		/*
+		 * For all actions, use super's getTransFnTabular
+		 */
+		for (int i=0; i < this.nActions; i++) {
+			double[] flatFunction = this.getTransFnTabular(i);
 			
 		}
 	}
@@ -186,7 +219,7 @@ public class IPOMDP extends POMDP {
 				ISVars.add(new InteractiveStateVar(this.stateVars[s], opponentModel));
 			}
 			
-		} /* oppnentModels iterator */
+		} /* opponentModels iterator */
 		
 		return ISVars;
 	}

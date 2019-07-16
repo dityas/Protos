@@ -10,7 +10,9 @@ package thinclab.tests;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -19,6 +21,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.Examples.AttackerDomainPOMDP;
+import thinclab.Examples.TigerProblemPOMDP;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.symbolicperseus.Belief;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
@@ -45,6 +49,7 @@ class TestDDOps {
 		
 		if (!setUpDone) {
 			AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
+//			TigerProblemPOMDP attackerPOMDP = new TigerProblemPOMDP();
 			File domainFile = File.createTempFile("AttackerPOMDP", ".POMDP");
 			attackerPOMDP.makeAll();
 			attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
@@ -85,45 +90,110 @@ class TestDDOps {
 	void tearDown() throws Exception {
 	}
 
-	@Test
-	void testDDEquals() {
-		System.out.println("Running testDDEquals()");
-		
-		assertTrue(this.initBelief.equals(this.bNOPNoneFromInit));
-		assertTrue(this.bNOPNoneFromInit.equals(this.initBelief));
-	}
+//	@Test
+//	void testDDEquals() {
+//		System.out.println("Running testDDEquals()");
+//		
+//		assertTrue(this.initBelief.equals(this.bNOPNoneFromInit));
+//		assertTrue(this.bNOPNoneFromInit.equals(this.initBelief));
+//	}
+//	
+//	@Test
+//	void testDDFactorAndUnFactor() {
+//		System.out.println("Running testDDFactorAndUnFactor()");
+//		
+//		DD[] initBeliefF = Belief.factorBeliefPoint(this.pomdp, initBelief);
+//		Global.clearHashtables();
+//		
+//		DD initBeliefUf = OP.multN(initBeliefF);
+//		assertTrue(this.initBelief.equals(initBeliefUf));
+//	}
+//	
+//	@Test
+//	void testDDHashSets() {
+//		System.out.println("Running testDDHashSets()");
+//		
+//		HashSet<DD> ddHashSet = new HashSet<DD>();
+//		
+//		ddHashSet.add(this.initBelief);
+//		assertTrue(ddHashSet.contains(this.bNOPNoneFromInit));
+//		assertFalse(ddHashSet.contains(this.bPRIVFromInit));
+//	}
+//	
+//	@Test
+//	void testDDArrayHashSets() {
+//		System.out.println("Running testDDArrayHashSets()");
+//		
+//		HashSet<List<DD>> ddHashSet = new HashSet<List<DD>>();
+//		
+//		ddHashSet.add(Belief.factorBeliefPointAsList(this.pomdp, this.initBelief));
+//		assertTrue(ddHashSet.contains(Belief.factorBeliefPointAsList(this.pomdp, this.bNOPNoneFromInit)));
+//		assertFalse(ddHashSet.contains(Belief.factorBeliefPointAsList(this.pomdp, this.bPRIVFromInit)));
+//	}
 	
 	@Test
-	void testDDFactorAndUnFactor() {
-		System.out.println("Running testDDFactorAndUnFactor()");
+	void testBeliefUpdateInternals() throws IOException, ZeroProbabilityObsException {
+//		TigerProblemPOMDP attackerPOMDP = new TigerProblemPOMDP();
+//		File domainFile = File.createTempFile("AttackerPOMDP", ".POMDP");
+//		attackerPOMDP.makeAll();
+//		attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
+//		pomdp = new POMDP(domainFile.getAbsolutePath());
+//		pomdp.solvePBVI(5, 100);
 		
-		DD[] initBeliefF = Belief.factorBeliefPoint(this.pomdp, initBelief);
-		Global.clearHashtables();
+		System.out.println("Running testBeliefUpdateInternals()");
 		
-		DD initBeliefUf = OP.multN(initBeliefF);
-		assertTrue(this.initBelief.equals(initBeliefUf));
-	}
-	
-	@Test
-	void testDDHashSets() {
-		System.out.println("Running testDDHashSets()");
+		int actId = 0;
+		System.out.println("actId is " + actId +", Action is " + pomdp.actions[actId].name);
+		System.out.println("O is " + Arrays.deepToString(pomdp.actions[actId].obsFn));
 		
-		HashSet<DD> ddHashSet = new HashSet<DD>();
+		String o = "success";
+		System.out.println("Let obs recieved be " + o);
 		
-		ddHashSet.add(this.initBelief);
-		assertTrue(ddHashSet.contains(this.bNOPNoneFromInit));
-		assertFalse(ddHashSet.contains(this.bPRIVFromInit));
-	}
-	
-	@Test
-	void testDDArrayHashSets() {
-		System.out.println("Running testDDArrayHashSets()");
+		int obs = (this.pomdp.findObservationByName(0, o) + 1);
+		System.out.println("o is " + obs);
 		
-		HashSet<List<DD>> ddHashSet = new HashSet<List<DD>>();
+		int[][] obsConfig = POMDP.stackArray(this.pomdp.primeObsIndices, new int[] {obs});
+		System.out.println("obs config is " + 
+				Arrays.deepToString(obsConfig));
 		
-		ddHashSet.add(Belief.factorBeliefPointAsList(this.pomdp, this.initBelief));
-		assertTrue(ddHashSet.contains(Belief.factorBeliefPointAsList(this.pomdp, this.bNOPNoneFromInit)));
-		assertFalse(ddHashSet.contains(Belief.factorBeliefPointAsList(this.pomdp, this.bPRIVFromInit)));
+		DD actualNextBel = Belief.beliefUpdate(
+				this.pomdp, 
+				this.pomdp.initialBelState, 
+				actId,
+				new String[] {o});
+		
+		DD[] restrictedO = OP.restrictN(this.pomdp.actions[actId].obsFn, obsConfig);
+		System.out.println("restricted O is " + 
+				Arrays.deepToString(restrictedO));
+		
+		DD[] concatArrays = POMDP.concatenateArray(
+				this.pomdp.initialBelState, 
+				this.pomdp.actions[actId].transFn, restrictedO);
+		System.out.println("concated arrays are " + Arrays.deepToString(concatArrays));
+		System.out.println("varIndices are " + Arrays.toString(this.pomdp.varIndices));
+		System.out.println("next belief is " + OP.addMultVarElim(concatArrays, this.pomdp.varIndices));
+		
+		DD[] fBelief = Belief.factorBeliefPoint(this.pomdp, this.pomdp.initialBelState);
+		System.out.println("Factored belief is " + Arrays.deepToString(fBelief));
+		
+		DD[] testConcats = POMDP.concatenateArray(
+				fBelief[0], 
+				this.pomdp.actions[actId].transFn, restrictedO);
+		/*
+		 * Trying weird shit
+		 */
+		System.out.println("Actual next belief is " + Belief.toStateMap(this.pomdp, actualNextBel));
+		System.out.println("Single var belief is " + fBelief[0]);
+		System.out.println("Before trying update " + Belief.toStateMap(this.pomdp, fBelief));
+		System.out.println("Single Var next belief is " + 
+				Belief.toStateMap(this.pomdp, 
+						Belief.beliefUpdate(this.pomdp, fBelief[0], actId, new String[] {o})));
+		/*
+		 * Ok forget this shit. Lets try a manual belief update
+		 * 
+		 * First check if the transition function aligns with the belief
+		 */
+		System.out.println("First, checking is the T aligns with the belief");
 	}
 
 }
