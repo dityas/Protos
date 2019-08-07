@@ -49,47 +49,7 @@ public class PolicyExtractor {
 			
 		} // private boolean checkZeroProbabObs(DD belstate)
 		
-//		private void recursiveObsGen(List<List<String>> obsComb, List<StateVar> obsVars, List<String> obsVector, int finalLen, int varIndex){
-//			/* 
-//			 *  Recursively generates a list of all possible combinations of values of the observation variables
-//			 */
-//			
-//			if (varIndex < obsVars.size()) {
-//				
-//				if (obsVector.size() == finalLen) {
-//					obsComb.add(obsVector);
-//				}
-//				
-//				else {
-//					
-//					List<String> obsVectorCopy = new ArrayList<String>(obsVector);
-//					StateVar obs = obsVars.get(varIndex);
-//					for (int i=0;i<obs.valNames.length;i++) {
-//						List<String> anotherObsVecCopy = new ArrayList<String>(obsVectorCopy);
-//						anotherObsVecCopy.add(obs.valNames[i]);
-//						recursiveObsGen(obsComb, obsVars, anotherObsVecCopy, finalLen, varIndex + 1);
-//					}
-//				}
-//				
-//			}
-//			
-//			else {
-//				obsComb.add(obsVector);
-//			}
-//		} // private void recursiveObsGen
-//		
-//		private List<List<String>> recursiveObsCombinations(List<StateVar> obsVars){
-//			/*
-//			 * Driver program for generating observations recursively
-//			 */
-//			int finalLen = obsVars.size();
-//			List<String> obsVec = new ArrayList<String>();
-//			List<List<String>> obsComb = new ArrayList<List<String>>();
-//			
-//			recursiveObsGen(obsComb, obsVars, obsVec, finalLen, 0);
-//			
-//			return obsComb;
-//		} // private List<List<String>> recursiveObsCombinations
+		// ----------------------------------------------------------------------------------------
 		
 		public PolicyExtractor(POMDP p) {
 			this.p = p;
@@ -187,10 +147,13 @@ public class PolicyExtractor {
 				
 			} // while(!policyLeaves.isEmpty())
 		} // public PolicyExtractor
+
+		// ----------------------------------------------------------------------------------------		
 		
 		public void makePolicyRepresentation() {
 			/*
-			 * Combines observations leading to the same next nodes in the policy in order to display it properly
+			 * Combines observations leading to the same next nodes in the policy in order 
+			 * to display it properly
 			 */
 			
 		}
