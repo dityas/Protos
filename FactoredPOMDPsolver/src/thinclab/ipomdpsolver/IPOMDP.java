@@ -16,11 +16,11 @@ import java.util.Vector;
 import cern.colt.Arrays;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
-import thinclab.symbolicperseus.Belief;
-import thinclab.symbolicperseus.BeliefSet;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.ParseSPUDD;
+import thinclab.symbolicperseus.Belief.Belief;
+import thinclab.symbolicperseus.Belief.BeliefSet;
 
 /*
  * @author adityas

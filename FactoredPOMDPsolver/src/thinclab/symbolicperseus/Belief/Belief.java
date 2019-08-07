@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.symbolicperseus;
+package thinclab.symbolicperseus.Belief;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.MySet;
+import thinclab.symbolicperseus.OP;
+import thinclab.symbolicperseus.POMDP;
 
 /*
  * @author adityas

@@ -3,6 +3,9 @@ package thinclab.policyhelper;
 import java.util.*;
 
 import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.POMDP;
+import thinclab.symbolicperseus.Belief.Belief;
+import thinclab.symbolicperseus.Belief.BeliefTreeNode;
 
 public class PolicyNode {
 	
@@ -10,10 +13,43 @@ public class PolicyNode {
 	int actId = 1;
 	public String actName = "";
 	DD belief;
+	
 	HashMap<String, ArrayList<Float>> factoredBelief = new HashMap<String, ArrayList<Float>>();
 	Map<List<String>, Integer> nextNode = new HashMap<List<String>, Integer>();
 	Map<List<String>, Integer> compressedNextNode = new HashMap<List<String>, Integer>();
 	public boolean startNode = false;
+	public POMDP p;
+	
+	// ------------------------------------------------------------------------------------
+	/*
+	 * Constructors
+	 */
+	
+	public PolicyNode() {
+		
+	}
+	
+	public PolicyNode(POMDP p, DD belief) {
+		/*
+		 * Populates the POMDP and belief fields and computes the best action given the belief
+		 */
+		this.p = p;
+		this.belief = belief;
+		
+		/*
+		 * Find best alphaId and action
+		 */
+		this.alphaId = this.p.policyBestAlphaMatch(belief, this.p.alphaVectors, this.p.policy);
+		this.actId = this.p.policy[this.alphaId];
+		this.actName = this.p.actions[this.actId].name;
+		
+		/*
+		 * Fill in belief state map
+		 */
+		this.factoredBelief = Belief.toStateMap(this.p, this.belief);
+	}
+	
+	// ------------------------------------------------------------------------------------
 	
 	public boolean shallowEquals(PolicyNode other) {
 		/*

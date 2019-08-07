@@ -1,6 +1,6 @@
 package thinclab.symbolicperseus;
 
-class MySet {
+public class MySet {
 
     /////////////////////////////////////////////////////////
     // hashCode

@@ -16,6 +16,8 @@ import thinclab.domainMaker.L0Frame;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.policyhelper.PolicyCache;
 import thinclab.symbolicperseus.StateVar;
+import thinclab.symbolicperseus.Belief.Belief;
+import thinclab.symbolicperseus.Belief.BeliefSet;
 
 public class POMDP implements Serializable {
 
@@ -2744,7 +2746,14 @@ public class POMDP implements Serializable {
 		return statevec;
 	}
 	
-	private void recursiveObsGen(List<List<String>> obsComb, List<StateVar> obsVars, List<String> obsVector, int finalLen, int varIndex){
+	// ------------------------------------------------------------------------------------------------
+	
+	private void recursiveObsGen(
+			List<List<String>> obsComb, 
+			List<StateVar> obsVars, 
+			List<String> obsVector, 
+			int finalLen, 
+			int varIndex){
 		/* 
 		 *  Recursively generates a list of all possible combinations of values of the observation variables
 		 */
@@ -2789,6 +2798,12 @@ public class POMDP implements Serializable {
 	public List<List<String>> getAllObservationsList() {
 		return recursiveObsCombinations(Arrays.asList(this.obsVars));
 	}
+	
+	public static List<List<String>> getAllObservationsList(POMDP p) {
+		return p.recursiveObsCombinations(Arrays.asList(p.obsVars));
+	} 
+	
+	// -------------------------------------------------------------------------------------------------
 	
 	public String[] getObsVarsArray() {
 		/*

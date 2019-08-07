@@ -10,6 +10,8 @@ package thinclab.ipomdpsolver;
 import java.util.List;
 import java.util.Vector;
 
+import thinclab.symbolicperseus.DD;
+
 /*
  * @author adityas
  *
@@ -25,6 +27,8 @@ public class InteractiveBelief {
 	
 	public List<InteractiveStateVar> IS;
 	public Vector<Float> beliefPoint = new Vector<Float>();
+	
+	public DD[] factoredBelief;
 	
 	public InteractiveBelief(List<InteractiveStateVar> IS) {
 		this.IS = IS;

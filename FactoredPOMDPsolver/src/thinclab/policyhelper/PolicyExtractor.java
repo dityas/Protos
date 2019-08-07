@@ -1,11 +1,11 @@
 package thinclab.policyhelper;
 import java.util.Map;
 
-import thinclab.symbolicperseus.Belief;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
+import thinclab.symbolicperseus.Belief.Belief;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.policyhelper.PolicyNode;
@@ -94,15 +94,16 @@ public class PolicyExtractor {
 		public PolicyExtractor(POMDP p) {
 			this.p = p;
 			System.out.println("Policy has " + p.alphaVectors.length + " a vectors");
-			PolicyNode nodeCurr = new PolicyNode();
+			PolicyNode nodeCurr = new PolicyNode(this.p, this.p.initialBelState);
 			
 			// Start policy graph from the initial belief
 			// Get relevant alpha vector and action related to the node in the graph
-			nodeCurr.belief = p.initialBelState;
-			nodeCurr.alphaId = p.policyBestAlphaMatch(nodeCurr.belief, p.alphaVectors, p.policy);
-			nodeCurr.actId = p.policy[nodeCurr.alphaId];
-			nodeCurr.actName = this.p.actions[nodeCurr.actId].name;
-			nodeCurr.factoredBelief = Belief.toStateMap(this.p, nodeCurr.belief);
+//			nodeCurr.belief = p.initialBelState;
+//			nodeCurr.alphaId = p.policyBestAlphaMatch(nodeCurr.belief, p.alphaVectors, p.policy);
+//			nodeCurr.actId = p.policy[nodeCurr.alphaId];
+//			nodeCurr.actName = this.p.actions[nodeCurr.actId].name;
+//			nodeCurr.factoredBelief = Belief.toStateMap(this.p, nodeCurr.belief);
+			
 			nodeCurr.startNode = true;
 //			System.out.println("Suggesting action " + p.actions[nodeCurr.actId].name);
 			
@@ -113,14 +114,14 @@ public class PolicyExtractor {
 			
 			if (this.p.adjuncts != null) {
 				for (int i=0; i < this.p.adjuncts.length; i ++) {
-					PolicyNode other = new PolicyNode();
-					other.belief = this.p.adjuncts[i];
-					other.alphaId = this.p.policyBestAlphaMatch(other.belief, 
-							this.p.alphaVectors, 
-							this.p.policy);
-					other.actId = this.p.policy[other.alphaId];
-					other.actName = this.p.actions[other.actId].name;
-					other.factoredBelief = Belief.toStateMap(this.p, other.belief);
+					PolicyNode other = new PolicyNode(this.p, this.p.adjuncts[i]);
+//					other.belief = this.p.adjuncts[i];
+//					other.alphaId = this.p.policyBestAlphaMatch(other.belief, 
+//							this.p.alphaVectors, 
+//							this.p.policy);
+//					other.actId = this.p.policy[other.alphaId];
+//					other.actName = this.p.actions[other.actId].name;
+//					other.factoredBelief = Belief.toStateMap(this.p, other.belief);
 					other.startNode = true;
 					
 					policyLeaves.add(other);
@@ -155,18 +156,20 @@ public class PolicyExtractor {
 //							" AND OBSERVING " + theObs);
 					// Perform belief update and make next policy node
 //					System.out.println("CURRENT BELIEF: " + this.p.getBeliefStateMap(nodeCurr.belief));
-					PolicyNode nodeNext = new PolicyNode();
+//					PolicyNode nodeNext = new PolicyNode();
 					
 					try {
-						nodeNext.belief = p.safeBeliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
-//						System.out.println("FOR OBSERVATION: " + theObs + " ACTION: " + nodeCurr.actId);
-//						System.out.println("NEXTNODE BELIEF: " + this.p.getBeliefStateMap(nodeNext.belief));
-						
-//						System.out.println("Showing belief state");
-						nodeNext.alphaId = p.policyBestAlphaMatch(nodeNext.belief, p.alphaVectors, p.policy);
-						nodeNext.actId = p.policy[nodeNext.alphaId];
-						nodeNext.factoredBelief = Belief.toStateMap(this.p, nodeNext.belief);
-						nodeNext.actName = this.p.actions[nodeNext.actId].name;
+						DD nextBel = p.safeBeliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
+						PolicyNode nodeNext = new PolicyNode(this.p, nextBel);
+//						nodeNext.belief = p.safeBeliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
+////						System.out.println("FOR OBSERVATION: " + theObs + " ACTION: " + nodeCurr.actId);
+////						System.out.println("NEXTNODE BELIEF: " + this.p.getBeliefStateMap(nodeNext.belief));
+//						
+////						System.out.println("Showing belief state");
+//						nodeNext.alphaId = p.policyBestAlphaMatch(nodeNext.belief, p.alphaVectors, p.policy);
+//						nodeNext.actId = p.policy[nodeNext.alphaId];
+//						nodeNext.factoredBelief = Belief.toStateMap(this.p, nodeNext.belief);
+//						nodeNext.actName = this.p.actions[nodeNext.actId].name;
 //						System.out.println("NEXT ALPHA: " + nodeNext.alphaId);
 //						System.out.println("NEXT ACT: " + nodeNext.actId);
 						
@@ -185,7 +188,7 @@ public class PolicyExtractor {
 //					if (!this.checkZeroProbabObs(nodeNext.belief)) {
 				} // while(obsEnum.hasMoreElements())
 				
-				nodeCurr.belief = null;
+//				nodeCurr.belief = null;
 				// Check for duplicate node in policyNodes
 //				System.out.println("CURRENT POLICY: " + policyNodes);
 //				System.out.println("LOOKING FOR: " + nodeCurr);

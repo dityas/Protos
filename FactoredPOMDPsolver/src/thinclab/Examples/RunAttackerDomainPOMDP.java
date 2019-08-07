@@ -25,6 +25,7 @@ public class RunAttackerDomainPOMDP {
 	 */
 
 	public static void main(String[] args) {
+		
 		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
 		
 		try {

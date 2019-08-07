@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.symbolicperseus;
+package thinclab.symbolicperseus.Belief;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +16,11 @@ import java.util.List;
 import java.util.Random;
 
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.Global;
+import thinclab.symbolicperseus.OP;
+import thinclab.symbolicperseus.POMDP;
+import thinclab.symbolicperseus.StateVar;
 
 /*
  * @author adityas
@@ -297,7 +302,7 @@ public class BeliefSet {
 	
 	public List<DD[]> getFactoredBeliefRegionList(POMDP p) {
 		/*
-		 * Factors the belefs in the beliefSet and returns a list of them
+		 * Factors the beliefs in the beliefSet and returns a list of them
 		 */
 		List<DD[]> factoredBelRegion = new ArrayList<DD[]>();
 		Iterator<DD> beliefSetIterator = this.beliefSet.iterator();
@@ -311,7 +316,7 @@ public class BeliefSet {
 	
 	public DD[][] getFactoredBeliefRegionArray(POMDP p) {
 		/*
-		 * Returns a POMDP compatiable belRegion from the beliefSet
+		 * Returns a POMDP compatible belRegion from the beliefSet
 		 */
 		List<DD[]> factoredBelRegion = this.getFactoredBeliefRegionList(p);
 		return factoredBelRegion.toArray(new DD[factoredBelRegion.size()][]);

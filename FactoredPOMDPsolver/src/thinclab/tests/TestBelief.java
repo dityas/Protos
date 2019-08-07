@@ -20,12 +20,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.Examples.TigerProblemPOMDP;
-import thinclab.symbolicperseus.Belief;
-import thinclab.symbolicperseus.BeliefSet;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
+import thinclab.symbolicperseus.Belief.Belief;
+import thinclab.symbolicperseus.Belief.BeliefSet;
 
 /*
  * @author adityas
