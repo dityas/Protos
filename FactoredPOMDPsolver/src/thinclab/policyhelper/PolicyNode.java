@@ -55,7 +55,7 @@ public class PolicyNode {
 		/*
 		 * Takes another policy and compares its alphaId, actId and nexNodes
 		 */
-//		System.out.println("" + this.nextNode + "\r\n" + other.nextNode);
+
 		if (this.actId == other.actId && this.alphaId == other.alphaId && this.nextNode.equals(other.nextNode)) {
 			return true;
 		}
@@ -86,7 +86,9 @@ public class PolicyNode {
 		 */
 		HashMap<Integer, List<List<String>>> nextNodeToObsMap = new HashMap<Integer, List<List<String>>>();
 		
-		// populate reverse hash map
+		/*
+		 *  populate reverse hash map
+		 */
 		Iterator<Map.Entry<List<String>, Integer>> nextNodeIter = this.nextNode.entrySet().iterator();
 		while(nextNodeIter.hasNext()) {
 			Map.Entry<List<String>, Integer> theEdge = nextNodeIter.next();
@@ -103,7 +105,9 @@ public class PolicyNode {
 
 		} // while(nextNodeIter.hasNext())
 		
-		// Loop over reverse map and add compressed edges to compressedNextNode
+		/*
+		 *  Loop over reverse map and add compressed edges to compressedNextNode
+		 */
 		Iterator<Map.Entry<Integer, List<List<String>>>> reverseMapIter = nextNodeToObsMap.entrySet().iterator();
 		while (reverseMapIter.hasNext()) {
 			Map.Entry<Integer, List<List<String>>> entry = reverseMapIter.next();
@@ -112,12 +116,16 @@ public class PolicyNode {
 			List<List<String>> observationSet = entry.getValue();
 			String[] compressedObs = observationSet.get(0).toArray(new String[observationSet.get(0).size()]);			
 			
-			// Iterate over common observations
+			/*
+			 *  Iterate over common observations
+			 */
 			Iterator<List<String>> obsIter = observationSet.iterator();
 			while (obsIter.hasNext()) {
 				List<String> list = obsIter.next();
 				
-				// Check each observation
+				/*
+				 *  Check each observation
+				 */
 				for (int i=0; i < list.size(); i++) {
 					String obs = list.get(i);
 					if (obs != compressedObs[i]) {
@@ -126,14 +134,12 @@ public class PolicyNode {
 				} // for (int i=0; i < list.size(); i++)
 			} // while (obsIter.hasNext())
 			
-			// Add compressed observation to compressed hash map
+			/*
+			 *  Add compressed observation to compressed hash map
+			 */
 			this.compressedNextNode.put(Arrays.asList(compressedObs), child);
 		} // while (reverseMapIter.hasNext())
 		
-//		System.out.println("BEFORE: ");
-//		System.out.println(this.nextNode);
-//		System.out.println("AFTER: ");
-//		System.out.println(this.compressedNextNode);
 	} // void compressNextNodes()
 	
 	public String getBeliefLabel() {

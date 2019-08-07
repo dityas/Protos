@@ -49,173 +49,142 @@ public class PolicyExtractor {
 			
 		} // private boolean checkZeroProbabObs(DD belstate)
 		
-		private void recursiveObsGen(List<List<String>> obsComb, List<StateVar> obsVars, List<String> obsVector, int finalLen, int varIndex){
-			/* 
-			 *  Recursively generates a list of all possible combinations of values of the observation variables
-			 */
-			
-			if (varIndex < obsVars.size()) {
-				
-				if (obsVector.size() == finalLen) {
-					obsComb.add(obsVector);
-				}
-				
-				else {
-					
-					List<String> obsVectorCopy = new ArrayList<String>(obsVector);
-					StateVar obs = obsVars.get(varIndex);
-					for (int i=0;i<obs.valNames.length;i++) {
-						List<String> anotherObsVecCopy = new ArrayList<String>(obsVectorCopy);
-						anotherObsVecCopy.add(obs.valNames[i]);
-						recursiveObsGen(obsComb, obsVars, anotherObsVecCopy, finalLen, varIndex + 1);
-					}
-				}
-				
-			}
-			
-			else {
-				obsComb.add(obsVector);
-			}
-		} // private void recursiveObsGen
-		
-		private List<List<String>> recursiveObsCombinations(List<StateVar> obsVars){
-			/*
-			 * Driver program for generating observations recursively
-			 */
-			int finalLen = obsVars.size();
-			List<String> obsVec = new ArrayList<String>();
-			List<List<String>> obsComb = new ArrayList<List<String>>();
-			
-			recursiveObsGen(obsComb, obsVars, obsVec, finalLen, 0);
-			
-			return obsComb;
-		} // private List<List<String>> recursiveObsCombinations
+//		private void recursiveObsGen(List<List<String>> obsComb, List<StateVar> obsVars, List<String> obsVector, int finalLen, int varIndex){
+//			/* 
+//			 *  Recursively generates a list of all possible combinations of values of the observation variables
+//			 */
+//			
+//			if (varIndex < obsVars.size()) {
+//				
+//				if (obsVector.size() == finalLen) {
+//					obsComb.add(obsVector);
+//				}
+//				
+//				else {
+//					
+//					List<String> obsVectorCopy = new ArrayList<String>(obsVector);
+//					StateVar obs = obsVars.get(varIndex);
+//					for (int i=0;i<obs.valNames.length;i++) {
+//						List<String> anotherObsVecCopy = new ArrayList<String>(obsVectorCopy);
+//						anotherObsVecCopy.add(obs.valNames[i]);
+//						recursiveObsGen(obsComb, obsVars, anotherObsVecCopy, finalLen, varIndex + 1);
+//					}
+//				}
+//				
+//			}
+//			
+//			else {
+//				obsComb.add(obsVector);
+//			}
+//		} // private void recursiveObsGen
+//		
+//		private List<List<String>> recursiveObsCombinations(List<StateVar> obsVars){
+//			/*
+//			 * Driver program for generating observations recursively
+//			 */
+//			int finalLen = obsVars.size();
+//			List<String> obsVec = new ArrayList<String>();
+//			List<List<String>> obsComb = new ArrayList<List<String>>();
+//			
+//			recursiveObsGen(obsComb, obsVars, obsVec, finalLen, 0);
+//			
+//			return obsComb;
+//		} // private List<List<String>> recursiveObsCombinations
 		
 		public PolicyExtractor(POMDP p) {
 			this.p = p;
 			System.out.println("Policy has " + p.alphaVectors.length + " a vectors");
+			
+			/*
+			 * Start graph with initial belief
+			 */
 			PolicyNode nodeCurr = new PolicyNode(this.p, this.p.initialBelState);
-			
-			// Start policy graph from the initial belief
-			// Get relevant alpha vector and action related to the node in the graph
-//			nodeCurr.belief = p.initialBelState;
-//			nodeCurr.alphaId = p.policyBestAlphaMatch(nodeCurr.belief, p.alphaVectors, p.policy);
-//			nodeCurr.actId = p.policy[nodeCurr.alphaId];
-//			nodeCurr.actName = this.p.actions[nodeCurr.actId].name;
-//			nodeCurr.factoredBelief = Belief.toStateMap(this.p, nodeCurr.belief);
-			
 			nodeCurr.startNode = true;
-//			System.out.println("Suggesting action " + p.actions[nodeCurr.actId].name);
 			
 			List<PolicyNode> policyLeaves = new ArrayList<PolicyNode>();
 			policyLeaves.add(nodeCurr);
 			
-			// Add other initial beliefs
-			
+			/*
+			 *  Add other initial beliefs
+			 */
 			if (this.p.adjuncts != null) {
 				for (int i=0; i < this.p.adjuncts.length; i ++) {
+					/*
+					 * Add adjunct
+					 */
 					PolicyNode other = new PolicyNode(this.p, this.p.adjuncts[i]);
-//					other.belief = this.p.adjuncts[i];
-//					other.alphaId = this.p.policyBestAlphaMatch(other.belief, 
-//							this.p.alphaVectors, 
-//							this.p.policy);
-//					other.actId = this.p.policy[other.alphaId];
-//					other.actName = this.p.actions[other.actId].name;
-//					other.factoredBelief = Belief.toStateMap(this.p, other.belief);
 					other.startNode = true;
 					
 					policyLeaves.add(other);
 				}
 			}
 			
-			// Generate all possible observations
-			List<StateVar> obsVars = new LinkedList<StateVar>(Arrays.asList(p.obsVars));
-			List<List<String>> obs = recursiveObsCombinations(obsVars);
-//			System.out.println("Total possible observations: " + obs.size());
+			/*
+			 *  Generate all possible observations
+			 */
+//			List<StateVar> obsVars = new LinkedList<StateVar>(Arrays.asList(p.obsVars));
+			List<List<String>> obs = this.p.getAllObservationsList();
 			
-			// Do till there are no terminal policy leaves
+			/*
+			 *  Do till there are no terminal policy leaves
+			 */
 			while(!policyLeaves.isEmpty()) {
-//				System.out.println(policyNodes);
-//				System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//				System.out.println("LEAVES: " + policyLeaves);
+				
 				nodeCurr = policyLeaves.remove(0);
 				List<PolicyNode> newLeaves = new ArrayList<PolicyNode>();
-//				System.out.println("CURRNODE: " + nodeCurr);
-//				System.out.println("LEAVES: " + policyLeaves);
-//				System.out.println("POLICY: " + policyNodes);
 				
-				// For all observations, perform belief updates and get best action nodes
+				/*
+				 *  For all observations, perform belief updates and get best action nodes
+				 */
 				Enumeration<List<String>> obsEnum = Collections.enumeration(obs);
 				while(obsEnum.hasMoreElements()) {
-//					System.out.println("==============================================================================");
-//					System.out.println("Policy has " + policyNodes.size() + " nodes and " + policyLeaves.size() + " unexplored leaves ");
-					List<String> theObs = obsEnum.nextElement();
 					
-//					System.out.println("COMPUTING NEXT NODES FOR NODE " + nodeCurr.alphaId + 
-//							" TAKING ACTION " + this.p.actions[nodeCurr.actId].name +
-//							" AND OBSERVING " + theObs);
-					// Perform belief update and make next policy node
-//					System.out.println("CURRENT BELIEF: " + this.p.getBeliefStateMap(nodeCurr.belief));
-//					PolicyNode nodeNext = new PolicyNode();
+					List<String> theObs = obsEnum.nextElement();
 					
 					try {
 						DD nextBel = p.safeBeliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
 						PolicyNode nodeNext = new PolicyNode(this.p, nextBel);
-//						nodeNext.belief = p.safeBeliefUpdate(nodeCurr.belief, nodeCurr.actId, theObs.toArray(new String[0]));
-////						System.out.println("FOR OBSERVATION: " + theObs + " ACTION: " + nodeCurr.actId);
-////						System.out.println("NEXTNODE BELIEF: " + this.p.getBeliefStateMap(nodeNext.belief));
-//						
-////						System.out.println("Showing belief state");
-//						nodeNext.alphaId = p.policyBestAlphaMatch(nodeNext.belief, p.alphaVectors, p.policy);
-//						nodeNext.actId = p.policy[nodeNext.alphaId];
-//						nodeNext.factoredBelief = Belief.toStateMap(this.p, nodeNext.belief);
-//						nodeNext.actName = this.p.actions[nodeNext.actId].name;
-//						System.out.println("NEXT ALPHA: " + nodeNext.alphaId);
-//						System.out.println("NEXT ACT: " + nodeNext.actId);
 						
-						// Link new node to parent
+						/*
+						 *  Link new node to parent
+						 */
 						nodeCurr.nextNode.put(theObs, nodeNext.alphaId);
 						
-						// Add nextNode to list of newly generated leaves
+						/*
+						 *  Add nextNode to list of newly generated leaves
+						 */
 						newLeaves.add(nodeNext);
 					}
 					
 					catch (ZeroProbabilityObsException e) {
-//						System.out.println("Exception " + e.getMessage());
-//						System.out.println("Skipping node");
 					}
-					// Zero probability observations
-//					if (!this.checkZeroProbabObs(nodeNext.belief)) {
+					
+					/*
+					 *  Zero probability observations
+					 */
+
 				} // while(obsEnum.hasMoreElements())
 				
-//				nodeCurr.belief = null;
-				// Check for duplicate node in policyNodes
-//				System.out.println("CURRENT POLICY: " + policyNodes);
-//				System.out.println("LOOKING FOR: " + nodeCurr);
 				Iterator<PolicyNode> policyNodeIter = policyNodes.iterator();
 				boolean hasDuplicate = false;
 				while(policyNodeIter.hasNext()) {
 					PolicyNode existingNode = policyNodeIter.next();
 					if (nodeCurr.actId == existingNode.actId && nodeCurr.alphaId == existingNode.alphaId) {
-//					if (existingNode.shallowEquals(nodeCurr)) {
 						hasDuplicate = true;
-//						System.out.println("SAME NODE: " + existingNode);
-//						policyNodes.remove(existingNode);
 					}
 				}
 				
-				// If node is unique, add to policy
+				/*
+				 *  If node is unique, add to policy
+				 */
 				if (!hasDuplicate) {
-//					System.out.println("UNIQUE NODE: " + nodeCurr);
 					policyNodes.add(nodeCurr);
 					policyLeaves.addAll(newLeaves);
 				}
 				
 				else {
-//					System.out.println("Found same node");
 				}
 				
-//				System.out.println("" + policyNodes.size() + " policy nodes");
 			} // while(!policyLeaves.isEmpty())
 		} // public PolicyExtractor
 		
