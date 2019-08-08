@@ -15,10 +15,14 @@ import thinclab.symbolicperseus.POMDP;
 public class PolicyGraph {
 	
 	private HashMap<Integer, PolicyNode> policyNodeHashMap = new HashMap<Integer, PolicyNode>();
-	private HashMap<Integer, Map<List<String>, Integer>> successorMap = new HashMap<Integer, Map<List<String>, Integer>>();
-	private DirectedOrderedSparseMultigraph<PolicyNode, PolicyEdge> policyGraph = new DirectedOrderedSparseMultigraph<PolicyNode, PolicyEdge>();
+	private HashMap<Integer, Map<List<String>, Integer>> successorMap = 
+			new HashMap<Integer, Map<List<String>, Integer>>();
+	private DirectedOrderedSparseMultigraph<PolicyNode, PolicyEdge> policyGraph = 
+			new DirectedOrderedSparseMultigraph<PolicyNode, PolicyEdge>();
 	public DirectedOrderedSparseMultigraph<PolicyNode, PolicyEdge> prettyPolicyGraph = 
 			new DirectedOrderedSparseMultigraph<PolicyNode, PolicyEdge>();
+	
+	// -----------------------------------------------------------------------------------------------
 	
 	public PolicyGraph(List<PolicyNode> policyNodes) {
 		/*
@@ -30,7 +34,7 @@ public class PolicyGraph {
 		
 		while(nodeIter.hasNext()) {
 			PolicyNode nodeCurr = nodeIter.next(); 
-//			System.out.println(nodeCurr);
+
 			this.policyNodeHashMap.put(new Integer(nodeCurr.alphaId), nodeCurr);
 			
 			// compress observations for pretty graph
@@ -77,6 +81,47 @@ public class PolicyGraph {
 		} // while(nodeIter.hasNext())
 	} // public PolicyGraph(List<PolicyNode> policyNodes)
 	
+	public PolicyGraph(PolicyTree policyTree) {
+		/*
+		 * Make policy graph from the list nodes given by PolicyTree
+		 */
+		
+		/*
+		 * Populate nodeHashMap
+		 */
+		policyTree.indexNodes(0);
+		for (PolicyNode node : policyTree.policyNodes) {
+			this.policyNodeHashMap.put(node.id, node);
+		}
+
+		/*
+		 *  populate the tree
+		 */
+		for (PolicyNode nodeCurr : policyTree.policyNodes) {
+
+			/*
+			 * Add edges for current policy node to policy graph
+			 */
+			Iterator<Map.Entry<List<String>, PolicyNode>> nextNodeIter = 
+					nodeCurr.nextPolicyNode.entrySet().iterator();
+			while(nextNodeIter.hasNext()) {
+				Map.Entry<List<String>, PolicyNode> nextNodeEntry = nextNodeIter.next();
+				policyGraph.addEdge(
+						new PolicyEdge(nodeCurr.id, 
+									   nextNodeEntry.getKey(),
+									   nextNodeEntry.getValue().id),
+						this.policyNodeHashMap.get(nodeCurr.id),
+						this.policyNodeHashMap.get(nextNodeEntry.getValue().id),
+						EdgeType.DIRECTED);
+				
+			} // while(nextNodeIter.hasNext())
+			
+		} // while(nodeIter.hasNext())
+		
+	} // public PolicyGraph(List<PolicyNode> policyNodes)
+	
+	// ----------------------------------------------------------------------------------------------------
+	
 	public void printPrettyPolicyGraph() {
 		System.out.println("POLICY GRAPH: ");
 		System.out.println(this.policyGraph);
@@ -113,18 +158,11 @@ public class PolicyGraph {
 			List<String> tripleList = new ArrayList<String>();
 			
 			/* Trying to mark init nodes here */
-			
-//			if (this.policyNodeHashMap.get(policyEdge.from).startNode) {
-//				tripleList.add("init^node-" 
-//						+ policyEdge.from + "-"
-//						+ this.policyNodeHashMap.get(policyEdge.from).actName);
-//			}
-			
-//			else {
+
 			tripleList.add("node-" 
 					+ policyEdge.from + "-"
 					+ this.policyNodeHashMap.get(policyEdge.from).actName);
-//			}
+
 			tripleList.addAll(policyEdge.observation);
 			tripleList.add("node-" 
 					+ policyEdge.to + "-"
@@ -146,13 +184,8 @@ public class PolicyGraph {
 		Iterator<PolicyNode> nodeIter = this.policyGraph.getVertices().iterator();
 		while (nodeIter.hasNext()) {
 			PolicyNode node = nodeIter.next();
-//			if (node.startNode) {
-//				vals.add("init^node-" + node.alphaId + "-" + node.actName);
-//			}
-			
-//			else {
 			vals.add("node-" + node.alphaId + "-" + node.actName);
-//			}
+
 		}
 		
 		return vals.toArray(new String[vals.size()]);
@@ -167,15 +200,13 @@ public class PolicyGraph {
 		obsNames.add("OPP_POLICY");
 
 		for (int i=0; i < p.obsVars.length; i++) {
-//			System.out.println(p.obsVars[i].name);
-//			System.out.println(p.obsVars[i].valNames);
+
 			ddmaker.addVariable("OPP_" + p.obsVars[i].name, p.obsVars[i].valNames);
 			obsNames.add("OPP_" + p.obsVars[i].name);
 		}
 		
 		obsNames.add("OPP_POLICY'");
 		
-//		System.out.println(this.getGraphNodeVarVals());
 		ddmaker.addVariable("OPP_POLICY", this.getGraphNodeVarVals());
 		ddmaker.primeVariables();
 		

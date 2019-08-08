@@ -1,7 +1,9 @@
 package thinclab.policyhelper;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.Belief.Belief;
@@ -13,10 +15,18 @@ public class PolicyNode {
 	int actId = 1;
 	public String actName = "";
 	DD belief;
+	public int id = -1;
 	
 	HashMap<String, ArrayList<Float>> factoredBelief = new HashMap<String, ArrayList<Float>>();
 	Map<List<String>, Integer> nextNode = new HashMap<List<String>, Integer>();
+	
+	/*
+	 * Children hash map for the PolicyTree API
+	 */
+	HashMap<List<String>, PolicyNode> nextPolicyNode = new HashMap<List<String>, PolicyNode>();
+	
 	Map<List<String>, Integer> compressedNextNode = new HashMap<List<String>, Integer>();
+	
 	public boolean startNode = false;
 	public POMDP p;
 	
@@ -49,7 +59,52 @@ public class PolicyNode {
 		this.factoredBelief = Belief.toStateMap(this.p, this.belief);
 	}
 	
+	public PolicyNode(POMDP p, DD belief, int level, int maxDepth) {
+		/*
+		 * Initialize PolicyNode for a level in the policy tree
+		 */
+		this(p, belief);
+		
+		/*
+		 * Check if this is the maxDepth for the policy tree. If not, expand to children.
+		 */
+		if (level < maxDepth) {
+			
+			List<List<String>> obs = this.p.getAllObservationsList();
+			Iterator<List<String>> obsIter = obs.iterator();
+			while (obsIter.hasNext()) {
+				List<String> o = obsIter.next();
+				
+				DD nextBelief = null;
+				
+				try {
+					nextBelief = 
+							Belief.beliefUpdate(
+									this.p, 
+									this.belief, 
+									this.actId, o.toArray(new String[o.size()]));
+				}
+				
+				catch (Exception e) {
+					continue;
+				}
+				
+				this.nextPolicyNode.put(o, new PolicyNode(this.p, nextBelief, level + 1, maxDepth));
+			}
+		}
+	}
+	
 	// ------------------------------------------------------------------------------------
+	
+	public void setId(int id) {
+		this.id = id;
+	}
+	
+	public void setStartNode() {
+		this.startNode = true;
+	}
+	
+	// -------------------------------------------------------------------------------------
 	
 	public boolean shallowEquals(PolicyNode other) {
 		/*
@@ -67,8 +122,11 @@ public class PolicyNode {
 
 	@Override
 	public String toString() {
-		return "PolicyNode [alphaId=" + this.alphaId + " actId=" + actId + ", belief=" + this.factoredBelief + ", nextNode="
-				+ nextNode.toString() + "]\r\n";
+		return "PolicyNode [ID = " + this.id
+				+ " alphaId=" + this.alphaId 
+				+ " actId=" + actId 
+				+ ", belief=" + this.factoredBelief 
+				+ ", nextNode=" + nextPolicyNode.toString() + "]\r\n";
 	}
 	
 	public String getDotHeader(String actionName) {

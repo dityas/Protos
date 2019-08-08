@@ -47,7 +47,7 @@ public class PolicyVisualizer {
 //				new SpringLayout<PolicyNode, PolicyEdge>(this.policyGraph.getGraph());
 		FRLayout<PolicyNode, PolicyEdge> layout = 
 				new FRLayout<PolicyNode, PolicyEdge>(this.policyGraph.getGraph());
-
+		
 		VisualizationViewer<PolicyNode, PolicyEdge> vv = 
 				new VisualizationViewer<PolicyNode, PolicyEdge>(layout,
 				new Dimension(1000, 1000));
@@ -71,7 +71,7 @@ public class PolicyVisualizer {
 		vv.getRenderContext().setVertexLabelTransformer(nodeTransformer);
 		vv.getRenderer().getVertexLabelRenderer().setPosition(Position.CNTR);
 		vv.getRenderContext().setLabelOffset(-1); 
-
+		
 		// ----------------------------------------------------------------------
 
 		// Define transformer to print edge

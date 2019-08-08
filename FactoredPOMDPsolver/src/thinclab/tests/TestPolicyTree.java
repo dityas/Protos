@@ -42,10 +42,6 @@ class TestPolicyTree {
 			attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
 			pomdp = new POMDP(domainFile.getAbsolutePath());
 			pomdp.solvePBVI(10, 100);
-			
-//			PolicyExtractor policyExtractor = new PolicyExtractor(pomdp);
-//			PolicyGraph policyGraph = new PolicyGraph(policyExtractor.policyNodes);
-//			PolicyVisualizer viz = new PolicyVisualizer(policyGraph);
 		} 
 		
 		catch (IOException e) {
@@ -62,8 +58,11 @@ class TestPolicyTree {
 	void testPolicyTreeInit() {
 		System.out.println("Running testPolicyTreeInit()");
 		
-		PolicyTree policyTree = new PolicyTree(pomdp, 1);
-		policyTree.expandForHorizons();
+		long startTime = System.nanoTime();
+		PolicyTree policyTree = new PolicyTree(pomdp, 2);
+		long endTime = System.nanoTime();
+		
+		assertTrue(policyTree.policyNodes.size() > pomdp.getInitialBeliefsList().size());
 	}
 
 }

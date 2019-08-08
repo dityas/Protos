@@ -12,6 +12,7 @@ import java.io.IOException;
 
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
+import thinclab.policyhelper.PolicyTree;
 import thinclab.policyhelper.PolicyVisualizer;
 import thinclab.symbolicperseus.POMDP;
 
@@ -38,6 +39,7 @@ public class RunAttackerDomainPOMDP {
 			PolicyExtractor policyExtractor = new PolicyExtractor(pomdp);
 			PolicyGraph policyGraph = new PolicyGraph(policyExtractor.policyNodes);
 			PolicyVisualizer viz = new PolicyVisualizer(policyGraph);
+
 		} 
 		
 		catch (IOException e) {
