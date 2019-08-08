@@ -334,6 +334,8 @@ public class POMDP implements Serializable {
 		ignoremore = ig;
 	}
 	
+	// -----------------------------------------------------------------------------------------------
+	
 	public void initializeFromParsers(ParseSPUDD parserObj) {
 		/*
 		 * Populates requried fields and attributes of the POMDP from the parser object.
@@ -555,6 +557,8 @@ public class POMDP implements Serializable {
 			Global.setValNames(nVars + nStateVars + i + 1, obsVars[i].valNames);
 		}
 	}
+	
+	// -----------------------------------------------------------------------------------------------
 
 	public void readFromFile(String fileName, boolean debb) {
 		/*

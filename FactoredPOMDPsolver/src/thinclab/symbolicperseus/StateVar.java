@@ -13,12 +13,22 @@ public class StateVar implements Serializable {
 	public int id;
 	public String[] valNames;
 
+	// ----------------------------------------------------------------------
+	
 	public StateVar(int a, String n, int i) {
 		arity = a;
 		name = n;
 		id = i;
 		valNames = new String[arity];
 	}
+	
+	public StateVar(String n, int i, String[] valNames) {
+		
+		this(valNames.length, n, i);
+		this.valNames = valNames;
+	}
+	
+	// ----------------------------------------------------------------------
 
 	public void addValName(int i, String vname) {
 		valNames[i] = vname;
