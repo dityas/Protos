@@ -9,6 +9,7 @@ package thinclab.Examples;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
