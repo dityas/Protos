@@ -29,13 +29,18 @@ public class RunTigerProblemPOMDP {
 		TigerProblemPOMDP tigerPOMDP = new TigerProblemPOMDP();
 		
 		try {
+			
 			File domainFile = File.createTempFile("TigerPOMDP", ".POMDP");
+			
 			tigerPOMDP.makeAll();
-//			System.out.println(tigerPOMDP.domainString);
 			tigerPOMDP.writeToFile(domainFile.getAbsolutePath());
+			
 			POMDP pomdp = new POMDP(domainFile.getAbsolutePath());
+			
 			pomdp.solvePBVI(15, 100);
+			
 			domainFile.deleteOnExit();
+			
 			PolicyExtractor policyExtractor = new PolicyExtractor(pomdp);
 			PolicyGraph policyGraph = new PolicyGraph(policyExtractor.policyNodes);
 			PolicyVisualizer viz = new PolicyVisualizer(policyGraph);

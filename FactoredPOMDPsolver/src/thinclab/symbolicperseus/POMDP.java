@@ -423,29 +423,18 @@ public class POMDP implements Serializable {
 			varDomSize[k] = obsVars[i].arity;
 			varName[k++] = obsVars[i].name + "_P";
 		}
-
+		
+		this.setGlobals();
+		this.initializeActions(parserObj);
+		this.initializeDiscountFactor(parserObj);		
+		this.initializeBeliefs(parserObj);
+}
+	
+	public void initializeActions(ParseSPUDD parserObj) {
 		/*
-		 * set up Globals
+		 * Initializes the dynamics of the POMDP
 		 */
-		Global.setVarDomSize(varDomSize);
-		Global.setVarNames(varName);
-
-		for (int i = 0; i < nStateVars; i++) {
-			Global.setValNames(i + 1, stateVars[i].valNames);
-		}
-		for (int i = 0; i < nObsVars; i++) {
-			Global.setValNames(nStateVars + i + 1, obsVars[i].valNames);
-		}
-		for (int i = 0; i < nStateVars; i++) {
-			Global.setValNames(nVars + i + 1, stateVars[i].valNames);
-		}
-		for (int i = 0; i < nObsVars; i++) {
-			Global.setValNames(nVars + nStateVars + i + 1, obsVars[i].valNames);
-		}
-
-		/*
-		 * set up dynamics
-		 */
+		
 		nActions = parserObj.actTransitions.size();
 		actions = new Action[nActions];
 		uniquePolicy = new boolean[nActions];
@@ -453,57 +442,33 @@ public class POMDP implements Serializable {
 		qFn = new DD[nActions];
 
 		for (int a = 0; a < nActions; a++) {
+			
 			actions[a] = new Action(parserObj.actNames.get(a));
 			actions[a].addTransFn(parserObj.actTransitions.get(a));
 			actions[a].addObsFn(parserObj.actObserve.get(a));
-			actions[a].rewFn = OP
-					.sub(parserObj.reward, parserObj.actCosts.get(a));
+			actions[a].rewFn = 
+					OP.sub(parserObj.reward, parserObj.actCosts.get(a));
 			actions[a].buildRewTranFn();
-			actions[a].rewFn = OP.addMultVarElim(actions[a].rewTransFn,
-					primeVarIndices);
-
-			/*
-			 * find stochastic transitions (and deterministic varMappings)
-			 * not done yet - where is this used?
-			 */
+			actions[a].rewFn = 
+					OP.addMultVarElim(actions[a].rewTransFn, primeVarIndices);
+			
 		}
+		
 		/*
-		 *  discount factor
+		 * Max and Min reward
 		 */
-		discFact = parserObj.discount.getVal();
-
-		/*
-		 *  make a DD version
-		 */
-		ddDiscFact = DDleaf.myNew(discFact);
-
-		/*
-		 *  the adjunct models
-		 */
-		nAdjuncts = parserObj.adjuncts.size();
-		if (nAdjuncts > 0) {
-			adjuncts = new DD[nAdjuncts];
-			adjunctNames = new String[nAdjuncts];
-			for (int a = 0; a < nAdjuncts; a++) {
-				adjuncts[a] = parserObj.adjuncts.get(a);
-				adjunctNames[a] = parserObj.adjunctNames.get(a);
-			}
-		}
-
-		/*
-		 * max reward value
-		 */
-
 		double maxVal = Double.NEGATIVE_INFINITY;
 		double minVal = Double.POSITIVE_INFINITY;
+		
 		for (int a = 0; a < nActions; a++) {
 			maxVal = Math.max(maxVal, OP.maxAll(OP.addN(actions[a].rewFn)));
 			minVal = Math.min(minVal, OP.minAll(OP.addN(actions[a].rewFn)));
 		}
+		
 		maxRewVal = maxVal / (1 - discFact);
 		
 		/*
-		 * tolerance
+		 * Set Tolerance
 		 */
 		if (parserObj.tolerance == null) {
 			double maxDiffRew = maxVal - minVal;
@@ -511,23 +476,61 @@ public class POMDP implements Serializable {
 			tolerance = 1e-5 * maxDiffVal;
 		} 
 		
-		else {
-			tolerance = parserObj.tolerance.getVal();
-		}
-		
+		else tolerance = parserObj.tolerance.getVal();
+	}
+	
+	public void initializeDiscountFactor(ParseSPUDD parserObj) {
 		/*
-		 * initial belief
+		 * Sets the discount value for the POMDP
 		 */
-		initialBelState = parserObj.init;
+		
+		discFact = parserObj.discount.getVal();
 
+		/*
+		 *  make a DD version
+		 */
+		ddDiscFact = DDleaf.myNew(discFact);
+	}
+	
+	public void initializeAdjuncts(ParseSPUDD parserObj) {
+		/*
+		 * Set adjunct beliefs
+		 */
+		
+		nAdjuncts = parserObj.adjuncts.size();
+		
+		if (nAdjuncts > 0) {
+			
+			adjuncts = new DD[nAdjuncts];
+			adjunctNames = new String[nAdjuncts];
+			
+			for (int a = 0; a < nAdjuncts; a++) {
+				adjuncts[a] = parserObj.adjuncts.get(a);
+				adjunctNames[a] = parserObj.adjunctNames.get(a);
+			}
+		}
+	}
+	
+	public void initializeBeliefs(ParseSPUDD parserObj) {
+		/*
+		 * Set beliefs
+		 */
+		
+		initialBelState = parserObj.init;
 		/*
 		 * factored initial belief state
 		 */
 		initialBelState_f = new DD[nStateVars];
+		
 		for (int varId = 0; varId < nStateVars; varId++) {
-			initialBelState_f[varId] = OP.addMultVarElim(initialBelState,
-					MySet.remove(varIndices, varId + 1));
+			
+			initialBelState_f[varId] = 
+					OP.addMultVarElim(
+							initialBelState, 
+							MySet.remove(varIndices, varId + 1));
 		}
+		
+		this.initializeAdjuncts(parserObj);
 	}
 	
 	public void setGlobals() {
@@ -538,23 +541,32 @@ public class POMDP implements Serializable {
 		 * the globals during their initialization, this method has to be called manually whenever
 		 * the current frame is being solved for an IPOMDP
 		 */
+		
 		Global.setVarDomSize(varDomSize);
 		Global.setVarNames(varName);
 
 		for (int i = 0; i < nStateVars; i++) {
-			Global.setValNames(i + 1, stateVars[i].valNames);
+			Global.setValNames(
+					i + 1, 
+					stateVars[i].valNames);
 		}
 		
 		for (int i = 0; i < nObsVars; i++) {
-			Global.setValNames(nStateVars + i + 1, obsVars[i].valNames);
+			Global.setValNames(
+					nStateVars + i + 1, 
+					obsVars[i].valNames);
 		}
 		
 		for (int i = 0; i < nStateVars; i++) {
-			Global.setValNames(nVars + i + 1, stateVars[i].valNames);
+			Global.setValNames(
+					nVars + i + 1, 
+					stateVars[i].valNames);
 		}
 		
 		for (int i = 0; i < nObsVars; i++) {
-			Global.setValNames(nVars + nStateVars + i + 1, obsVars[i].valNames);
+			Global.setValNames(
+					nVars + nStateVars + i + 1, 
+					obsVars[i].valNames);
 		}
 	}
 	
