@@ -116,7 +116,7 @@ public class Belief {
 		HashMap<String, ArrayList<Float>> beliefs = new HashMap<String, ArrayList<Float>>();
 
 		if (belState.length != pomdp.nStateVars) {
-			System.err.println("SOMETHINGS SERIOUSLY WRONG WITH THE BELIEF STATE");
+			System.err.println("SOMETHING'S SERIOUSLY WRONG WITH THE BELIEF STATE");
 		}
 		for (int i = 0; i < belState.length; i++) {
 			

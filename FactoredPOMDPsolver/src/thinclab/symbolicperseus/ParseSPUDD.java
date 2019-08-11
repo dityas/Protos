@@ -207,90 +207,112 @@ public class ParseSPUDD {
     }
 
     public void parseVariables() {
-	try {
-	    while (true) {
-		if (stream.nextToken() == '(') {
-		    if (StreamTokenizer.TT_WORD != stream.nextToken()) error("Expected a variable name");
-		    if (varNames.contains(stream.sval)) error("Duplicate variable name");
-		    varNames.add(stream.sval);
-		    Vector<String> varValNames = new Vector<String>();
-		    while (true) {
-			if (StreamTokenizer.TT_WORD == stream.nextToken()) {
-			    if (varValNames.contains(stream.sval)) error("Duplicate value name");
-			    varValNames.add(stream.sval);
-			}
-			else if (stream.ttype == ')')
-			    break;
-			else error(4);
-		    }
-		    valNames.add(varValNames);
-		    nStateVars++;
-		}
-		else if (stream.ttype == ')') {
-		    break;
-		}
-		else error("");
-	    } 
-	} catch (IOException e) {
-            System.out.println("Error: IOException\n");
-            //System.exit(1);
-        }
+		
+    	try {
+		    
+    		while (true) {
+				
+    			if (stream.nextToken() == '(') {
+				    
+    				if (StreamTokenizer.TT_WORD != stream.nextToken()) 
+    					error("Expected a variable name");
+				    
+    				if (varNames.contains(stream.sval)) error("Duplicate variable name");
+				    
+    				varNames.add(stream.sval);
+				    Vector<String> varValNames = new Vector<String>();
+				    
+				    while (true) {
+				    	
+						if (StreamTokenizer.TT_WORD == stream.nextToken()) {
+						    
+							if (varValNames.contains(stream.sval)) 
+								error("Duplicate value name");
+						    
+							varValNames.add(stream.sval);
+						}
+						
+						else if (stream.ttype == ')') break;
+						
+						else error(4);
+				    }
+				    
+				    valNames.add(varValNames);
+				    nStateVars++;
+				}
+				
+				else if (stream.ttype == ')') break;
+				
+				else error("");
+    		} 
+		} 
+		
+		catch (IOException e) {
+	            System.out.println("Error: IOException\n");
+	    }
     }
 
     public void createPrimeVars() {
-	// create prime variables
-	int nVars = varNames.size();
-	for (int i=0; i<nVars; i++) {
-	    varNames.add((String)varNames.get(i) + "'");
-	    valNames.add((Vector)valNames.get(i));
-	}
-
-	// set Global.varNames
-	String[] varNamesArray = new String[varNames.size()+1];
-	for (int i=0; i<varNames.size(); i++) varNamesArray[i] = (String)varNames.get(i);
-	varNamesArray[varNames.size()] = new String("action");
-	Global.setVarNames(varNamesArray);
-
-	// set Global.valNames and Global.varDomSize
-	int[] varDomSize = new int[valNames.size()];
-	for (int i=0; i<valNames.size(); i++) {
-	    Vector varValNames = (Vector)valNames.get(i);
-	    varDomSize[i] = varValNames.size();
-	    String[] varValNamesArray = new String[varValNames.size()];
-	    for (int j=0; j<varValNames.size(); j++) varValNamesArray[j] = (String)varValNames.get(j);
-	    Global.setValNames(i+1,varValNamesArray);
-	}
-	Global.setVarDomSize(varDomSize);
-
-	// create SAMEvariable dds
-	for (int varId=0; varId<Global.varNames.length/2; varId++) {
-	    String ddName = new String("SAME") + Global.varNames[varId];
-	    DD[] children = new DD[Global.varDomSize[varId]];
-	    for (int i=0; i<Global.varDomSize[varId]; i++) {
-		DD[] grandChildren = new DD[Global.varDomSize[varId]];
-		for (int j=0; j<Global.varDomSize[varId]; j++) {
-		    if (i==j) grandChildren[j] = DD.one;
-		    else grandChildren[j] = DD.zero;
+		/*
+		 * Create prime variables
+		 */
+		int nVars = varNames.size();
+		for (int i=0; i<nVars; i++) {
+		    varNames.add((String)varNames.get(i) + "'");
+		    valNames.add((Vector)valNames.get(i));
 		}
-		children[i] = DDnode.myNew(varId+1,grandChildren);
-	    }
-	    DD dd = DDnode.myNew(varId+1+Global.varNames.length/2, children);
-	    existingDds.put(ddName,dd);
-	}
-
-	// create variablevalue dds
-	for (int varId=0; varId<Global.varNames.length/2; varId++) {
-	    for (int valId=0; valId<Global.varDomSize[varId]; valId++) {
-		String ddName = Global.varNames[varId] + Global.valNames[varId][valId];
-		DD[] children = new DD[Global.varDomSize[varId]];
-		for (int i=0; i<Global.varDomSize[varId]; i++) {
-		    if (valId==i) children[i] = DD.one;
-		    else children[i] = DD.zero;
+	
+		/*
+		 * Set Global.varNames
+		 */
+		String[] varNamesArray = new String[varNames.size()+1];
+		for (int i=0; i<varNames.size(); i++) varNamesArray[i] = (String)varNames.get(i);
+		varNamesArray[varNames.size()] = new String("action");
+		Global.setVarNames(varNamesArray);
+	
+		/*
+		 * Set Global.valNames and Global.varDomSize
+		 */
+		int[] varDomSize = new int[valNames.size()];
+		for (int i=0; i<valNames.size(); i++) {
+		    Vector varValNames = (Vector)valNames.get(i);
+		    varDomSize[i] = varValNames.size();
+		    String[] varValNamesArray = new String[varValNames.size()];
+		    for (int j=0; j<varValNames.size(); j++) varValNamesArray[j] = (String)varValNames.get(j);
+		    Global.setValNames(i+1,varValNamesArray);
 		}
-		DD dd = DDnode.myNew(varId+1+Global.varNames.length/2,children);
-		existingDds.put(ddName,dd);
-	    }
-	}
+		
+		Global.setVarDomSize(varDomSize);
+	
+		// create SAMEvariable dds
+		for (int varId=0; varId<Global.varNames.length/2; varId++) {
+		    String ddName = new String("SAME") + Global.varNames[varId];
+		    DD[] children = new DD[Global.varDomSize[varId]];
+		    for (int i=0; i<Global.varDomSize[varId]; i++) {
+			DD[] grandChildren = new DD[Global.varDomSize[varId]];
+			for (int j=0; j<Global.varDomSize[varId]; j++) {
+			    if (i==j) grandChildren[j] = DD.one;
+			    else grandChildren[j] = DD.zero;
+			}
+			children[i] = DDnode.myNew(varId+1,grandChildren);
+		    }
+		    DD dd = DDnode.myNew(varId+1+Global.varNames.length/2, children);
+		    existingDds.put(ddName,dd);
+		}
+	
+		// create variablevalue dds
+		for (int varId=0; varId<Global.varNames.length/2; varId++) {
+		    for (int valId=0; valId<Global.varDomSize[varId]; valId++) {
+			String ddName = Global.varNames[varId] + Global.valNames[varId][valId];
+			DD[] children = new DD[Global.varDomSize[varId]];
+			for (int i=0; i<Global.varDomSize[varId]; i++) {
+			    if (valId==i) children[i] = DD.one;
+			    else children[i] = DD.zero;
+			}
+			DD dd = DDnode.myNew(varId+1+Global.varNames.length/2,children);
+			existingDds.put(ddName,dd);
+		    }
+		}
     }
 
     public void parseObservations() {

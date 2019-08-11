@@ -67,7 +67,10 @@ public class POMDP implements Serializable {
 	public DD[] qFn;
 	public int[] qPolicy;
 	public DD[][] belRegion;
-	// these three should really be combined into AlphaVector class
+	
+	/*
+	 * These three should really be combined into AlphaVector class
+	 */
 	public int[] policy;
 	public boolean[] uniquePolicy;
 	public double[] policyvalue;
@@ -79,13 +82,30 @@ public class POMDP implements Serializable {
 	public int numNewAlphaVectors;
 	public double bestImprovement, worstDecline;
 	
-	// class variables for PBVI belief expansion
+	// ---------------------------------------------------------------------
+	/*
+	 * Staging variables for state vars and obs vars
+	 */
+	private List<StateVar> stateVarStaging = new ArrayList<StateVar>();
+	private List<StateVar> obsVarStaging = new ArrayList<StateVar>();
+	
+	// ---------------------------------------------------------------------
+	
+	/*
+	 * Class variables for PBVI belief expansion
+	 */
 	private List<DD> beliefLeaves = new ArrayList<DD>();
 	private List<DD[]> beliefPoints = new ArrayList<DD[]>();
-	// end PBVI belief expansion variables
 	
-	// Policy cache
+	/*
+	 *  Policy cache
+	 */
 	public PolicyCache pCache = new PolicyCache(5);
+	
+	/*
+	 * Variables for helping with making run time changes to the POMDP
+	 */
+	public List<StateVar> stateVarList = new ArrayList<StateVar>();
 
 	public static DD[] concatenateArray(DD a, DD[] b, DD c) {
 		DD[] d = new DD[b.length + 2];
@@ -335,6 +355,9 @@ public class POMDP implements Serializable {
 	}
 	
 	// -----------------------------------------------------------------------------------------------
+	/*
+	 * Initialization methods
+	 */
 	
 	public void initializeFromParsers(ParseSPUDD parserObj) {
 		/*
@@ -345,92 +368,68 @@ public class POMDP implements Serializable {
 		 * or lower frames have done required changes if any. 
 		 */
 		
-		debug = false;
+//		debug = false;
 		
+//		this.frameID = parserObj.frameID;
+//		this.level = parserObj.level;
+		this.initializeFrameFromParser(parserObj);
+		
+		this.initializeStateVarsFromParser(parserObj);
+		this.initializeObsVarsFromParser(parserObj);
+		this.commitVariables();
+		
+		this.initializeActionsFromParser(parserObj);
+		this.initializeDiscountFactorFromParser(parserObj);		
+		this.initializeBeliefsFromParser(parserObj);
+
+	}
+	
+	public void initializeFrameFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Initializes this as an IPOMDP frame from the parser
+		 */
 		this.frameID = parserObj.frameID;
 		this.level = parserObj.level;
-
-		this.ignoremore = false;
-		this.addbeldiff = false;
-		this.nStateVars = parserObj.nStateVars;
-		this.nObsVars = parserObj.nObsVars;
-		this.nVars = nStateVars + nObsVars;
-		this.stateVars = new StateVar[nStateVars];
-		this.obsVars = new StateVar[nObsVars];
-
-		this.varDomSize = new int[2 * (nStateVars + nObsVars)];
-		this.varName = new String[2 * (nStateVars + nObsVars)];
-		this.varIndices = new int[nStateVars];
-		this.primeVarIndices = new int[nStateVars];
-		this.obsIndices = new int[nObsVars];
-		this.primeObsIndices = new int[nObsVars];
-
+	}
+	
+	public void initializeStateVarsFromParser(ParseSPUDD parserObj) {
 		/*
-		 * set up state variables
+		 * Stage the parsed variables from the domain file
 		 */
-		int k = 0;
-		for (int i = 0; i < nStateVars; i++) {
-			this.stateVars[i] = new StateVar(parserObj.valNames.get(i).size(),
+		for (int i = 0; i < parserObj.nStateVars; i++) {
+			
+			StateVar var = new StateVar(parserObj.valNames.get(i).size(),
 					parserObj.varNames.get(i), i);
-			for (int j = 0; j < stateVars[i].arity; j++) {
-				this.stateVars[i].addValName(j, 
-						((String) parserObj.valNames.get(i).get(j)));
+			
+			for (int j = 0; j < var.arity; j++) {
+				var.addValName(j, ((String) parserObj.valNames.get(i).get(j)));
 			}
 			
-			/*
-			 * must be indices as in Matlab!
-			 */
-			this.varIndices[i] = i + 1;
-			this.primeVarIndices[i] = i + nVars + 1;
-			this.varDomSize[k] = stateVars[i].arity;
-			this.varName[k++] = stateVars[i].name;
+			this.stateVarStaging.add(var);
 		}
-
+	}
+	
+	public void initializeObsVarsFromParser(ParseSPUDD parserObj) {
 		/*
-		 * set up observation variables
+		 * Stage the parsed variables from the domain file
 		 */
-		this.nObservations = 1;
-		this.obsVarsArity = new int[nObsVars];
-		
-		for (int i = 0; i < nObsVars; i++) {
+		for (int i = 0; i < parserObj.nObsVars; i++) {
 			
-			obsVars[i] = new StateVar(parserObj.valNames.get(i + nStateVars)
+			StateVar obs = new StateVar(parserObj.valNames.get(i + nStateVars)
 					.size(), parserObj.varNames.get(i + nStateVars), i
 					+ nStateVars);
 			
-			for (int j = 0; j < obsVars[i].arity; j++) {
-				obsVars[i].addValName(
+			for (int j = 0; j < obs.arity; j++) {
+				obs.addValName(
 						j,
 						((String) parserObj.valNames.get(nStateVars + i).get(j)));
 			}
 			
-			this.obsVarsArity[i] = obsVars[i].arity;
-			this.nObservations = nObservations * obsVars[i].arity;
-			this.obsIndices[i] = i + nStateVars + 1;
-			this.primeObsIndices[i] = i + nVars + nStateVars + 1;
-			this.varDomSize[k] = obsVars[i].arity;
-			this.varName[k++] = obsVars[i].name;
+			this.obsVarStaging.add(obs);
 		}
-		
-		for (int i = 0; i < nStateVars; i++) {
-			
-			varDomSize[k] = stateVars[i].arity;
-			varName[k++] = stateVars[i].name + "_P";
-		}
-		
-		for (int i = 0; i < nObsVars; i++) {
-			
-			varDomSize[k] = obsVars[i].arity;
-			varName[k++] = obsVars[i].name + "_P";
-		}
-		
-		this.setGlobals();
-		this.initializeActions(parserObj);
-		this.initializeDiscountFactor(parserObj);		
-		this.initializeBeliefs(parserObj);
-}
+	}
 	
-	public void initializeActions(ParseSPUDD parserObj) {
+	public void initializeActionsFromParser(ParseSPUDD parserObj) {
 		/*
 		 * Initializes the dynamics of the POMDP
 		 */
@@ -479,7 +478,7 @@ public class POMDP implements Serializable {
 		else tolerance = parserObj.tolerance.getVal();
 	}
 	
-	public void initializeDiscountFactor(ParseSPUDD parserObj) {
+	public void initializeDiscountFactorFromParser(ParseSPUDD parserObj) {
 		/*
 		 * Sets the discount value for the POMDP
 		 */
@@ -492,7 +491,7 @@ public class POMDP implements Serializable {
 		ddDiscFact = DDleaf.myNew(discFact);
 	}
 	
-	public void initializeAdjuncts(ParseSPUDD parserObj) {
+	public void initializeAdjunctsFromParser(ParseSPUDD parserObj) {
 		/*
 		 * Set adjunct beliefs
 		 */
@@ -511,7 +510,7 @@ public class POMDP implements Serializable {
 		}
 	}
 	
-	public void initializeBeliefs(ParseSPUDD parserObj) {
+	public void initializeBeliefsFromParser(ParseSPUDD parserObj) {
 		/*
 		 * Set beliefs
 		 */
@@ -530,7 +529,7 @@ public class POMDP implements Serializable {
 							MySet.remove(varIndices, varId + 1));
 		}
 		
-		this.initializeAdjuncts(parserObj);
+		this.initializeAdjunctsFromParser(parserObj);
 	}
 	
 	public void setGlobals() {
@@ -568,6 +567,93 @@ public class POMDP implements Serializable {
 					nVars + nStateVars + i + 1, 
 					obsVars[i].valNames);
 		}
+	}
+	
+	public void commitVariables() {
+		/*
+		 * Move variables from staging area and populate global variables based on them
+		 * 
+		 * Ideally, no changes should be made to the state or obs variables after
+		 * this method is called. 
+		 */
+		this.nStateVars = this.stateVarStaging.size();
+		this.nObsVars = this.obsVarStaging.size();
+		
+		/*
+		 * initialize arrays for domain size and other information
+		 */
+		this.nVars = this.nStateVars + this.nObsVars;
+		this.stateVars = new StateVar[this.nStateVars];
+		this.obsVars = new StateVar[this.nObsVars];
+		this.varDomSize = new int[2 * (this.nStateVars + this.nObsVars)];
+		this.varName = new String[2 * (this.nStateVars + this.nObsVars)];
+		this.varIndices = new int[this.nStateVars];
+		this.primeVarIndices = new int[this.nStateVars];
+		this.obsIndices = new int[this.nObsVars];
+		this.primeObsIndices = new int[this.nObsVars];
+		
+		/*
+		 * Make state variables.
+		 */
+		this.stateVars = 
+				this.stateVarStaging.toArray(
+						new StateVar[this.stateVarStaging.size()]);
+		
+		/*
+		 * Legacy code to create matlab like indices
+		 */
+		int k = 0;
+		for (int i = 0; i < nStateVars; i++) {
+
+			this.varIndices[i] = i + 1;
+			this.primeVarIndices[i] = i + nVars + 1;
+			this.varDomSize[k] = stateVars[i].arity;
+			this.varName[k++] = stateVars[i].name;
+		}
+		
+		/*
+		 * Make observation variables
+		 */
+		
+		this.obsVars = 
+				this.obsVarStaging.toArray(
+						new StateVar[this.obsVarStaging.size()]);
+		
+		/*
+		 * Legacy code to set matlab-like indices
+		 */
+		
+		this.nObservations = 1;
+		this.obsVarsArity = new int[nObsVars];
+		
+		for (int i = 0; i < nObsVars; i++) {
+			
+			this.obsVarsArity[i] = obsVars[i].arity;
+			this.nObservations = nObservations * obsVars[i].arity;
+			this.obsIndices[i] = i + nStateVars + 1;
+			this.primeObsIndices[i] = i + nVars + nStateVars + 1;
+			this.varDomSize[k] = obsVars[i].arity;
+			this.varName[k++] = obsVars[i].name;
+		}
+		
+		/*
+		 * More legacy code to set up primed variables
+		 */
+		
+		for (int i = 0; i < nStateVars; i++) {
+			
+			varDomSize[k] = stateVars[i].arity;
+			varName[k++] = stateVars[i].name + "_P";
+		}
+		
+		for (int i = 0; i < nObsVars; i++) {
+			
+			varDomSize[k] = obsVars[i].arity;
+			varName[k++] = obsVars[i].name + "_P";
+		}
+		
+		setGlobals();
+		
 	}
 	
 	// -----------------------------------------------------------------------------------------------
