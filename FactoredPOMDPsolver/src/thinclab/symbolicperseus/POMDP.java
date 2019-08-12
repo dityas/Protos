@@ -369,10 +369,10 @@ public class POMDP implements Serializable {
 		 * or lower frames have done required changes if any. 
 		 */
 		
-//		debug = false;
+		debug = false;
 		
-//		this.frameID = parserObj.frameID;
-//		this.level = parserObj.level;
+		this.frameID = parserObj.frameID;
+		this.level = parserObj.level;
 		this.initializeFrameFromParser(parserObj);
 		
 		this.initializeStateVarsFromParser(parserObj);
@@ -2356,6 +2356,7 @@ public class POMDP implements Serializable {
 						|| (OP.max(newPointBasedValues[i], numNewAlphaVectors)
 								- OP.max(currentPointBasedValues[i]) < steptolerance)) {
 					// dpBackup
+					System.out.println("Belregion " + belRegion[i]);
 					newVector = dpBackup(belRegion[i], primedV, maxAbsVal);
 					// newVector.alphaVector.display();
 
@@ -2698,6 +2699,10 @@ public class POMDP implements Serializable {
 					concatenateArray(belState, actions[actId].transFn,
 							actions[actId].obsFn),
 					concatenateArray(varIndices, primeVarIndices));
+			System.out.println(Arrays.toString(primeVarIndices));
+			System.out.println(Arrays.toString(varIndices));
+			System.out.println(dd_obsProbs);
+			System.out.println(Arrays.toString(primeObsIndices));
 			obsProbs = OP.convert2array(dd_obsProbs, primeObsIndices);
 			nextBelStates[actId] = new NextBelState(obsProbs, smallestProb);
 			// compute marginals
