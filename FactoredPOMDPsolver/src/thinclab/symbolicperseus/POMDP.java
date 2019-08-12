@@ -15,6 +15,7 @@ import java.util.HashMap;
 import thinclab.domainMaker.L0Frame;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.policyhelper.PolicyCache;
+import thinclab.policyhelper.PolicyTree;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.symbolicperseus.Belief.Belief;
 import thinclab.symbolicperseus.Belief.BeliefSet;
@@ -2930,6 +2931,18 @@ public class POMDP implements Serializable {
 		}
 		
 		return obsValsArray;
+	}
+	
+	// -------------------------------------------------------------------------------
+	
+	public PolicyTree getPolicyTree(int horizon) {
+		/*
+		 * Returns the policy as a tree for H horizon
+		 */
+		PolicyTree pTree = new PolicyTree(this, horizon);
+		pTree.indexNodes(0);
+		
+		return pTree;
 	}
 	
 	// -------------------------------------------------------------------------------

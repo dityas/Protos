@@ -10,16 +10,24 @@ package thinclab.ipomdpsolver;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 
+import java.util.List;
+
+import thinclab.policyhelper.PolicyNode;
+
 /*
  * @author adityas
  *
  */
 public class OpponentModel {
 	/*
-	 * Defines a single interactive state <belief, frame> combination
+	 * Defines the opponent model as a single transition function between opponent's
+	 * policy tree nodes
+	 * 
+	 * The opponent model itself is an abstraction. The policy trees from each individual
+	 * frame are combined single transition function between different nodes on these policy trees.
+	 * Each node in the policy tree is associated with a single optimal action and a single belief.
 	 */
-	public DD belief;
-	public POMDP frame;
+	public List<PolicyNode> nodesList;
 	
 	public OpponentModel(DD belief, POMDP frame) {
 		/*
