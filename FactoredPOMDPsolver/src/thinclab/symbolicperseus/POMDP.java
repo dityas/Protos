@@ -416,14 +416,14 @@ public class POMDP implements Serializable {
 		 */
 		for (int i = 0; i < parserObj.nObsVars; i++) {
 			
-			StateVar obs = new StateVar(parserObj.valNames.get(i + nStateVars)
-					.size(), parserObj.varNames.get(i + nStateVars), i
-					+ nStateVars);
+			StateVar obs = new StateVar(parserObj.valNames.get(i + parserObj.nStateVars)
+					.size(), parserObj.varNames.get(i + parserObj.nStateVars), i
+					+ parserObj.nStateVars);
 			
 			for (int j = 0; j < obs.arity; j++) {
 				obs.addValName(
 						j,
-						((String) parserObj.valNames.get(nStateVars + i).get(j)));
+						((String) parserObj.valNames.get(parserObj.nStateVars + i).get(j)));
 			}
 			
 			this.obsVarStaging.add(obs);
@@ -522,7 +522,7 @@ public class POMDP implements Serializable {
 		 */
 		initialBelState_f = new DD[nStateVars];
 		
-		for (int varId = 0; varId < nStateVars; varId++) {
+		for (int varId = 0; varId < parserObj.nStateVars; varId++) {
 			
 			initialBelState_f[varId] = 
 					OP.addMultVarElim(
@@ -2356,7 +2356,7 @@ public class POMDP implements Serializable {
 						|| (OP.max(newPointBasedValues[i], numNewAlphaVectors)
 								- OP.max(currentPointBasedValues[i]) < steptolerance)) {
 					// dpBackup
-					System.out.println("Belregion " + belRegion[i]);
+
 					newVector = dpBackup(belRegion[i], primedV, maxAbsVal);
 					// newVector.alphaVector.display();
 
@@ -2699,13 +2699,12 @@ public class POMDP implements Serializable {
 					concatenateArray(belState, actions[actId].transFn,
 							actions[actId].obsFn),
 					concatenateArray(varIndices, primeVarIndices));
-			System.out.println(Arrays.toString(primeVarIndices));
-			System.out.println(Arrays.toString(varIndices));
-			System.out.println(dd_obsProbs);
-			System.out.println(Arrays.toString(primeObsIndices));
+
 			obsProbs = OP.convert2array(dd_obsProbs, primeObsIndices);
 			nextBelStates[actId] = new NextBelState(obsProbs, smallestProb);
-			// compute marginals
+			/*
+			 * Compute marginals
+			 */
 			if (!nextBelStates[actId].isempty()) {
 				marginals = OP.marginals(
 						concatenateArray(belState, actions[actId].transFn,
