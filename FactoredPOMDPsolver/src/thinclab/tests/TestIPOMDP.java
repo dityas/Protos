@@ -108,16 +108,16 @@ class TestIPOMDP {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP();
 		try {
-			
-			HashSet<OpponentModel> oppModelSet = new HashSet<OpponentModel>();
-			
+
 			tigerL1IPOMDP.initializeFromParsers(parser);
-			List<OpponentModel> oppModels = tigerL1IPOMDP.getOpponentModels();
-			oppModelSet.addAll(oppModels);
-			List<InteractiveStateVar> ISVars = 
-					tigerL1IPOMDP.makeInteractiveStateSpace(oppModelSet);
+
+			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
 			
-			assertEquals(ISVars.size(), (oppModels.size() * tigerL1IPOMDP.nStateVars));
+			int totalNodes = tigerL1IPOMDP.lowerLevelFrames.stream()
+					.map(f -> f.getPolicyTree(5).policyNodes.size())
+					.reduce(0, (totalSize, frameSize) -> totalSize + frameSize);
+			
+			assertEquals(oppModel.nodesList.size(), totalNodes);
 		} 
 		
 		catch (Exception e) {

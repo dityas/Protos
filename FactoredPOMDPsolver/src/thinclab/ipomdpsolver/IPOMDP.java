@@ -119,15 +119,14 @@ public class IPOMDP extends POMDP {
 		 * or POMDPs
 		 */
 		Iterator<POMDP> frameIterator = this.lowerLevelFrames.iterator();
-		while (frameIterator.hasNext()) {
-			POMDP opponentModel = frameIterator.next();
+		for (POMDP opponentModel : this.lowerLevelFrames) {
 			
 			/*
 			 * Check if lower frame is POMDP or IPOMDP and call the solve method accordingly
 			 */
-			if (opponentModel instanceof IPOMDP) ((IPOMDP) opponentModel).solveIPBVI(15, 100);
+			if (opponentModel.level > 0) ((IPOMDP) opponentModel).solveIPBVI(15, 100);
 			
-			else if (opponentModel instanceof POMDP) {
+			else if (opponentModel.level == 0) {
 				/*
 				 * For solving the POMDP at lowest level, set the globals
 				 */
@@ -144,42 +143,15 @@ public class IPOMDP extends POMDP {
 		
 	}
 	
-	public List<OpponentModel> getOpponentModels() throws SolverException {
+	public OpponentModel getOpponentModel() throws SolverException {
 		/*
 		 * Computes the models of the lower level agents and makes
 		 * (reachable beliefs X frames) number of opponent models 
 		 */
-		List<OpponentModel> oppModels = new ArrayList<OpponentModel>();
-		
-		this.solveOpponentModels();
-		
-		Iterator<POMDP> framIterator = this.lowerLevelFrames.iterator();
-		while (framIterator.hasNext()) {
-			POMDP opponentFrame = framIterator.next();
-			
-			List<DD[]> opponentBeliefSet = BeliefSet.getInitialReachableBeliefs(
-					opponentFrame, 3);
-			
-			/*
-			 * Make opponent model as (Belief X Frames). For each belief in belief set,
-			 * make a new model for the belief and frame combination
-			 */
-			Iterator<DD[]> beliefIterator = opponentBeliefSet.iterator();
-			while (beliefIterator.hasNext()) {
-				DD[] beliefF = beliefIterator.next();
-				/*
-				 * Create new model
-				 */
-				oppModels.add(new OpponentModel(
-						Belief.unFactorBeliefPoint(
-								opponentFrame, 
-								beliefF), 
-						opponentFrame));
-			} /* belief iterator */
-			
-		} /* frame iterator */
-		
-		return oppModels;
+		this.solveOpponentModels();		
+		OpponentModel oppModel = new OpponentModel(this.lowerLevelFrames);
+
+		return oppModel;
 	}
 	
 	public void solveIPBVI(int rounds, int numDpBackups) {
@@ -187,7 +159,7 @@ public class IPOMDP extends POMDP {
 		 * Runs the interactive PBVI loop for solving the IPOMDP
 		 */
 		try {
-			List<OpponentModel> oppModels = this.getOpponentModels();
+			OpponentModel oppModel = this.getOpponentModel();
 		} 
 		
 		catch (SolverException e) {

@@ -125,7 +125,9 @@ public class PolicyTree {
 		/*
 		 * Gives unique integer ids to policy nodes.
 		 */
-		IntStream.range(start, start + this.policyNodes.size()).forEach(i -> policyNodes.get(i).setId(i));
+		IntStream.range(start, 
+				start + this.policyNodes.size()).forEach(
+						i -> policyNodes.get(i - start).setId(i));
 	}
 	
 }
