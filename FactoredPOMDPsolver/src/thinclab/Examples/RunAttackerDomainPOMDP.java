@@ -25,10 +25,10 @@ public class RunAttackerDomainPOMDP {
 	 */
 
 	public static void main(String[] args) {
-		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
-		
+//		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
+		AttackerDomainPOMDP2 attackerPOMDP = new AttackerDomainPOMDP2();
 		try {
-			File domainFile = File.createTempFile("AttackerPOMDP", ".POMDP");
+			File domainFile = File.createTempFile("AttackerPOMDPTamperData", ".POMDP");
 			attackerPOMDP.makeAll();
 			attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
 			POMDP pomdp = new POMDP(domainFile.getAbsolutePath());

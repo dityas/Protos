@@ -1,7 +1,13 @@
+/*
+ *	THINC Lab at UGA | Cyber Deception Group
+ *
+ *	Author: Aditya Shinde
+ * 
+ *	email: shinde.aditya386@gmail.com
+ */
 package thinclab.Examples;
 
 import java.util.HashMap;
-import java.util.Iterator;
 
 import thinclab.domainMaker.Domain;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
@@ -9,16 +15,20 @@ import thinclab.domainMaker.SPUDDHelpers.ActionSPUDDFactory;
 import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDDFactory;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
-import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 
-public class AttackerDomainPOMDP extends Domain {
+/*
+ * @author adityas
+ *
+ */
+public class AttackerDomainPOMDP2 extends Domain {
+
 	/*
-	 * Defines L0 domain for attacker
+	 * Defines L0 domain for attacker with CHECK_DATA action
 	 */
 	public HashMap<String, DDTree> ddMap = new HashMap<String, DDTree>();
 	
-	public AttackerDomainPOMDP() {
+	public AttackerDomainPOMDP2() {
 		
 	}
 	
@@ -33,6 +43,8 @@ public class AttackerDomainPOMDP extends Domain {
 							  "PERSIST_GAINED",
 							  "C_DATA_ACCESSED",
 							  "FAKE_DATA_ACCESSED",
+							  "C_DATA_TAMPERED",
+							  "FAKE_DATA_TAMPERED",
 							  "EXFIL_ONGOING"};
 		
 		String[][] varValues = 
@@ -41,6 +53,8 @@ public class AttackerDomainPOMDP extends Domain {
 								{"yes", "no"},
 								{"user", "admin"},
 								{"none", "user", "admin"},
+								{"yes", "no"},
+								{"yes", "no"},
 								{"yes", "no"},
 								{"yes", "no"},
 								{"yes", "no"}
@@ -147,6 +161,30 @@ public class AttackerDomainPOMDP extends Domain {
 		// ----------------------------------------------------------------------------
 		
 		// ----------------------------------------------------------------------------
+		// C_DATA_TAMPERED
+
+		DDTree cDataTamperedInit = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"C_DATA_TAMPERED"},
+				new String[][] {
+					{"yes", "0.0"},
+					{"no", "1.0"}
+				});
+
+		// ----------------------------------------------------------------------------
+		
+		// ----------------------------------------------------------------------------
+		// FAKE_DATA_TAMPERED
+
+		DDTree fakeDataTamperedInit = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"FAKE_DATA_TAMPERED"},
+				new String[][] {
+					{"yes", "0.0"},
+					{"no", "1.0"}
+				});
+
+		// ----------------------------------------------------------------------------
+		
+		// ----------------------------------------------------------------------------
 		// EXFIL_ONGOING
 
 		DDTree exfilOngoingInit = this.ddmaker.getDDTreeFromSequence(
@@ -167,6 +205,8 @@ public class AttackerDomainPOMDP extends Domain {
 							  "PERSIST_GAINED",
 							  "C_DATA_ACCESSED",
 							  "FAKE_DATA_ACCESSED",
+							  "C_DATA_TAMPERED",
+							  "FAKE_DATA_TAMPERED",
 							  "EXFIL_ONGOING"},
 				
 				new DDTree[] {hasRootVulnInit,
@@ -176,60 +216,62 @@ public class AttackerDomainPOMDP extends Domain {
 							  persistGainedInit,
 							  cDataAccessedInit,
 							  fakeDataAccessedInit,
+							  cDataTamperedInit,
+							  fakeDataTamperedInit,
 							  exfilOngoingInit});
 		this.beliefSPUDD = bSPUDD;
 		
 		// ----------------------------------------------------------------------------
 		// Adjuncts
 		
-//		// Don't know privs
-//		
-//		DDTree dontKnowSessionPrivsInit = this.ddmaker.getDDTreeFromSequence(
-//				new String[] {"SESSION_PRIVS"},
-//				new String[][] {
-//					{"user", "0.5"},
-//					{"admin", "0.5"} });
-//		
-//		BeliefSPUDD dontKnowPrivsBelief = BeliefSPUDDFactory.getAdjunctBeliefSPUDD(
-//				bSPUDD, 
-//				new String[] {"SESSION_PRIVS"}, 
-//				new DDTree[] {dontKnowSessionPrivsInit},
-//				"dontKnowPrivs");
-//		
-//		this.otherBeliefSPUDDs.add(dontKnowPrivsBelief);
-//		
-//		
-//		// Yes C Data
-//		
-//		DDTree yesCDataInit = this.ddmaker.getDDTreeFromSequence(
-//				new String[] {"HAS_C_DATA"},
-//				new String[][] {
-//					{"yes", "1.0"},
-//					{"no", "0.0"} });
-//		
-//		BeliefSPUDD yesCDataBelief = BeliefSPUDDFactory.getAdjunctBeliefSPUDD(
-//				bSPUDD, 
-//				new String[] {"HAS_C_DATA"}, 
-//				new DDTree[] {yesCDataInit},
-//				"yesCData");
-//		
-//		this.otherBeliefSPUDDs.add(yesCDataBelief);
-//		
-//		// No Root Vuln
-//		
-//		DDTree noRootVulnInit = this.ddmaker.getDDTreeFromSequence(
-//				new String[] {"HAS_ROOT_VULN"},
-//				new String[][] {
-//					{"yes", "0.0"},
-//					{"no", "1.0"} });
-//		
-//		BeliefSPUDD noRootVulnBelief = BeliefSPUDDFactory.getAdjunctBeliefSPUDD(
-//				bSPUDD, 
-//				new String[] {"HAS_ROOT_VULN"}, 
-//				new DDTree[] {noRootVulnInit},
-//				"noRootVuln");
-//		
-//		this.otherBeliefSPUDDs.add(noRootVulnBelief);
+		// Don't know privs
+		
+		DDTree dontKnowSessionPrivsInit = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"SESSION_PRIVS"},
+				new String[][] {
+					{"user", "0.5"},
+					{"admin", "0.5"} });
+		
+		BeliefSPUDD dontKnowPrivsBelief = BeliefSPUDDFactory.getAdjunctBeliefSPUDD(
+				bSPUDD, 
+				new String[] {"SESSION_PRIVS"}, 
+				new DDTree[] {dontKnowSessionPrivsInit},
+				"dontKnowPrivs");
+		
+		this.otherBeliefSPUDDs.add(dontKnowPrivsBelief);
+		
+		
+		// Yes C Data
+		
+		DDTree yesCDataInit = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"HAS_C_DATA"},
+				new String[][] {
+					{"yes", "1.0"},
+					{"no", "0.0"} });
+		
+		BeliefSPUDD yesCDataBelief = BeliefSPUDDFactory.getAdjunctBeliefSPUDD(
+				bSPUDD, 
+				new String[] {"HAS_C_DATA"}, 
+				new DDTree[] {yesCDataInit},
+				"yesCData");
+		
+		this.otherBeliefSPUDDs.add(yesCDataBelief);
+		
+		// No Root Vuln
+		
+		DDTree noRootVulnInit = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"HAS_ROOT_VULN"},
+				new String[][] {
+					{"yes", "0.0"},
+					{"no", "1.0"} });
+		
+		BeliefSPUDD noRootVulnBelief = BeliefSPUDDFactory.getAdjunctBeliefSPUDD(
+				bSPUDD, 
+				new String[] {"HAS_ROOT_VULN"}, 
+				new DDTree[] {noRootVulnInit},
+				"noRootVuln");
+		
+		this.otherBeliefSPUDDs.add(noRootVulnBelief);
 		
 	}
 
@@ -261,6 +303,34 @@ public class AttackerDomainPOMDP extends Domain {
 		this.actionSPUDDMap.put(actName, nopSPUDD);
 		
 		// -----------------------------------------------------------------
+		
+		// -----------------------------------------------------------------
+		// action NOP
+		
+		actName = "CHECK_DATA";
+		
+		// make observation DD
+		DDTree checkDataObsDD = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"C_DATA_ACCESSED'", 
+							  "FAKE_DATA_ACCESSED'", 
+							  "OBS'"},
+				new String[][] {
+					{"yes", "no", "data_c", "1.0"},
+					{"yes", "yes", "data_nc", "0.9"},
+					{"yes", "yes", "data_c", "0.1"},
+					{"no", "yes", "data_nc", "0.8"},
+					{"no", "yes", "data_c", "0.2"},
+					{"no", "no", "none", "1.0"}
+				});
+		
+		ActionSPUDD checkDataObsSPUDD = ActionSPUDDFactory.getActionSPUDD(
+				this.varContext, actName,
+				new String[] {"OBS"},
+				new DDTree[] {checkDataObsDD},
+				0.1);
+		
+//				this.actionSPUDDs.add(nopSPUDD);
+		this.actionSPUDDMap.put(actName, checkDataObsSPUDD);
 		
 		// -----------------------------------------------------------------
 		// action VULN_SCAN
@@ -403,6 +473,21 @@ public class AttackerDomainPOMDP extends Domain {
 					{"yes", "admin", "no", "no", "0.1"},
 					{"no", "*", "*", "no", "1.0"}
 				});
+		
+		DDTree fakeDataAccessedDD = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"HAS_FAKE_DATA",
+							  "SESSION_PRIVS",
+							  "FAKE_DATA_ACCESSED",
+							  "FAKE_DATA_ACCESSED'"},
+				
+				new String[][] {
+					{"yes", "*", "yes", "yes", "1.0"},
+					{"yes", "*", "no", "yes", "1.0"},
+////					{"yes", "user", "no", "yes", "0.1"},
+//					{"yes", "admin", "no", "yes", "0.9"},
+//					{"yes", "admin", "no", "no", "0.1"},
+					{"no", "*", "*", "no", "1.0"}
+				});
 
 		DDTree fileReconObsDD = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"C_DATA_ACCESSED'",
@@ -414,12 +499,74 @@ public class AttackerDomainPOMDP extends Domain {
 		
 		ActionSPUDD fileReconSPUDD = ActionSPUDDFactory.getActionSPUDD(
 				this.varContext, actName,
-				new String[] {"C_DATA_ACCESSED", "OBS"},
-				new DDTree[] {cDataAccessedDD, fileReconObsDD},
+				new String[] {"C_DATA_ACCESSED", "OBS", "FAKE_DATA_ACCESSED"},
+				new DDTree[] {cDataAccessedDD, fileReconObsDD, fakeDataAccessedDD},
 				0.1);
 		
 //		this.actionSPUDDs.add(fileReconSPUDD);
 		this.actionSPUDDMap.put(actName, fileReconSPUDD);
+		
+		// -----------------------------------------------------------------
+		
+		// -----------------------------------------------------------------
+		// action MODIFY_FILE
+		
+		actName = "MODIFY_FILE";
+		
+		DDTree cDataTamperedDD = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"SESSION_PRIVS",
+							  "C_DATA_ACCESSED",
+							  "C_DATA_TAMPERED",
+							  "C_DATA_TAMPERED'"},
+				
+				new String[][] {
+					{"admin", "yes", "yes", "yes", "1.0"},
+					{"admin", "yes", "no", "yes", "0.9"},
+					{"admin", "yes", "no", "no", "0.1"},
+					{"admin", "no", "*", "no", "1.0"},
+					{"user", "yes", "yes", "yes", "1.0"},
+					{"user", "yes", "no", "yes", "0.4"},
+					{"user", "yes", "no", "no", "0.6"},
+					{"user", "no", "*", "no", "1.0"},
+				});
+		
+		DDTree fakeDataTamperedDD = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"SESSION_PRIVS",
+							  "FAKE_DATA_ACCESSED",
+							  "FAKE_DATA_TAMPERED",
+							  "FAKE_DATA_TAMPERED'"},
+				
+				new String[][] {
+					{"admin", "yes", "yes", "yes", "1.0"},
+					{"admin", "yes", "no", "yes", "0.9"},
+					{"admin", "yes", "no", "no", "0.1"},
+					{"admin", "no", "*", "no", "1.0"},
+					{"user", "yes", "yes", "yes", "1.0"},
+					{"user", "yes", "no", "yes", "0.9"},
+					{"user", "yes", "no", "no", "0.1"},
+					{"user", "no", "*", "no", "1.0"},
+				});
+				
+		
+		DDTree modifyFileObsDD = this.ddmaker.getDDTreeFromSequence(
+				new String[] {"C_DATA_TAMPERED'",
+							  "FAKE_DATA_TAMPERED'",
+							  "OBS'"},
+				new String[][] {
+					{"yes", "yes", "success", "1.0"},
+					{"no", "yes", "success", "1.0"},
+					{"yes", "no", "success", "1.0"},
+					{"no", "no", "none", "1.0"}
+				});
+		
+		ActionSPUDD modifyFileSPUDD = ActionSPUDDFactory.getActionSPUDD(
+				this.varContext, actName,
+				new String[] {"C_DATA_TAMPERED", "FAKE_DATA_TAMPERED", "OBS"},
+				new DDTree[] {cDataTamperedDD, fakeDataTamperedDD, modifyFileObsDD},
+				0.5);
+		
+//				this.actionSPUDDs.add(exfilSPUDD);
+		this.actionSPUDDMap.put(actName, modifyFileSPUDD);
 		
 		// -----------------------------------------------------------------
 		
@@ -469,22 +616,13 @@ public class AttackerDomainPOMDP extends Domain {
 	public void makeRewardDD() {
 		
 		// For EXFIL
-//		this.rewardFn = this.ddmaker.getDDTreeFromSequence(
-//				new String[] {"C_DATA_ACCESSED",
-//							  "EXFIL_ONGOING"},
-//				new String[][] {
-//					{"yes", "yes", "2.0"},
-//					{"no", "yes", "0.0"}
-//				});
-		
-		// For PERSISTANCE and C2
 		this.rewardFn = this.ddmaker.getDDTreeFromSequence(
-				new String[] {"PERSIST_GAINED"},
+				new String[] {"C_DATA_TAMPERED",
+							  "FAKE_DATA_TAMPERED"},
 				new String[][] {
-					{"admin", "2.0"},
-					{"user", "1.0"}
+					{"yes", "no", "2.0"},
+					{"yes", "yes", "-1.0"},
+					{"no", "yes", "-2.0"}
 				});
-		
 	}
-
 }
