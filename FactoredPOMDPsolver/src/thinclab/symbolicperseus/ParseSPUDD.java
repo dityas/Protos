@@ -5,7 +5,7 @@ import java.util.*;
 import java.lang.*;
 
 public class ParseSPUDD {
-    private HashMap existingDds;
+    public HashMap existingDds;
     public StreamTokenizer stream;
 
     public Vector<String> varNames;

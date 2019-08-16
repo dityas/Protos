@@ -9,8 +9,10 @@ package thinclab.ipomdpsolver;
 
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
+import thinclab.symbolicperseus.StateVar;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import thinclab.policyhelper.PolicyNode;
@@ -30,6 +32,7 @@ public class OpponentModel {
 	 * Each node in the policy tree is associated with a single optimal action and a single belief.
 	 */
 	public List<PolicyNode> nodesList = new ArrayList<PolicyNode>();
+	public HashMap<String, PolicyNode> nodeIndex = new HashMap<String, PolicyNode>();
 	
 	public OpponentModel(List<POMDP> frames) {
 		/*
@@ -49,9 +52,25 @@ public class OpponentModel {
 			/* Add nodes to */
 			nodesList.addAll(T.policyNodes);
 		}
+		
+		this.nodesList.stream().forEach(n -> this.nodeIndex.put("m" + n.id, n));
 	}
 	
 	// -----------------------------------------------------------------------------
+	
+	public StateVar getOpponentModelStateVar(int index) {
+		/*
+		 * Makes a StateVar object for the opponent model
+		 * 
+		 * Makes a new random variable M. The possible values taken by M are the
+		 * policy nodes in the opponent model policy trees. 
+		 */
+		String[] nodeNames = 
+				this.nodeIndex.keySet().toArray(
+						new String[this.nodesList.size()]);
+		
+		return new StateVar("M", index, nodeNames);
+	}
 
 //	@Override
 //	public String toString() {

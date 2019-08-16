@@ -28,6 +28,21 @@ public class DDMaker {
 		theLogger.addHandler(cHandler);
 	}
 	
+	public DDMaker(VariablesContext varContext) {
+		/*
+		 * Initialize variables from a VariablesContext
+		 */
+		this();
+		
+		/* Add state variables */
+		for (int s=0; s < varContext.varNames.length; s++) 
+			this.addVariable(varContext.varNames[s], varContext.varValNames[s]);
+		
+		/* Add obs variables */
+		for (int o=0; o < varContext.obsNames.length; o++) 
+			this.addVariable(varContext.obsNames[o], varContext.obsValNames[o]);
+	}
+	
 	// ----------------------------------------------------------------------------
 	// Methods for variables addition
 	
@@ -36,16 +51,17 @@ public class DDMaker {
 		 * Stores the state or observation variable info.
 		 */
 		if (this.variablesHashMap.containsKey(varName)) {
-			this.theLogger.warning(varName + "already exists. Won't be added again.");
+			this.theLogger.warning(
+					varName + "already exists. Won't be added again.");
 		}
 		
 		if (this.primed) {
-			this.theLogger.severe("Variables have already been primed. Restart and add all variables first");			
+			this.theLogger.severe(
+					"Variables have already been primed. Restart and add all variables first");			
 		}
 		
-		else {
-			this.variablesHashMap.put(varName, children);
-		}
+		else this.variablesHashMap.put(varName, children);
+		
 	} // public void addVariable
 	
 	public void primeVariables() {

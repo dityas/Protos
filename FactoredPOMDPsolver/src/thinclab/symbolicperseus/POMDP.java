@@ -382,6 +382,8 @@ public class POMDP implements Serializable {
 		this.initializeActionsFromParser(parserObj);
 		this.initializeDiscountFactorFromParser(parserObj);		
 		this.initializeBeliefsFromParser(parserObj);
+		
+		System.out.println(parserObj.existingDds);
 
 	}
 	

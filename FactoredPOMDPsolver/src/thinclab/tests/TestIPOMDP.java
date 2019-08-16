@@ -98,32 +98,7 @@ class TestIPOMDP {
 	
 	@Test
 	void testIPOMDPISCreation() {
-		System.out.println("Running testIPOMDPISCreation()");
 		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
-		
-		/*
-		 * Initialize IPOMDP
-		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP();
-		try {
-
-			tigerL1IPOMDP.initializeFromParsers(parser);
-
-			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
-			
-			int totalNodes = tigerL1IPOMDP.lowerLevelFrames.stream()
-					.map(f -> f.getPolicyTree(5).policyNodes.size())
-					.reduce(0, (totalSize, frameSize) -> totalSize + frameSize);
-			
-			assertEquals(oppModel.nodesList.size(), totalNodes);
-		} 
-		
-		catch (Exception e) {
-			System.err.println(e.getMessage());
-			fail();
-		}
 	}
 
 }

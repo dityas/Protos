@@ -22,6 +22,7 @@ import thinclab.exceptions.SolverException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.OpponentModel;
+import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.POMDP;
 
 /*
@@ -44,15 +45,12 @@ class TestOpponentModels {
 	}
 
 	@Test
-	void testIPOMDPL1GetOpponentModels() {
+	void testIPOMDPL1GetOpponentModel() {
 		/*
 		 * Test Opponents solutions by L1 agents
 		 */
-		System.out.println("Running testIPOMDPL1GetOpponentModels()");
+		System.out.println("Running testIPOMDPL1GetOpponentModel()");
 		
-		/*
-		 * Create and Parse the IPOMDP as usual
-		 */
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
@@ -61,74 +59,35 @@ class TestOpponentModels {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP();
 		try {
+
 			tigerL1IPOMDP.initializeFromParsers(parser);
-		} 
-		
-		catch (ParserException e) {
-			System.err.println(e.getMessage());
-			fail();
-		}
-		
-		try {
-			List<OpponentModel> models = tigerL1IPOMDP.getOpponentModels(); 
-			assertTrue(models.size() > 2);
 			
-//			System.out.println(Arrays.deepToString(models));
-		} 
-		
-		catch (SolverException e) {
-			System.err.println(e.getMessage());
-			fail();
-		}
-	}
-	
-	@Test
-	void testOpponentModelHashing() {
-		/*
-		 * Test Opponents solutions by L1 agents
-		 */
-		System.out.println("Running testOpponentModelHashing()");
-		
-		/*
-		 * Create and Parse the IPOMDP as usual
-		 */
-		IPOMDPParser parser1 = new IPOMDPParser(this.l1DomainFile);
-		IPOMDPParser parser2 = new IPOMDPParser(this.l1DomainFile2);
-		parser1.parseDomain();
-		parser2.parseDomain();
-		
-		/*
-		 * Initialize IPOMDP
-		 */
-		IPOMDP tigerL1IPOMDP1 = new IPOMDP();
-		IPOMDP tigerL1IPOMDP2 = new IPOMDP();
-		
-		try {
-			tigerL1IPOMDP1.initializeFromParsers(parser1);
-			tigerL1IPOMDP2.initializeFromParsers(parser2);
+			/* Get opponent model */
+			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
 			
-			tigerL1IPOMDP1.solveIPBVI(10, 100);
-			tigerL1IPOMDP2.solveIPBVI(10, 100);
+			/* 
+			 * manually compute the total nodes in the opponent model for
+			 * verification.
+			 */
+			int totalNodes = tigerL1IPOMDP.lowerLevelFrames.stream()
+					.map(f -> f.getPolicyTree(5).policyNodes.size())
+					.reduce(0, (totalSize, frameSize) -> totalSize + frameSize);
 			
-			List<POMDP> frameList1 = tigerL1IPOMDP1.lowerLevelFrames;
-			List<POMDP> frameList2 = tigerL1IPOMDP2.lowerLevelFrames;
-			
-			HashSet<POMDP> uniqueFrames = new HashSet<POMDP>();
-			uniqueFrames.addAll(frameList1);
-			uniqueFrames.addAll(frameList2);
-			
-			assertTrue(uniqueFrames.size() < (frameList1.size() + frameList2.size()));
-			
-			System.out.println("Set size is " + uniqueFrames.size());
-			System.out.println("Frames1 size is " + frameList1.size());
-			System.out.println("Frames2 size is " + frameList2.size());
-			
-//			System.out.println(Arrays.deepToString(models));
+			assertEquals(oppModel.nodesList.size(), totalNodes);
 		} 
 		
 		catch (Exception e) {
 			System.err.println(e.getMessage());
 			fail();
 		}
+		
+		System.out.println(Arrays.toString(Global.varNames));
+		System.out.println(Arrays.deepToString(Global.valNames));
+		System.out.println(Arrays.toString(Global.varDomSize));
+	}
+	
+	@Test
+	void testOpponentModelHashing() {
+		
 	}
 }

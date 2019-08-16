@@ -58,8 +58,6 @@ public class IPOMDP extends POMDP {
 		 * Initializes the IPOMDP from the thinclab.ipomdpsolver.IPOMDPParser object
 		 */
 		
-		super.initializeFromParsers(parsedFrame);
-		
 		/*
 		 * Initialize each child frame
 		 */
@@ -86,29 +84,10 @@ public class IPOMDP extends POMDP {
 			
 		} /* for all child frames */
 		
-		this.makeTabularTransitionFunction();
-	}
-	
-	private void makeTabularTransitionFunction() {
-		/*
-		 * Converts the transition function represented as a DBN to a (S x A x S) matrix
-		 */
+		/* Initialize state vars from the domain file */
+		super.initializeStateVarsFromParser(parsedFrame);
 		
-		/*
-		 * Flatten state space
-		 */
-		int totalFlatStates = 1;
-		for (int s=0; s < this.nStateVars; s++) {
-			totalFlatStates *= this.stateVars[s].arity;
-		}
-				
-		/*
-		 * For all actions, use super's getTransFnTabular
-		 */
-		for (int i=0; i < this.nActions; i++) {
-			double[] flatFunction = this.getTransFnTabular(i);
-			
-		}
+		
 	}
 	
 	// ------------------------------------------------------------------------------------------
@@ -118,7 +97,6 @@ public class IPOMDP extends POMDP {
 		 * Calls IPBVI or PBVI on the lower level frames depending on whether they are IPOMDPs
 		 * or POMDPs
 		 */
-		Iterator<POMDP> frameIterator = this.lowerLevelFrames.iterator();
 		for (POMDP opponentModel : this.lowerLevelFrames) {
 			
 			/*
