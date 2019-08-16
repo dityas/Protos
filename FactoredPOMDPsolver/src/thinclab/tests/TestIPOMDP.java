@@ -98,7 +98,34 @@ class TestIPOMDP {
 	
 	@Test
 	void testIPOMDPISCreation() {
+		System.out.println("Running testIPOMDPISCreation()");
 		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		try {
+			tigerL1IPOMDP.initializeFromParsers(parser);
+			
+			/* set opponent model var */
+			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
+			tigerL1IPOMDP.makeStateSpace();
+			
+			assertEquals(
+					tigerL1IPOMDP.stateVarStaging.size(), 
+					tigerL1IPOMDP.lowerLevelFrames.get(0).stateVarStaging.size() + 1);
+		} 
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			fail();
+		}
+		
+		System.out.println(tigerL1IPOMDP.stateVarStaging);
 	}
 
 }

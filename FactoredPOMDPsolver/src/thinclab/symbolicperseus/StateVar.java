@@ -1,6 +1,7 @@
 package thinclab.symbolicperseus;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class StateVar implements Serializable {
 	/**
@@ -33,5 +34,17 @@ public class StateVar implements Serializable {
 	public void addValName(int i, String vname) {
 		valNames[i] = vname;
 	}
+
+	@Override
+	public String toString() {
+		return "StateVar [name=" + name 
+				+ ", id=" + id 
+				+ ", valNames=" + Arrays.toString(valNames) 
+				+ "]";
+	}
+	
+	// ----------------------------------------------------------------------
+	
+	
 
 }

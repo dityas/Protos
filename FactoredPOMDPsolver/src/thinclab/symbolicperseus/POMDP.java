@@ -87,8 +87,8 @@ public class POMDP implements Serializable {
 	/*
 	 * Staging variables for state vars and obs vars
 	 */
-	private List<StateVar> stateVarStaging = new ArrayList<StateVar>();
-	private List<StateVar> obsVarStaging = new ArrayList<StateVar>();
+	public List<StateVar> stateVarStaging = new ArrayList<StateVar>();
+	public List<StateVar> obsVarStaging = new ArrayList<StateVar>();
 	
 	// ---------------------------------------------------------------------
 	
@@ -383,7 +383,7 @@ public class POMDP implements Serializable {
 		this.initializeDiscountFactorFromParser(parserObj);		
 		this.initializeBeliefsFromParser(parserObj);
 		
-		System.out.println(parserObj.existingDds);
+//		System.out.println(parserObj.existingDds);
 
 	}
 	

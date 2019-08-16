@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import cern.colt.Arrays;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.symbolicperseus.DD;
@@ -42,6 +41,20 @@ public class IPOMDP extends POMDP {
 	public Vector<Vector<Vector<Float>>> T = new Vector<Vector<Vector<Float>>>();
 	
 	public List<POMDP> lowerLevelFrames = new ArrayList<POMDP>();
+	
+	/*
+	 * Store a local reference to OpponentModel object to get easier access to node
+	 * indices and all that
+	 */
+	public OpponentModel oppModel;
+	
+	/*
+	 * We will need to know the varIndex for the opponentModel statevar to replace it after
+	 * every belief update
+	 */
+	public int oppModelVarIndex;
+	
+	// ----------------------------------------------------------------------------------------
 
 	public IPOMDP(String fileName) {
 		super(fileName);
@@ -137,7 +150,7 @@ public class IPOMDP extends POMDP {
 		 * Runs the interactive PBVI loop for solving the IPOMDP
 		 */
 		try {
-			OpponentModel oppModel = this.getOpponentModel();
+			this.oppModel = this.getOpponentModel();
 		} 
 		
 		catch (SolverException e) {
@@ -149,29 +162,31 @@ public class IPOMDP extends POMDP {
 	
 	// ------------------------------------------------------------------------------------------
 	
-	public List<InteractiveStateVar> makeInteractiveStateSpace(HashSet<OpponentModel> uniqueModels) {
+	public void makeStateSpace() {
 		/*
 		 * Constructs the IS space from unique opponent models and physical states 
 		 * 
-		 * For the look ahead solver, the state space will differ at every t. So we will need
-		 * to construct a new IS space for every horizon
+		 * We are considering the physical states S to be independent of the belief 
+		 * over opponents' beliefs. So the opponents' model M will be a separate state
+		 * variable in addition to the physical states S
 		 */
-		List<InteractiveStateVar> ISVars = new ArrayList<InteractiveStateVar>();
 		
 		/*
-		 * For each unique model and state var, make a new IS
+		 * Clear the staging list to delete any parsed state variables. Then add all 
+		 * state variables from one of the lower level frames. The state variables are
+		 * supposed to be the same for all frames.
+		 * 
+		 * TODO: in case of IPOMDP frames, remove lower level agent models from the
+		 * state var staging list before using it to create state vars for current level.
 		 */
-		Iterator<OpponentModel> uniqueModelsIter = uniqueModels.iterator();
-		while (uniqueModelsIter.hasNext()) {
-			OpponentModel opponentModel = (OpponentModel) uniqueModelsIter.next();
-			
-			for (int s=0; s < this.nStateVars; s++) {
-				ISVars.add(new InteractiveStateVar(this.stateVars[s], opponentModel));
-			}
-			
-		} /* opponentModels iterator */
+		this.stateVarStaging.clear();
+		this.stateVarStaging.addAll(this.lowerLevelFrames.get(0).stateVarStaging);
 		
-		return ISVars;
+		/* Set oppModelVarIndex */
+		this.oppModelVarIndex = this.stateVarStaging.size();
+		
+		/* Finally, add the oppModel state var to the staging list */
+		this.stateVarStaging.add(this.oppModel.getOpponentModelStateVar(this.oppModelVarIndex));
 	}
 
 }
