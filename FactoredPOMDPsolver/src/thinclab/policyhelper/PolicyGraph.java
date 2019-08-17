@@ -89,7 +89,7 @@ public class PolicyGraph {
 		/*
 		 * Populate nodeHashMap
 		 */
-		policyTree.indexNodes(0);
+//		policyTree.indexNodes(0);
 		for (PolicyNode node : policyTree.policyNodes) {
 			this.policyNodeHashMap.put(node.id, node);
 		}
@@ -102,16 +102,16 @@ public class PolicyGraph {
 			/*
 			 * Add edges for current policy node to policy graph
 			 */
-			Iterator<Map.Entry<List<String>, PolicyNode>> nextNodeIter = 
-					nodeCurr.nextPolicyNode.entrySet().iterator();
+			Iterator<Map.Entry<List<String>, Integer>> nextNodeIter = 
+					nodeCurr.nextNode.entrySet().iterator();
 			while(nextNodeIter.hasNext()) {
-				Map.Entry<List<String>, PolicyNode> nextNodeEntry = nextNodeIter.next();
+				Map.Entry<List<String>, Integer> nextNodeEntry = nextNodeIter.next();
 				policyGraph.addEdge(
 						new PolicyEdge(nodeCurr.id, 
 									   nextNodeEntry.getKey(),
-									   nextNodeEntry.getValue().id),
+									   nextNodeEntry.getValue()),
 						this.policyNodeHashMap.get(nodeCurr.id),
-						this.policyNodeHashMap.get(nextNodeEntry.getValue().id),
+						this.policyNodeHashMap.get(nextNodeEntry.getValue()),
 						EdgeType.DIRECTED);
 				
 			} // while(nextNodeIter.hasNext())

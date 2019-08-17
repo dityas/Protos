@@ -38,6 +38,7 @@ public class RunAttackerDomainPOMDP {
 			pomdp.solvePBVI(10, 100);
 			
 			PolicyExtractor policyExtractor = new PolicyExtractor(pomdp);
+//			PolicyTree pTree = new PolicyTree(pomdp, 3);
 			PolicyGraph policyGraph = new PolicyGraph(policyExtractor.policyNodes);
 			PolicyVisualizer viz = new PolicyVisualizer(policyGraph);
 

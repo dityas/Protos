@@ -63,6 +63,7 @@ class TestPolicyTree {
 		long endTime = System.nanoTime();
 		
 		assertTrue(policyTree.policyNodes.size() > pomdp.getInitialBeliefsList().size());
+		System.out.println(policyTree.policyNodes);
 	}
 
 }

@@ -126,7 +126,7 @@ public class PolicyNode {
 				+ " alphaId=" + this.alphaId 
 				+ " actId=" + actId 
 				+ ", belief=" + this.factoredBelief 
-				+ ", nextNode=" + nextPolicyNode.toString() + "]\r\n";
+				+ ", nextNode=" + nextNode.toString() + "]\r\n";
 	}
 	
 	public String getDotHeader(String actionName) {

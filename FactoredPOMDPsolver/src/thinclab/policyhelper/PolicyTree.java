@@ -36,6 +36,8 @@ public class PolicyTree {
 	public List<PolicyNode> roots;
 	public List<PolicyNode> policyNodes;
 	
+	private int idCounter = 0;
+	
 	// -------------------------------------------------------------------------------------
 	
 	public PolicyTree(POMDP p, int horizon) {
@@ -54,6 +56,10 @@ public class PolicyTree {
 												  .collect(Collectors.toList());
 		
 		this.roots.stream().forEach(n -> n.setStartNode());
+		IntStream.range(0, this.roots.size())
+				 .forEach(i -> 
+				 	this.roots.get(i).setId(this.getNextId()));
+		
 		this.expandForHorizon(horizon);
 	}
 	
@@ -65,9 +71,7 @@ public class PolicyTree {
 		 */
 		List<PolicyNode> nextNodes = new ArrayList<PolicyNode>();
 		
-		Iterator<PolicyNode> leafIter = previousLeaves.iterator();
-		while (leafIter.hasNext()) {
-			PolicyNode policyNode = leafIter.next();
+		for (PolicyNode policyNode : previousLeaves) {
 			
 			/*
 			 * Update for each observation 
@@ -91,7 +95,9 @@ public class PolicyTree {
 				}
 				
 				PolicyNode nextNode = new PolicyNode(this.pomdp, nextBelief);
-				policyNode.nextPolicyNode.put(o, nextNode);
+				nextNode.setId(this.getNextId());
+				
+				policyNode.nextNode.put(o, nextNode.id);
 				nextNodes.add(nextNode);
 			}
 			
@@ -128,6 +134,14 @@ public class PolicyTree {
 		IntStream.range(start, 
 				start + this.policyNodes.size()).forEach(
 						i -> policyNodes.get(i - start).setId(i));
+	}
+	
+	private int getNextId() {
+		/*
+		 * Get the next unique int ID for policy Nodes.
+		 */
+		this.idCounter++;
+		return this.idCounter;
 	}
 	
 }
