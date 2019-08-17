@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +66,34 @@ class TestPolicyTree {
 		
 		assertTrue(policyTree.policyNodes.size() > pomdp.getInitialBeliefsList().size());
 		System.out.println(policyTree.policyNodes);
+	}
+	
+	@Test
+	void testShiftIndex() {
+		System.out.println("Running testShiftIndex()");
+		
+		PolicyTree policyTree = new PolicyTree(pomdp, 2);
+		System.out.println(policyTree.policyNodes);
+		/* Collect orignal indices */
+		Set<Integer> previousIndices = 
+				policyTree.policyNodes
+					.stream()
+					.map(n -> new Integer(n.id))
+					.collect(Collectors.toSet());
+		
+		/* offset indices */
+		policyTree.shiftIndex(previousIndices.size());
+		System.out.println(policyTree.policyNodes);
+		
+		Set<Integer> newIndices = 
+				policyTree.policyNodes
+					.stream()
+					.map(n -> new Integer(n.id))
+					.collect(Collectors.toSet());
+		
+		assertEquals(previousIndices.size(), newIndices.size());
+		previousIndices.addAll(newIndices);
+		assertTrue(previousIndices.size() == (2 * newIndices.size()));
 	}
 
 }

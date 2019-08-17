@@ -127,13 +127,20 @@ public class PolicyTree {
 		}
 	}
 	
-	public void indexNodes(int start) {
+	public void shiftIndex(int start) {
 		/*
-		 * Gives unique integer ids to policy nodes.
+		 * Offsets the indices of policy nodes by the given arg 
 		 */
-		IntStream.range(start, 
-				start + this.policyNodes.size()).forEach(
-						i -> policyNodes.get(i - start).setId(i));
+		for (PolicyNode node : this.policyNodes) {
+			
+			/* replace for node */
+			node.setId(node.id + start);
+			
+			/* replace for children */
+			for (List<String> obs : node.nextNode.keySet()) {
+				node.nextNode.replace(obs, node.nextNode.get(obs) + start);
+			}
+		} /* for this.policyNodes */
 	}
 	
 	private int getNextId() {

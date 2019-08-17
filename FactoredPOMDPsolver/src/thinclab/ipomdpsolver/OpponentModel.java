@@ -47,7 +47,7 @@ public class OpponentModel {
 			 * Start indexing nodes incrementally so that each node has a unique index
 			 * even if it is from different trees
 			 */
-			T.indexNodes(nodesList.size());
+			T.shiftIndex(nodesList.size());
 			
 			/* Add nodes to */
 			nodesList.addAll(T.policyNodes);
