@@ -17,8 +17,10 @@ public class PolicyNode {
 	DD belief;
 	public int id = -1;
 	
-	HashMap<String, ArrayList<Float>> factoredBelief = new HashMap<String, ArrayList<Float>>();
-	Map<List<String>, Integer> nextNode = new HashMap<List<String>, Integer>();
+	public HashMap<String, ArrayList<Float>> factoredBelief = 
+			new HashMap<String, ArrayList<Float>>();
+	public Map<List<String>, Integer> nextNode = 
+			new HashMap<List<String>, Integer>();
 	
 	/*
 	 * Children hash map for the PolicyTree API

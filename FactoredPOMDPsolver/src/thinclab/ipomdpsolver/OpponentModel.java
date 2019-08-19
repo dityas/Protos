@@ -14,7 +14,9 @@ import thinclab.symbolicperseus.StateVar;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
+import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.policyhelper.PolicyNode;
 import thinclab.policyhelper.PolicyTree;
 
@@ -70,7 +72,40 @@ public class OpponentModel {
 				this.nodeIndex.keySet().toArray(
 						new String[this.nodesList.size()]);
 		
-		return new StateVar("M", index, nodeNames);
+		return new StateVar("Mj", index, nodeNames);
+	}
+	
+	public String[][] getOpponentModelTriples() {
+		/*
+		 * Returns policy node transitions as triples of (start, obs, end)
+		 * 
+		 * Useful for making DDTree objects of OpponentModel and eventually making a
+		 * symbolic perseus DD.
+		 */
+		
+		List<String[]> triples = new ArrayList<String[]>();
+		
+		for (PolicyNode node : this.nodesList) {
+			
+			/* for each possible obs */
+			for (Entry<List<String>, Integer> entry : node.nextNode.entrySet()) {
+				List<String> triple = new ArrayList<String>();
+				
+				/* add start node */
+				triple.add("m" + node.id);
+				
+				/* add obs combination */
+				triple.addAll(entry.getKey());
+				
+				/* add end node */
+				triple.add("m" + entry.getValue());
+				
+				triples.add(triple.toArray(new String[triple.size()]));
+			}
+		}
+		
+		/* convert list to array and return */
+		return triples.toArray(new String[triples.size()][]);
 	}
 
 //	@Override

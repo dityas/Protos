@@ -8,6 +8,7 @@
 package thinclab.policyhelper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collector;
@@ -149,6 +150,22 @@ public class PolicyTree {
 		 */
 		this.idCounter++;
 		return this.idCounter;
+	}
+	
+	public List<String> getObsVarSequence() {
+		/*
+		 * Returns the observation variable names in sequence
+		 * 
+		 * The DDMaker implementation needs a variable ordering while making DDTree objects.
+		 * This method can be useful while making a DD for policy node transitions. 
+		 */
+		
+		List<String> obsSeq = 
+				Arrays.asList(this.pomdp.obsVars).stream()
+					.map(v -> v.name)
+					.collect(Collectors.toList());
+		
+		return obsSeq;
 	}
 	
 }
