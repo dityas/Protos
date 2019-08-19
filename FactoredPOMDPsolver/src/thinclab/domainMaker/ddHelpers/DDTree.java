@@ -18,19 +18,17 @@ public class DDTree {
 	
 	public String varName = "UnnamedVar";
 	public HashMap<String, DDTree> children = new HashMap<String, DDTree>();
-	private static final Logger theLogger = Logger.getLogger("DDTree");
 	
-	private List<DDTree> nodesVisited = new ArrayList<DDTree>();
+	// --------------------------------------------------------------------------------------
 	
 	public DDTree(String varName) {
+		/*
+		 * Constructor to set varName
+		 */
 		this.varName = varName;
-		this.theLogger.setLevel(Level.ALL);
-		this.theLogger.setUseParentHandlers(false);
-		ConsoleHandler consoleHandler = new ConsoleHandler();
-		consoleHandler.setLevel(Level.INFO);
-		this.theLogger.addHandler(consoleHandler);
-		this.theLogger.log(Level.FINE, this + "DDTree rooted at variable " + varName + " initialised.");
 	}
+	
+	// --------------------------------------------------------------------------------------
 	
 	public String toSPUDD(String prefix) {
 		/*
@@ -38,12 +36,11 @@ public class DDTree {
 		 */
 		String spuddOut = prefix + "(" + varName + "\r\n";
 		
-		Iterator<Entry<String, DDTree>> childrenIterator = children.entrySet().iterator();
-		while (childrenIterator.hasNext()) {
-			Entry<String, DDTree> entry = childrenIterator.next();
+		for (Entry<String, DDTree> entry : children.entrySet()) {
 			spuddOut += prefix + "\t(" + entry.getKey() + "\r\n" + prefix
 					+ entry.getValue().toSPUDD(prefix + "\t") + ")\r\n";
 		}
+		
 		spuddOut +=  prefix + ")";
 		
 		return spuddOut;
@@ -57,34 +54,27 @@ public class DDTree {
 		/*
 		 * Used for reusing same DD trees. Just another implementation of deep copy
 		 */
-		// Copy variable
+		/* Copy variable */ 
 		DDTree copyTree = new DDTree(this.varName);
 		
-		// Copy children
-		Iterator<Entry<String, DDTree>> childrenIterator = children.entrySet().iterator();
-		while (childrenIterator.hasNext()) {
-			Entry<String, DDTree> entry = childrenIterator.next();
-			
+		/* Copy children */
+		for (Entry<String, DDTree> entry : children.entrySet())
 			copyTree.children.put(entry.getKey(), entry.getValue().getCopy());
-		}
-		
 		
 		return copyTree;
 	}
+	
+	// --------------------------------------------------------------------------------
 	
 	public void renameVar(String oldVar, String newVar) {
 		/*
 		 * Renames all nodes with varName oldVar to newVar
 		 */
-		if (this.varName == oldVar) {
-			this.varName = newVar;
-		}
+		if (this.varName == oldVar) this.varName = newVar;
 		
 		else {
-			Iterator<Entry<String, DDTree>> childIter = this.children.entrySet().iterator();
-			while (childIter.hasNext()) {
-				childIter.next().getValue().renameVar(oldVar, newVar);
-			}
+			for (Entry<String, DDTree> child : this.children.entrySet())
+				child.getValue().renameVar(oldVar, newVar);
 		}
 	}
 	
@@ -92,31 +82,17 @@ public class DDTree {
 		/*
 		 * Checks if two DD trees are equal
 		 */
-		if (this.varName != other.varName) {
-			this.theLogger.log(Level.FINEST, this + " VarNames " + this.varName + ", " + other.varName + " are not equal");
-			return false;
-		}
+		if (this.varName != other.varName) return false;
 		
-		if (this.children.size() != other.children.size()) {
-			this.theLogger.log(Level.FINEST, this + " No. of children for " + this.varName + " and " + other.varName + " are not equal");
-			return false;
-		}
+		if (this.children.size() != other.children.size()) return false;
 		
-		Iterator<Entry<String, DDTree>> childrenIterator = children.entrySet().iterator();
-		while (childrenIterator.hasNext()) {
-			Entry<String, DDTree> entry = childrenIterator.next();
+		for (Entry<String, DDTree> entry: children.entrySet()){
+			
 			DDTree otherSubTree = other.children.get(entry.getKey());
 			
-			if (otherSubTree == null) {
-				this.theLogger.log(Level.FINE, this + " Child " + entry.getKey() + " does not exist in " + other);
-				return false;
-			}
+			if (otherSubTree == null) return false;
 			
-			else if (!entry.getValue().equals(otherSubTree)) {
-				this.theLogger.log(Level.FINE, this + " Child " + entry.getKey() + " is different in both");
-				return false;
-			}
-			
+			else if (!entry.getValue().equals(otherSubTree)) return false;
 		}
 		
 		return true;
@@ -126,61 +102,36 @@ public class DDTree {
 		/*
 		 * Returns reference to subtree below given child.
 		 */
-		if (this.children.containsKey(childName)) {
-			this.theLogger.fine("Visiting " + childName);
-			return this.children.get(childName);
-		}
+		if (this.children.containsKey(childName)) return this.children.get(childName);
 		
-		// Child not found
-		else {
-			this.theLogger.warning(this + " does not contain child " + childName);
-			throw new Exception(this + " does not contain child " + childName);
-		}
-	} // public DDTree atChild
+		/* Child not found */
+		else throw new Exception(this.varName + " does not contain child " + childName);
+	}
 	
 	public void setValueAt(String childName, double val) throws Exception {
 		/*
 		 * Sets the value of the leaf at childName to param val
 		 */
 		if (this.children.containsKey(childName)) {
-			if (this.children.get(childName) instanceof DDTreeLeaf) {
-				this.theLogger.fine("Changing value of " + childName + " to " + val + " for " + this.varName);
-				this.children.put(childName, new DDTreeLeaf(val));
-			}
 			
-			else {
-				this.theLogger.severe(childName + " for " + varName + " is not a leaf.");
-				throw new Exception(childName + " for " + varName + " is not a leaf.");
-			}
+			if (this.children.get(childName) instanceof DDTreeLeaf) 
+				this.children.put(childName, new DDTreeLeaf(val));
+			
+			else throw new Exception(childName + " for " + varName + " is not a leaf.");
 		}
 		
-		else {
-			this.theLogger.severe(varName + " does not contain child " + childName);
-			throw new Exception(varName + " does not contain child " + childName);
-		}
-	} // public void setValueAt
+		else throw new Exception(varName + " does not contain child " + childName);
+	}
 	
 	public void setDDAt(String childName, DDTree ddToAppend) throws Exception {
 		/*
 		 * Sets the value of the leaf at childName to param val
 		 */
-		if (this.children.containsKey(childName)) {
-//			if (this.children.get(childName) instanceof DDTreeLeaf) {
-//				this.theLogger.fine("Appending " + ddToAppend.toSPUDD() + " to " + this.toSPUDD());
-				this.children.put(childName, ddToAppend.getCopy());
-//			}
-			
-//			else {
-////				this.theLogger.severe(childName + " for " + varName + " is not a leaf.");
-//				throw new Exception(childName + " for " + varName + " is not a leaf.");
-//			}
-		}
-		
-		else {
-//			this.theLogger.severe(varName + " does not contain child " + childName);
-			throw new Exception(varName + " does not contain child " + childName);
-		}
-	} // public void setDDAt
+		if (this.children.containsKey(childName)) 
+			this.children.put(childName, ddToAppend.getCopy());
+
+		else throw new Exception(varName + " does not contain child " + childName);
+	}
 	
 	// ---------------------------------------------------------------------------------
 	
