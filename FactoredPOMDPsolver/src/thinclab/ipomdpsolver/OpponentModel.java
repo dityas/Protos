@@ -53,6 +53,7 @@ public class OpponentModel {
 			nodesList.addAll(T.policyNodes);
 		}
 		
+		/* create child names for state var */
 		this.nodesList.stream().forEach(n -> this.nodeIndex.put("m" + n.id, n));
 	}
 	

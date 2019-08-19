@@ -5,7 +5,7 @@ import java.lang.*;
 import java.lang.ref.*;
 import java.io.*;
 
-class DDnode extends DD {
+public class DDnode extends DD {
     //private SortedSet scope;
     private int[] varSet;
     private int numLeaves;

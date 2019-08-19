@@ -1,5 +1,8 @@
 package thinclab.domainMaker.ddHelpers;
 
+import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.DDleaf;
+
 public class DDTreeLeaf extends DDTree {
 	
 	public double val = 0.0;
@@ -29,5 +32,15 @@ public class DDTreeLeaf extends DDTree {
 		}
 		
 		return true;
+	}
+	
+	// ----------------------------------------------------------------------------------
+	
+	@Override
+	public DD toDD() {
+		/*
+		 * Overrides the DDTree implementation to convert leaves
+		 */
+		return DDleaf.myNew(this.val);
 	}
 }

@@ -2,12 +2,18 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.Examples.AttackerDomainPOMDP;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.domainMaker.ddHelpers.DDTreeLeaf;
+import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.POMDP;
 
 class TestDDTree {
 
@@ -81,6 +87,46 @@ class TestDDTree {
 		catch (Exception e) {
 			System.out.println("[X][X][X] SOMETHING BROKE WHILE VISITING CHILD");
 		}
+	}
+	
+	@Test
+	void testDDTreeToDDConversion() {
+		/*
+		 * Test to check conversion from DDTree to symbolic perseus DD
+		 */
+		System.out.println("Running testDDTreeToDDConversion()");
+		
+		/*
+		 * Make test POMDP domain and solve it
+		 */
+		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
+		
+		POMDP pomdp = null;
+		
+		try {
+			File domainFile = File.createTempFile("AttackerPOMDP", ".POMDP");
+			attackerPOMDP.makeAll();
+			attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
+			pomdp = new POMDP(domainFile.getAbsolutePath());
+			pomdp.solvePBVI(5, 100);
+		} 
+		
+		catch (IOException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
+		
+		System.out.println(pomdp.initialBelState_f[0]);
+		
+		DDTree sessPrivsBelief = new DDTree("SESSION_PRIVS");
+		sessPrivsBelief.children.put("user", new DDTreeLeaf(0.5));
+		sessPrivsBelief.children.put("admin", new DDTreeLeaf(0.5));
+		
+		DD sessPrivsDD = sessPrivsBelief.toDD();
+		
+		System.out.println(sessPrivsDD);
+		
+		assertTrue(pomdp.initialBelState_f[0].equals(sessPrivsDD));
 	}
 
 }

@@ -4,7 +4,7 @@ import java.util.*;
 import java.lang.ref.*;
 import java.io.*;
 
-class DDleaf extends DD {
+public class DDleaf extends DD {
 		private double val;
 		private int[][] config;
 

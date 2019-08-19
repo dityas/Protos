@@ -2946,7 +2946,6 @@ public class POMDP implements Serializable {
 		 * Returns the policy as a tree for H horizon
 		 */
 		PolicyTree pTree = new PolicyTree(this, horizon);
-		pTree.indexNodes(0);
 		
 		return pTree;
 	}

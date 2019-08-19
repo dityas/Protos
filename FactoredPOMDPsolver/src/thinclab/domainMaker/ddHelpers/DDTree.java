@@ -1,6 +1,7 @@
 package thinclab.domainMaker.ddHelpers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -8,6 +9,10 @@ import java.util.Map.Entry;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.DDnode;
+import thinclab.symbolicperseus.Global;
 
 public class DDTree {
 	
@@ -176,5 +181,27 @@ public class DDTree {
 			throw new Exception(varName + " does not contain child " + childName);
 		}
 	} // public void setDDAt
+	
+	// ---------------------------------------------------------------------------------
+	
+	public DD toDD() {
+		/*
+		 * Convert the DDTree to an actual DD as defined in symbolic perseus
+		 */
+		
+		/* Get the variable index */
+		int varIndex = Arrays.asList(Global.varNames).indexOf(this.varName);
+		String[] values = Global.valNames[varIndex];
+		DD[] children = new DD[this.children.size()];
+		
+		/*
+		 * For each child, recursively convert to DD.
+		 */
+		for (int c = 0; c < values.length; c++) {
+			children[c] = this.children.get(values[c]).toDD();
+		}
+		
+		return DDnode.myNew(varIndex, children);
+	}
 
 } // public class DDTree
