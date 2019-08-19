@@ -149,8 +149,14 @@ public class IPOMDP extends POMDP {
 		/*
 		 * Runs the interactive PBVI loop for solving the IPOMDP
 		 */
+		
 		try {
+		
+			/* Solve lower frames and make opponent model */
 			this.oppModel = this.getOpponentModel();
+			
+			/* make new state space and keep it staged */
+			this.makeStateSpace();
 		} 
 		
 		catch (SolverException e) {
