@@ -8,16 +8,22 @@
 package thinclab.ipomdpsolver;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import thinclab.domainMaker.ddHelpers.DDMaker;
+import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.ParseSPUDD;
+import thinclab.symbolicperseus.StateVar;
 import thinclab.symbolicperseus.Belief.Belief;
 import thinclab.symbolicperseus.Belief.BeliefSet;
 
@@ -97,8 +103,9 @@ public class IPOMDP extends POMDP {
 			
 		} /* for all child frames */
 		
-		/* Initialize state vars from the domain file */
+		/* Initialize vars from the domain file */
 		super.initializeStateVarsFromParser(parsedFrame);
+		super.initializeObsVarsFromParser(parsedFrame);
 		
 		
 	}
@@ -155,8 +162,16 @@ public class IPOMDP extends POMDP {
 			/* Solve lower frames and make opponent model */
 			this.oppModel = this.getOpponentModel();
 			
-			/* make new state space and keep it staged */
-			this.makeStateSpace();
+			/* 
+			 * Stage and commit additional state and variables to populate global 
+			 * arrays
+			 */
+			this.setUpMj();
+			this.setUpOj();
+			this.commitVariables();
+			
+			/* Make M_j transition DD */
+			this.makeOpponentModelTransitionDD();
 		} 
 		
 		catch (SolverException e) {
@@ -168,31 +183,96 @@ public class IPOMDP extends POMDP {
 	
 	// ------------------------------------------------------------------------------------------
 	
-	public void makeStateSpace() {
+	public void setUpMj() {
 		/*
 		 * Constructs the IS space from unique opponent models and physical states 
 		 * 
 		 * We are considering the physical states S to be independent of the belief 
 		 * over opponents' beliefs. So the opponents' model M will be a separate state
-		 * variable in addition to the physical states S
+		 * variable in addition to the physical states S.
 		 */
 		
 		/*
-		 * Clear the staging list to delete any parsed state variables. Then add all 
-		 * state variables from one of the lower level frames. The state variables are
-		 * supposed to be the same for all frames.
+		 * Use i's parsed state variables for physical states S. For M_j, use OpponentModel
+		 * API 
 		 * 
 		 * TODO: in case of IPOMDP frames, remove lower level agent models from the
 		 * state var staging list before using it to create state vars for current level.
 		 */
-		this.stateVarStaging.clear();
-		this.stateVarStaging.addAll(this.lowerLevelFrames.get(0).stateVarStaging);
+//		this.stateVarStaging.clear();
+//		this.stateVarStaging.addAll(this.lowerLevelFrames.get(0).stateVarStaging);
 		
 		/* Set oppModelVarIndex */
 		this.oppModelVarIndex = this.stateVarStaging.size();
 		
 		/* Finally, add the oppModel state var to the staging list */
 		this.stateVarStaging.add(this.oppModel.getOpponentModelStateVar(this.oppModelVarIndex));
+	}
+	
+	public void setUpOj() {
+		/*
+		 * Adds observation for agent j
+		 * 
+		 * WARNING: Currently only works for a single frame.
+		 */
+		
+		for (POMDP frame : this.lowerLevelFrames) {
+			List<StateVar> obsj = Arrays.asList(frame.obsVars);
+			obsj.stream().forEach(o -> o.setName(o.name + "_j"));
+			this.obsVarStaging.addAll(obsj);
+		}
+			
+		/* Offset obsVarIndices */
+		int nStateVars = this.stateVarStaging.size();
+		
+		IntStream.range(
+				nStateVars, 
+				nStateVars + this.obsVarStaging.size())
+					.forEach(i -> this.obsVarStaging.get(i - nStateVars).setId(i));
+	}
+	
+	public void makeOpponentModelTransitionDD() {
+		/*
+		 * Construct Mj transition DD from OpponentModel triples 
+		 */
+		
+		/* Make DDMaker */
+		DDMaker ddMaker = new DDMaker();
+		ddMaker.addVariable(
+				"Mj", 
+				this.oppModel.nodeIndex.keySet().toArray(
+						new String[this.oppModel.nodeIndex.size()]));
+		
+		/*
+		 * Add obsVars.
+		 * 
+		 * NOTE: This assumes that the observation space and variables sequence is the 
+		 * same for all frames. So we will just get the obsVars from the first lower frame.
+		 * If the assumption is not true, this method will break. 
+		 * 
+		 * TODO: Implement a more general Mj transition DD for frames with different observation
+		 * spaces.
+		 */
+		List<StateVar> obsSeq = Arrays.asList(this.lowerLevelFrames.get(0).obsVars);
+		obsSeq.stream().forEach(v -> ddMaker.addVariable(v.name, v.valNames));
+		
+		ddMaker.primeVariables();
+		
+		/* Make variables sequence for DDMaker */
+		List<String> varSequence = new ArrayList<String>();
+		varSequence.add("M_j");
+		varSequence.addAll(obsSeq.stream().map(o -> o.name).collect(Collectors.toList()));
+		varSequence.add("M_j'");
+		
+		/* Get triples */
+		String[][] triples = this.oppModel.getOpponentModelTriples();
+		
+		DDTree MjDD = ddMaker.getDDTreeFromSequence(
+				varSequence.toArray(new String[varSequence.size()]), 
+				triples);
+		
+		System.out.println(MjDD.toSPUDD());
+		System.out.println(Arrays.deepToString(triples));
 	}
 
 }

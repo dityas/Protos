@@ -30,6 +30,20 @@ public class StateVar implements Serializable {
 	}
 	
 	// ----------------------------------------------------------------------
+	
+	public void setName(String name) {
+		/*
+		 * Setter for variable name
+		 */
+		this.name = name;
+	}
+	
+	public void setId(int id) {
+		/*
+		 * Setter for id
+		 */
+		this.id = id;
+	}
 
 	public void addValName(int i, String vname) {
 		valNames[i] = vname;

@@ -72,7 +72,7 @@ public class OpponentModel {
 				this.nodeIndex.keySet().toArray(
 						new String[this.nodesList.size()]);
 		
-		return new StateVar("Mj", index, nodeNames);
+		return new StateVar("M_j", index, nodeNames);
 	}
 	
 	public String[][] getOpponentModelTriples() {
@@ -81,6 +81,9 @@ public class OpponentModel {
 		 * 
 		 * Useful for making DDTree objects of OpponentModel and eventually making a
 		 * symbolic perseus DD.
+		 * 
+		 * WARNING: This method assumes that the observation space is common for all
+		 * frames.
 		 */
 		
 		List<String[]> triples = new ArrayList<String[]>();
@@ -99,6 +102,9 @@ public class OpponentModel {
 				
 				/* add end node */
 				triple.add("m" + entry.getValue());
+				
+				/* add probability 1.0 for deterministic transition */
+				triple.add("1.0");
 				
 				triples.add(triple.toArray(new String[triple.size()]));
 			}

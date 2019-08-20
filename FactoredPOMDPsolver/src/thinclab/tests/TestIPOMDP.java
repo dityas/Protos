@@ -112,7 +112,7 @@ class TestIPOMDP {
 			
 			/* set opponent model var */
 			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
-			tigerL1IPOMDP.makeStateSpace();
+			tigerL1IPOMDP.setUpMj();
 			
 			assertEquals(
 					tigerL1IPOMDP.stateVarStaging.size(), 
@@ -126,6 +126,76 @@ class TestIPOMDP {
 		}
 		
 		System.out.println(tigerL1IPOMDP.stateVarStaging);
+	}
+	
+	@Test
+	void testIPOMDPObsVarCreation() {
+		System.out.println("Running testIPOMDPObsVarCreation()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		try {
+			tigerL1IPOMDP.initializeFromParsers(parser);
+			
+			/* set opponent model var */
+			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
+			tigerL1IPOMDP.setUpMj();
+			
+			int prevNObs = tigerL1IPOMDP.obsVarStaging.size();
+			
+			tigerL1IPOMDP.setUpOj();
+			
+			assertEquals(tigerL1IPOMDP.obsVarStaging.size(),
+					prevNObs + 
+						(tigerL1IPOMDP.lowerLevelFrames.size() * 
+						tigerL1IPOMDP.lowerLevelFrames.get(0).nObsVars));
+		} 
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+//			e.printStackTrace();
+			fail();
+		}
+		
+		System.out.println();
+	}
+	
+	@Test
+	void testIPOMDPMjDDCreation() {
+		System.out.println("Running testIPOMDPMjDDCreation()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		try {
+			tigerL1IPOMDP.initializeFromParsers(parser);
+			
+			/* set opponent model var */
+			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
+			tigerL1IPOMDP.setUpMj();
+			tigerL1IPOMDP.setUpOj();
+			
+			System.out.println(tigerL1IPOMDP.stateVarStaging);
+			System.out.println(tigerL1IPOMDP.obsVarStaging);
+//			tigerL1IPOMDP.makeOpponentModelTransitionDD();
+		} 
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+//			e.printStackTrace();
+			fail();
+		}
+		
+		System.out.println();
 	}
 
 }
