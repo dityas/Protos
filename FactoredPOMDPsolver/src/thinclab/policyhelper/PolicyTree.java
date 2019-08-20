@@ -123,6 +123,15 @@ public class PolicyTree {
 		for (int h=0; h < horizons; h++) {
 			List<PolicyNode> nextNodes = this.expandForSingleStep(previousLeaves);
 			
+			/*
+			 * If this is the last time step. Loop all nodes back to themselves for
+			 * any random observation
+			 */
+			if (h == (horizons - 1)) {
+				List<List<String>> dummyObs = this.pomdp.getAllObservationsList();
+				for (PolicyNode nextNode : nextNodes)
+					dummyObs.stream().forEach(o -> nextNode.nextNode.put(o, nextNode.id));
+			}
 			this.policyNodes.addAll(nextNodes);
 			previousLeaves = nextNodes;
 		}

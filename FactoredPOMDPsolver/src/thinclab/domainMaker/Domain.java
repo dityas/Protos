@@ -179,8 +179,8 @@ public abstract class Domain {
 		this.domainString = "";
 		this.domainString += this.variablesDef + this.newLine;
 		this.domainString += this.obsDef + this.newLine;
-		this.domainString += this.beliefSection + this.newLine;
 		this.domainString += "unnormalized" + this.newLine;
+		this.domainString += this.beliefSection + this.newLine;
 		this.domainString += this.actionSection + this.newLine;
 		this.domainString += this.rewardSection;
 		this.domainString += "tolerance 0.001" + this.newLine;

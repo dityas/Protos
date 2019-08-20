@@ -188,7 +188,23 @@ class TestIPOMDP {
 			tigerL1IPOMDP.setUpMj();
 			tigerL1IPOMDP.setUpOj();
 			tigerL1IPOMDP.commitVariables();
+			
+			long then = System.nanoTime();
 			tigerL1IPOMDP.makeOpponentModelTransitionDD();
+			long now = System.nanoTime();
+			
+			System.out.println("Exec time: " + (now - then)/10000000 + " millisec.");
+			DD unnormed = OP.reorder(tigerL1IPOMDP.MjTFn);
+			DD normFactor = OP.addMultVarElim(unnormed, new int[] {7});
+			DD normed = OP.div(unnormed, normFactor);
+//			System.out.println(unnormed);
+			System.out.println(normFactor);
+//			System.out.println(normed);
+//			System.out.println(OP.addMultVarElim(normed, new int[] {7}));
+			System.out.println(Arrays.toString(unnormed.getVarSet()));
+			System.out.println(Arrays.toString(Global.varNames));
+			
+//			System.out.println(tigerL1IPOMDP.oppModel.nodesList);
 		} 
 		
 		catch (Exception e) {
@@ -197,12 +213,6 @@ class TestIPOMDP {
 			fail();
 		}
 		
-		int[] allVars = tigerL1IPOMDP.MjTFn.getVarSet();
-		DD norm = OP.addMultVarElim(tigerL1IPOMDP.MjTFn, allVars);
-		DD normed = OP.div(tigerL1IPOMDP.MjTFn, norm);
-		System.out.println(normed);
-		System.out.println();
-		System.out.println(OP.addMultVarElim(normed, allVars));
 	}
 
 }

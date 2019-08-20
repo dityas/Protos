@@ -22,6 +22,7 @@ import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
+import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.ParseSPUDD;
 import thinclab.symbolicperseus.StateVar;

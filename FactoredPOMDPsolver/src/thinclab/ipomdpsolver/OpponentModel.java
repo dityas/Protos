@@ -90,6 +90,8 @@ public class OpponentModel {
 		
 		for (PolicyNode node : this.nodesList) {
 			
+			/* if node is terminal, give equal probability of ending in all states */
+			
 			/* for each possible obs */
 			for (Entry<List<String>, Integer> entry : node.nextNode.entrySet()) {
 				List<String> triple = new ArrayList<String>();
@@ -113,41 +115,5 @@ public class OpponentModel {
 		/* convert list to array and return */
 		return triples.toArray(new String[triples.size()][]);
 	}
-
-//	@Override
-//	public String toString() {
-//		return "OpponentModel [belief=" + belief + ", frame=" + frame + "]\r\n";
-//	}
-//
-//	@Override
-//	public int hashCode() {
-//		final int prime = 31;
-//		int result = 1;
-//		result = prime * result + ((belief == null) ? 0 : belief.hashCode());
-//		result = prime * result + ((frame == null) ? 0 : frame.hashCode());
-//		return result;
-//	}
-
-//	@Override
-//	public boolean equals(Object obj) {
-//		if (this == obj)
-//			return true;
-//		if (obj == null)
-//			return false;
-//		if (getClass() != obj.getClass())
-//			return false;
-//		OpponentModel other = (OpponentModel) obj;
-//		if (belief == null) {
-//			if (other.belief != null)
-//				return false;
-//		} else if (!belief.equals(other.belief))
-//			return false;
-//		if (frame == null) {
-//			if (other.frame != null)
-//				return false;
-//		} else if (!frame.equals(other.frame))
-//			return false;
-//		return true;
-//	}
 
 }

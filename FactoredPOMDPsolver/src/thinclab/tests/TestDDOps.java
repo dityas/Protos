@@ -132,6 +132,19 @@ class TestDDOps {
 		assertFalse(ddHashSet.contains(Belief.factorBeliefPointAsList(this.pomdp, this.bPRIVFromInit)));
 	}
 	
+	@Test
+	public void testDDNorms() {
+		System.out.println("Running testDDNorms");
+		System.out.println(Arrays.toString(this.bNOPNoneFromInit.getVarSet()));
+		System.out.println(Arrays.toString(this.pomdp.varIndices));
+		System.out.println(this.bNOPNoneFromInit);
+		DD norm = OP.addMultVarElim(this.bNOPNoneFromInit, this.pomdp.varIndices);
+		System.out.println(norm);
+		DD normed = OP.div(this.bNOPNoneFromInit, norm);
+		System.out.println(normed);
+		System.out.println(Arrays.asList(Belief.factorBeliefPoint(this.pomdp, normed)));
+	}
+	
 //	@Test
 //	void testBeliefUpdateInternals() throws IOException, ZeroProbabilityObsException {
 ////		TigerProblemPOMDP attackerPOMDP = new TigerProblemPOMDP();
