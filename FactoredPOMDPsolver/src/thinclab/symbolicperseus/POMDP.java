@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.HashMap;
 
 import thinclab.domainMaker.L0Frame;
+import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.policyhelper.PolicyCache;
 import thinclab.policyhelper.PolicyTree;
@@ -2853,6 +2854,21 @@ public class POMDP implements Serializable {
 			statevec[i]++;
 		}
 		return statevec;
+	}
+	
+	public static int getVarIndex(String varName) throws VariableNotFoundException {
+		/*
+		 * Gets the global varIndex for variable varName
+		 */
+		if (varName.contains("'")) 
+			varName = varName.substring(0, varName.length() - 1) + "_P";
+		
+		int varIndex = Arrays.asList(Global.varNames).indexOf(varName) + 1;
+		
+		if (varIndex == -1)
+			throw new VariableNotFoundException("Var " + varName + " does not exist");
+		
+		return varIndex;
 	}
 	
 	// ------------------------------------------------------------------------------------------------

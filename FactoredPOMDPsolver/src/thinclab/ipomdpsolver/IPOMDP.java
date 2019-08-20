@@ -288,7 +288,7 @@ public class IPOMDP extends POMDP {
 				varSequence.toArray(new String[varSequence.size()]), 
 				triples);
 		
-		this.MjTFn = MjDD.toDD();
+		this.MjTFn = OP.reorder(MjDD.toDD());
 	}
 
 }

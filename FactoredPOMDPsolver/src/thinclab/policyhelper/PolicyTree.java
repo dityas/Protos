@@ -126,6 +126,9 @@ public class PolicyTree {
 			/*
 			 * If this is the last time step. Loop all nodes back to themselves for
 			 * any random observation
+			 * 
+			 * WARNING: THIS IS REALLY A HACK TO ENSURE THAT THE RESULTING DD IS NORMALISED.
+			 * LOOPING LEAVES TO THEMSELVES MAY HAVE OTHER UNFORESEEN IMPLICATIONS.
 			 */
 			if (h == (horizons - 1)) {
 				List<List<String>> dummyObs = this.pomdp.getAllObservationsList();

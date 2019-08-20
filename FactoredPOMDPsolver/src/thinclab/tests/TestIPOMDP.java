@@ -9,6 +9,7 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.lang.instrument.Instrumentation;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -194,17 +195,23 @@ class TestIPOMDP {
 			long now = System.nanoTime();
 			
 			System.out.println("Exec time: " + (now - then)/10000000 + " millisec.");
-			DD unnormed = OP.reorder(tigerL1IPOMDP.MjTFn);
-			DD normFactor = OP.addMultVarElim(unnormed, new int[] {7});
-			DD normed = OP.div(unnormed, normFactor);
-//			System.out.println(unnormed);
-			System.out.println(normFactor);
+			assertTrue(
+					OP.maxAll(
+							OP.abs(
+								OP.sub(
+									DD.one, 
+									OP.addMultVarElim(
+										tigerL1IPOMDP.MjTFn,
+										IPOMDP.getVarIndex("M_j'"))))) < 1e-8);
+//			DD unnormed = OP.reorder(tigerL1IPOMDP.MjTFn);
+//			DD normFactor = OP.addMultVarElim(unnormed, new int[] {7});
+//			DD normed = OP.div(unnormed, normFactor);
+////			System.out.println(unnormed);
+////			System.out.println(normFactor);
 //			System.out.println(normed);
-//			System.out.println(OP.addMultVarElim(normed, new int[] {7}));
-			System.out.println(Arrays.toString(unnormed.getVarSet()));
-			System.out.println(Arrays.toString(Global.varNames));
-			
-//			System.out.println(tigerL1IPOMDP.oppModel.nodesList);
+////			System.out.println(OP.addMultVarElim(normed, new int[] {7}));
+//			System.out.println(Arrays.toString(unnormed.getVarSet()));
+////			System.out.println(Arrays.toString(Global.varNames));
 		} 
 		
 		catch (Exception e) {
