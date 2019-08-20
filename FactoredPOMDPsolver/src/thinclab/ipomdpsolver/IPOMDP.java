@@ -21,6 +21,7 @@ import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.ParseSPUDD;
 import thinclab.symbolicperseus.StateVar;
@@ -59,6 +60,13 @@ public class IPOMDP extends POMDP {
 	 * every belief update
 	 */
 	public int oppModelVarIndex;
+	
+	/*
+	 * DDs useful for belief update computation
+	 */
+	
+	/* Mj's transition DD */
+	public DD MjTFn;
 	
 	// ----------------------------------------------------------------------------------------
 
@@ -239,7 +247,7 @@ public class IPOMDP extends POMDP {
 		/* Make DDMaker */
 		DDMaker ddMaker = new DDMaker();
 		ddMaker.addVariable(
-				"Mj", 
+				"M_j", 
 				this.oppModel.nodeIndex.keySet().toArray(
 						new String[this.oppModel.nodeIndex.size()]));
 		
@@ -253,7 +261,12 @@ public class IPOMDP extends POMDP {
 		 * TODO: Implement a more general Mj transition DD for frames with different observation
 		 * spaces.
 		 */
-		List<StateVar> obsSeq = Arrays.asList(this.lowerLevelFrames.get(0).obsVars);
+
+		List<StateVar> obsSeq = 
+				this.obsVarStaging.stream()
+					.filter(o -> o.name.substring(o.name.length()-2).contains("_j"))
+					.collect(Collectors.toList());
+		
 		obsSeq.stream().forEach(v -> ddMaker.addVariable(v.name, v.valNames));
 		
 		ddMaker.primeVariables();
@@ -261,18 +274,20 @@ public class IPOMDP extends POMDP {
 		/* Make variables sequence for DDMaker */
 		List<String> varSequence = new ArrayList<String>();
 		varSequence.add("M_j");
-		varSequence.addAll(obsSeq.stream().map(o -> o.name).collect(Collectors.toList()));
+		varSequence.addAll(
+				obsSeq.stream()
+					.map(o -> o.name + "'").collect(Collectors.toList()));
 		varSequence.add("M_j'");
 		
 		/* Get triples */
 		String[][] triples = this.oppModel.getOpponentModelTriples();
 		
+		/* Get the DDTree from the DDMaker */
 		DDTree MjDD = ddMaker.getDDTreeFromSequence(
 				varSequence.toArray(new String[varSequence.size()]), 
 				triples);
 		
-		System.out.println(MjDD.toSPUDD());
-		System.out.println(Arrays.deepToString(triples));
+		this.MjTFn = MjDD.toDD();
 	}
 
 }

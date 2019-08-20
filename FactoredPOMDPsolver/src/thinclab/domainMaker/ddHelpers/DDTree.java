@@ -140,8 +140,26 @@ public class DDTree {
 		 * Convert the DDTree to an actual DD as defined in symbolic perseus
 		 */
 		
-		/* Get the variable index */
-		int varIndex = Arrays.asList(Global.varNames).indexOf(this.varName);
+		int varIndex = -1;
+		
+		/* 
+		 * Get the variable index.
+		 * This is a little hacky. symbolic perseus appends "_P" to the end
+		 * of primed variable names. In case of DDTree, primed variables are
+		 * represented by "'" at the end. So here, we manually check if the
+		 * variable is primed and if it is, look for varName + _P in the
+		 * globals.
+		 */
+		if (this.varName.contains("'"))
+			varIndex = 
+				Arrays.asList(
+					Global.varNames).indexOf(
+							this.varName.substring(
+									0, 
+									this.varName.length() - 1) + "_P");
+		
+		else varIndex = Arrays.asList(Global.varNames).indexOf(this.varName);
+		
 		String[] values = Global.valNames[varIndex];
 		DD[] children = new DD[this.children.size()];
 		
@@ -152,7 +170,11 @@ public class DDTree {
 			children[c] = this.children.get(values[c]).toDD();
 		}
 		
-		return DDnode.myNew(varIndex, children);
+		/*
+		 * varIndex should always be incremented by 1 because the global
+		 * arrays use Matlab-like indices.
+		 */
+		return DDnode.myNew(varIndex + 1, children);
 	}
 
 } // public class DDTree

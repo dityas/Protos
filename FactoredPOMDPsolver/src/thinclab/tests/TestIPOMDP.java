@@ -25,6 +25,9 @@ import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.InteractiveStateVar;
 import thinclab.ipomdpsolver.OpponentModel;
+import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.Global;
+import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 
 /*
@@ -94,6 +97,7 @@ class TestIPOMDP {
 		}
 		
 		tigerL1IPOMDP.solveIPBVI(10, 100);
+		
 	}
 	
 	@Test
@@ -183,10 +187,8 @@ class TestIPOMDP {
 			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
 			tigerL1IPOMDP.setUpMj();
 			tigerL1IPOMDP.setUpOj();
-			
-			System.out.println(tigerL1IPOMDP.stateVarStaging);
-			System.out.println(tigerL1IPOMDP.obsVarStaging);
-//			tigerL1IPOMDP.makeOpponentModelTransitionDD();
+			tigerL1IPOMDP.commitVariables();
+			tigerL1IPOMDP.makeOpponentModelTransitionDD();
 		} 
 		
 		catch (Exception e) {
@@ -195,7 +197,12 @@ class TestIPOMDP {
 			fail();
 		}
 		
+		int[] allVars = tigerL1IPOMDP.MjTFn.getVarSet();
+		DD norm = OP.addMultVarElim(tigerL1IPOMDP.MjTFn, allVars);
+		DD normed = OP.div(tigerL1IPOMDP.MjTFn, norm);
+		System.out.println(normed);
 		System.out.println();
+		System.out.println(OP.addMultVarElim(normed, allVars));
 	}
 
 }
