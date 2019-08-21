@@ -1,6 +1,10 @@
 package thinclab.symbolicperseus;
 
 import java.util.*;
+
+import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.domainMaker.ddHelpers.DDTreeLeaf;
+
 import java.lang.ref.*;
 import java.io.*;
 
@@ -117,5 +121,14 @@ public class DDleaf extends DD {
     
     public void printDotDD(PrintStream ps, String name) {
 	ps.println("{ rank = same; node [shape=box, style=filled, color=goldenrod];\""+name+"\" [label=\""+Double.toString(val)+"\"];}");
+    }
+    
+    // -------------------------------------------------------------------------
+    
+    public DDTree toDDTree() {
+    	/*
+    	 * Return DDTree leaf of current value
+    	 */
+    	return new DDTreeLeaf(this.val);
     }
 }

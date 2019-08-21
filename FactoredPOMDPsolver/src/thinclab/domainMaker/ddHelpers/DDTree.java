@@ -1,3 +1,10 @@
+/*
+ *	THINC Lab at UGA | Cyber Deception Group
+ *
+ *	Author: Aditya Shinde
+ * 
+ *	email: shinde.aditya386@gmail.com
+ */
 package thinclab.domainMaker.ddHelpers;
 
 import java.util.ArrayList;
@@ -26,6 +33,23 @@ public class DDTree {
 		 * Constructor to set varName
 		 */
 		this.varName = varName;
+	}
+	
+	public DDTree(String varName, HashMap<String, DDTree> children) {
+		
+		this.varName = varName;
+		this.children = children;
+	}
+	
+	// --------------------------------------------------------------------------------------
+	
+	public void addChild(String childName, DDTree childDD) {
+		/*
+		 * Create child for the current DD
+		 * 
+		 * TODO: error checking here.
+		 */
+		this.children.put(childName, childDD);
 	}
 	
 	// --------------------------------------------------------------------------------------
@@ -97,6 +121,8 @@ public class DDTree {
 		
 		return true;
 	}
+	
+	// -----------------------------------------------------------------------------------
 	
 	public DDTree atChild(String childName) throws Exception {
 		/*

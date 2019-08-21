@@ -2856,6 +2856,8 @@ public class POMDP implements Serializable {
 		return statevec;
 	}
 	
+	// --------------------------------------------------------------------------------
+	
 	public static int getVarIndex(String varName) throws VariableNotFoundException {
 		/*
 		 * Gets the global varIndex for variable varName
@@ -2871,7 +2873,23 @@ public class POMDP implements Serializable {
 		return varIndex;
 	}
 	
-	// ------------------------------------------------------------------------------------------------
+	public static String getVarName(int varIndex) throws VariableNotFoundException {
+		/*
+		 * Gets the Global varName for the varIndex
+		 */
+		if (varIndex > Global.varNames.length) 
+			throw new VariableNotFoundException("Can't find var for index " + varIndex);
+		
+		/* sub 1 from index to compensate for Matlab-like indexing in Globals */
+		String varName = Global.varNames[varIndex - 1];
+		
+		if (varName.substring(varName.length() - 2).contains("_P"))
+			return varName.substring(varName.length() - 2) + "'";
+		
+		else return varName;
+	}
+	
+	// ----------------------------------------------------------------------------------
 	
 	private void recursiveObsGen(
 			List<List<String>> obsComb, 

@@ -1,6 +1,9 @@
 package thinclab.symbolicperseus;
 
 import java.util.*;
+
+import thinclab.domainMaker.ddHelpers.DDTree;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
@@ -64,7 +67,9 @@ public abstract class DD implements Serializable {
 		    
 		    String data = new String(stringOutStream.toByteArray(), StandardCharsets.UTF_8);
 			return "DD [] " + data;
-		}	
+		}
+		
+		abstract public DDTree toDDTree();
 		
 		
 //		@Override

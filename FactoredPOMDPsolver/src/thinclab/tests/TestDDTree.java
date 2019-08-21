@@ -128,5 +128,29 @@ class TestDDTree {
 		
 		assertTrue(pomdp.initialBelState_f[0].equals(sessPrivsDD));
 	}
+	
+	@Test
+	void testDDToDDTree() {
+		System.out.println("Running testDDToDDTree()");
+		
+		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
+		
+		POMDP pomdp = null;
+		
+		try {
+			File domainFile = File.createTempFile("AttackerPOMDP", ".POMDP");
+			attackerPOMDP.makeAll();
+			attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
+			pomdp = new POMDP(domainFile.getAbsolutePath());
+			pomdp.solvePBVI(5, 100);
+		} 
+		
+		catch (IOException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
+		
+		assertTrue(pomdp.alphaVectors[0].equals(pomdp.alphaVectors[0].toDDTree().toDD()));
+	}
 
 }

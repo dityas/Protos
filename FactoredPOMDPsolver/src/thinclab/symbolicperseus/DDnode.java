@@ -1,6 +1,10 @@
 package thinclab.symbolicperseus;
 
 import java.util.*;
+
+import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.exceptions.VariableNotFoundException;
+
 import java.lang.*;
 import java.lang.ref.*;
 import java.io.*;
@@ -182,5 +186,34 @@ public class DDnode extends DD {
 	    children[i].printDotDD(ps,newname);
 	    ps.println("\""+name+"\" -> \""+newname+"\" [label = \""+Global.valNames[var-1][i]+"\"];");
 	}
+    }
+    
+    // ---------------------------------------------------------------------------------------
+    
+    public DDTree toDDTree() {
+    	/*
+    	 * Converts the DD to a DDTree representation.
+    	 */
+    	
+    	DDTree ddTree = null;
+    	
+    	try {
+    		/* Make childless DDTree */
+			ddTree = new DDTree(POMDP.getVarName(this.var));
+			
+			/* Get children and add each to DDTree */
+			String[] valNames = Global.valNames[this.var - 1];
+			for (int c = 0; c < valNames.length; c++)
+				ddTree.addChild(valNames[c], this.children[c].toDDTree());
+			
+		} 
+    	
+    	catch (VariableNotFoundException e) {
+			System.out.println(e.getMessage());
+			System.exit(-1);
+		}
+    	
+    	/* Return DDTree obj */
+		return ddTree;
     }
 }
