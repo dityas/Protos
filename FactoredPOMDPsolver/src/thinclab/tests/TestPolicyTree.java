@@ -43,7 +43,7 @@ class TestPolicyTree {
 			attackerPOMDP.makeAll();
 			attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
 			pomdp = new POMDP(domainFile.getAbsolutePath());
-			pomdp.solvePBVI(10, 100);
+			pomdp.solvePBVI(5, 100);
 		} 
 		
 		catch (IOException e) {
@@ -54,6 +54,14 @@ class TestPolicyTree {
 
 	@AfterEach
 	void tearDown() throws Exception {
+	}
+	
+	@Test
+	void testParseSPUDDToDDTree() {
+		System.out.println("Running testParseSPUDDToDDTree()");
+		
+		System.out.println(this.pomdp.parser.Oi);
+		System.out.println(this.pomdp.parser.Ti);
 	}
 
 	@Test

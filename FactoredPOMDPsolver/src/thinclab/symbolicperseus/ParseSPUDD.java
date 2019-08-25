@@ -2,7 +2,12 @@ package thinclab.symbolicperseus;
 
 import java.io.*;
 import java.util.*;
+import java.util.HashMap;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.lang.*;
+
+import thinclab.domainMaker.ddHelpers.DDTree;
 
 public class ParseSPUDD {
     public HashMap existingDds;
@@ -15,7 +20,7 @@ public class ParseSPUDD {
     public Vector<DD[]> actTransitions;
     public Vector<DD[]> actObserve;
     public Vector<DD> actCosts;
-    public Vector<DD> adjuncts;
+    public List<DD> adjuncts = new ArrayList<DD>();
     public DD reward;
     public DD init;
     public DD discount;
@@ -27,6 +32,31 @@ public class ParseSPUDD {
     
     public int frameID;
     public int level;
+    
+    // --------------------------------------------------------------------------------------
+    /*
+     * DDTree data structures
+     */
+    public List<StateVar> S = new ArrayList<StateVar>();
+    public List<StateVar> Omega = new ArrayList<StateVar>();
+    
+    public List<String> A = new ArrayList<String>();
+    
+    public HashMap<String, HashMap<String, DDTree>> Oi = 
+    		new HashMap<String, HashMap<String, DDTree>>();
+    
+    public HashMap<String, HashMap<String, DDTree>> Ti = 
+			new HashMap<String, HashMap<String, DDTree>>();
+    
+    public List<DDTree> costs = new ArrayList<DDTree>();
+    
+    public DDTree R;
+    public DDTree initBeliefDdTree;
+    
+    public List<DDTree> adjunctBeliefs;
+    
+    
+    // --------------------------------------------------------------------------------------
     
     public void initialize() {
     	/*
@@ -192,8 +222,10 @@ public class ParseSPUDD {
 			    }
 			    varDomSizeArray[varDomSizeArray.length-1] = actNamesArray.length;
 			    Global.setVarDomSize(varDomSizeArray);
+			    this.populateDDTreeObjects();
 			    return;
 			default:
+				this.populateDDTreeObjects();
 			    return;
 			}
 		    }
@@ -694,6 +726,8 @@ public class ParseSPUDD {
 	file.parsePOMDP(false);
     }
     
+    // ------------------------------------------------------------------------------------
+    
     /*
      * Changes by Aditya Shinde
      * 
@@ -705,6 +739,79 @@ public class ParseSPUDD {
     protected StreamTokenizer getTokenizer() {
 		return this.stream;
 	}
+    
+    public void populateDDTreeObjects() {
+    	/*
+    	 * Converts everything to DDTree representation
+    	 */
+    	
+//    	HashMap<String, HashMap<String, DDTree>> Oi = 
+//    			new HashMap<String, HashMap<String, DDTree>>();
+//    	
+//    	HashMap<String, HashMap<String, DDTree>> Ti = 
+//    			new HashMap<String, HashMap<String, DDTree>>();
+    	
+    	IntStream.range(0, this.nStateVars)
+    		.forEach(i -> this.S.add(
+    				new StateVar(
+    						this.varNames.get(i), 
+    						i, 
+    						(String[]) this.valNames.get(i).toArray(
+    								new String[this.valNames.get(i).size()]))));
+    	
+    	IntStream.range(this.nStateVars, this.nStateVars + this.nObsVars)
+			.forEach(i -> this.Omega.add(
+					new StateVar(
+							this.varNames.get(i), 
+							i, 
+							(String[]) this.valNames.get(i).toArray(
+									new String[this.valNames.get(i).size()]))));
+    	
+    	/* Ai */
+    	for (int a = 0; a < this.actNames.size(); a++) {
+    		
+    		/* Add action names */
+    		this.A.add(this.actNames.get(a));
+    		
+    		/* Add costs for each action */
+    		this.costs.add(this.actCosts.get(a).toDDTree());
+    		
+    		HashMap<String, DDTree> Oi_a = new HashMap<String, DDTree>();
+    		
+    		/* Populate Oi */
+    		for (int o = 0; o < this.nObsVars; o++) {
+    			
+    			Oi_a.put(
+    					this.varNames.get(this.nStateVars + o),
+    					this.actObserve.get(a)[o].toDDTree());
+    		}
+    		
+    		this.Oi.put(this.actNames.get(a), Oi_a);
+    		
+    		/* Populate Ti */
+    		HashMap<String, DDTree> Ti_a = new HashMap<String, DDTree>();
+    		
+    		for (int s = 0; s < this.nStateVars; s++) {
+    			
+    			Ti_a.put(
+    					this.varNames.get(s),
+    					this.actTransitions.get(a)[s].toDDTree());
+    		}
+    		
+    		this.Ti.put(this.actNames.get(a), Ti_a);
+    	}
+    	
+    	this.A = Collections.unmodifiableList(this.A);
+    	this.costs = Collections.unmodifiableList(this.costs);
+    	
+    	this.R = this.reward.toDDTree();
+    	this.initBeliefDdTree = this.init.toDDTree();
+    	
+    	this.adjunctBeliefs = this.adjuncts.stream()
+    			.map(a -> a.toDDTree())
+    			.collect(Collectors.toList());
+    	
+    }
     
 }
 

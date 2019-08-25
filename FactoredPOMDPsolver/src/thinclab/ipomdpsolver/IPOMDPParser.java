@@ -185,6 +185,15 @@ public class IPOMDPParser extends ParseSPUDD {
 	    }
 	}
 	
+	void parseNActions() throws Exception {
+		/*
+		 * Parses action names.
+		 * 
+		 * The actual parsing of CPTs for each action is done in super.parseAction()
+		 */
+		
+	}
+	
 	void parseFrame() throws Exception{
 		/*
 		 * Parses the frame header in the SPUDD file for lower level opponents' models

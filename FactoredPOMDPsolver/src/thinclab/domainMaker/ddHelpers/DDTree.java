@@ -202,5 +202,12 @@ public class DDTree {
 		 */
 		return DDnode.myNew(varIndex + 1, children);
 	}
+	
+	// ----------------------------------------------------------------------------------
+	
+	@Override
+	public String toString() {
+		return this.toSPUDD();
+	}
 
 } // public class DDTree

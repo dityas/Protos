@@ -203,9 +203,9 @@ public class DDnode extends DD {
 			
 			/* Get children and add each to DDTree */
 			String[] valNames = Global.valNames[this.var - 1];
+			
 			for (int c = 0; c < valNames.length; c++)
 				ddTree.addChild(valNames[c], this.children[c].toDDTree());
-			
 		} 
     	
     	catch (VariableNotFoundException e) {

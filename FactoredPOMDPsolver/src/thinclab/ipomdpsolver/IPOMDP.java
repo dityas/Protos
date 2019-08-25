@@ -9,10 +9,12 @@ package thinclab.ipomdpsolver;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -28,6 +30,7 @@ import thinclab.symbolicperseus.ParseSPUDD;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.symbolicperseus.Belief.Belief;
 import thinclab.symbolicperseus.Belief.BeliefSet;
+import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
@@ -36,6 +39,7 @@ import thinclab.symbolicperseus.Belief.BeliefSet;
 public class IPOMDP extends POMDP {
 
 	private static final long serialVersionUID = 4973485302724576384L;
+	private Logger logger = LoggerFactory.getNewLogger("IPOMDP Main: ");
 	
 	/*
 	 * The strategy level and frame ID of the frame represented by the IPOMDP object
@@ -44,10 +48,15 @@ public class IPOMDP extends POMDP {
 	public int stratLevel;
 	
 	/*
-	 * Tabular transition and observation functions
+	 * Reference to Parser object and info extract from parser
 	 */
-	public Vector<Vector<Vector<Float>>> T = new Vector<Vector<Vector<Float>>>();
+	public ParseSPUDD parser;
+	public List<String> Ai;
+	public List<String> Aj;
 	
+	/*
+	 * Store lower level frames
+	 */
 	public List<POMDP> lowerLevelFrames = new ArrayList<POMDP>();
 	
 	/*
@@ -69,14 +78,24 @@ public class IPOMDP extends POMDP {
 	/* Mj's transition DD */
 	public DD MjTFn;
 	
+	/* O_j */
+	public List<HashMap<String, HashMap<String, DDTree>>> OjDDTree = 
+			new ArrayList<HashMap<String, HashMap<String, DDTree>>>();
+	
+	/* O_i */
+	public HashMap<String, HashMap<String, DDTree>> Oi = 
+			new HashMap<String, HashMap<String, DDTree>>(); 
+	
 	// ----------------------------------------------------------------------------------------
 
 	public IPOMDP(String fileName) {
 		super(fileName);
+		this.logger.info("IPOMDP initialised from file: " + fileName);
 	}
 	
 	public IPOMDP() {
 		super();
+		this.logger.info("IPOMDP initialised");
 	}
 	
 	// -----------------------------------------------------------------------------------------
@@ -85,6 +104,10 @@ public class IPOMDP extends POMDP {
 		/*
 		 * Initializes the IPOMDP from the thinclab.ipomdpsolver.IPOMDPParser object
 		 */
+		
+		/* Store parser obj reference for future access */
+		this.parser = parsedFrame;
+		this.logger.fine("Parser reference stored");
 		
 		/*
 		 * Initialize each child frame
@@ -109,14 +132,30 @@ public class IPOMDP extends POMDP {
 			 */
 			lowerFrame.initializeFromParsers(parsedLowerFrame);
 			this.lowerLevelFrames.add(lowerFrame);
+			this.logger.info("Lower frame " + i + "parsed and stored.");
 			
 		} /* for all child frames */
 		
 		/* Initialize vars from the domain file */
-		super.initializeStateVarsFromParser(parsedFrame);
-		super.initializeObsVarsFromParser(parsedFrame);
+//		super.initializeStateVarsFromParser(parsedFrame);
+//		super.initializeObsVarsFromParser(parsedFrame);
 		
 		
+		
+	}
+	
+	public void setAi(List<String> actionNames) {
+		/*
+		 * Sets the names for agent i's actions
+		 */
+		this.Ai = actionNames;
+	}
+	
+	public void setAj(List<String> actionNames) {
+		/*
+		 * Sets the names for agent j's actions
+		 */
+		this.Aj = actionNames;
 	}
 	
 	// ------------------------------------------------------------------------------------------
@@ -139,6 +178,17 @@ public class IPOMDP extends POMDP {
 				 */
 				opponentModel.setGlobals();
 				opponentModel.solvePBVI(15, 100);
+				this.logger.info("Solved lower frame " + opponentModel);
+				
+				/*
+				 * NOTE: After this point, extract all the required information
+				 * from the lower level frame. The frame should not be accessed after
+				 * exiting this function because the Global arrays will be changed.
+				 */
+				
+				/* store opponent's Oj */
+				this.OjDDTree.add(opponentModel.getOi());
+				this.logger.info("Extracted Oj for " + opponentModel);
 			}
 			
 			else 
@@ -175,8 +225,8 @@ public class IPOMDP extends POMDP {
 			 * Stage and commit additional state and variables to populate global 
 			 * arrays
 			 */
-			this.setUpMj();
-			this.setUpOj();
+			this.setUpIS();
+			this.setUpOmegaI();
 			this.commitVariables();
 			
 			/* Make M_j transition DD */
@@ -192,9 +242,27 @@ public class IPOMDP extends POMDP {
 	
 	// ------------------------------------------------------------------------------------------
 	
+	public void setUpIS() {
+		/*
+		 * Constructs the IS space from unique opponent models and physical states
+		 * 
+		 * First stages the physical states S parsed from the domain file, then stages the
+		 * opponent's model M_j
+		 */
+		
+		/* Add S from parser obj */
+		this.logger.info("Staging IS vars");
+		this.stateVarStaging.clear();
+		this.initializeStateVarsFromParser(this.parser);
+		
+		/* Set up M_j */
+		this.setUpMj();
+		this.logger.info("IS vars staged to: " + this.stateVarStaging);
+	}
+	
 	public void setUpMj() {
 		/*
-		 * Constructs the IS space from unique opponent models and physical states 
+		 * Constructs opponents' models 
 		 * 
 		 * We are considering the physical states S to be independent of the belief 
 		 * over opponents' beliefs. So the opponents' model M will be a separate state
@@ -208,8 +276,6 @@ public class IPOMDP extends POMDP {
 		 * TODO: in case of IPOMDP frames, remove lower level agent models from the
 		 * state var staging list before using it to create state vars for current level.
 		 */
-//		this.stateVarStaging.clear();
-//		this.stateVarStaging.addAll(this.lowerLevelFrames.get(0).stateVarStaging);
 		
 		/* Set oppModelVarIndex */
 		this.oppModelVarIndex = this.stateVarStaging.size();
@@ -218,12 +284,35 @@ public class IPOMDP extends POMDP {
 		this.stateVarStaging.add(this.oppModel.getOpponentModelStateVar(this.oppModelVarIndex));
 	}
 	
-	public void setUpOj() {
+	public void setUpOmegaI() {
+		/*
+		 * Set up i's observation space.
+		 * 
+		 * This includes extracting and including j's observation space.
+		 * 
+		 * WARNING: Currently only works for a single frame
+		 */
+		
+		this.obsVarStaging.clear();
+		this.logger.info("Staging Omega_i");
+		
+		/* Add Omega_i from the parser */
+		this.initializeObsVarsFromParser(this.parser);
+		
+		/* Add Omega_j */
+		this.setUpOmegaJ();
+		
+		this.logger.info("Omega_i vars staged to :" + this.obsVarStaging);
+	}
+	
+	public void setUpOmegaJ() {
 		/*
 		 * Adds observation for agent j
 		 * 
 		 * WARNING: Currently only works for a single frame.
 		 */
+		
+		this.logger.info("Staging obs vars for j");
 		
 		for (POMDP frame : this.lowerLevelFrames) {
 			List<StateVar> obsj = Arrays.asList(frame.obsVars);
@@ -239,6 +328,8 @@ public class IPOMDP extends POMDP {
 				nStateVars + this.obsVarStaging.size())
 					.forEach(i -> this.obsVarStaging.get(i - nStateVars).setId(i));
 	}
+	
+	// -------------------------------------------------------------------------------------
 	
 	public void makeOpponentModelTransitionDD() {
 		/*
@@ -289,6 +380,44 @@ public class IPOMDP extends POMDP {
 				triples);
 		
 		this.MjTFn = OP.reorder(MjDD.toDD());
+	}
+	
+	private DDTree renameOjVars(DDTree o_j) {
+		/*
+		 * Rename DDTree variables in Oj according to OmegaJ (prefix them with _j)
+		 */
+		List<String> omega_j = 
+				this.obsVarStaging.stream()
+					.filter(o -> o.name.substring(o.name.length() - 2).contains("_j"))
+					.map(f -> f.name.substring(0, f.name.length() - 2))
+					.collect(Collectors.toList());
+		
+		for (String var : omega_j) {
+			this.logger.fine("Renaming " + var + "'" + " to " + var + "_j'");
+			o_j.renameVar(var + "'", var + "_j'");
+			this.logger.fine("DDTree is now: " + o_j);
+		}
+		
+		return o_j;
+	}
+	
+	public void makeOiDD() {
+		/*
+		 * Constructs agent i's observation function Oi from extracted DDTree representation
+		 * 
+		 */
+	}
+	
+	public void makeOjDD() {
+		/*
+		 * Constructs opponents observation function Oj from extracted DDTree representation
+		 * 
+		 * WARNING: will only work for a single lower level frame
+		 */
+		
+		for (HashMap<String, HashMap<String, DDTree>> ojDDTree : this.OjDDTree) {
+			
+		}
 	}
 
 }

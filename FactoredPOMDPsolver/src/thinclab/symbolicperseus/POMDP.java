@@ -11,8 +11,12 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.*;
 import java.util.HashMap;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import thinclab.domainMaker.L0Frame;
+import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.exceptions.ParserException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.policyhelper.PolicyCache;
@@ -20,6 +24,7 @@ import thinclab.policyhelper.PolicyTree;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.symbolicperseus.Belief.Belief;
 import thinclab.symbolicperseus.Belief.BeliefSet;
+import thinclab.utils.LoggerFactory;
 
 public class POMDP implements Serializable {
 
@@ -84,12 +89,16 @@ public class POMDP implements Serializable {
 	public int numNewAlphaVectors;
 	public double bestImprovement, worstDecline;
 	
+	public ParseSPUDD parser;
+	
+	private Logger logger = LoggerFactory.getNewLogger("POMDP Main: ");
+	
 	// ---------------------------------------------------------------------
 	/*
 	 * Staging variables for state vars and obs vars
 	 */
-	public List<StateVar> stateVarStaging = new ArrayList<StateVar>();
-	public List<StateVar> obsVarStaging = new ArrayList<StateVar>();
+//	public List<StateVar> stateVarStaging = new ArrayList<StateVar>();
+//	public List<StateVar> obsVarStaging = new ArrayList<StateVar>();
 	
 	// ---------------------------------------------------------------------
 	
@@ -108,7 +117,35 @@ public class POMDP implements Serializable {
 	 * Variables for helping with making run time changes to the POMDP
 	 */
 	public List<StateVar> stateVarList = new ArrayList<StateVar>();
-
+	
+	// ---------------------------------------------------------------------
+	/*
+	 * Storage variables for DDTree representation
+	 * 
+	 * The DDTree representation is being used as an easy intermediate representation
+	 * between the SPUDD format and DD objects. This is because the DD objects rely on
+	 * Global arrays. 
+	 */
+	public List<StateVar> S = new ArrayList<StateVar>();
+    public List<StateVar> Omega = new ArrayList<StateVar>();
+    
+    public List<String> A = new ArrayList<String>();
+    
+    public HashMap<String, HashMap<String, DDTree>> Oi = 
+    		new HashMap<String, HashMap<String, DDTree>>();
+    
+    public HashMap<String, HashMap<String, DDTree>> Ti = 
+			new HashMap<String, HashMap<String, DDTree>>();
+    
+    public List<DDTree> costs = new ArrayList<DDTree>();
+    
+    public DDTree R;
+    public DDTree initBeliefDdTree;
+    
+    public List<DDTree> adjunctBeliefs = new ArrayList<DDTree>();
+	
+	// ---------------------------------------------------------------------
+	
 	public static DD[] concatenateArray(DD a, DD[] b, DD c) {
 		DD[] d = new DD[b.length + 2];
 		d[0] = a;
@@ -370,22 +407,33 @@ public class POMDP implements Serializable {
 		 * or lower frames have done required changes if any. 
 		 */
 		
+		this.logger.info("Begin POMDP initialisation from parser");
+		
 		debug = false;
+		
+		this.parser = parserObj;
 		
 		this.frameID = parserObj.frameID;
 		this.level = parserObj.level;
 		this.initializeFrameFromParser(parserObj);
 		
-		this.initializeStateVarsFromParser(parserObj);
-		this.initializeObsVarsFromParser(parserObj);
-		this.commitVariables();
+		this.initializeSFromParser(parserObj);
+		this.initializeOmegaFromParser(parserObj);
 		
-		this.initializeActionsFromParser(parserObj);
+		this.initializeAFromParser(parserObj);
+		this.initializeTFromParser(parserObj);
+		this.initializeOFromParser(parserObj);
+		this.initializeRFromParser(parserObj);
+		
 		this.initializeDiscountFactorFromParser(parserObj);		
 		this.initializeBeliefsFromParser(parserObj);
+		this.initializeAdjunctsFromParser(parserObj);
 		
-//		System.out.println(parserObj.existingDds);
-
+		this.commitVariables();
+		this.setDynamics();
+		this.setBeliefs();
+		
+		this.logger.info("POMDP initialised");
 	}
 	
 	public void initializeFrameFromParser(ParseSPUDD parserObj) {
@@ -394,43 +442,65 @@ public class POMDP implements Serializable {
 		 */
 		this.frameID = parserObj.frameID;
 		this.level = parserObj.level;
+		
+		this.logger.info("frame ID set to " + this.frameID + " at level " + this.level);
 	}
 	
-	public void initializeStateVarsFromParser(ParseSPUDD parserObj) {
+	public void initializeSFromParser(ParseSPUDD parserObj) {
 		/*
 		 * Stage the parsed variables from the domain file
 		 */
-		for (int i = 0; i < parserObj.nStateVars; i++) {
-			
-			StateVar var = new StateVar(parserObj.valNames.get(i).size(),
-					parserObj.varNames.get(i), i);
-			
-			for (int j = 0; j < var.arity; j++) {
-				var.addValName(j, ((String) parserObj.valNames.get(i).get(j)));
-			}
-			
-			this.stateVarStaging.add(var);
-		}
+		
+		this.S.addAll(parserObj.S);
+		
+		this.logger.info("S staged to " + this.S);
 	}
 	
-	public void initializeObsVarsFromParser(ParseSPUDD parserObj) {
+	public void initializeOmegaFromParser(ParseSPUDD parserObj) {
 		/*
 		 * Stage the parsed variables from the domain file
 		 */
-		for (int i = 0; i < parserObj.nObsVars; i++) {
-			
-			StateVar obs = new StateVar(parserObj.valNames.get(i + parserObj.nStateVars)
-					.size(), parserObj.varNames.get(i + parserObj.nStateVars), i
-					+ parserObj.nStateVars);
-			
-			for (int j = 0; j < obs.arity; j++) {
-				obs.addValName(
-						j,
-						((String) parserObj.valNames.get(parserObj.nStateVars + i).get(j)));
-			}
-			
-			this.obsVarStaging.add(obs);
-		}
+
+		this.Omega.addAll(parserObj.Omega);
+		
+		this.logger.info("Omega staged to " + this.Omega);
+	}
+	
+	public void initializeOFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Initializes the observation function
+		 */
+		this.Oi = parserObj.Oi;
+		
+		this.logger.info("O initialized to " + this.Oi);
+	}
+	
+	public void initializeTFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Initializes the transition function
+		 */
+		this.Ti = parserObj.Ti;
+		
+		this.logger.info("T initialized to " + this.Ti);
+	}
+	
+	public void initializeAFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Initializes the Action space from parser
+		 */
+		this.A.addAll(parserObj.A);
+		this.costs.addAll(parserObj.costs);
+		
+		this.logger.info("A initialized to " + this.A);
+		this.logger.info("Costs for A: " + this.costs);
+	}
+	
+	public void initializeRFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Initializes the Action space from parser
+		 */
+		this.R = parserObj.R;
+		this.logger.info("R initialized to " + this.R);
 	}
 	
 	public void initializeActionsFromParser(ParseSPUDD parserObj) {
@@ -500,18 +570,8 @@ public class POMDP implements Serializable {
 		 * Set adjunct beliefs
 		 */
 		
-		nAdjuncts = parserObj.adjuncts.size();
-		
-		if (nAdjuncts > 0) {
-			
-			adjuncts = new DD[nAdjuncts];
-			adjunctNames = new String[nAdjuncts];
-			
-			for (int a = 0; a < nAdjuncts; a++) {
-				adjuncts[a] = parserObj.adjuncts.get(a);
-				adjunctNames[a] = parserObj.adjunctNames.get(a);
-			}
-		}
+		this.adjunctBeliefs.addAll(parserObj.adjunctBeliefs);
+		this.logger.info("Adjunct beliefs set to " + this.adjunctBeliefs);
 	}
 	
 	public void initializeBeliefsFromParser(ParseSPUDD parserObj) {
@@ -519,13 +579,113 @@ public class POMDP implements Serializable {
 		 * Set beliefs
 		 */
 		
-		initialBelState = parserObj.init;
+		this.initBeliefDdTree = parserObj.initBeliefDdTree;
+		this.logger.info("Initial belief set to " + this.initBeliefDdTree);
+	}
+	
+	public void initializeToleranceFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Set Tolerance
+		 */ 
+		if (parserObj.tolerance != null) this.tolerance = parserObj.tolerance.getVal();
+		
+		this.logger.info("Tolerance set to " + this.tolerance);
+	}
+	
+	// -----------------------------------------------------------------------------------------------
+	
+	public void setDynamics() {
+		/*
+		 * Starts building up DDs which define system dynamics based on Ti and Oi
+		 */
+		
+		this.logger.info("Setting dynamics");
+		
+		this.nActions = this.A.size();
+		this.actions = new Action[nActions];
+		this.uniquePolicy = new boolean[nActions];
+
+		qFn = new DD[nActions];
+
+		for (int a = 0; a < nActions; a++) {
+			
+			String actName = this.A.get(a);
+			actions[a] = new Action(actName);
+			
+			/* Re order T and O as arrays according to variable sequence */
+			HashMap<String, DDTree> Ti_a = this.Ti.get(actName);
+			List<DD> TiaArray = this.S.stream()
+					.map(s -> Ti_a.get(s.name).toDD())
+					.collect(Collectors.toList());
+			
+			HashMap<String, DDTree> Oi_a = this.Oi.get(actName);
+			List<DD> OiaArray = this.Omega.stream()
+					.map(o -> Oi_a.get(o.name).toDD())
+					.collect(Collectors.toList());
+			
+			actions[a].addTransFn(TiaArray.toArray(new DD[TiaArray.size()]));
+			actions[a].addObsFn(OiaArray.toArray(new DD[OiaArray.size()]));
+			actions[a].rewFn = 
+					OP.sub(this.R.toDD(), this.costs.get(a).toDD());
+			actions[a].buildRewTranFn();
+			actions[a].rewFn = 
+					OP.addMultVarElim(actions[a].rewTransFn, primeVarIndices);
+			
+		}
+		
+		/*
+		 * Max and Min reward
+		 */
+		double maxVal = Double.NEGATIVE_INFINITY;
+		double minVal = Double.POSITIVE_INFINITY;
+		
+		for (int a = 0; a < nActions; a++) {
+			maxVal = Math.max(maxVal, OP.maxAll(OP.addN(actions[a].rewFn)));
+			minVal = Math.min(minVal, OP.minAll(OP.addN(actions[a].rewFn)));
+		}
+		
+		maxRewVal = maxVal / (1 - discFact);
+		
+		/*
+		 * Set Tolerance
+		 */
+		double maxDiffRew = maxVal - minVal;
+		double maxDiffVal = maxDiffRew / (1 - Math.min(0.95, discFact));
+		tolerance = 1e-5 * maxDiffVal;
+	}
+	
+	public void setAdjuncts() {
+		/*
+		 * Populates the adjuncts array from the DDTree list
+		 */
+		nAdjuncts = this.adjunctBeliefs.size();
+		
+		if (nAdjuncts > 0) {
+			
+			adjuncts = new DD[nAdjuncts];
+			adjunctNames = new String[nAdjuncts];
+			
+			for (int a = 0; a < nAdjuncts; a++) {
+				adjuncts[a] = this.adjunctBeliefs.get(a).toDD();
+//				adjunctNames[a] = this.adjunctBeliefs.get(a);
+			}
+		}
+		
+	}
+	
+	public void setBeliefs() {
+		/*
+		 * Populates the POMDP DD variables which hold the initial and adjunct beliefs
+		 */
+		
+		this.initialBelState = this.initBeliefDdTree.toDD();
+		
 		/*
 		 * factored initial belief state
 		 */
-		initialBelState_f = new DD[nStateVars];
+		this.initialBelState_f = new DD[nStateVars];
 		
-		for (int varId = 0; varId < parserObj.nStateVars; varId++) {
+		for (int varId = 0; varId < this.nStateVars; varId++) {
 			
 			initialBelState_f[varId] = 
 					OP.addMultVarElim(
@@ -533,7 +693,7 @@ public class POMDP implements Serializable {
 							MySet.remove(varIndices, varId + 1));
 		}
 		
-		this.initializeAdjunctsFromParser(parserObj);
+		this.setAdjuncts();
 	}
 	
 	public void setGlobals() {
@@ -580,8 +740,8 @@ public class POMDP implements Serializable {
 		 * Ideally, no changes should be made to the state or obs variables after
 		 * this method is called. 
 		 */
-		this.nStateVars = this.stateVarStaging.size();
-		this.nObsVars = this.obsVarStaging.size();
+		this.nStateVars = this.S.size();
+		this.nObsVars = this.Omega.size();
 		
 		/*
 		 * initialize arrays for domain size and other information
@@ -600,8 +760,8 @@ public class POMDP implements Serializable {
 		 * Make state variables.
 		 */
 		this.stateVars = 
-				this.stateVarStaging.toArray(
-						new StateVar[this.stateVarStaging.size()]);
+				this.S.toArray(
+						new StateVar[this.S.size()]);
 		
 		/*
 		 * Legacy code to create matlab like indices
@@ -620,8 +780,8 @@ public class POMDP implements Serializable {
 		 */
 		
 		this.obsVars = 
-				this.obsVarStaging.toArray(
-						new StateVar[this.obsVarStaging.size()]);
+				this.Omega.toArray(
+						new StateVar[this.Omega.size()]);
 		
 		/*
 		 * Legacy code to set matlab-like indices
@@ -672,7 +832,9 @@ public class POMDP implements Serializable {
 		this.initializeFromParsers(rawpomdp);
 	}
 	
-	public DD safeBeliefUpdate(DD belState, int actId, String[] obsnames) throws ZeroProbabilityObsException {
+	public DD safeBeliefUpdate(DD belState, 
+			int actId, 
+			String[] obsnames) throws ZeroProbabilityObsException {
 		/*
 		 * Throws exception on zero probability observations
 		 */
@@ -2435,7 +2597,7 @@ public class POMDP implements Serializable {
 //			System.out.println("best improvement: " + bestImprovement
 //					+ "  worstDecline " + worstDecline);
 			bellmanErr = Math.min(10, Math.max(bestImprovement, -worstDecline));
-			System.out.println("STEP: " + stepId 
+			this.logger.info("STEP: " + stepId 
 					+ " \tBELLMAN ERROR: " + bellmanErr
 					+ " \tBELIEF POINTS: " + this.belRegion.length
 					+ " \tA VECTORS: " + alphaVectors.length);
@@ -2450,13 +2612,14 @@ public class POMDP implements Serializable {
 										this.policy);
 				
 				if (this.pCache.isOscillating(new Float(bellmanErr))) {
-					System.out.println("BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
+					this.logger.warning(
+							"BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
 					break;
 				}
 			} // else
 			
 			if (bellmanErr < 0.001) {
-				System.out.println("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
+				this.logger.warning("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
 				break;
 			}
 		}
@@ -2856,6 +3019,42 @@ public class POMDP implements Serializable {
 		return statevec;
 	}
 	
+	// -------------------------------------------------------------------------------
+	
+	public HashMap<String, HashMap<String, DDTree>> getOi() {
+		/*
+		 * Decouples the observation function DDs from Globals and returns a
+		 * general representation using DDTree
+		 */
+//		HashMap<String, HashMap<String, DDTree>> O = 
+//				new HashMap<String, HashMap<String, DDTree>>();
+//		
+//		/* For all actions */
+//		for (int a = 0; a < this.nActions; a++) {
+//			String actName = this.actions[a].name;
+//			
+//			HashMap<String, DDTree> ddMap = new HashMap<String, DDTree>();
+//			
+//			/* For all obsVars */
+//			for (int o = 0; o < this.obsVars.length; o++) {
+//				String obsName = obsVars[o].name;
+//				DDTree obsFn = this.actions[a].obsFn[o].toDDTree();
+//				
+//				/* add extracted observation function to ddMap */
+//				ddMap.put(obsName, obsFn);
+//			}
+//			
+//			/* Add observation DDs for individual variables to O for actName */
+//			O.put(actName, ddMap);
+//		}
+		
+		return this.Oi;
+	}
+	
+	public void populateOiDDTree() {
+		
+	}
+	
 	// --------------------------------------------------------------------------------
 	
 	public static int getVarIndex(String varName) throws VariableNotFoundException {
@@ -2898,7 +3097,8 @@ public class POMDP implements Serializable {
 			int finalLen, 
 			int varIndex){
 		/* 
-		 *  Recursively generates a list of all possible combinations of values of the observation variables
+		 *  Recursively generates a list of all possible combinations of values 
+		 *  of the observation variables
 		 */
 		
 		if (varIndex < obsVars.size()) {
