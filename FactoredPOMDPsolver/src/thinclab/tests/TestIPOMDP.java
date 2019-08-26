@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.domainMaker.L0Frame;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
+import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.ipomdpsolver.IPOMDP;
@@ -104,7 +106,7 @@ class TestIPOMDP {
 	}
 	
 	@Test
-	void testIPOMDPOjDDCreation() {
+	void testIPOMDPOiDDCreation() {
 		/*
 		 * Test IPOMDP solve function for L1
 		 */
@@ -113,11 +115,11 @@ class TestIPOMDP {
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
-		List<String> actions = new ArrayList<String>();
-		actions.add("LISTEN");
-		actions.add("OPEN_LEFT");
-		actions.add("OPEN_RIGHT");
-		
+//		List<String> actions = new ArrayList<String>();
+//		actions.add("LISTEN");
+//		actions.add("OPEN_LEFT");
+//		actions.add("OPEN_RIGHT");
+//		
 		/*
 		 * Initialize IPOMDP
 		 */
@@ -125,19 +127,37 @@ class TestIPOMDP {
 		try {
 			tigerL1IPOMDP.initializeFromParsers(parser);
 			
-			/* set Ai and Aj */
-			tigerL1IPOMDP.setAi(actions);
-			tigerL1IPOMDP.setAj(actions);
+			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
 			
-			tigerL1IPOMDP.solveIPBVI(5, 100);
+			/* 
+			 * Stage and commit additional state and variables to populate global 
+			 * arrays
+			 */
+			tigerL1IPOMDP.setUpIS();
+			tigerL1IPOMDP.setUpOmegaI();
+			tigerL1IPOMDP.commitVariables();
 			
-//			tigerL1IPOMDP.makeOjDD();
-//			
-//			System.out.println(tigerL1IPOMDP.OjDDTree);
+			/*
+			 * These will need to be constructed at every belief update
+			 */
+			
+			/* Make M_j transition DD */
+			tigerL1IPOMDP.makeOpponentModelTransitionDD();
+			
+			long then = System.nanoTime();
+			HashMap<String, HashMap<String, DDTree>> Oi = tigerL1IPOMDP.makeOi();
+			long now = System.nanoTime();
+//			System.out.println(Oi.size());
+			System.out.println("Exec time: " + (now - then)/10000000 + " millisec.");
+			assertTrue(Oi.size() == tigerL1IPOMDP.Ai.size());
+			System.out.println(tigerL1IPOMDP.Omega.size());
+			for (String actName : Oi.keySet())
+				assertTrue(Oi.get(actName).size() == tigerL1IPOMDP.Omega.size());
 		}
 		
-		catch (ParserException e) {
+		catch (Exception e) {
 			System.err.println(e.getMessage());
+			e.printStackTrace();
 			fail();
 		}
 		
@@ -245,7 +265,7 @@ class TestIPOMDP {
 			tigerL1IPOMDP.makeOpponentModelTransitionDD();
 			
 			/* Make O (observation functions) */
-			tigerL1IPOMDP.makeOi();
+//			tigerL1IPOMDP.makeOi();
 			
 			DD growl_jDD = tigerL1IPOMDP.getOj().get("growl_j").toDD();
 			List<Integer> varsBeforeSummout = new ArrayList<Integer>();

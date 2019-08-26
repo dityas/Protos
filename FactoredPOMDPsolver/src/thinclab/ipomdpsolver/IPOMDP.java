@@ -52,8 +52,8 @@ public class IPOMDP extends POMDP {
 	 * Reference to Parser object and info extract from parser
 	 */
 	public ParseSPUDD parser;
-	public List<String> Ai;
-	public List<String> Aj;
+	public List<String> Ai = new ArrayList<String>();
+	public List<String> Aj = new ArrayList<String>();
 	
 	/*
 	 * Store lower level frames
@@ -154,6 +154,15 @@ public class IPOMDP extends POMDP {
 		/* Initialize vars from the domain file */
 
 		this.initializeAFromParser(this.parser);
+		
+		/* Split actions to Ai and Aj */
+		this.A.forEach(a -> {	
+			if (!this.Ai.contains(a.split("__")[0]))
+				this.Ai.add(a.split("__")[0]);
+			if (!this.Aj.contains(a.split("__")[1]))
+				this.Aj.add(a.split("__")[1]);
+			});
+		
 		this.initializeTFromParser(this.parser);
 		this.initializeOFromParser(this.parser);
 		this.initializeRFromParser(this.parser);
@@ -354,6 +363,8 @@ public class IPOMDP extends POMDP {
 				nStateVars, 
 				nStateVars + this.Omega.size())
 					.forEach(i -> this.Omega.get(i - nStateVars).setId(i));
+		
+		this.renameOjDDTrees();
 	}
 	
 	// -------------------------------------------------------------------------------------
@@ -362,6 +373,8 @@ public class IPOMDP extends POMDP {
 		/*
 		 * Construct Mj transition DD from OpponentModel triples 
 		 */
+		
+		this.logger.info("Making M_j transition DD");
 		
 		/* Make DDMaker */
 		DDMaker ddMaker = new DDMaker();
@@ -407,34 +420,77 @@ public class IPOMDP extends POMDP {
 				triples);
 		
 		this.MjTFn = OP.reorder(MjDD.toDD());
+		
+		this.logger.info("M_j transition DD created");
 	}
 	
-	private DDTree renameOjVars(DDTree o_j) {
-		/*
-		 * Rename DDTree variables in Oj according to OmegaJ (prefix them with _j)
-		 */
-		List<String> omega_j = 
-				this.Omega.stream()
-					.filter(o -> o.name.substring(o.name.length() - 2).contains("_j"))
-					.map(f -> f.name.substring(0, f.name.length() - 2))
-					.collect(Collectors.toList());
-		
-		for (String var : omega_j) {
-			this.logger.fine("Renaming " + var + "'" + " to " + var + "_j'");
-			o_j.renameVar(var + "'", var + "_j'");
-			this.logger.fine("DDTree is now: " + o_j);
-		}
-		
-		return o_j;
-	}
-	
-	public void makeOi() {
+	public HashMap<String, HashMap<String, DDTree>> makeOi() {
 		/*
 		 * Constructs agent i's observation function Oi from extracted DDTree representation
 		 * 
 		 */
-		/* Populate O for agent i's observations */
-		this.initializeOFromParser(this.parser);
+		this.logger.info("Making Oi");
+		HashMap<String, HashMap<String, DDTree>> Oi = new HashMap<String, HashMap<String, DDTree>>();
+		
+//		/* Populate O for agent i's observations */
+//		this.initializeOFromParser(this.parser);
+		
+		/* Create Ai -> Aj -> Oi -> S' mapping */
+		HashMap<String, HashMap<String, HashMap<String, DDTree>>> AiAjOiS = 
+				new HashMap<String, HashMap<String, HashMap<String, DDTree>>>();
+		
+		/* For each joint action, split j's and i's action and arrange Oi accordingly */
+		for (String jointAction : this.Oi.keySet()) {
+			
+			String Ai = jointAction.split("__")[0];
+			String Aj = jointAction.split("__")[1];
+			
+			HashMap<String, HashMap<String, DDTree>> AjOiS = 
+					new HashMap<String, HashMap<String, DDTree>>();
+			AjOiS.put(Aj, this.Oi.get(jointAction));
+			
+			if (AiAjOiS.containsKey(Ai))
+				AiAjOiS.get(Ai).putAll(AjOiS);
+			
+			else AiAjOiS.put(Ai, AjOiS);
+		}
+		
+		/* Make Ai -> f(Oi, S', Mj) */
+		for (String Ai : AiAjOiS.keySet()) {
+			
+			HashMap<String, HashMap<String, DDTree>> AjOiS = AiAjOiS.get(Ai);
+			HashMap<String, DDTree> OiSMj = new HashMap<String, DDTree>();
+			
+			List<String> OmegaI = 
+					this.Omega.stream()
+						.filter(o -> !o.name.contains("_j"))
+						.map(f -> f.name)
+						.collect(Collectors.toList());
+			
+			for (String oi : OmegaI) {
+				
+				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+				for (String childName : mjDDTree.children.keySet()) {
+
+					mjDDTree.addChild(
+							childName, 
+							AjOiS.get(
+									this.oppModel.getPolicyNode(childName).actName).get(oi));
+				}
+				
+				OiSMj.put(oi, OP.reorder(mjDDTree.toDD()).toDDTree());
+			}
+			
+			Oi.put(Ai, OiSMj);
+		}
+		
+		/*
+		 * For L0, Oj will not depend on Ai. It will depend only on Aj. So add Oj here to each Ai.
+		 */
+		Oi.forEach((a, dd) -> dd.putAll(this.getOj()));
+		this.logger.info("Finished making Oi");
+		
+		return Oi;
 	}
 	
 	public HashMap<String, DDTree> getOj() {
@@ -445,13 +501,14 @@ public class IPOMDP extends POMDP {
 		 * 
 		 * 		[Mj] -------------> [Oj']
 		 * 							   ^	
-		 * 		[S'] -----------------/	 
+		 * 		[S'] -----------------/	
+		 * 
+		 * WARNING: Will only work for level 0 for now.
+		 * 
+		 * TODO: Generalize Oj creation for joint actions
 		 */
 		
 		HashMap<String, DDTree> Oj = new HashMap<String, DDTree>();
-		
-		/* First rename all obsVars in Oj DDTrees */
-		this.renameOjDDTrees();
 		
 		/* Create new HashMap for Oj of the variable order oj' -> mj -> s' */
 		List<String> omegaJList = 
@@ -460,24 +517,22 @@ public class IPOMDP extends POMDP {
 						  .map(f -> f.name)
 						  .collect(Collectors.toList());
 		
-//		System.out.println(omegaJList);
-		
 		for (String oj : omegaJList) {
 			
 			/* Make DD of all Mjs */
 			DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
-//			System.out.println(mjDDTree);
+
 			
 			for (String childName : mjDDTree.children.keySet()) {
 				/* 
 				 * Each mj has a single optimal action, so we map the action to mj and
 				 * set the corresponding Oj for that action to the mj.
 				 */
-//				System.out.println(this.Oj.get(0));
+
 				DDTree ojDDTree = this.OjTheta.get(0)
 										 	  .get(this.oppModel.getPolicyNode(childName).actName)
 										 	  .get(oj);
-//				System.out.println(ojDDTree);
+
 				mjDDTree.addChild(childName, ojDDTree);
 			}
 			
@@ -494,6 +549,7 @@ public class IPOMDP extends POMDP {
 		 * WARNING: will only work for a single lower level frame
 		 */
 		
+		this.logger.info("Renaming Oj DDTrees");
 		/* Iterate over all observation functions */
 		for (HashMap<String, HashMap<String, DDTree>> ojDDTree : this.OjTheta) {
 			
@@ -518,6 +574,8 @@ public class IPOMDP extends POMDP {
 				ojDDTree.put(actName, renamedOj_a);
 			}
 		}
+		
+		this.logger.info("Done renaming Oj");
 	}
 
 }
