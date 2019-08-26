@@ -486,6 +486,8 @@ public class IPOMDP extends POMDP {
 		
 		/*
 		 * For L0, Oj will not depend on Ai. It will depend only on Aj. So add Oj here to each Ai.
+		 * 
+		 * WARNING: For L1, Oj may depend on Mj and in that case this will break!!!
 		 */
 		Oi.forEach((a, dd) -> dd.putAll(this.getOj()));
 		this.logger.info("Finished making Oi");
@@ -540,6 +542,67 @@ public class IPOMDP extends POMDP {
 		}
 		
 		return Oj;
+	}
+	
+	public HashMap<String, HashMap<String, DDTree>> makeTi() {
+		/*
+		 * Constructs i's transition function.
+		 * 
+		 * The DBN structure is:
+		 * 
+		 * 		[Mj] -------------------.
+		 * 								|
+		 * 								v
+		 * 		[S]  ----------------> [S']
+		 * 
+		 */
+		
+		/*
+		 * The parsed Ti is in the form of a joint action transition function of the form -
+		 * (Ai - Aj) -> S -> f(S', S)
+		 * 
+		 * We need to map that to the form Ai -> f(S', Mj, S)
+		 */
+		this.logger.info("Making Ti");
+		HashMap<String, HashMap<String, DDTree>> Ti = 
+				new HashMap<String, HashMap<String, DDTree>>();
+		
+		List<String> S = 
+				this.S.stream()
+					.filter(s -> !s.name.contains("M_j"))
+					.map(f -> f.name)
+					.collect(Collectors.toList());
+		
+		/* For each action */
+		for (String Ai : this.Ai) {
+			
+			HashMap<String, DDTree> SpMjS = new HashMap<String, DDTree>();
+			
+			for (String s : S) {
+				
+				/* Make M_j factor */
+				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+				
+				/* 
+				 * Collapse Aj into Mj to create f(Mj, S, S')
+				 */
+				for (String childName : mjDDTree.children.keySet()) {
+					mjDDTree.addChild(
+							childName, 
+							this.Ti.get(
+									Ai + "__" 
+									+ this.oppModel.getPolicyNode(childName).actName).get(s));
+				}
+				
+				this.logger.info("Made f(S', Mj, S) for S=" + s + " and Ai=" + Ai);
+				SpMjS.put(s, OP.reorder(mjDDTree.toDD()).toDDTree());
+			}
+			
+			Ti.put(Ai, SpMjS);
+		}
+		
+		this.logger.info("Finished making Ti");
+		return Ti;
 	}
 	
 	public void renameOjDDTrees() {

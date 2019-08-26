@@ -115,11 +115,6 @@ class TestIPOMDP {
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
-//		List<String> actions = new ArrayList<String>();
-//		actions.add("LISTEN");
-//		actions.add("OPEN_LEFT");
-//		actions.add("OPEN_RIGHT");
-//		
 		/*
 		 * Initialize IPOMDP
 		 */
@@ -147,12 +142,74 @@ class TestIPOMDP {
 			long then = System.nanoTime();
 			HashMap<String, HashMap<String, DDTree>> Oi = tigerL1IPOMDP.makeOi();
 			long now = System.nanoTime();
-//			System.out.println(Oi.size());
+
 			System.out.println("Exec time: " + (now - then)/10000000 + " millisec.");
 			assertTrue(Oi.size() == tigerL1IPOMDP.Ai.size());
 			System.out.println(tigerL1IPOMDP.Omega.size());
 			for (String actName : Oi.keySet())
 				assertTrue(Oi.get(actName).size() == tigerL1IPOMDP.Omega.size());
+		}
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			fail();
+		}
+		
+	}
+	
+	@Test
+	void testIPOMDPTiDDCreation() {
+		/*
+		 * Test IPOMDP solve function for L1
+		 */
+		System.out.println("Running testIPOMDPTiDDCreation()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		try {
+			tigerL1IPOMDP.initializeFromParsers(parser);
+			
+			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
+			
+			/* 
+			 * Stage and commit additional state and variables to populate global 
+			 * arrays
+			 */
+			tigerL1IPOMDP.setUpIS();
+			tigerL1IPOMDP.setUpOmegaI();
+			tigerL1IPOMDP.commitVariables();
+			
+			/*
+			 * These will need to be constructed at every belief update
+			 */
+			
+			/* Make M_j transition DD */
+			tigerL1IPOMDP.makeOpponentModelTransitionDD();
+			
+			long then = System.nanoTime();
+			HashMap<String, HashMap<String, DDTree>> Ti = tigerL1IPOMDP.makeTi();
+			long now = System.nanoTime();
+
+			System.out.println("Exec time: " + (now - then)/10000000 + " millisec.");
+			
+			for (String Ai : Ti.keySet()) {
+				for (String s : Ti.get(Ai).keySet()) {
+					assertTrue(
+							OP.maxAll(
+									OP.abs(
+										OP.sub(
+											DD.one, 
+											OP.addMultVarElim(
+												Ti.get(Ai).get(s).toDD(),
+												IPOMDP.getVarIndex(s + "'"))))) < 1e-8);
+				}
+			}
 		}
 		
 		catch (Exception e) {
