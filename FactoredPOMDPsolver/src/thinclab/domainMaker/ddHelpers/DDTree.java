@@ -94,7 +94,7 @@ public class DDTree {
 		/*
 		 * Renames all nodes with varName oldVar to newVar
 		 */
-		if (this.varName == oldVar) this.varName = newVar;
+		if (this.varName.contentEquals(oldVar)) this.varName = newVar;
 		
 		else {
 			for (Entry<String, DDTree> child : this.children.entrySet())

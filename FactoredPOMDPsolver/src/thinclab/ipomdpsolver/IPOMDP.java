@@ -10,6 +10,7 @@ package thinclab.ipomdpsolver;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -78,13 +79,27 @@ public class IPOMDP extends POMDP {
 	/* Mj's transition DD */
 	public DD MjTFn;
 	
-	/* O_j */
-	public List<HashMap<String, HashMap<String, DDTree>>> OjDDTree = 
+	/*
+	 * Additional DDTree variables.
+	 */
+	/* Interactive state space staging */
+//	public List<StateVar> IS = new ArrayList<StateVar>();
+//	public List<StateVar> Omegai = new ArrayList<StateVar>();
+	
+	/* 
+	 * O_j
+	 */
+	
+	/* Staging area for j's observation functions */
+	public List<HashMap<String, HashMap<String, DDTree>>> OjTheta = 
 			new ArrayList<HashMap<String, HashMap<String, DDTree>>>();
 	
-	/* O_i */
-	public HashMap<String, HashMap<String, DDTree>> Oi = 
-			new HashMap<String, HashMap<String, DDTree>>(); 
+	/* Actual reordered observation function for j's obsVars */
+//	public DDTree Oj;
+//	
+//	/* O_i */
+//	public HashMap<String, HashMap<String, DDTree>> Oi = 
+//			new HashMap<String, HashMap<String, DDTree>>(); 
 	
 	// ----------------------------------------------------------------------------------------
 
@@ -137,11 +152,15 @@ public class IPOMDP extends POMDP {
 		} /* for all child frames */
 		
 		/* Initialize vars from the domain file */
-//		super.initializeStateVarsFromParser(parsedFrame);
-//		super.initializeObsVarsFromParser(parsedFrame);
+
+		this.initializeAFromParser(this.parser);
+		this.initializeTFromParser(this.parser);
+		this.initializeOFromParser(this.parser);
+		this.initializeRFromParser(this.parser);
 		
-		
-		
+		this.initializeDiscountFactorFromParser(this.parser);		
+		this.initializeBeliefsFromParser(this.parser);
+//		this
 	}
 	
 	public void setAi(List<String> actionNames) {
@@ -187,7 +206,7 @@ public class IPOMDP extends POMDP {
 				 */
 				
 				/* store opponent's Oj */
-				this.OjDDTree.add(opponentModel.getOi());
+				this.OjTheta.add(opponentModel.getOi());
 				this.logger.info("Extracted Oj for " + opponentModel);
 			}
 			
@@ -229,8 +248,16 @@ public class IPOMDP extends POMDP {
 			this.setUpOmegaI();
 			this.commitVariables();
 			
+			/*
+			 * These will need to be constructed at every belief update
+			 */
+			
 			/* Make M_j transition DD */
 			this.makeOpponentModelTransitionDD();
+			
+			/* Make O (observation functions) */
+			this.makeOi();
+//			DDTree Oj = this.getOj();
 		} 
 		
 		catch (SolverException e) {
@@ -252,12 +279,12 @@ public class IPOMDP extends POMDP {
 		
 		/* Add S from parser obj */
 		this.logger.info("Staging IS vars");
-		this.stateVarStaging.clear();
-		this.initializeStateVarsFromParser(this.parser);
+		this.S.clear();
+		this.initializeSFromParser(this.parser);
 		
 		/* Set up M_j */
 		this.setUpMj();
-		this.logger.info("IS vars staged to: " + this.stateVarStaging);
+		this.logger.info("IS vars staged to: " + this.S);
 	}
 	
 	public void setUpMj() {
@@ -278,10 +305,10 @@ public class IPOMDP extends POMDP {
 		 */
 		
 		/* Set oppModelVarIndex */
-		this.oppModelVarIndex = this.stateVarStaging.size();
+		this.oppModelVarIndex = this.S.size();
 		
 		/* Finally, add the oppModel state var to the staging list */
-		this.stateVarStaging.add(this.oppModel.getOpponentModelStateVar(this.oppModelVarIndex));
+		this.S.add(this.oppModel.getOpponentModelStateVar(this.oppModelVarIndex));
 	}
 	
 	public void setUpOmegaI() {
@@ -293,16 +320,16 @@ public class IPOMDP extends POMDP {
 		 * WARNING: Currently only works for a single frame
 		 */
 		
-		this.obsVarStaging.clear();
-		this.logger.info("Staging Omega_i");
+		this.Omega.clear();
+		this.logger.info("Staging Omega");
 		
 		/* Add Omega_i from the parser */
-		this.initializeObsVarsFromParser(this.parser);
+		this.initializeOmegaFromParser(this.parser);
 		
 		/* Add Omega_j */
 		this.setUpOmegaJ();
 		
-		this.logger.info("Omega_i vars staged to :" + this.obsVarStaging);
+		this.logger.info("Omega_i vars staged to :" + this.Omega);
 	}
 	
 	public void setUpOmegaJ() {
@@ -317,16 +344,16 @@ public class IPOMDP extends POMDP {
 		for (POMDP frame : this.lowerLevelFrames) {
 			List<StateVar> obsj = Arrays.asList(frame.obsVars);
 			obsj.stream().forEach(o -> o.setName(o.name + "_j"));
-			this.obsVarStaging.addAll(obsj);
+			this.Omega.addAll(obsj);
 		}
 			
 		/* Offset obsVarIndices */
-		int nStateVars = this.stateVarStaging.size();
+		int nStateVars = this.S.size();
 		
 		IntStream.range(
 				nStateVars, 
-				nStateVars + this.obsVarStaging.size())
-					.forEach(i -> this.obsVarStaging.get(i - nStateVars).setId(i));
+				nStateVars + this.Omega.size())
+					.forEach(i -> this.Omega.get(i - nStateVars).setId(i));
 	}
 	
 	// -------------------------------------------------------------------------------------
@@ -355,7 +382,7 @@ public class IPOMDP extends POMDP {
 		 */
 
 		List<StateVar> obsSeq = 
-				this.obsVarStaging.stream()
+				this.Omega.stream()
 					.filter(o -> o.name.substring(o.name.length()-2).contains("_j"))
 					.collect(Collectors.toList());
 		
@@ -387,7 +414,7 @@ public class IPOMDP extends POMDP {
 		 * Rename DDTree variables in Oj according to OmegaJ (prefix them with _j)
 		 */
 		List<String> omega_j = 
-				this.obsVarStaging.stream()
+				this.Omega.stream()
 					.filter(o -> o.name.substring(o.name.length() - 2).contains("_j"))
 					.map(f -> f.name.substring(0, f.name.length() - 2))
 					.collect(Collectors.toList());
@@ -401,22 +428,95 @@ public class IPOMDP extends POMDP {
 		return o_j;
 	}
 	
-	public void makeOiDD() {
+	public void makeOi() {
 		/*
 		 * Constructs agent i's observation function Oi from extracted DDTree representation
 		 * 
 		 */
+		/* Populate O for agent i's observations */
+		this.initializeOFromParser(this.parser);
 	}
 	
-	public void makeOjDD() {
+	public HashMap<String, DDTree> getOj() {
+		/*
+		 * Makes DDs for Oj, renames the vars, and conditions them on Mj.
+		 * 
+		 * The DBN structure is as follows:
+		 * 
+		 * 		[Mj] -------------> [Oj']
+		 * 							   ^	
+		 * 		[S'] -----------------/	 
+		 */
+		
+		HashMap<String, DDTree> Oj = new HashMap<String, DDTree>();
+		
+		/* First rename all obsVars in Oj DDTrees */
+		this.renameOjDDTrees();
+		
+		/* Create new HashMap for Oj of the variable order oj' -> mj -> s' */
+		List<String> omegaJList = 
+				this.Omega.stream()
+						  .filter(o -> o.name.substring(o.name.length() - 2).contains("_j"))
+						  .map(f -> f.name)
+						  .collect(Collectors.toList());
+		
+//		System.out.println(omegaJList);
+		
+		for (String oj : omegaJList) {
+			
+			/* Make DD of all Mjs */
+			DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+//			System.out.println(mjDDTree);
+			
+			for (String childName : mjDDTree.children.keySet()) {
+				/* 
+				 * Each mj has a single optimal action, so we map the action to mj and
+				 * set the corresponding Oj for that action to the mj.
+				 */
+//				System.out.println(this.Oj.get(0));
+				DDTree ojDDTree = this.OjTheta.get(0)
+										 	  .get(this.oppModel.getPolicyNode(childName).actName)
+										 	  .get(oj);
+//				System.out.println(ojDDTree);
+				mjDDTree.addChild(childName, ojDDTree);
+			}
+			
+			Oj.put(oj, OP.reorder(mjDDTree.toDD()).toDDTree());
+		}
+		
+		return Oj;
+	}
+	
+	public void renameOjDDTrees() {
 		/*
 		 * Constructs opponents observation function Oj from extracted DDTree representation
 		 * 
 		 * WARNING: will only work for a single lower level frame
 		 */
 		
-		for (HashMap<String, HashMap<String, DDTree>> ojDDTree : this.OjDDTree) {
+		/* Iterate over all observation functions */
+		for (HashMap<String, HashMap<String, DDTree>> ojDDTree : this.OjTheta) {
 			
+			for (String actName : ojDDTree.keySet()) {
+				
+				/* For observation function for a specific action */
+				HashMap<String, DDTree> Oj_a = ojDDTree.get(actName);
+				HashMap<String, DDTree> renamedOj_a = new HashMap<String, DDTree>();
+				
+				/* Rename the observation vars */
+				for (String o : Oj_a.keySet()) {
+					
+					DDTree oDDTree = Oj_a.get(o);
+					
+					oDDTree.renameVar(o, o + "_j");
+					oDDTree.renameVar(o + "'", o + "_j'");
+					
+					renamedOj_a.put(o + "_j", oDDTree);
+				}
+				
+				Oj_a = null;
+				ojDDTree.put(actName, renamedOj_a);
+			}
 		}
 	}
 

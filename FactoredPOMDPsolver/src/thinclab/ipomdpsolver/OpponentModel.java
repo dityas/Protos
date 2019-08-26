@@ -115,5 +115,15 @@ public class OpponentModel {
 		/* convert list to array and return */
 		return triples.toArray(new String[triples.size()][]);
 	}
+	
+	// --------------------------------------------------------------------------------------
+	
+	public PolicyNode getPolicyNode(String nodeName) {
+		/*
+		 * Returns the policy node mapped to the nodeName
+		 */
+		PolicyNode node = this.nodeIndex.get(nodeName);
+		return node;
+	}
 
 }

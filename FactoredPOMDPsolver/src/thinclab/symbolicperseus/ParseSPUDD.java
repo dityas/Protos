@@ -3,11 +3,13 @@ package thinclab.symbolicperseus;
 import java.io.*;
 import java.util.*;
 import java.util.HashMap;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.lang.*;
 
 import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.utils.LoggerFactory;
 
 public class ParseSPUDD {
     public HashMap existingDds;
@@ -32,6 +34,8 @@ public class ParseSPUDD {
     
     public int frameID;
     public int level;
+    
+    private Logger logger = LoggerFactory.getNewLogger("POMDP Parser");
     
     // --------------------------------------------------------------------------------------
     /*
@@ -156,9 +160,11 @@ public class ParseSPUDD {
 			case '(':
 			    stream.nextToken();
 			    if (stream.sval.compareTo("variables") == 0) {
+			    	this.logger.info("Parsing variables");
 				parseVariables();
 			    }
 			    else if (stream.sval.compareTo("observations") == 0) {
+			    	this.logger.info("Parsing observations");
 				parseObservations();
 			    }
 			    else error("Expected \"variables\" or \"observations\"");
@@ -173,10 +179,12 @@ public class ParseSPUDD {
 				break;
 			    }
 			    else if (stream.sval.compareTo("dd") == 0) {
+			    	this.logger.info("Parsing DD def");
 				parseDDdefinition();
 				break;
 			    }
 			    else if (stream.sval.compareTo("action") == 0) {
+			    	this.logger.info("Parsing actions");
 				parseAction();
 				break;
 			    }
@@ -744,7 +752,7 @@ public class ParseSPUDD {
     	/*
     	 * Converts everything to DDTree representation
     	 */
-    	
+    	this.logger.info("Begin populating DDTree structures");
 //    	HashMap<String, HashMap<String, DDTree>> Oi = 
 //    			new HashMap<String, HashMap<String, DDTree>>();
 //    	
@@ -759,6 +767,8 @@ public class ParseSPUDD {
     						(String[]) this.valNames.get(i).toArray(
     								new String[this.valNames.get(i).size()]))));
     	
+    	this.logger.info("S initialized to: " + this.S);
+    	
     	IntStream.range(this.nStateVars, this.nStateVars + this.nObsVars)
 			.forEach(i -> this.Omega.add(
 					new StateVar(
@@ -767,24 +777,35 @@ public class ParseSPUDD {
 							(String[]) this.valNames.get(i).toArray(
 									new String[this.valNames.get(i).size()]))));
     	
+    	this.logger.info("Omega initialized to: " + this.Omega);
+    	
     	/* Ai */
     	for (int a = 0; a < this.actNames.size(); a++) {
     		
     		/* Add action names */
+    		this.logger.info("Populating structures for action " + this.actNames.get(a));
     		this.A.add(this.actNames.get(a));
     		
     		/* Add costs for each action */
+    		this.logger.info(
+    				"Cost for action " 
+    				+ this.actNames.get(a) 
+    				+ " is " 
+    				+ this.actCosts.get(a));
     		this.costs.add(this.actCosts.get(a).toDDTree());
     		
     		HashMap<String, DDTree> Oi_a = new HashMap<String, DDTree>();
     		
     		/* Populate Oi */
     		for (int o = 0; o < this.nObsVars; o++) {
-    			
+    			this.logger.info(
+    					"Population O DDtree for o " + this.varNames.get(this.nStateVars + o));
     			Oi_a.put(
     					this.varNames.get(this.nStateVars + o),
     					this.actObserve.get(a)[o].toDDTree());
     		}
+    		
+    		this.logger.info("Oi_a for a=" + this.actNames.get(a) + " is " + Oi_a);
     		
     		this.Oi.put(this.actNames.get(a), Oi_a);
     		

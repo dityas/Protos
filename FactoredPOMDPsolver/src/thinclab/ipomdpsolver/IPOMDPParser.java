@@ -13,10 +13,12 @@ import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import thinclab.exceptions.ParserException;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.ParseSPUDD;
+import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
@@ -34,6 +36,8 @@ public class IPOMDPParser extends ParseSPUDD {
 	public int level;
 	public int frameID;
 	public List<ParseSPUDD> childFrames = new ArrayList<ParseSPUDD>();
+	
+	private Logger logger = LoggerFactory.getNewLogger("IPOMDP Parser");
 	
 	// ------------------------------------------------------------------------------------------
 	/*
@@ -169,9 +173,12 @@ public class IPOMDPParser extends ParseSPUDD {
 					    
 					case StreamTokenizer.TT_EOF:
 						this.setGlobals();
-//					    return;
+						this.populateDDTreeObjects();
+					    return;
 
 					default:
+						this.setGlobals();
+						this.populateDDTreeObjects();
 					    return;
 				}
 		    }
@@ -202,7 +209,7 @@ public class IPOMDPParser extends ParseSPUDD {
 			/*
 			 * Loop the frame parser to parse possible multiple frames
 			 */
-		
+			this.logger.info("Parsing new frame");
 			this.stream.nextToken();
 			
 			/*
@@ -248,10 +255,12 @@ public class IPOMDPParser extends ParseSPUDD {
 					
 				}
 				
-				else throw new ParserException("Expected frame definition got " + this.stream + " instead");
+				else throw new ParserException(
+						"Expected frame definition got " + this.stream + " instead");
 			}
 			
-			else throw new ParserException("Expected frame definition got " + this.stream + " instead");
+			else throw new ParserException(
+					"Expected frame definition got " + this.stream + " instead");
 			
 		}
 	}
@@ -302,6 +311,7 @@ public class IPOMDPParser extends ParseSPUDD {
 		 * since the lower frames in the recursion tree may overwrite the 
 		 * globals set by the upper frames.
 		 */
+		this.logger.info("Setting globals");
 		this.createPrimeVars();
 		
 		String[] actNamesArray = new String[actNames.size()];

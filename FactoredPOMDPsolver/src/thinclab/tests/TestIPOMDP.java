@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -158,11 +159,14 @@ class TestIPOMDP {
 			
 			/* set opponent model var */
 			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
+			
+			System.out.println(tigerL1IPOMDP.parser.S);
+			
 			tigerL1IPOMDP.setUpIS();
 			
 			assertEquals(
-					tigerL1IPOMDP.stateVarStaging.size(), 
-					tigerL1IPOMDP.lowerLevelFrames.get(0).stateVarStaging.size() + 1);
+					tigerL1IPOMDP.S.size(), 
+					tigerL1IPOMDP.lowerLevelFrames.get(0).S.size() + 1);
 		} 
 		
 		catch (Exception e) {
@@ -190,11 +194,11 @@ class TestIPOMDP {
 			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
 			tigerL1IPOMDP.setUpIS();
 			
-			int prevNObs = tigerL1IPOMDP.obsVarStaging.size();
+			int prevNObs = tigerL1IPOMDP.Omega.size();
 			
 			tigerL1IPOMDP.setUpOmegaI();
 			
-			assertEquals(tigerL1IPOMDP.obsVarStaging.size(),
+			assertEquals(tigerL1IPOMDP.Omega.size(),
 						2 + 
 						(tigerL1IPOMDP.lowerLevelFrames.size() * 
 						tigerL1IPOMDP.lowerLevelFrames.get(0).nObsVars));
@@ -222,9 +226,53 @@ class TestIPOMDP {
 		IPOMDP tigerL1IPOMDP = new IPOMDP();
 		try {
 			tigerL1IPOMDP.initializeFromParsers(parser);
-			tigerL1IPOMDP.solveOpponentModels();
 			
-			System.out.println(tigerL1IPOMDP.getOi());
+			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
+			
+			/* 
+			 * Stage and commit additional state and variables to populate global 
+			 * arrays
+			 */
+			tigerL1IPOMDP.setUpIS();
+			tigerL1IPOMDP.setUpOmegaI();
+			tigerL1IPOMDP.commitVariables();
+			
+			/*
+			 * These will need to be constructed at every belief update
+			 */
+			
+			/* Make M_j transition DD */
+			tigerL1IPOMDP.makeOpponentModelTransitionDD();
+			
+			/* Make O (observation functions) */
+			tigerL1IPOMDP.makeOi();
+			
+			DD growl_jDD = tigerL1IPOMDP.getOj().get("growl_j").toDD();
+			List<Integer> varsBeforeSummout = new ArrayList<Integer>();
+			varsBeforeSummout.addAll(
+					Arrays.stream(growl_jDD.getVarSet())
+						.boxed()
+						.collect(Collectors.toList()));
+			
+			varsBeforeSummout.addAll(
+					Arrays.stream(tigerL1IPOMDP.MjTFn.getVarSet())
+						.boxed()
+						.collect(Collectors.toList()));
+			
+			assertTrue(varsBeforeSummout.contains(POMDP.getVarIndex("growl_j'")));
+			
+			DD tauDD = 
+					OP.addMultVarElim(
+							new DD[] {growl_jDD, tigerL1IPOMDP.MjTFn}, 
+							POMDP.getVarIndex("growl_j'"));
+			
+			List<Integer> varsAfterSummout = new ArrayList<Integer>();
+			varsAfterSummout.addAll(
+					Arrays.stream(tauDD.getVarSet())
+						.boxed()
+						.collect(Collectors.toList()));
+			
+			assertFalse(varsAfterSummout.contains(POMDP.getVarIndex("growl_j'")));
 		} 
 		
 		catch (Exception e) {

@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import thinclab.domainMaker.L0Frame;
+import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.VariableNotFoundException;
@@ -143,6 +144,11 @@ public class POMDP implements Serializable {
     public DDTree initBeliefDdTree;
     
     public List<DDTree> adjunctBeliefs = new ArrayList<DDTree>();
+    
+    /*
+     * Keep a DDMaker in case new DDs need to be made
+     */
+    public DDMaker ddMaker = new DDMaker();
 	
 	// ---------------------------------------------------------------------
 	
@@ -818,6 +824,10 @@ public class POMDP implements Serializable {
 		
 		setGlobals();
 		
+		/* In the end, add all variables to the DDMaker and prime them */
+		this.S.stream().forEach(s -> this.ddMaker.addVariable(s.name, s.valNames));
+		this.Omega.stream().forEach(o -> this.ddMaker.addVariable(o.name, o.valNames));
+		this.ddMaker.primeVariables();
 	}
 	
 	// -----------------------------------------------------------------------------------------------
@@ -3083,7 +3093,7 @@ public class POMDP implements Serializable {
 		String varName = Global.varNames[varIndex - 1];
 		
 		if (varName.substring(varName.length() - 2).contains("_P"))
-			return varName.substring(varName.length() - 2) + "'";
+			return varName.substring(0, varName.length() - 2) + "'";
 		
 		else return varName;
 	}
