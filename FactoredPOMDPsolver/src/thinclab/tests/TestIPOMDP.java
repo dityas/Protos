@@ -78,32 +78,32 @@ class TestIPOMDP {
 		assertEquals(tigerL1IPOMDP.lowerLevelFrames.size(), parser.childFrames.size());
 	}
 	
-	@Test
-	void testIPOMDPL1FrameSolve() {
-		/*
-		 * Test IPOMDP solve function for L1
-		 */
-		System.out.println("Running testIPOMDPL1FrameSolve()");
-		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
-		
-		/*
-		 * Initialize IPOMDP
-		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP();
-		try {
-			tigerL1IPOMDP.initializeFromParsers(parser);
-		} 
-		
-		catch (ParserException e) {
-			System.err.println(e.getMessage());
-			fail();
-		}
-		
-		tigerL1IPOMDP.solveIPBVI(10, 100);
-		
-	}
+//	@Test
+//	void testIPOMDPL1FrameSolve() {
+//		/*
+//		 * Test IPOMDP solve function for L1
+//		 */
+//		System.out.println("Running testIPOMDPL1FrameSolve()");
+//		
+//		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+//		parser.parseDomain();
+//		
+//		/*
+//		 * Initialize IPOMDP
+//		 */
+//		IPOMDP tigerL1IPOMDP = new IPOMDP();
+//		try {
+//			tigerL1IPOMDP.initializeFromParsers(parser);
+//		} 
+//		
+//		catch (ParserException e) {
+//			System.err.println(e.getMessage());
+//			fail();
+//		}
+//		
+//		tigerL1IPOMDP.solveIPBVI(10, 100);
+//		
+//	}
 	
 	@Test
 	void testIPOMDPOiDDCreation() {
