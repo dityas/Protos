@@ -234,7 +234,7 @@ public class IPOMDP extends POMDP {
 		 * (reachable beliefs X frames) number of opponent models 
 		 */
 		this.solveOpponentModels();		
-		OpponentModel oppModel = new OpponentModel(this.lowerLevelFrames);
+		OpponentModel oppModel = new OpponentModel(this.lowerLevelFrames, 5);
 
 		return oppModel;
 	}
@@ -368,6 +368,21 @@ public class IPOMDP extends POMDP {
 	}
 	
 	// -------------------------------------------------------------------------------------
+	
+	public DD getInitMj() {
+		/*
+		 * Gets the initial belief from the currently rooted opponent model
+		 */
+	}
+	
+	public DD getInitIBelief() {
+		/*
+		 * Returns the initial belief for agent i
+		 */
+		this.logger.info("Getting initial belief");
+		DD beliefS = this.initialBelState;
+		DD beliefMj = this.getInitMj();
+	}
 	
 	public void makeOpponentModelTransitionDD() {
 		/*

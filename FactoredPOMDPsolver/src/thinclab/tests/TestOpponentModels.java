@@ -22,7 +22,9 @@ import thinclab.exceptions.SolverException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.OpponentModel;
+import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
+import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 
 /*
@@ -87,7 +89,73 @@ class TestOpponentModels {
 	}
 	
 	@Test
-	void testOpponentModelHashing() {
+	void testOpponentModelInit() {
+		System.out.println("Running testOpponentModelInit()");
 		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		try {
+
+			tigerL1IPOMDP.initializeFromParsers(parser);
+			
+			/* Get opponent model */
+			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
+			
+			assertEquals(oppModel.nodesList.size(), oppModel.triplesMap.size());
+		} 
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			fail();
+		}
+	}
+	
+	@Test
+	void testOpponentModelTraversal() {
+		System.out.println("Running testOpponentModelTraversal()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		try {
+
+			tigerL1IPOMDP.initializeFromParsers(parser);
+			
+			/* Get opponent model */
+			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
+			tigerL1IPOMDP.setUpIS();
+			tigerL1IPOMDP.setUpOmegaI();
+			tigerL1IPOMDP.commitVariables();
+			
+			long then = System.nanoTime();
+			tigerL1IPOMDP.makeOpponentModelTransitionDD();
+			long now = System.nanoTime();
+			
+			System.out.println("Exec time: " + (now - then)/10000000 + " millisec.");
+			System.out.println(tigerL1IPOMDP.MjTFn);
+//			assertTrue(
+//					OP.maxAll(
+//							OP.abs(
+//								OP.sub(
+//									DD.one, 
+//									OP.addMultVarElim(
+//										tigerL1IPOMDP.MjTFn,
+//										IPOMDP.getVarIndex("M_j'"))))) < 1e-8);
+			
+		} 
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			fail();
+		}
 	}
 }

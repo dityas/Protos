@@ -10,13 +10,18 @@ package thinclab.ipomdpsolver;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
+import thinclab.utils.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import thinclab.domainMaker.ddHelpers.DDMaker;
+import thinclab.exceptions.VariableNotFoundException;
 import thinclab.policyhelper.PolicyNode;
 import thinclab.policyhelper.PolicyTree;
 
@@ -36,14 +41,33 @@ public class OpponentModel {
 	public List<PolicyNode> nodesList = new ArrayList<PolicyNode>();
 	public HashMap<String, PolicyNode> nodeIndex = new HashMap<String, PolicyNode>();
 	
-	public OpponentModel(List<POMDP> frames) {
+	/* Store the PolicyTrees as global triples */
+	public HashMap<String, HashMap<List<String>, String>> triplesMap =
+			new HashMap<String, HashMap<List<String>, String>>();
+	
+	private Logger logger = LoggerFactory.getNewLogger("Opponent Model");
+	
+	/*
+	 * Variables for determining the current context i.e. current roots and currently visited
+	 * nodes of the OpponentModel
+	 */
+	public List<String> currentRoots = new ArrayList<String>();
+	public HashSet<String> currentNodes =
+			new HashSet<String>();
+	
+	// ------------------------------------------------------------------------------------------
+	
+	public OpponentModel(List<POMDP> frames, int horizon) {
 		/*
 		 * Initialize from <belief, frame> combination
 		 */
+		this.logger.info(
+				"Initializing Opponent Model for a total of " + horizon + " time steps");
+		
 		for (POMDP frame: frames) {
 			
 			/* Make policy tree for limited horizons */
-			PolicyTree T = frame.getPolicyTree(5);
+			PolicyTree T = frame.getPolicyTree(horizon);
 			
 			/*
 			 * Start indexing nodes incrementally so that each node has a unique index
@@ -53,10 +77,81 @@ public class OpponentModel {
 			
 			/* Add nodes to */
 			nodesList.addAll(T.policyNodes);
+			
+			this.logger.info("Added " + T.policyNodes.size() + " PolicyNodes to Opponent Model");
+			this.logger.info("Opponent Model now contains " + this.nodesList.size() + " PolicyNodes");
+			
+			this.currentRoots.addAll(
+					T.roots.stream().map(r -> "m" + r.id).collect(Collectors.toList()));
 		}
 		
-		/* create child names for state var */
-		this.nodesList.stream().forEach(n -> this.nodeIndex.put("m" + n.id, n));
+		/* Name and index each node and populate triplesMap */
+		this.nodesList.stream()
+			.forEach(n -> { 
+				
+				this.nodeIndex.put("m" + n.id, n);
+				
+				HashMap<List<String>, String> sNextNode = 
+						new HashMap<List<String>, String>(); 
+				n.nextNode.entrySet()
+					.forEach(e -> sNextNode.put(e.getKey(), "m" + e.getValue()));
+				
+				this.triplesMap.put("m" + n.id, sNextNode);
+			});
+	}
+	
+	// -----------------------------------------------------------------------------
+	
+	public HashSet<String> step(HashSet<String> parents) 
+			throws VariableNotFoundException {
+		/*
+		 * Makes a single tree traversal starting from the current roots.
+		 */
+		
+		HashSet<String> nextNodes = new HashSet<String>();
+		
+		for (String parent : parents) {
+			
+			if (!this.nodeIndex.containsKey(parent))
+				throw new VariableNotFoundException(
+						"Node " + parent + " does not exist in opponent model"); 
+			
+			/* Add the next nodes for all observations to the set of next nodes*/
+			nextNodes.addAll(this.triplesMap.get(parent).values());
+		}
+		
+		return nextNodes;
+	}
+	
+	public void expandForHorizon(HashSet<String> start, int horizon) {
+		/*
+		 * Traverses the opponent model for the given horizon and populates the current
+		 * context.
+		 */
+		this.logger.info(
+				"Expanding Opponent Model for " 
+				+ horizon + " time steps starting from " + start);
+		
+		HashSet<String> startNodes = start;
+		this.currentNodes.clear();
+		
+		for (int h = 0; h < horizon; h++) {
+			
+			try {
+				
+				HashSet<String> nextNodes = this.step(startNodes);
+				
+				this.currentNodes.addAll(nextNodes);
+				startNodes = nextNodes;
+			}
+			
+			catch (Exception e) {
+				this.logger.severe(
+						"ERROR[!!!] While stepping through the Opponent Model"
+						+ e.getMessage());
+				System.exit(-1);
+			}
+		}
 	}
 	
 	// -----------------------------------------------------------------------------
@@ -69,7 +164,7 @@ public class OpponentModel {
 		 * policy nodes in the opponent model policy trees. 
 		 */
 		String[] nodeNames = 
-				this.nodeIndex.keySet().toArray(
+				this.currentNodes.toArray(
 						new String[this.nodesList.size()]);
 		
 		return new StateVar("M_j", index, nodeNames);
@@ -88,24 +183,55 @@ public class OpponentModel {
 		
 		List<String[]> triples = new ArrayList<String[]>();
 		
-		for (PolicyNode node : this.nodesList) {
+//		for (PolicyNode node : this.nodesList) {
+//			
+//			/* if node is terminal, give equal probability of ending in all states */
+//			
+//			/* for each possible obs */
+//			for (Entry<List<String>, Integer> entry : node.nextNode.entrySet()) {
+//				List<String> triple = new ArrayList<String>();
+//				
+//				/* add start node */
+//				triple.add("m" + node.id);
+//				
+//				/* add obs combination */
+//				triple.addAll(entry.getKey());
+//				
+//				/* add end node */
+//				triple.add("m" + entry.getValue());
+//				
+//				/* add probability 1.0 for deterministic transition */
+//				triple.add("1.0");
+//				
+//				triples.add(triple.toArray(new String[triple.size()]));
+//			}
+//		}
+		
+		for (String node : this.currentNodes) {
 			
-			/* if node is terminal, give equal probability of ending in all states */
-			
-			/* for each possible obs */
-			for (Entry<List<String>, Integer> entry : node.nextNode.entrySet()) {
+			for (Entry<List<String>, String> nextNodes : 
+				this.triplesMap.get(node).entrySet()) {
+				
 				List<String> triple = new ArrayList<String>();
 				
-				/* add start node */
-				triple.add("m" + node.id);
+				/* Add start node */
+				triple.add(node);
 				
-				/* add obs combination */
-				triple.addAll(entry.getKey());
+				/* Add observation */
+				triple.addAll(nextNodes.getKey());
 				
-				/* add end node */
-				triple.add("m" + entry.getValue());
+				/*
+				 * Check if end node is in the current set of nodes. If they are not, 
+				 * loop back to self for all observations to maintain a normalized transition
+				 * function. 
+				 */
+				String endNode = nextNodes.getValue();
 				
-				/* add probability 1.0 for deterministic transition */
+				if (this.currentNodes.contains(endNode)) triple.add(endNode);
+				
+				else triple.add(node); 
+				
+				/* Add transition probability */
 				triple.add("1.0");
 				
 				triples.add(triple.toArray(new String[triple.size()]));
@@ -124,6 +250,11 @@ public class OpponentModel {
 		 */
 		PolicyNode node = this.nodeIndex.get(nodeName);
 		return node;
+	}
+	
+	public List<String> getCurrentRoots() {
+		
+		return this.currentRoots;
 	}
 
 }
