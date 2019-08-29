@@ -70,16 +70,16 @@ public class InteractiveBelief extends Belief {
 		 * Performs a static L1 IPOMDP belief update given action and observations
 		 * 
 		 * Performs a query over the following DBN:
-		 *      +---+                    +----+
-		 *      |M_j| ---------.-------->|M_j'|<--------------------.
-		 *      +---+          |______.  +----+                      \
-		 *      +--+                  |   +--+                        |	
-		 *      |S |------------------'-->|S'|---.-----------.        |
-		 *      +--+                      +--+   |           |        |
-		 *                                       v           v        | 		 
-		 *                                      +---+       +---+    /
-		 *                                      |Oi'|       |Oj'|---'
-		 *                                      +---+       +---+
+		 *      .---.                    .----.
+		 *      |M_j|----------.-------->|M_j'|<----------------------.
+		 *      '---'          |_______. '----'                       |
+		 *      .---.                  '-->.---.______________.       |	
+		 *      | S |--------------------->| S'|--,           |       |
+		 *      '---'                      '---'  |           |       |
+		 *                                        V           V       | 		 
+		 *                                      .---.       .---.     |
+		 *                                      |Oi'|       |Oj'|_____|
+		 *                                      '---'       '---'
 		 * 	 P_hat(S', M_j' | Oi'=o) = 
 		 * 			Sigma[S] (P(S)) x Sigma[M_j] (P(M_j) x P(S', S, M_j) x P(Oi'=o, S', M_j))
 		 * 		 		x	Sigma[Oj'] (P(Oj', S', M_j) x P(M_j', M_j, Oj')) 
