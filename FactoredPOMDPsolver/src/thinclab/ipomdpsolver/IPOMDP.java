@@ -54,6 +54,7 @@ public class IPOMDP extends POMDP {
 	public ParseSPUDD parser;
 	public List<String> Ai = new ArrayList<String>();
 	public List<String> Aj = new ArrayList<String>();
+	public List<String> OmegaJNames = new ArrayList<String>();
 	
 	/*
 	 * Store lower level frames
@@ -106,6 +107,28 @@ public class IPOMDP extends POMDP {
 	 */
 	public int mjDepth;
 	public int mjLookAhead;
+	
+	/*
+	 * Variables for current look ahead horizon
+	 */
+	public DD currentMjTfn;
+	public DD lookAheadRootInitBelief;
+	
+	public HashMap<String, DD[]> currentOi;
+	public HashMap<String, DD[]> currentTi;
+	public DD[] currentOj;
+	
+	public DDTree currentStateBelief;
+	
+	/*
+	 * Arrays to record current IS var indices
+	 */
+	public int[] stateVarIndices;
+	public int[] stateVarPrimeIndices;
+	public int[] obsIVarIndices;
+	public int[] obsJVarIndices;
+	public int[] obsIVarPrimeIndices;
+	public int[] obsJVarPrimeIndices;
 	
 	// ----------------------------------------------------------------------------------------
 	
@@ -207,6 +230,8 @@ public class IPOMDP extends POMDP {
 		
 		this.initializeDiscountFactorFromParser(this.parser);		
 		this.initializeBeliefsFromParser(this.parser);
+		
+		this.currentStateBelief = this.initBeliefDdTree;
 //		this
 	}
 	
@@ -277,6 +302,9 @@ public class IPOMDP extends POMDP {
 					" is not a POMDP or IPOMDP");
 			
 		} /* frame iterator */
+		
+		/* Rename extracted functions */
+		this.renameOjDDTrees();
 		
 		/* Set Opponent Model object */
 		this.oppModel = new OpponentModel(this.lowerLevelFrames, this.mjDepth);
@@ -397,6 +425,8 @@ public class IPOMDP extends POMDP {
 			List<StateVar> obsj = Arrays.asList(frame.obsVars);
 			obsj.stream().forEach(o -> o.setName(o.name + "_j"));
 			this.Omega.addAll(obsj);
+			
+			this.OmegaJNames.addAll(obsj.stream().map(oj -> oj.name).collect(Collectors.toList()));
 		}
 			
 		/* Offset obsVarIndices */
@@ -485,82 +515,124 @@ public class IPOMDP extends POMDP {
 		return MjTFn;
 	}
 	
-	public HashMap<String, HashMap<String, DDTree>> makeOi() {
+	public HashMap<String, DD[]> makeOi() {
 		/*
 		 * Constructs agent i's observation function Oi from extracted DDTree representation
 		 * 
 		 */
+//		this.logger.info("Making Oi");
+//		HashMap<String, HashMap<String, DDTree>> Oi = new HashMap<String, HashMap<String, DDTree>>();
+//		
+////		/* Populate O for agent i's observations */
+//		
+//		/* Create Ai -> Aj -> Oi -> S' mapping */
+//		HashMap<String, HashMap<String, HashMap<String, DDTree>>> AiAjOiS = 
+//				new HashMap<String, HashMap<String, HashMap<String, DDTree>>>();
+//		
+//		/* For each joint action, split j's and i's action and arrange Oi accordingly */
+//		for (String jointAction : this.Oi.keySet()) {
+//			
+//			String Ai = jointAction.split("__")[0];
+//			String Aj = jointAction.split("__")[1];
+//			
+//			HashMap<String, HashMap<String, DDTree>> AjOiS = 
+//					new HashMap<String, HashMap<String, DDTree>>();
+//			AjOiS.put(Aj, this.Oi.get(jointAction));
+//			
+//			if (AiAjOiS.containsKey(Ai))
+//				AiAjOiS.get(Ai).putAll(AjOiS);
+//			
+//			else AiAjOiS.put(Ai, AjOiS);
+//		}
+//		
+//		/* Make Ai -> f(Oi, S', Mj) */
+//		for (String Ai : AiAjOiS.keySet()) {
+//			
+//			HashMap<String, HashMap<String, DDTree>> AjOiS = AiAjOiS.get(Ai);
+//			HashMap<String, DDTree> OiSMj = new HashMap<String, DDTree>();
+//			
+//			List<String> OmegaI = 
+//					this.Omega.stream()
+//						.filter(o -> !o.name.contains("_j"))
+//						.map(f -> f.name)
+//						.collect(Collectors.toList());
+//			
+//			for (String oi : OmegaI) {
+//
+//				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+//				for (String childName : mjDDTree.children.keySet()) {
+//
+//					mjDDTree.addChild(
+//							childName, 
+//							AjOiS.get(
+//									this.oppModel.getPolicyNode(childName).actName).get(oi));
+//				}
+//				
+//				OiSMj.put(oi, OP.reorder(mjDDTree.toDD()).toDDTree());
+//			}
+//			
+//			Oi.put(Ai, OiSMj);
+//		}
+//		
+//		/*
+//		 * For L0, Oj will not depend on Ai. It will depend only on Aj. So add Oj here to each Ai.
+//		 * 
+//		 * WARNING: For L1, Oj may depend on Mj and in that case this will break!!!
+//		 */
+//		Oi.forEach((a, dd) -> dd.putAll(this.getOj()));
+//		this.logger.info("Finished making Oi");
+//		
+//		return Oi;
+		/*
+		 * The parsed Oi is in the form of a joint action observation function of the form -
+		 * (Ai - Aj) -> O -> f(O', S')
+		 * 
+		 * We need to map that to the form Ai -> f(O', Mj, S')
+		 */
 		this.logger.info("Making Oi");
-		HashMap<String, HashMap<String, DDTree>> Oi = new HashMap<String, HashMap<String, DDTree>>();
 		
-//		/* Populate O for agent i's observations */
-//		this.initializeOFromParser(this.parser);
+		HashMap<String, DD[]> Oi = 
+				new HashMap<String, DD[]>();
 		
-		/* Create Ai -> Aj -> Oi -> S' mapping */
-		HashMap<String, HashMap<String, HashMap<String, DDTree>>> AiAjOiS = 
-				new HashMap<String, HashMap<String, HashMap<String, DDTree>>>();
+		List<String> O = 
+				this.Omega.stream()
+					.filter(s -> !s.name.contains("_j"))
+					.map(f -> f.name)
+					.collect(Collectors.toList());
 		
-		System.out.println(this.Oi.keySet());
-		
-		/* For each joint action, split j's and i's action and arrange Oi accordingly */
-		for (String jointAction : this.Oi.keySet()) {
-			
-			String Ai = jointAction.split("__")[0];
-			String Aj = jointAction.split("__")[1];
-			
-			HashMap<String, HashMap<String, DDTree>> AjOiS = 
-					new HashMap<String, HashMap<String, DDTree>>();
-			AjOiS.put(Aj, this.Oi.get(jointAction));
-			
-			if (AiAjOiS.containsKey(Ai))
-				AiAjOiS.get(Ai).putAll(AjOiS);
-			
-			else AiAjOiS.put(Ai, AjOiS);
-		}
-		
-		System.out.println("AiAjOiS is " + AiAjOiS);
-		
-		/* Make Ai -> f(Oi, S', Mj) */
-		for (String Ai : AiAjOiS.keySet()) {
-			
-			HashMap<String, HashMap<String, DDTree>> AjOiS = AiAjOiS.get(Ai);
-			HashMap<String, DDTree> OiSMj = new HashMap<String, DDTree>();
-			
-			List<String> OmegaI = 
-					this.Omega.stream()
-						.filter(o -> !o.name.contains("_j"))
-						.map(f -> f.name)
-						.collect(Collectors.toList());
-			
-			for (String oi : OmegaI) {
-				System.out.println("For oi " + oi);
-				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
-				for (String childName : mjDDTree.children.keySet()) {
+		/* For each action */
+		for (String Ai : this.Ai) {
 
+			DD[] ddTrees = new DD[O.size()];
+			
+			for (String o : O) {
+				
+				/* Make M_j factor */
+				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+				
+				/* 
+				 * Collapse Aj into Mj to create f(Mj, S', O')
+				 */
+				for (String childName : mjDDTree.children.keySet()) {
 					mjDDTree.addChild(
 							childName, 
-							AjOiS.get(
-									this.oppModel.getPolicyNode(childName).actName).get(oi));
+							this.Oi.get(
+									Ai + "__" 
+									+ this.oppModel.getPolicyNode(childName).actName).get(o));
 				}
 				
-				OiSMj.put(oi, OP.reorder(mjDDTree.toDD()).toDDTree());
+				this.logger.info("Made f(O', Mj, S') for O=" + o + " and Ai=" + Ai);
+				ddTrees[O.indexOf(o)] = OP.reorder(mjDDTree.toDD());
 			}
 			
-			Oi.put(Ai, OiSMj);
+			Oi.put(Ai, ddTrees);
 		}
 		
-		/*
-		 * For L0, Oj will not depend on Ai. It will depend only on Aj. So add Oj here to each Ai.
-		 * 
-		 * WARNING: For L1, Oj may depend on Mj and in that case this will break!!!
-		 */
-		Oi.forEach((a, dd) -> dd.putAll(this.getOj()));
 		this.logger.info("Finished making Oi");
-		
 		return Oi;
 	}
 	
-	public HashMap<String, DDTree> getOj() {
+	public DD[] makeOj() {
 		/*
 		 * Makes DDs for Oj, renames the vars, and conditions them on Mj.
 		 * 
@@ -575,7 +647,7 @@ public class IPOMDP extends POMDP {
 		 * TODO: Generalize Oj creation for joint actions
 		 */
 		
-		HashMap<String, DDTree> Oj = new HashMap<String, DDTree>();
+//		HashMap<String, DDTree> Oj = new HashMap<String, DDTree>();
 		
 		/* Create new HashMap for Oj of the variable order oj' -> mj -> s' */
 		List<String> omegaJList = 
@@ -583,6 +655,8 @@ public class IPOMDP extends POMDP {
 						  .filter(o -> o.name.substring(o.name.length() - 2).contains("_j"))
 						  .map(f -> f.name)
 						  .collect(Collectors.toList());
+		
+		DD[] Oj = new DD[omegaJList.size()]; 
 		
 		for (String oj : omegaJList) {
 			
@@ -599,17 +673,17 @@ public class IPOMDP extends POMDP {
 				DDTree ojDDTree = this.OjTheta.get(0)
 										 	  .get(this.oppModel.getPolicyNode(childName).actName)
 										 	  .get(oj);
-
+				
 				mjDDTree.addChild(childName, ojDDTree);
 			}
 			
-			Oj.put(oj, OP.reorder(mjDDTree.toDD()).toDDTree());
+			Oj[omegaJList.indexOf(oj)] = OP.reorder(mjDDTree.toDD());
 		}
 		
 		return Oj;
 	}
 	
-	public HashMap<String, HashMap<String, DDTree>> makeTi() {
+	public HashMap<String, DD[]> makeTi() {
 		/*
 		 * Constructs i's transition function.
 		 * 
@@ -629,8 +703,9 @@ public class IPOMDP extends POMDP {
 		 * We need to map that to the form Ai -> f(S', Mj, S)
 		 */
 		this.logger.info("Making Ti");
-		HashMap<String, HashMap<String, DDTree>> Ti = 
-				new HashMap<String, HashMap<String, DDTree>>();
+		
+		HashMap<String, DD[]> Ti = 
+				new HashMap<String, DD[]>();
 		
 		List<String> S = 
 				this.S.stream()
@@ -640,8 +715,8 @@ public class IPOMDP extends POMDP {
 		
 		/* For each action */
 		for (String Ai : this.Ai) {
-			
-			HashMap<String, DDTree> SpMjS = new HashMap<String, DDTree>();
+
+			DD[] ddTrees = new DD[this.S.size() - 1];
 			
 			for (String s : S) {
 				
@@ -660,10 +735,10 @@ public class IPOMDP extends POMDP {
 				}
 				
 				this.logger.info("Made f(S', Mj, S) for S=" + s + " and Ai=" + Ai);
-				SpMjS.put(s, OP.reorder(mjDDTree.toDD()).toDDTree());
+				ddTrees[S.indexOf(s)] = OP.reorder(mjDDTree.toDD());
 			}
 			
-			Ti.put(Ai, SpMjS);
+			Ti.put(Ai, ddTrees);
 		}
 		
 		this.logger.info("Finished making Ti");
@@ -708,6 +783,73 @@ public class IPOMDP extends POMDP {
 	
 	// ---------------------------------------------------------------------------------------------
 	
+	@Override
+	public void commitVariables() {
+		super.commitVariables();
+		this.recordISVarIndices();
+	}
+	
+	public void recordISVarIndices() {
+		/*
+		 * Populates arrays which record varIndices for the global variables
+		 */
+		List<Integer> stateVarIndicesList = new ArrayList<Integer>();
+		List<Integer> stateVarPrimeIndicesList = new ArrayList<Integer>();
+		
+		List<Integer> obsIVarIndicesList = new ArrayList<Integer>();
+		List<Integer> obsIVarPrimeIndicesList = new ArrayList<Integer>();
+		
+		List<Integer> obsJVarIndicesList = new ArrayList<Integer>();
+		List<Integer> obsJVarPrimeIndicesList = new ArrayList<Integer>();
+			
+		try {
+			
+			for (StateVar stateVar : this.S) {
+			
+				stateVarIndicesList.add(IPOMDP.getVarIndex(stateVar.name));
+				stateVarIndicesList.add(IPOMDP.getVarIndex(stateVar.name + "'"));
+			}
+			
+			this.stateVarIndices = 
+					stateVarIndicesList.stream().mapToInt(Integer::intValue).toArray();
+			this.stateVarPrimeIndices = 
+					stateVarPrimeIndicesList.stream().mapToInt(Integer::intValue).toArray();
+			
+			for (StateVar obsIVar : 
+				this.Omega.stream()
+					.filter(oi -> !oi.name.contains("_j"))
+					.collect(Collectors.toList())) {
+				
+				obsIVarIndicesList.add(IPOMDP.getVarIndex(obsIVar.name));
+				obsIVarPrimeIndicesList.add(IPOMDP.getVarIndex(obsIVar.name + "'"));
+			}
+			
+			this.obsIVarIndices = 
+					obsIVarIndicesList.stream().mapToInt(Integer::intValue).toArray();
+			this.obsIVarPrimeIndices = 
+					obsIVarPrimeIndicesList.stream().mapToInt(Integer::intValue).toArray();
+			
+			for (StateVar obsJVar : 
+				this.Omega.stream()
+					.filter(oi -> oi.name.contains("_j"))
+					.collect(Collectors.toList())) {
+				
+				obsJVarIndicesList.add(IPOMDP.getVarIndex(obsJVar.name));
+				obsJVarPrimeIndicesList.add(IPOMDP.getVarIndex(obsJVar.name + "'"));
+			}
+			
+			this.obsJVarIndices = 
+					obsJVarIndicesList.stream().mapToInt(Integer::intValue).toArray();
+			this.obsJVarPrimeIndices = 
+					obsJVarPrimeIndicesList.stream().mapToInt(Integer::intValue).toArray();
+		} 
+		
+		catch (Exception e) {
+			logger.severe("While recording IS indices " + e.getMessage());
+			System.exit(-1);
+		}
+	}
+	
 	public void initializeIS() {
 		/*
 		 * Reinitialize IS, Mj transition, Oi, Oj and Ti after new look ahead on Mj.
@@ -727,14 +869,24 @@ public class IPOMDP extends POMDP {
 		
 		this.logger.info("IS initialized to " + this.S);
 		
-		DD MjTfn = this.makeOpponentModelTransitionDD();
+		this.currentMjTfn = this.makeOpponentModelTransitionDD();
 		this.logger.info("MjTfn initialized");
 		
-		HashMap<String, HashMap<String, DDTree>> Oi = this.makeOi();
-		this.logger.info("Oi initialized to " + Oi);
+		this.currentOi = this.makeOi();
+		this.logger.info("Oi initialized");
 		
-		HashMap<String, HashMap<String, DDTree>> Ti = this.makeTi();
+		this.currentTi = this.makeTi();
 		this.logger.info("Ti initialized");
+		
+		this.currentOj = this.makeOj();
+		this.logger.info("Oj initialized");
+		
+		DDTree mjRootBelief = this.oppModel.getOpponentModelInitBelief(this.ddMaker);
+		this.lookAheadRootInitBelief = 
+				OP.multN(
+						new DD[] {this.currentStateBelief.toDD(), 
+								mjRootBelief.toDD()});
+		this.logger.info("Current look ahead init belief is " + this.lookAheadRootInitBelief);
 	}
 
 }

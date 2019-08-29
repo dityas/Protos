@@ -118,36 +118,30 @@ class TestIPOMDP {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		try {
-			tigerL1IPOMDP.initializeFromParsers(parser);
-			
-			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
+			tigerL1IPOMDP.solveOpponentModels();
 			
 			/* 
 			 * Stage and commit additional state and variables to populate global 
 			 * arrays
 			 */
-			tigerL1IPOMDP.setUpIS();
-			tigerL1IPOMDP.setUpOmegaI();
-			tigerL1IPOMDP.commitVariables();
+			tigerL1IPOMDP.initializeIS();
 			
-			/*
-			 * These will need to be constructed at every belief update
-			 */
-			
-			/* Make M_j transition DD */
-			tigerL1IPOMDP.makeOpponentModelTransitionDD();
-			
-			long then = System.nanoTime();
-			HashMap<String, HashMap<String, DDTree>> Oi = tigerL1IPOMDP.makeOi();
-			long now = System.nanoTime();
-
-			System.out.println("Exec time: " + (now - then)/10000000 + " millisec.");
-			assertTrue(Oi.size() == tigerL1IPOMDP.Ai.size());
-			System.out.println(tigerL1IPOMDP.Omega.size());
-			for (String actName : Oi.keySet())
-				assertTrue(Oi.get(actName).size() == tigerL1IPOMDP.Omega.size());
+			for (String Ai : tigerL1IPOMDP.currentOi.keySet()) {
+				for (int s = 0; s < tigerL1IPOMDP.Omega.size() - 1; s++) {
+					System.out.println("For Ai " + Ai + " and o " + tigerL1IPOMDP.Omega.get(s));
+					assertTrue(
+							OP.maxAll(
+									OP.abs(
+										OP.sub(
+											DD.one, 
+											OP.addMultVarElim(
+												tigerL1IPOMDP.currentOi.get(Ai)[s],
+												IPOMDP.getVarIndex(
+														tigerL1IPOMDP.Omega.get(s).name + "'"))))) < 1e-8);
+				}
+			}
 		}
 		
 		catch (Exception e) {
@@ -194,19 +188,22 @@ class TestIPOMDP {
 			long now = System.nanoTime();
 
 			System.out.println("Exec time: " + (now - then)/10000000 + " millisec.");
-			
-//			for (String Ai : Ti.keySet()) {
-//				for (String s : Ti.get(Ai).keySet()) {
-//					assertTrue(
-//							OP.maxAll(
-//									OP.abs(
-//										OP.sub(
-//											DD.one, 
-//											OP.addMultVarElim(
-//												Ti.get(Ai).get(s).toDD(),
-//												IPOMDP.getVarIndex(s + "'"))))) < 1e-8);
-//				}
-//			}
+			System.out.println("State Sequence " + tigerL1IPOMDP.S);
+			System.out.println("Ti " + tigerL1IPOMDP.currentTi);
+			for (String Ai : tigerL1IPOMDP.currentTi.keySet()) {
+				for (int s = 0; s < tigerL1IPOMDP.S.size() - 1; s++) {
+					System.out.println("For Ai " + Ai + " and s " + tigerL1IPOMDP.S.get(s));
+					assertTrue(
+							OP.maxAll(
+									OP.abs(
+										OP.sub(
+											DD.one, 
+											OP.addMultVarElim(
+												tigerL1IPOMDP.currentTi.get(Ai)[s],
+												IPOMDP.getVarIndex(
+														tigerL1IPOMDP.S.get(s).name + "'"))))) < 1e-8);
+				}
+			}
 		}
 		
 		catch (Exception e) {
@@ -234,7 +231,7 @@ class TestIPOMDP {
 			tigerL1IPOMDP.setMjLookAhead(2);
 			tigerL1IPOMDP.solveOpponentModels();
 			
-			tigerL1IPOMDP.setUpMj();
+			tigerL1IPOMDP.initializeIS();
 			
 			assertEquals(
 					tigerL1IPOMDP.S.size(), 
@@ -278,56 +275,23 @@ class TestIPOMDP {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		try {
-			tigerL1IPOMDP.initializeFromParsers(parser);
+			tigerL1IPOMDP.solveOpponentModels();
+			tigerL1IPOMDP.initializeIS();
 			
-			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
-			
-			/* 
-			 * Stage and commit additional state and variables to populate global 
-			 * arrays
-			 */
-			tigerL1IPOMDP.setUpIS();
-			tigerL1IPOMDP.setUpOmegaI();
-			tigerL1IPOMDP.commitVariables();
-			
-			/*
-			 * These will need to be constructed at every belief update
-			 */
-			
-			/* Make M_j transition DD */
-			tigerL1IPOMDP.makeOpponentModelTransitionDD();
-			
-			/* Make O (observation functions) */
-//			tigerL1IPOMDP.makeOi();
-			
-			DD growl_jDD = tigerL1IPOMDP.getOj().get("growl_j").toDD();
-			List<Integer> varsBeforeSummout = new ArrayList<Integer>();
-			varsBeforeSummout.addAll(
-					Arrays.stream(growl_jDD.getVarSet())
-						.boxed()
-						.collect(Collectors.toList()));
-			
-			varsBeforeSummout.addAll(
-					Arrays.stream(tigerL1IPOMDP.MjTFn.getVarSet())
-						.boxed()
-						.collect(Collectors.toList()));
-			
-			assertTrue(varsBeforeSummout.contains(POMDP.getVarIndex("growl_j'")));
-			
-			DD tauDD = 
-					OP.addMultVarElim(
-							new DD[] {growl_jDD, tigerL1IPOMDP.MjTFn}, 
-							POMDP.getVarIndex("growl_j'"));
-			
-			List<Integer> varsAfterSummout = new ArrayList<Integer>();
-			varsAfterSummout.addAll(
-					Arrays.stream(tauDD.getVarSet())
-						.boxed()
-						.collect(Collectors.toList()));
-			
-			assertFalse(varsAfterSummout.contains(POMDP.getVarIndex("growl_j'")));
+			for (int s = 0; s < tigerL1IPOMDP.OmegaJNames.size() - 1; s++) {
+				System.out.println("For and OmegaJ " + tigerL1IPOMDP.OmegaJNames.get(s));
+				assertTrue(
+						OP.maxAll(
+								OP.abs(
+									OP.sub(
+										DD.one, 
+										OP.addMultVarElim(
+											tigerL1IPOMDP.currentOj[s],
+											IPOMDP.getVarIndex(
+													tigerL1IPOMDP.OmegaJNames.get(s) + "'"))))) < 1e-8);
+			}
 		} 
 		
 		catch (Exception e) {
@@ -349,29 +313,79 @@ class TestIPOMDP {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		try {
-			tigerL1IPOMDP.initializeFromParsers(parser);
-			
-			/* set opponent model var */
-			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
-			tigerL1IPOMDP.setUpIS();
-			tigerL1IPOMDP.setUpOmegaI();
-			tigerL1IPOMDP.commitVariables();
-			
-			long then = System.nanoTime();
-			tigerL1IPOMDP.makeOpponentModelTransitionDD();
-			long now = System.nanoTime();
-			
-			System.out.println("Exec time: " + (now - then)/10000000 + " millisec.");
+			tigerL1IPOMDP.solveOpponentModels();
+			tigerL1IPOMDP.initializeIS();
+
 			assertTrue(
 					OP.maxAll(
 							OP.abs(
 								OP.sub(
 									DD.one, 
 									OP.addMultVarElim(
-										tigerL1IPOMDP.MjTFn,
+										tigerL1IPOMDP.currentMjTfn,
 										IPOMDP.getVarIndex("M_j'"))))) < 1e-8);
+		} 
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			fail();
+		}
+		
+	}
+	
+	@Test
+	void testIPOMDPISInitBelief() {
+		System.out.println("Running testIPOMDPISInitBelief()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		try {
+			tigerL1IPOMDP.solveOpponentModels();
+			tigerL1IPOMDP.initializeIS();
+
+			System.out.println(tigerL1IPOMDP.lookAheadRootInitBelief);
+			System.out.println(
+					OP.addMultVarElim(tigerL1IPOMDP.lookAheadRootInitBelief, new int[] {2}));
+		} 
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			fail();
+		}
+		
+	}
+	
+	@Test
+	void testL1BeliefUpdate() {
+		System.out.println("Running testL1BeliefUpdate()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		try {
+			tigerL1IPOMDP.solveOpponentModels();
+			tigerL1IPOMDP.initializeIS();
+
+			String actName = tigerL1IPOMDP.Ai.get(0);
+			System.out.println("Action I is " + actName);
+			
+			System.out.println("Omega is " + tigerL1IPOMDP.Omega);
+			System.out.println("S is " + tigerL1IPOMDP.S);
+			
+			System.out.println(Arrays.toString(Global.varNames));
+			
+//			DD f1 = tigerL1IPOMDP.currentOi.get(actName).get(key)
 		} 
 		
 		catch (Exception e) {
