@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import thinclab.domainMaker.ddHelpers.DDMaker;
+import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.policyhelper.PolicyNode;
 import thinclab.policyhelper.PolicyTree;
@@ -134,6 +135,7 @@ public class OpponentModel {
 		
 		HashSet<String> startNodes = start;
 		this.currentNodes.clear();
+		this.currentNodes.addAll(start);
 		
 		for (int h = 0; h < horizon; h++) {
 			
@@ -152,9 +154,43 @@ public class OpponentModel {
 				System.exit(-1);
 			}
 		}
+		
+		this.logger.info("Done with OpponentModel expansion. Traversed node are " + this.currentNodes);
+	}
+	
+	public void expandFromRoots(int horizon) {
+		/*
+		 * Traverses opponent model from the root nodes.
+		 */
+		this.expandForHorizon(new HashSet<String>(this.currentRoots), horizon);
 	}
 	
 	// -----------------------------------------------------------------------------
+	
+	public DDTree getOpponentModelInitBelief(DDMaker ddMaker) {
+		/*
+		 * Constructs an initial belief DDTree based on the current roots
+		 */
+		this.logger.info("Making initial belief for current opponent model traversal");
+		DDTree beliefMj = ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+		
+		/* Uniform distribution over all current roots */
+		for (String node : this.currentNodes) {
+			
+			try {
+				beliefMj.setValueAt(node, (1.0 / this.currentNodes.size()));
+			} 
+			
+			catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		this.logger.info("Initial belief is " + beliefMj);
+		
+		return beliefMj;
+	}
 	
 	public StateVar getOpponentModelStateVar(int index) {
 		/*
@@ -165,7 +201,7 @@ public class OpponentModel {
 		 */
 		String[] nodeNames = 
 				this.currentNodes.toArray(
-						new String[this.nodesList.size()]);
+						new String[this.currentNodes.size()]);
 		
 		return new StateVar("M_j", index, nodeNames);
 	}

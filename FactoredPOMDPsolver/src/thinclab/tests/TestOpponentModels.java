@@ -26,6 +26,7 @@ import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
+import thinclab.symbolicperseus.StateVar;
 
 /*
  * @author adityas
@@ -65,17 +66,17 @@ class TestOpponentModels {
 			tigerL1IPOMDP.initializeFromParsers(parser);
 			
 			/* Get opponent model */
-			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
-			
+//			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
+			tigerL1IPOMDP.solveOpponentModels();
 			/* 
 			 * manually compute the total nodes in the opponent model for
 			 * verification.
 			 */
 			int totalNodes = tigerL1IPOMDP.lowerLevelFrames.stream()
-					.map(f -> f.getPolicyTree(5).policyNodes.size())
+					.map(f -> f.getPolicyTree(15).policyNodes.size())
 					.reduce(0, (totalSize, frameSize) -> totalSize + frameSize);
 			
-			assertEquals(oppModel.nodesList.size(), totalNodes);
+			assertEquals(tigerL1IPOMDP.oppModel.nodesList.size(), totalNodes);
 		} 
 		
 		catch (Exception e) {
@@ -102,11 +103,13 @@ class TestOpponentModels {
 		try {
 
 			tigerL1IPOMDP.initializeFromParsers(parser);
-			
+			tigerL1IPOMDP.solveOpponentModels();
 			/* Get opponent model */
-			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
+//			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
 			
-			assertEquals(oppModel.nodesList.size(), oppModel.triplesMap.size());
+			assertEquals(
+					tigerL1IPOMDP.oppModel.nodesList.size(), 
+					tigerL1IPOMDP.oppModel.triplesMap.size());
 		} 
 		
 		catch (Exception e) {
@@ -131,25 +134,42 @@ class TestOpponentModels {
 			tigerL1IPOMDP.initializeFromParsers(parser);
 			
 			/* Get opponent model */
-			tigerL1IPOMDP.oppModel = tigerL1IPOMDP.getOpponentModel();
-			tigerL1IPOMDP.setUpIS();
-			tigerL1IPOMDP.setUpOmegaI();
-			tigerL1IPOMDP.commitVariables();
+			tigerL1IPOMDP.solveOpponentModels();
+			tigerL1IPOMDP.oppModel.expandFromRoots(3);
+			assertTrue(tigerL1IPOMDP.oppModel.currentNodes.size() > 1);
 			
-			long then = System.nanoTime();
-			tigerL1IPOMDP.makeOpponentModelTransitionDD();
-			long now = System.nanoTime();
+		} 
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			fail();
+		}
+	}
+	
+	@Test
+	void testOpponentModelVariableCreation() {
+		System.out.println("Running testOpponentModelVariableCreation()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		try {
+
+			tigerL1IPOMDP.initializeFromParsers(parser);
 			
-			System.out.println("Exec time: " + (now - then)/10000000 + " millisec.");
-			System.out.println(tigerL1IPOMDP.MjTFn);
-//			assertTrue(
-//					OP.maxAll(
-//							OP.abs(
-//								OP.sub(
-//									DD.one, 
-//									OP.addMultVarElim(
-//										tigerL1IPOMDP.MjTFn,
-//										IPOMDP.getVarIndex("M_j'"))))) < 1e-8);
+			/* Get opponent model */
+			tigerL1IPOMDP.solveOpponentModels();
+			tigerL1IPOMDP.oppModel.expandFromRoots(3);
+			
+			StateVar Mj = 
+					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
+							tigerL1IPOMDP.oppModelVarIndex);
+			
+			System.out.println(Mj);
 			
 		} 
 		

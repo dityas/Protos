@@ -101,7 +101,35 @@ public class IPOMDP extends POMDP {
 //	public HashMap<String, HashMap<String, DDTree>> Oi = 
 //			new HashMap<String, HashMap<String, DDTree>>(); 
 	
+	/*
+	 * Variables to decide Opponent Model depth
+	 */
+	public int mjDepth;
+	public int mjLookAhead;
+	
 	// ----------------------------------------------------------------------------------------
+	
+	public IPOMDP(IPOMDPParser parsedFrame, int mjMaxDepth, int mjlookAhead) {
+		/*
+		 * Initialize from a IPOMDPParser object
+		 */
+		
+		try {
+			
+			this.logger.info("Initializing IPOMDP from parser.");
+			
+			this.initializeFromParsers(parsedFrame);
+			this.setMjDepth(mjMaxDepth);
+			this.setMjLookAhead(mjlookAhead);
+			
+			this.logger.info("IPOMDP initialized");
+		}
+		
+		catch (Exception e) {
+			this.logger.severe("While parsing " + e.getMessage());
+			System.exit(-1);
+		}
+	}
 
 	public IPOMDP(String fileName) {
 		super(fileName);
@@ -152,7 +180,17 @@ public class IPOMDP extends POMDP {
 		} /* for all child frames */
 		
 		/* Initialize vars from the domain file */
-
+		this.initializeSFromParser(this.parser);
+		
+		/* Find the index of M_j */
+		this.oppModelVarIndex = this.S.size();
+		
+		/* Put a dummy state var for M_j */
+		this.S.add(new StateVar(1, "M_j", this.oppModelVarIndex));
+		
+		this.initializeOmegaFromParser(this.parser);
+		this.setUpOmegaJ();
+		
 		this.initializeAFromParser(this.parser);
 		
 		/* Split actions to Ai and Aj */
@@ -184,6 +222,20 @@ public class IPOMDP extends POMDP {
 		 * Sets the names for agent j's actions
 		 */
 		this.Aj = actionNames;
+	}
+	
+	public void setMjDepth(int depth) {
+		/*
+		 * Sets the mjDepth property
+		 */
+		this.mjDepth = depth;
+	}
+	
+	public void setMjLookAhead(int horizon) {
+		/*
+		 * Sets the horizon for OpponentModel look ahead. 
+		 */
+		this.mjLookAhead = horizon;
 	}
 	
 	// ------------------------------------------------------------------------------------------
@@ -226,17 +278,11 @@ public class IPOMDP extends POMDP {
 			
 		} /* frame iterator */
 		
-	}
-	
-	public OpponentModel getOpponentModel() throws SolverException {
-		/*
-		 * Computes the models of the lower level agents and makes
-		 * (reachable beliefs X frames) number of opponent models 
-		 */
-		this.solveOpponentModels();		
-		OpponentModel oppModel = new OpponentModel(this.lowerLevelFrames, 5);
-
-		return oppModel;
+		/* Set Opponent Model object */
+		this.oppModel = new OpponentModel(this.lowerLevelFrames, this.mjDepth);
+		
+		/* Start the initial look ahead */
+		this.oppModel.expandFromRoots(this.mjLookAhead);
 	}
 	
 	public void solveIPBVI(int rounds, int numDpBackups) {
@@ -244,63 +290,63 @@ public class IPOMDP extends POMDP {
 		 * Runs the interactive PBVI loop for solving the IPOMDP
 		 */
 		
-		try {
-		
-			/* Solve lower frames and make opponent model */
-			this.oppModel = this.getOpponentModel();
-			
-			/* 
-			 * Stage and commit additional state and variables to populate global 
-			 * arrays
-			 */
-			this.setUpIS();
-			this.setUpOmegaI();
-			this.commitVariables();
-			
-			/*
-			 * These will need to be constructed at every belief update
-			 */
-			
-			/* Make M_j transition DD */
-			this.makeOpponentModelTransitionDD();
-			
-			/* Make O (observation functions) */
-			this.makeOi();
-//			DDTree Oj = this.getOj();
-		} 
-		
-		catch (SolverException e) {
-			System.err.println(e.getMessage());
-			System.exit(-1);
-		}
+//		try {
+//		
+//			/* Solve lower frames and make opponent model */
+//			this.solveOpponentModels();
+//			
+//			/* 
+//			 * Stage and commit additional state and variables to populate global 
+//			 * arrays
+//			 */
+//			this.setUpIS();
+//			this.setUpOmegaI();
+//			this.commitVariables();
+//			
+//			/*
+//			 * These will need to be constructed at every belief update
+//			 */
+//			
+//			/* Make M_j transition DD */
+//			this.makeOpponentModelTransitionDD();
+//			
+//			/* Make O (observation functions) */
+//			this.makeOi();
+////			DDTree Oj = this.getOj();
+//		} 
+//		
+//		catch (SolverException e) {
+//			System.err.println(e.getMessage());
+//			System.exit(-1);
+//		}
 		
 	}
 	
 	// ------------------------------------------------------------------------------------------
 	
-	public void setUpIS() {
-		/*
-		 * Constructs the IS space from unique opponent models and physical states
-		 * 
-		 * First stages the physical states S parsed from the domain file, then stages the
-		 * opponent's model M_j
-		 */
-		
-		/* Add S from parser obj */
-		this.logger.info("Staging IS vars");
-		this.S.clear();
-		this.initializeSFromParser(this.parser);
-		
-		/* Set up M_j */
-		this.setUpMj();
-		this.logger.info("IS vars staged to: " + this.S);
-	}
+//	public void setUpIS() {
+//		/*
+//		 * Constructs the IS space from unique opponent models and physical states
+//		 * 
+//		 * First stages the physical states S parsed from the domain file, then stages the
+//		 * opponent's model M_j
+//		 */
+//		
+//		/* Add S from parser obj */
+//		this.logger.info("Staging IS vars");
+//		this.S.clear();
+//		this.initializeSFromParser(this.parser);
+//		
+//		/* Set up M_j */
+//		this.setUpMj();
+//		this.logger.info("IS vars staged to: " + this.S);
+//	}
 	
 	public void setUpMj() {
 		/*
 		 * Constructs opponents' models 
 		 * 
-		 * We are considering the physical states S to be independent of the belief 
+		 * We are assuming the physical states S to be independent of the belief 
 		 * over opponents' beliefs. So the opponents' model M will be a separate state
 		 * variable in addition to the physical states S.
 		 */
@@ -313,33 +359,30 @@ public class IPOMDP extends POMDP {
 		 * state var staging list before using it to create state vars for current level.
 		 */
 		
-		/* Set oppModelVarIndex */
-		this.oppModelVarIndex = this.S.size();
-		
 		/* Finally, add the oppModel state var to the staging list */
 		this.S.add(this.oppModel.getOpponentModelStateVar(this.oppModelVarIndex));
 	}
 	
-	public void setUpOmegaI() {
-		/*
-		 * Set up i's observation space.
-		 * 
-		 * This includes extracting and including j's observation space.
-		 * 
-		 * WARNING: Currently only works for a single frame
-		 */
-		
-		this.Omega.clear();
-		this.logger.info("Staging Omega");
-		
-		/* Add Omega_i from the parser */
-		this.initializeOmegaFromParser(this.parser);
-		
-		/* Add Omega_j */
-		this.setUpOmegaJ();
-		
-		this.logger.info("Omega_i vars staged to :" + this.Omega);
-	}
+//	public void setUpOmegaI() {
+//		/*
+//		 * Set up i's observation space.
+//		 * 
+//		 * This includes extracting and including j's observation space.
+//		 * 
+//		 * WARNING: Currently only works for a single frame
+//		 */
+//		
+//		this.Omega.clear();
+//		this.logger.info("Staging Omega");
+//		
+//		/* Add Omega_i from the parser */
+//		this.initializeOmegaFromParser(this.parser);
+//		
+//		/* Add Omega_j */
+//		this.setUpOmegaJ();
+//		
+//		this.logger.info("Omega_i vars staged to :" + this.Omega);
+//	}
 	
 	public void setUpOmegaJ() {
 		/*
@@ -369,22 +412,23 @@ public class IPOMDP extends POMDP {
 	
 	// -------------------------------------------------------------------------------------
 	
-	public DD getInitMj() {
-		/*
-		 * Gets the initial belief from the currently rooted opponent model
-		 */
-	}
+//	public DDTree getBeliefMjAtLookAheadRoot() {
+//		/*
+//		 * Gets the initial belief from the currently rooted opponent model
+//		 */
+//		this.oppModel.expandForHorizon(this.oppModel.currentRoots, horizon);
+//	}
+//	
+//	public DDTree getInitIBelief() {
+//		/*
+//		 * Returns the initial belief for agent i
+//		 */
+//		this.logger.info("Getting initial belief");
+//		DD beliefS = this.initialBelState;
+//		DD beliefMj = this.getInitMj();
+//	}
 	
-	public DD getInitIBelief() {
-		/*
-		 * Returns the initial belief for agent i
-		 */
-		this.logger.info("Getting initial belief");
-		DD beliefS = this.initialBelState;
-		DD beliefMj = this.getInitMj();
-	}
-	
-	public void makeOpponentModelTransitionDD() {
+	public DD makeOpponentModelTransitionDD() {
 		/*
 		 * Construct Mj transition DD from OpponentModel triples 
 		 */
@@ -395,8 +439,8 @@ public class IPOMDP extends POMDP {
 		DDMaker ddMaker = new DDMaker();
 		ddMaker.addVariable(
 				"M_j", 
-				this.oppModel.nodeIndex.keySet().toArray(
-						new String[this.oppModel.nodeIndex.size()]));
+				this.oppModel.currentNodes.toArray(
+						new String[this.oppModel.currentNodes.size()]));
 		
 		/*
 		 * Add obsVars.
@@ -434,9 +478,11 @@ public class IPOMDP extends POMDP {
 				varSequence.toArray(new String[varSequence.size()]), 
 				triples);
 		
-		this.MjTFn = OP.reorder(MjDD.toDD());
+		DD MjTFn = OP.reorder(MjDD.toDD());
 		
 		this.logger.info("M_j transition DD created");
+		
+		return MjTFn;
 	}
 	
 	public HashMap<String, HashMap<String, DDTree>> makeOi() {
@@ -454,6 +500,8 @@ public class IPOMDP extends POMDP {
 		HashMap<String, HashMap<String, HashMap<String, DDTree>>> AiAjOiS = 
 				new HashMap<String, HashMap<String, HashMap<String, DDTree>>>();
 		
+		System.out.println(this.Oi.keySet());
+		
 		/* For each joint action, split j's and i's action and arrange Oi accordingly */
 		for (String jointAction : this.Oi.keySet()) {
 			
@@ -470,6 +518,8 @@ public class IPOMDP extends POMDP {
 			else AiAjOiS.put(Ai, AjOiS);
 		}
 		
+		System.out.println("AiAjOiS is " + AiAjOiS);
+		
 		/* Make Ai -> f(Oi, S', Mj) */
 		for (String Ai : AiAjOiS.keySet()) {
 			
@@ -483,7 +533,7 @@ public class IPOMDP extends POMDP {
 						.collect(Collectors.toList());
 			
 			for (String oi : OmegaI) {
-				
+				System.out.println("For oi " + oi);
 				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
 				for (String childName : mjDDTree.children.keySet()) {
 
@@ -654,6 +704,37 @@ public class IPOMDP extends POMDP {
 		}
 		
 		this.logger.info("Done renaming Oj");
+	}
+	
+	// ---------------------------------------------------------------------------------------------
+	
+	public void initializeIS() {
+		/*
+		 * Reinitialize IS, Mj transition, Oi, Oj and Ti after new look ahead on Mj.
+		 * 
+		 * After every look ahead step with the Opponent Model, the interactive state space will
+		 * change. This affects the DDs defined for Mj transitions and Oi and Ti.
+		 */
+		
+		this.logger.info("Initializing according to Mj");
+		
+		/* First initialize new IS */
+		this.S.set(
+				this.oppModelVarIndex, 
+				this.oppModel.getOpponentModelStateVar(
+						this.oppModelVarIndex));
+		this.commitVariables();
+		
+		this.logger.info("IS initialized to " + this.S);
+		
+		DD MjTfn = this.makeOpponentModelTransitionDD();
+		this.logger.info("MjTfn initialized");
+		
+		HashMap<String, HashMap<String, DDTree>> Oi = this.makeOi();
+		this.logger.info("Oi initialized to " + Oi);
+		
+		HashMap<String, HashMap<String, DDTree>> Ti = this.makeTi();
+		this.logger.info("Ti initialized");
 	}
 
 }

@@ -15,4 +15,5 @@ public class InteractiveBeliefSet {
 	/*
 	 * Represents the interactive belief tree and contains methods for expansion
 	 */
+	
 }
