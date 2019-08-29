@@ -28,12 +28,14 @@ import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.ipomdpsolver.InteractiveBelief;
 import thinclab.ipomdpsolver.InteractiveStateVar;
 import thinclab.ipomdpsolver.OpponentModel;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
+import thinclab.symbolicperseus.Belief.Belief;
 
 /*
  * @author adityas
@@ -385,11 +387,77 @@ class TestIPOMDP {
 			
 			System.out.println(Arrays.toString(Global.varNames));
 			
-//			DD f1 = tigerL1IPOMDP.currentOi.get(actName).get(key)
+			/* f1 be summout Oj' for Oj and Mj transitions
+			 */
+			
+			DD f1 = OP.addMultVarElim(
+					IPOMDP.concatenateArray(
+							tigerL1IPOMDP.currentOj, 
+							new DD[] {tigerL1IPOMDP.currentMjTfn}),
+					tigerL1IPOMDP.obsJVarPrimeIndices);
+			
+			System.out.println("SumOut(Oj') f(Oj', S', Mj) * f(Mj', Oj', Mj) is " + f1);
+			System.out.println("Array is " + Arrays.toString(tigerL1IPOMDP.obsJVarPrimeIndices));
+			System.out.println("Global array is " + Arrays.toString(Global.varNames));
+//			System.out.println("Global array is " + Arrays.toString(Global.ind));
+			/* f2 will restrict Oi */
+			
+			int[] obsvals = new int[tigerL1IPOMDP.Omega.size() - tigerL1IPOMDP.OmegaJNames.size()];
+			obsvals[0] = 2;
+			obsvals[1] = 3;
+//			int[] obsvals = new int[] {2, 2};
+			
+			int[][] config = IPOMDP.stackArray(tigerL1IPOMDP.obsIVarPrimeIndices, obsvals);
+			System.out.println("Config is " + Arrays.deepToString(config));
+			DD[] f2 = OP.restrictN(tigerL1IPOMDP.currentOi.get(actName), config);
+			System.out.println("Restricted Oi is " + Arrays.toString(f2));
+			
+			/* f3 will be f(S', Mj, S) * f2 */
+			DD f3 = OP.multN(
+					IPOMDP.concatenateArray(
+							tigerL1IPOMDP.currentTi.get(actName), 
+							f2));
+			System.out.println("f3 is " + f3);
+			
+			/* f4 will be f3 * f1 */
+			DD f4 = OP.mult(f3, f1);
+			System.out.println("f4 is " + f4);
+			
+			/* f5 will be SumOut(Mj, S) initial belief * f4 */
+			DD f5 = OP.addMultVarElim(
+					new DD[] {f4, tigerL1IPOMDP.lookAheadRootInitBelief},
+					tigerL1IPOMDP.stateVarIndices);
+			System.out.println("f5 is " + f5);
+			System.out.println("f5 varset is " + Arrays.toString(f5.getVarSet()));
+			
+			System.out.println("mult is " + OP.mult(f4, tigerL1IPOMDP.lookAheadRootInitBelief));
+			
+			DD f6 = OP.primeVars(f5, -(tigerL1IPOMDP.S.size() + tigerL1IPOMDP.Omega.size()));
+			System.out.println("f6 is " + f6);
+			System.out.println("f6 varset is " + Arrays.toString(f6.getVarSet()));
+			
+			DD obsProb = OP.addMultVarElim(f6, tigerL1IPOMDP.stateVarIndices);
+			System.out.println("obsProb is " + obsProb);
+			System.out.println("Arrays are " + Arrays.toString(tigerL1IPOMDP.stateVarIndices));
+			System.out.println("S is " + tigerL1IPOMDP.S);
+			System.out.println("Indices are " + Arrays.toString(tigerL1IPOMDP.stateVarIndices));
+			
+			DD nextBel = 
+					OP.div(
+							f6,
+							OP.addMultVarElim(
+									f6,tigerL1IPOMDP.stateVarIndices));
+			System.out.println("nextBel is " + nextBel);
+			System.out.println("nextBel is " + InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel));
+			System.out.println("startBelief is " + InteractiveBelief.toStateMap(tigerL1IPOMDP, tigerL1IPOMDP.lookAheadRootInitBelief));
+			
+//			DD next = OP.addMultVarElim(, var)
 		} 
+		
 		
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			e.printStackTrace();
 			fail();
 		}
 		

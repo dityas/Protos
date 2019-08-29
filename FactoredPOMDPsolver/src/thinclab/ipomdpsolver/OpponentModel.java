@@ -175,10 +175,10 @@ public class OpponentModel {
 		DDTree beliefMj = ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
 		
 		/* Uniform distribution over all current roots */
-		for (String node : this.currentNodes) {
+		for (String node : this.currentRoots) {
 			
 			try {
-				beliefMj.setValueAt(node, (1.0 / this.currentNodes.size()));
+				beliefMj.setValueAt(node, (1.0 / this.currentRoots.size()));
 			} 
 			
 			catch (Exception e) {

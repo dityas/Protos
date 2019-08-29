@@ -807,7 +807,7 @@ public class IPOMDP extends POMDP {
 			for (StateVar stateVar : this.S) {
 			
 				stateVarIndicesList.add(IPOMDP.getVarIndex(stateVar.name));
-				stateVarIndicesList.add(IPOMDP.getVarIndex(stateVar.name + "'"));
+				stateVarPrimeIndicesList.add(IPOMDP.getVarIndex(stateVar.name + "'"));
 			}
 			
 			this.stateVarIndices = 
@@ -866,6 +866,7 @@ public class IPOMDP extends POMDP {
 				this.oppModel.getOpponentModelStateVar(
 						this.oppModelVarIndex));
 		this.commitVariables();
+		Global.clearHashtables();
 		
 		this.logger.info("IS initialized to " + this.S);
 		

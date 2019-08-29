@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +14,7 @@ import thinclab.Examples.AttackerDomainPOMDP;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.domainMaker.ddHelpers.DDTreeLeaf;
 import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 
 class TestDDTree {
@@ -125,8 +127,16 @@ class TestDDTree {
 		DD sessPrivsDD = sessPrivsBelief.toDD();
 		
 		System.out.println(sessPrivsDD);
+		System.out.println("SESS_PRIVS: " + pomdp.initialBelState_f[0]);
+		System.out.println("SESS_PRIVS varset: " + Arrays.toString(pomdp.initialBelState_f[0].getVarSet()));
 		
-		assertTrue(pomdp.initialBelState_f[0].equals(sessPrivsDD));
+		System.out.println("OTHER: " + pomdp.initialBelState_f[1]);
+		System.out.println("OTHER varset: " + Arrays.toString(pomdp.initialBelState_f[1].getVarSet()));
+		
+		System.out.println("MULT: " + OP.mult(pomdp.initialBelState_f[1], pomdp.initialBelState_f[0]));
+//		System.out.println("OTHER varset: " + Arrays.toString(pomdp.initialBelState_f[1].getVarSet()));
+		
+//		assertTrue(pomdp.initialBelState_f[0].equals(sessPrivsDD));
 	}
 	
 	@Test

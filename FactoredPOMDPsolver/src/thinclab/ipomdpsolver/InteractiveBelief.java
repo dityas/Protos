@@ -7,16 +7,24 @@
  */
 package thinclab.ipomdpsolver;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.MySet;
+import thinclab.symbolicperseus.OP;
+import thinclab.symbolicperseus.POMDP;
+import thinclab.symbolicperseus.Belief.Belief;
 
 /*
  * @author adityas
  *
  */
-public class InteractiveBelief {
+public class InteractiveBelief extends Belief {
 	/*
 	 * Represents a single interactive belief
 	 * 
@@ -53,5 +61,31 @@ public class InteractiveBelief {
 	
 	// -------------------------------------------------------------------------------------
 	
+	public static DD staticL1BeliefUpdate(
+			IPOMDP ipomdp,
+			DD startBelief, 
+			String actName, 
+			String[] observations) throws ZeroProbabilityObsException {
+		/*
+		 * Performs a static L1 IPOMDP belief update given action and observations
+		 * 
+		 * Performs a query over the following DBN:
+		 * 		+---+					 +----+
+		 * 		|M_j| ---------.-------->|M_j'|<--------------------.
+		 * 		+---+		   |______.	 +----+						 \
+		 *      +--+               	  |	  +--+						  |	
+		 * 		|S |------------------'-->|S'|---.-----------. 		  |
+		 * 		+--+					  +--+	 |			 | 		  |
+		 *  									 v			 v        | 		 
+		 *										+---+       +---+    /
+		 * 										|Oi'|		|Oj'|---'
+		 * 										+---+       +---+
+		 * 	 P_hat(S', M_j' | Oi'=o) = 
+		 * 			Sigma[S] (P(S)) x Sigma[M_j] (P(M_j) x P(S', S, M_j) x P(Oi'=o, S', M_j))
+		 * 		 		x	Sigma[Oj'] (P(Oj', S', M_j) x P(M_j', M_j, Oj')) 
+		 */
+		
+		
+	}
 	
 }
