@@ -82,11 +82,7 @@ public class IPOMDP extends POMDP {
 	
 	/*
 	 * Additional DDTree variables.
-	 */
-	/* Interactive state space staging */
-//	public List<StateVar> IS = new ArrayList<StateVar>();
-//	public List<StateVar> Omegai = new ArrayList<StateVar>();
-	
+	 */	
 	/* 
 	 * O_j
 	 */
@@ -94,14 +90,7 @@ public class IPOMDP extends POMDP {
 	/* Staging area for j's observation functions */
 	public List<HashMap<String, HashMap<String, DDTree>>> OjTheta = 
 			new ArrayList<HashMap<String, HashMap<String, DDTree>>>();
-	
-	/* Actual reordered observation function for j's obsVars */
-//	public DDTree Oj;
-//	
-//	/* O_i */
-//	public HashMap<String, HashMap<String, DDTree>> Oi = 
-//			new HashMap<String, HashMap<String, DDTree>>(); 
-	
+		
 	/*
 	 * Variables to decide Opponent Model depth
 	 */
@@ -232,7 +221,6 @@ public class IPOMDP extends POMDP {
 		this.initializeBeliefsFromParser(this.parser);
 		
 		this.currentStateBelief = this.initBeliefDdTree;
-//		this
 	}
 	
 	public void setAi(List<String> actionNames) {
@@ -275,6 +263,8 @@ public class IPOMDP extends POMDP {
 			/*
 			 * Check if lower frame is POMDP or IPOMDP and call the solve method accordingly
 			 */
+			Global.clearHashtables();
+			
 			if (opponentModel.level > 0) ((IPOMDP) opponentModel).solveIPBVI(15, 100);
 			
 			else if (opponentModel.level == 0) {
@@ -316,59 +306,10 @@ public class IPOMDP extends POMDP {
 	public void solveIPBVI(int rounds, int numDpBackups) {
 		/*
 		 * Runs the interactive PBVI loop for solving the IPOMDP
-		 */
-		
-//		try {
-//		
-//			/* Solve lower frames and make opponent model */
-//			this.solveOpponentModels();
-//			
-//			/* 
-//			 * Stage and commit additional state and variables to populate global 
-//			 * arrays
-//			 */
-//			this.setUpIS();
-//			this.setUpOmegaI();
-//			this.commitVariables();
-//			
-//			/*
-//			 * These will need to be constructed at every belief update
-//			 */
-//			
-//			/* Make M_j transition DD */
-//			this.makeOpponentModelTransitionDD();
-//			
-//			/* Make O (observation functions) */
-//			this.makeOi();
-////			DDTree Oj = this.getOj();
-//		} 
-//		
-//		catch (SolverException e) {
-//			System.err.println(e.getMessage());
-//			System.exit(-1);
-//		}
-		
+		 */		
 	}
 	
 	// ------------------------------------------------------------------------------------------
-	
-//	public void setUpIS() {
-//		/*
-//		 * Constructs the IS space from unique opponent models and physical states
-//		 * 
-//		 * First stages the physical states S parsed from the domain file, then stages the
-//		 * opponent's model M_j
-//		 */
-//		
-//		/* Add S from parser obj */
-//		this.logger.info("Staging IS vars");
-//		this.S.clear();
-//		this.initializeSFromParser(this.parser);
-//		
-//		/* Set up M_j */
-//		this.setUpMj();
-//		this.logger.info("IS vars staged to: " + this.S);
-//	}
 	
 	public void setUpMj() {
 		/*
@@ -390,27 +331,6 @@ public class IPOMDP extends POMDP {
 		/* Finally, add the oppModel state var to the staging list */
 		this.S.add(this.oppModel.getOpponentModelStateVar(this.oppModelVarIndex));
 	}
-	
-//	public void setUpOmegaI() {
-//		/*
-//		 * Set up i's observation space.
-//		 * 
-//		 * This includes extracting and including j's observation space.
-//		 * 
-//		 * WARNING: Currently only works for a single frame
-//		 */
-//		
-//		this.Omega.clear();
-//		this.logger.info("Staging Omega");
-//		
-//		/* Add Omega_i from the parser */
-//		this.initializeOmegaFromParser(this.parser);
-//		
-//		/* Add Omega_j */
-//		this.setUpOmegaJ();
-//		
-//		this.logger.info("Omega_i vars staged to :" + this.Omega);
-//	}
 	
 	public void setUpOmegaJ() {
 		/*
@@ -441,23 +361,7 @@ public class IPOMDP extends POMDP {
 	}
 	
 	// -------------------------------------------------------------------------------------
-	
-//	public DDTree getBeliefMjAtLookAheadRoot() {
-//		/*
-//		 * Gets the initial belief from the currently rooted opponent model
-//		 */
-//		this.oppModel.expandForHorizon(this.oppModel.currentRoots, horizon);
-//	}
-//	
-//	public DDTree getInitIBelief() {
-//		/*
-//		 * Returns the initial belief for agent i
-//		 */
-//		this.logger.info("Getting initial belief");
-//		DD beliefS = this.initialBelState;
-//		DD beliefMj = this.getInitMj();
-//	}
-	
+
 	public DD makeOpponentModelTransitionDD() {
 		/*
 		 * Construct Mj transition DD from OpponentModel triples 
@@ -520,69 +424,7 @@ public class IPOMDP extends POMDP {
 		 * Constructs agent i's observation function Oi from extracted DDTree representation
 		 * 
 		 */
-//		this.logger.info("Making Oi");
-//		HashMap<String, HashMap<String, DDTree>> Oi = new HashMap<String, HashMap<String, DDTree>>();
-//		
-////		/* Populate O for agent i's observations */
-//		
-//		/* Create Ai -> Aj -> Oi -> S' mapping */
-//		HashMap<String, HashMap<String, HashMap<String, DDTree>>> AiAjOiS = 
-//				new HashMap<String, HashMap<String, HashMap<String, DDTree>>>();
-//		
-//		/* For each joint action, split j's and i's action and arrange Oi accordingly */
-//		for (String jointAction : this.Oi.keySet()) {
-//			
-//			String Ai = jointAction.split("__")[0];
-//			String Aj = jointAction.split("__")[1];
-//			
-//			HashMap<String, HashMap<String, DDTree>> AjOiS = 
-//					new HashMap<String, HashMap<String, DDTree>>();
-//			AjOiS.put(Aj, this.Oi.get(jointAction));
-//			
-//			if (AiAjOiS.containsKey(Ai))
-//				AiAjOiS.get(Ai).putAll(AjOiS);
-//			
-//			else AiAjOiS.put(Ai, AjOiS);
-//		}
-//		
-//		/* Make Ai -> f(Oi, S', Mj) */
-//		for (String Ai : AiAjOiS.keySet()) {
-//			
-//			HashMap<String, HashMap<String, DDTree>> AjOiS = AiAjOiS.get(Ai);
-//			HashMap<String, DDTree> OiSMj = new HashMap<String, DDTree>();
-//			
-//			List<String> OmegaI = 
-//					this.Omega.stream()
-//						.filter(o -> !o.name.contains("_j"))
-//						.map(f -> f.name)
-//						.collect(Collectors.toList());
-//			
-//			for (String oi : OmegaI) {
-//
-//				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
-//				for (String childName : mjDDTree.children.keySet()) {
-//
-//					mjDDTree.addChild(
-//							childName, 
-//							AjOiS.get(
-//									this.oppModel.getPolicyNode(childName).actName).get(oi));
-//				}
-//				
-//				OiSMj.put(oi, OP.reorder(mjDDTree.toDD()).toDDTree());
-//			}
-//			
-//			Oi.put(Ai, OiSMj);
-//		}
-//		
-//		/*
-//		 * For L0, Oj will not depend on Ai. It will depend only on Aj. So add Oj here to each Ai.
-//		 * 
-//		 * WARNING: For L1, Oj may depend on Mj and in that case this will break!!!
-//		 */
-//		Oi.forEach((a, dd) -> dd.putAll(this.getOj()));
-//		this.logger.info("Finished making Oi");
-//		
-//		return Oi;
+
 		/*
 		 * The parsed Oi is in the form of a joint action observation function of the form -
 		 * (Ai - Aj) -> O -> f(O', S')
@@ -646,8 +488,6 @@ public class IPOMDP extends POMDP {
 		 * 
 		 * TODO: Generalize Oj creation for joint actions
 		 */
-		
-//		HashMap<String, DDTree> Oj = new HashMap<String, DDTree>();
 		
 		/* Create new HashMap for Oj of the variable order oj' -> mj -> s' */
 		List<String> omegaJList = 
@@ -804,6 +644,9 @@ public class IPOMDP extends POMDP {
 			
 		try {
 			
+			/*
+			 * Populate IS indices
+			 */
 			for (StateVar stateVar : this.S) {
 			
 				stateVarIndicesList.add(IPOMDP.getVarIndex(stateVar.name));
@@ -815,6 +658,9 @@ public class IPOMDP extends POMDP {
 			this.stateVarPrimeIndices = 
 					stateVarPrimeIndicesList.stream().mapToInt(Integer::intValue).toArray();
 			
+			/*
+			 * Populate OmegaI indices
+			 */
 			for (StateVar obsIVar : 
 				this.Omega.stream()
 					.filter(oi -> !oi.name.contains("_j"))
@@ -829,6 +675,9 @@ public class IPOMDP extends POMDP {
 			this.obsIVarPrimeIndices = 
 					obsIVarPrimeIndicesList.stream().mapToInt(Integer::intValue).toArray();
 			
+			/*
+			 * Populate OmegaJ indices
+			 */
 			for (StateVar obsJVar : 
 				this.Omega.stream()
 					.filter(oi -> oi.name.contains("_j"))
@@ -888,6 +737,13 @@ public class IPOMDP extends POMDP {
 						new DD[] {this.currentStateBelief.toDD(), 
 								mjRootBelief.toDD()});
 		this.logger.info("Current look ahead init belief is " + this.lookAheadRootInitBelief);
+	}
+	
+	// -----------------------------------------------------------------------------------------
+	
+	@Override
+	public List<List<String>> getAllObservationsList() {
+		return this.recursiveObsCombinations(this.Omega.subList(0, this.obsIVarIndices.length));
 	}
 
 }

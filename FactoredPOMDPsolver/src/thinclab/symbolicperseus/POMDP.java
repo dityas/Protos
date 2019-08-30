@@ -3135,7 +3135,7 @@ public class POMDP implements Serializable {
 		}
 	} // private void recursiveObsGen
 	
-	private List<List<String>> recursiveObsCombinations(List<StateVar> obsVars){
+	public List<List<String>> recursiveObsCombinations(List<StateVar> obsVars){
 		/*
 		 * Driver program for generating observations recursively
 		 */
