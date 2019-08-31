@@ -101,13 +101,13 @@ public class IPOMDP extends POMDP {
 	 * Variables for current look ahead horizon
 	 */
 	public DD currentMjTfn;
-	public DD lookAheadRootInitBelief;
+	public List<DD> lookAheadRootInitBeliefs = new ArrayList<DD>();
 	
 	public HashMap<String, DD[]> currentOi;
 	public HashMap<String, DD[]> currentTi;
 	public DD[] currentOj;
 	
-	public DDTree currentStateBelief;
+	public List<DDTree> currentStateBeliefs = new ArrayList<DDTree>();
 	
 	/*
 	 * Arrays to record current IS var indices
@@ -220,7 +220,8 @@ public class IPOMDP extends POMDP {
 		this.initializeDiscountFactorFromParser(this.parser);		
 		this.initializeBeliefsFromParser(this.parser);
 		
-		this.currentStateBelief = this.initBeliefDdTree;
+		this.currentStateBeliefs.add(this.initBeliefDdTree);
+		this.currentStateBeliefs.addAll(this.adjunctBeliefs);
 	}
 	
 	public void setAi(List<String> actionNames) {
@@ -732,11 +733,16 @@ public class IPOMDP extends POMDP {
 		this.logger.info("Oj initialized");
 		
 		DDTree mjRootBelief = this.oppModel.getOpponentModelInitBelief(this.ddMaker);
-		this.lookAheadRootInitBelief = 
-				OP.multN(
-						new DD[] {this.currentStateBelief.toDD(), 
-								mjRootBelief.toDD()});
-		this.logger.info("Current look ahead init belief is " + this.lookAheadRootInitBelief);
+		
+		this.currentStateBeliefs.stream()
+			.forEach(s -> this.lookAheadRootInitBeliefs.add(
+					OP.multN(new DD[] {s.toDD(), mjRootBelief.toDD()})));
+		
+//		this.lookAheadRootInitBelief = 
+//				OP.multN(
+//						new DD[] {this.currentStateBelief.toDD(), 
+//								mjRootBelief.toDD()});
+		this.logger.info("Current look ahead init beliefs are " + this.lookAheadRootInitBeliefs);
 	}
 	
 	// -----------------------------------------------------------------------------------------

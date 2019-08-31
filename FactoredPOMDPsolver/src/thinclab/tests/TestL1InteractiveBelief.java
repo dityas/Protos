@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
-import thinclab.ipomdpsolver.InteractiveBelief;
+import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.OP;
 
@@ -54,7 +54,7 @@ class TestL1InteractiveBelief {
 			tigerL1IPOMDP.solveOpponentModels();
 			tigerL1IPOMDP.initializeIS();
 			
-			DD start = tigerL1IPOMDP.lookAheadRootInitBelief;
+			DD start = tigerL1IPOMDP.lookAheadRootInitBeliefs.get(0);
 			List<List<String>> obs = tigerL1IPOMDP.getAllObservationsList();
 			
 			for (String Ai : tigerL1IPOMDP.Ai) {

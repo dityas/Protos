@@ -19,9 +19,9 @@ import org.junit.jupiter.api.Test;
 import cern.colt.Arrays;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
-import thinclab.ipomdpsolver.InteractiveBelief;
 import thinclab.ipomdpsolver.InteractiveStateVar;
 import thinclab.ipomdpsolver.OpponentModel;
+import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 
 /*
  * @author adityas

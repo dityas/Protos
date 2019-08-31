@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.ipomdpsolver;
+package thinclab.ipomdpsolver.InteractiveBelief;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,6 +17,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.MySet;
 import thinclab.symbolicperseus.OP;

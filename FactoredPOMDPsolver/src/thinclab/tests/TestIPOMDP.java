@@ -28,9 +28,9 @@ import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
-import thinclab.ipomdpsolver.InteractiveBelief;
 import thinclab.ipomdpsolver.InteractiveStateVar;
 import thinclab.ipomdpsolver.OpponentModel;
+import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
@@ -352,9 +352,9 @@ class TestIPOMDP {
 			tigerL1IPOMDP.solveOpponentModels();
 			tigerL1IPOMDP.initializeIS();
 
-			System.out.println(tigerL1IPOMDP.lookAheadRootInitBelief);
-			System.out.println(
-					OP.addMultVarElim(tigerL1IPOMDP.lookAheadRootInitBelief, new int[] {2}));
+//			System.out.println(tigerL1IPOMDP.lookAheadRootInitBelief);
+//			System.out.println(
+//					OP.addMultVarElim(tigerL1IPOMDP.lookAheadRootInitBelief, new int[] {2}));
 		} 
 		
 		catch (Exception e) {
