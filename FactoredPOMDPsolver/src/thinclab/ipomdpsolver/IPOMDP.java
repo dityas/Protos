@@ -110,6 +110,12 @@ public class IPOMDP extends POMDP {
 	public List<DDTree> currentStateBeliefs = new ArrayList<DDTree>();
 	
 	/*
+	 * generate a list of all possible observations and store it to avoid
+	 * computing it repeatedly during belief tree expansions
+	 */
+	public List<List<String>> obsCombinations;
+	
+	/*
 	 * Arrays to record current IS var indices
 	 */
 	public int[] stateVarIndices;
@@ -139,6 +145,7 @@ public class IPOMDP extends POMDP {
 		
 		catch (Exception e) {
 			this.logger.severe("While parsing " + e.getMessage());
+			e.printStackTrace();
 			System.exit(-1);
 		}
 	}
@@ -222,6 +229,8 @@ public class IPOMDP extends POMDP {
 		
 		this.currentStateBeliefs.add(this.initBeliefDdTree);
 		this.currentStateBeliefs.addAll(this.adjunctBeliefs);
+		
+		this.obsCombinations = this.getAllObservationsList();
 	}
 	
 	public void setAi(List<String> actionNames) {
@@ -738,10 +747,6 @@ public class IPOMDP extends POMDP {
 			.forEach(s -> this.lookAheadRootInitBeliefs.add(
 					OP.multN(new DD[] {s.toDD(), mjRootBelief.toDD()})));
 		
-//		this.lookAheadRootInitBelief = 
-//				OP.multN(
-//						new DD[] {this.currentStateBelief.toDD(), 
-//								mjRootBelief.toDD()});
 		this.logger.info("Current look ahead init beliefs are " + this.lookAheadRootInitBeliefs);
 	}
 	
@@ -749,7 +754,9 @@ public class IPOMDP extends POMDP {
 	
 	@Override
 	public List<List<String>> getAllObservationsList() {
-		return this.recursiveObsCombinations(this.Omega.subList(0, this.obsIVarIndices.length));
+		return this.recursiveObsCombinations(
+				this.Omega.subList(
+						0, this.Omega.size() - this.OmegaJNames.size()));
 	}
 
 }

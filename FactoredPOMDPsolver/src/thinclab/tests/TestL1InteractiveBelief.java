@@ -19,6 +19,7 @@ import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
+import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.OP;
 
@@ -100,5 +101,33 @@ class TestL1InteractiveBelief {
 			System.exit(-1);
 		}
 	}
+	
+	@Test
+	void testL1LookAheadTree() {
+		System.out.println("Running testL1LookAheadTree()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		try {
+			tigerL1IPOMDP.solveOpponentModels();
+			tigerL1IPOMDP.initializeIS();
+			
+			LookAheadTree lt = new LookAheadTree(tigerL1IPOMDP);
+			
+			for (DD b : lt.iBeliefPoints) {
+				System.out.println(InteractiveBelief.toStateMap(tigerL1IPOMDP, b));
+			}
+		}
 
+		catch (Exception e) {
+			e.printStackTrace();
+			fail();
+			System.exit(-1);
+		}
+	}
 }
