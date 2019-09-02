@@ -14,6 +14,7 @@ import java.util.List;
 
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.MySet;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
@@ -71,33 +72,38 @@ public class Belief {
 	
 	// --------------------------------------------------------------------------------------
 	
-	public static HashMap<String, ArrayList<Float>> toStateMap(POMDP pomdp, DD belState) {
+	public static HashMap<String, HashMap<String, Float>> toStateMap(POMDP pomdp, DD belState) {
 		/*
 		 * Makes a hashmap of belief state and values and returns it
 		 */
 		pomdp.setGlobals();
-		HashMap<String, ArrayList<Float>> beliefs = new HashMap<String, ArrayList<Float>>();
+		
+		HashMap<String, HashMap<String, Float>> beliefs = 
+				new HashMap<String, HashMap<String, Float>>();
+		
+		/* Factor the belief state into individual variables */
 		DD[] fbs = new DD[pomdp.nStateVars];
 		for (int varId = 0; varId < pomdp.nStateVars; varId++) {
+			
 			fbs[varId] = OP.addMultVarElim(belState,
 					MySet.remove(pomdp.varIndices, varId + 1));
 			
-			// Make state variable name
+			/* Make state variable name */
 			String name = pomdp.varName[varId];
 			
-			// Get respective belief for the variable
+			/* Get respective belief for the variable */
 			DD[] varChildren = fbs[varId].getChildren();
-			ArrayList<Float> childVals = new ArrayList<Float>();
+			HashMap<String, Float> childVals = new HashMap<String, Float>();
 			
 			if (varChildren == null) {
 				for (int i=0; i < pomdp.stateVars[varId].arity; i++) {
-					childVals.add(new Float(fbs[varId].getVal()));
+					childVals.put(Global.valNames[varId + 1][i], new Float(fbs[varId].getVal()));
 				}
 			}
 			
 			else {
 				for (int i=0; i < pomdp.stateVars[varId].arity; i++) {
-					childVals.add(new Float(varChildren[i].getVal()));
+					childVals.put(Global.valNames[varId][i], new Float(varChildren[i].getVal()));
 				}
 			}
 			

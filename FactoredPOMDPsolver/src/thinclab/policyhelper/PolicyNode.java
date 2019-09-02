@@ -17,8 +17,8 @@ public class PolicyNode {
 	DD belief;
 	public int id = -1;
 	
-	public HashMap<String, ArrayList<Float>> factoredBelief = 
-			new HashMap<String, ArrayList<Float>>();
+	public HashMap<String, HashMap<String, Float>> factoredBelief;
+	
 	public Map<List<String>, Integer> nextNode = 
 			new HashMap<List<String>, Integer>();
 	
@@ -209,9 +209,11 @@ public class PolicyNode {
 		String beliefLabel = "<br>------------------";
 		beliefLabel = beliefLabel + "<br>BELIEF:";
 		
-		Iterator<Map.Entry<String, ArrayList<Float>>> belIter = this.factoredBelief.entrySet().iterator();
+		Iterator<Map.Entry<String, HashMap<String, Float>>> belIter = 
+				this.factoredBelief.entrySet().iterator();
+		
 		while(belIter.hasNext()) {
-			Map.Entry<String, ArrayList<Float>> belief = belIter.next();
+			Map.Entry<String, HashMap<String, Float>> belief = belIter.next();
 			beliefLabel = beliefLabel + "<br>" + belief.getKey() + ": " + belief.getValue();
 		}
 		
