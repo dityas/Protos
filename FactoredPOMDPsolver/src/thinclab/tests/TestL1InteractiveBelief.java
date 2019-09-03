@@ -122,6 +122,9 @@ class TestL1InteractiveBelief {
 			for (DD b : lt.iBeliefPoints) {
 				System.out.println(InteractiveBelief.toStateMap(tigerL1IPOMDP, b));
 			}
+			
+			System.out.println();
+			System.out.println(lt.iBeliefTree);
 		}
 
 		catch (Exception e) {

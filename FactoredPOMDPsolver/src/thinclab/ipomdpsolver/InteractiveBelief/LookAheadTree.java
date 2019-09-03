@@ -40,6 +40,10 @@ public class LookAheadTree {
 	/* set of reachable belief points */
 	public HashSet<DD> iBeliefPoints = new HashSet<DD>();
 	
+	/* Belief tree as a map of { (start DD) : { (action) : { (obs) : (end DD) } } } */
+	public HashMap<DD, HashMap<String, HashMap<List<String>, DD>>> iBeliefTree = 
+			new HashMap<DD, HashMap<String, HashMap<List<String>, DD>>>(); 
+	
 	// ----------------------------------------------------------------------------------
 	
 	public LookAheadTree(IPOMDP ipomdp) {
@@ -62,11 +66,21 @@ public class LookAheadTree {
 		 * Performs interactive static belief update starting from previousBelief and returns
 		 * new beliefs. 
 		 */
+		
+		/* Store unique DDs in a set */
 		HashSet<DD> nextBeliefs = new HashSet<DD>();
 		
-		for (DD belief : previousBeliefs) {
+		for (DD belief : previousBeliefs) { 
+			
+			/* Create map for { (action) : { (obs) : (end DD) } } */
+			HashMap<String, HashMap<List<String>, DD>> actionTree =
+					new HashMap<String, HashMap<List<String>, DD>>();
 			
 			for(String actName : this.ipomdp.Ai) {
+				
+				/* Create map for { (obs) : (end DD) } */
+				HashMap<List<String>, DD> children = new HashMap<List<String>, DD>();
+				
 				for (List<String> obs : this.ipomdp.obsCombinations) {
 					
 					/* Try performing the belief update */
@@ -79,6 +93,7 @@ public class LookAheadTree {
 										obs.toArray(new String[obs.size()]));
 						
 						nextBeliefs.add(nextBelief);
+						children.put(obs, nextBelief);
 					}
 					
 					catch (ZeroProbabilityObsException e) {
@@ -90,7 +105,12 @@ public class LookAheadTree {
 						System.exit(-1);
 					}
 				} /* for all observations */
+				
+				actionTree.put(actName, children);
+				
 			} /* for all actions */
+			
+			this.iBeliefTree.put(belief, actionTree);
 		}
 		
 		return nextBeliefs;
