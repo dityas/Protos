@@ -19,10 +19,13 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
+import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
@@ -51,7 +54,7 @@ public class IPOMDP extends POMDP {
 	/*
 	 * Reference to Parser object and info extract from parser
 	 */
-	public ParseSPUDD parser;
+	public IPOMDPParser parser;
 	public List<String> Ai = new ArrayList<String>();
 	public List<String> Aj = new ArrayList<String>();
 	public List<String> OmegaJNames = new ArrayList<String>();
@@ -105,9 +108,11 @@ public class IPOMDP extends POMDP {
 	
 	public HashMap<String, DD[]> currentOi;
 	public HashMap<String, DD[]> currentTi;
+	public HashMap<String, DD> currentRi;
 	public DD[] currentOj;
 	
 	public List<DDTree> currentStateBeliefs = new ArrayList<DDTree>();
+	public LookAheadTree currentLookAheadTree;
 	
 	/*
 	 * generate a list of all possible observations and store it to avoid
@@ -595,6 +600,66 @@ public class IPOMDP extends POMDP {
 		return Ti;
 	}
 	
+	public HashMap<String, DD> makeRi() {
+		/*
+		 * Construct's i's reward function based on joint actions (Mj)
+		 */
+		
+		this.logger.info("Making reward funtion");
+		
+		/* First condition rewards on Mj for each Ai */
+		HashMap<String, DD> Ri = new HashMap<String, DD>(); 
+		HashMap<String, DD> actionCosts = new HashMap<String, DD>(); 
+		
+		for (String Ai : this.Ai) {
+			
+			DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+			
+			for (String child : mjDDTree.children.keySet()) {
+				
+				try {
+					mjDDTree.setDDAt(
+							child, 
+							OP.sub(
+									this.R.toDD(), 
+									this.parser.costMap.get(
+											Ai + "__" 
+											+ this.oppModel
+												.getPolicyNode(child)
+												.actName)
+												.toDD()).toDDTree());
+				} 
+				
+				catch (Exception e) {
+					this.logger.severe("While making cost for action " + Ai + " : " + e.getMessage());
+					e.printStackTrace();
+					System.exit(-1);
+				}
+			} /* for each mj */
+			
+			actionCosts.put(Ai, mjDDTree.toDD());
+		} /* for each Ai */
+		
+		this.logger.info("Done conditioning costs on Mj");
+		
+		/*
+		 * Build rewTranFn like in POMDP setDynamics.
+		 * 
+		 * This computation is essentially the expected reward considering Aj for each Ai.
+		 * 
+		 * ER(S, Ai) = Sumout[Mj] P(R, Ai, Mj) 
+		 */
+		for (String Ai : actionCosts.keySet()) {
+			
+			DD[] rewTranFn = ArrayUtils.add(currentTi.get(Ai), actionCosts.get(Ai));
+			rewTranFn = ArrayUtils.add(rewTranFn, currentMjTfn);
+
+			Ri.put(Ai, OP.addMultVarElim(rewTranFn, this.stateVarPrimeIndices));
+		}
+		
+		return Ri;
+	}
+	
 	public void renameOjDDTrees() {
 		/*
 		 * Constructs opponents observation function Oj from extracted DDTree representation
@@ -748,6 +813,11 @@ public class IPOMDP extends POMDP {
 					OP.multN(new DD[] {s.toDD(), mjRootBelief.toDD()})));
 		
 		this.logger.info("Current look ahead init beliefs are " + this.lookAheadRootInitBeliefs);
+		
+		this.currentLookAheadTree = new LookAheadTree(this);
+		this.logger.info("Look ahead tree initialized for " + this.mjLookAhead + " time steps.");
+		
+		this.currentRi = this.makeRi();
 	}
 	
 	// -----------------------------------------------------------------------------------------
@@ -757,6 +827,10 @@ public class IPOMDP extends POMDP {
 		return this.recursiveObsCombinations(
 				this.Omega.subList(
 						0, this.Omega.size() - this.OmegaJNames.size()));
+	}
+	
+	public LookAheadTree getLookAheadTree() {
+		return this.currentLookAheadTree;
 	}
 
 }

@@ -7,8 +7,10 @@
  */
 package thinclab.ipomdpsolver;
 
+import java.util.HashMap;
 import java.util.logging.Logger;
 
+import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
 import thinclab.utils.LoggerFactory;
 
 /*
@@ -24,12 +26,32 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 	
 	private Logger logger = LoggerFactory.getNewLogger("FHLAVISolver: ");
 	
-	public void finiteLookAheadVI(IPOMDP ipomdp) {
+	// --------------------------------------------------------------------------------------
+	
+	public static void finiteLookAheadVI(IPOMDP ipomdp) {
 		/*
 		 * Perform full value iteration for the given look ahead starting from
 		 * current root belief
 		 */
-		this.logger.info("Starting VI for " + ipomdp.mjLookAhead 
+		
+		Logger logger = LoggerFactory.getNewLogger("FHLAVISolver: ");
+		
+		logger.info("Starting VI for " + ipomdp.mjLookAhead 
 				+ " horizons starting from " + ipomdp.lookAheadRootInitBeliefs);
+		
+		LookAheadTree laTree = ipomdp.getLookAheadTree();
 	}
+	
+	public static HashMap<String, Float> computeUtility(
+			IPOMDP ipomdp, DD currentBelief) {
+		/*
+		 * Computes the utility of being in the current belief state recursively and maps 
+		 * it to the action taken
+		 */
+		
+		/* First compute immediate reward */
+	}
+	
+	// --------------------------------------------------------------------------------------
+	
 }

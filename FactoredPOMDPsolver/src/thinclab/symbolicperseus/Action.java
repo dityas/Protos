@@ -2,6 +2,8 @@ package thinclab.symbolicperseus;
 
 import java.io.Serializable;
 
+import cern.colt.Arrays;
+
 public class Action implements Serializable {
 	/**
 	 * 

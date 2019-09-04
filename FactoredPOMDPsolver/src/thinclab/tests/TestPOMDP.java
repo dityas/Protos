@@ -62,16 +62,16 @@ class TestPOMDP {
 		System.out.println("Running testPOMDPSolvePBVI()");
 		
 		POMDP p1 = new POMDP(this.tigerDom);
-		POMDP p2 = new POMDP(this.attDom);
+//		POMDP p2 = new POMDP(this.attDom);
 		
 		assertNull(p1.alphaVectors);
-		assertNull(p2.alphaVectors);
+//		assertNull(p2.alphaVectors);
 		
 		p1.solvePBVI(5, 100);
-		p2.solvePBVI(15, 100);
+//		p2.solvePBVI(15, 100);
 		
 		assertNotNull(p1.alphaVectors);
-		assertNotNull(p2.alphaVectors);
+//		assertNotNull(p2.alphaVectors);
 	}
 
 }

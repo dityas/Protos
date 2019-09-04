@@ -636,7 +636,6 @@ public class POMDP implements Serializable {
 			actions[a].buildRewTranFn();
 			actions[a].rewFn = 
 					OP.addMultVarElim(actions[a].rewTransFn, primeVarIndices);
-			
 		}
 		
 		/*

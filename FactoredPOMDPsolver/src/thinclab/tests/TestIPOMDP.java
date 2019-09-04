@@ -364,6 +364,32 @@ class TestIPOMDP {
 		
 	}
 	
+	@Test
+	void testIPOMDPInitRForLATree() {
+		System.out.println("Running testIPOMDPInitRforLATree()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		try {
+			tigerL1IPOMDP.solveOpponentModels();
+			tigerL1IPOMDP.initializeIS();
+			
+			System.out.println(tigerL1IPOMDP.currentRi);
+		} 
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			fail();
+		}
+		
+	}
+	
 //	@Test
 //	void testL1BeliefUpdate() {
 //		System.out.println("Running testL1BeliefUpdate()");

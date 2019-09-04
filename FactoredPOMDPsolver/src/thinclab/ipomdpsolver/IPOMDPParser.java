@@ -12,9 +12,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
+import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.ParseSPUDD;
@@ -36,6 +38,9 @@ public class IPOMDPParser extends ParseSPUDD {
 	public int level;
 	public int frameID;
 	public List<ParseSPUDD> childFrames = new ArrayList<ParseSPUDD>();
+	
+	/* Separate container for costs */
+	public HashMap<String, DDTree> costMap;
 	
 	private Logger logger = LoggerFactory.getNewLogger("IPOMDP Parser");
 	
@@ -333,6 +338,20 @@ public class IPOMDPParser extends ParseSPUDD {
 	    
 	    varDomSizeArray[varDomSizeArray.length-1] = actNamesArray.length;
 	    Global.setVarDomSize(varDomSizeArray);
+	}
+	
+	@Override
+	public void populateDDTreeObjects() {
+		/*
+		 * Override to re arrange costs into a HashMap
+		 */
+		super.populateDDTreeObjects();
+		HashMap<String, DDTree> costMap = new HashMap<String, DDTree>(); 
+		
+		for (int a = 0; a < this.actNames.size(); a++)
+			costMap.put(this.actNames.get(a), this.costs.get(a));
+		
+		this.costMap = costMap;
 	}
 	
 }
