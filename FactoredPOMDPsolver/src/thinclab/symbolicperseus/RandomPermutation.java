@@ -5,7 +5,7 @@ import java.util.*;
 import java.io.*;
 import java.lang.*;
 
-class RandomPermutation implements Serializable {
+public class RandomPermutation implements Serializable {
     
     public int [] permutation;
     // ids of those that are 'done' - used in perseus

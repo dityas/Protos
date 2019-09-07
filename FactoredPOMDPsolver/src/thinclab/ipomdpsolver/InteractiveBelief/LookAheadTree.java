@@ -7,10 +7,13 @@
  */
 package thinclab.ipomdpsolver.InteractiveBelief;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -42,7 +45,7 @@ public class LookAheadTree {
 	
 	/* Belief tree as a map of { (start DD) : { (action) : { (obs) : (end DD) } } } */
 	public HashMap<DD, HashMap<String, HashMap<List<String>, DD>>> iBeliefTree = 
-			new HashMap<DD, HashMap<String, HashMap<List<String>, DD>>>(); 
+			new HashMap<DD, HashMap<String, HashMap<List<String>, DD>>>();
 	
 	// ----------------------------------------------------------------------------------
 	
@@ -57,6 +60,8 @@ public class LookAheadTree {
 		
 		this.logger.info("Expanding for " + this.horizon + " look ahead horizon");
 		this.expand();
+		
+		/* Connect to in memory table for storage and all that */
 	}
 	
 	// -----------------------------------------------------------------------------------
@@ -120,7 +125,7 @@ public class LookAheadTree {
 		/*
 		 * Build the look ahead tree for the IPOMDP starting from the current roots.
 		 */
-		
+
 		HashSet<DD> currentIBeliefSet = new HashSet<DD>();
 		
 		/* Add starting beliefs to the belief set */
@@ -137,5 +142,26 @@ public class LookAheadTree {
 		
 		this.logger.info("Finish look ahead expansion. The tree has " 
 				+ this.iBeliefPoints.size() + " beliefs.");
+	}
+	
+	public String toDot() {
+		/*
+		 * Makes a graphviz plottable dot format string
+		 */
+		
+		String dotString = "";
+		String endl = "\r\n";
+		
+		dotString += "digraph G {" + endl;
+		
+		for (DD startB : this.iBeliefTree.keySet()) {
+			dotString += " " + startB.getAddress() 
+				+ " " + "[label=\"" 
+				+ InteractiveBelief.toStateMap(this.ipomdp, startB) + "\", shape=box]" + endl; 
+		}
+		
+		dotString += "}" + endl;
+		
+		return dotString;
 	}
 }

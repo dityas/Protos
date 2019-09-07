@@ -8,11 +8,11 @@ public class AlphaVector implements Serializable {
 	 */
 	private static final long serialVersionUID = 1357799705845487274L;
 
-	DD alphaVector;
-	double value;
-	int actId;
-	int witness;
-	int[] obsStrat;
+	public DD alphaVector;
+	public double value;
+	public int actId;
+	public int witness;
+	public int[] obsStrat;
 
 	public AlphaVector(DD a, double v, int act, int[] os) {
 		alphaVector = a;

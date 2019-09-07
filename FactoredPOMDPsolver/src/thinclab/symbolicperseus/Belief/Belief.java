@@ -103,7 +103,7 @@ public class Belief {
 			
 			else {
 				for (int i=0; i < pomdp.stateVars[varId].arity; i++) {
-					childVals.put(Global.valNames[varId][i], new Float(varChildren[i].getVal()));
+					childVals.put(Global.valNames[varId + 1][i], new Float(varChildren[i].getVal()));
 				}
 			}
 			

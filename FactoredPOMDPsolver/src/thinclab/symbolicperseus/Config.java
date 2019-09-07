@@ -1,6 +1,6 @@
 package thinclab.symbolicperseus;
 
-class Config {
+public class Config {
 
     public static int[][] empty = new int[2][0];
 

@@ -12,10 +12,10 @@ init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
 unnormalized
 
 dd tigerLocObs
-(tiger-location' (tiger-left  (growl' (growl-left  (0.65))
-								    (growl-right (0.35))))
-					       (tiger-right (growl' (growl-left  (0.35))
-								    (growl-right (0.65)))))
+(tiger-location' (tiger-left  (growl' (growl-left  (0.85))
+								    (growl-right (0.15))))
+					       (tiger-right (growl' (growl-left  (0.15))
+								    (growl-right (0.85)))))
 enddd
 
 // listen actions

@@ -130,6 +130,11 @@ public class IPOMDP extends POMDP {
 	public int[] obsIVarPrimeIndices;
 	public int[] obsJVarPrimeIndices;
 	
+	/*
+	 * Hard coded tolerance
+	 */
+	public double tolerance = 0.01;
+	
 	// ----------------------------------------------------------------------------------------
 	
 	public IPOMDP(IPOMDPParser parsedFrame, int mjMaxDepth, int mjlookAhead) {
@@ -225,6 +230,7 @@ public class IPOMDP extends POMDP {
 				this.Aj.add(a.split("__")[1]);
 			});
 		
+		this.uniquePolicy = new boolean[this.Ai.size()]; 
 		this.initializeTFromParser(this.parser);
 		this.initializeOFromParser(this.parser);
 		this.initializeRFromParser(this.parser);
@@ -818,6 +824,7 @@ public class IPOMDP extends POMDP {
 		this.logger.info("Look ahead tree initialized for " + this.mjLookAhead + " time steps.");
 		
 		this.currentRi = this.makeRi();
+		this.logger.info("Ri initialized for current look ahead horizon");
 	}
 	
 	// -----------------------------------------------------------------------------------------
@@ -832,5 +839,19 @@ public class IPOMDP extends POMDP {
 	public LookAheadTree getLookAheadTree() {
 		return this.currentLookAheadTree;
 	}
-
+	
+	public List<DD> getCurrentLookAheadBeliefs() {
+		/*
+		 * Returns a list of currently seen look ahead beliefs
+		 */
+		List<DD> currentBeliefs = new ArrayList<DD>();
+		
+		for (DD belief : this.currentLookAheadTree.iBeliefPoints)
+			if (this.currentLookAheadTree.iBeliefTree.containsKey(belief))
+				currentBeliefs.add(belief);
+		
+		System.out.println("region is " + currentBeliefs.size() + " and total is " + this.currentLookAheadTree.iBeliefPoints.size());
+		
+		return currentBeliefs;
+	}
 }

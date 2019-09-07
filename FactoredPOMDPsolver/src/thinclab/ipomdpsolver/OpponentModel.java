@@ -145,6 +145,11 @@ public class OpponentModel {
 				
 				this.currentNodes.addAll(nextNodes);
 				startNodes = nextNodes;
+				
+				/* TEST */
+				if (h < horizon) {
+					this.currentRoots.addAll(nextNodes);
+				}
 			}
 			
 			catch (Exception e) {
@@ -153,6 +158,7 @@ public class OpponentModel {
 						+ e.getMessage());
 				System.exit(-1);
 			}
+			
 		}
 		
 		this.logger.info("Done with OpponentModel expansion. Traversed node are " + this.currentNodes);
