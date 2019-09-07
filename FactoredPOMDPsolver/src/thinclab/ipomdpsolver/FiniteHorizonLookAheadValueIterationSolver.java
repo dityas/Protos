@@ -141,7 +141,7 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 //		beliefSet.expandBeliefRegionBF(this, 2);
 //		this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 		
-		iBeliefRegion.addAll(ipomdp.getCurrentLookAheadBeliefs().subList(0, 5));
+		iBeliefRegion.addAll(ipomdp.getCurrentLookAheadBeliefs());
 		
 		
 		/*
@@ -193,8 +193,8 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 		this.ipomdp.currentPointBasedValues = 
 				OP.factoredExpectationSparseNoMem(
 						beliefRegion, ipomdp.alphaVectors);
-		System.out.println("DEBUG IS " + ipomdp.debug);
-		System.out.println("currentPointBasedValues " + Arrays.deepToString(ipomdp.currentPointBasedValues));
+//		System.out.println("DEBUG IS " + ipomdp.debug);
+//		System.out.println("currentPointBasedValues " + Arrays.deepToString(ipomdp.currentPointBasedValues));
 		
 		DD[] primedV;
 		double maxAbsVal = 0;
@@ -230,8 +230,8 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 			ipomdp.newPointBasedValues = new double[beliefRegion.length][maxAlphaSetSize + 1];
 			ipomdp.numNewAlphaVectors = 0;
 			
-			System.out.println("After init");
-			System.out.println(Arrays.deepToString(ipomdp.newPointBasedValues));
+//			System.out.println("After init");
+//			System.out.println(Arrays.deepToString(ipomdp.newPointBasedValues));
 			
 			AlphaVector newVector;
 			double[] diff = new double[beliefRegion.length];
@@ -248,28 +248,28 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 			while (ipomdp.numNewAlphaVectors < maxAlphaSetSize
 					&& !permutedIds.isempty()) {
 
-				System.out.println("\r\n NEW LOOP:");
+//				System.out.println("\r\n NEW LOOP:");
 				
 				if (nDpBackups >= 2 * ipomdp.alphaVectors.length) {
 					computeMaxMinImprovement(beliefRegion);
 					if (ipomdp.bestImprovement > ipomdp.tolerance
 							&& ipomdp.bestImprovement > -2 * ipomdp.worstDecline) {
-						System.out.println("Breaking loop");
+//						System.out.println("Breaking loop");
 						break;
 					}
 				}
 
 				Global.newHashtables();
 				count = count + 1;
-				System.out.println("count is " + count);
+//				System.out.println("count is " + count);
 				if (ipomdp.numNewAlphaVectors == 0)
 					choice = 0;
 				
 				else {
-					System.out.println(Arrays.deepToString(ipomdp.currentPointBasedValues));
-					System.out.println(Arrays.toString(permutedIds.permutation));
-					System.out.println(Arrays.deepToString(ipomdp.newPointBasedValues));
-					System.out.println(Arrays.toString(permutedIds.permutation));
+//					System.out.println(Arrays.deepToString(ipomdp.currentPointBasedValues));
+//					System.out.println(Arrays.toString(permutedIds.permutation));
+//					System.out.println(Arrays.deepToString(ipomdp.newPointBasedValues));
+//					System.out.println(Arrays.toString(permutedIds.permutation));
 					maxcurrpbv = OP.getMax(ipomdp.currentPointBasedValues,
 							permutedIds.permutation);
 					maxnewpbv = OP.getMax(ipomdp.newPointBasedValues,
@@ -279,15 +279,15 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 					diff = permutedIds.getDiffs(maxcurrpbv, maxnewpbv,
 							steptolerance);
 					
-					System.out.println("maxcurrpbv=" + Arrays.toString(maxcurrpbv) 
-					+ "maxnewpbv=" + Arrays.toString(maxnewpbv)
-					+ "diff=" + Arrays.toString(diff)
-					+ "permutedIds.empty()=" + permutedIds.isempty());
+//					System.out.println("maxcurrpbv=" + Arrays.toString(maxcurrpbv) 
+//					+ "maxnewpbv=" + Arrays.toString(maxnewpbv)
+//					+ "diff=" + Arrays.toString(diff)
+//					+ "permutedIds.empty()=" + permutedIds.isempty());
 					
 					if (permutedIds.isempty())
 						break;
 					
-					System.out.println("NOT EMPTY");
+//					System.out.println("NOT EMPTY");
 					choice = OP.sampleMultinomial(diff);
 				}
 
@@ -300,12 +300,12 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 					/*
 					 * dpBackup
 					 */
-					System.out.println("++++++++++++++++++++++++++++++++++++++++++");
-					System.out.println("numNewAlphaVectors=" + ipomdp.numNewAlphaVectors);
-//					System.out.println("newPointBasedValues " + Arrays.deepToString(ipomdp.newPointBasedValues));
-					System.out.println("New dpBackup, " 
-							+ (OP.max(ipomdp.newPointBasedValues[i], ipomdp.numNewAlphaVectors)
-								- OP.max(ipomdp.currentPointBasedValues[i])));
+//					System.out.println("++++++++++++++++++++++++++++++++++++++++++");
+//					System.out.println("numNewAlphaVectors=" + ipomdp.numNewAlphaVectors);
+////					System.out.println("newPointBasedValues " + Arrays.deepToString(ipomdp.newPointBasedValues));
+//					System.out.println("New dpBackup, " 
+//							+ (OP.max(ipomdp.newPointBasedValues[i], ipomdp.numNewAlphaVectors)
+//								- OP.max(ipomdp.currentPointBasedValues[i])));
 					newVector = dpBackup(beliefRegion[i], primedV, maxAbsVal);
 
 					newVector.alphaVector = OP.approximate(
@@ -315,7 +315,7 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 
 					nDpBackups = nDpBackups + 1;
 					
-					System.out.println("New alpha vector is " + newVector.alphaVector);
+//					System.out.println("New alpha vector is " + newVector.alphaVector);
 					
 					/*
 					 * merge and trim
@@ -337,8 +337,8 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 													ipomdp.newPointBasedValues, 
 													ipomdp.numNewAlphaVectors)));
 					
-					System.out.println("improvement is " + improvement);
-					System.out.println("tolerance is " + ipomdp.tolerance);
+//					System.out.println("improvement is " + improvement);
+//					System.out.println("tolerance is " + ipomdp.tolerance);
 					
 					if (improvement > ipomdp.tolerance) {
 						
@@ -352,12 +352,12 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 					}
 				}
 				
-				System.out.println("numNewAlphaVectors=" + ipomdp.numNewAlphaVectors);
+//				System.out.println("numNewAlphaVectors=" + ipomdp.numNewAlphaVectors);
 //				System.out.println("newPointBasedValues " + Arrays.deepToString(ipomdp.newPointBasedValues));
-				System.out.println("dpBackUp value, " 
-						+ (OP.max(ipomdp.newPointBasedValues[i], ipomdp.numNewAlphaVectors)
-							- OP.max(ipomdp.currentPointBasedValues[i])));
-				System.out.println((ipomdp.numNewAlphaVectors < maxAlphaSetSize && !permutedIds.isempty()));
+//				System.out.println("dpBackUp value, " 
+//						+ (OP.max(ipomdp.newPointBasedValues[i], ipomdp.numNewAlphaVectors)
+//							- OP.max(ipomdp.currentPointBasedValues[i])));
+//				System.out.println((ipomdp.numNewAlphaVectors < maxAlphaSetSize && !permutedIds.isempty()));
 			}
 
 			computeMaxMinImprovement(beliefRegion);
@@ -372,7 +372,7 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 			ipomdp.policy = new int[ipomdp.numNewAlphaVectors];
 			ipomdp.policyvalue = new double[ipomdp.numNewAlphaVectors];
 			
-			System.out.println("Unique policy is " + Arrays.toString(ipomdp.uniquePolicy));
+//			System.out.println("Unique policy is " + Arrays.toString(ipomdp.uniquePolicy));
 			
 			for (int j = 0; j < ipomdp.Ai.size(); j++)
 				ipomdp.uniquePolicy[j] = false;
@@ -462,9 +462,9 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 		
 		smallestProb = ipomdp.tolerance / maxAbsVal;
 //		System.out.println("BelState is " + Arrays.deepToString(belState));
-		System.out.println("\r\n=================================================");
+//		System.out.println("\r\n=================================================");
 		nextBelStates = oneStepNZPrimeBelStates(belState, true, smallestProb);
-		System.out.println("nextBelState are " + nextBelStates.length);
+//		System.out.println("nextBelState are " + nextBelStates.length);
 		
 		/*
 		 * precompute obsVals
@@ -501,7 +501,7 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 			nextBelStates[actId].getObsStrat();
 			actValue = actValue + ipomdp.discFact
 					* nextBelStates[actId].getSumObsValues();
-			System.out.println("ActVal is " + actValue);
+//			System.out.println("ActVal is " + actValue);
 			if (actValue > bestValue) {
 				
 				bestValue = actValue;
@@ -558,22 +558,52 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 			}
 		}
 		
+//		System.out.println("nextValFn is " + nextValFn);
+		
+		/* include Mj's transition for computing value function */
+		DD mjTransition = 
+				OP.addMultVarElim(
+						ArrayUtils.add(ipomdp.currentOj, ipomdp.currentMjTfn), 
+						ipomdp.obsJVarPrimeIndices);
+		
+		DD[] valFnArray = 
+				ArrayUtils.addAll(
+						ArrayUtils.addAll(
+								this.ipomdp.currentTi.get(this.ipomdp.Ai.get(bestActId)),
+								this.ipomdp.currentOi.get(this.ipomdp.Ai.get(bestActId))), 
+						new DD[] {mjTransition, nextValFn}); 
+		
+//		newAlpha = 
+//				OP.addMultVarElim(
+//						IPOMDP.concatenateArray(
+//								this.ipomdp.currentTi.get(this.ipomdp.Ai.get(bestActId)), 
+//								this.ipomdp.currentOi.get(this.ipomdp.Ai.get(bestActId)), 
+//								nextValFn),
+//				IPOMDP.concatenateArray(
+//						this.ipomdp.stateVarPrimeIndices, 
+//						this.ipomdp.obsIVarPrimeIndices));
 		newAlpha = 
 				OP.addMultVarElim(
-						IPOMDP.concatenateArray(
-								this.ipomdp.currentTi.get(this.ipomdp.Ai.get(bestActId)), 
-								this.ipomdp.currentOi.get(this.ipomdp.Ai.get(bestActId)), 
-								nextValFn),
-				IPOMDP.concatenateArray(
-						this.ipomdp.stateVarPrimeIndices, 
-						this.ipomdp.obsIVarPrimeIndices));
+						valFnArray, 
+						ArrayUtils.addAll(
+								this.ipomdp.stateVarPrimeIndices,
+								this.ipomdp.obsIVarPrimeIndices));
 		
+//		System.out.println("function is " + Arrays.deepToString(IPOMDP.concatenateArray(
+//								this.ipomdp.currentTi.get(this.ipomdp.Ai.get(bestActId)), 
+//								this.ipomdp.currentOi.get(this.ipomdp.Ai.get(bestActId)), 
+//								nextValFn)));
+//		System.out.println("Summing out over " + Arrays.toString(IPOMDP.concatenateArray(
+//						this.ipomdp.stateVarPrimeIndices, 
+//						this.ipomdp.obsIVarPrimeIndices)));
+//		System.out.println("newAlpha is " + newAlpha);
 		newAlpha = 
 				OP.addN(
 						IPOMDP.concatenateArray(
 								newAlpha, 
 								this.ipomdp.currentRi.get(this.ipomdp.Ai.get(bestActId))));
 		
+//		System.out.println("newAlpha is " + newAlpha);
 		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
 		// package up to return
 		AlphaVector returnAlpha = new AlphaVector(newAlpha, bestValue,
@@ -587,7 +617,7 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 			boolean normalize, 
 			double smallestProb) throws ZeroProbabilityObsException, VariableNotFoundException {
 		
-		System.out.println("Starting from " + InteractiveBelief.toStateMap(ipomdp, OP.multN(belState)));
+//		System.out.println("Starting from " + InteractiveBelief.toStateMap(ipomdp, OP.multN(belState)));
 		int[][] obsConfig = 
 				new int[this.ipomdp.obsCombinations.size()][this.ipomdp.obsIVarIndices.length];
 		
@@ -605,7 +635,7 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 								0, 
 								this.ipomdp.obsIVarIndices.length));
 		
-		System.out.println("possible observations are " + Arrays.deepToString(obsConfig));
+//		System.out.println("possible observations are " + Arrays.deepToString(obsConfig));
 		
 		Global.newHashtables();
 		
@@ -622,7 +652,7 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 							OP.multN(belState), this.ipomdp.Ai.get(actId));
 
 			obsProbs = OP.convert2array(dd_obsProbs, this.ipomdp.obsIVarPrimeIndices);
-			System.out.println("obsProbs are " + Arrays.toString(obsProbs));
+//			System.out.println("obsProbs are " + Arrays.toString(obsProbs));
 			nextBelStates[actId] = new NextBelState(this.ipomdp, obsProbs, smallestProb);
 			
 			/*

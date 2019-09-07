@@ -850,8 +850,6 @@ public class IPOMDP extends POMDP {
 			if (this.currentLookAheadTree.iBeliefTree.containsKey(belief))
 				currentBeliefs.add(belief);
 		
-		System.out.println("region is " + currentBeliefs.size() + " and total is " + this.currentLookAheadTree.iBeliefPoints.size());
-		
 		return currentBeliefs;
 	}
 }

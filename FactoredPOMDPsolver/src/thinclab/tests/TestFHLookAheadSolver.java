@@ -53,7 +53,7 @@ class TestFHLookAheadSolver {
 			tigerL1IPOMDP.solveOpponentModels();
 			tigerL1IPOMDP.initializeIS();
 			
-			solver.solvePBVI(1, 6);
+			solver.solvePBVI(1, 1000);
 		} 
 		
 		catch (Exception e) {
@@ -74,7 +74,7 @@ class TestFHLookAheadSolver {
 		assertNull(p1.alphaVectors);
 //		assertNull(p2.alphaVectors);
 		
-		p1.solvePBVI(1, 6);
+		p1.solvePBVI(1, 10);
 //		p2.solvePBVI(15, 100);
 		
 		assertNotNull(p1.alphaVectors);
