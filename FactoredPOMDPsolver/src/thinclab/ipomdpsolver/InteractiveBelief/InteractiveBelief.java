@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -260,6 +261,33 @@ public class InteractiveBelief extends Belief {
 		}
 		
 		return beliefs;
+	}
+	
+	// ---------------------------------------------------------------------------------------------
+	
+	public static String toDot(IPOMDP ipomdp, DD belief) {
+		/*
+		 * Converts to a dot format node for graphviz
+		 */
+		
+		String endl = "\r\n";
+		String dotString = "[";
+		
+		dotString += "label=\"{BELIEF" + endl;
+		
+		HashMap<String, HashMap<String, Float>> stateMap = 
+				InteractiveBelief.toStateMap(ipomdp, belief);
+		
+		for (Entry<String, HashMap<String, Float>> sEntry : stateMap.entrySet()) {
+			
+			dotString += "|" + sEntry.getKey();
+			
+			for (Entry<String, Float> entry : sEntry.getValue().entrySet())
+				dotString += "|{" + entry.getKey() + "|" + entry.getValue() + "}";  
+		}
+
+		dotString += "}\" , shape=record]";
+		return dotString;
 	}
 	
 }

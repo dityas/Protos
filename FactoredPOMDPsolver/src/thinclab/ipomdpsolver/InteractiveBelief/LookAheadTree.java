@@ -13,8 +13,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import cern.colt.Arrays;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.ipomdpsolver.IPOMDP;
@@ -155,13 +157,59 @@ public class LookAheadTree {
 		dotString += "digraph G {" + endl;
 		
 		for (DD startB : this.iBeliefTree.keySet()) {
-			dotString += " " + startB.getAddress() 
-				+ " " + "[label=\"" 
-				+ InteractiveBelief.toStateMap(this.ipomdp, startB) + "\", shape=box]" + endl; 
+			dotString += " " + startB.getAddress()  
+				+ " " + InteractiveBelief.toDot(this.ipomdp, startB) + endl;
 		}
 		
 		dotString += "}" + endl;
 		
+		for (DD start : this.iBeliefTree.keySet()) {
+			for (String actName : this.iBeliefTree.get(start).keySet()) {
+				for (List<String> obs : this.iBeliefTree.get(start).get(actName).keySet()) {
+					dotString += start.getAddress() + "->" 
+							+ this.iBeliefTree.get(start).get(actName).get(obs).getAddress()
+							+ " [label=\"" + actName + obs + " \"]" + endl;
+				}
+			}
+		}
+		
+		dotString += "}";
 		return dotString;
+	}
+	
+	public List<String[]> toStringTriples() {
+		/*
+		 * Converts the belief tree into triples of <DD> - <act, obs> - <DD>
+		 */
+		
+		List<String[]> triples = new ArrayList<String[]>();
+		
+		for (DD start : this.iBeliefTree.keySet()) {
+			for (String actName : this.iBeliefTree.get(start).keySet()) {
+				for (List<String> obs : this.iBeliefTree.get(start).get(actName).keySet()) {
+					
+					/* Insert starting belief */
+					String[] triple = new String[3];
+					triple[0] = InteractiveBelief.toStateMap(this.ipomdp, start).toString();
+					
+					/* add edge */
+					triple[1] = 
+							Arrays.toString(
+									ArrayUtils.addAll(
+											new String[] {actName}, 
+											obs.toArray(new String[obs.size()])));
+					
+					/* add updated belief */
+					triple[2] = 
+							InteractiveBelief.toStateMap(
+									this.ipomdp, 
+									this.iBeliefTree.get(start).get(actName).get(obs)).toString();
+					
+					triples.add(triple);
+				}
+			}
+		}
+		
+		return triples;
 	}
 }

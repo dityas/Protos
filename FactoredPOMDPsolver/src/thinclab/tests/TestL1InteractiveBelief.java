@@ -22,6 +22,8 @@ import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.OP;
+import thinclab.utils.visualizers.Visualizer;
+import thinclab.utils.visualizers.VizGraph;
 
 /*
  * @author adityas
@@ -178,13 +180,12 @@ class TestL1InteractiveBelief {
 			tigerL1IPOMDP.initializeIS();
 			
 			LookAheadTree lt = new LookAheadTree(tigerL1IPOMDP);
-//			System.out.println(tigerL1IPOMDP.oppModel.nodeIndex);
-			for (DD b : lt.iBeliefPoints) {
-//				System.out.println(InteractiveBelief.toStateMap(tigerL1IPOMDP, b));
-			}
 			
-			System.out.println();
-			System.out.println(lt.toDot());
+//			VizGraph vg = VizGraph.getVizGraphFromLATreeTriples(lt.toStringTriples());
+//			System.out.println(vg.graph);
+			
+			Visualizer viz = 
+					new Visualizer(VizGraph.getVizGraphFromLATreeTriples(lt.toStringTriples()));
 		}
 
 		catch (Exception e) {
