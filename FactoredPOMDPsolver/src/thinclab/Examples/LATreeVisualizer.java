@@ -9,6 +9,7 @@ package thinclab.Examples;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import cern.colt.Arrays;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
@@ -31,20 +32,26 @@ public class LATreeVisualizer {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser("/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt");
+		
 		parser.parseDomain();
 		
 		/*
 		 * Initialize IPOMDP
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 2);
+		
 		try {
+			
 			tigerL1IPOMDP.solveOpponentModels();
 			tigerL1IPOMDP.initializeIS();
 			
 			LookAheadTree lt = new LookAheadTree(tigerL1IPOMDP);
-			
 			Visualizer viz = 
-					new Visualizer(VizGraph.getVizGraphFromLATreeTriples(lt.toStringTriples()));
+					new Visualizer(
+							VizGraph.getVizGraphFromLATreeTriples(
+									lt.toStringTriples()));
+			
+			
 		}
 
 		catch (Exception e) {

@@ -68,6 +68,9 @@ public class InteractiveBelief extends Belief {
 		/*
 		 * First reduce Oi based on observations
 		 */
+
+		Global.clearHashtables();
+
 		int[] obsVals = new int[ipomdp.Omega.size() - ipomdp.OmegaJNames.size()];
 		
 		for (int o = 0; o < obsVals.length; o++) {
@@ -87,26 +90,25 @@ public class InteractiveBelief extends Belief {
 						ipomdp.currentOi.get(actName), 
 						IPOMDP.stackArray(
 								ipomdp.obsIVarPrimeIndices, obsVals));
-		
+
 		/* Collect f1 = P(S, Mj) x P(S', S, Mj) */
-		DD[] f1 = ArrayUtils.add(ipomdp.currentTi.get(actName), startBelief);
+		DD f1 = OP.multN(ArrayUtils.add(ipomdp.currentTi.get(actName), startBelief));
 		
 		/* Collect f2 = f1 x P(Oi'=o, S', Mj) */
-		DD[] f2 = ArrayUtils.addAll(f1, restrictedOi);
+		DD f2 = OP.multN(ArrayUtils.addAll(restrictedOi, f1));
 		
 		/* Collect f3 = P(Oj', S', Mj) x P(Mj', Mj, Oj') */
-		DD[] f3 = ArrayUtils.add(ipomdp.currentOj, ipomdp.currentMjTfn);
-		
-		/* Collect f4 = f2 x f3 */
-		DD[] f4 = ArrayUtils.addAll(f2, f3);
+		DD f3 = OP.addMultVarElim(
+					ArrayUtils.add(
+							ipomdp.currentOj, 
+							ipomdp.currentMjTfn),
+					ipomdp.obsJVarPrimeIndices);
 		
 		/* Multiply and sum out */
 		DD nextBelief = 
 				OP.addMultVarElim(
-						f4, 
-						ArrayUtils.addAll(
-								ipomdp.stateVarIndices, 
-								ipomdp.obsJVarPrimeIndices));
+						new DD[] {f2, f3}, 
+						ipomdp.stateVarIndices);
 		
 		/* Shift indices */
 		nextBelief = OP.primeVars(nextBelief, -(ipomdp.S.size() + ipomdp.Omega.size()));
@@ -118,7 +120,7 @@ public class InteractiveBelief extends Belief {
 			throw new ZeroProbabilityObsException(
 					"Observation " + Arrays.toString(observations) 
 					+ " not possible at belief " + startBelief);
-		
+
 		return OP.div(nextBelief, norm); 
 	}
 	
@@ -232,10 +234,10 @@ public class InteractiveBelief extends Belief {
 		for (int varId = 0; varId < ipomdp.stateVarIndices.length; varId++) {
 			
 			fbs[varId] = OP.addMultVarElim(belState,
-					MySet.remove(ipomdp.varIndices, varId + 1));
+					ArrayUtils.remove(ipomdp.stateVarIndices, varId));
 			
 			/* Make state variable name */
-			String name = ipomdp.varName[varId];
+			String name = ipomdp.S.get(varId).name;
 			
 			/* Get respective belief for the variable */
 			DD[] varChildren = fbs[varId].getChildren();
@@ -288,6 +290,46 @@ public class InteractiveBelief extends Belief {
 
 		dotString += "}\" , shape=record]";
 		return dotString;
+	}
+	
+	public static String getBeliefNodeLabel(IPOMDP ipomdp, DD belief) {
+		/*
+		 * Returns formatted and printable string for using with VizNodes
+		 */
+		String label = "";
+		String endl = "<br>";
+		
+		HashMap<String, HashMap<String, Float>> sMap = 
+				InteractiveBelief.toStateMap(ipomdp, belief);
+		
+		for (String stateVar: sMap.keySet()) {
+			
+			/* add state name */
+			label += stateVar + endl;
+			
+			HashMap<String, Float> valProbs = sMap.get(stateVar);
+			
+			for (String valName : valProbs.keySet()) {
+				
+				/*
+				 * if state var is M_j, create label <prob - lower level belief - Aj>
+				 */
+				if (stateVar.contains("M_j")) {
+					
+					String lowerLevelBelief = valName + " " +
+							ipomdp.getLowerLevelBelief(valName).toString().replace(",", "<br>");
+					
+					label += lowerLevelBelief + " = " + valProbs.get(valName) 
+						+ endl +" Aj: " + ipomdp.getOptimalActionAtMj(valName) + endl + endl;
+				}
+				
+				else label += valName + " = " + valProbs.get(valName) + endl;
+			}
+			
+			label += "-------------------------" + endl;
+		}
+		
+		return label;
 	}
 	
 }

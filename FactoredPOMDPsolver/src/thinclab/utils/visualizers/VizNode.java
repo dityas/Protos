@@ -37,7 +37,7 @@ public class VizNode {
 		 * Generic constructor to set id and data at node creation
 		 */
 		this.nodeId = id;
-		this.data = data.replace(",", "<br>");
+		this.data = data;
 		
 		/* set height */
 		this.height = (int) this.data.chars().filter(c -> c == '<').count();

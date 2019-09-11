@@ -190,7 +190,7 @@ public class LookAheadTree {
 					
 					/* Insert starting belief */
 					String[] triple = new String[3];
-					triple[0] = InteractiveBelief.toStateMap(this.ipomdp, start).toString();
+					triple[0] = InteractiveBelief.getBeliefNodeLabel(this.ipomdp, start).toString();
 					
 					/* add edge */
 					triple[1] = 
@@ -201,7 +201,7 @@ public class LookAheadTree {
 					
 					/* add updated belief */
 					triple[2] = 
-							InteractiveBelief.toStateMap(
+							InteractiveBelief.getBeliefNodeLabel(
 									this.ipomdp, 
 									this.iBeliefTree.get(start).get(actName).get(obs)).toString();
 					

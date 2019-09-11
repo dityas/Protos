@@ -9,6 +9,7 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -52,49 +53,38 @@ class TestL1InteractiveBelief {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 5, 3);
 		try {
 			tigerL1IPOMDP.solveOpponentModels();
 			tigerL1IPOMDP.initializeIS();
 			
 			DD start = tigerL1IPOMDP.lookAheadRootInitBeliefs.get(0);
-			List<List<String>> obs = tigerL1IPOMDP.getAllObservationsList();
+						
+			DD nextBelief = 
+					InteractiveBelief.staticL1BeliefUpdate(
+							tigerL1IPOMDP, 
+							start, "listen", new String[] {"growl-left", "creak-left"});
 			
-			for (String Ai : tigerL1IPOMDP.Ai) {
-				for (List<String> o : obs) {
-					
-					DD nextBelief;
-					
-					try {
-						nextBelief = InteractiveBelief.staticL1BeliefUpdate(
-										tigerL1IPOMDP, start, Ai, o.toArray(new String[o.size()]));
-					}
-					
-					catch (ZeroProbabilityObsException e) {
-						continue;
-					}
-					
-					System.out.println(
-							"For action " 
-							+ Ai + " obs " 
-							+ o + " starting from belief " 
-							+ InteractiveBelief.toStateMap(tigerL1IPOMDP, start));
-					
-					System.out.println("Next Belief is " + InteractiveBelief.toStateMap(
-							tigerL1IPOMDP, nextBelief));
-					
-					System.out.println("============================================\r\n");
-					
-					assertTrue(
-							OP.maxAll(
-									OP.abs(
-										OP.sub(
-											DD.one, 
-											OP.addMultVarElim(
-												nextBelief,
-												tigerL1IPOMDP.stateVarIndices)))) < 1e-8);
-				}
-			}
+			assertTrue(
+					InteractiveBelief.toStateMap(
+							tigerL1IPOMDP, 
+							nextBelief).get("tiger-location")
+									   .get("tiger-left") == 0.5);
+			
+			System.out.println(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBelief));
+			
+			nextBelief = 
+					InteractiveBelief.staticL1BeliefUpdate(
+							tigerL1IPOMDP, 
+							start, "listen", new String[] {"growl-left", "silence"});
+			
+			System.out.println(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBelief));
+			
+			assertTrue(
+					InteractiveBelief.toStateMap(
+							tigerL1IPOMDP, 
+							nextBelief).get("tiger-location")
+									   .get("tiger-left") > 0.5);
 		}
 
 		catch (Exception e) {
@@ -184,8 +174,8 @@ class TestL1InteractiveBelief {
 //			VizGraph vg = VizGraph.getVizGraphFromLATreeTriples(lt.toStringTriples());
 //			System.out.println(vg.graph);
 			
-			Visualizer viz = 
-					new Visualizer(VizGraph.getVizGraphFromLATreeTriples(lt.toStringTriples()));
+//			Visualizer viz = 
+//					new Visualizer(VizGraph.getVizGraphFromLATreeTriples(lt.toStringTriples()));
 		}
 
 		catch (Exception e) {

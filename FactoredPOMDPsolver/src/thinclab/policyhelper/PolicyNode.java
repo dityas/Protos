@@ -126,7 +126,7 @@ public class PolicyNode {
 	public String toString() {
 		return "PolicyNode [ID = " + this.id
 				+ " alphaId=" + this.alphaId 
-				+ " actId=" + actId 
+				+ " action=" + this.actName 
 				+ ", belief=" + this.factoredBelief 
 				+ ", nextNode=" + nextNode.toString() + "]\r\n";
 	}

@@ -128,14 +128,15 @@ class TestOpponentModels {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 10, 3);
 		try {
 
-			tigerL1IPOMDP.initializeFromParsers(parser);
+//			tigerL1IPOMDP.initializeFromParsers(parser);
 			
 			/* Get opponent model */
 			tigerL1IPOMDP.solveOpponentModels();
 			tigerL1IPOMDP.oppModel.expandFromRoots(3);
+			System.out.println(tigerL1IPOMDP.oppModel.currentNodes);
 			assertTrue(tigerL1IPOMDP.oppModel.currentNodes.size() > 1);
 			
 		} 
@@ -156,10 +157,10 @@ class TestOpponentModels {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 10, 2);
 		try {
 
-			tigerL1IPOMDP.initializeFromParsers(parser);
+//			tigerL1IPOMDP.initializeFromParsers(parser);
 			
 			/* Get opponent model */
 			tigerL1IPOMDP.solveOpponentModels();

@@ -52,7 +52,7 @@ public class OpponentModel {
 	 * Variables for determining the current context i.e. current roots and currently visited
 	 * nodes of the OpponentModel
 	 */
-	public List<String> currentRoots = new ArrayList<String>();
+	public HashSet<String> currentRoots = new HashSet<String>();
 	public HashSet<String> currentNodes =
 			new HashSet<String>();
 	
@@ -147,7 +147,7 @@ public class OpponentModel {
 				startNodes = nextNodes;
 				
 				/* TEST */
-				if (h < horizon) {
+				if (h < horizon - 1) {
 					this.currentRoots.addAll(nextNodes);
 				}
 			}
@@ -294,7 +294,7 @@ public class OpponentModel {
 		return node;
 	}
 	
-	public List<String> getCurrentRoots() {
+	public HashSet<String> getCurrentRoots() {
 		
 		return this.currentRoots;
 	}

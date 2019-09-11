@@ -21,6 +21,8 @@ import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.DAGLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
+import edu.uci.ics.jung.algorithms.layout.FRLayout2;
+import edu.uci.ics.jung.algorithms.layout.ISOMLayout;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
 import edu.uci.ics.jung.algorithms.layout.TreeLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
@@ -49,11 +51,14 @@ public class Visualizer {
 
 	public Visualizer(VizGraph vizGraph) {
 		
-		FRLayout<VizNode, VizEdge> layout = new FRLayout<VizNode, VizEdge>(vizGraph.graph); 
-
+//		FRLayout2<VizNode, VizEdge> layout = new FRLayout2<VizNode, VizEdge>(vizGraph.graph);
+//		layout.setAttractionMultiplier(0.1);
+//		layout.setRepulsionMultiplier(10.0);
+		ISOMLayout<VizNode, VizEdge> layout = new ISOMLayout<VizNode, VizEdge>(vizGraph.graph);
+		
 		VisualizationViewer<VizNode, VizEdge> vv = 
 				new VisualizationViewer<VizNode, VizEdge>(layout,
-				new Dimension(1000, 1000));
+				new Dimension(10000, 10000));
 
 		// --------------------------------------------------------------------
 		/*

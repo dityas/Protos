@@ -26,6 +26,7 @@ import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
+import thinclab.policyhelper.PolicyNode;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
@@ -472,7 +473,7 @@ public class IPOMDP extends POMDP {
 				
 				/* Make M_j factor */
 				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
-				
+
 				/* 
 				 * Collapse Aj into Mj to create f(Mj, S', O')
 				 */
@@ -851,5 +852,22 @@ public class IPOMDP extends POMDP {
 				currentBeliefs.add(belief);
 		
 		return currentBeliefs;
+	}
+	
+	public HashMap<String, HashMap<String, Float>> getLowerLevelBelief(String valName) {
+		/*
+		 * Gets the lower level belief state map for the given valName
+		 */
+		
+		PolicyNode node = this.oppModel.getPolicyNode(valName);
+		return node.factoredBelief;
+	}
+	
+	public String getOptimalActionAtMj(String mjNode) {
+		/*
+		 * Returns j's optimal action at model mj
+		 */
+		PolicyNode node = this.oppModel.getPolicyNode(mjNode);
+		return node.actName;
 	}
 }
