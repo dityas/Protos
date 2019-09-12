@@ -193,12 +193,12 @@ public class InteractiveBelief extends Belief {
 		 */
 		ipomdp.setGlobals();
 		
-		DD[] fbs = new DD[ipomdp.nStateVars];
+		DD[] fbs = new DD[ipomdp.stateVarIndices.length];
 		
 		/* For each state var, summout everything else */
-		for (int varId = 0; varId < ipomdp.nStateVars; varId++)
+		for (int varId = 0; varId < ipomdp.stateVarIndices.length; varId++)
 			fbs[varId] = OP.addMultVarElim(belief,
-					MySet.remove(ipomdp.varIndices, varId + 1));
+					ArrayUtils.remove(ipomdp.stateVarIndices, varId));
 
 		return fbs;
 	}

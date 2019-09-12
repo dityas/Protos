@@ -825,6 +825,7 @@ public class POMDP implements Serializable {
 		setGlobals();
 		
 		/* In the end, add all variables to the DDMaker and prime them */
+		this.ddMaker.clearContext();
 		this.S.stream().forEach(s -> this.ddMaker.addVariable(s.name, s.valNames));
 		this.Omega.stream().forEach(o -> this.ddMaker.addVariable(o.name, o.valNames));
 		this.ddMaker.primeVariables();

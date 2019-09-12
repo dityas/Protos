@@ -25,6 +25,9 @@ import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
+import thinclab.exceptions.VariableNotFoundException;
+import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
 import thinclab.policyhelper.PolicyNode;
 import thinclab.symbolicperseus.DD;
@@ -486,6 +489,7 @@ public class IPOMDP extends POMDP {
 				}
 				
 				this.logger.info("Made f(O', Mj, S') for O=" + o + " and Ai=" + Ai);
+
 				ddTrees[O.indexOf(o)] = OP.reorder(mjDDTree.toDD());
 			}
 			
@@ -796,8 +800,9 @@ public class IPOMDP extends POMDP {
 				this.oppModelVarIndex, 
 				this.oppModel.getOpponentModelStateVar(
 						this.oppModelVarIndex));
-		this.commitVariables();
+		
 		Global.clearHashtables();
+		this.commitVariables();
 		
 		this.logger.info("IS initialized to " + this.S);
 		
@@ -815,6 +820,7 @@ public class IPOMDP extends POMDP {
 		
 		DDTree mjRootBelief = this.oppModel.getOpponentModelInitBelief(this.ddMaker);
 		
+		this.lookAheadRootInitBeliefs.clear();
 		this.currentStateBeliefs.stream()
 			.forEach(s -> this.lookAheadRootInitBeliefs.add(
 					OP.multN(new DD[] {s.toDD(), mjRootBelief.toDD()})));
@@ -826,6 +832,97 @@ public class IPOMDP extends POMDP {
 		
 		this.currentRi = this.makeRi();
 		this.logger.info("Ri initialized for current look ahead horizon");
+
+	}
+	
+	//------------------------------------------------------------------------------------------
+	
+	public void step(
+			DD belief, 
+			String action, 
+			String[] obs) throws 
+	
+	ZeroProbabilityObsException, 
+	VariableNotFoundException {
+		
+		/*
+		 * Performs a static belief update from current belief by taking action and observing obs
+		 * 
+		 * The belief space is transformed according to the next belief. 
+		 */
+		
+		this.logger.info("Taking action " + action + "\r\n"
+				+ " at belief " + InteractiveBelief.toStateMap(this, belief) + "\r\n"
+				+ " with observation " + Arrays.toString(obs));
+		
+		/* perform belief update */
+		DD nextBelief = 
+				InteractiveBelief.staticL1BeliefUpdate(
+						this, 
+						belief, 
+						action, 
+						obs);
+		
+		this.logger.info("Next belief is " + InteractiveBelief.toStateMap(this, nextBelief));
+		
+		/* transform Mj space to include new models in the next belief with non zero probabilities */
+		this.transformMjSpace(nextBelief);
+		this.logger.info("Transformed belief space");
+		
+		/* re initialize IS */
+		this.initializeIS();
+		this.logger.info("IS reinitialized");
+	}
+	
+	public void transformMjSpace(DD belief) {
+		/*
+		 * Changes the belief space according to the new policy nodes in the current belief 
+		 */
+		
+		/* remove all current Mj nodes from the opponent model object */
+		this.oppModel.clearCurrentContext();
+		
+		/* factor the interactive belief to get belief of the physical state */
+		DD[] factoredBelief = InteractiveBelief.factorInteractiveBelief(this, belief);
+		
+		/*
+		 * For the current implementation, there is a single interactive state variable
+		 * representing the opponent model. So the belief over physical states can be extracted
+		 * by factoring the interactive belief and then multiplying the n - 1 beliefs.
+		 * 
+		 * In future implementations with multiple frames, there may be an implementation with
+		 * multiple state variables for opponent models. In such cases, the number of physical
+		 * states will have to be stored explicitly.
+		 * 
+		 * WARNING: the extracted belief over physical states has to be a DDTree object and not a DD
+		 * object. This is because the transformation of Mj space will overwrite the Global variable 
+		 * indices. So the DD object will no longer be valid after the overwrite.
+		 */
+		this.currentStateBeliefs.clear();
+		
+		this.currentStateBeliefs.add(
+				OP.multN(
+						ArrayUtils.subarray(
+								factoredBelief, 
+								0, 
+								factoredBelief.length - 1)).toDDTree());
+		
+		/* Get mj nodes with non zero probabilities */
+		HashMap<String, Float> mjBelief = InteractiveBelief.toStateMap(this, belief).get("M_j");
+		this.oppModel.storePreviousBeliefValues(mjBelief);
+		
+		/*
+		 * add individual node names to mextMj for expand function.
+		 * 
+		 * This is a weird way to call the expand function.
+		 * 
+		 * TODO: fix opponent model expansion API to accommodate previous non zero belief
+		 */
+		HashSet<String> nextMj = new HashSet<String>();
+		nextMj.addAll(mjBelief.keySet());
+		
+		/* Expand from non zero Mj to create new Mj space */
+		this.oppModel.expandForHorizon(nextMj, this.mjLookAhead);
 	}
 	
 	// -----------------------------------------------------------------------------------------

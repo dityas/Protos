@@ -100,6 +100,14 @@ public class DDMaker {
 		
 	} // public void addAll
 	
+	public void clearContext() {
+		/* Clears all current variables */
+		this.theLogger.severe("Clearing current context!");
+		
+		this.variablesHashMap.clear();
+		this.primed = false;
+	}
+	
 	// ------------------------------------------------------------------------------
 	// Create instance from variables context
 	

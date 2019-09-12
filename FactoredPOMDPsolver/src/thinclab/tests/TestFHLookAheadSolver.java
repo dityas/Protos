@@ -54,6 +54,7 @@ class TestFHLookAheadSolver {
 			tigerL1IPOMDP.initializeIS();
 			
 			solver.solvePBVI(1, 1000);
+			System.out.println(solver.getBestActionsMap());
 		} 
 		
 		catch (Exception e) {

@@ -60,23 +60,25 @@ class TestOpponentModels {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		try {
 
-			tigerL1IPOMDP.initializeFromParsers(parser);
+//			tigerL1IPOMDP.initializeFromParsers(parser);
 			
 			/* Get opponent model */
 //			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
 			tigerL1IPOMDP.solveOpponentModels();
+			tigerL1IPOMDP.initializeIS();
+			
 			/* 
 			 * manually compute the total nodes in the opponent model for
 			 * verification.
 			 */
-			int totalNodes = tigerL1IPOMDP.lowerLevelFrames.stream()
-					.map(f -> f.getPolicyTree(15).policyNodes.size())
-					.reduce(0, (totalSize, frameSize) -> totalSize + frameSize);
-			
-			assertEquals(tigerL1IPOMDP.oppModel.nodesList.size(), totalNodes);
+//			int totalNodes = tigerL1IPOMDP.lowerLevelFrames.stream()
+//					.map(f -> f.getPolicyTree(15).policyNodes.size())
+//					.reduce(0, (totalSize, frameSize) -> totalSize + frameSize);
+//			
+//			assertEquals(tigerL1IPOMDP.oppModel.nodesList.size(), totalNodes);
 		} 
 		
 		catch (Exception e) {
@@ -99,11 +101,12 @@ class TestOpponentModels {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 10, 3);
 		try {
 
-			tigerL1IPOMDP.initializeFromParsers(parser);
+//			tigerL1IPOMDP.initializeFromParsers(parser);
 			tigerL1IPOMDP.solveOpponentModels();
+			tigerL1IPOMDP.initializeIS();
 			/* Get opponent model */
 //			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
 			
@@ -157,14 +160,14 @@ class TestOpponentModels {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 10, 2);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		try {
 
 //			tigerL1IPOMDP.initializeFromParsers(parser);
 			
 			/* Get opponent model */
 			tigerL1IPOMDP.solveOpponentModels();
-			tigerL1IPOMDP.oppModel.expandFromRoots(3);
+			tigerL1IPOMDP.initializeIS();
 			
 			StateVar Mj = 
 					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
@@ -172,6 +175,35 @@ class TestOpponentModels {
 			
 			System.out.println(Mj);
 			
+		} 
+		
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			fail();
+		}
+	}
+	
+	@Test
+	void testContextClearing() {
+		System.out.println("Running testContextClearing()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 10, 2);
+		try {
+			
+			/* Get opponent model */
+			tigerL1IPOMDP.solveOpponentModels();
+			tigerL1IPOMDP.initializeIS();
+			
+			tigerL1IPOMDP.oppModel.clearCurrentContext();
+			
+			assertTrue(tigerL1IPOMDP.oppModel.currentNodes.isEmpty());
+			assertTrue(tigerL1IPOMDP.oppModel.currentRoots.isEmpty());
 		} 
 		
 		catch (Exception e) {

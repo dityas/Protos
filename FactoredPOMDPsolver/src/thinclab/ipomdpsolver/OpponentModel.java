@@ -56,6 +56,14 @@ public class OpponentModel {
 	public HashSet<String> currentNodes =
 			new HashSet<String>();
 	
+	/*
+	 * Previous belief over Mj
+	 * 
+	 * When transforming Mj belief to a new belief space, instead of assigning a uniform
+	 * distribution over all nodes, use the probabilities from the previous belief
+	 */
+	public HashMap<String, Float> previousMjBeliefs = new HashMap<String, Float>();
+	
 	// ------------------------------------------------------------------------------------------
 	
 	public OpponentModel(List<POMDP> frames, int horizon) {
@@ -171,7 +179,24 @@ public class OpponentModel {
 		this.expandForHorizon(new HashSet<String>(this.currentRoots), horizon);
 	}
 	
+	public void clearCurrentContext() {
+		/*
+		 * Clears the data structures representing currently visited nodes
+		 */
+		this.currentNodes.clear();
+		this.currentRoots.clear();
+	}
+	
 	// -----------------------------------------------------------------------------
+	
+	public void storePreviousBeliefValues(HashMap<String, Float> previousBelief) {
+		/*
+		 * Store previous non zero beliefs to create initial belief over the transformed
+		 * belief state
+		 */
+		this.previousMjBeliefs.clear();
+		this.previousMjBeliefs = previousBelief;
+	}
 	
 	public DDTree getOpponentModelInitBelief(DDMaker ddMaker) {
 		/*
@@ -180,16 +205,34 @@ public class OpponentModel {
 		this.logger.info("Making initial belief for current opponent model traversal");
 		DDTree beliefMj = ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
 		
-		/* Uniform distribution over all current roots */
-		for (String node : this.currentRoots) {
+		if (this.previousMjBeliefs.size() == 0) {
+			/* Uniform distribution over all current roots */
+			for (String node : this.currentRoots) {
+				
+				try {
+					beliefMj.setValueAt(node, (1.0 / this.currentRoots.size()));
+				} 
+				
+				catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		/* else use previous belief values */
+		else {
 			
-			try {
-				beliefMj.setValueAt(node, (1.0 / this.currentRoots.size()));
-			} 
-			
-			catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			for (String node : this.previousMjBeliefs.keySet()) {
+				
+				try {
+					beliefMj.setValueAt(node, this.previousMjBeliefs.get(node).floatValue());
+				} 
+				
+				catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		
@@ -224,30 +267,6 @@ public class OpponentModel {
 		 */
 		
 		List<String[]> triples = new ArrayList<String[]>();
-		
-//		for (PolicyNode node : this.nodesList) {
-//			
-//			/* if node is terminal, give equal probability of ending in all states */
-//			
-//			/* for each possible obs */
-//			for (Entry<List<String>, Integer> entry : node.nextNode.entrySet()) {
-//				List<String> triple = new ArrayList<String>();
-//				
-//				/* add start node */
-//				triple.add("m" + node.id);
-//				
-//				/* add obs combination */
-//				triple.addAll(entry.getKey());
-//				
-//				/* add end node */
-//				triple.add("m" + entry.getValue());
-//				
-//				/* add probability 1.0 for deterministic transition */
-//				triple.add("1.0");
-//				
-//				triples.add(triple.toArray(new String[triple.size()]));
-//			}
-//		}
 		
 		for (String node : this.currentNodes) {
 			
