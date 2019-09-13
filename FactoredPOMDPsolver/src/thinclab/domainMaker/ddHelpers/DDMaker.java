@@ -12,12 +12,13 @@ import java.util.logging.Logger;
 
 import thinclab.domainMaker.SPUDDHelpers.NextLevelVariablesContext;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
+import thinclab.utils.LoggerFactory;
 
 public class DDMaker {
 	/*
 	 * Helper class for making DDs from variable sequences and triples and all that
 	 */
-	private static final Logger theLogger = Logger.getLogger("DDMaker");
+	private Logger theLogger = LoggerFactory.getNewLogger("DDMaker");
 	private HashMap<String, String[]> variablesHashMap = new HashMap<String, String[]>();
 	private boolean primed = false;
 	

@@ -391,6 +391,11 @@ class TestIPOMDP {
 					"listen", 
 					new String[] {"growl-right", "silence"});
 			
+			tigerL1IPOMDP.step(
+					tigerL1IPOMDP.lookAheadRootInitBeliefs.get(0), 
+					"listen", 
+					new String[] {"growl-right", "silence"});
+			
 			HashSet<String> beliefNodesNow = tigerL1IPOMDP.oppModel.currentRoots;
 			System.out.println(beliefNodesNow);
 			System.out.println(
