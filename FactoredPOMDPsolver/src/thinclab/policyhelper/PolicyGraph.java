@@ -38,7 +38,7 @@ public class PolicyGraph {
 			this.policyNodeHashMap.put(new Integer(nodeCurr.alphaId), nodeCurr);
 			
 			// compress observations for pretty graph
-			nodeCurr.compressNextNodes();
+//			nodeCurr.compressNextNodes();
 			
 			// Add nextNode IDs to succerorMap
 			successorMap.put(new Integer(nodeCurr.alphaId), nodeCurr.nextNode);

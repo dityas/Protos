@@ -23,7 +23,7 @@ public class LoggerFactory {
 	
 	public static Logger getNewLogger(String name) {
 		Logger logger = Logger.getLogger(name);
-		logger.setLevel(Level.OFF);
+//		logger.setLevel(Level.OFF);
 		
 		return logger;
 	}

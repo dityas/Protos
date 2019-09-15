@@ -10,8 +10,13 @@ package thinclab.ipomdpsolver;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
+import thinclab.utils.BeliefTreeTable;
 import thinclab.utils.LoggerFactory;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,6 +69,11 @@ public class OpponentModel {
 	 */
 	public HashMap<String, Float> previousMjBeliefs = new HashMap<String, Float>();
 	
+	/*
+	 * Connection objects and variables for db handling
+	 */
+	private BeliefTreeTable localStorage = new BeliefTreeTable();
+	
 	// ------------------------------------------------------------------------------------------
 	
 	public OpponentModel(List<POMDP> frames, int horizon) {
@@ -109,7 +119,7 @@ public class OpponentModel {
 			});
 	}
 	
-	// -----------------------------------------------------------------------------
+	// ------------------------------------------------------------------------------
 	
 	public HashSet<String> step(HashSet<String> parents) 
 			throws VariableNotFoundException {
@@ -154,10 +164,10 @@ public class OpponentModel {
 				this.currentNodes.addAll(nextNodes);
 				startNodes = nextNodes;
 				
-				/* TEST */
-				if (h < horizon - 1) {
-					this.currentRoots.addAll(nextNodes);
-				}
+//				/* TEST */
+//				if (h < horizon - 1) {
+//					this.currentRoots.addAll(nextNodes);
+//				}
 			}
 			
 			catch (Exception e) {

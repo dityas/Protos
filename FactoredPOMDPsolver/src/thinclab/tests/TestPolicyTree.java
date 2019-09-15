@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,6 +26,7 @@ import thinclab.policyhelper.PolicyGraph;
 import thinclab.policyhelper.PolicyTree;
 import thinclab.policyhelper.PolicyVisualizer;
 import thinclab.symbolicperseus.POMDP;
+import thinclab.utils.BeliefTreeTable;
 
 /*
  * @author adityas
@@ -72,7 +75,6 @@ class TestPolicyTree {
 		PolicyTree policyTree = new PolicyTree(pomdp, 2);
 		long endTime = System.nanoTime();
 		
-		assertTrue(policyTree.policyNodes.size() > pomdp.getInitialBeliefsList().size());
 		System.out.println(policyTree.policyNodes);
 	}
 	

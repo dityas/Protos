@@ -1,21 +1,25 @@
 package thinclab.policyhelper;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.logging.Logger;
 
-import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.Belief.Belief;
-import thinclab.symbolicperseus.Belief.BeliefTreeNode;
+import thinclab.utils.LoggerFactory;
 
 public class PolicyNode {
 	
 	int alphaId=-1;
 	int actId = 1;
+	
 	public String actName = "";
-	DD belief;
+	public DD belief;
+
 	public int id = -1;
+	public int H = -1;
+	
+	private Logger logger = LoggerFactory.getNewLogger("Node");
 	
 	public HashMap<String, HashMap<String, Float>> factoredBelief;
 	
@@ -58,7 +62,7 @@ public class PolicyNode {
 		/*
 		 * Fill in belief state map
 		 */
-		this.factoredBelief = Belief.toStateMap(this.p, this.belief);
+		this.factoredBelief = Belief.toStateMap(this.p, belief);
 	}
 	
 	public PolicyNode(POMDP p, DD belief, int level, int maxDepth) {
@@ -66,43 +70,32 @@ public class PolicyNode {
 		 * Initialize PolicyNode for a level in the policy tree
 		 */
 		this(p, belief);
-		
+	}
+	
+	public PolicyNode(POMDP p, DD belief, int horizon) {
 		/*
-		 * Check if this is the maxDepth for the policy tree. If not, expand to children.
+		 * Constructor to store belief, action and horizon
 		 */
-		if (level < maxDepth) {
-			
-			List<List<String>> obs = this.p.getAllObservationsList();
-			Iterator<List<String>> obsIter = obs.iterator();
-			while (obsIter.hasNext()) {
-				List<String> o = obsIter.next();
-				
-				DD nextBelief = null;
-				
-				try {
-					nextBelief = 
-							Belief.beliefUpdate(
-									this.p, 
-									this.belief, 
-									this.actId, o.toArray(new String[o.size()]));
-				}
-				
-				catch (Exception e) {
-					continue;
-				}
-				
-				this.nextPolicyNode.put(o, new PolicyNode(this.p, nextBelief, level + 1, maxDepth));
-			}
-		}
+		this(p, belief);
+		this.H = horizon;
+		
+		this.logger.fine("New PolicyNode initialized with belief " + Belief.toStateMap(p, belief)
+				+ " and optimal action " + this.actName + " at time step " + this.H);
 	}
 	
 	// ------------------------------------------------------------------------------------
 	
 	public void setId(int id) {
+		/*
+		 * Setter for id
+		 */
 		this.id = id;
 	}
 	
 	public void setStartNode() {
+		/*
+		 * Marks the node as a start node
+		 */
 		this.startNode = true;
 	}
 	
@@ -140,68 +133,6 @@ public class PolicyNode {
 		return header;
 	}
 	
-	public void compressNextNodes() {
-		/*
-		 * This is just for JUNG visualization. Groups together keys which lead to common nodes
-		 */
-		HashMap<Integer, List<List<String>>> nextNodeToObsMap = new HashMap<Integer, List<List<String>>>();
-		
-		/*
-		 *  populate reverse hash map
-		 */
-		Iterator<Map.Entry<List<String>, Integer>> nextNodeIter = this.nextNode.entrySet().iterator();
-		while(nextNodeIter.hasNext()) {
-			Map.Entry<List<String>, Integer> theEdge = nextNodeIter.next();
-			
-			Integer child = theEdge.getValue();
-			// Check if node exists
-			if(nextNodeToObsMap.get(theEdge.getValue()) == null) {
-				nextNodeToObsMap.put(theEdge.getValue(), new ArrayList<List<String>>());
-			}
-			
-			List<List<String>> commonObservations = nextNodeToObsMap.get(child);
-			commonObservations.add(theEdge.getKey());
-			nextNodeToObsMap.put(child, commonObservations);
-
-		} // while(nextNodeIter.hasNext())
-		
-		/*
-		 *  Loop over reverse map and add compressed edges to compressedNextNode
-		 */
-		Iterator<Map.Entry<Integer, List<List<String>>>> reverseMapIter = nextNodeToObsMap.entrySet().iterator();
-		while (reverseMapIter.hasNext()) {
-			Map.Entry<Integer, List<List<String>>> entry = reverseMapIter.next();
-			Integer child = entry.getKey();
-			
-			List<List<String>> observationSet = entry.getValue();
-			String[] compressedObs = observationSet.get(0).toArray(new String[observationSet.get(0).size()]);			
-			
-			/*
-			 *  Iterate over common observations
-			 */
-			Iterator<List<String>> obsIter = observationSet.iterator();
-			while (obsIter.hasNext()) {
-				List<String> list = obsIter.next();
-				
-				/*
-				 *  Check each observation
-				 */
-				for (int i=0; i < list.size(); i++) {
-					String obs = list.get(i);
-					if (obs != compressedObs[i]) {
-						compressedObs[i] = "*";
-					} // if
-				} // for (int i=0; i < list.size(); i++)
-			} // while (obsIter.hasNext())
-			
-			/*
-			 *  Add compressed observation to compressed hash map
-			 */
-			this.compressedNextNode.put(Arrays.asList(compressedObs), child);
-		} // while (reverseMapIter.hasNext())
-		
-	} // void compressNextNodes()
-	
 	public String getBeliefLabel() {
 		/*
 		 * Pretty print belief for JUNG visualizations
@@ -220,5 +151,5 @@ public class PolicyNode {
 		beliefLabel = beliefLabel + "<br>------------------";
 		
 		return beliefLabel;
-	} // public String getBeliefLabel()
+	} 
 }

@@ -3142,6 +3142,16 @@ public class POMDP implements Serializable {
 		return obsValsArray;
 	}
 	
+	public String getBestAction(DD belief) {
+		/*
+		 * Returns the most optimal action at belief according to the alpha vector policy
+		 */
+		int alphaId = this.policyBestAlphaMatch(belief, this.alphaVectors, this.policy);
+		int actId = this.policy[alphaId];
+		
+		return this.actions[actId].name;
+	}
+	
 	// -------------------------------------------------------------------------------
 	
 	public PolicyTree getPolicyTree(int horizon) {

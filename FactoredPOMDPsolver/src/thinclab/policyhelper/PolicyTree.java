@@ -9,6 +9,8 @@ package thinclab.policyhelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collector;
@@ -16,9 +18,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.apache.commons.collections15.map.HashedMap;
+
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.Belief.Belief;
+import thinclab.utils.BeliefTreeTable;
 
 /*
  * @author adityas
@@ -37,6 +42,8 @@ public class PolicyTree {
 	public List<PolicyNode> roots;
 	public List<PolicyNode> policyNodes;
 	
+	public HashSet<DD> treeRoots = new HashSet<DD>();
+	
 	private int idCounter = 0;
 	
 	// -------------------------------------------------------------------------------------
@@ -52,8 +59,7 @@ public class PolicyTree {
 												  .map(b -> new PolicyNode(
 														  this.pomdp, 
 														  b, 
-														  0, 
-														  horizon))
+														  0))
 												  .collect(Collectors.toList());
 		
 		this.roots.stream().forEach(n -> n.setStartNode());
@@ -63,14 +69,83 @@ public class PolicyTree {
 		
 		this.expandForHorizon(horizon);
 	}
+
+	public PolicyTree(POMDP p, int horizon, BeliefTreeTable localStorage) {
+		/*
+		 * Constructor makes the policy tree for the given horizon and stores it
+		 * to the local storage
+		 */
+		this.pomdp = p;
+//		this.storage = localStorage;
+		
+		this.allObsCombinations = this.pomdp.getAllObservationsList();
+		
+		this.expandForHorizon(horizon);
+	}
+	
+	// -------------------------------------------------------------------------------------
+	
+//	public HashSet<DD> getNextBeliefSet(HashSet<DD> currentBeliefs, int currentH) {
+//		/*
+//		 * Performs one step belief update over DDs
+//		 */
+//		HashSet<DD> nextBeliefs = new HashSet<DD>();
+//		
+//		/* for each DD, do a belief update and store unique beliefs */
+//		for (DD belief : currentBeliefs) {
+//			
+//			/*
+//			 * Update for each observation 
+//			 */
+//			String action = 
+//					this.storage.getActionForBeliefAtHorizon(
+//							Belief.toStateMap(this.pomdp, belief).toString(), currentH);
+//			
+//			for (List<String> o : this.allObsCombinations) {
+//				
+//				DD nextBelief;
+//				
+//				try {
+//					nextBelief = 
+//							Belief.beliefUpdate(
+//									this.pomdp, 
+//									belief, 
+//									this.pomdp.findActionByName(action), 
+//									o.toArray(new String[o.size()]));
+//				}
+//				
+//				catch (Exception e) {
+//					continue;
+//				}
+//				
+//				PolicyNode nextNode = new PolicyNode(this.pomdp, nextBelief);
+//				nextNode.setId(this.getNextId());
+//				
+////				policyNode.nextNode.put(o, nextNode.id);
+////				nextNodes.add(nextNode);
+//			}
+//			
+//		}
+//		
+//		return nextBeliefs;
+//	}
+
 	
 	// --------------------------------------------------------------------------------------
 	
-	public List<PolicyNode> expandForSingleStep(List<PolicyNode> previousLeaves) {
+	public List<PolicyNode> expandForSingleStep(
+			List<PolicyNode> previousLeaves, 
+			int currentH) {
 		/*
 		 * Expands the policy tree for a single time step
 		 */
 		List<PolicyNode> nextNodes = new ArrayList<PolicyNode>();
+		
+		/*
+		 * Use hashmap to index new nodes. This ensures only unique nodes are added and
+		 * repeating nodes at the same horizon do not exist.
+		 */
+		HashMap<DD, Integer> nodeIndexMap = new HashMap<DD, Integer>();
 		
 		for (PolicyNode policyNode : previousLeaves) {
 			
@@ -95,14 +170,26 @@ public class PolicyTree {
 					continue;
 				}
 				
-				PolicyNode nextNode = new PolicyNode(this.pomdp, nextBelief);
-				nextNode.setId(this.getNextId());
+				/* unique belief. So add it to the node index and give it a new ID */
+				if (!nodeIndexMap.containsKey(nextBelief))
+					nodeIndexMap.put(nextBelief, new Integer(this.getNextId()));
+					
+				int newNodeId = nodeIndexMap.get(nextBelief);
+
+//				PolicyNode nextNode = new PolicyNode(this.pomdp, nextBelief);
+//				nextNode.setId(this.getNextId());
 				
-				policyNode.nextNode.put(o, nextNode.id);
-				nextNodes.add(nextNode);
+				policyNode.nextNode.put(o, newNodeId);
+//				nextNodes.add(nextNode);
 			}
-			
 		}
+		
+		/* Add each unique node to next nodes */
+		nodeIndexMap.forEach((k, v) -> {
+			PolicyNode newNode = new PolicyNode(this.pomdp, k, currentH + 1);
+			newNode.setId(v);
+			nextNodes.add(newNode);
+		});
 		
 		return nextNodes;
 	}
@@ -121,7 +208,7 @@ public class PolicyTree {
 		 * Expand the policy tree
 		 */
 		for (int h=0; h < horizons; h++) {
-			List<PolicyNode> nextNodes = this.expandForSingleStep(previousLeaves);
+			List<PolicyNode> nextNodes = this.expandForSingleStep(previousLeaves, h);
 			
 			/*
 			 * If this is the last time step. Loop all nodes back to themselves for
