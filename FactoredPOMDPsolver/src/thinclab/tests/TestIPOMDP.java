@@ -378,7 +378,7 @@ class TestIPOMDP {
 			tigerL1IPOMDP.solveOpponentModels();
 			tigerL1IPOMDP.initializeIS();
 			
-			HashSet<String> beliefNodes = tigerL1IPOMDP.oppModel.currentRoots;
+			List<String> beliefNodes = tigerL1IPOMDP.oppModel.currentRoots;
 			System.out.println(beliefNodes);
 			
 			System.out.println(
@@ -396,7 +396,7 @@ class TestIPOMDP {
 					"listen", 
 					new String[] {"growl-right", "silence"});
 			
-			HashSet<String> beliefNodesNow = tigerL1IPOMDP.oppModel.currentRoots;
+			List<String> beliefNodesNow = tigerL1IPOMDP.oppModel.currentRoots;
 			System.out.println(beliefNodesNow);
 			System.out.println(
 					InteractiveBelief.toStateMap(

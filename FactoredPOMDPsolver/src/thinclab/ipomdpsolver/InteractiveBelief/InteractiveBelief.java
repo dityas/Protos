@@ -317,7 +317,7 @@ public class InteractiveBelief extends Belief {
 				if (stateVar.contains("M_j")) {
 					
 					String lowerLevelBelief = valName + " " +
-							ipomdp.getLowerLevelBelief(valName).toString().replace(",", "<br>");
+							ipomdp.getLowerLevelBeliefLabel(valName).replace(",", "<br>");
 					
 					label += lowerLevelBelief + " = " + valProbs.get(valName) 
 						+ endl +" Aj: " + ipomdp.getOptimalActionAtMj(valName) + endl + endl;

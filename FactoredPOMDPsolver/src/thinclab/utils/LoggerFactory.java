@@ -8,7 +8,9 @@
 package thinclab.utils;
 
 import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
@@ -40,5 +42,26 @@ public class LoggerFactory {
 		logger.addHandler(handler);
 		
 		return logger;
+	}
+	
+	public static void stopLogging() {
+		/*
+		 * Sets all log levels to OFF
+		 */
+		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.OFF);
+	}
+	
+	public static void startFineLogging() {
+		/*
+		 * Sets global log level to FINE
+		 */
+		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.FINE);
+	}
+	
+	public static void startInfoLogging() {
+		/*
+		 * Sets global log level to INFO
+		 */
+		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.INFO);
 	}
 }

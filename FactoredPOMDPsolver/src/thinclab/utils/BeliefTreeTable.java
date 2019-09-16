@@ -213,6 +213,31 @@ public class BeliefTreeTable {
 		return action;
 	}
 	
+	public String getBeliefTextForBelief(int belId) {
+		/*
+		 * Look for belief text label for the belief
+		 */
+		String beliefText = null;
+		
+		try {
+			String getBeliefTextQ = "SELECT belief_text FROM beliefs WHERE "
+					+ "belief_id = ?";
+			
+			PreparedStatement stmt = this.storageConn.prepareStatement(getBeliefTextQ);
+			stmt.setInt(1, belId);
+			
+			ResultSet res = stmt.executeQuery();
+			beliefText = res.getString("belief_text");
+		}
+		
+		catch (Exception e) {
+			this.logger.severe("While querying for belief_text at " + belId + " " + e.getMessage());
+			System.exit(-1);
+		}
+		
+		return beliefText;
+	}
+	
 	public List<Integer> getBeliefIDsAtTimeSteps(int startClosed, int endOpen) {
 		/*
 		 * Gets the IDs of belief nodes between the given time steps.
@@ -292,5 +317,44 @@ public class BeliefTreeTable {
 		}
 		
 		return triples.toArray(new String[triples.size()][]);
+	}
+	
+	public String[] getBackTraceDebugBanner(int[] leaves) {
+		/*
+		 * Gets triples with leaves as child_belief_ids, re formats into human readable info.
+		 */
+		List<String> debugString = new ArrayList<String>();
+		
+		for (int child: leaves) {
+		
+			try {
+				String getBackTraceQ = "SELECT parent_belief_id, action, obs, child_belief_id "
+						+ "FROM edges WHERE child_belief_id = ?";
+				
+				PreparedStatement stmt = this.storageConn.prepareStatement(getBackTraceQ);
+				
+				stmt.setInt(1, child);
+				
+				ResultSet res = stmt.executeQuery();
+				
+				/* accumulate all triples and return */
+				while (res.next()) {
+					String trace = "m" + res.getInt("parent_belief_id") + " -["
+							+ res.getString("action") + "]-[" + res.getString("obs")
+							+ "]-> " + "m" + res.getInt("child_belief_id");
+					
+					debugString.add(trace);
+				}
+			}
+			
+			catch (Exception e) {
+				this.logger.severe("While back tracing edge triples " + e.getMessage());
+				e.printStackTrace();
+				System.exit(-1);
+			}
+		
+		}
+		
+		return debugString.toArray(new String[debugString.size()]);
 	}
 }

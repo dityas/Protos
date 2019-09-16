@@ -909,7 +909,6 @@ public class IPOMDP extends POMDP {
 		
 		/* Get mj nodes with non zero probabilities */
 		HashMap<String, Float> mjBelief = InteractiveBelief.toStateMap(this, belief).get("M_j");
-		this.oppModel.storePreviousBeliefValues(mjBelief);
 		
 		/*
 		 * add individual node names to mextMj for expand function.
@@ -918,11 +917,9 @@ public class IPOMDP extends POMDP {
 		 * 
 		 * TODO: fix opponent model expansion API to accommodate previous non zero belief
 		 */
-		HashSet<String> nextMj = new HashSet<String>();
-		nextMj.addAll(mjBelief.keySet());
 		
 		/* Expand from non zero Mj to create new Mj space */
-//		this.oppModel.expandForHorizon(nextMj, this.mjLookAhead);
+		this.oppModel.step(mjBelief, this.mjLookAhead);
 	}
 	
 	// -----------------------------------------------------------------------------------------
@@ -951,20 +948,18 @@ public class IPOMDP extends POMDP {
 		return currentBeliefs;
 	}
 	
-//	public HashMap<String, HashMap<String, Float>> getLowerLevelBelief(String valName) {
-//		/*
-//		 * Gets the lower level belief state map for the given valName
-//		 */
-//		
-//		PolicyNode node = this.oppModel.getPolicyNode(valName);
-//		return node.factoredBelief;
-//	}
-//	
-//	public String getOptimalActionAtMj(String mjNode) {
-//		/*
-//		 * Returns j's optimal action at model mj
-//		 */
-//		PolicyNode node = this.oppModel.getPolicyNode(mjNode);
-//		return node.actName;
-//	}
+	public String getLowerLevelBeliefLabel(String valName) {
+		/*
+		 * Gets the lower level belief state map for the given valName
+		 */
+		
+		return this.oppModel.getBeliefTextAtNode(valName);
+	}
+	
+	public String getOptimalActionAtMj(String mjNode) {
+		/*
+		 * Just a wrapped up call to OpponentModels getOptimalActionAtNode method 
+		 */
+		return this.oppModel.getOptimalActionAtNode(mjNode);
+	}
 }

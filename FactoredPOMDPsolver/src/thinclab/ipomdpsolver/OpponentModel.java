@@ -148,11 +148,6 @@ public class OpponentModel {
 		 * the policy tree
 		 */
 		
-		/* Collect roots for current H */
-		this.currentRoots = 
-				this.localStorage.getBeliefIDsAtTimeSteps(T, T + 1).stream()
-					.map(n -> "m" + n).collect(Collectors.toList());
-		
 		/* Collect Nodes for current H */
 		this.currentNodes = (HashSet<String>)
 				this.localStorage.getBeliefIDsAtTimeSteps(T, T + lookAheadTime + 1).stream()
@@ -176,6 +171,25 @@ public class OpponentModel {
 		 */
 		this.previousMjBeliefs.clear();
 		this.previousMjBeliefs = previousBelief;
+	}
+	
+	public void step(HashMap<String, Float> previousBelief, int lookAhead) {
+		/*
+		 * Moves to the next time step
+		 */
+		
+		this.storePreviousBeliefValues(previousBelief);
+		
+		this.currentRoots.clear();
+		this.currentRoots.addAll(this.previousMjBeliefs.keySet());
+		
+		this.logger.fine("Cached previous belief and added non zero nodes "
+				+ this.currentRoots + " to current roots");
+		
+		this.T += 1;
+		this.logger.info("Opponent Model currently tracking time step " + this.T);
+		
+		this.buildLocalModel(lookAhead);
 	}
 	
 	public DDTree getOpponentModelInitBelief(DDMaker ddMaker) {
@@ -278,6 +292,28 @@ public class OpponentModel {
 		 * Returns j's optimal action at the belief point at node
 		 */
 		return this.localStorage.getActionForBelief(this.getNodeId(node));
+	}
+	
+	public String getBeliefTextAtNode(String node) {
+		/*
+		 * Returns j's beliefs at node
+		 * 
+		 * Note that this method only returns the string representation and not the actual
+		 * usable belief
+		 */
+		return this.localStorage.getBeliefTextForBelief(this.getNodeId(node));
+	}
+	
+	public String[] getDebugTraces() {
+		/*
+		 * Back traces current non zero Mj beliefs for debugging
+		 */
+		int[] beliefIds = 
+				this.previousMjBeliefs.keySet().stream()
+					.map(b -> this.getNodeId(b))
+					.mapToInt(Integer::intValue).toArray();
+		
+		return this.localStorage.getBackTraceDebugBanner(beliefIds);
 	}
 	
 	public List<String> getCurrentRoots() {

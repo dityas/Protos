@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import thinclab.exceptions.SolverException;
@@ -23,6 +24,7 @@ import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.symbolicperseus.StateVar;
+import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
@@ -36,6 +38,8 @@ public class BeliefUpdateViewer {
 	public int mjLookAhead = -1;
 	public int mjDepth = -1;
 	public String domainFile;
+	
+	public boolean bt = false;
 	
 	IPOMDP ipomdp;
 	
@@ -70,6 +74,15 @@ public class BeliefUpdateViewer {
 		for (int t=0; t < this.mjDepth - mjLookAhead; t++) {
 			
 			System.out.println("\r\n============================================================");
+			
+			if (this.bt) {
+				System.out.println("--------------------------TRACE-----------------------------");
+				String[] traces = this.ipomdp.oppModel.getDebugTraces();
+				
+				for (String trace : traces)
+					System.out.println(trace);
+				System.out.println("------------------------------------------------------------");
+			}
 			this.step(t);
 			System.out.println("============================================================\r\n");
 		}
@@ -86,9 +99,9 @@ public class BeliefUpdateViewer {
 						this.ipomdp, 
 						this.ipomdp.lookAheadRootInitBeliefs.get(0)).replace("<br>", "\r\n"));
 		
-		int unfactoredS = 0;
+		int unfactoredS = 1;
 		for (StateVar st : this.ipomdp.S) {
-			unfactoredS += st.arity;
+			unfactoredS *= st.arity;
 		}
 		
 		System.out.println("Unfactored S dimensions are: " + unfactoredS);
@@ -148,13 +161,17 @@ public class BeliefUpdateViewer {
 					else if (arg.contains("-d"))
 						this.mjDepth = Integer.parseInt(argQueue.pop());
 					
+					/* back trace switch */
+					else if (arg.contains("--bt"))
+						this.bt = true;
+					
 					else {
 						System.err.println("Unknown option " + arg);
 						System.exit(-1);
 					}
 					
 					break;
-	
+					
 				default:
 					break;
 			}
@@ -173,7 +190,8 @@ public class BeliefUpdateViewer {
 	
 	public static void main(String[] args) {
 		
-		Logger.getGlobal().setLevel(Level.OFF);
+		LoggerFactory.stopLogging();
+		LogManager.getLogManager().reset();
 		
 		System.out.println("Starting BeliefUpdateViewer");
 		BeliefUpdateViewer buViewer = new BeliefUpdateViewer();
