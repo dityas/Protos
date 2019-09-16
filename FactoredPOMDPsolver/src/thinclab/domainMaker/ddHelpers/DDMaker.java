@@ -243,7 +243,9 @@ public class DDMaker {
 				}
 				
 				catch (Exception e) {
-					e.printStackTrace();
+					this.theLogger.severe("While setting value at " + currentRecord[currentRecord.length-2]
+							+ " " + e.getMessage());
+					System.exit(-1);
 				}
 			}
 			

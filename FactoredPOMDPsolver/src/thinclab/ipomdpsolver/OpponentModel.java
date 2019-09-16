@@ -7,27 +7,22 @@
  */
 package thinclab.ipomdpsolver;
 
-import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.utils.BeliefTreeTable;
 import thinclab.utils.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
-import thinclab.exceptions.VariableNotFoundException;
 import thinclab.policyhelper.PolicyNode;
 import thinclab.policyhelper.PolicyTree;
 
@@ -57,9 +52,8 @@ public class OpponentModel {
 	 * Variables for determining the current context i.e. current roots and currently visited
 	 * nodes of the OpponentModel
 	 */
-	public HashSet<String> currentRoots = new HashSet<String>();
-	public HashSet<String> currentNodes =
-			new HashSet<String>();
+	public List<String> currentRoots = new ArrayList<String>();
+	public HashSet<String> currentNodes = new HashSet<String>();
 	
 	/*
 	 * Previous belief over Mj
@@ -73,6 +67,14 @@ public class OpponentModel {
 	 * Connection objects and variables for db handling
 	 */
 	private BeliefTreeTable localStorage = new BeliefTreeTable();
+	
+	/*
+	 * We will be tracking the position in the policy tree using a time step counter.
+	 */
+	public int T = 0;
+	
+	/* look ahead time steps */
+	private int t = -1;
 	
 	// ------------------------------------------------------------------------------------------
 	
@@ -100,93 +102,61 @@ public class OpponentModel {
 			this.logger.info("Added " + T.policyNodes.size() + " PolicyNodes to Opponent Model");
 			this.logger.info("Opponent Model now contains " + this.nodesList.size() + " PolicyNodes");
 			
-			this.currentRoots.addAll(
-					T.roots.stream().map(r -> "m" + r.id).collect(Collectors.toList()));
 		}
 		
-		/* Name and index each node and populate triplesMap */
-		this.nodesList.stream()
-			.forEach(n -> { 
-				
-				this.nodeIndex.put("m" + n.id, n);
-				
-				HashMap<List<String>, String> sNextNode = 
-						new HashMap<List<String>, String>(); 
-				n.nextNode.entrySet()
-					.forEach(e -> sNextNode.put(e.getKey(), "m" + e.getValue()));
-				
-				this.triplesMap.put("m" + n.id, sNextNode);
-			});
+		this.storeOpponentModel();
+		
+		/* populate current roots as nodes at time step 0 */
+		this.currentRoots = 
+				this.localStorage.getBeliefIDsAtTimeSteps(0, 1).stream()
+					.map(i -> "m" + i)
+					.collect(Collectors.toList());
 	}
 	
 	// ------------------------------------------------------------------------------
 	
-	public HashSet<String> step(HashSet<String> parents) 
-			throws VariableNotFoundException {
+	public void storeOpponentModel() {
 		/*
-		 * Makes a single tree traversal starting from the current roots.
+		 * Flattens the trees into triples and stores them into an in memory db
 		 */
 		
-		HashSet<String> nextNodes = new HashSet<String>();
-		
-		for (String parent : parents) {
+		this.nodesList.forEach(n -> {
 			
-			if (!this.nodeIndex.containsKey(parent))
-				throw new VariableNotFoundException(
-						"Node " + parent + " does not exist in opponent model"); 
+			/* store belief */
+			this.localStorage.insertNewBelief(
+					n.id, 
+					n.H, 
+					n.factoredBelief.toString(), 
+					n.actName);
 			
-			/* Add the next nodes for all observations to the set of next nodes*/
-			nextNodes.addAll(this.triplesMap.get(parent).values());
-		}
-		
-		return nextNodes;
+			/* store edges */
+			n.nextNode.forEach((k, v) -> {
+				this.localStorage.insertNewEdge(
+						n.id, 
+						v, 
+						"", /* No action since this is a policy tree */ 
+						String.join(",", k));
+			});
+		});
 	}
 	
-	public void expandForHorizon(HashSet<String> start, int horizon) {
-		/*
-		 * Traverses the opponent model for the given horizon and populates the current
-		 * context.
-		 */
-		this.logger.info(
-				"Expanding Opponent Model for " 
-				+ horizon + " time steps starting from " + start);
-		
-		HashSet<String> startNodes = start;
-		this.currentNodes.clear();
-		this.currentNodes.addAll(start);
-		
-		for (int h = 0; h < horizon; h++) {
-			
-			try {
-				
-				HashSet<String> nextNodes = this.step(startNodes);
-				
-				this.currentNodes.addAll(nextNodes);
-				startNodes = nextNodes;
-				
-//				/* TEST */
-//				if (h < horizon - 1) {
-//					this.currentRoots.addAll(nextNodes);
-//				}
-			}
-			
-			catch (Exception e) {
-				this.logger.severe(
-						"ERROR[!!!] While stepping through the Opponent Model"
-						+ e.getMessage());
-				System.exit(-1);
-			}
-			
-		}
-		
-		this.logger.info("Done with OpponentModel expansion. Traversed node are " + this.currentNodes);
-	}
+	// -------------------------------------------------------------------------------------
 	
-	public void expandFromRoots(int horizon) {
+	public void buildLocalModel(int lookAheadTime) {
 		/*
-		 * Traverses opponent model from the root nodes.
+		 * Builds the Mj variable domain, and transition function based on current time step in
+		 * the policy tree
 		 */
-		this.expandForHorizon(new HashSet<String>(this.currentRoots), horizon);
+		
+		/* Collect roots for current H */
+		this.currentRoots = 
+				this.localStorage.getBeliefIDsAtTimeSteps(T, T + 1).stream()
+					.map(n -> "m" + n).collect(Collectors.toList());
+		
+		/* Collect Nodes for current H */
+		this.currentNodes = (HashSet<String>)
+				this.localStorage.getBeliefIDsAtTimeSteps(T, T + lookAheadTime + 1).stream()
+					.map(n -> "m" + n).collect(Collectors.toSet());
 	}
 	
 	public void clearCurrentContext() {
@@ -216,6 +186,7 @@ public class OpponentModel {
 		DDTree beliefMj = ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
 		
 		if (this.previousMjBeliefs.size() == 0) {
+			
 			/* Uniform distribution over all current roots */
 			for (String node : this.currentRoots) {
 				
@@ -280,32 +251,19 @@ public class OpponentModel {
 		
 		for (String node : this.currentNodes) {
 			
-			for (Entry<List<String>, String> nextNodes : 
-				this.triplesMap.get(node).entrySet()) {
+			String[][] triplesFromNode = 
+					this.localStorage.getEdgeTriplesFromBeliefId(
+							this.getNodeId(node));
+			
+			for (String[] triple : triplesFromNode) {
 				
-				List<String> triple = new ArrayList<String>();
-				
-				/* Add start node */
-				triple.add(node);
-				
-				/* Add observation */
-				triple.addAll(nextNodes.getKey());
-				
-				/*
-				 * Check if end node is in the current set of nodes. If they are not, 
-				 * loop back to self for all observations to maintain a normalized transition
-				 * function. 
-				 */
-				String endNode = nextNodes.getValue();
-				
-				if (this.currentNodes.contains(endNode)) triple.add(endNode);
-				
-				else triple.add(node); 
+				if (!this.currentNodes.contains(triple[triple.length - 1]))
+					triple[triple.length - 1] = triple[0];
 				
 				/* Add transition probability */
-				triple.add("1.0");
+				triple = ArrayUtils.add(triple, "1.0");
 				
-				triples.add(triple.toArray(new String[triple.size()]));
+				triples.add(triple);
 			}
 		}
 		
@@ -315,17 +273,30 @@ public class OpponentModel {
 	
 	// --------------------------------------------------------------------------------------
 	
-	public PolicyNode getPolicyNode(String nodeName) {
+	public String getOptimalActionAtNode(String node) {
 		/*
-		 * Returns the policy node mapped to the nodeName
+		 * Returns j's optimal action at the belief point at node
 		 */
-		PolicyNode node = this.nodeIndex.get(nodeName);
-		return node;
+		return this.localStorage.getActionForBelief(this.getNodeId(node));
 	}
 	
-	public HashSet<String> getCurrentRoots() {
+	public List<String> getCurrentRoots() {
 		
 		return this.currentRoots;
+	}
+	
+	public BeliefTreeTable getLocalStorage() {
+		/*
+		 * Getter for the storage table
+		 */
+		return this.localStorage;
+	}
+	
+	private int getNodeId(String node) {
+		/*
+		 * Converts nodes names into integer IDs as used in the database
+		 */
+		return new Integer(node.substring(1));
 	}
 
 }

@@ -11,19 +11,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collector;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import org.apache.commons.collections15.map.HashedMap;
 
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.Belief.Belief;
-import thinclab.utils.BeliefTreeTable;
+import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
@@ -41,6 +37,8 @@ public class PolicyTree {
 	
 	public List<PolicyNode> roots;
 	public List<PolicyNode> policyNodes;
+	
+	private Logger logger = LoggerFactory.getNewLogger("PolicyTree");
 	
 	public HashSet<DD> treeRoots = new HashSet<DD>();
 	
@@ -67,69 +65,10 @@ public class PolicyTree {
 				 .forEach(i -> 
 				 	this.roots.get(i).setId(this.getNextId()));
 		
-		this.expandForHorizon(horizon);
-	}
-
-	public PolicyTree(POMDP p, int horizon, BeliefTreeTable localStorage) {
-		/*
-		 * Constructor makes the policy tree for the given horizon and stores it
-		 * to the local storage
-		 */
-		this.pomdp = p;
-//		this.storage = localStorage;
-		
-		this.allObsCombinations = this.pomdp.getAllObservationsList();
+		this.logger.info("Building policy tree for POMDP" + p + " starting from " + this.roots);
 		
 		this.expandForHorizon(horizon);
 	}
-	
-	// -------------------------------------------------------------------------------------
-	
-//	public HashSet<DD> getNextBeliefSet(HashSet<DD> currentBeliefs, int currentH) {
-//		/*
-//		 * Performs one step belief update over DDs
-//		 */
-//		HashSet<DD> nextBeliefs = new HashSet<DD>();
-//		
-//		/* for each DD, do a belief update and store unique beliefs */
-//		for (DD belief : currentBeliefs) {
-//			
-//			/*
-//			 * Update for each observation 
-//			 */
-//			String action = 
-//					this.storage.getActionForBeliefAtHorizon(
-//							Belief.toStateMap(this.pomdp, belief).toString(), currentH);
-//			
-//			for (List<String> o : this.allObsCombinations) {
-//				
-//				DD nextBelief;
-//				
-//				try {
-//					nextBelief = 
-//							Belief.beliefUpdate(
-//									this.pomdp, 
-//									belief, 
-//									this.pomdp.findActionByName(action), 
-//									o.toArray(new String[o.size()]));
-//				}
-//				
-//				catch (Exception e) {
-//					continue;
-//				}
-//				
-//				PolicyNode nextNode = new PolicyNode(this.pomdp, nextBelief);
-//				nextNode.setId(this.getNextId());
-//				
-////				policyNode.nextNode.put(o, nextNode.id);
-////				nextNodes.add(nextNode);
-//			}
-//			
-//		}
-//		
-//		return nextBeliefs;
-//	}
-
 	
 	// --------------------------------------------------------------------------------------
 	
@@ -139,6 +78,8 @@ public class PolicyTree {
 		/*
 		 * Expands the policy tree for a single time step
 		 */
+		this.logger.fine("Expanding from horizon " + currentH + " from nodes " + previousLeaves);
+		
 		List<PolicyNode> nextNodes = new ArrayList<PolicyNode>();
 		
 		/*
@@ -176,11 +117,7 @@ public class PolicyTree {
 					
 				int newNodeId = nodeIndexMap.get(nextBelief);
 
-//				PolicyNode nextNode = new PolicyNode(this.pomdp, nextBelief);
-//				nextNode.setId(this.getNextId());
-				
 				policyNode.nextNode.put(o, newNodeId);
-//				nextNodes.add(nextNode);
 			}
 		}
 		
@@ -265,6 +202,17 @@ public class PolicyTree {
 					.collect(Collectors.toList());
 		
 		return obsSeq;
+	}
+	
+	public void deleteRedundantDDs() {
+		/*
+		 * Nulls out the belief DD in each PolicyNode to save space.
+		 * 
+		 * Lower level belief DDs should not be used anyway after the policy tree / belief tree is
+		 * constructed.
+		 */
+		this.logger.fine("Setting lower level beliefs to NULL");
+		this.policyNodes.forEach(n -> n.belief = null);
 	}
 	
 }

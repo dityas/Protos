@@ -117,11 +117,11 @@ public class PolicyNode {
 
 	@Override
 	public String toString() {
-		return "PolicyNode [ID = " + this.id
-				+ " alphaId=" + this.alphaId 
-				+ " action=" + this.actName 
-				+ ", belief=" + this.factoredBelief 
-				+ ", nextNode=" + nextNode.toString() + "]\r\n";
+		return "PolicyNode \t [ID = " + this.id
+				+ " \t level=" + this.H 
+				+ " \t action=" + this.actName 
+				+ " \t belief=" + this.factoredBelief 
+				+ " \t nextNode=" + nextNode.toString() + "]\r\n";
 	}
 	
 	public String getDotHeader(String actionName) {

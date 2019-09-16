@@ -7,13 +7,18 @@
  */
 package thinclab.utils;
 
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /*
  * @author adityas
@@ -53,15 +58,15 @@ public class BeliefTreeTable {
 			
 			/* beliefs table */
 			String beliefTableCreation = "CREATE TABLE IF NOT EXISTS beliefs ("
-					+ "belief_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+					+ "belief_id INTEGER PRIMARY KEY,"
 					+ "horizon INTEGER,"
 					+ "optimal_action TEXT NOT NULL,"
 					+ "belief_text TEXT );";
 			
 			/* triples table */
-			String triplesTableCreation = "CREATE TABLE IF NOT EXISTS triples ("
+			String triplesTableCreation = "CREATE TABLE IF NOT EXISTS edges ("
 					+ "parent_belief_id INTEGER,"
-					+ "action TEXT NOT NULL,"
+					+ "action TEXT,"
 					+ "obs TEXT NOT NULL,"
 					+ "child_belief_id INTEGER,"
 					+ "FOREIGN KEY (parent_belief_id) REFERENCES modelJ (belief_id),"
@@ -89,19 +94,46 @@ public class BeliefTreeTable {
 	
 	// -----------------------------------------------------------------------------------------
 	
-	public void insertNewBelief(int horizon, String beliefString, String action) {
+	public void insertNewBelief(int id, int horizon, String beliefString, String action) {
 		/*
 		 * Inserts new belief in the belief table
 		 */
 		try {
-			String insertBeliefQ = "INSERT INTO beliefs (horizon, optimal_action, belief_text) "
-					+ "VALUES(?, ?, ?)";
+			String insertBeliefQ = "INSERT INTO beliefs "
+					+ "(belief_id, horizon, optimal_action, belief_text) "
+					+ "VALUES(?, ?, ?, ?)";
 			
 			/* Insert belief */
 			PreparedStatement stmt = this.storageConn.prepareStatement(insertBeliefQ);
-			stmt.setInt(1, horizon);
+			stmt.setInt(1, id);
+			stmt.setInt(2, horizon);
+			stmt.setString(3, action);
+			stmt.setString(4, beliefString);
+			
+			stmt.executeUpdate();
+		}
+		
+		catch (Exception e) {
+			this.logger.severe("While inserting into beliefs table " + e.getMessage());
+			System.exit(-1);
+		}
+	}
+	
+	public void insertNewEdge(int pId, int cId, String action, String obs) {
+		/*
+		 * Inserts new edge in the edges table
+		 */
+		try {
+			String insertBeliefQ = "INSERT INTO edges "
+					+ "(parent_belief_id, action, obs, child_belief_id) "
+					+ "VALUES(?, ?, ?, ?)";
+			
+			/* Insert edge */
+			PreparedStatement stmt = this.storageConn.prepareStatement(insertBeliefQ);
+			stmt.setInt(1, pId);
 			stmt.setString(2, action);
-			stmt.setString(3, beliefString);
+			stmt.setString(3, obs);
+			stmt.setInt(4, cId);
 			
 			stmt.executeUpdate();
 		}
@@ -134,22 +166,71 @@ public class BeliefTreeTable {
 		return res;
 	}
 	
-	public String getActionForBeliefAtHorizon(String belief, int horizon) {
+	public ResultSet getEdgesTable() {
+		/*
+		 * Prints the entire edges table
+		 */
+		ResultSet res = null;
+		
+		try {
+			String showEdgesQ = "SELECT * FROM edges";
+			
+			/* select all */
+			Statement stmt = this.storageConn.createStatement();
+			res = stmt.executeQuery(showEdgesQ);
+		}
+		
+		catch (Exception e) {
+			this.logger.severe("While printing edges table " + e.getMessage());
+			System.exit(-1);
+		}
+		
+		return res;
+	}
+	
+	public String getActionForBelief(int belId) {
 		/*
 		 * Look for best action at given horizon for the belief
 		 */
 		String action = null;
 		
 		try {
-			String insertBeliefQ = "SELECT optimal_action FROM beliefs WHERE "
-					+ "horizon = ? AND belief_text LIKE ?";
+			String getActionQ = "SELECT optimal_action FROM beliefs WHERE "
+					+ "belief_id = ?";
 			
-			PreparedStatement stmt = this.storageConn.prepareStatement(insertBeliefQ);
-			stmt.setInt(1, horizon);
-			stmt.setString(2, belief);
+			PreparedStatement stmt = this.storageConn.prepareStatement(getActionQ);
+			stmt.setInt(1, belId);
 			
 			ResultSet res = stmt.executeQuery();
 			action = res.getString("optimal_action");
+		}
+		
+		catch (Exception e) {
+			this.logger.severe("While querying for optimal action at " + belId + " " + e.getMessage());
+			System.exit(-1);
+		}
+		
+		return action;
+	}
+	
+	public List<Integer> getBeliefIDsAtTimeSteps(int startClosed, int endOpen) {
+		/*
+		 * Gets the IDs of belief nodes between the given time steps.
+		 */
+		List<Integer> belIds = new ArrayList<Integer>();
+		
+		try {
+			String getBeliefIdQ = "SELECT belief_id FROM beliefs WHERE "
+					+ "horizon >= ? AND horizon < ?";
+			
+			PreparedStatement stmt = this.storageConn.prepareStatement(getBeliefIdQ);
+			stmt.setInt(1, startClosed);
+			stmt.setInt(2, endOpen);
+			
+			ResultSet res = stmt.executeQuery();
+			
+			/* accumulate all ids and return them */
+			while (res.next()) belIds.add(res.getInt("belief_id"));
 		}
 		
 		catch (Exception e) {
@@ -157,6 +238,59 @@ public class BeliefTreeTable {
 			System.exit(-1);
 		}
 		
-		return action;
+		return belIds;
+	}
+	
+	public String[][] getEdgeTriplesFromBeliefId(int belId) {
+		/*
+		 * Fetch edges from belIds to children as String arrays
+		 * 
+		 * For some reason, fetching edges triples for an Array of belIds does not work using
+		 * java.sql's createArrayOf function. It throws an SQLException about some driver problem.
+		 * Until that is figured out, this method will only work for single belIds. This makes it
+		 * a little inefficient because of the need for repeated queries.
+		 * 
+		 * TODO: Figure out fetching triples for a collection of belIds
+		 */
+		List<String[]> triples = new ArrayList<String[]>();
+		
+		try {
+			String getEdgesQ = "SELECT parent_belief_id, action, obs, child_belief_id "
+					+ "FROM edges WHERE parent_belief_id = ?";
+			
+			PreparedStatement stmt = this.storageConn.prepareStatement(getEdgesQ);
+			
+			stmt.setInt(1, belId);
+			
+			ResultSet res = stmt.executeQuery();
+			
+			/* accumulate all triples and return */
+			while (res.next()) {
+				List<String> triple = new ArrayList<String>();
+				
+				/* parent ID */
+				triple.add("m" + res.getInt("parent_belief_id"));
+				
+				/* action */
+				String action = res.getString("action");
+				if (action.length() != 0) triple.add(action);
+				
+				/* observations */
+				triple.addAll(Arrays.asList(res.getString("obs").split(",")));
+				
+				/* child ID */
+				triple.add("m" + res.getInt("child_belief_id"));
+				
+				triples.add(triple.toArray(new String[triple.size()]));
+			}
+		}
+		
+		catch (Exception e) {
+			this.logger.severe("While getting edge triples " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		
+		return triples.toArray(new String[triples.size()][]);
 	}
 }

@@ -325,7 +325,8 @@ public class IPOMDP extends POMDP {
 		this.oppModel = new OpponentModel(this.lowerLevelFrames, this.mjDepth);
 		
 		/* Start the initial look ahead */
-		this.oppModel.expandFromRoots(this.mjLookAhead);
+//		this.oppModel.expandFromRoots(this.mjLookAhead);
+		this.oppModel.buildLocalModel(this.mjLookAhead);
 	}
 	
 	public void solveIPBVI(int rounds, int numDpBackups) {
@@ -485,7 +486,7 @@ public class IPOMDP extends POMDP {
 							childName, 
 							this.Oi.get(
 									Ai + "__" 
-									+ this.oppModel.getPolicyNode(childName).actName).get(o));
+									+ this.oppModel.getOptimalActionAtNode(childName)).get(o));
 				}
 				
 				this.logger.info("Made f(O', Mj, S') for O=" + o + " and Ai=" + Ai);
@@ -537,7 +538,7 @@ public class IPOMDP extends POMDP {
 				 */
 
 				DDTree ojDDTree = this.OjTheta.get(0)
-										 	  .get(this.oppModel.getPolicyNode(childName).actName)
+										 	  .get(this.oppModel.getOptimalActionAtNode(childName))
 										 	  .get(oj);
 				
 				mjDDTree.addChild(childName, ojDDTree);
@@ -597,7 +598,7 @@ public class IPOMDP extends POMDP {
 							childName, 
 							this.Ti.get(
 									Ai + "__" 
-									+ this.oppModel.getPolicyNode(childName).actName).get(s));
+									+ this.oppModel.getOptimalActionAtNode(childName)).get(s));
 				}
 				
 				this.logger.info("Made f(S', Mj, S) for S=" + s + " and Ai=" + Ai);
@@ -636,8 +637,7 @@ public class IPOMDP extends POMDP {
 									this.parser.costMap.get(
 											Ai + "__" 
 											+ this.oppModel
-												.getPolicyNode(child)
-												.actName)
+												.getOptimalActionAtNode(child))
 												.toDD()).toDDTree());
 				} 
 				
@@ -922,7 +922,7 @@ public class IPOMDP extends POMDP {
 		nextMj.addAll(mjBelief.keySet());
 		
 		/* Expand from non zero Mj to create new Mj space */
-		this.oppModel.expandForHorizon(nextMj, this.mjLookAhead);
+//		this.oppModel.expandForHorizon(nextMj, this.mjLookAhead);
 	}
 	
 	// -----------------------------------------------------------------------------------------
@@ -951,20 +951,20 @@ public class IPOMDP extends POMDP {
 		return currentBeliefs;
 	}
 	
-	public HashMap<String, HashMap<String, Float>> getLowerLevelBelief(String valName) {
-		/*
-		 * Gets the lower level belief state map for the given valName
-		 */
-		
-		PolicyNode node = this.oppModel.getPolicyNode(valName);
-		return node.factoredBelief;
-	}
-	
-	public String getOptimalActionAtMj(String mjNode) {
-		/*
-		 * Returns j's optimal action at model mj
-		 */
-		PolicyNode node = this.oppModel.getPolicyNode(mjNode);
-		return node.actName;
-	}
+//	public HashMap<String, HashMap<String, Float>> getLowerLevelBelief(String valName) {
+//		/*
+//		 * Gets the lower level belief state map for the given valName
+//		 */
+//		
+//		PolicyNode node = this.oppModel.getPolicyNode(valName);
+//		return node.factoredBelief;
+//	}
+//	
+//	public String getOptimalActionAtMj(String mjNode) {
+//		/*
+//		 * Returns j's optimal action at model mj
+//		 */
+//		PolicyNode node = this.oppModel.getPolicyNode(mjNode);
+//		return node.actName;
+//	}
 }

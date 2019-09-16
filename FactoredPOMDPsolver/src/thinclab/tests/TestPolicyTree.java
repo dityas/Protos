@@ -25,6 +25,7 @@ import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
 import thinclab.policyhelper.PolicyTree;
 import thinclab.policyhelper.PolicyVisualizer;
+import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.utils.BeliefTreeTable;
 
@@ -72,10 +73,10 @@ class TestPolicyTree {
 		System.out.println("Running testPolicyTreeInit()");
 		
 		long startTime = System.nanoTime();
-		PolicyTree policyTree = new PolicyTree(pomdp, 2);
+		PolicyTree policyTree = new PolicyTree(pomdp, 5);
 		long endTime = System.nanoTime();
 		
-		System.out.println(policyTree.policyNodes);
+		assertTrue(policyTree.policyNodes.size() > this.pomdp.getInitialBeliefsList().size());
 	}
 	
 	@Test
@@ -83,7 +84,10 @@ class TestPolicyTree {
 		System.out.println("Running testShiftIndex()");
 		
 		PolicyTree policyTree = new PolicyTree(pomdp, 2);
-		System.out.println(policyTree.policyNodes);
+//		System.out.println(policyTree.policyNodes);
+		
+		DD beliefFrom = policyTree.policyNodes.get(0).belief;
+		
 		/* Collect orignal indices */
 		Set<Integer> previousIndices = 
 				policyTree.policyNodes
@@ -93,7 +97,9 @@ class TestPolicyTree {
 		
 		/* offset indices */
 		policyTree.shiftIndex(previousIndices.size());
-		System.out.println(policyTree.policyNodes);
+//		System.out.println(policyTree.policyNodes);
+		
+		DD beliefFromNew = policyTree.policyNodes.get(0).belief;
 		
 		Set<Integer> newIndices = 
 				policyTree.policyNodes
@@ -102,8 +108,9 @@ class TestPolicyTree {
 					.collect(Collectors.toSet());
 		
 		assertEquals(previousIndices.size(), newIndices.size());
-		previousIndices.addAll(newIndices);
-		assertTrue(previousIndices.size() == (2 * newIndices.size()));
+//		previousIndices.addAll(newIndices);
+//		System.out.println();
+		assertTrue(!previousIndices.containsAll(newIndices));
+		assertTrue(beliefFrom.equals(beliefFromNew));
 	}
-
 }

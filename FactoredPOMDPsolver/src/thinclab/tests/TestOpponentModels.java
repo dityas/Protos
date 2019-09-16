@@ -9,6 +9,7 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +28,7 @@ import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
+import thinclab.utils.BeliefTreeTable;
 
 /*
  * @author adityas
@@ -36,116 +38,95 @@ class TestOpponentModels {
 
 	public String l1DomainFile;
 	public String l1DomainFile2;
+	public IPOMDP tigerL1IPOMDP;
 	
 	@BeforeEach
 	void setUp() throws Exception {
 		this.l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
 		this.l1DomainFile2 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		this.tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+
+		this.tigerL1IPOMDP.solveOpponentModels();
+		this.tigerL1IPOMDP.initializeIS();
 	}
 
 	@AfterEach
 	void tearDown() throws Exception {
 	}
-
-	@Test
-	void testIPOMDPL1GetOpponentModel() {
-		/*
-		 * Test Opponents solutions by L1 agents
-		 */
-		System.out.println("Running testIPOMDPL1GetOpponentModel()");
-		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
-		
-		/*
-		 * Initialize IPOMDP
-		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
-		try {
-
-//			tigerL1IPOMDP.initializeFromParsers(parser);
-			
-			/* Get opponent model */
-//			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
-			tigerL1IPOMDP.solveOpponentModels();
-			tigerL1IPOMDP.initializeIS();
-			
-			/* 
-			 * manually compute the total nodes in the opponent model for
-			 * verification.
-			 */
-//			int totalNodes = tigerL1IPOMDP.lowerLevelFrames.stream()
-//					.map(f -> f.getPolicyTree(15).policyNodes.size())
-//					.reduce(0, (totalSize, frameSize) -> totalSize + frameSize);
-//			
-//			assertEquals(tigerL1IPOMDP.oppModel.nodesList.size(), totalNodes);
-		} 
-		
-		catch (Exception e) {
-			System.err.println(e.getMessage());
-			fail();
-		}
-		
-		System.out.println(Arrays.toString(Global.varNames));
-		System.out.println(Arrays.deepToString(Global.valNames));
-		System.out.println(Arrays.toString(Global.varDomSize));
-	}
+//
+//	@Test
+//	void testIPOMDPL1OpponentModelStorage() throws Exception {
+//		/*
+//		 * Test Opponents solutions by L1 agents
+//		 */
+//		System.out.println("Running testIPOMDPL1OpponentModelBeliefStorage()");
+//					
+//		/* store the belief nodes */
+////		tigerL1IPOMDP.oppModel.storeOpponentModel();
+//		
+//		BeliefTreeTable bt = this.tigerL1IPOMDP.oppModel.getLocalStorage();
+//		
+//		int numRecords = 0;
+//		ResultSet res = bt.getBeliefTable();
+//		while (res.next()) {
+//			numRecords += 1;
+////			System.out.println(res.getInt("belief_id") + "\t" 
+////					+ res.getString("optimal_action") + "\t"
+////					+ res.getInt("horizon") + "\t"
+////					+ res.getString("belief_text"));
+//		}
+//		
+//		assertTrue(numRecords == tigerL1IPOMDP.oppModel.nodesList.size());
+//		
+//		ResultSet resEdges = bt.getEdgesTable();
+//		while (resEdges.next()) {
+//			numRecords += 1;
+////			System.out.println(resEdges.getInt("parent_belief_id") + "\t"
+////					+ resEdges.getString("action") + "\t"
+////					+ resEdges.getString("obs") + "\t"
+////					+ resEdges.getInt("child_belief_id"));
+//		}
+//		
+//		System.out.println(
+//				Arrays.deepToString(
+//						bt.getEdgeTriplesFromBeliefIds(
+//								bt.getBeliefIDsAtTimeSteps(0, 4))));
+//	}
 	
 	@Test
 	void testOpponentModelInit() {
 		System.out.println("Running testOpponentModelInit()");
 		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
-		
-		/*
-		 * Initialize IPOMDP
-		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 10, 3);
-		try {
-
-//			tigerL1IPOMDP.initializeFromParsers(parser);
-			tigerL1IPOMDP.solveOpponentModels();
-			tigerL1IPOMDP.initializeIS();
-			/* Get opponent model */
-//			OpponentModel oppModel = tigerL1IPOMDP.getOpponentModel();
-			
-			assertEquals(
-					tigerL1IPOMDP.oppModel.nodesList.size(), 
-					tigerL1IPOMDP.oppModel.triplesMap.size());
-		} 
-		
-		catch (Exception e) {
-			System.err.println(e.getMessage());
-			fail();
-		}
+		assertNotNull(this.tigerL1IPOMDP.oppModel);
 	}
 	
 	@Test
 	void testOpponentModelTraversal() {
 		System.out.println("Running testOpponentModelTraversal()");
 		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
+//		BeliefTreeTable bt = this.tigerL1IPOMDP.oppModel.getLocalStorage();
 		
-		/*
-		 * Initialize IPOMDP
-		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 10, 3);
 		try {
-
-//			tigerL1IPOMDP.initializeFromParsers(parser);
-			
-			/* Get opponent model */
-			tigerL1IPOMDP.solveOpponentModels();
-			tigerL1IPOMDP.oppModel.expandFromRoots(3);
-			System.out.println(tigerL1IPOMDP.oppModel.currentNodes);
-			assertTrue(tigerL1IPOMDP.oppModel.currentNodes.size() > 1);
-			
-		} 
+		HashSet<String> varChilds = new HashSet<String>();
+		
+		varChilds.addAll(
+				Arrays.asList(this.tigerL1IPOMDP.S.get(
+						this.tigerL1IPOMDP.oppModelVarIndex).valNames));
+		
+		varChilds.removeAll(this.tigerL1IPOMDP.oppModel.currentNodes);
+		assertTrue(varChilds.isEmpty());
+		}
 		
 		catch (Exception e) {
-			System.err.println(e.getMessage());
+			// TODO: handle exception
+			e.printStackTrace();
 			fail();
 		}
 	}
