@@ -108,6 +108,7 @@ public class IPOMDP extends POMDP {
 	 * Variables for current look ahead horizon
 	 */
 	public DD currentMjTfn;
+	public DD currentAjGivenMj;
 	public List<DD> lookAheadRootInitBeliefs = new ArrayList<DD>();
 	
 	public HashMap<String, DD[]> currentOi;
@@ -233,6 +234,13 @@ public class IPOMDP extends POMDP {
 			if (!this.Aj.contains(a.split("__")[1]))
 				this.Aj.add(a.split("__")[1]);
 			});
+		
+		/* Add Aj as a stateVar */
+		this.S.add(
+				new StateVar(
+						"A_j", 
+						this.S.size(), 
+						this.Aj.toArray(new String[this.Aj.size()])));
 		
 		this.uniquePolicy = new boolean[this.Ai.size()]; 
 		this.initializeTFromParser(this.parser);
@@ -387,6 +395,13 @@ public class IPOMDP extends POMDP {
 	}
 	
 	// -------------------------------------------------------------------------------------
+	
+//	public DD makeAjGivenMj() {
+//		/*
+//		 * Makes DD for P(Aj | Mj)
+//		 */
+//		
+//	}
 
 	public DD makeOpponentModelTransitionDD() {
 		/*
@@ -805,6 +820,9 @@ public class IPOMDP extends POMDP {
 		this.commitVariables();
 		
 		this.logger.info("IS initialized to " + this.S);
+		
+		this.currentAjGivenMj = this.oppModel.getAjFromMj(this.ddMaker, this.Aj).toDD();
+		this.logger.fine("f(Aj, Mj) for current look ahead horizon is " + this.S);
 		
 		this.currentMjTfn = this.makeOpponentModelTransitionDD();
 		this.logger.info("MjTfn initialized");

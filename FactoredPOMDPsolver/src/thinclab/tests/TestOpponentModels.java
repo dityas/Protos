@@ -18,6 +18,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.ipomdpsolver.IPOMDP;
@@ -29,6 +30,7 @@ import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.utils.BeliefTreeTable;
+import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
@@ -42,6 +44,9 @@ class TestOpponentModels {
 	
 	@BeforeEach
 	void setUp() throws Exception {
+		
+		LoggerFactory.startFineLogging();
+		
 		this.l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
 		this.l1DomainFile2 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
 		
@@ -54,7 +59,7 @@ class TestOpponentModels {
 		this.tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 
 		this.tigerL1IPOMDP.solveOpponentModels();
-		this.tigerL1IPOMDP.initializeIS();
+//		this.tigerL1IPOMDP.initializeIS();
 	}
 
 	@AfterEach
@@ -122,6 +127,38 @@ class TestOpponentModels {
 		
 		varChilds.removeAll(this.tigerL1IPOMDP.oppModel.currentNodes);
 		assertTrue(varChilds.isEmpty());
+		}
+		
+		catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			fail();
+		}
+	}
+	
+	@Test
+	void testPAjMjCreation() {
+		System.out.println("Running testPAjMjCreation()");
+		
+		try {
+			tigerL1IPOMDP.S.set(
+					tigerL1IPOMDP.oppModelVarIndex, 
+					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
+							tigerL1IPOMDP.oppModelVarIndex));
+			
+			Global.clearHashtables();
+			tigerL1IPOMDP.commitVariables();
+			DDTree tree = tigerL1IPOMDP.oppModel.getAjFromMj(tigerL1IPOMDP.ddMaker, tigerL1IPOMDP.Aj);
+			
+			DD ddTree = OP.reorder(tree.toDD());
+			
+			assertTrue(
+					OP.maxAll(
+							OP.abs(
+								OP.sub(
+									DD.one, 
+									OP.addMultVarElim(
+										ddTree, 3)))) < 1e-8);
 		}
 		
 		catch (Exception e) {

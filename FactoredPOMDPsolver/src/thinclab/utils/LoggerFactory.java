@@ -23,9 +23,11 @@ public class LoggerFactory {
 	 * Creates loggers
 	 */
 	
+	private static Level loggerLevel;
+	
 	public static Logger getNewLogger(String name) {
 		Logger logger = Logger.getLogger(name);
-//		logger.setLevel(Level.OFF);
+		logger.setLevel(LoggerFactory.loggerLevel);
 		
 		return logger;
 	}
@@ -48,20 +50,23 @@ public class LoggerFactory {
 		/*
 		 * Sets all log levels to OFF
 		 */
-		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.OFF);
+		LoggerFactory.loggerLevel = Level.OFF;
+//		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.OFF);
 	}
 	
 	public static void startFineLogging() {
 		/*
 		 * Sets global log level to FINE
 		 */
-		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.FINE);
+		LoggerFactory.loggerLevel = Level.ALL;
+//		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.FINE);
 	}
 	
 	public static void startInfoLogging() {
 		/*
 		 * Sets global log level to INFO
 		 */
-		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.INFO);
+		LoggerFactory.loggerLevel = Level.INFO;
+//		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.INFO);
 	}
 }

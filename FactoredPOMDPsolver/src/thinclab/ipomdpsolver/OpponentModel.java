@@ -148,10 +148,13 @@ public class OpponentModel {
 		 * the policy tree
 		 */
 		
+		this.logger.fine("Building local model starting from T=" + this.T);
+		
 		/* Collect Nodes for current H */
 		this.currentNodes = (HashSet<String>)
 				this.localStorage.getBeliefIDsAtTimeSteps(T, T + lookAheadTime + 1).stream()
 					.map(n -> "m" + n).collect(Collectors.toSet());
+		this.logger.fine("Traversed nodes are : " + this.currentNodes);
 	}
 	
 	public void clearCurrentContext() {
@@ -248,6 +251,51 @@ public class OpponentModel {
 						new String[this.currentNodes.size()]);
 		
 		return new StateVar("M_j", index, nodeNames);
+	}
+	
+	public DDTree getAjFromMj(DDMaker ddMaker, List<String> Aj) {
+		/*
+		 * Returns the factor P(Aj | Mj) as triples of (mj, aj, probability)
+		 * 
+		 * This will be used to make the P(Aj | Mj) DD
+		 */
+		List<String[]> triples = new ArrayList<String[]>();
+
+		/* Create triples for optimal actions given node */
+		for (String node : this.currentNodes) {
+			
+			/* Get optimal action at node */
+			String optimal_action = 
+					this.localStorage.getActionForBelief(this.getNodeId(node));
+			
+			for (String aj : Aj) {
+				
+				List<String> triple = new ArrayList<String>();
+				
+				/* Add mj */
+				triple.add(node);
+				
+				/* Add action */
+				triple.add(aj);
+				
+				/* Give 99% prob for performing optimal action */
+				if (optimal_action.contentEquals(aj)) triple.add("0.99");
+				
+				/* small but finite probability for non optimal behavior */
+				else triple.add("" + (0.01 / (float) (Aj.size() - 1)));
+				
+				triples.add(triple.toArray(new String[triple.size()]));
+			}
+		} /* for currentNodes */
+		
+		/* Get default DDTree for P(Aj | Mj) */
+		DDTree PAjMj = 
+				ddMaker.getDDTreeFromSequence(
+						new String[] {"M_j", "A_j"},
+						triples.toArray(new String[triples.size()][]));
+		
+		this.logger.fine("P(Aj | Mj) DD is " + PAjMj);
+		return PAjMj;
 	}
 	
 	public String[][] getOpponentModelTriples() {

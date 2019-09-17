@@ -191,7 +191,6 @@ public class BeliefUpdateViewer {
 	public static void main(String[] args) {
 		
 		LoggerFactory.stopLogging();
-		LogManager.getLogManager().reset();
 		
 		System.out.println("Starting BeliefUpdateViewer");
 		BeliefUpdateViewer buViewer = new BeliefUpdateViewer();
