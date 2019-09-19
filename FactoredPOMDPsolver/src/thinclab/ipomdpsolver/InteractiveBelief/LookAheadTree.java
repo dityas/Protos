@@ -191,7 +191,7 @@ public class LookAheadTree {
 					/* Insert starting belief */
 					String[] triple = new String[3];
 					triple[0] = InteractiveBelief.getBeliefNodeLabel(this.ipomdp, start).toString();
-					
+
 					/* add edge */
 					triple[1] = 
 							Arrays.toString(

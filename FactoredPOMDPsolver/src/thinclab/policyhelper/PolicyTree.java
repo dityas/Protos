@@ -38,7 +38,7 @@ public class PolicyTree {
 	public List<PolicyNode> roots;
 	public List<PolicyNode> policyNodes;
 	
-	private Logger logger = LoggerFactory.getNewLogger("PolicyTree");
+	Logger logger = LoggerFactory.getNewLogger("PolicyTree");
 	
 	public HashSet<DD> treeRoots = new HashSet<DD>();
 	
@@ -65,7 +65,9 @@ public class PolicyTree {
 				 .forEach(i -> 
 				 	this.roots.get(i).setId(this.getNextId()));
 		
-		this.logger.info("Building policy tree for POMDP" + p + " starting from " + this.roots);
+		this.logger.info("Building policy tree for POMDP " + p + " starting from " + this.roots);
+		
+		this.allObsCombinations = this.pomdp.getAllObservationsList();
 		
 		this.expandForHorizon(horizon);
 	}
@@ -155,7 +157,7 @@ public class PolicyTree {
 			 * LOOPING LEAVES TO THEMSELVES MAY HAVE OTHER UNFORESEEN IMPLICATIONS.
 			 */
 			if (h == (horizons - 1)) {
-				List<List<String>> dummyObs = this.pomdp.getAllObservationsList();
+				List<List<String>> dummyObs = allObsCombinations;
 				for (PolicyNode nextNode : nextNodes)
 					dummyObs.stream().forEach(o -> nextNode.nextNode.put(o, nextNode.id));
 			}
@@ -180,7 +182,13 @@ public class PolicyTree {
 		} /* for this.policyNodes */
 	}
 	
-	private int getNextId() {
+	/*
+	 * No access modifier to use method internally while still maintaining 
+	 * visibility in subclass
+	 * 
+	 * ref: https://stackoverflow.com/questions/215497/
+	 */
+	int getNextId() {
 		/*
 		 * Get the next unique int ID for policy Nodes.
 		 */

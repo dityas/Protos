@@ -21,6 +21,7 @@ import thinclab.exceptions.ParserException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
+import thinclab.policyhelper.BeliefTree;
 import thinclab.policyhelper.PolicyCache;
 import thinclab.policyhelper.PolicyTree;
 import thinclab.symbolicperseus.StateVar;
@@ -3161,6 +3162,15 @@ public class POMDP implements Serializable {
 		PolicyTree pTree = new PolicyTree(this, horizon);
 		
 		return pTree;
+	}
+	
+	public BeliefTree getBeliefTree(int horizon) {
+		/*
+		 * Returns the belief tree for H horizon
+		 */
+		BeliefTree bTree = new BeliefTree(this, horizon);
+		
+		return bTree;
 	}
 	
 	// -------------------------------------------------------------------------------

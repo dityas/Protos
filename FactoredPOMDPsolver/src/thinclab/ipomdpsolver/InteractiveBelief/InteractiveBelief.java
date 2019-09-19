@@ -91,30 +91,44 @@ public class InteractiveBelief extends Belief {
 						IPOMDP.stackArray(
 								ipomdp.obsIVarPrimeIndices, obsVals));
 
-		/* Collect f1 = P(S, Mj) x P(S', S, Mj) */
-		DD f1 = OP.multN(ArrayUtils.add(ipomdp.currentTi.get(actName), startBelief));
+		/* Collect f1 = P(S, Mj) x P(S', S, Aj) */
+		DD f1 = startBelief;
+
+		/* Collect f2 = P(Aj | Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
+		DD[] f2 = 
+				ArrayUtils.addAll(
+						ArrayUtils.add(
+								ipomdp.currentTi.get(actName), 
+								ipomdp.currentAjGivenMj), 
+						restrictedOi);
 		
-		/* Collect f2 = f1 x P(Oi'=o, S', Mj) */
-		DD f2 = OP.multN(ArrayUtils.addAll(restrictedOi, f1));
+		/* Collect f3 = f1 x f2 */
+		DD[] f3 = ArrayUtils.addAll(f2, f1);
 		
-		/* Collect f3 = P(Oj', S', Mj) x P(Mj', Mj, Oj') */
-		DD f3 = OP.addMultVarElim(
+		/* Collect tau = Sumout [Oj'] P(Oj', S', Aj) x P(Mj', Mj, Oj', Aj) */
+		DD tau = OP.addMultVarElim(
 					ArrayUtils.add(
 							ipomdp.currentOj, 
 							ipomdp.currentMjTfn),
 					ipomdp.obsJVarPrimeIndices);
 		
-		/* Multiply and sum out */
+		/* Perform the sum out */
 		DD nextBelief = 
 				OP.addMultVarElim(
-						new DD[] {f2, f3}, 
+						ArrayUtils.add(f3, tau), 
 						ipomdp.stateVarIndices);
-		
+
 		/* Shift indices */
 		nextBelief = OP.primeVars(nextBelief, -(ipomdp.S.size() + ipomdp.Omega.size()));
-		
+
 		/* compute normalization factor */
-		DD norm = OP.addMultVarElim(nextBelief, ipomdp.stateVarIndices);
+		DD norm = 
+				OP.addMultVarElim(
+						nextBelief, 
+						ArrayUtils.subarray(
+								ipomdp.stateVarIndices, 
+								0, 
+								ipomdp.stateVarIndices.length - 1));
 		
 		if (norm.getVal() < 1e-8) 
 			throw new ZeroProbabilityObsException(
@@ -193,12 +207,16 @@ public class InteractiveBelief extends Belief {
 		 */
 		ipomdp.setGlobals();
 		
-		DD[] fbs = new DD[ipomdp.stateVarIndices.length];
+		DD[] fbs = new DD[ipomdp.stateVarIndices.length - 1];
 		
 		/* For each state var, summout everything else */
-		for (int varId = 0; varId < ipomdp.stateVarIndices.length; varId++)
+		for (int varId = 0; varId < ipomdp.stateVarIndices.length - 1; varId++)
 			fbs[varId] = OP.addMultVarElim(belief,
-					ArrayUtils.remove(ipomdp.stateVarIndices, varId));
+					ArrayUtils.remove(
+							ArrayUtils.subarray(
+									ipomdp.stateVarIndices,
+									0,
+									ipomdp.stateVarIndices.length - 1), varId));
 
 		return fbs;
 	}
@@ -230,11 +248,15 @@ public class InteractiveBelief extends Belief {
 				new HashMap<String, HashMap<String, Float>>();
 		
 		/* Factor the belief state into individual variables */
-		DD[] fbs = new DD[ipomdp.stateVarIndices.length];
-		for (int varId = 0; varId < ipomdp.stateVarIndices.length; varId++) {
+		DD[] fbs = new DD[ipomdp.stateVarIndices.length - 1];
+		for (int varId = 0; varId < ipomdp.stateVarIndices.length - 1; varId++) {
 			
 			fbs[varId] = OP.addMultVarElim(belState,
-					ArrayUtils.remove(ipomdp.stateVarIndices, varId));
+					ArrayUtils.remove(
+							ArrayUtils.subarray(
+									ipomdp.stateVarIndices, 
+									0, 
+									ipomdp.stateVarIndices.length - 1), varId));
 			
 			/* Make state variable name */
 			String name = ipomdp.S.get(varId).name;

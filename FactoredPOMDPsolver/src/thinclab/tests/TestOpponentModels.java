@@ -113,6 +113,40 @@ class TestOpponentModels {
 	}
 	
 	@Test
+	void testOpponentModelMjTriples() {
+		System.out.println("Running testOpponentModelMjTriples()");
+		
+		try {
+			tigerL1IPOMDP.S.set(
+					tigerL1IPOMDP.oppModelVarIndex, 
+					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
+							tigerL1IPOMDP.oppModelVarIndex));
+			
+			Global.clearHashtables();
+			tigerL1IPOMDP.commitVariables();
+//			DDTree tree = tigerL1IPOMDP.oppModel.getAjFromMj(tigerL1IPOMDP.ddMaker, tigerL1IPOMDP.Aj);
+//			
+//			DD ddTree = OP.reorder(tree.toDD());
+			
+			System.out.println(Arrays.deepToString(tigerL1IPOMDP.oppModel.getOpponentModelTriples()));
+			
+//			assertTrue(
+//					OP.maxAll(
+//							OP.abs(
+//								OP.sub(
+//									DD.one, 
+//									OP.addMultVarElim(
+//										ddTree, 3)))) < 1e-8);
+		}
+		
+		catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			fail();
+		}
+	}
+	
+	@Test
 	void testOpponentModelTraversal() {
 		System.out.println("Running testOpponentModelTraversal()");
 		
@@ -148,9 +182,9 @@ class TestOpponentModels {
 			
 			Global.clearHashtables();
 			tigerL1IPOMDP.commitVariables();
-			DDTree tree = tigerL1IPOMDP.oppModel.getAjFromMj(tigerL1IPOMDP.ddMaker, tigerL1IPOMDP.Aj);
+			DD tree = tigerL1IPOMDP.oppModel.getAjFromMj(tigerL1IPOMDP.ddMaker, tigerL1IPOMDP.Aj);
 			
-			DD ddTree = OP.reorder(tree.toDD());
+			DD ddTree = OP.reorder(tree);
 			
 			assertTrue(
 					OP.maxAll(
@@ -184,8 +218,8 @@ class TestOpponentModels {
 //			tigerL1IPOMDP.initializeFromParsers(parser);
 			
 			/* Get opponent model */
-			tigerL1IPOMDP.solveOpponentModels();
-			tigerL1IPOMDP.initializeIS();
+//			tigerL1IPOMDP.solveOpponentModels();
+//			tigerL1IPOMDP.initializeIS();
 			
 			StateVar Mj = 
 					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
@@ -215,8 +249,8 @@ class TestOpponentModels {
 		try {
 			
 			/* Get opponent model */
-			tigerL1IPOMDP.solveOpponentModels();
-			tigerL1IPOMDP.initializeIS();
+//			tigerL1IPOMDP.solveOpponentModels();
+//			tigerL1IPOMDP.initializeIS();
 			
 			tigerL1IPOMDP.oppModel.clearCurrentContext();
 			

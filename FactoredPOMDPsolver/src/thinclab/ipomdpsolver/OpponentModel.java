@@ -7,6 +7,8 @@
  */
 package thinclab.ipomdpsolver;
 
+import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.utils.BeliefTreeTable;
@@ -23,8 +25,8 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.policyhelper.BeliefTree;
 import thinclab.policyhelper.PolicyNode;
-import thinclab.policyhelper.PolicyTree;
 
 /*
  * @author adityas
@@ -88,7 +90,7 @@ public class OpponentModel {
 		for (POMDP frame: frames) {
 			
 			/* Make policy tree for limited horizons */
-			PolicyTree T = frame.getPolicyTree(horizon);
+			BeliefTree T = frame.getBeliefTree(horizon);
 			
 			/*
 			 * Start indexing nodes incrementally so that each node has a unique index
@@ -101,9 +103,8 @@ public class OpponentModel {
 			
 			this.logger.info("Added " + T.policyNodes.size() + " PolicyNodes to Opponent Model");
 			this.logger.info("Opponent Model now contains " + this.nodesList.size() + " PolicyNodes");
-			
 		}
-		
+
 		this.storeOpponentModel();
 		
 		/* populate current roots as nodes at time step 0 */
@@ -128,13 +129,14 @@ public class OpponentModel {
 					n.H, 
 					n.factoredBelief.toString(), 
 					n.actName);
-			
+
 			/* store edges */
 			n.nextNode.forEach((k, v) -> {
+				
 				this.localStorage.insertNewEdge(
 						n.id, 
 						v, 
-						"", /* No action since this is a policy tree */ 
+						k.remove(0), /* Extract action */ 
 						String.join(",", k));
 			});
 		});
@@ -253,7 +255,7 @@ public class OpponentModel {
 		return new StateVar("M_j", index, nodeNames);
 	}
 	
-	public DDTree getAjFromMj(DDMaker ddMaker, List<String> Aj) {
+	public DD getAjFromMj(DDMaker ddMaker, List<String> Aj) {
 		/*
 		 * Returns the factor P(Aj | Mj) as triples of (mj, aj, probability)
 		 * 
@@ -279,10 +281,10 @@ public class OpponentModel {
 				triple.add(aj);
 				
 				/* Give 99% prob for performing optimal action */
-				if (optimal_action.contentEquals(aj)) triple.add("0.99");
+				if (optimal_action.contentEquals(aj)) triple.add("1.0");
 				
 				/* small but finite probability for non optimal behavior */
-				else triple.add("" + (0.01 / (float) (Aj.size() - 1)));
+				else triple.add("0.0"); /* 0 probability for non optimal actions */
 				
 				triples.add(triple.toArray(new String[triple.size()]));
 			}
@@ -295,7 +297,7 @@ public class OpponentModel {
 						triples.toArray(new String[triples.size()][]));
 		
 		this.logger.fine("P(Aj | Mj) DD is " + PAjMj);
-		return PAjMj;
+		return OP.reorder(PAjMj.toDD());
 	}
 	
 	public String[][] getOpponentModelTriples() {

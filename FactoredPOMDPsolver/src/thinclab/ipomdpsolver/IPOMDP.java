@@ -156,6 +156,14 @@ public class IPOMDP extends POMDP {
 			this.setMjLookAhead(mjlookAhead);
 			
 			this.logger.info("IPOMDP initialized");
+			
+			/* Solve opponent model and create internal representation */
+			this.solveOpponentModels();
+			this.commitVariables();
+			this.initializeOfflineFunctions();
+			
+			/* Initialize Mj dependents */
+			this.reinitializeOnlineFunctions();
 		}
 		
 		catch (Exception e) {
@@ -333,7 +341,6 @@ public class IPOMDP extends POMDP {
 		this.oppModel = new OpponentModel(this.lowerLevelFrames, this.mjDepth);
 		
 		/* Start the initial look ahead */
-//		this.oppModel.expandFromRoots(this.mjLookAhead);
 		this.oppModel.buildLocalModel(this.mjLookAhead);
 	}
 	
@@ -395,13 +402,6 @@ public class IPOMDP extends POMDP {
 	}
 	
 	// -------------------------------------------------------------------------------------
-	
-//	public DD makeAjGivenMj() {
-//		/*
-//		 * Makes DD for P(Aj | Mj)
-//		 */
-//		
-//	}
 
 	public DD makeOpponentModelTransitionDD() {
 		/*
@@ -416,6 +416,10 @@ public class IPOMDP extends POMDP {
 				"M_j", 
 				this.oppModel.currentNodes.toArray(
 						new String[this.oppModel.currentNodes.size()]));
+		
+		ddMaker.addVariable(
+				"A_j", 
+				this.Aj.toArray(new String[this.Aj.size()]));
 		
 		/*
 		 * Add obsVars.
@@ -440,6 +444,7 @@ public class IPOMDP extends POMDP {
 		/* Make variables sequence for DDMaker */
 		List<String> varSequence = new ArrayList<String>();
 		varSequence.add("M_j");
+		varSequence.add("A_j");
 		varSequence.addAll(
 				obsSeq.stream()
 					.map(o -> o.name + "'").collect(Collectors.toList()));
@@ -490,8 +495,8 @@ public class IPOMDP extends POMDP {
 			
 			for (String o : O) {
 				
-				/* Make M_j factor */
-				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+				/* Make A_j factor */
+				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
 
 				/* 
 				 * Collapse Aj into Mj to create f(Mj, S', O')
@@ -501,10 +506,10 @@ public class IPOMDP extends POMDP {
 							childName, 
 							this.Oi.get(
 									Ai + "__" 
-									+ this.oppModel.getOptimalActionAtNode(childName)).get(o));
+									+ childName).get(o));
 				}
 				
-				this.logger.info("Made f(O', Mj, S') for O=" + o + " and Ai=" + Ai);
+				this.logger.fine("Made f(O', Aj, S') for O=" + o + " and Ai=" + Ai);
 
 				ddTrees[O.indexOf(o)] = OP.reorder(mjDDTree.toDD());
 			}
@@ -542,24 +547,24 @@ public class IPOMDP extends POMDP {
 		
 		for (String oj : omegaJList) {
 			
-			/* Make DD of all Mjs */
-			DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+			/* Make DD of all Ajs */
+			DDTree ajDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
 
 			
-			for (String childName : mjDDTree.children.keySet()) {
+			for (String childName : ajDDTree.children.keySet()) {
 				/* 
 				 * Each mj has a single optimal action, so we map the action to mj and
 				 * set the corresponding Oj for that action to the mj.
 				 */
 
 				DDTree ojDDTree = this.OjTheta.get(0)
-										 	  .get(this.oppModel.getOptimalActionAtNode(childName))
+										 	  .get(childName)
 										 	  .get(oj);
 				
-				mjDDTree.addChild(childName, ojDDTree);
+				ajDDTree.addChild(childName, ojDDTree);
 			}
 			
-			Oj[omegaJList.indexOf(oj)] = OP.reorder(mjDDTree.toDD());
+			Oj[omegaJList.indexOf(oj)] = OP.reorder(ajDDTree.toDD());
 		}
 		
 		return Oj;
@@ -591,39 +596,39 @@ public class IPOMDP extends POMDP {
 		
 		List<String> S = 
 				this.S.stream()
-					.filter(s -> !s.name.contains("M_j"))
+					.filter(s -> (!s.name.contains("M_j") && !s.name.contains("A_j")))
 					.map(f -> f.name)
 					.collect(Collectors.toList());
-		
+
 		/* For each action */
 		for (String Ai : this.Ai) {
 
-			DD[] ddTrees = new DD[this.S.size() - 1];
+			DD[] ddTrees = new DD[this.S.size() - 2];
 			
 			for (String s : S) {
 				
-				/* Make M_j factor */
-				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+				/* Make A_j factor */
+				DDTree ajDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
 				
 				/* 
-				 * Collapse Aj into Mj to create f(Mj, S, S')
+				 * Create f(A_j, S, S')
 				 */
-				for (String childName : mjDDTree.children.keySet()) {
-					mjDDTree.addChild(
+				for (String childName : ajDDTree.children.keySet()) {
+					ajDDTree.addChild(
 							childName, 
 							this.Ti.get(
 									Ai + "__" 
-									+ this.oppModel.getOptimalActionAtNode(childName)).get(s));
+									+ childName).get(s));
 				}
 				
-				this.logger.info("Made f(S', Mj, S) for S=" + s + " and Ai=" + Ai);
-				ddTrees[S.indexOf(s)] = OP.reorder(mjDDTree.toDD());
+				this.logger.fine("Made f(S', Aj, S) for S=" + s + " and Ai=" + Ai);
+				ddTrees[S.indexOf(s)] = OP.reorder(ajDDTree.toDD());
 			}
 			
 			Ti.put(Ai, ddTrees);
 		}
 		
-		this.logger.info("Finished making Ti");
+		this.logger.fine("Finished making Ti");
 		return Ti;
 	}
 	
@@ -640,19 +645,18 @@ public class IPOMDP extends POMDP {
 		
 		for (String Ai : this.Ai) {
 			
-			DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+			DDTree ajDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
 			
-			for (String child : mjDDTree.children.keySet()) {
+			for (String child : ajDDTree.children.keySet()) {
 				
 				try {
-					mjDDTree.setDDAt(
+					ajDDTree.setDDAt(
 							child, 
 							OP.sub(
 									this.R.toDD(), 
 									this.parser.costMap.get(
 											Ai + "__" 
-											+ this.oppModel
-												.getOptimalActionAtNode(child))
+											+ child)
 												.toDD()).toDDTree());
 				} 
 				
@@ -661,12 +665,12 @@ public class IPOMDP extends POMDP {
 					e.printStackTrace();
 					System.exit(-1);
 				}
-			} /* for each mj */
+			} /* for each aj */
 			
-			actionCosts.put(Ai, mjDDTree.toDD());
+			actionCosts.put(Ai, ajDDTree.toDD());
 		} /* for each Ai */
 		
-		this.logger.info("Done conditioning costs on Mj");
+		this.logger.info("Done conditioning costs on Aj");
 		
 		/*
 		 * Build rewTranFn like in POMDP setDynamics.
@@ -800,15 +804,22 @@ public class IPOMDP extends POMDP {
 		}
 	}
 	
-	public void initializeIS() {
+	public void initializeFunctions() {
 		/*
-		 * Reinitialize IS, Mj transition, Oi, Oj and Ti after new look ahead on Mj.
+		 * Creates Ti, Oi, Oj and 
+		 */
+	}
+	
+	public void reinitializeOnlineFunctions() {
+		/*
+		 * Reconstructs all the functions which depend on M_j
 		 * 
-		 * After every look ahead step with the Opponent Model, the interactive state space will
-		 * change. This affects the DDs defined for Mj transitions and Oi and Ti.
+		 * Since M_j is traversed online, the nodes consisting of that random variable
+		 * are different at every time step. So the functions which depend on M_j have
+		 * to be reinitialized after every step.
 		 */
 		
-		this.logger.info("Initializing according to Mj");
+		this.logger.info("Reinitializing Mj dependents according to new Mj");
 		
 		/* First initialize new IS */
 		this.S.set(
@@ -816,29 +827,23 @@ public class IPOMDP extends POMDP {
 				this.oppModel.getOpponentModelStateVar(
 						this.oppModelVarIndex));
 		
+		this.logger.info("IS initialized to " + this.S);
+		
 		Global.clearHashtables();
 		this.commitVariables();
 		
-		this.logger.info("IS initialized to " + this.S);
-		
-		this.currentAjGivenMj = this.oppModel.getAjFromMj(this.ddMaker, this.Aj).toDD();
+		/* rebuild  P(Aj | Mj) */
+		this.currentAjGivenMj = this.oppModel.getAjFromMj(this.ddMaker, this.Aj);
 		this.logger.fine("f(Aj, Mj) for current look ahead horizon is " + this.S);
 		
+		/* rebuild  P(Mj' | Mj, Aj, Oj') */
 		this.currentMjTfn = this.makeOpponentModelTransitionDD();
-		this.logger.info("MjTfn initialized");
-		
-		this.currentOi = this.makeOi();
-		this.logger.info("Oi initialized");
-		
-		this.currentTi = this.makeTi();
-		this.logger.info("Ti initialized");
-		
-		this.currentOj = this.makeOj();
-		this.logger.info("Oj initialized");
+		this.logger.fine("f(Mj', Aj, Mj, Oj') initialized");
 		
 		DDTree mjRootBelief = this.oppModel.getOpponentModelInitBelief(this.ddMaker);
 		
 		this.lookAheadRootInitBeliefs.clear();
+		
 		this.currentStateBeliefs.stream()
 			.forEach(s -> this.lookAheadRootInitBeliefs.add(
 					OP.multN(new DD[] {s.toDD(), mjRootBelief.toDD()})));
@@ -850,6 +855,24 @@ public class IPOMDP extends POMDP {
 		
 		this.currentRi = this.makeRi();
 		this.logger.info("Ri initialized for current look ahead horizon");
+	}
+	
+	public void initializeOfflineFunctions() {
+		/*
+		 * Initializes Oi, Oj and Ti functions
+		 * 
+		 * Oi, Oj and Ti do not depend on Mj, so they don't need to be rebuilt after every time
+		 * step
+		 */
+		
+		this.currentOi = this.makeOi();
+		this.logger.info("Oi initialized");
+		
+		this.currentTi = this.makeTi();
+		this.logger.info("Ti initialized");
+		
+		this.currentOj = this.makeOj();
+		this.logger.info("Oj initialized");
 
 	}
 	
@@ -888,7 +911,7 @@ public class IPOMDP extends POMDP {
 		this.logger.info("Transformed belief space");
 		
 		/* re initialize IS */
-		this.initializeIS();
+		this.reinitializeOnlineFunctions();
 		this.logger.info("IS reinitialized");
 	}
 	

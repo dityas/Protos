@@ -38,12 +38,12 @@ public class LATreeVisualizer {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 2);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 1);
 		
 		try {
 			
-			tigerL1IPOMDP.solveOpponentModels();
-			tigerL1IPOMDP.initializeIS();
+//			tigerL1IPOMDP.solveOpponentModels();
+//			tigerL1IPOMDP.initializeIS();
 			
 			LookAheadTree lt = new LookAheadTree(tigerL1IPOMDP);
 			Visualizer viz = 

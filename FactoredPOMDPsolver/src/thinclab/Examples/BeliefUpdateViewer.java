@@ -55,18 +55,6 @@ public class BeliefUpdateViewer {
 		
 		this.ipomdp = new IPOMDP(parser, this.mjDepth, this.mjLookAhead);
 		System.out.println("IPOMDP initialized");
-		
-		try {
-			this.ipomdp.solveOpponentModels();
-		} 
-		
-		catch (SolverException e) {
-			System.err.println("While solving opponent models");
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		
-		this.ipomdp.initializeIS();
 	}
 	
 	public void loop() {
@@ -100,7 +88,7 @@ public class BeliefUpdateViewer {
 						this.ipomdp.lookAheadRootInitBeliefs.get(0)).replace("<br>", "\r\n"));
 		
 		int unfactoredS = 1;
-		for (StateVar st : this.ipomdp.S) {
+		for (StateVar st : this.ipomdp.S.subList(0, this.ipomdp.S.size() - 1)) {
 			unfactoredS *= st.arity;
 		}
 		

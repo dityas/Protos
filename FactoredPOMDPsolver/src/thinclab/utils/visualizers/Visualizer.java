@@ -58,7 +58,7 @@ public class Visualizer {
 		
 		VisualizationViewer<VizNode, VizEdge> vv = 
 				new VisualizationViewer<VizNode, VizEdge>(layout,
-				new Dimension(10000, 10000));
+				new Dimension(1000, 1000));
 
 		// --------------------------------------------------------------------
 		/*
