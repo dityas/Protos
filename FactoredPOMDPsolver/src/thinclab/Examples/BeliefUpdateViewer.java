@@ -65,10 +65,10 @@ public class BeliefUpdateViewer {
 			
 			if (this.bt) {
 				System.out.println("--------------------------TRACE-----------------------------");
-				String[] traces = this.ipomdp.oppModel.getDebugTraces();
-				
-				for (String trace : traces)
-					System.out.println(trace);
+//				String[] traces = this.ipomdp.oppModel.getDebugTraces();
+//				
+//				for (String trace : traces)
+//					System.out.println(trace);
 				System.out.println("------------------------------------------------------------");
 			}
 			this.step(t);
@@ -178,7 +178,7 @@ public class BeliefUpdateViewer {
 	
 	public static void main(String[] args) {
 		
-		LoggerFactory.stopLogging();
+		LoggerFactory.startFineLogging();
 		
 		System.out.println("Starting BeliefUpdateViewer");
 		BeliefUpdateViewer buViewer = new BeliefUpdateViewer();

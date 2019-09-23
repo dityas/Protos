@@ -10,11 +10,7 @@ package thinclab.ipomdpsolver;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -29,15 +25,12 @@ import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
-import thinclab.policyhelper.PolicyNode;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.ParseSPUDD;
 import thinclab.symbolicperseus.StateVar;
-import thinclab.symbolicperseus.Belief.Belief;
-import thinclab.symbolicperseus.Belief.BeliefSet;
 import thinclab.utils.LoggerFactory;
 
 /*

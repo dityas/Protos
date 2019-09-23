@@ -56,7 +56,7 @@ class TestOpponentModels {
 		/*
 		 * Initialize IPOMDP
 		 */
-		this.tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		this.tigerL1IPOMDP = new IPOMDP(parser, 3, 2);
 
 		this.tigerL1IPOMDP.solveOpponentModels();
 //		this.tigerL1IPOMDP.initializeIS();

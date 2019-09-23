@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -264,6 +265,68 @@ public class BeliefTreeTable {
 		}
 		
 		return belIds;
+	}
+	
+	public List<Integer> getChildrenOf(List<Integer> parents) {
+		/*
+		 * Gets the immediate children of the given belief points
+		 */
+		HashSet<Integer> children = new HashSet<Integer>();
+		
+		for (Integer parent : parents) {
+			
+			try {
+				String getBeliefIdQ = "SELECT child_belief_id FROM edges WHERE "
+						+ "parent_belief_id = ?";
+				
+				PreparedStatement stmt = this.storageConn.prepareStatement(getBeliefIdQ);
+				stmt.setInt(1, parent);
+				
+				ResultSet res = stmt.executeQuery();
+				
+				/* accumulate all ids and return them */
+				while (res.next()) children.add(res.getInt("child_belief_id"));
+			}
+			
+			catch (Exception e) {
+				this.logger.severe("While inserting into beliefs table " + e.getMessage());
+				System.exit(-1);
+			}
+		}
+		
+		return new ArrayList<Integer>(children);
+	}
+	
+	public List<Integer> getChildrenStartingFrom(List<Integer> parents, int timeSteps) {
+		/*
+		 * Returns all nodes from the given parents upto the given time steps.
+		 */
+		
+		/* List of all children */
+		HashSet<Integer> children = new HashSet<Integer>();
+		
+		/* parents currently being expanded */
+		HashSet<Integer> currentParents = new HashSet<Integer>();
+		currentParents.addAll(parents);
+		children.addAll(parents);
+		
+		/* children of current parents */
+		HashSet<Integer> currentChildren = new HashSet<Integer>();
+		
+		for (int t = 0; t < timeSteps; t++) {
+			
+			/* expand for all parents */
+			currentChildren.addAll(this.getChildrenOf(parents));
+			
+			/* add to children set and start expanding from children */
+			children.addAll(currentChildren);
+			currentParents.clear();
+			currentParents.addAll(currentChildren);
+			currentChildren.clear();
+		}
+		
+		/* return children as list */
+		return new ArrayList<Integer>(children);
 	}
 	
 	public String[][] getEdgeTriplesFromBeliefId(int belId) {

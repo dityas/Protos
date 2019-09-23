@@ -12,6 +12,7 @@ import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.utils.BeliefTreeTable;
+import thinclab.utils.GraphStorage;
 import thinclab.utils.LoggerFactory;
 
 import java.util.ArrayList;
@@ -68,7 +69,8 @@ public class OpponentModel {
 	/*
 	 * Connection objects and variables for db handling
 	 */
-	private BeliefTreeTable localStorage = new BeliefTreeTable();
+//	private BeliefTreeTable localStorage = new BeliefTreeTable();
+	private GraphStorage localStorage = new GraphStorage();
 	
 	/*
 	 * We will be tracking the position in the policy tree using a time step counter.
@@ -154,8 +156,13 @@ public class OpponentModel {
 		
 		/* Collect Nodes for current H */
 		this.currentNodes = (HashSet<String>)
-				this.localStorage.getBeliefIDsAtTimeSteps(T, T + lookAheadTime + 1).stream()
-					.map(n -> "m" + n).collect(Collectors.toSet());
+				this.localStorage.getChildrenStartingFrom(
+						this.currentRoots.stream()
+							.map(i -> this.getNodeId(i))
+							.collect(Collectors.toList()), 
+						lookAheadTime).stream()
+							.map(n -> "m" + n).collect(Collectors.toSet());
+		
 		this.logger.fine("Traversed nodes are : " + this.currentNodes);
 	}
 	
@@ -185,7 +192,10 @@ public class OpponentModel {
 		
 		this.storePreviousBeliefValues(previousBelief);
 		
-		this.currentRoots.clear();
+		/* clear current context */
+		this.clearCurrentContext();
+		
+		/* add new roots as previous child nodes */
 		this.currentRoots.addAll(this.previousMjBeliefs.keySet());
 		
 		this.logger.fine("Cached previous belief and added non zero nodes "
@@ -354,29 +364,29 @@ public class OpponentModel {
 		return this.localStorage.getBeliefTextForBelief(this.getNodeId(node));
 	}
 	
-	public String[] getDebugTraces() {
-		/*
-		 * Back traces current non zero Mj beliefs for debugging
-		 */
-		int[] beliefIds = 
-				this.previousMjBeliefs.keySet().stream()
-					.map(b -> this.getNodeId(b))
-					.mapToInt(Integer::intValue).toArray();
-		
-		return this.localStorage.getBackTraceDebugBanner(beliefIds);
-	}
+//	public String[] getDebugTraces() {
+//		/*
+//		 * Back traces current non zero Mj beliefs for debugging
+//		 */
+//		int[] beliefIds = 
+//				this.previousMjBeliefs.keySet().stream()
+//					.map(b -> this.getNodeId(b))
+//					.mapToInt(Integer::intValue).toArray();
+//		
+//		return this.localStorage.getBackTraceDebugBanner(beliefIds);
+//	}
 	
 	public List<String> getCurrentRoots() {
 		
 		return this.currentRoots;
 	}
 	
-	public BeliefTreeTable getLocalStorage() {
-		/*
-		 * Getter for the storage table
-		 */
-		return this.localStorage;
-	}
+//	public BeliefTreeTable getLocalStorage() {
+//		/*
+//		 * Getter for the storage table
+//		 */
+//		return this.localStorage;
+//	}
 	
 	private int getNodeId(String node) {
 		/*

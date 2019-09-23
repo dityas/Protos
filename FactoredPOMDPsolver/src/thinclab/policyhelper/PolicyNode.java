@@ -14,6 +14,7 @@ public class PolicyNode {
 	int actId = 1;
 	
 	public String actName = "";
+	public String sBelief = "";
 	public DD belief;
 
 	public int id = -1;
@@ -81,6 +82,18 @@ public class PolicyNode {
 		
 		this.logger.fine("New PolicyNode initialized with belief " + Belief.toStateMap(p, belief)
 				+ " and optimal action " + this.actName + " at time step " + this.H);
+	}
+	
+	public PolicyNode(int id, int timeStep, String sBelief, String action) {
+		/*
+		 * Constructor for using PolicyNode objects as place holders
+		 * 
+		 * Currently being used with BeliefGraph backend in OpponentModel objects
+		 */
+		this.id = id;
+		this.H = timeStep;
+		this.sBelief = sBelief;
+		this.actName = action;
 	}
 	
 	// ------------------------------------------------------------------------------------
