@@ -10,6 +10,7 @@ package thinclab.tests;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +41,11 @@ class TestOpponentModels {
 
 	public String l1DomainFile;
 	public String l1DomainFile2;
+	public String pomdpDomain;
 	public IPOMDP tigerL1IPOMDP;
+	public POMDP pomdp;
+	
+	public OpponentModel TestOM;
 	
 	@BeforeEach
 	void setUp() throws Exception {
@@ -49,125 +54,42 @@ class TestOpponentModels {
 		
 		this.l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
 		this.l1DomainFile2 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
+		this.pomdpDomain = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
 		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
+		this.pomdp = new POMDP(this.pomdpDomain);
+		this.pomdp.solvePBVI(5, 100);
 		
-		/*
-		 * Initialize IPOMDP
-		 */
-		this.tigerL1IPOMDP = new IPOMDP(parser, 3, 2);
-
-		this.tigerL1IPOMDP.solveOpponentModels();
-//		this.tigerL1IPOMDP.initializeIS();
+		List<POMDP> someList = new ArrayList<POMDP>();
+		someList.add(this.pomdp);
+		
+		this.TestOM = new OpponentModel(someList, 10);
+		
 	}
 
 	@AfterEach
 	void tearDown() throws Exception {
 	}
-//
-//	@Test
-//	void testIPOMDPL1OpponentModelStorage() throws Exception {
-//		/*
-//		 * Test Opponents solutions by L1 agents
-//		 */
-//		System.out.println("Running testIPOMDPL1OpponentModelBeliefStorage()");
-//					
-//		/* store the belief nodes */
-////		tigerL1IPOMDP.oppModel.storeOpponentModel();
-//		
-//		BeliefTreeTable bt = this.tigerL1IPOMDP.oppModel.getLocalStorage();
-//		
-//		int numRecords = 0;
-//		ResultSet res = bt.getBeliefTable();
-//		while (res.next()) {
-//			numRecords += 1;
-////			System.out.println(res.getInt("belief_id") + "\t" 
-////					+ res.getString("optimal_action") + "\t"
-////					+ res.getInt("horizon") + "\t"
-////					+ res.getString("belief_text"));
-//		}
-//		
-//		assertTrue(numRecords == tigerL1IPOMDP.oppModel.nodesList.size());
-//		
-//		ResultSet resEdges = bt.getEdgesTable();
-//		while (resEdges.next()) {
-//			numRecords += 1;
-////			System.out.println(resEdges.getInt("parent_belief_id") + "\t"
-////					+ resEdges.getString("action") + "\t"
-////					+ resEdges.getString("obs") + "\t"
-////					+ resEdges.getInt("child_belief_id"));
-//		}
-//		
-//		System.out.println(
-//				Arrays.deepToString(
-//						bt.getEdgeTriplesFromBeliefIds(
-//								bt.getBeliefIDsAtTimeSteps(0, 4))));
-//	}
 	
 	@Test
 	void testOpponentModelInit() {
 		System.out.println("Running testOpponentModelInit()");
-		
-		assertNotNull(this.tigerL1IPOMDP.oppModel);
+		assertNotNull(this.TestOM);
 	}
 	
 	@Test
-	void testOpponentModelMjTriples() {
-		System.out.println("Running testOpponentModelMjTriples()");
+	void testOpponentModelBuildLocalModel() {
+		System.out.println("Running testOpponentModelBuildLocalModel()");
 		
-		try {
-			tigerL1IPOMDP.S.set(
-					tigerL1IPOMDP.oppModelVarIndex, 
-					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
-							tigerL1IPOMDP.oppModelVarIndex));
-			
-			Global.clearHashtables();
-			tigerL1IPOMDP.commitVariables();
-//			DDTree tree = tigerL1IPOMDP.oppModel.getAjFromMj(tigerL1IPOMDP.ddMaker, tigerL1IPOMDP.Aj);
-//			
-//			DD ddTree = OP.reorder(tree.toDD());
-			
-			System.out.println(Arrays.deepToString(tigerL1IPOMDP.oppModel.getOpponentModelTriples()));
-			
-//			assertTrue(
-//					OP.maxAll(
-//							OP.abs(
-//								OP.sub(
-//									DD.one, 
-//									OP.addMultVarElim(
-//										ddTree, 3)))) < 1e-8);
-		}
+		assertTrue(this.TestOM.T == 0);
 		
-		catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-			fail();
-		}
+		this.TestOM.buildLocalModel(2);
+		
+		System.out.println(this.TestOM.currentNodes);
 	}
 	
 	@Test
 	void testOpponentModelTraversal() {
-		System.out.println("Running testOpponentModelTraversal()");
 		
-//		BeliefTreeTable bt = this.tigerL1IPOMDP.oppModel.getLocalStorage();
-		
-		try {
-		HashSet<String> varChilds = new HashSet<String>();
-		
-		varChilds.addAll(
-				Arrays.asList(this.tigerL1IPOMDP.S.get(
-						this.tigerL1IPOMDP.oppModelVarIndex).valNames));
-		
-		varChilds.removeAll(this.tigerL1IPOMDP.oppModel.currentNodes);
-		assertTrue(varChilds.isEmpty());
-		}
-		
-		catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-			fail();
-		}
 	}
 	
 	@Test

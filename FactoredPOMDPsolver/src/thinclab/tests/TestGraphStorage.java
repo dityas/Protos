@@ -51,18 +51,6 @@ class TestGraphStorage {
 	@AfterEach
 	void tearDown() throws Exception {
 	}
-
-	@Test
-	void testBTTinit() throws Exception {
-		System.out.println("Running testBTTinit()");
-
-		OpponentModel OM = new OpponentModel(this.tigerL1IPOMDP.lowerLevelFrames, 5);
-		
-		int count = 0;
-		HashMap<Integer, PolicyNode> map = OM.getLocalStorage().getNodeMap();
-		
-		assertTrue(map.size() >= 5);
-	}
 	
 	@Test
 	void testBTTinsertion() throws Exception {
@@ -91,7 +79,7 @@ class TestGraphStorage {
 	void testBTTbelieffetching() throws Exception {
 		System.out.println("Running testBTTbelieffetching()");
 		
-		BeliefTreeTable bt = new BeliefTreeTable();
+		GraphStorage bt = new GraphStorage();
 		bt.insertNewBelief(1, 0, "b1 at 0", "NOP");
 		bt.insertNewBelief(2, 0, "b2 at 0", "ACT1");
 		bt.insertNewBelief(3, 1, "b3 at 1", "ACT1");
@@ -131,7 +119,7 @@ class TestGraphStorage {
 		assertTrue(triples[0].length == 3);
 		assertTrue(triples[0][2].contentEquals("m3"));
 		assertTrue(triples[1][2].contentEquals("m4"));
-//		assertTrue(bt.getBeliefIDsAtTimeSteps(0, 2).size() == 4);
+		assertTrue(bt.getBeliefIDsAtTimeSteps(0, 2).size() == 4);
 	}
 
 }

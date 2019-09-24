@@ -316,7 +316,9 @@ public class BeliefTreeTable {
 		for (int t = 0; t < timeSteps; t++) {
 			
 			/* expand for all parents */
-			currentChildren.addAll(this.getChildrenOf(parents));
+			currentChildren.addAll(
+					this.getChildrenOf(
+							new ArrayList<Integer>(currentParents)));
 			
 			/* add to children set and start expanding from children */
 			children.addAll(currentChildren);

@@ -50,20 +50,6 @@ class TestBeliefTreeTable {
 	@AfterEach
 	void tearDown() throws Exception {
 	}
-
-	@Test
-	void testBTTinit() throws Exception {
-		System.out.println("Running testBTTinit()");
-
-		OpponentModel OM = new OpponentModel(this.tigerL1IPOMDP.lowerLevelFrames, 5);
-		
-		int count = 0;
-		ResultSet res = OM.getLocalStorage().getBeliefTable();
-		
-		while(res.next()) count += 1;
-		
-		assertTrue(count >= 5);
-	}
 	
 	@Test
 	void testBTTinsertion() throws Exception {
@@ -144,7 +130,7 @@ class TestBeliefTreeTable {
 		assertTrue(triples[0].length == 3);
 		assertTrue(triples[0][2].contentEquals("m3"));
 		assertTrue(triples[1][2].contentEquals("m4"));
-//		assertTrue(bt.getBeliefIDsAtTimeSteps(0, 2).size() == 4);
+		assertTrue(bt.getBeliefIDsAtTimeSteps(0, 2).size() == 4);
 	}
 
 }

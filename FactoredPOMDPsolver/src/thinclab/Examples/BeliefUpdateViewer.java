@@ -178,7 +178,7 @@ public class BeliefUpdateViewer {
 	
 	public static void main(String[] args) {
 		
-		LoggerFactory.startFineLogging();
+//		LoggerFactory.stopLogging();
 		
 		System.out.println("Starting BeliefUpdateViewer");
 		BeliefUpdateViewer buViewer = new BeliefUpdateViewer();
