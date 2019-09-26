@@ -10,13 +10,13 @@ package thinclab.policyhelper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.Belief.Belief;
-import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
@@ -30,7 +30,7 @@ public class BeliefTree extends PolicyTree {
 	 * expanded for all action observation combinations. 
 	 */
 	
-	Logger logger = LoggerFactory.getNewLogger("BeliefTree");
+	private static final Logger logger = Logger.getLogger(BeliefTree.class);
 	
 	public BeliefTree(POMDP p, int horizon) {
 		/*
@@ -91,7 +91,8 @@ public class BeliefTree extends PolicyTree {
 		/*
 		 * Override super's expandForSingleStep to use all actions instead of just optimal ones
 		 */
-//		this.logger.fine("Expanding from horizon " + currentH + " from nodes " + previousLeaves);
+		this.logger.debug("Expanding from horizon " + currentH + " from " + previousLeaves.size() 
+			+ " nodes");
 		
 		List<PolicyNode> nextNodes = new ArrayList<PolicyNode>();
 		
@@ -146,6 +147,11 @@ public class BeliefTree extends PolicyTree {
 			newNode.setId(v);
 			nextNodes.add(newNode);
 		});
+		
+		this.logger.debug("For H=" + currentH + " branching factor is A=" + this.pomdp.nActions 
+				+ " * O=" + this.allObsCombinations.size() + " * n=" + previousLeaves.size()
+				+ " = " + (this.pomdp.nActions*this.allObsCombinations.size()*previousLeaves.size())
+				+ " points out of which " + nextNodes.size() + " are unique");
 		
 		return nextNodes;
 	}

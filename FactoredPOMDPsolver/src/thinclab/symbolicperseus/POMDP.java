@@ -11,8 +11,9 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.*;
 import java.util.HashMap;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import org.apache.log4j.Logger;
 
 import thinclab.domainMaker.L0Frame;
 import thinclab.domainMaker.ddHelpers.DDMaker;
@@ -27,7 +28,6 @@ import thinclab.policyhelper.PolicyTree;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.symbolicperseus.Belief.Belief;
 import thinclab.symbolicperseus.Belief.BeliefSet;
-import thinclab.utils.LoggerFactory;
 
 public class POMDP implements Serializable {
 
@@ -94,7 +94,7 @@ public class POMDP implements Serializable {
 	
 	public ParseSPUDD parser;
 	
-	private Logger logger = LoggerFactory.getNewLogger("POMDP Main: ");
+	private static final Logger logger = Logger.getLogger(POMDP.class);
 	
 	// ---------------------------------------------------------------------
 	/*
@@ -415,7 +415,7 @@ public class POMDP implements Serializable {
 		 * or lower frames have done required changes if any. 
 		 */
 		
-		this.logger.info("Begin POMDP initialisation from parser");
+		logger.info("Begin POMDP initialisation from parser");
 		
 		debug = false;
 		
@@ -441,7 +441,7 @@ public class POMDP implements Serializable {
 		this.setDynamics();
 		this.setBeliefs();
 		
-		this.logger.info("POMDP initialised");
+		logger.info("POMDP initialised");
 	}
 	
 	public void initializeFrameFromParser(ParseSPUDD parserObj) {
@@ -2662,14 +2662,14 @@ public class POMDP implements Serializable {
 										this.policy);
 				
 				if (this.pCache.isOscillating(new Float(bellmanErr))) {
-					this.logger.warning(
+					this.logger.warn(
 							"BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
 					break;
 				}
 			} // else
 			
 			if (bellmanErr < 0.001) {
-				this.logger.warning("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
+				this.logger.warn("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
 				break;
 			}
 		}

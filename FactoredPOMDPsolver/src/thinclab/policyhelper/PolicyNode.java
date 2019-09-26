@@ -1,12 +1,12 @@
 package thinclab.policyhelper;
 
 import java.util.*;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.Belief.Belief;
-import thinclab.utils.LoggerFactory;
 
 public class PolicyNode {
 	
@@ -20,7 +20,7 @@ public class PolicyNode {
 	public int id = -1;
 	public int H = -1;
 	
-	private Logger logger = LoggerFactory.getNewLogger("Node");
+	private static final Logger logger = Logger.getLogger(PolicyNode.class);
 	
 	public HashMap<String, HashMap<String, Float>> factoredBelief;
 	
@@ -80,7 +80,7 @@ public class PolicyNode {
 		this(p, belief);
 		this.H = horizon;
 		
-		this.logger.fine("New PolicyNode initialized with belief " + Belief.toStateMap(p, belief)
+		this.logger.debug("New PolicyNode initialized with belief " + Belief.toStateMap(p, belief)
 				+ " and optimal action " + this.actName + " at time step " + this.H);
 	}
 	

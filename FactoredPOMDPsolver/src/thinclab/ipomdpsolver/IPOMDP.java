@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.log4j.Logger;
 
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
@@ -31,7 +31,6 @@ import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.ParseSPUDD;
 import thinclab.symbolicperseus.StateVar;
-import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
@@ -40,7 +39,7 @@ import thinclab.utils.LoggerFactory;
 public class IPOMDP extends POMDP {
 
 	private static final long serialVersionUID = 4973485302724576384L;
-	private Logger logger = LoggerFactory.getNewLogger("IPOMDP Main: ");
+	private static final Logger logger = Logger.getLogger(IPOMDP.class);
 	
 	/*
 	 * The strategy level and frame ID of the frame represented by the IPOMDP object
@@ -160,7 +159,7 @@ public class IPOMDP extends POMDP {
 		}
 		
 		catch (Exception e) {
-			this.logger.severe("While parsing " + e.getMessage());
+			this.logger.error("While parsing " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -185,7 +184,7 @@ public class IPOMDP extends POMDP {
 		
 		/* Store parser obj reference for future access */
 		this.parser = parsedFrame;
-		this.logger.fine("Parser reference stored");
+		this.logger.debug("Parser reference stored");
 		
 		/*
 		 * Initialize each child frame
@@ -502,7 +501,7 @@ public class IPOMDP extends POMDP {
 									+ childName).get(o));
 				}
 				
-				this.logger.fine("Made f(O', Aj, S') for O=" + o + " and Ai=" + Ai);
+				this.logger.debug("Made f(O', Aj, S') for O=" + o + " and Ai=" + Ai);
 
 				ddTrees[O.indexOf(o)] = OP.reorder(mjDDTree.toDD());
 			}
@@ -614,14 +613,14 @@ public class IPOMDP extends POMDP {
 									+ childName).get(s));
 				}
 				
-				this.logger.fine("Made f(S', Aj, S) for S=" + s + " and Ai=" + Ai);
+				this.logger.debug("Made f(S', Aj, S) for S=" + s + " and Ai=" + Ai);
 				ddTrees[S.indexOf(s)] = OP.reorder(ajDDTree.toDD());
 			}
 			
 			Ti.put(Ai, ddTrees);
 		}
 		
-		this.logger.fine("Finished making Ti");
+		this.logger.debug("Finished making Ti");
 		return Ti;
 	}
 	
@@ -654,7 +653,7 @@ public class IPOMDP extends POMDP {
 				} 
 				
 				catch (Exception e) {
-					this.logger.severe("While making cost for action " + Ai + " : " + e.getMessage());
+					this.logger.error("While making cost for action " + Ai + " : " + e.getMessage());
 					e.printStackTrace();
 					System.exit(-1);
 				}
@@ -792,7 +791,7 @@ public class IPOMDP extends POMDP {
 		} 
 		
 		catch (Exception e) {
-			logger.severe("While recording IS indices " + e.getMessage());
+			logger.error("While recording IS indices " + e.getMessage());
 			System.exit(-1);
 		}
 	}
@@ -827,11 +826,11 @@ public class IPOMDP extends POMDP {
 		
 		/* rebuild  P(Aj | Mj) */
 		this.currentAjGivenMj = this.oppModel.getAjFromMj(this.ddMaker, this.Aj);
-		this.logger.fine("f(Aj, Mj) for current look ahead horizon is " + this.S);
+		this.logger.debug("f(Aj, Mj) for current look ahead horizon is " + this.S);
 		
 		/* rebuild  P(Mj' | Mj, Aj, Oj') */
 		this.currentMjTfn = this.makeOpponentModelTransitionDD();
-		this.logger.fine("f(Mj', Aj, Mj, Oj') initialized");
+		this.logger.debug("f(Mj', Aj, Mj, Oj') initialized");
 		
 		DDTree mjRootBelief = this.oppModel.getOpponentModelInitBelief(this.ddMaker);
 		

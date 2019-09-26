@@ -13,16 +13,15 @@ import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.utils.BeliefTreeTable;
 import thinclab.utils.GraphStorage;
-import thinclab.utils.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.log4j.Logger;
 
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
@@ -49,7 +48,7 @@ public class OpponentModel {
 	public HashMap<String, HashMap<List<String>, String>> triplesMap =
 			new HashMap<String, HashMap<List<String>, String>>();
 	
-	private Logger logger = LoggerFactory.getNewLogger("Opponent Model");
+	private static final Logger logger = Logger.getLogger(OpponentModel.class);
 	
 	/*
 	 * Variables for determining the current context i.e. current roots and currently visited
@@ -86,7 +85,7 @@ public class OpponentModel {
 		/*
 		 * Initialize from <belief, frame> combination
 		 */
-		this.logger.info(
+		logger.info(
 				"Initializing Opponent Model for a total of " + horizon + " time steps");
 		
 		for (POMDP frame: frames) {
@@ -103,8 +102,8 @@ public class OpponentModel {
 			/* Add nodes to */
 			nodesList.addAll(T.policyNodes);
 			
-			this.logger.info("Added " + T.policyNodes.size() + " PolicyNodes to Opponent Model");
-			this.logger.info("Opponent Model now contains " + this.nodesList.size() + " PolicyNodes");
+			logger.info("Added " + T.policyNodes.size() + " PolicyNodes to Opponent Model");
+			logger.info("Opponent Model now contains " + this.nodesList.size() + " PolicyNodes");
 		}
 
 		this.storeOpponentModel();
@@ -152,7 +151,7 @@ public class OpponentModel {
 		 * the policy tree
 		 */
 		
-		this.logger.fine("Building local model starting from T=" + this.T);
+		logger.debug("Building local model starting from T=" + this.T);
 		
 		/* Collect Nodes for current H */
 		this.currentNodes = (HashSet<String>)
@@ -163,7 +162,7 @@ public class OpponentModel {
 						lookAheadTime).stream()
 							.map(n -> "m" + n).collect(Collectors.toSet());
 		
-		this.logger.fine("Traversed nodes are : " + this.currentNodes);
+		logger.debug("Traversed nodes are : " + this.currentNodes);
 	}
 	
 	public void clearCurrentContext() {
@@ -198,11 +197,11 @@ public class OpponentModel {
 		/* add new roots as previous child nodes */
 		this.currentRoots.addAll(this.previousMjBeliefs.keySet());
 		
-		this.logger.fine("Cached previous belief and added non zero nodes "
+		logger.debug("Cached previous belief and added non zero nodes "
 				+ this.currentRoots + " to current roots");
 		
 		this.T += 1;
-		this.logger.info("Opponent Model currently tracking time step " + this.T);
+		logger.info("Opponent Model currently tracking time step " + this.T);
 		
 		this.buildLocalModel(lookAhead);
 	}
@@ -211,7 +210,7 @@ public class OpponentModel {
 		/*
 		 * Constructs an initial belief DDTree based on the current roots
 		 */
-		this.logger.info("Making initial belief for current opponent model traversal");
+		logger.info("Making initial belief for current opponent model traversal");
 		DDTree beliefMj = ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
 		
 		if (this.previousMjBeliefs.size() == 0) {
@@ -246,7 +245,7 @@ public class OpponentModel {
 			}
 		}
 		
-		this.logger.info("Initial belief is " + beliefMj);
+		logger.info("Initial belief is " + beliefMj);
 		
 		return beliefMj;
 	}
@@ -306,7 +305,7 @@ public class OpponentModel {
 						new String[] {"M_j", "A_j"},
 						triples.toArray(new String[triples.size()][]));
 		
-		this.logger.fine("P(Aj | Mj) DD is " + PAjMj);
+		logger.debug("P(Aj | Mj) DD is " + PAjMj);
 		return OP.reorder(PAjMj.toDD());
 	}
 	

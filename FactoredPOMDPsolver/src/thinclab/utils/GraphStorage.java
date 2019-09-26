@@ -13,7 +13,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import thinclab.policyhelper.PolicyNode;
 
@@ -30,7 +31,7 @@ public class GraphStorage {
 	private HashMap<Integer, HashMap<String, Integer>> idToSuccessorsMap =
 			new HashMap<Integer, HashMap<String, Integer>>();
 	
-	private Logger logger = LoggerFactory.getNewLogger("BeliefTreeGraph");
+	private static final Logger logger = Logger.getLogger(GraphStorage.class); 
 	
 	// ------------------------------------------------------------------------------------
 	
@@ -61,11 +62,11 @@ public class GraphStorage {
 							beliefString, 
 							action));
 			
-			this.logger.fine("Added " + id + " to GraphStorage");
+			logger.debug("Added " + id + " to GraphStorage");
 		}
 		
 		/* else do something to get attention */
-		else this.logger.severe("belief id clash: " + id + " already exists");
+		else logger.error("belief id clash: " + id + " already exists");
 		
 	}
 	
@@ -83,7 +84,7 @@ public class GraphStorage {
 		
 		else this.idToSuccessorsMap.get(pId).put(obs, cId);
 		
-		this.logger.fine("Added edge " + pId + " -[" + action + "]-[" + obs + "]-> " + cId);
+		logger.debug("Added edge " + pId + " -[" + action + "]-[" + obs + "]-> " + cId);
 	}
 	
 	// ----------------------------------------------------------------------------------------
@@ -94,7 +95,7 @@ public class GraphStorage {
 		 */
 		
 		if(!this.idToNodeMap.containsKey(belId)) {
-			this.logger.severe("No node named m" + belId + " in " + this.idToNodeMap);
+			logger.error("No node named m" + belId + " in " + this.idToNodeMap);
 			return "";
 		}
 		
@@ -106,7 +107,7 @@ public class GraphStorage {
 		 * Look for belief text label for the belief
 		 */
 		if(!this.idToNodeMap.containsKey(belId)) {
-			this.logger.severe("No node named " + belId + " in " + this.idToNodeMap);
+			logger.error("No node named " + belId + " in " + this.idToNodeMap);
 			return "";
 		}
 		
@@ -124,7 +125,7 @@ public class GraphStorage {
 			if (entry.getValue().H >= startClosed && entry.getValue().H < endOpen)
 				belIds.add(entry.getKey());
 		
-		this.logger.fine("Found " + belIds + " beliefs between T" 
+		logger.debug("Found " + belIds + " beliefs between T" 
 				+ startClosed + " and T" + endOpen);
 		
 		return belIds;

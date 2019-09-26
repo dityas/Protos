@@ -13,9 +13,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
@@ -24,7 +21,6 @@ import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.symbolicperseus.StateVar;
-import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas

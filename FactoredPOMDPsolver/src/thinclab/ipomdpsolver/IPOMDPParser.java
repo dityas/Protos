@@ -14,13 +14,13 @@ import java.io.StreamTokenizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.ParseSPUDD;
-import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
@@ -42,7 +42,7 @@ public class IPOMDPParser extends ParseSPUDD {
 	/* Separate container for costs */
 	public HashMap<String, DDTree> costMap;
 	
-	private Logger logger = LoggerFactory.getNewLogger("IPOMDP Parser");
+	private static final Logger logger = Logger.getLogger(IPOMDPParser.class);
 	
 	// ------------------------------------------------------------------------------------------
 	/*

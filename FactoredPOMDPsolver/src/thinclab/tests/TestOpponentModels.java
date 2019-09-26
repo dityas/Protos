@@ -31,7 +31,6 @@ import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.utils.BeliefTreeTable;
-import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
@@ -50,8 +49,6 @@ class TestOpponentModels {
 	@BeforeEach
 	void setUp() throws Exception {
 		
-		LoggerFactory.startFineLogging();
-		
 		this.l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
 		this.l1DomainFile2 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
 		this.pomdpDomain = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
@@ -62,7 +59,7 @@ class TestOpponentModels {
 		List<POMDP> someList = new ArrayList<POMDP>();
 		someList.add(this.pomdp);
 		
-		this.TestOM = new OpponentModel(someList, 10);
+		this.TestOM = new OpponentModel(someList, 30);
 		
 	}
 
@@ -84,17 +81,30 @@ class TestOpponentModels {
 		
 		this.TestOM.buildLocalModel(2);
 		
+		/* will only work for the test domain */
 		System.out.println(this.TestOM.currentNodes);
+		assertTrue(this.TestOM.currentNodes.size() == 9);
 	}
 	
 	@Test
-	void testOpponentModelTraversal() {
+	void testOpponentModelstep() {
 		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		this.tigerL1IPOMDP = new IPOMDP(parser, 10, 3);
+		
+		this.TestOM.buildLocalModel(2);
 	}
 	
 	@Test
 	void testPAjMjCreation() {
 		System.out.println("Running testPAjMjCreation()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		this.tigerL1IPOMDP = new IPOMDP(parser, 10, 3);
 		
 		try {
 			tigerL1IPOMDP.S.set(

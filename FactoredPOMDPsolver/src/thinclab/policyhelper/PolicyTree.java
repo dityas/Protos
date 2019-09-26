@@ -12,14 +12,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.apache.log4j.Logger;
 
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.Belief.Belief;
-import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
@@ -38,7 +38,7 @@ public class PolicyTree {
 	public List<PolicyNode> roots;
 	public List<PolicyNode> policyNodes;
 	
-	Logger logger = LoggerFactory.getNewLogger("PolicyTree");
+	private static final Logger logger = Logger.getLogger(PolicyTree.class);
 	
 	public HashSet<DD> treeRoots = new HashSet<DD>();
 	
@@ -80,7 +80,8 @@ public class PolicyTree {
 		/*
 		 * Expands the policy tree for a single time step
 		 */
-		this.logger.fine("Expanding from horizon " + currentH + " from nodes " + previousLeaves);
+		this.logger.debug("Expanding from horizon " + currentH + " from " 
+				+ previousLeaves.size() + " nodes");
 		
 		List<PolicyNode> nextNodes = new ArrayList<PolicyNode>();
 		
@@ -129,6 +130,11 @@ public class PolicyTree {
 			newNode.setId(v);
 			nextNodes.add(newNode);
 		});
+		
+		this.logger.debug("For H=" + currentH + " branching factor is A=" + 1 
+				+ " * O=" + this.allObsCombinations.size() + " * n=" + previousLeaves.size()
+				+ " = " + (1*this.allObsCombinations.size()*previousLeaves.size())
+				+ " points out of which " + nextNodes.size() + " are unique");
 		
 		return nextNodes;
 	}
@@ -219,7 +225,7 @@ public class PolicyTree {
 		 * Lower level belief DDs should not be used anyway after the policy tree / belief tree is
 		 * constructed.
 		 */
-		this.logger.fine("Setting lower level beliefs to NULL");
+		this.logger.debug("Setting lower level beliefs to NULL");
 		this.policyNodes.forEach(n -> n.belief = null);
 	}
 	

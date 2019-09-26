@@ -11,17 +11,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Logger;
 
 import cern.colt.Arrays;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.symbolicperseus.DD;
-import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
@@ -32,7 +31,7 @@ public class LookAheadTree {
 	 * Defines a tree of interactive beliefs for the look ahead horizon
 	 */
 	
-	private Logger logger = LoggerFactory.getNewLogger("LATree: ");
+	private static final Logger logger = Logger.getLogger(LookAheadTree.class);
 	
 	/*
 	 * Store reference to ipomdp object
@@ -108,7 +107,7 @@ public class LookAheadTree {
 					}
 					
 					catch (VariableNotFoundException e) {
-						this.logger.severe(e.getMessage());
+						this.logger.error(e.getMessage());
 						System.exit(-1);
 					}
 				} /* for all observations */

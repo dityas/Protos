@@ -7,26 +7,26 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import thinclab.domainMaker.SPUDDHelpers.NextLevelVariablesContext;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
-import thinclab.utils.LoggerFactory;
 
 public class DDMaker {
 	/*
 	 * Helper class for making DDs from variable sequences and triples and all that
 	 */
-	private Logger theLogger = LoggerFactory.getNewLogger("DDMaker");
+	
+	private static final Logger logger = Logger.getLogger(DDMaker.class);
+	
 	private HashMap<String, String[]> variablesHashMap = new HashMap<String, String[]>();
 	private boolean primed = false;
 	
+	// --------------------------------------------------------------------------------------
+	
 	public DDMaker() {
-		ConsoleHandler cHandler = new ConsoleHandler();
-		cHandler.setLevel(Level.ALL);
-		theLogger.setUseParentHandlers(false);
-		theLogger.addHandler(cHandler);
+		
 	}
 	
 	public DDMaker(VariablesContext varContext) {
@@ -45,19 +45,21 @@ public class DDMaker {
 	}
 	
 	// ----------------------------------------------------------------------------
-	// Methods for variables addition
+	/*
+	 * Methods for variables addition
+	 */
 	
 	public void addVariable(String varName, String[] children) {
 		/*
 		 * Stores the state or observation variable info.
 		 */
 		if (this.variablesHashMap.containsKey(varName)) {
-			this.theLogger.warning(
-					varName + "already exists. Won't be added again.");
+			logger.warn(varName 
+					+ "already exists. Won't be added again.");
 		}
 		
 		if (this.primed) {
-			this.theLogger.severe(
+			logger.error(
 					"Variables have already been primed. Restart and add all variables first");			
 		}
 		
@@ -69,14 +71,19 @@ public class DDMaker {
 		/*
 		 * Creates new records for primes of already known variables
 		 */
-		HashMap<String, String[]> primeHashMap = new HashMap<String, String[]>();
-		Iterator<Entry<String, String[]>> varMapIterator = this.variablesHashMap.entrySet().iterator();
+		HashMap<String, String[]> primeHashMap = 
+				new HashMap<String, String[]>();
+		Iterator<Entry<String, String[]>> varMapIterator = 
+				this.variablesHashMap.entrySet().iterator();
+		
 		while (varMapIterator.hasNext()) {
+			
 			Entry<String, String[]> entry = varMapIterator.next();
 			primeHashMap.put(entry.getKey() + "'", entry.getValue());
+			
 		}
 		
-		// add primeHashMap entries to variable hashMap
+		/* add primeHashMap entries to variable hashMap */
 		this.variablesHashMap.putAll(primeHashMap);
 		this.primed = true;
 	}
@@ -103,7 +110,7 @@ public class DDMaker {
 	
 	public void clearContext() {
 		/* Clears all current variables */
-		this.theLogger.severe("Clearing current context!");
+		logger.error("Clearing current context!");
 		
 		this.variablesHashMap.clear();
 		this.primed = false;
@@ -185,7 +192,7 @@ public class DDMaker {
 			}
 			
 			else {
-				this.theLogger.severe(varName + " not in known set of variables");
+				logger.error(varName + " not in known set of variables");
 			}
 		} // for (int i = varSequence.length-1; i >= 0 ; i --)
 		
@@ -243,7 +250,7 @@ public class DDMaker {
 				}
 				
 				catch (Exception e) {
-					this.theLogger.severe("While setting value at " + currentRecord[currentRecord.length-2]
+					logger.error("While setting value at " + currentRecord[currentRecord.length-2]
 							+ " " + e.getMessage());
 					System.exit(-1);
 				}

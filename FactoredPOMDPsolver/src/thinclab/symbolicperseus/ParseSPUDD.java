@@ -3,13 +3,15 @@ package thinclab.symbolicperseus;
 import java.io.*;
 import java.util.*;
 import java.util.HashMap;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.apache.log4j.Logger;
+
 import java.lang.*;
 
 import thinclab.domainMaker.ddHelpers.DDTree;
-import thinclab.utils.LoggerFactory;
+
 
 public class ParseSPUDD {
     public HashMap existingDds;
@@ -35,7 +37,7 @@ public class ParseSPUDD {
     public int frameID;
     public int level;
     
-    private Logger logger = LoggerFactory.getNewLogger("POMDP Parser");
+    private static final Logger logger = Logger.getLogger(ParseSPUDD.class);
     
     // --------------------------------------------------------------------------------------
     /*

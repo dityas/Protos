@@ -73,10 +73,11 @@ class TestPolicyTree {
 		System.out.println("Running testPolicyTreeInit()");
 		
 		long startTime = System.nanoTime();
-		PolicyTree policyTree = new PolicyTree(pomdp, 5);
+		PolicyTree policyTree = new PolicyTree(pomdp, 30);
 		long endTime = System.nanoTime();
 		
 		assertTrue(policyTree.policyNodes.size() > this.pomdp.getInitialBeliefsList().size());
+//		System.out.println(pomdp.getAllObservationsList());
 	}
 	
 	@Test
