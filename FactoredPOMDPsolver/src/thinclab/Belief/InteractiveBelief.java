@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.ipomdpsolver.InteractiveBelief;
+package thinclab.Belief;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,7 +24,6 @@ import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.MySet;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
-import thinclab.symbolicperseus.Belief.Belief;
 
 /*
  * @author adityas

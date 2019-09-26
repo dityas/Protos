@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.symbolicperseus.Belief;
+package thinclab.Belief;
 
 import java.util.ArrayList;
 import java.util.Arrays;

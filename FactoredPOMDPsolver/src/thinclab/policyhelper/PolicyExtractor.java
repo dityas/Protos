@@ -5,7 +5,7 @@ import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
-import thinclab.symbolicperseus.Belief.Belief;
+import thinclab.Belief.Belief;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.policyhelper.PolicyNode;

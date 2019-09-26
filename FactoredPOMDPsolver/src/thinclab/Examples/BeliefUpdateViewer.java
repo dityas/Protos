@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
 
+import thinclab.Belief.InteractiveBelief;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
-import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.symbolicperseus.StateVar;
 
 /*

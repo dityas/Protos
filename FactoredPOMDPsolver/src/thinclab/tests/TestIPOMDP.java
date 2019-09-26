@@ -21,6 +21,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.Belief.Belief;
+import thinclab.Belief.InteractiveBelief;
 import thinclab.domainMaker.L0Frame;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.domainMaker.ddHelpers.DDTree;
@@ -30,12 +32,10 @@ import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.InteractiveStateVar;
 import thinclab.ipomdpsolver.OpponentModel;
-import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.POMDP;
-import thinclab.symbolicperseus.Belief.Belief;
 
 /*
  * @author adityas

@@ -17,13 +17,13 @@ import java.util.stream.IntStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import thinclab.Belief.InteractiveBelief;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
@@ -854,8 +854,8 @@ public class IPOMDP extends POMDP {
 		
 		logger.debug("Current look ahead init beliefs are " + this.lookAheadRootInitBeliefs);
 		
-		this.currentLookAheadTree = new LookAheadTree(this);
-		logger.debug("Look ahead tree initialized for " + this.mjLookAhead + " time steps.");
+//		this.currentLookAheadTree = new LookAheadTree(this);
+//		logger.debug("Look ahead tree initialized for " + this.mjLookAhead + " time steps.");
 		
 		this.currentRi = this.makeRi();
 		logger.debug("Ri initialized for current look ahead horizon");
@@ -976,22 +976,22 @@ public class IPOMDP extends POMDP {
 						0, this.Omega.size() - this.OmegaJNames.size()));
 	}
 	
-	public LookAheadTree getLookAheadTree() {
-		return this.currentLookAheadTree;
-	}
-	
-	public List<DD> getCurrentLookAheadBeliefs() {
-		/*
-		 * Returns a list of currently seen look ahead beliefs
-		 */
-		List<DD> currentBeliefs = new ArrayList<DD>();
-		
-		for (DD belief : this.currentLookAheadTree.iBeliefPoints)
-			if (this.currentLookAheadTree.iBeliefTree.containsKey(belief))
-				currentBeliefs.add(belief);
-		
-		return currentBeliefs;
-	}
+//	public LookAheadTree getLookAheadTree() {
+//		return this.currentLookAheadTree;
+//	}
+//	
+//	public List<DD> getCurrentLookAheadBeliefs() {
+//		/*
+//		 * Returns a list of currently seen look ahead beliefs
+//		 */
+//		List<DD> currentBeliefs = new ArrayList<DD>();
+//		
+//		for (DD belief : this.currentLookAheadTree.iBeliefPoints)
+//			if (this.currentLookAheadTree.iBeliefTree.containsKey(belief))
+//				currentBeliefs.add(belief);
+//		
+//		return currentBeliefs;
+//	}
 	
 	public String getLowerLevelBeliefLabel(String valName) {
 		/*
@@ -1006,5 +1006,12 @@ public class IPOMDP extends POMDP {
 		 * Just a wrapped up call to OpponentModels getOptimalActionAtNode method 
 		 */
 		return this.oppModel.getOptimalActionAtNode(mjNode);
+	}
+	
+	public List<DD> getCurrentBeliefs() {
+		/*
+		 * Returns the current beliefs of the IPOMDP
+		 */
+		return this.lookAheadRootInitBeliefs;
 	}
 }

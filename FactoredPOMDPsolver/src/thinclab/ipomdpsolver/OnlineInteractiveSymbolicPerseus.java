@@ -16,9 +16,10 @@ import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import thinclab.Belief.BeliefSet;
+import thinclab.Belief.InteractiveBelief;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
 import thinclab.symbolicperseus.AlphaVector;
 import thinclab.symbolicperseus.Config;
@@ -28,7 +29,6 @@ import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.MySet;
 import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.RandomPermutation;
-import thinclab.symbolicperseus.Belief.BeliefSet;
 import thinclab.symbolicperseus.NextBelState;
 
 /*

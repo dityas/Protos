@@ -15,16 +15,16 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
+import thinclab.Belief.Belief;
+import thinclab.Belief.BeliefSet;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.policyhelper.BeliefTree;
-import thinclab.policyhelper.PolicyCache;
 import thinclab.policyhelper.PolicyTree;
 import thinclab.symbolicperseus.StateVar;
-import thinclab.symbolicperseus.Belief.Belief;
-import thinclab.symbolicperseus.Belief.BeliefSet;
+import thinclab.utils.PolicyCache;
 
 public class POMDP implements Serializable {
 

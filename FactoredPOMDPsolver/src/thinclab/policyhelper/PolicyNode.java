@@ -4,9 +4,9 @@ import java.util.*;
 
 import org.apache.log4j.Logger;
 
+import thinclab.Belief.Belief;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.POMDP;
-import thinclab.symbolicperseus.Belief.Belief;
 
 public class PolicyNode {
 	
