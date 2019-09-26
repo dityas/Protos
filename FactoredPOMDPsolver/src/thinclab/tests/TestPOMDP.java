@@ -67,7 +67,7 @@ class TestPOMDP {
 		assertNull(p1.alphaVectors);
 //		assertNull(p2.alphaVectors);
 		
-		p1.solvePBVI(1, 100);
+		p1.solvePBVI(3, 100);
 //		p2.solvePBVI(15, 100);
 		
 		assertNotNull(p1.alphaVectors);

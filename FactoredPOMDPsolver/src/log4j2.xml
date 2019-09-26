@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration status="debug">
     <Properties>
-        <Property name="layout">%d [%t] %-5level %logger - %m%n</Property>
+        <Property name="layout">[%t] %-5level %logger - %m%n</Property>
     </Properties>
   
     <Appenders>
@@ -14,7 +14,7 @@
     
     <Loggers>
 
-        <Root level="debug">
+        <Root level="info">
             <AppenderRef ref="Console" />
         </Root>    
 

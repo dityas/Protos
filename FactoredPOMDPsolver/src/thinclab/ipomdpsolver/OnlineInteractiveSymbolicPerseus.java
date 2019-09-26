@@ -12,9 +12,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.log4j.Logger;
 
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -30,20 +30,20 @@ import thinclab.symbolicperseus.OP;
 import thinclab.symbolicperseus.RandomPermutation;
 import thinclab.symbolicperseus.Belief.BeliefSet;
 import thinclab.symbolicperseus.NextBelState;
-import thinclab.utils.LoggerFactory;
 
 /*
  * @author adityas
  *
  */
-public class FiniteHorizonLookAheadValueIterationSolver {
+public class OnlineInteractiveSymbolicPerseus {
 	/*
 	 * Value iteration solver for IPOMDPs with finite look ahead horizon
 	 * 
 	 * 
 	 */
 	
-	private Logger logger = LoggerFactory.getNewLogger("FHLAVISolver: ");
+	private static final Logger logger = 
+			Logger.getLogger(OnlineInteractiveSymbolicPerseus.class);
 	
 	public IPOMDP ipomdp;
 		
@@ -78,18 +78,25 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 	/*
 	 * Trying to adapt symbolic perseus's dpBackUp here
 	 */
-	public FiniteHorizonLookAheadValueIterationSolver(IPOMDP ipomdp) {
+	public OnlineInteractiveSymbolicPerseus(IPOMDP ipomdp) {
 		/*
 		 * Initialize with an IPOMDP
 		 */
 		this.ipomdp = ipomdp;
 	}
 	
+	// ---------------------------------------------------------------------------------------
+	
 	public void solvePBVI(int rounds, int numDpBackups) {
 		
 		List<DD> iBeliefRegion = new ArrayList<DD>();
 
-		/* Add all initial ipomdp beliefs to the belief region */
+		/*
+		 * Add all initial ipomdp beliefs to the belief region
+		 * 
+		 * Alternatively, use an expansion strategy like in symbolic perseus.
+		 * And alternate expansions with dp backups
+		 */
 		iBeliefRegion.addAll(ipomdp.getCurrentLookAheadBeliefs());
 		
 		
@@ -307,7 +314,7 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 
 			bellmanErr = Math.min(10, Math.max(ipomdp.bestImprovement, -ipomdp.worstDecline));
 			
-			this.logger.info("STEP: " + stepId 
+			logger.info("STEP: " + stepId 
 					+ " \tBELLMAN ERROR: " + bellmanErr
 					+ " \tBELIEF POINTS: " + beliefRegion.length
 					+ " \tA VECTORS: " + ipomdp.alphaVectors.length);
@@ -316,7 +323,7 @@ public class FiniteHorizonLookAheadValueIterationSolver {
 				continue;
 			
 			if (bellmanErr < 0.001) {
-				this.logger.warning("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
+				logger.warn("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
 				break;
 			}
 		}

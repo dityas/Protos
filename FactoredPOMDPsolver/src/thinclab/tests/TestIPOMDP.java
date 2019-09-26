@@ -260,9 +260,6 @@ class TestIPOMDP {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		try {
-			tigerL1IPOMDP.solveOpponentModels();
-			tigerL1IPOMDP.reinitializeOnlineFunctions();
-			tigerL1IPOMDP.initializeOfflineFunctions();
 			
 			for (int s = 0; s < tigerL1IPOMDP.OmegaJNames.size() - 1; s++) {
 				System.out.println("For and OmegaJ " + tigerL1IPOMDP.OmegaJNames.get(s));
@@ -280,7 +277,7 @@ class TestIPOMDP {
 		
 		catch (Exception e) {
 			System.err.println(e.getMessage());
-//			e.printStackTrace();
+			e.printStackTrace();
 			fail();
 		}
 		

@@ -15,13 +15,10 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
-import thinclab.domainMaker.L0Frame;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
-import thinclab.exceptions.ParserException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.ipomdpsolver.InteractiveBelief.InteractiveBelief;
 import thinclab.policyhelper.BeliefTree;
 import thinclab.policyhelper.PolicyCache;
 import thinclab.policyhelper.PolicyTree;
@@ -451,7 +448,7 @@ public class POMDP implements Serializable {
 		this.frameID = parserObj.frameID;
 		this.level = parserObj.level;
 		
-		this.logger.info("frame ID set to " + this.frameID + " at level " + this.level);
+		logger.debug("frame ID set to " + this.frameID + " at level " + this.level);
 	}
 	
 	public void initializeSFromParser(ParseSPUDD parserObj) {
@@ -461,7 +458,7 @@ public class POMDP implements Serializable {
 		
 		this.S.addAll(parserObj.S);
 		
-		this.logger.info("S staged to " + this.S);
+		logger.debug("S staged to " + this.S);
 	}
 	
 	public void initializeOmegaFromParser(ParseSPUDD parserObj) {
@@ -471,7 +468,7 @@ public class POMDP implements Serializable {
 
 		this.Omega.addAll(parserObj.Omega);
 		
-		this.logger.info("Omega staged to " + this.Omega);
+		logger.debug("Omega staged to " + this.Omega);
 	}
 	
 	public void initializeOFromParser(ParseSPUDD parserObj) {
@@ -480,7 +477,7 @@ public class POMDP implements Serializable {
 		 */
 		this.Oi = parserObj.Oi;
 		
-		this.logger.info("O initialized to " + this.Oi);
+		logger.debug("O initialized to " + this.Oi);
 	}
 	
 	public void initializeTFromParser(ParseSPUDD parserObj) {
@@ -489,7 +486,7 @@ public class POMDP implements Serializable {
 		 */
 		this.Ti = parserObj.Ti;
 		
-		this.logger.info("T initialized to " + this.Ti);
+		logger.debug("T initialized to " + this.Ti);
 	}
 	
 	public void initializeAFromParser(ParseSPUDD parserObj) {
@@ -499,8 +496,8 @@ public class POMDP implements Serializable {
 		this.A.addAll(parserObj.A);
 		this.costs.addAll(parserObj.costs);
 		
-		this.logger.info("A initialized to " + this.A);
-		this.logger.info("Costs for A: " + this.costs);
+		logger.debug("A initialized to " + this.A);
+		logger.debug("Costs for A: " + this.costs);
 	}
 	
 	public void initializeRFromParser(ParseSPUDD parserObj) {
@@ -508,7 +505,7 @@ public class POMDP implements Serializable {
 		 * Initializes the Action space from parser
 		 */
 		this.R = parserObj.R;
-		this.logger.info("R initialized to " + this.R);
+		logger.debug("R initialized to " + this.R);
 	}
 	
 	public void initializeActionsFromParser(ParseSPUDD parserObj) {
@@ -579,7 +576,7 @@ public class POMDP implements Serializable {
 		 */
 		
 		this.adjunctBeliefs.addAll(parserObj.adjunctBeliefs);
-		this.logger.info("Adjunct beliefs set to " + this.adjunctBeliefs);
+		logger.debug("Adjunct beliefs set to " + this.adjunctBeliefs);
 	}
 	
 	public void initializeBeliefsFromParser(ParseSPUDD parserObj) {
@@ -588,7 +585,7 @@ public class POMDP implements Serializable {
 		 */
 		
 		this.initBeliefDdTree = parserObj.initBeliefDdTree;
-		this.logger.info("Initial belief set to " + this.initBeliefDdTree);
+		logger.debug("Initial belief set to " + this.initBeliefDdTree);
 	}
 	
 	public void initializeToleranceFromParser(ParseSPUDD parserObj) {
@@ -597,7 +594,7 @@ public class POMDP implements Serializable {
 		 */ 
 		if (parserObj.tolerance != null) this.tolerance = parserObj.tolerance.getVal();
 		
-		this.logger.info("Tolerance set to " + this.tolerance);
+		logger.debug("Tolerance set to " + this.tolerance);
 	}
 	
 	// -----------------------------------------------------------------------------------------------
@@ -607,7 +604,7 @@ public class POMDP implements Serializable {
 		 * Starts building up DDs which define system dynamics based on Ti and Oi
 		 */
 		
-		this.logger.info("Setting dynamics");
+		logger.debug("Setting dynamics");
 		
 		this.nActions = this.A.size();
 		this.actions = new Action[nActions];
@@ -738,6 +735,8 @@ public class POMDP implements Serializable {
 					nVars + nStateVars + i + 1, 
 					obsVars[i].valNames);
 		}
+		
+		logger.debug("Current context belongs to " + this);
 	}
 	
 	public void commitVariables() {
@@ -1528,100 +1527,6 @@ public class POMDP implements Serializable {
 		}
 	}
 
-	public void printBelRegion() {
-		for (int i = 0; i < belRegion.length; i++) {
-			System.out.println("belief " + i + ":");
-			for (int j = 0; j < belRegion[i].length; j++) {
-				belRegion[i][j].display();
-//				System.out.println(getBeliefStateMap(belRegion[i][j]));
-			}
-		}
-	}
-
-	public void setBelRegionFromData(int maxSize, double threshold, int[][] a,
-			int[][][] o) {
-		int count;
-		int actId;
-		double distance;
-
-		DD[] nextBelState = new DD[nStateVars];
-		DD[] restrictedObsFn;
-		DD[] belState;
-		int[][] obsConfig;
-
-		double[] zerovalarray = new double[1];
-		zerovalarray[0] = 0;
-
-		DD[][] tmpBelRegion = new DD[maxSize][];
-
-		count = 0;
-
-		tmpBelRegion[count] = new DD[initialBelState_f.length];
-
-		System.arraycopy(initialBelState_f, 0, tmpBelRegion[count], 0,
-				initialBelState_f.length);
-		for (int epindex = 0; count < maxSize && epindex < a.length; epindex++) {
-			belState = initialBelState_f;
-			for (int stepId = 0; count < maxSize && stepId < a[epindex].length; stepId++) {
-				// get action from data
-				actId = a[epindex][stepId];
-				obsConfig = stackArray(primeObsIndices, o[epindex][stepId]);
-				restrictedObsFn = OP.restrictN(actions[actId].obsFn, obsConfig);
-
-				// update belState
-
-				for (int varId = 0; varId < nStateVars; varId++) {
-					nextBelState[varId] = OP.addMultVarElim(
-							concatenateArray(belState, actions[actId].transFn,
-									restrictedObsFn),
-							concatenateArray(
-									MySet.remove(primeVarIndices, varId + nVars
-											+ 1), varIndices));
-					nextBelState[varId] = OP.approximate(nextBelState[varId],
-							1e-6, zerovalarray);
-					nextBelState[varId] = OP.div(nextBelState[varId], OP
-							.addMultVarElim(nextBelState[varId],
-									primeVarIndices[varId]));
-				}
-
-				belState = OP.primeVarsN(nextBelState, -nVars);
-
-				// add belState to tmpBelRegion
-				distance = findSimilarFactBelief(belState, tmpBelRegion,
-						count + 1, threshold);
-				// System.out.println("distance "+distance);
-				if (!debug && distance > threshold) {
-					count = count + 1;
-					if (count < maxSize) {
-						// System.out.println("bel State : count "+count+" distance "+distance+" threshold "+threshold);
-
-						tmpBelRegion[count] = new DD[belState.length];
-						System.arraycopy(belState, 0, tmpBelRegion[count], 0,
-								belState.length);
-						if (count % 10 == 0)
-							System.out.println(" " + count
-									+ " belief states sampled");
-					}
-				}
-				Global.newHashtables();
-			}
-			// System.out.println("resetting to initial belief - "+count+" belief states so far");
-		}
-		// copy over
-		if (count < maxSize)
-			count = count + 1; // means we never found enough, so count is one
-								// less than total we found
-		System.out.println("finished sampling  " + count + " belief states  "
-				+ tmpBelRegion.length);
-		belRegion = new DD[count][];
-		for (int i = 0; i < count; i++) {
-			belRegion[i] = new DD[tmpBelRegion[i].length];
-			System.arraycopy(tmpBelRegion[i], 0, belRegion[i], 0,
-					tmpBelRegion[i].length);
-		}
-
-	}
-
 	public void simulateGeneric(int nits) {
 
 		// do simulation
@@ -1658,79 +1563,6 @@ public class POMDP implements Serializable {
 		}
 	}
 
-	public void solve(int nRounds, int maxSize, int maxTries,
-			int episodeLength, double threshold, double explorProb,
-			int nIterations, int maxAlpha, String basename) {
-		solve(nRounds, maxSize, maxTries, episodeLength, threshold, explorProb,
-				nIterations, maxAlpha, basename, false);
-	}
-
-	// solves the POMDP in nRounds, with
-	// maxSize belief states,
-	// episodeLength episode lengths while generating belief states
-	// threshold as the threshold difference for accepting belief states
-	// explorProb is the probability of exploration during belief point
-	// generation
-	// nIterations is the number of iterations of Perseus per round
-	// maxAlpha is the bound on the number of alpha vectors
-	// name is the file name
-	public void solve(int nRounds, int maxSize, int maxTries,
-			int episodeLength, double threshold, double explorProb,
-			int nIterations, int maxAlpha, String basename, boolean multinits) {
-
-		// first solve the MDP underlying
-		if (!debug && explorProb < 1.0)
-			solveQMDP();
-
-		// then loop over rounds
-		// probability of using the MDP policy over the POMDP policy if the
-		// choice is to exploit
-		double mdpprob = 1.0;
-		int firstStep = 0;
-		String fname;
-		int totaliterations = 0;
-		maxAlphaSetSize = maxAlpha;
-
-		for (int r = 0; r < nRounds; r++) {
-			// generate a set of reachable belief points
-			if (!multinits) {
-				System.out.println("=============================");
-				System.out.println("EXPANDING BELIEF REGION");
-				reachableBelRegionCurrentPolicy(maxSize, maxTries,
-						episodeLength, threshold, explorProb, mdpprob);
-//				this.expandBeliefRegion(100);
-//				this.expandBeliefRegionSSGA(100);
-//				prettyPrintBeliefRegion();
-				System.out.println("BELIEF REGION HAS: " + belRegion.length + " POINTS.");
-				System.out.println("=============================");
-			} 
-//			else {
-//				reachableBelRegionCurrentPolicyMultipleInits(maxSize, maxTries,
-//						episodeLength, threshold, explorProb, mdpprob);
-//			}
-			// possibly print this out (for debugging)
-			// printBelRegion();
-			// run symbolic Perseus
-			if (debug)
-				Global.setSeed(8837328);
-			boundedPerseus(nIterations, maxAlphaSetSize, firstStep, nIterations);
-			totaliterations = firstStep + nIterations;
-			fname = basename + "-" + totaliterations + ".pomdp";
-			System.out.println("saving current policy to " + fname);
-			try {
-				save(fname);
-			} catch (FileNotFoundException err) {
-				System.out.println("file not found error " + err);
-				return;
-			} catch (IOException terr) {
-				System.out.println("file write error" + terr);
-			}
-			firstStep += nIterations;
-			if (r == 0)
-				mdpprob = 0.5;
-		}
-	}
-	
 	public void solvePBVI(int rounds, int numDpBackups) {
 		
 //		expandBeliefRegion(100);
@@ -2647,14 +2479,12 @@ public class POMDP implements Serializable {
 //			System.out.println("best improvement: " + bestImprovement
 //					+ "  worstDecline " + worstDecline);
 			bellmanErr = Math.min(10, Math.max(bestImprovement, -worstDecline));
-			this.logger.info("STEP: " + stepId 
+			logger.info("STEP: " + stepId 
 					+ " \tBELLMAN ERROR: " + bellmanErr
 					+ " \tBELIEF POINTS: " + this.belRegion.length
 					+ " \tA VECTORS: " + alphaVectors.length);
 			
-			if (stepId % 100 < 5) {
-				continue;
-			}
+			if (stepId % 100 < 5) continue;
 			
 			else {
 				this.pCache.cachePolicy(this.alphaVectors.length,
@@ -2662,14 +2492,14 @@ public class POMDP implements Serializable {
 										this.policy);
 				
 				if (this.pCache.isOscillating(new Float(bellmanErr))) {
-					this.logger.warn(
+					logger.warn(
 							"BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
 					break;
 				}
 			} // else
 			
 			if (bellmanErr < 0.001) {
-				this.logger.warn("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
+				logger.warn("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
 				break;
 			}
 		}
@@ -3178,7 +3008,7 @@ public class POMDP implements Serializable {
 	@Override
 	public String toString() {
 		return "POMDP [frameID=" + frameID + ", level=" + level + 
-				", nStateVars=" + nStateVars + ", nObsVars=" + nObsVars + "]\r\n";
+				", nStateVars=" + nStateVars + ", nObsVars=" + nObsVars + "]";
 	}
 
 	@Override

@@ -7,7 +7,6 @@
  */
 package thinclab.utils;
 
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -18,8 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
+
+import org.apache.log4j.Logger;
 
 /*
  * @author adityas
@@ -33,14 +32,14 @@ public class BeliefTreeTable {
 	/* DB connection object */
 	public Connection storageConn;
 	
-	private Logger logger = LoggerFactory.getNewLogger("BeliefTreeTable");
+	private static final Logger logger = Logger.getLogger(BeliefTreeTable.class);
 	
 	// ----------------------------------------------------------------------------------------
 	
 	public BeliefTreeTable() {
 		
 		/* initialize tables */
-		this.logger.info("Initializing local storage for belief tree");
+		logger.debug("Initializing local storage for belief tree");
 		this.initializeLocalStorage();
 	}
 	
@@ -78,17 +77,17 @@ public class BeliefTreeTable {
 			query.execute(beliefTableCreation);
 			query.execute(triplesTableCreation);
 			
-			this.logger.info("Created table to store lower belief points");
-			this.logger.info("Created triples table for belief tree");
+			logger.debug("Created table to store lower belief points");
+			logger.debug("Created triples table for belief tree");
 		}
 		
 		catch (SQLException e) {
-			this.logger.severe("Local DB connection error " + e.getMessage());
+			logger.error("Local DB connection error " + e.getMessage());
 			System.exit(-1);
 		}
 		
 		catch (Exception e) {
-			this.logger.severe("Error while creating DB " + e.getMessage());
+			logger.error("Error while creating DB " + e.getMessage());
 			System.exit(-1);
 		} 
 	}
@@ -115,7 +114,7 @@ public class BeliefTreeTable {
 		}
 		
 		catch (Exception e) {
-			this.logger.severe("While inserting into beliefs table " + e.getMessage());
+			logger.error("While inserting into beliefs table " + e.getMessage());
 			System.exit(-1);
 		}
 	}
@@ -140,7 +139,7 @@ public class BeliefTreeTable {
 		}
 		
 		catch (Exception e) {
-			this.logger.severe("While inserting into beliefs table " + e.getMessage());
+			logger.error("While inserting into beliefs table " + e.getMessage());
 			System.exit(-1);
 		}
 	}
@@ -160,7 +159,7 @@ public class BeliefTreeTable {
 		}
 		
 		catch (Exception e) {
-			this.logger.severe("While printing beliefs table " + e.getMessage());
+			logger.error("While printing beliefs table " + e.getMessage());
 			System.exit(-1);
 		}
 		
@@ -182,7 +181,7 @@ public class BeliefTreeTable {
 		}
 		
 		catch (Exception e) {
-			this.logger.severe("While printing edges table " + e.getMessage());
+			logger.error("While printing edges table " + e.getMessage());
 			System.exit(-1);
 		}
 		
@@ -207,7 +206,7 @@ public class BeliefTreeTable {
 		}
 		
 		catch (Exception e) {
-			this.logger.severe("While querying for optimal action at " + belId + " " + e.getMessage());
+			logger.error("While querying for optimal action at " + belId + " " + e.getMessage());
 			System.exit(-1);
 		}
 		
@@ -232,7 +231,7 @@ public class BeliefTreeTable {
 		}
 		
 		catch (Exception e) {
-			this.logger.severe("While querying for belief_text at " + belId + " " + e.getMessage());
+			logger.error("While querying for belief_text at " + belId + " " + e.getMessage());
 			System.exit(-1);
 		}
 		
@@ -260,7 +259,7 @@ public class BeliefTreeTable {
 		}
 		
 		catch (Exception e) {
-			this.logger.severe("While inserting into beliefs table " + e.getMessage());
+			logger.error("While inserting into beliefs table " + e.getMessage());
 			System.exit(-1);
 		}
 		
@@ -289,7 +288,7 @@ public class BeliefTreeTable {
 			}
 			
 			catch (Exception e) {
-				this.logger.severe("While inserting into beliefs table " + e.getMessage());
+				logger.error("While inserting into beliefs table " + e.getMessage());
 				System.exit(-1);
 			}
 		}
@@ -376,7 +375,7 @@ public class BeliefTreeTable {
 		}
 		
 		catch (Exception e) {
-			this.logger.severe("While getting edge triples " + e.getMessage());
+			logger.error("While getting edge triples " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -413,7 +412,7 @@ public class BeliefTreeTable {
 			}
 			
 			catch (Exception e) {
-				this.logger.severe("While back tracing edge triples " + e.getMessage());
+				logger.error("While back tracing edge triples " + e.getMessage());
 				e.printStackTrace();
 				System.exit(-1);
 			}

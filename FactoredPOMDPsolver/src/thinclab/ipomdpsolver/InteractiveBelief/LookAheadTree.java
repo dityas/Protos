@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import cern.colt.Arrays;
@@ -54,12 +53,12 @@ public class LookAheadTree {
 		/*
 		 * Store reference to IPOMDP and look ahead horizon
 		 */
-		this.logger.info("Initializing new LookAheadTree");
+		logger.info("Initializing new LookAheadTree");
 		
 		this.ipomdp = ipomdp;
 		this.horizon = ipomdp.mjLookAhead;
 		
-		this.logger.info("Expanding for " + this.horizon + " look ahead horizon");
+		logger.debug("Expanding for " + this.horizon + " look ahead horizon");
 		this.expand();
 		
 		/* Connect to in memory table for storage and all that */
@@ -107,7 +106,7 @@ public class LookAheadTree {
 					}
 					
 					catch (VariableNotFoundException e) {
-						this.logger.error(e.getMessage());
+						logger.error(e.getMessage());
 						System.exit(-1);
 					}
 				} /* for all observations */
@@ -141,7 +140,7 @@ public class LookAheadTree {
 			currentIBeliefSet = nextBeliefs;
 		}
 		
-		this.logger.info("Finish look ahead expansion. The tree has " 
+		logger.debug("Finish look ahead expansion. The tree has " 
 				+ this.iBeliefPoints.size() + " beliefs.");
 	}
 	
