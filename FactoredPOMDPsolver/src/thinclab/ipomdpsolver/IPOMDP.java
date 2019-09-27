@@ -970,10 +970,35 @@ public class IPOMDP extends POMDP {
 	// -----------------------------------------------------------------------------------------
 	
 	@Override
-	public List<List<String>> getAllObservationsList() {
+	public List<List<String>> getAllPossibleObservations() {
+		/*
+		 * Observation combinations will only contain combinations of values of
+		 * agent i's observation variables
+		 */
 		return this.recursiveObsCombinations(
 				this.Omega.subList(
 						0, this.Omega.size() - this.OmegaJNames.size()));
+	}
+	
+	@Override
+	public List<String> getActions() {
+		return this.Ai;
+	}
+	
+	@Override
+	public List<String> getStateVarNames() {
+		return this.S.stream()
+					.map(s -> s.name)
+					.filter(n -> !n.contains("_j"))
+					.collect(Collectors.toList());
+	}
+	
+	@Override
+	public List<String> getObsVarNames() {
+		return this.Omega.stream()
+					.map(o -> o.name)
+					.filter(n -> !n.contains("_j"))
+					.collect(Collectors.toList());
 	}
 	
 //	public LookAheadTree getLookAheadTree() {

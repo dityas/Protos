@@ -21,12 +21,13 @@ import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.Framework;
 import thinclab.policyhelper.BeliefTree;
 import thinclab.policyhelper.PolicyTree;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.utils.PolicyCache;
 
-public class POMDP implements Serializable {
+public class POMDP extends Framework implements Serializable {
 
 	/**
 	 * 
@@ -94,13 +95,6 @@ public class POMDP implements Serializable {
 	private static final Logger logger = Logger.getLogger(POMDP.class);
 	
 	// ---------------------------------------------------------------------
-	/*
-	 * Staging variables for state vars and obs vars
-	 */
-//	public List<StateVar> stateVarStaging = new ArrayList<StateVar>();
-//	public List<StateVar> obsVarStaging = new ArrayList<StateVar>();
-	
-	// ---------------------------------------------------------------------
 	
 	/*
 	 * Class variables for PBVI belief expansion
@@ -116,7 +110,7 @@ public class POMDP implements Serializable {
 	/*
 	 * Variables for helping with making run time changes to the POMDP
 	 */
-	public List<StateVar> stateVarList = new ArrayList<StateVar>();
+//	public List<StateVar> stateVarList = new ArrayList<StateVar>();
 	
 	// ---------------------------------------------------------------------
 	/*
@@ -267,96 +261,96 @@ public class POMDP implements Serializable {
 				concatenateArray(primeVarIndices, tmpidarray));
 	}
 
-	public void solveQMDP() {
-		solveQMDP(500);
-	}
+//	public void solveQMDP() {
+//		solveQMDP(500);
+//	}
 
-	// solves the POMDP as an MDP
-	public void solveQMDP(int count) {
-		
-		System.out.println("Computing qMDP policy");
-		double bellmanErr = 2 * tolerance;
-		DD valFn = DD.zero;
-		DD prevValFn;
-		DD[] cdArray;
-		int actId1, actId2, actId;
-		double[] zerovalarray = new double[1];
-		DD[] tempQFn = new DD[nActions];
-		zerovalarray[0] = 0;
-		int iter = 0;
-		
-		while (bellmanErr > tolerance && iter < count) {
-			System.out.println("iteration " + iter++);
-			prevValFn = valFn;
-			valFn = OP.primeVars(valFn, nVars);
-			
-			for (actId = 0; actId < nActions; actId++) {
-				cdArray = concatenateArray(ddDiscFact, actions[actId].transFn,
-						valFn);
-				tempQFn[actId] = OP.addMultVarElim(cdArray, primeVarIndices);
-				tempQFn[actId] = OP.add(actions[actId].rewFn, tempQFn[actId]);
-				tempQFn[actId] = OP.approximate(tempQFn[actId], bellmanErr
-						* (1 - discFact) / 2.0, zerovalarray);
-			}
-			
-			valFn = OP.maxN(tempQFn);
-			bellmanErr = OP.maxAll(OP.abs(OP.sub(valFn, prevValFn)));
-			System.out.println("Bellman error: " + bellmanErr);
-			Global.newHashtables();
-		}
-		// remove dominated alphaVectors
-		boolean dominated;
-		boolean[] notDominated = new boolean[nActions];
-		
-		for (actId1 = 0; actId1 < nActions; actId1++)
-			notDominated[actId1] = false;
-		
-		for (actId1 = 0; actId1 < nActions; actId1++) {
-			dominated = false;
-			actId2 = 0;
-		
-			while (!dominated && actId2 < nActions) {
-			
-				if (notDominated[actId2]
-						&& OP.maxAll(OP.sub(tempQFn[actId1], tempQFn[actId2])) < tolerance)
-					dominated = true;
-				actId2++;
-			}
-			
-			if (!dominated)
-				notDominated[actId1] = true;
-		}
-		
-		int numleft = 0;
-		
-		for (actId1 = 0; actId1 < nActions; actId1++) {
-			
-			if (notDominated[actId1])
-				numleft++;
-		}
-		
-		qFn = new DD[numleft];
-		qPolicy = new int[numleft];
-		numleft = 0;
-		
-		for (actId1 = 0; actId1 < nActions; actId1++) {
-			
-			if (notDominated[actId1]) {
-				qFn[numleft] = tempQFn[actId1];
-				qPolicy[numleft] = actId1;
-				numleft++;
-			}
-		}
-	}
-
-	public void displayQFn() {
-		for (int i = 0; i < qFn.length; i++) {
-			System.out
-					.println("--------------------------------------------------- dd "
-							+ i);
-			qFn[i].display();
-		}
-	}
+//	// solves the POMDP as an MDP
+//	public void solveQMDP(int count) {
+//		
+//		System.out.println("Computing qMDP policy");
+//		double bellmanErr = 2 * tolerance;
+//		DD valFn = DD.zero;
+//		DD prevValFn;
+//		DD[] cdArray;
+//		int actId1, actId2, actId;
+//		double[] zerovalarray = new double[1];
+//		DD[] tempQFn = new DD[nActions];
+//		zerovalarray[0] = 0;
+//		int iter = 0;
+//		
+//		while (bellmanErr > tolerance && iter < count) {
+//			System.out.println("iteration " + iter++);
+//			prevValFn = valFn;
+//			valFn = OP.primeVars(valFn, nVars);
+//			
+//			for (actId = 0; actId < nActions; actId++) {
+//				cdArray = concatenateArray(ddDiscFact, actions[actId].transFn,
+//						valFn);
+//				tempQFn[actId] = OP.addMultVarElim(cdArray, primeVarIndices);
+//				tempQFn[actId] = OP.add(actions[actId].rewFn, tempQFn[actId]);
+//				tempQFn[actId] = OP.approximate(tempQFn[actId], bellmanErr
+//						* (1 - discFact) / 2.0, zerovalarray);
+//			}
+//			
+//			valFn = OP.maxN(tempQFn);
+//			bellmanErr = OP.maxAll(OP.abs(OP.sub(valFn, prevValFn)));
+//			System.out.println("Bellman error: " + bellmanErr);
+//			Global.newHashtables();
+//		}
+//		// remove dominated alphaVectors
+//		boolean dominated;
+//		boolean[] notDominated = new boolean[nActions];
+//		
+//		for (actId1 = 0; actId1 < nActions; actId1++)
+//			notDominated[actId1] = false;
+//		
+//		for (actId1 = 0; actId1 < nActions; actId1++) {
+//			dominated = false;
+//			actId2 = 0;
+//		
+//			while (!dominated && actId2 < nActions) {
+//			
+//				if (notDominated[actId2]
+//						&& OP.maxAll(OP.sub(tempQFn[actId1], tempQFn[actId2])) < tolerance)
+//					dominated = true;
+//				actId2++;
+//			}
+//			
+//			if (!dominated)
+//				notDominated[actId1] = true;
+//		}
+//		
+//		int numleft = 0;
+//		
+//		for (actId1 = 0; actId1 < nActions; actId1++) {
+//			
+//			if (notDominated[actId1])
+//				numleft++;
+//		}
+//		
+//		qFn = new DD[numleft];
+//		qPolicy = new int[numleft];
+//		numleft = 0;
+//		
+//		for (actId1 = 0; actId1 < nActions; actId1++) {
+//			
+//			if (notDominated[actId1]) {
+//				qFn[numleft] = tempQFn[actId1];
+//				qPolicy[numleft] = actId1;
+//				numleft++;
+//			}
+//		}
+//	}
+//
+//	public void displayQFn() {
+//		for (int i = 0; i < qFn.length; i++) {
+//			System.out
+//					.println("--------------------------------------------------- dd "
+//							+ i);
+//			qFn[i].display();
+//		}
+//	}
 	
 	public POMDP() {
 		/*
@@ -508,54 +502,54 @@ public class POMDP implements Serializable {
 		logger.debug("R initialized to " + this.R);
 	}
 	
-	public void initializeActionsFromParser(ParseSPUDD parserObj) {
-		/*
-		 * Initializes the dynamics of the POMDP
-		 */
-		
-		nActions = parserObj.actTransitions.size();
-		actions = new Action[nActions];
-		uniquePolicy = new boolean[nActions];
-
-		qFn = new DD[nActions];
-
-		for (int a = 0; a < nActions; a++) {
-			
-			actions[a] = new Action(parserObj.actNames.get(a));
-			actions[a].addTransFn(parserObj.actTransitions.get(a));
-			actions[a].addObsFn(parserObj.actObserve.get(a));
-			actions[a].rewFn = 
-					OP.sub(parserObj.reward, parserObj.actCosts.get(a));
-			actions[a].buildRewTranFn();
-			actions[a].rewFn = 
-					OP.addMultVarElim(actions[a].rewTransFn, primeVarIndices);
-			
-		}
-		
-		/*
-		 * Max and Min reward
-		 */
-		double maxVal = Double.NEGATIVE_INFINITY;
-		double minVal = Double.POSITIVE_INFINITY;
-		
-		for (int a = 0; a < nActions; a++) {
-			maxVal = Math.max(maxVal, OP.maxAll(OP.addN(actions[a].rewFn)));
-			minVal = Math.min(minVal, OP.minAll(OP.addN(actions[a].rewFn)));
-		}
-		
-		maxRewVal = maxVal / (1 - discFact);
-		
-		/*
-		 * Set Tolerance
-		 */
-		if (parserObj.tolerance == null) {
-			double maxDiffRew = maxVal - minVal;
-			double maxDiffVal = maxDiffRew / (1 - Math.min(0.95, discFact));
-			tolerance = 1e-5 * maxDiffVal;
-		} 
-		
-		else tolerance = parserObj.tolerance.getVal();
-	}
+//	public void initializeActionsFromParser(ParseSPUDD parserObj) {
+//		/*
+//		 * Initializes the dynamics of the POMDP
+//		 */
+//		
+//		nActions = parserObj.actTransitions.size();
+//		actions = new Action[nActions];
+//		uniquePolicy = new boolean[nActions];
+//
+//		qFn = new DD[nActions];
+//
+//		for (int a = 0; a < nActions; a++) {
+//			
+//			actions[a] = new Action(parserObj.actNames.get(a));
+//			actions[a].addTransFn(parserObj.actTransitions.get(a));
+//			actions[a].addObsFn(parserObj.actObserve.get(a));
+//			actions[a].rewFn = 
+//					OP.sub(parserObj.reward, parserObj.actCosts.get(a));
+//			actions[a].buildRewTranFn();
+//			actions[a].rewFn = 
+//					OP.addMultVarElim(actions[a].rewTransFn, primeVarIndices);
+//			
+//		}
+//		
+//		/*
+//		 * Max and Min reward
+//		 */
+//		double maxVal = Double.NEGATIVE_INFINITY;
+//		double minVal = Double.POSITIVE_INFINITY;
+//		
+//		for (int a = 0; a < nActions; a++) {
+//			maxVal = Math.max(maxVal, OP.maxAll(OP.addN(actions[a].rewFn)));
+//			minVal = Math.min(minVal, OP.minAll(OP.addN(actions[a].rewFn)));
+//		}
+//		
+//		maxRewVal = maxVal / (1 - discFact);
+//		
+//		/*
+//		 * Set Tolerance
+//		 */
+//		if (parserObj.tolerance == null) {
+//			double maxDiffRew = maxVal - minVal;
+//			double maxDiffVal = maxDiffRew / (1 - Math.min(0.95, discFact));
+//			tolerance = 1e-5 * maxDiffVal;
+//		} 
+//		
+//		else tolerance = parserObj.tolerance.getVal();
+//	}
 	
 	public void initializeDiscountFactorFromParser(ParseSPUDD parserObj) {
 		/*
@@ -735,8 +729,6 @@ public class POMDP implements Serializable {
 					nVars + nStateVars + i + 1, 
 					obsVars[i].valNames);
 		}
-		
-		logger.debug("Current context belongs to " + this);
 	}
 	
 	public void commitVariables() {
@@ -1653,13 +1645,13 @@ public class POMDP implements Serializable {
 		return avRew;
 	}
 
-	// compute the reachable belief region from the MDP policy
-	public void reachableBelRegionMDPpolicy(int maxSize, int maxTries,
-			int episodeLength, double threshold, double explorProb) {
-		solveQMDP();
-		reachableBelRegionCurrentPolicy(maxSize, maxTries, episodeLength,
-				threshold, explorProb, 1.0);
-	}
+//	// compute the reachable belief region from the MDP policy
+//	public void reachableBelRegionMDPpolicy(int maxSize, int maxTries,
+//			int episodeLength, double threshold, double explorProb) {
+//		solveQMDP();
+//		reachableBelRegionCurrentPolicy(maxSize, maxTries, episodeLength,
+//				threshold, explorProb, 1.0);
+//	}
 
 	// maxSize and maxTries here apply to each initial belief state - so there
 	// will potentially be maxSize*number_of_inits belief states
@@ -2002,7 +1994,7 @@ public class POMDP implements Serializable {
 		// Build the next stage of the belief tree
 		else {
 //			System.out.println("EXPANDING FROM LEAVES");
-			List<List<String>> obsList = this.getAllObservationsList();
+			List<List<String>> obsList = this.getAllPossibleObservations();
 			// For all belief leaves
 //			Iterator<DD> beliefLeavesIterator = this.beliefLeaves.iterator();
 			while (count >= 0 && this.beliefLeaves.size() >= 1) {
@@ -2826,34 +2818,12 @@ public class POMDP implements Serializable {
 		 * Decouples the observation function DDs from Globals and returns a
 		 * general representation using DDTree
 		 */
-//		HashMap<String, HashMap<String, DDTree>> O = 
-//				new HashMap<String, HashMap<String, DDTree>>();
-//		
-//		/* For all actions */
-//		for (int a = 0; a < this.nActions; a++) {
-//			String actName = this.actions[a].name;
-//			
-//			HashMap<String, DDTree> ddMap = new HashMap<String, DDTree>();
-//			
-//			/* For all obsVars */
-//			for (int o = 0; o < this.obsVars.length; o++) {
-//				String obsName = obsVars[o].name;
-//				DDTree obsFn = this.actions[a].obsFn[o].toDDTree();
-//				
-//				/* add extracted observation function to ddMap */
-//				ddMap.put(obsName, obsFn);
-//			}
-//			
-//			/* Add observation DDs for individual variables to O for actName */
-//			O.put(actName, ddMap);
-//		}
-		
 		return this.Oi;
 	}
 	
-	public void populateOiDDTree() {
-		
-	}
+//	public void populateOiDDTree() {
+//		
+//	}
 	
 	// --------------------------------------------------------------------------------
 	
@@ -2938,13 +2908,18 @@ public class POMDP implements Serializable {
 		return obsComb;
 	} // private List<List<String>> recursiveObsCombinations
 	
-	public List<List<String>> getAllObservationsList() {
+//	public List<List<String>> getAllObservationsList() {
+//		return recursiveObsCombinations(Arrays.asList(this.obsVars));
+//	}
+//	
+//	public static List<List<String>> getAllObservationsList(POMDP p) {
+//		return p.recursiveObsCombinations(Arrays.asList(p.obsVars));
+//	}
+	
+	@Override
+	public List<List<String>> getAllPossibleObservations() {
 		return recursiveObsCombinations(Arrays.asList(this.obsVars));
 	}
-	
-	public static List<List<String>> getAllObservationsList(POMDP p) {
-		return p.recursiveObsCombinations(Arrays.asList(p.obsVars));
-	} 
 	
 	// -------------------------------------------------------------------------------------------------
 	
@@ -3001,6 +2976,28 @@ public class POMDP implements Serializable {
 		BeliefTree bTree = new BeliefTree(this, horizon);
 		
 		return bTree;
+	}
+	
+	// -------------------------------------------------------------------------------
+	
+	@Override
+	public List<String> getActions() {
+		return this.A;
+	}
+	
+	@Override
+	public List<String> getStateVarNames() {
+		return this.S.stream().map(s -> s.name).collect(Collectors.toList());
+	}
+	
+	@Override
+	public List<String> getObsVarNames() {
+		return this.Omega.stream().map(o -> o.name).collect(Collectors.toList());
+	}
+	
+	@Override
+	public List<DD> getInitialBeliefs() {
+		return this.getInitialBeliefsList();
 	}
 	
 	// -------------------------------------------------------------------------------

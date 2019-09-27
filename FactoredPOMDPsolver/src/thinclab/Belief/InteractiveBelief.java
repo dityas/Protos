@@ -7,12 +7,10 @@
  */
 package thinclab.Belief;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Vector;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -21,9 +19,7 @@ import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
-import thinclab.symbolicperseus.MySet;
 import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.POMDP;
 
 /*
  * @author adityas
@@ -49,25 +45,26 @@ public class InteractiveBelief extends Belief {
 		 * Performs a static L1 IPOMDP belief update given action and observations
 		 * 
 		 * Performs a query over the following DBN:
-		 *      .---.                    .----.
-		 *      |M_j|----------.-------->|M_j'|<----------------------.
-		 *      '---'          |_______. '----'                       |
-		 *      .---.                  '-->.---.______________.       |	
-		 *      | S |--------------------->| S'|--,           |       |
-		 *      '---'                      '---'  |           |       |
-		 *                                        V           V       | 		 
-		 *                                      .---.       .---.     |
-		 *                                      |Oi'|       |Oj'|_____|
+		 *      .---.                      .----.
+		 *      |M_j|--------------------->|M_j'|
+		 *      '---'                      '----'
+		 *      
+		 *                             
+		 *                             
+		 *                             
+		 *      .---.                      .---.	
+		 *      | S |--------------------->| S'|
+		 *      '---'                      '---'
+		 *                                       		 
+		 *                                      .---.       .---.
+		 *                                      |Oi'|       |Oj'|
 		 *                                      '---'       '---'
 		 * 	 P_hat(S', M_j' | Oi'=o) = 
 		 * 			Sigma[S] (P(S)) x Sigma[M_j] (P(M_j) x P(S', S, M_j) x P(Oi'=o, S', M_j))
 		 * 		 		x	Sigma[Oj'] (P(Oj', S', M_j) x P(M_j', M_j, Oj')) 
 		 */
 		
-		/*
-		 * First reduce Oi based on observations
-		 */
-
+		/* First reduce Oi based on observations */
 		Global.clearHashtables();
 
 		int[] obsVals = new int[ipomdp.Omega.size() - ipomdp.OmegaJNames.size()];
@@ -227,10 +224,13 @@ public class InteractiveBelief extends Belief {
 		DD[][] iBelRegion = new DD[iBeliefRegion.size()][ipomdp.nStateVars];
 		
 		/* Convert to array because accessing known elements is faster in arrays */
-		DD[] iBeliefRegionArray = iBeliefRegion.toArray(new DD[iBeliefRegion.size()]);
+		DD[] iBeliefRegionArray = iBeliefRegion.toArray( new DD[iBeliefRegion.size()]);
 		
 		for (int i = 0; i < iBeliefRegion.size(); i++)
-			iBelRegion[i] = InteractiveBelief.factorInteractiveBelief(ipomdp, iBeliefRegionArray[i]);
+			iBelRegion[i] = 
+				InteractiveBelief.factorInteractiveBelief(
+						ipomdp, 
+						iBeliefRegionArray[i]);
 				
 		return iBelRegion;
 	}
