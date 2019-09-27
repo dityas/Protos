@@ -10,11 +10,11 @@ package thinclab.Examples;
 import java.io.File;
 import java.io.IOException;
 
+import thinclab.frameworks.POMDP;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
 import thinclab.policyhelper.PolicyTree;
 import thinclab.policyhelper.PolicyVisualizer;
-import thinclab.symbolicperseus.POMDP;
 
 /*
  * @author adityas

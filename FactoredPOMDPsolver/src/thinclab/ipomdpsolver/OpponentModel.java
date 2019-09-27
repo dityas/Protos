@@ -9,7 +9,6 @@ package thinclab.ipomdpsolver;
 
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.utils.BeliefTreeTable;
 import thinclab.utils.GraphStorage;
@@ -25,6 +24,7 @@ import org.apache.log4j.Logger;
 
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.frameworks.POMDP;
 import thinclab.policyhelper.BeliefTree;
 import thinclab.policyhelper.PolicyNode;
 

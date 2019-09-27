@@ -1,10 +1,9 @@
 package thinclab.ipomdpsolver;
 
-import thinclab.symbolicperseus.POMDP;
-
 import java.util.Arrays;
 
 import thinclab.Examples.AttackerDomainPOMDP;
+import thinclab.frameworks.POMDP;
 //import thinclab.symbolicperseus.Solver;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyVisualizer;

@@ -17,9 +17,9 @@ import thinclab.domainMaker.Domain;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.DDNotDefinedException;
+import thinclab.frameworks.POMDP;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
-import thinclab.symbolicperseus.POMDP;
 
 class TestDefenderL1Domain {
 	

@@ -12,9 +12,11 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import thinclab.ipomdpsolver.IPOMDP;
+import thinclab.exceptions.VariableNotFoundException;
+import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.Framework;
+import thinclab.frameworks.IPOMDP;
 import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.POMDP;
 
 /*
  * @author adityas
@@ -25,30 +27,51 @@ public class FullInteractiveBeliefExpansion extends FullBeliefExpansion {
 	 * Search the full interactive belief space for IPOMDPs
 	 */
 	
-	/* reference to the POMDP */
-	private IPOMDP ip;
-	
-	/* All possible combinations of observations */
-	public List<List<String>> allPossibleObs;
-	
-	/* Currently explored beliefs and leaves for expansion */
-	public List<DD> leaves;
-	public HashSet<DD> exploredBeliefs;
-	
 	private static final Logger logger = Logger.getLogger(FullInteractiveBeliefExpansion.class);
 	
 	// --------------------------------------------------------------------------------------------
 	
-	public FullInteractiveBeliefExpansion(IPOMDP ip, int maxDepth) {
+	public FullInteractiveBeliefExpansion(Framework f, int maxDepth) {
 		/*
 		 * Set properties and all that
 		 */
-		super(maxDepth);
+		super(f, maxDepth);
 		
-		this.ip = ip;
-		this.allPossibleObs = ip.obsCombinations;
+		logger.debug("Initialized full interactive belief search");
 	}
 	
 	// --------------------------------------------------------------------------------------------
+	
+	@Override
+	public DD beliefUpdate(
+			Framework f, 
+			DD previousBelief, 
+			String action,
+			List<String> obs) {
+		
+		IPOMDP ip = (IPOMDP) f;
+		try {
+			
+			DD nextBelief = 
+					InteractiveBelief.staticL1BeliefUpdate(
+							ip, 
+							previousBelief, 
+							action, 
+							obs.toArray(
+									new String[obs.size()]));
+			
+			return nextBelief;
+		} 
+		
+		catch (ZeroProbabilityObsException e) { return null; }
+		catch (VariableNotFoundException e) { 
+			
+			logger.error("While doing L1 belief update: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+			return null;
+		}
+		
+	}
 
 }

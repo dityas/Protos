@@ -20,6 +20,7 @@ import thinclab.Belief.BeliefSet;
 import thinclab.Belief.InteractiveBelief;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.IPOMDP;
 import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
 import thinclab.symbolicperseus.AlphaVector;
 import thinclab.symbolicperseus.Config;

@@ -3,6 +3,8 @@ package thinclab.symbolicperseus;
 import java.io.*;
 import java.lang.*;
 
+import thinclab.frameworks.POMDP;
+
 
 public class EPAD {
 

@@ -8,8 +8,6 @@ import java.util.stream.IntStream;
 
 import org.apache.log4j.Logger;
 
-import java.lang.*;
-
 import thinclab.domainMaker.ddHelpers.DDTree;
 
 
@@ -162,11 +160,11 @@ public class ParseSPUDD {
 			case '(':
 			    stream.nextToken();
 			    if (stream.sval.compareTo("variables") == 0) {
-			    	this.logger.info("Parsing variables");
+			    	logger.debug("Parsing variables");
 				parseVariables();
 			    }
 			    else if (stream.sval.compareTo("observations") == 0) {
-			    	this.logger.info("Parsing observations");
+			    	logger.debug("Parsing observations");
 				parseObservations();
 			    }
 			    else error("Expected \"variables\" or \"observations\"");
@@ -181,12 +179,12 @@ public class ParseSPUDD {
 				break;
 			    }
 			    else if (stream.sval.compareTo("dd") == 0) {
-			    	this.logger.info("Parsing DD def");
+			    	logger.debug("Parsing DD def");
 				parseDDdefinition();
 				break;
 			    }
 			    else if (stream.sval.compareTo("action") == 0) {
-			    	this.logger.info("Parsing actions");
+			    	logger.debug("Parsing actions");
 				parseAction();
 				break;
 			    }
@@ -754,7 +752,7 @@ public class ParseSPUDD {
     	/*
     	 * Converts everything to DDTree representation
     	 */
-    	this.logger.info("Begin populating DDTree structures");
+    	logger.debug("Begin populating DDTree structures");
 //    	HashMap<String, HashMap<String, DDTree>> Oi = 
 //    			new HashMap<String, HashMap<String, DDTree>>();
 //    	
@@ -769,7 +767,7 @@ public class ParseSPUDD {
     						(String[]) this.valNames.get(i).toArray(
     								new String[this.valNames.get(i).size()]))));
     	
-    	this.logger.info("S initialized to: " + this.S);
+    	logger.debug("S initialized to: " + this.S);
     	
     	IntStream.range(this.nStateVars, this.nStateVars + this.nObsVars)
 			.forEach(i -> this.Omega.add(
@@ -779,17 +777,17 @@ public class ParseSPUDD {
 							(String[]) this.valNames.get(i).toArray(
 									new String[this.valNames.get(i).size()]))));
     	
-    	this.logger.info("Omega initialized to: " + this.Omega);
+    	logger.debug("Omega initialized to: " + this.Omega);
     	
     	/* Ai */
     	for (int a = 0; a < this.actNames.size(); a++) {
     		
     		/* Add action names */
-    		this.logger.info("Populating structures for action " + this.actNames.get(a));
+    		logger.debug("Populating structures for action " + this.actNames.get(a));
     		this.A.add(this.actNames.get(a));
     		
     		/* Add costs for each action */
-    		this.logger.info(
+    		logger.debug(
     				"Cost for action " 
     				+ this.actNames.get(a) 
     				+ " is " 
@@ -800,14 +798,14 @@ public class ParseSPUDD {
     		
     		/* Populate Oi */
     		for (int o = 0; o < this.nObsVars; o++) {
-    			this.logger.info(
+    			logger.debug(
     					"Population O DDtree for o " + this.varNames.get(this.nStateVars + o));
     			Oi_a.put(
     					this.varNames.get(this.nStateVars + o),
     					this.actObserve.get(a)[o].toDDTree());
     		}
     		
-    		this.logger.info("Oi_a for a=" + this.actNames.get(a) + " is " + Oi_a);
+    		logger.debug("Oi_a for a=" + this.actNames.get(a) + " is " + Oi_a);
     		
     		this.Oi.put(this.actNames.get(a), Oi_a);
     		

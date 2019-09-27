@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import cern.colt.Arrays;
 import edu.uci.ics.jung.graph.util.EdgeType;
-import thinclab.ipomdpsolver.IPOMDP;
+import thinclab.frameworks.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
 import thinclab.utils.visualizers.Visualizer;

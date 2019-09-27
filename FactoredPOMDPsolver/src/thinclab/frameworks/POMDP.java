@@ -1,4 +1,4 @@
-package thinclab.symbolicperseus;
+package thinclab.frameworks;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -21,9 +21,19 @@ import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.Framework;
 import thinclab.policyhelper.BeliefTree;
 import thinclab.policyhelper.PolicyTree;
+import thinclab.symbolicperseus.Action;
+import thinclab.symbolicperseus.AlphaVector;
+import thinclab.symbolicperseus.Config;
+import thinclab.symbolicperseus.DD;
+import thinclab.symbolicperseus.DDleaf;
+import thinclab.symbolicperseus.Global;
+import thinclab.symbolicperseus.MySet;
+import thinclab.symbolicperseus.NextBelState;
+import thinclab.symbolicperseus.OP;
+import thinclab.symbolicperseus.ParseSPUDD;
+import thinclab.symbolicperseus.RandomPermutation;
 import thinclab.symbolicperseus.StateVar;
 import thinclab.utils.PolicyCache;
 

@@ -4,6 +4,7 @@ import java.util.*;
 
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
+import thinclab.frameworks.POMDP;
 
 import java.lang.*;
 import java.lang.ref.*;

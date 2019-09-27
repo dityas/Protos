@@ -22,10 +22,10 @@ import org.junit.jupiter.api.Test;
 import thinclab.Belief.Belief;
 import thinclab.Belief.BeliefSet;
 import thinclab.Examples.TigerProblemPOMDP;
+import thinclab.frameworks.POMDP;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.POMDP;
 
 /*
  * @author adityas

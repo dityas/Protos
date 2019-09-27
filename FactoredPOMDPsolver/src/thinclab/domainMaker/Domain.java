@@ -14,9 +14,9 @@ import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.frameworks.POMDP;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
-import thinclab.symbolicperseus.POMDP;
 
 public abstract class Domain {
 	/*

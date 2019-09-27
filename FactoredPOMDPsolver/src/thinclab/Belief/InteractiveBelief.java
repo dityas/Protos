@@ -16,7 +16,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.ipomdpsolver.IPOMDP;
+import thinclab.frameworks.IPOMDP;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;

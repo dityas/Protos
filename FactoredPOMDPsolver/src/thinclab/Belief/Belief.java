@@ -13,11 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.POMDP;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.MySet;
 import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.POMDP;
 
 /*
  * @author adityas

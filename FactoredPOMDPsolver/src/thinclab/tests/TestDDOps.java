@@ -24,10 +24,10 @@ import thinclab.Belief.Belief;
 import thinclab.Examples.AttackerDomainPOMDP;
 import thinclab.Examples.TigerProblemPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.POMDP;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.MySet;
 
 /*

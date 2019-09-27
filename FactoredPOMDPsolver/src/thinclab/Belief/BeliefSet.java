@@ -16,10 +16,10 @@ import java.util.List;
 import java.util.Random;
 
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.POMDP;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.StateVar;
 
 /*

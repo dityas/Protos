@@ -13,9 +13,9 @@ import org.junit.jupiter.api.Test;
 import thinclab.Examples.AttackerDomainPOMDP;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.domainMaker.ddHelpers.DDTreeLeaf;
+import thinclab.frameworks.POMDP;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.POMDP;
 
 class TestDDTree {
 

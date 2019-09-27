@@ -2,15 +2,10 @@ package thinclab.policyhelper;
 import java.util.Map;
 
 import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.POMDP;
-import thinclab.symbolicperseus.StateVar;
-import thinclab.Belief.Belief;
-import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.POMDP;
 import thinclab.policyhelper.PolicyNode;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -30,24 +25,6 @@ public class PolicyExtractor {
 		public List<PolicyNode> policyNodes = new ArrayList<PolicyNode>();
 		public List<PolicyNode> printablePolicyNodes = new ArrayList<PolicyNode>();
 		private POMDP p = null;
-		
-		private boolean checkZeroProbabObs(DD belstate) {
-			/*
-			 * method to check if the belief state was a result of a zero probability obs
-			 */
-			DD uniformBelState = DD.one;
-			uniformBelState = OP.div(uniformBelState,
-					OP.addMultVarElim(uniformBelState, this.p.varIndices));
-			
-			if (belstate == uniformBelState) {
-				return true;
-			}
-			
-			else {
-				return false;
-			}
-			
-		} // private boolean checkZeroProbabObs(DD belstate)
 		
 		// ----------------------------------------------------------------------------------------
 		
@@ -83,7 +60,7 @@ public class PolicyExtractor {
 			 *  Generate all possible observations
 			 */
 //			List<StateVar> obsVars = new LinkedList<StateVar>(Arrays.asList(p.obsVars));
-			List<List<String>> obs = this.p.getAllObservationsList();
+			List<List<String>> obs = this.p.getAllPossibleObservations();
 			
 			/*
 			 *  Do till there are no terminal policy leaves
@@ -149,14 +126,6 @@ public class PolicyExtractor {
 		} // public PolicyExtractor
 
 		// ----------------------------------------------------------------------------------------		
-		
-		public void makePolicyRepresentation() {
-			/*
-			 * Combines observations leading to the same next nodes in the policy in order 
-			 * to display it properly
-			 */
-			
-		}
 
 		@Override
 		public String toString() {

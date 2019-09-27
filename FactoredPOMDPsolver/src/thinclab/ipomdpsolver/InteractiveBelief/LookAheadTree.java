@@ -19,7 +19,7 @@ import cern.colt.Arrays;
 import thinclab.Belief.InteractiveBelief;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.ipomdpsolver.IPOMDP;
+import thinclab.frameworks.IPOMDP;
 import thinclab.symbolicperseus.DD;
 
 /*

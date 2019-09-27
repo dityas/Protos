@@ -28,14 +28,14 @@ import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
-import thinclab.ipomdpsolver.IPOMDP;
+import thinclab.frameworks.IPOMDP;
+import thinclab.frameworks.POMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.InteractiveStateVar;
 import thinclab.ipomdpsolver.OpponentModel;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.POMDP;
 
 /*
  * @author adityas

@@ -18,8 +18,8 @@ import java.util.stream.IntStream;
 import org.apache.log4j.Logger;
 
 import thinclab.Belief.Belief;
+import thinclab.frameworks.POMDP;
 import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.POMDP;
 
 /*
  * @author adityas
@@ -65,9 +65,9 @@ public class PolicyTree {
 				 .forEach(i -> 
 				 	this.roots.get(i).setId(this.getNextId()));
 		
-		this.logger.info("Building policy tree for POMDP " + p + " starting from " + this.roots);
+		logger.debug("Building policy tree for POMDP " + p + " starting from " + this.roots);
 		
-		this.allObsCombinations = this.pomdp.getAllObservationsList();
+		this.allObsCombinations = this.pomdp.getAllPossibleObservations();
 		
 		this.expandForHorizon(horizon);
 	}
@@ -80,7 +80,7 @@ public class PolicyTree {
 		/*
 		 * Expands the policy tree for a single time step
 		 */
-		this.logger.debug("Expanding from horizon " + currentH + " from " 
+		logger.debug("Expanding from horizon " + currentH + " from " 
 				+ previousLeaves.size() + " nodes");
 		
 		List<PolicyNode> nextNodes = new ArrayList<PolicyNode>();
@@ -96,7 +96,7 @@ public class PolicyTree {
 			/*
 			 * Update for each observation 
 			 */
-			List<List<String>> obs = this.pomdp.getAllObservationsList();
+			List<List<String>> obs = this.allObsCombinations;
 			for (List<String> o : obs) {
 				
 				DD nextBelief;
@@ -131,7 +131,7 @@ public class PolicyTree {
 			nextNodes.add(newNode);
 		});
 		
-		this.logger.debug("For H=" + currentH + " branching factor is A=" + 1 
+		logger.debug("For H=" + currentH + " branching factor is A=" + 1 
 				+ " * O=" + this.allObsCombinations.size() + " * n=" + previousLeaves.size()
 				+ " = " + (1*this.allObsCombinations.size()*previousLeaves.size())
 				+ " points out of which " + nextNodes.size() + " are unique");
@@ -225,7 +225,7 @@ public class PolicyTree {
 		 * Lower level belief DDs should not be used anyway after the policy tree / belief tree is
 		 * constructed.
 		 */
-		this.logger.debug("Setting lower level beliefs to NULL");
+		logger.debug("Setting lower level beliefs to NULL");
 		this.policyNodes.forEach(n -> n.belief = null);
 	}
 	

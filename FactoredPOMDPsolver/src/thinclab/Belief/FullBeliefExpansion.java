@@ -14,8 +14,9 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.Framework;
+import thinclab.frameworks.POMDP;
 import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.POMDP;
 
 /*
  * @author adityas
@@ -28,7 +29,7 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	 */
 	
 	/* reference to the POMDP */
-	private POMDP p;
+	private Framework f;
 	
 	/* All possible combinations of observations */
 	public List<List<String>> allPossibleObs;
@@ -41,7 +42,7 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	
 	// -------------------------------------------------------------------------------
 	
-	public FullBeliefExpansion(POMDP p, int maxDepth) {
+	public FullBeliefExpansion(Framework f, int maxDepth) {
 		/*
 		 * Set the class properties and call super to set maximum bound on the search
 		 * 
@@ -50,18 +51,20 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		
 		super(maxDepth);
 		
-		this.p = p;
-		this.allPossibleObs = p.getAllPossibleObservations();
+		this.f = f;
+		this.allPossibleObs = f.getAllPossibleObservations();
 		
 		logger.debug("Initialized FullBeliefExpansion search till max depth " 
 				+ this.getHBound());
 		
 		/* add initial beliefs to start expansion */
 		this.leaves = new ArrayList<DD>();
-		this.leaves.addAll(this.p.getInitialBeliefsList());
+		this.leaves.addAll(this.f.getInitialBeliefs());
 		
 		this.exploredBeliefs = new HashSet<DD>();
-		this.exploredBeliefs.addAll(this.p.getInitialBeliefsList());
+		this.exploredBeliefs.addAll(this.f.getInitialBeliefs());
+		
+		logger.debug("Starting beliefs are " + this.leaves);
 	}
 	
 	public FullBeliefExpansion(int maxDepth) {
@@ -75,23 +78,23 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	// -----------------------------------------------------------------------------------
 	
 	public DD beliefUpdate(
-			POMDP p, 
+			Framework f, 
 			DD previousBelief, 
-			int actId,
+			String action,
 			List<String> obs) {
 		
 		/*
 		 * Split the belief update into a separate function to enable
 		 * reuse with interactive belief expanion
 		 */
-		
+		POMDP p = (POMDP) f;
 		try {
 			
 			DD nextBelief = 
 					Belief.beliefUpdate(
 							p, 
 							previousBelief, 
-							actId, 
+							p.findActionByName(action), 
 							obs.toArray(
 									new String[obs.size()]));
 			
@@ -118,7 +121,7 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		for (DD leaf : this.leaves) {
 			
 			/* For all actions */
-			for (int a=0; a < this.p.nActions; a++) {
+			for (String action : this.f.getActions()) {
 				
 				/*
 				 * Recursively get all possible values and combinations of
@@ -128,9 +131,9 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 					
 					DD nextBelief = 
 							this.beliefUpdate(
-									this.p, 
+									this.f, 
 									leaf, 
-									a, 
+									action, 
 									observation);
 					
 					/* continue if observation probability was 0 */

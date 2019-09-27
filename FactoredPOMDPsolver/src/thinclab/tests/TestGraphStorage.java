@@ -17,7 +17,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.ipomdpsolver.IPOMDP;
+import thinclab.frameworks.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.OpponentModel;
 import thinclab.policyhelper.PolicyNode;

@@ -9,7 +9,8 @@ package thinclab.symbolicperseus;
 
 import java.util.Arrays;
 
-import thinclab.ipomdpsolver.IPOMDP;
+import thinclab.frameworks.IPOMDP;
+import thinclab.frameworks.POMDP;
 
 /*
  * @author adityas

@@ -13,10 +13,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.frameworks.IPOMDP;
+import thinclab.frameworks.POMDP;
 import thinclab.ipomdpsolver.FiniteHorizonLookAheadValueIterationSolver;
-import thinclab.ipomdpsolver.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
-import thinclab.symbolicperseus.POMDP;
 
 /*
  * @author adityas

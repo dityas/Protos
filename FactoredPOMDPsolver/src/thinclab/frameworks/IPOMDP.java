@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.ipomdpsolver;
+package thinclab.frameworks;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,11 +24,12 @@ import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.ipomdpsolver.OpponentModel;
 import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
 import thinclab.symbolicperseus.DD;
 import thinclab.symbolicperseus.Global;
 import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.POMDP;
 import thinclab.symbolicperseus.ParseSPUDD;
 import thinclab.symbolicperseus.StateVar;
 
@@ -253,7 +254,7 @@ public class IPOMDP extends POMDP {
 		this.currentStateBeliefs.add(this.initBeliefDdTree);
 		this.currentStateBeliefs.addAll(this.adjunctBeliefs);
 		
-		this.obsCombinations = this.getAllObservationsList();
+		this.obsCombinations = this.getAllPossibleObservations();
 	}
 	
 	public void setAi(List<String> actionNames) {
@@ -999,6 +1000,11 @@ public class IPOMDP extends POMDP {
 					.map(o -> o.name)
 					.filter(n -> !n.contains("_j"))
 					.collect(Collectors.toList());
+	}
+	
+	@Override
+	public List<DD> getInitialBeliefs() {
+		return this.lookAheadRootInitBeliefs;
 	}
 	
 //	public LookAheadTree getLookAheadTree() {
