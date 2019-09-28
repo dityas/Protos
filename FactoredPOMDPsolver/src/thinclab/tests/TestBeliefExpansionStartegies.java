@@ -80,10 +80,10 @@ class TestBeliefExpansionStartegies {
 		
 		IPOMDP ipomdp = new IPOMDP(parser, 10, 3);
 		
-		FullInteractiveBeliefExpansion fb = new FullInteractiveBeliefExpansion(ipomdp, 10);
+		FullInteractiveBeliefExpansion fb = new FullInteractiveBeliefExpansion(ipomdp);
 		
 		assertNotNull(fb);
-		assertTrue(fb.getHBound() == 10);
+		assertTrue(fb.getHBound() == 3);
 		
 		List<DD> beliefs0 = fb.getBeliefPoints();
 		
@@ -91,12 +91,8 @@ class TestBeliefExpansionStartegies {
 		
 		List<DD> beliefs1 = fb.getBeliefPoints();
 		
-		fb.expand();
-		
-		List<DD> beliefs2 = fb.getBeliefPoints();
 		
 		assertTrue(beliefs0.size() <= beliefs1.size());
-		assertTrue(beliefs1.size() <= beliefs2.size());
 	}
 
 }

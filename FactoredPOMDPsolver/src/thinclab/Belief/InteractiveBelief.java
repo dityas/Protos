@@ -87,7 +87,7 @@ public class InteractiveBelief extends Belief {
 						IPOMDP.stackArray(
 								ipomdp.obsIVarPrimeIndices, obsVals));
 
-		/* Collect f1 = P(S, Mj) x P(S', S, Aj) */
+		/* Collect f1 = P(S, Mj)  */
 		DD f1 = startBelief;
 
 		/* Collect f2 = P(Aj | Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
@@ -142,34 +142,52 @@ public class InteractiveBelief extends Belief {
 		 * Because the dpBackUp implementation by Hoey needs it.
 		 */
 		
-		/* Collect f1 = P(S, Mj) x P(S', S, Mj) */
-		DD[] f1 = ArrayUtils.add(ipomdp.currentTi.get(actName), startBelief);
+		/* Collect f1 = P(S, Mj)  */
+		DD f1 = startBelief;
 		
-		/* Collect f2 = f1 x P(Oi', S', Mj) */
-		DD[] f2 = ArrayUtils.addAll(f1, ipomdp.currentOi.get(actName));
+		/* Collect f2 = P(Aj | Mj) x P(Oi', S', Aj) x P (S', Aj, S) */
+		DD[] f2 = 
+				ArrayUtils.addAll(
+						ArrayUtils.add(
+								ipomdp.currentTi.get(actName), 
+								ipomdp.currentAjGivenMj), 
+						ipomdp.currentOi.get(actName));
 		
-		/* Collect f3 = P(Oj', S', Mj) x P(Mj', Mj, Oj') */
-		DD[] f3 = ArrayUtils.add(ipomdp.currentOj, ipomdp.currentMjTfn);
+		/* Collect f3 = f1 x f2 */
+		DD[] f3 = ArrayUtils.addAll(f2, f1);
 		
-		/* Collect f4 = f2 x f3 */
-		DD[] f4 = ArrayUtils.addAll(f2, f3);
+		/* Collect tau = Sumout [Oj'] P(Oj', S', Aj) x P(Mj', Mj, Oj', Aj) */
+		DD tau = OP.addMultVarElim(
+					ArrayUtils.add(
+							ipomdp.currentOj, 
+							ipomdp.currentMjTfn),
+					ipomdp.obsJVarPrimeIndices);
 		
-		/* Multiply and sum out */
+		/* Perform the sum out */
+		DD nextBelief = 
+				OP.addMultVarElim(
+						ArrayUtils.add(f3, tau), 
+						ipomdp.stateVarIndices);
+		
+		/*
+		 * Multiply and sum out
+		 * 
+		 * Watch out for last index in stateVarPrimeIndices being A_j'
+		 */
 		DD norm = 
 				OP.addMultVarElim(
-						f4, 
-						ArrayUtils.addAll(
-							ArrayUtils.addAll(
-								ipomdp.stateVarIndices, 
-								ipomdp.obsJVarPrimeIndices),
-							ipomdp.stateVarPrimeIndices));
+						nextBelief,
+						ArrayUtils.subarray(
+								ipomdp.stateVarPrimeIndices, 
+								0, 
+								ipomdp.stateVarPrimeIndices.length - 1));
 		
 		return norm;
 	}
 	
 	public static DD[] getCpts(
 			IPOMDP ipomdp,
-			DD startBelief, 
+			DD[] startBelief, 
 			String actName) throws ZeroProbabilityObsException, VariableNotFoundException {
 		/*
 		 * Because the dpBackUp implementation by Hoey needs it.
@@ -179,7 +197,9 @@ public class InteractiveBelief extends Belief {
 		DD[] f1 = 
 				ArrayUtils.addAll(
 						ipomdp.currentTi.get(actName),
-						InteractiveBelief.factorInteractiveBelief(ipomdp, startBelief));
+						startBelief);
+		
+		f1 = ArrayUtils.add(f1, ipomdp.currentAjGivenMj);
 		
 		/* Collect f2 = f1 x P(Oi', S', Mj) */
 		DD[] f2 = ArrayUtils.addAll(f1, ipomdp.currentOi.get(actName));
@@ -205,7 +225,7 @@ public class InteractiveBelief extends Belief {
 		
 		DD[] fbs = new DD[ipomdp.stateVarIndices.length - 1];
 		
-		/* For each state var, summout everything else */
+		/* For each state var, summout everything else except A_j*/
 		for (int varId = 0; varId < ipomdp.stateVarIndices.length - 1; varId++)
 			fbs[varId] = OP.addMultVarElim(belief,
 					ArrayUtils.remove(

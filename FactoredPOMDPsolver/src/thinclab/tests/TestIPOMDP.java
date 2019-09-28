@@ -338,10 +338,6 @@ class TestIPOMDP {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		try {
-			tigerL1IPOMDP.solveOpponentModels();
-			tigerL1IPOMDP.reinitializeOnlineFunctions();
-			tigerL1IPOMDP.initializeOfflineFunctions();
-
 //			System.out.println(tigerL1IPOMDP.lookAheadRootInitBelief);
 //			System.out.println(
 //					OP.addMultVarElim(tigerL1IPOMDP.lookAheadRootInitBelief, new int[] {2}));

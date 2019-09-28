@@ -106,9 +106,16 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	}
 	
 	// --------------------------------------------------------------------------------------
-
+	
 	@Override
 	public void expand() {
+		
+		/* H - 1 expansions to let the Solver reach H during solving */
+		for (int i = 0; i < this.getHBound() - 1; i++)
+			this.expandSingleStep();
+	}
+	
+	public void expandSingleStep() {
 		/*
 		 * Runs one step of expansion from leaves and adds to exploredBeliefs
 		 */

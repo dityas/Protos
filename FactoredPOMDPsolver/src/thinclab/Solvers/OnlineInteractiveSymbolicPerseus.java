@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.ipomdpsolver;
+package thinclab.Solvers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +16,7 @@ import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import thinclab.Belief.BeliefRegionExpansionStrategy;
 import thinclab.Belief.BeliefSet;
 import thinclab.Belief.InteractiveBelief;
 import thinclab.exceptions.VariableNotFoundException;
@@ -36,99 +37,144 @@ import thinclab.symbolicperseus.NextBelState;
  * @author adityas
  *
  */
-public class OnlineInteractiveSymbolicPerseus {
+public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 	/*
 	 * Value iteration solver for IPOMDPs with finite look ahead horizon
 	 * 
 	 * 
 	 */
 	
+	/* max rounds and dpBackups for symbolic perseus */
+	private int maxRounds;
+	private int dpBackups;
+	
+	/* Store reference to the IPOMDP for use later */
+	private IPOMDP ipomdp;
+	
+	/*
+	 * Keep alphaVectors inside the solver instead of in the IPOMDP objects
+	 */
+	private DD[] alphaVectors;
+	
 	private static final Logger logger = 
 			Logger.getLogger(OnlineInteractiveSymbolicPerseus.class);
 	
-	public IPOMDP ipomdp;
-		
 	// --------------------------------------------------------------------------------------
-	
-	public HashMap<DD, String> getBestActionsMap() {
-		/*
-		 * Maps the initial beliefs of the current look ahead tree to the most optimal actions
-		 */
-		HashMap<DD, String> bestActionMap = new HashMap<DD, String>();
-		
-		for (DD belief : this.ipomdp.lookAheadRootInitBeliefs) {
-			/*
-			 * For each initial belief, get best action using the alphavectors and policy containers
-			 * defined in the super class in the same way as symbolic perseus solver
-			 * 
-			 * best action can be found by POMDP.policy[POMDP.bestAlphaVector] for current celief
-			 */
-			int alphaId = 
-					this.ipomdp.policyBestAlphaMatch(
-							belief, 
-							this.ipomdp.alphaVectors, 
-							this.ipomdp.policy);
 
-			bestActionMap.put(belief, this.ipomdp.Ai.get(this.ipomdp.policy[alphaId]));
-		}
-		
-		return bestActionMap;
-	}
-	
-	// --------------------------------------------------------------------------------------
-	/*
-	 * Trying to adapt symbolic perseus's dpBackUp here
-	 */
-	public OnlineInteractiveSymbolicPerseus(IPOMDP ipomdp) {
+	public OnlineInteractiveSymbolicPerseus(
+			IPOMDP ipomdp, 
+			BeliefRegionExpansionStrategy b,
+			int maxRounds,
+			int dpBackups) {
 		/*
 		 * Initialize with an IPOMDP
 		 */
-		this.ipomdp = ipomdp;
+		super(ipomdp, b);
+		
+		this.maxRounds = maxRounds;
+		this.dpBackups = dpBackups;
+		
+		this.ipomdp = (IPOMDP) this.f;
 	}
 	
 	// ---------------------------------------------------------------------------------------
 	
-	public void solvePBVI(int rounds, int numDpBackups) {
+	@Override
+	public void nextStep(String action, List<String> obs) {
 		
-		List<DD> iBeliefRegion = new ArrayList<DD>();
-
+	}
+	
+	@Override
+	public String getBestActionAtCurrentBelief() {
+		
+		int alphaId = 
+				this.ipomdp.policyBestAlphaMatch(
+						this.ipomdp.getInitialBeliefs().get(0), 
+						this.alphaVectors, 
+						this.ipomdp.policy);
+		
+		return this.ipomdp.Ai.get(this.ipomdp.policy[alphaId]);
+	}
+	
+	@Override
+	public void solveForBeliefs(List<DD> beliefs) {
 		/*
-		 * Add all initial ipomdp beliefs to the belief region
-		 * 
-		 * Alternatively, use an expansion strategy like in symbolic perseus.
-		 * And alternate expansions with dp backups
+		 * Use online symbolic perseus to get solution for given beliefs
 		 */
-		iBeliefRegion.addAll(ipomdp.getCurrentLookAheadBeliefs());
 		
+		logger.debug("Solving for " + beliefs.size() + " belief points.");
 		
-		/*
-		 * Initialize alpha vectors
-		 */
-		DD[] alphaVectors = new DD[1];
-		alphaVectors[0] = DD.one;
+		DD[][] factoredBeliefRegion = 
+				InteractiveBelief.factorInteractiveBeliefRegion(
+						(IPOMDP) this.f, 
+						beliefs);
 		
-		this.ipomdp.alphaVectors = alphaVectors;
+		/* Make a default alphaVector to start with */
+		this.alphaVectors = new DD[1];
+		this.alphaVectors[0] = DD.one;
 		
-		for (int r=0; r < rounds; r++) {
-
-			try {
-				
-				/*Try modified symbolic perseus for IPOMDP */
+		/* try running interactive symbolic perseus */
+		try {
+			
+			for (int r = 0; r < this.maxRounds; r++) {
 				
 				boundedPerseusStartFromCurrent(
 						100, 
-						r * numDpBackups, 
-						numDpBackups, 
-						InteractiveBelief.factorInteractiveBeliefRegion(ipomdp, iBeliefRegion));
+						r * this.dpBackups, 
+						this.dpBackups, 
+						factoredBeliefRegion);
 				
-			} 
-			
-			catch (Exception e) {
-				e.printStackTrace();
 			}
-
+		}
+		
+		catch (Exception e) {
+			logger.error("While running solver: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
 		}
 	}
+	
+//	public void solvePBVI(int rounds, int numDpBackups) {
+//		
+//		List<DD> iBeliefRegion = new ArrayList<DD>();
+//
+//		/*
+//		 * Add all initial ipomdp beliefs to the belief region
+//		 * 
+//		 * Alternatively, use an expansion strategy like in symbolic perseus.
+//		 * And alternate expansions with dp backups
+//		 */
+//		iBeliefRegion.addAll(ipomdp.getInitialBeliefs());
+//		
+//		
+//		/*
+//		 * Initialize alpha vectors
+//		 */
+//		DD[] alphaVectors = new DD[1];
+//		alphaVectors[0] = DD.one;
+//		
+//		this.this.alphaVectors = alphaVectors;
+//		
+//		for (int r=0; r < rounds; r++) {
+//
+//			try {
+//				
+//				/*Try modified symbolic perseus for IPOMDP */
+//				
+//				boundedPerseusStartFromCurrent(
+//						100, 
+//						r * numDpBackups, 
+//						numDpBackups, 
+//						InteractiveBelief.factorInteractiveBeliefRegion(ipomdp, iBeliefRegion));
+//				
+//			} 
+//			
+//			catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//
+//		}
+//	}
 	
 	public void boundedPerseusStartFromCurrent(
 			int maxAlpha, 
@@ -146,7 +192,7 @@ public class OnlineInteractiveSymbolicPerseus {
 
 		this.ipomdp.currentPointBasedValues = 
 				OP.factoredExpectationSparseNoMem(
-						beliefRegion, ipomdp.alphaVectors);
+						beliefRegion, this.alphaVectors);
 		
 		DD[] primedV;
 		double maxAbsVal = 0;
@@ -155,18 +201,21 @@ public class OnlineInteractiveSymbolicPerseus {
 
 			steptolerance = ipomdp.tolerance;
 
-			primedV = new DD[ipomdp.alphaVectors.length];
+			primedV = new DD[this.alphaVectors.length];
 			
-			for (int i = 0; i < ipomdp.alphaVectors.length; i++) {
-				primedV[i] = OP.primeVars(ipomdp.alphaVectors[i], ipomdp.S.size() + ipomdp.Omega.size());
+			for (int i = 0; i < this.alphaVectors.length; i++) {
+				primedV[i] = 
+						OP.primeVars(
+								this.alphaVectors[i], 
+								ipomdp.S.size() + ipomdp.Omega.size());
 			}
 			
 			maxAbsVal = 
 					Math.max(
 							OP.maxabs(
 									IPOMDP.concatenateArray(
-											OP.maxAllN(ipomdp.alphaVectors), 
-											OP.minAllN(ipomdp.alphaVectors))), 1e-10);
+											OP.maxAllN(this.alphaVectors), 
+											OP.minAllN(this.alphaVectors))), 1e-10);
 
 			int count = 0;
 			int choice;
@@ -197,7 +246,7 @@ public class OnlineInteractiveSymbolicPerseus {
 			while (ipomdp.numNewAlphaVectors < maxAlphaSetSize
 					&& !permutedIds.isempty()) {
 				
-				if (nDpBackups >= 2 * ipomdp.alphaVectors.length) {
+				if (nDpBackups >= 2 * this.alphaVectors.length) {
 					computeMaxMinImprovement(beliefRegion);
 					if (ipomdp.bestImprovement > ipomdp.tolerance
 							&& ipomdp.bestImprovement > -2 * ipomdp.worstDecline) {
@@ -286,7 +335,7 @@ public class OnlineInteractiveSymbolicPerseus {
 			/*
 			 * save data and copy over new to old
 			 */
-			ipomdp.alphaVectors = new DD[ipomdp.numNewAlphaVectors];
+			this.alphaVectors = new DD[ipomdp.numNewAlphaVectors];
 			ipomdp.currentPointBasedValues = 
 					new double[ipomdp.newPointBasedValues.length][ipomdp.numNewAlphaVectors];
 
@@ -298,7 +347,7 @@ public class OnlineInteractiveSymbolicPerseus {
 
 			for (int j = 0; j < ipomdp.numNewAlphaVectors; j++) {
 				
-				ipomdp.alphaVectors[j] = ipomdp.newAlphaVectors[j].alphaVector;
+				this.alphaVectors[j] = ipomdp.newAlphaVectors[j].alphaVector;
 				ipomdp.policy[j] = ipomdp.newAlphaVectors[j].actId;
 				ipomdp.policyvalue[j] = ipomdp.newAlphaVectors[j].value;
 				ipomdp.uniquePolicy[ipomdp.policy[j]] = true;
@@ -318,7 +367,7 @@ public class OnlineInteractiveSymbolicPerseus {
 			logger.info("STEP: " + stepId 
 					+ " \tBELLMAN ERROR: " + bellmanErr
 					+ " \tBELIEF POINTS: " + beliefRegion.length
-					+ " \tA VECTORS: " + ipomdp.alphaVectors.length);
+					+ " \tA VECTORS: " + this.alphaVectors.length);
 			
 			if (stepId % 100 < 5)
 				continue;
@@ -363,27 +412,22 @@ public class OnlineInteractiveSymbolicPerseus {
 		/*
 		 * get next unnormalised belief states
 		 */
-		
-//		System.out.println("In dpBackup with primedV " + Arrays.toString(primedV));
 		double smallestProb;
 		
 		smallestProb = ipomdp.tolerance / maxAbsVal;
-//		System.out.println("BelState is " + Arrays.deepToString(belState));
-//		System.out.println("\r\n=================================================");
 		nextBelStates = oneStepNZPrimeBelStates(belState, true, smallestProb);
-//		System.out.println("nextBelState are " + nextBelStates.length);
 		
 		/*
 		 * precompute obsVals
 		 */
-		for (int actId = 0; actId < ipomdp.Ai.size(); actId++)
+		for (int actId = 0; actId < ipomdp.getActions().size(); actId++)
 			nextBelStates[actId].getObsVals(primedV);
 
 		double bestValue = Double.NEGATIVE_INFINITY;
 		double actValue;
 		int bestActId = 0;
 		
-		int nObservations = ipomdp.obsCombinations.size();
+		int nObservations = ipomdp.getAllPossibleObservations().size();
 		
 		int[] bestObsStrat = new int[ipomdp.nObservations];
 
@@ -408,7 +452,7 @@ public class OnlineInteractiveSymbolicPerseus {
 			nextBelStates[actId].getObsStrat();
 			actValue = actValue + ipomdp.discFact
 					* nextBelStates[actId].getSumObsValues();
-
+			
 			if (actValue > bestValue) {
 				
 				bestValue = actValue;
@@ -425,7 +469,7 @@ public class OnlineInteractiveSymbolicPerseus {
 		DD obsDd;
 		int[] obsConfig = new int[this.ipomdp.obsIVarIndices.length];
 		
-		for (int alphaId = 0; alphaId < this.ipomdp.alphaVectors.length; alphaId++) {
+		for (int alphaId = 0; alphaId < this.alphaVectors.length; alphaId++) {
 		
 			if (MySet.find(bestObsStrat, alphaId) >= 0) {
 
@@ -471,10 +515,16 @@ public class OnlineInteractiveSymbolicPerseus {
 						ArrayUtils.add(ipomdp.currentOj, ipomdp.currentMjTfn), 
 						ipomdp.obsJVarPrimeIndices);
 		
+		/* Add P(AJ | MJ) to Ti */
+		DD[] Ti = 
+				ArrayUtils.add(
+						this.ipomdp.currentTi.get(this.ipomdp.Ai.get(bestActId)), 
+						this.ipomdp.currentAjGivenMj);
+		
 		DD[] valFnArray = 
 				ArrayUtils.addAll(
 						ArrayUtils.addAll(
-								this.ipomdp.currentTi.get(this.ipomdp.Ai.get(bestActId)),
+								Ti,
 								this.ipomdp.currentOi.get(this.ipomdp.Ai.get(bestActId))), 
 						new DD[] {mjTransition, nextValFn}); 
 
@@ -533,13 +583,13 @@ public class OnlineInteractiveSymbolicPerseus {
 		 */
 		for (int actId = 0; actId < this.ipomdp.Ai.size(); actId++) {
 		
+			/* Assuming factored belief was normalized */
 			dd_obsProbs = 
 					InteractiveBelief.getL1BeliefUpdateNorm(
 							this.ipomdp, 
-							OP.multN(belState), this.ipomdp.Ai.get(actId));
+							OP.reorder(OP.multN(belState)), this.ipomdp.Ai.get(actId));
 
 			obsProbs = OP.convert2array(dd_obsProbs, this.ipomdp.obsIVarPrimeIndices);
-
 			nextBelStates[actId] = new NextBelState(this.ipomdp, obsProbs, smallestProb);
 			
 			/*
@@ -551,7 +601,7 @@ public class OnlineInteractiveSymbolicPerseus {
 							OP.marginals(
 									InteractiveBelief.getCpts(
 											this.ipomdp, 
-											OP.multN(belState), 
+											belState, 
 											this.ipomdp.Ai.get(actId)), 
 									this.ipomdp.stateVarPrimeIndices,
 									this.ipomdp.stateVarIndices);

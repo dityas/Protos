@@ -13,23 +13,26 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.Belief.FullInteractiveBeliefExpansion;
+import thinclab.Solvers.OnlineInteractiveSymbolicPerseus;
+import thinclab.Solvers.OnlineSolver;
 import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
-import thinclab.ipomdpsolver.FiniteHorizonLookAheadValueIterationSolver;
 import thinclab.ipomdpsolver.IPOMDPParser;
 
 /*
  * @author adityas
  *
  */
-class TestFHLookAheadSolver {
+class TestOnlineSymbolicPerseus {
 
 	public String l1DomainFile;
-	public String tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
+	public String tigerDom;
 	
 	@BeforeEach
 	void setUp() throws Exception {
 		this.l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
+		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
 	}
 
 	@AfterEach
@@ -47,22 +50,21 @@ class TestFHLookAheadSolver {
 		 * Initialize IPOMDP
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
-		FiniteHorizonLookAheadValueIterationSolver solver = 
-				new FiniteHorizonLookAheadValueIterationSolver(tigerL1IPOMDP);
-		try {
-			tigerL1IPOMDP.solveOpponentModels();
-			tigerL1IPOMDP.initializeIS();
-			
-			solver.solvePBVI(1, 1000);
-			System.out.println(solver.getBestActionsMap());
-		} 
 		
-		catch (Exception e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			fail();
-		}
+		FullInteractiveBeliefExpansion fb = 
+				new FullInteractiveBeliefExpansion(
+						tigerL1IPOMDP);
 		
+		OnlineInteractiveSymbolicPerseus solver = 
+				new OnlineInteractiveSymbolicPerseus(
+						tigerL1IPOMDP, 
+						fb, 
+						1, 
+						100);
+		
+		solver.solveCurrentStep();
+		
+		System.out.println(solver.getBestActionAtCurrentBelief());
 	}
 	
 	@Test
@@ -75,7 +77,7 @@ class TestFHLookAheadSolver {
 		assertNull(p1.alphaVectors);
 //		assertNull(p2.alphaVectors);
 		
-		p1.solvePBVI(1, 10);
+		p1.solvePBVI(1, 6);
 //		p2.solvePBVI(15, 100);
 		
 		assertNotNull(p1.alphaVectors);

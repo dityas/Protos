@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.*;
-import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -2662,16 +2661,17 @@ public class POMDP extends Framework implements Serializable {
 		NextBelState[] nextBelStates;
 		// get next unnormalised belief states
 		// System.out.println("smallestProb "+tolerance);
-		
+
 		double smallestProb;
 //		if (ignoremore)
 //			smallestProb = tolerance;
 //		else
-			smallestProb = tolerance / maxAbsVal;
-		
-//		System.out.println("\r\n=================================================");
+		smallestProb = tolerance / maxAbsVal;
+			
+		logger.debug("BelState is " + Arrays.deepToString(belState));
+		logger.debug("=================================================");
 		nextBelStates = oneStepNZPrimeBelStates(belState, true, smallestProb);
-//		System.out.println("nextBelState are " + nextBelStates.length);
+		logger.debug("nextBelState are " + nextBelStates.length);
 
 		// precompute obsVals
 		for (int actId = 0; actId < nActions; actId++) {
@@ -2693,6 +2693,7 @@ public class POMDP extends Framework implements Serializable {
 			nextBelStates[actId].getObsStrat();
 			actValue = actValue + discFact
 					* nextBelStates[actId].getSumObsValues();
+
 			// System.out.println(" actId "+actId+" actValue "+actValue+" sumobsvalues "+nextBelStates[actId].getSumObsValues());
 //			System.out.println("ActVal is " + actValue);
 			if (actValue > bestValue) {
@@ -2736,6 +2737,7 @@ public class POMDP extends Framework implements Serializable {
 				.addN(concatenateArray(newAlpha, actions[bestActId].rewFn));
 //		System.out.println("newAlpha is " + newAlpha);
 		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
+		logger.debug("New Alpha is " + newAlpha + " with value " + bestValue);
 		// package up to return
 		AlphaVector returnAlpha = new AlphaVector(newAlpha, bestValue,
 				bestActId, bestObsStrat);

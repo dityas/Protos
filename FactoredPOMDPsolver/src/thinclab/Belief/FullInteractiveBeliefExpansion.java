@@ -31,11 +31,11 @@ public class FullInteractiveBeliefExpansion extends FullBeliefExpansion {
 	
 	// --------------------------------------------------------------------------------------------
 	
-	public FullInteractiveBeliefExpansion(Framework f, int maxDepth) {
+	public FullInteractiveBeliefExpansion(Framework f) {
 		/*
 		 * Set properties and all that
 		 */
-		super(f, maxDepth);
+		super(f, ((IPOMDP) f).mjLookAhead);
 		
 		logger.debug("Initialized full interactive belief search");
 	}

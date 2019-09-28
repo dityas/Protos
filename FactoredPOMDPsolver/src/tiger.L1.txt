@@ -7,7 +7,7 @@
  	(creak creak-left creak-right silence)
 )
 
-init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
+init (tiger-location (tiger-left (0.99)) (tiger-right (0.01)))
 
 unnormalized
 
