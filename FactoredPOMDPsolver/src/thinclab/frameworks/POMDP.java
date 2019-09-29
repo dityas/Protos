@@ -2668,7 +2668,7 @@ public class POMDP extends Framework implements Serializable {
 //		else
 		smallestProb = tolerance / maxAbsVal;
 			
-		logger.debug("BelState is " + Arrays.deepToString(belState));
+//		logger.debug("BelState is " + Arrays.deepToString(belState));
 		logger.debug("=================================================");
 		nextBelStates = oneStepNZPrimeBelStates(belState, true, smallestProb);
 		logger.debug("nextBelState are " + nextBelStates.length);
@@ -2694,7 +2694,8 @@ public class POMDP extends Framework implements Serializable {
 			actValue = actValue + discFact
 					* nextBelStates[actId].getSumObsValues();
 
-			// System.out.println(" actId "+actId+" actValue "+actValue+" sumobsvalues "+nextBelStates[actId].getSumObsValues());
+			logger.debug(" actId " + actId + " actValue " + 
+					actValue + " sumobsvalues " + nextBelStates[actId].getSumObsValues());
 //			System.out.println("ActVal is " + actValue);
 			if (actValue > bestValue) {
 				bestValue = actValue;
@@ -2737,7 +2738,7 @@ public class POMDP extends Framework implements Serializable {
 				.addN(concatenateArray(newAlpha, actions[bestActId].rewFn));
 //		System.out.println("newAlpha is " + newAlpha);
 		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
-		logger.debug("New Alpha is " + newAlpha + " with value " + bestValue);
+//		logger.debug("New Alpha is " + newAlpha + " with value " + bestValue);
 		// package up to return
 		AlphaVector returnAlpha = new AlphaVector(newAlpha, bestValue,
 				bestActId, bestObsStrat);
@@ -2763,9 +2764,9 @@ public class POMDP extends Framework implements Serializable {
 					concatenateArray(belState, actions[actId].transFn,
 							actions[actId].obsFn),
 					concatenateArray(varIndices, primeVarIndices));
-
+			logger.debug(Arrays.toString(varIndices));
 			obsProbs = OP.convert2array(dd_obsProbs, primeObsIndices);
-//			System.out.println("obsProbs are " + Arrays.toString(obsProbs));
+			logger.debug("Obs Probs are " + Arrays.toString(obsProbs));
 			nextBelStates[actId] = new NextBelState(this, obsProbs, smallestProb);
 
 			/*
@@ -2776,9 +2777,10 @@ public class POMDP extends Framework implements Serializable {
 						concatenateArray(belState, actions[actId].transFn,
 								actions[actId].obsFn), primeVarIndices,
 						varIndices);
-
+				
+				logger.debug("Marginals are " + Arrays.toString(marginals));
 				nextBelStates[actId].restrictN(marginals, obsConfig);
-//				System.out.println("After computing marginals " + nextBelStates[actId]);
+//				logger.debug("After computing marginals " + nextBelStates[actId]);
 			}
 
 		}

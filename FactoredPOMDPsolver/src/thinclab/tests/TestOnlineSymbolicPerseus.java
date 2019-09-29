@@ -33,6 +33,7 @@ class TestOnlineSymbolicPerseus {
 	void setUp() throws Exception {
 		this.l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
 		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
+//		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
 	}
 
 	@AfterEach
@@ -60,7 +61,7 @@ class TestOnlineSymbolicPerseus {
 						tigerL1IPOMDP, 
 						fb, 
 						1, 
-						100);
+						6);
 		
 		solver.solveCurrentStep();
 		

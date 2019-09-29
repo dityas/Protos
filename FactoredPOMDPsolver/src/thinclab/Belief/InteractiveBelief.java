@@ -191,26 +191,33 @@ public class InteractiveBelief extends Belief {
 			String actName) throws ZeroProbabilityObsException, VariableNotFoundException {
 		/*
 		 * Because the dpBackUp implementation by Hoey needs it.
+		 * 
+		 * Returns all CPTs for marginalization inside Hoey's symbolic perseus.
 		 */
 		
-		/* Collect f1 = P(S, Mj) x P(S', S, Mj) */
-		DD[] f1 = 
-				ArrayUtils.addAll(
-						ipomdp.currentTi.get(actName),
-						startBelief);
+		/* f(S, Mj) does not depend on Aj */
+		DD[] f1 = startBelief;
 		
-		f1 = ArrayUtils.add(f1, ipomdp.currentAjGivenMj);
+		/* [f(S', Aj, S), f(Aj, Mj)] */
+		DD[] f2 = ArrayUtils.add(ipomdp.currentTi.get(actName), ipomdp.currentAjGivenMj);
 		
-		/* Collect f2 = f1 x P(Oi', S', Mj) */
-		DD[] f2 = ArrayUtils.addAll(f1, ipomdp.currentOi.get(actName));
+		/* [f(S', Aj, S), f(Aj, Mj), f(Oi', Aj, S)] */
+		f2 = ArrayUtils.addAll(f1, ipomdp.currentOi.get(actName));
 		
-		/* Collect f3 = P(Oj', S', Mj) x P(Mj', Mj, Oj') */
+		/* tau */
 		DD[] f3 = ArrayUtils.add(ipomdp.currentOj, ipomdp.currentMjTfn);
 		
-		/* Collect f4 = f2 x f3 */
-		DD[] f4 = ArrayUtils.addAll(f2, OP.addMultVarElim(f3, ipomdp.obsJVarPrimeIndices));
+		/* Compute tau */
+		DD tau = OP.addMultVarElim(f3, ipomdp.obsJVarPrimeIndices);
 		
-		return f4;
+		DD[] f4 = ArrayUtils.add(f2, tau);
+		
+		DD[] cpts = new DD[f4.length];
+		
+		for (int i = 0; i < f4.length; i++)
+			cpts[i] = OP.addout(f4[i], ipomdp.stateVarIndices[ipomdp.stateVarIndices.length - 1]);
+		
+		return ArrayUtils.addAll(cpts, startBelief);
 	}
 	
 	// ------------------------------------------------------------------------------------------

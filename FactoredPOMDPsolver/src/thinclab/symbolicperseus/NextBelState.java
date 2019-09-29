@@ -61,7 +61,7 @@ public class NextBelState {
 			if (obsProbs[i] > smallestProb)
 				numValidObs++;
 		
-		nextBelStates = new DD[numValidObs][this.ipomdp.nStateVars + 1];
+		nextBelStates = new DD[numValidObs][this.ipomdp.nStateVars];
 		nzObsIds = new int[numValidObs];
 		obsStrat = new int[this.ipomdp.obsCombinations.size()];
 		obsValues = new double[numValidObs];
@@ -129,6 +129,7 @@ public class NextBelState {
 				nextBelStates[obsPtr] = OP.restrictN(marginals,
 						IPOMDP.stackArray(this.ipomdp.obsIVarPrimeIndices, 
 								obsConfig[obsId]));
+//				System.out.println("OP marginals are " + Arrays.toString(nextBelStates[obsPtr]));
 			}
 		}
 	}
@@ -176,11 +177,14 @@ public class NextBelState {
 		for (int obsPtr = 0; obsPtr < numValidObs; obsPtr++) {
 			
 			obsId = nzObsIds[obsPtr];
-			
+//			System.out.println("NextBelStates[obsPtr] = " + Arrays.toString(nextBelStates[obsPtr]));
 			if (this.ipomdp == null)
 				obsProb = nextBelStates[obsPtr][this.pomdp.nStateVars].getVal();
 			
-			else obsProb = nextBelStates[obsPtr][this.ipomdp.nStateVars].getVal();
+			else obsProb = nextBelStates[obsPtr][this.ipomdp.nStateVars - 1].getVal();
+			
+//			System.out.println("NextBelStates[obsPtr][nS] = " 
+//					+ nextBelStates[obsPtr][this.ipomdp.nStateVars - 1]);}
 			
 			alphaValue = obsVals[obsPtr][0];
 			

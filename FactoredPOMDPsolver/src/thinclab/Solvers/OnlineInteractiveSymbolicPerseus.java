@@ -413,10 +413,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 		 * get next unnormalised belief states
 		 */
 		double smallestProb;
-		
+		logger.debug("=================================================");
 		smallestProb = ipomdp.tolerance / maxAbsVal;
 		nextBelStates = oneStepNZPrimeBelStates(belState, true, smallestProb);
-		
+		logger.debug("nextBelState are " + nextBelStates.length);
 		/*
 		 * precompute obsVals
 		 */
@@ -429,7 +429,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 		
 		int nObservations = ipomdp.getAllPossibleObservations().size();
 		
-		int[] bestObsStrat = new int[ipomdp.nObservations];
+		int[] bestObsStrat = new int[nObservations];
 
 		/*
 		 * TODO: replace this with Ai name iteration
@@ -445,13 +445,18 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 					actValue + OP.factoredExpectationSparseNoMem(
 							belState, 
 							ipomdp.currentRi.get(ipomdp.Ai.get(actId)));
-
+			logger.debug(
+					"Reward function is " 
+					+ ipomdp.currentRi.get(ipomdp.Ai.get(actId)));
 			/*
 			 * compute observation strategy
 			 */
 			nextBelStates[actId].getObsStrat();
 			actValue = actValue + ipomdp.discFact
 					* nextBelStates[actId].getSumObsValues();
+			
+			logger.debug(" actId " + actId + " actValue " + 
+					actValue + " sumobsvalues " + nextBelStates[actId].getSumObsValues());
 			
 			if (actValue > bestValue) {
 				
@@ -542,7 +547,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 								this.ipomdp.currentRi.get(this.ipomdp.Ai.get(bestActId))));
 		
 		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
-		
+//		logger.debug("New Alpha is " + newAlpha + " with value " + bestValue);
 		/*
 		 * package up to return
 		 */
@@ -591,6 +596,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 
 			obsProbs = OP.convert2array(dd_obsProbs, this.ipomdp.obsIVarPrimeIndices);
 			nextBelStates[actId] = new NextBelState(this.ipomdp, obsProbs, smallestProb);
+			logger.debug("Obs Probs are " + Arrays.toString(obsProbs));
 			
 			/*
 			 * Compute marginals
@@ -603,11 +609,12 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 											this.ipomdp, 
 											belState, 
 											this.ipomdp.Ai.get(actId)), 
-									this.ipomdp.stateVarPrimeIndices,
-									this.ipomdp.stateVarIndices);
-							
+									ArrayUtils.subarray(this.ipomdp.stateVarPrimeIndices, 0, this.ipomdp.stateVarIndices.length - 1),
+									ArrayUtils.subarray(this.ipomdp.stateVarIndices, 0, this.ipomdp.stateVarIndices.length - 1));
+					
+//					logger.debug("Marginals are " + Arrays.toString(marginals));
 					nextBelStates[actId].restrictN(marginals, obsConfig);
-
+//					logger.debug("After computing marginals " + nextBelStates[actId]);
 				}
 			}
 			
