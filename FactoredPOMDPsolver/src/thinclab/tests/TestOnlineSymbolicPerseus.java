@@ -61,7 +61,7 @@ class TestOnlineSymbolicPerseus {
 						tigerL1IPOMDP, 
 						fb, 
 						1, 
-						6);
+						100);
 		
 		solver.solveCurrentStep();
 		

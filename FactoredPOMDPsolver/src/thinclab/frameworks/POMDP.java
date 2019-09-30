@@ -2688,6 +2688,9 @@ public class POMDP extends Framework implements Serializable {
 			actValue = actValue
 					+ OP.factoredExpectationSparseNoMem(belState,
 							actions[actId].rewFn);
+			logger.debug(
+					"Reward function is " 
+					+ actions[actId].rewFn);
 
 			// compute observation strategy
 			nextBelStates[actId].getObsStrat();

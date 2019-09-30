@@ -259,7 +259,7 @@ endaction
 
 
 // discount factor
-discount  0.95
+discount  0.9
 
 // tolerance ??
 tolerance 0.001

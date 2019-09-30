@@ -649,11 +649,11 @@ public class IPOMDP extends POMDP {
 					ajDDTree.setDDAt(
 							child, 
 							OP.sub(
-									this.R.toDD(), 
-									this.parser.costMap.get(
+									OP.reorder(this.R.toDD()), 
+									OP.reorder(this.parser.costMap.get(
 											Ai + "__" 
 											+ child)
-												.toDD()).toDDTree());
+												.toDD())).toDDTree());
 				} 
 				
 				catch (Exception e) {
@@ -663,7 +663,7 @@ public class IPOMDP extends POMDP {
 				}
 			} /* for each aj */
 			
-			actionCosts.put(Ai, ajDDTree.toDD());
+			actionCosts.put(Ai, OP.reorder(ajDDTree.toDD()));
 		} /* for each Ai */
 		
 		logger.debug("Done conditioning costs on Aj");
@@ -673,16 +673,34 @@ public class IPOMDP extends POMDP {
 		 * 
 		 * This computation is essentially the expected reward considering Aj for each Ai.
 		 * 
-		 * ER(S, Ai) = Sumout[Mj] P(R, Ai, Mj) 
+		 * ER(S, Ai) = Sumout[Aj] f(S, Ai, Aj) 
 		 */
 		for (String Ai : actionCosts.keySet()) {
 			
 			DD[] rewTranFn = ArrayUtils.add(currentTi.get(Ai), actionCosts.get(Ai));
-			rewTranFn = ArrayUtils.add(rewTranFn, currentMjTfn);
+			rewTranFn = ArrayUtils.add(rewTranFn, this.currentAjGivenMj);
+			
+			DD RSMj = 
+					OP.addMultVarElim(
+							ArrayUtils.add(
+									rewTranFn, 
+									OP.addMultVarElim(
+											ArrayUtils.add(this.currentOj, this.currentMjTfn), 
+											this.obsJVarPrimeIndices)),
+							this.stateVarIndices[this.stateVarIndices.length - 1]);
+			
+			System.out.println(RSMj);
 
-			Ri.put(Ai, OP.addMultVarElim(rewTranFn, this.stateVarPrimeIndices));
+			Ri.put(
+					Ai, 
+					OP.addMultVarElim(
+							RSMj, 
+							ArrayUtils.subarray(
+									this.stateVarPrimeIndices, 
+									0, 
+									this.stateVarPrimeIndices.length - 1)));
 		}
-		
+		logger.debug(Ri);
 		return Ri;
 	}
 	

@@ -445,9 +445,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 					actValue + OP.factoredExpectationSparseNoMem(
 							belState, 
 							ipomdp.currentRi.get(ipomdp.Ai.get(actId)));
-			logger.debug(
-					"Reward function is " 
-					+ ipomdp.currentRi.get(ipomdp.Ai.get(actId)));
+			logger.debug("Reward function is " 
+							+ ipomdp.currentRi.get(ipomdp.Ai.get(actId)));
 			/*
 			 * compute observation strategy
 			 */
