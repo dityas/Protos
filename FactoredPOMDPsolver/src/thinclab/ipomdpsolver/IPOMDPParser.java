@@ -19,8 +19,8 @@ import org.apache.log4j.Logger;
 
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
-import thinclab.symbolicperseus.Global;
-import thinclab.symbolicperseus.ParseSPUDD;
+import thinclab.legacy.Global;
+import thinclab.legacy.ParseSPUDD;
 
 /*
  * @author adityas

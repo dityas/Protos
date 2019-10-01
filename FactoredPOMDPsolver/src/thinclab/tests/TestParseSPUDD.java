@@ -13,7 +13,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.symbolicperseus.ParseSPUDD;
+import thinclab.legacy.ParseSPUDD;
 
 /*
  * @author adityas

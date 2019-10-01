@@ -15,13 +15,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.Belief.FullBeliefExpansion;
-import thinclab.Belief.FullInteractiveBeliefExpansion;
+import thinclab.belief.FullBeliefExpansion;
+import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
-import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.Global;
+import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 
 /*
  * @author adityas

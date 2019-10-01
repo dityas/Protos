@@ -9,7 +9,7 @@ package thinclab.frameworks;
 
 import java.util.List;
 
-import thinclab.symbolicperseus.DD;
+import thinclab.legacy.DD;
 
 /*
  * @author adityas

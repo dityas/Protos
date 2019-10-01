@@ -7,7 +7,7 @@
  */
 package thinclab.ipomdpsolver;
 
-import thinclab.symbolicperseus.StateVar;
+import thinclab.legacy.StateVar;
 
 /*
  * @author adityas

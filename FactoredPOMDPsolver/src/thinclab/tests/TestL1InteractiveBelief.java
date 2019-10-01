@@ -17,15 +17,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.Belief.InteractiveBelief;
+import thinclab.belief.InteractiveBelief;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.frameworks.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
-import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.Global;
-import thinclab.symbolicperseus.OP;
+import thinclab.legacy.DD;
+import thinclab.legacy.Global;
+import thinclab.legacy.OP;
 import thinclab.utils.visualizers.Visualizer;
 import thinclab.utils.visualizers.VizGraph;
 

@@ -9,7 +9,7 @@ import java.util.Iterator;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.domainMaker.ddHelpers.SameDDTree;
 import thinclab.exceptions.VariableNotFoundException;
-import thinclab.symbolicperseus.ParseSPUDD;
+import thinclab.legacy.ParseSPUDD;
 
 public class ActionSPUDD {
 

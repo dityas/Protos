@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeMap;
 
-import thinclab.symbolicperseus.DD;
+import thinclab.legacy.DD;
 
 public class PolicyCache {
 	/*

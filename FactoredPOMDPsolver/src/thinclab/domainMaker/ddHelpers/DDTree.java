@@ -17,9 +17,9 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.DDnode;
-import thinclab.symbolicperseus.Global;
+import thinclab.legacy.DD;
+import thinclab.legacy.DDnode;
+import thinclab.legacy.Global;
 
 public class DDTree {
 	

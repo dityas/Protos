@@ -40,8 +40,7 @@ import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
 import edu.uci.ics.jung.visualization.renderers.CenterEdgeArrowRenderingSupport;
 import edu.uci.ics.jung.visualization.renderers.EdgeLabelRenderer;
 import edu.uci.ics.jung.visualization.transform.shape.GraphicsDecorator;
-
-import thinclab.symbolicperseus.DD;
+import thinclab.legacy.DD;
 
 public class Visualizer {
 	

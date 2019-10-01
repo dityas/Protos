@@ -20,13 +20,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.Examples.AttackerDomainPOMDP;
+import thinclab.examples.AttackerDomainPOMDP;
 import thinclab.frameworks.POMDP;
+import thinclab.legacy.DD;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
 import thinclab.policyhelper.PolicyTree;
 import thinclab.policyhelper.PolicyVisualizer;
-import thinclab.symbolicperseus.DD;
 import thinclab.utils.BeliefTreeTable;
 
 /*

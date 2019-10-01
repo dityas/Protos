@@ -1,7 +1,7 @@
 package thinclab.domainMaker.ddHelpers;
 
-import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.DDleaf;
+import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 
 public class DDTreeLeaf extends DDTree {
 	

@@ -10,12 +10,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.Examples.AttackerDomainPOMDP;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.domainMaker.ddHelpers.DDTreeLeaf;
+import thinclab.examples.AttackerDomainPOMDP;
 import thinclab.frameworks.POMDP;
-import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.OP;
+import thinclab.legacy.DD;
+import thinclab.legacy.OP;
 
 class TestDDTree {
 

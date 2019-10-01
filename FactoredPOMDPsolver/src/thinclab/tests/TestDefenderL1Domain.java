@@ -11,11 +11,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.Examples.AttackerDomainPOMDP;
 import thinclab.domainMaker.DefenderL1Domain;
 import thinclab.domainMaker.Domain;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.examples.AttackerDomainPOMDP;
 import thinclab.exceptions.DDNotDefinedException;
 import thinclab.frameworks.POMDP;
 import thinclab.policyhelper.PolicyExtractor;

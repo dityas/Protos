@@ -13,12 +13,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.Belief.FullInteractiveBeliefExpansion;
-import thinclab.Solvers.OnlineInteractiveSymbolicPerseus;
-import thinclab.Solvers.OnlineSolver;
+import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
+import thinclab.solvers.OnlineSolver;
 
 /*
  * @author adityas
@@ -65,7 +65,9 @@ class TestOnlineSymbolicPerseus {
 		
 		solver.solveCurrentStep();
 		
-		System.out.println(solver.getBestActionAtCurrentBelief());
+		solver.nextStep(solver.getBestActionAtCurrentBelief(), tigerL1IPOMDP.obsCombinations.get(2));
+		
+		solver.solveCurrentStep();
 	}
 	
 	@Test

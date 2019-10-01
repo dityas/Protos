@@ -17,9 +17,9 @@ import java.util.stream.IntStream;
 
 import org.apache.log4j.Logger;
 
-import thinclab.Belief.Belief;
+import thinclab.belief.Belief;
 import thinclab.frameworks.POMDP;
-import thinclab.symbolicperseus.DD;
+import thinclab.legacy.DD;
 
 /*
  * @author adityas

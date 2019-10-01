@@ -14,26 +14,26 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
-import thinclab.Belief.Belief;
-import thinclab.Belief.BeliefSet;
+import thinclab.belief.Belief;
+import thinclab.belief.BeliefSet;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.legacy.Action;
+import thinclab.legacy.AlphaVector;
+import thinclab.legacy.Config;
+import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
+import thinclab.legacy.Global;
+import thinclab.legacy.MySet;
+import thinclab.legacy.NextBelState;
+import thinclab.legacy.OP;
+import thinclab.legacy.ParseSPUDD;
+import thinclab.legacy.RandomPermutation;
+import thinclab.legacy.StateVar;
 import thinclab.policyhelper.BeliefTree;
 import thinclab.policyhelper.PolicyTree;
-import thinclab.symbolicperseus.Action;
-import thinclab.symbolicperseus.AlphaVector;
-import thinclab.symbolicperseus.Config;
-import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.DDleaf;
-import thinclab.symbolicperseus.Global;
-import thinclab.symbolicperseus.MySet;
-import thinclab.symbolicperseus.NextBelState;
-import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.ParseSPUDD;
-import thinclab.symbolicperseus.RandomPermutation;
-import thinclab.symbolicperseus.StateVar;
 import thinclab.utils.PolicyCache;
 
 public class POMDP extends Framework implements Serializable {
@@ -2669,9 +2669,9 @@ public class POMDP extends Framework implements Serializable {
 		smallestProb = tolerance / maxAbsVal;
 			
 //		logger.debug("BelState is " + Arrays.deepToString(belState));
-		logger.debug("=================================================");
+//		logger.debug("=================================================");
 		nextBelStates = oneStepNZPrimeBelStates(belState, true, smallestProb);
-		logger.debug("nextBelState are " + nextBelStates.length);
+//		logger.debug("nextBelState are " + nextBelStates.length);
 
 		// precompute obsVals
 		for (int actId = 0; actId < nActions; actId++) {
@@ -2688,17 +2688,17 @@ public class POMDP extends Framework implements Serializable {
 			actValue = actValue
 					+ OP.factoredExpectationSparseNoMem(belState,
 							actions[actId].rewFn);
-			logger.debug(
-					"Reward function is " 
-					+ actions[actId].rewFn);
+//			logger.debug(
+//					"Reward function is " 
+//					+ actions[actId].rewFn);
 
 			// compute observation strategy
 			nextBelStates[actId].getObsStrat();
 			actValue = actValue + discFact
 					* nextBelStates[actId].getSumObsValues();
 
-			logger.debug(" actId " + actId + " actValue " + 
-					actValue + " sumobsvalues " + nextBelStates[actId].getSumObsValues());
+//			logger.debug(" actId " + actId + " actValue " + 
+//					actValue + " sumobsvalues " + nextBelStates[actId].getSumObsValues());
 //			System.out.println("ActVal is " + actValue);
 			if (actValue > bestValue) {
 				bestValue = actValue;
@@ -2767,9 +2767,9 @@ public class POMDP extends Framework implements Serializable {
 					concatenateArray(belState, actions[actId].transFn,
 							actions[actId].obsFn),
 					concatenateArray(varIndices, primeVarIndices));
-			logger.debug(Arrays.toString(varIndices));
+//			logger.debug(Arrays.toString(varIndices));
 			obsProbs = OP.convert2array(dd_obsProbs, primeObsIndices);
-			logger.debug("Obs Probs are " + Arrays.toString(obsProbs));
+//			logger.debug("Obs Probs are " + Arrays.toString(obsProbs));
 			nextBelStates[actId] = new NextBelState(this, obsProbs, smallestProb);
 
 			/*
@@ -2781,7 +2781,7 @@ public class POMDP extends Framework implements Serializable {
 								actions[actId].obsFn), primeVarIndices,
 						varIndices);
 				
-				logger.debug("Marginals are " + Arrays.toString(marginals));
+//				logger.debug("Marginals are " + Arrays.toString(marginals));
 				nextBelStates[actId].restrictN(marginals, obsConfig);
 //				logger.debug("After computing marginals " + nextBelStates[actId]);
 			}

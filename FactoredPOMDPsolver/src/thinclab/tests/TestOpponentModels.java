@@ -26,10 +26,10 @@ import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.OpponentModel;
-import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.Global;
-import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.StateVar;
+import thinclab.legacy.DD;
+import thinclab.legacy.Global;
+import thinclab.legacy.OP;
+import thinclab.legacy.StateVar;
 import thinclab.utils.BeliefTreeTable;
 
 /*

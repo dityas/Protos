@@ -17,7 +17,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
-import thinclab.Belief.InteractiveBelief;
+import thinclab.belief.InteractiveBelief;
 import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
@@ -27,11 +27,11 @@ import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.OpponentModel;
 import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
-import thinclab.symbolicperseus.DD;
-import thinclab.symbolicperseus.Global;
-import thinclab.symbolicperseus.OP;
-import thinclab.symbolicperseus.ParseSPUDD;
-import thinclab.symbolicperseus.StateVar;
+import thinclab.legacy.DD;
+import thinclab.legacy.Global;
+import thinclab.legacy.OP;
+import thinclab.legacy.ParseSPUDD;
+import thinclab.legacy.StateVar;
 
 /*
  * @author adityas
@@ -455,7 +455,7 @@ public class IPOMDP extends POMDP {
 		
 		DD MjTFn = OP.reorder(MjDD.toDD());
 		
-		logger.debug("M_j transition DD is " + MjTFn);
+		logger.debug("f(Mj', Mj, Oj', Aj) contains variables " + Arrays.toString(MjTFn.getVarSet()));
 		
 		return MjTFn;
 	}
@@ -689,8 +689,6 @@ public class IPOMDP extends POMDP {
 											this.obsJVarPrimeIndices)),
 							this.stateVarIndices[this.stateVarIndices.length - 1]);
 			
-			System.out.println(RSMj);
-
 			Ri.put(
 					Ai, 
 					OP.addMultVarElim(
@@ -700,7 +698,7 @@ public class IPOMDP extends POMDP {
 									0, 
 									this.stateVarPrimeIndices.length - 1)));
 		}
-		logger.debug(Ri);
+		
 		return Ri;
 	}
 	
@@ -1024,23 +1022,6 @@ public class IPOMDP extends POMDP {
 	public List<DD> getInitialBeliefs() {
 		return this.lookAheadRootInitBeliefs;
 	}
-	
-//	public LookAheadTree getLookAheadTree() {
-//		return this.currentLookAheadTree;
-//	}
-//	
-//	public List<DD> getCurrentLookAheadBeliefs() {
-//		/*
-//		 * Returns a list of currently seen look ahead beliefs
-//		 */
-//		List<DD> currentBeliefs = new ArrayList<DD>();
-//		
-//		for (DD belief : this.currentLookAheadTree.iBeliefPoints)
-//			if (this.currentLookAheadTree.iBeliefTree.containsKey(belief))
-//				currentBeliefs.add(belief);
-//		
-//		return currentBeliefs;
-//	}
 	
 	public String getLowerLevelBeliefLabel(String valName) {
 		/*

@@ -2,7 +2,7 @@ package thinclab.ipomdpsolver;
 
 import java.util.Arrays;
 
-import thinclab.Examples.AttackerDomainPOMDP;
+import thinclab.examples.AttackerDomainPOMDP;
 import thinclab.frameworks.POMDP;
 //import thinclab.symbolicperseus.Solver;
 import thinclab.policyhelper.PolicyExtractor;
