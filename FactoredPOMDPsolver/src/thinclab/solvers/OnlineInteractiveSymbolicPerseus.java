@@ -345,7 +345,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 				continue;
 			
 			if (bellmanErr < 0.001) {
-				logger.warn("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
+				logger.warn("BELLMAN ERROR LESS THAN 0.001. COVERGENCE! SOFTWARE VERSION 7.0. LOOKING"
+						+ "AT LIFE THROUGH THE EYES OF A TIRED HEART.");
 				break;
 			}
 		}

@@ -2,8 +2,8 @@ package thinclab.legacy;
 
 import java.util.*;
 
-import thinclab.domainMaker.ddHelpers.DDTree;
-import thinclab.domainMaker.ddHelpers.DDTreeLeaf;
+import thinclab.ddhelpers.DDTree;
+import thinclab.ddhelpers.DDTreeLeaf;
 
 import java.lang.ref.*;
 import java.io.*;

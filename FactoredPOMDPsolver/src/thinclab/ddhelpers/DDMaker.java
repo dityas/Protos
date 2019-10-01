@@ -1,4 +1,12 @@
-package thinclab.domainMaker.ddHelpers;
+/*
+ *	THINC Lab at UGA | Cyber Deception Group
+ *
+ *	Author: Aditya Shinde
+ * 
+ *	email: shinde.aditya386@gmail.com
+ */
+
+package thinclab.ddhelpers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,7 +14,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.logging.ConsoleHandler;
 
 import org.apache.log4j.Logger;
 
@@ -110,7 +117,7 @@ public class DDMaker {
 	
 	public void clearContext() {
 		/* Clears all current variables */
-		logger.error("Clearing current context!");
+		logger.warn("Clearing current context!");
 		
 		this.variablesHashMap.clear();
 		this.primed = false;
@@ -206,18 +213,16 @@ public class DDMaker {
 		DDTree defaultTree = this.getDDTreeFromSequence(varSequence);
 		DDTree topTreeRef = defaultTree;
 		
-		// for all records
+		/* for all records */
 		for (int record=0; record < values.length; record ++) {
 			
 			boolean star = false;
 			String[] currentRecord = values[record];
 			DDTree currentNode = topTreeRef;
 			
-			// for each child value
+			/* for each child value */
 			for (int c=0; c < currentRecord.length-2; c++) {
-//				System.out.println(Arrays.deepToString(values));
-//				System.out.println(Arrays.toString(currentRecord));
-//				System.out.println("-----------------------------");
+
 				if (currentRecord[c] == "*") {
 				
 					String[] children = this.variablesHashMap.get(varSequence[c]);
@@ -275,12 +280,15 @@ public class DDMaker {
 			String[] seq = childSequence[s];
 
 			for (int c=0; c < seq.length - 1; c++) {
+				
 				try {
 					currNode = currNode.atChild(seq[c]);
-				} catch (Exception e) {
-					// TODO: handle exception
-					System.out.println("SOMETHING WENT WRONG WHILE VISITING CHILD " + seq[c]);
+				} 
+				
+				catch (Exception e) {
+					logger.error("Error while visiting child " + seq[c]);
 					e.printStackTrace();
+					System.exit(-1);
 				}
 				
 			}
@@ -290,8 +298,9 @@ public class DDMaker {
 			} 
 			
 			catch (Exception e) {
-				// TODO Auto-generated catch block
+				logger.error("Error while setting DD");
 				e.printStackTrace();
+				System.exit(-1);
 			}
 		}
 		return parent;

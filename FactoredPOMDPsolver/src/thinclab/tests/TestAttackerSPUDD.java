@@ -9,13 +9,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.ddhelpers.DDMaker;
+import thinclab.ddhelpers.DDTree;
 import thinclab.domainMaker.DefenderL1Domain;
 import thinclab.domainMaker.Domain;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDDFactory;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
-import thinclab.domainMaker.ddHelpers.DDMaker;
-import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.examples.AttackerDomainPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
 

@@ -18,8 +18,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.InteractiveBelief;
-import thinclab.domainMaker.ddHelpers.DDMaker;
-import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.ddhelpers.DDMaker;
+import thinclab.ddhelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;

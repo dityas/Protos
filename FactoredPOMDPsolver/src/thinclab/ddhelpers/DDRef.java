@@ -1,4 +1,4 @@
-package thinclab.domainMaker.ddHelpers;
+package thinclab.ddhelpers;
 
 public class DDRef extends DDTree {
 	

@@ -17,7 +17,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.ddhelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.legacy.Global;
 import thinclab.legacy.ParseSPUDD;

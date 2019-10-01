@@ -10,8 +10,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.domainMaker.ddHelpers.DDTree;
-import thinclab.domainMaker.ddHelpers.DDTreeLeaf;
+import thinclab.ddhelpers.DDTree;
+import thinclab.ddhelpers.DDTreeLeaf;
 import thinclab.examples.AttackerDomainPOMDP;
 import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;

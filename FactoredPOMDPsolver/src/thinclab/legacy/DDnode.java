@@ -2,7 +2,7 @@ package thinclab.legacy;
 
 import java.util.*;
 
-import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.ddhelpers.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.frameworks.POMDP;
 

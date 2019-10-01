@@ -65,26 +65,38 @@ class TestOnlineSymbolicPerseus {
 		
 		solver.solveCurrentStep();
 		
-		solver.nextStep(solver.getBestActionAtCurrentBelief(), tigerL1IPOMDP.obsCombinations.get(2));
+		solver.nextStep(
+				solver.getBestActionAtCurrentBelief(), 
+				tigerL1IPOMDP.obsCombinations.get(2));
 		
 		solver.solveCurrentStep();
+		
+		solver.nextStep(
+				solver.getBestActionAtCurrentBelief(), 
+				tigerL1IPOMDP.obsCombinations.get(2));
+		
+		solver.solveCurrentStep();
+		
+		solver.nextStep(
+				solver.getBestActionAtCurrentBelief(), 
+				tigerL1IPOMDP.obsCombinations.get(2));
 	}
 	
-	@Test
-	void testPOMDPSolvePBVI() {
-		System.out.println("Running testPOMDPSolvePBVI()");
-		
-		POMDP p1 = new POMDP(this.tigerDom);
-//		POMDP p2 = new POMDP(this.attDom);
-		
-		assertNull(p1.alphaVectors);
-//		assertNull(p2.alphaVectors);
-		
-		p1.solvePBVI(1, 6);
-//		p2.solvePBVI(15, 100);
-		
-		assertNotNull(p1.alphaVectors);
-//		assertNotNull(p2.alphaVectors);
-	}
+//	@Test
+//	void testPOMDPSolvePBVI() {
+//		System.out.println("Running testPOMDPSolvePBVI()");
+//		
+//		POMDP p1 = new POMDP(this.tigerDom);
+////		POMDP p2 = new POMDP(this.attDom);
+//		
+//		assertNull(p1.alphaVectors);
+////		assertNull(p2.alphaVectors);
+//		
+//		p1.solvePBVI(1, 6);
+////		p2.solvePBVI(15, 100);
+//		
+//		assertNotNull(p1.alphaVectors);
+////		assertNotNull(p2.alphaVectors);
+//	}
 
 }

@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 
 import org.apache.log4j.Logger;
 
-import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.ddhelpers.DDTree;
 
 
 public class ParseSPUDD {

@@ -6,8 +6,8 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Iterator;
 
-import thinclab.domainMaker.ddHelpers.DDTree;
-import thinclab.domainMaker.ddHelpers.SameDDTree;
+import thinclab.ddhelpers.DDTree;
+import thinclab.ddhelpers.SameDDTree;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.legacy.ParseSPUDD;
 

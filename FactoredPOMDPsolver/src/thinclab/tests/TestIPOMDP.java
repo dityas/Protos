@@ -23,9 +23,9 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.belief.Belief;
 import thinclab.belief.InteractiveBelief;
+import thinclab.ddhelpers.DDTree;
 import thinclab.domainMaker.L0Frame;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
-import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.frameworks.IPOMDP;

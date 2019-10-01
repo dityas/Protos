@@ -9,11 +9,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import thinclab.ddhelpers.DDMaker;
+import thinclab.ddhelpers.DDTree;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
-import thinclab.domainMaker.ddHelpers.DDMaker;
-import thinclab.domainMaker.ddHelpers.DDTree;
 import thinclab.frameworks.POMDP;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;

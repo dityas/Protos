@@ -1,4 +1,12 @@
-package thinclab.domainMaker.ddHelpers;
+/*
+ *	THINC Lab at UGA | Cyber Deception Group
+ *
+ *	Author: Aditya Shinde
+ * 
+ *	email: shinde.aditya386@gmail.com
+ */
+
+package thinclab.ddhelpers;
 
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;

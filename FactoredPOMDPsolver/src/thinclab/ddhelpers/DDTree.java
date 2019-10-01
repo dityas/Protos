@@ -5,17 +5,11 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.domainMaker.ddHelpers;
+package thinclab.ddhelpers;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import thinclab.legacy.DD;
 import thinclab.legacy.DDnode;

@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
-import thinclab.domainMaker.ddHelpers.DDMaker;
-import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.ddhelpers.DDMaker;
+import thinclab.ddhelpers.DDTree;
 import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;

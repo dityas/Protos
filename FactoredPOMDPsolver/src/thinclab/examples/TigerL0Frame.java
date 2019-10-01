@@ -7,13 +7,13 @@
  */
 package thinclab.examples;
 
+import thinclab.ddhelpers.DDTree;
+import thinclab.ddhelpers.SameDDTree;
 import thinclab.domainMaker.L0Frame;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDD;
 import thinclab.domainMaker.SPUDDHelpers.ActionSPUDDFactory;
 import thinclab.domainMaker.SPUDDHelpers.BeliefSPUDDFactory;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
-import thinclab.domainMaker.ddHelpers.DDTree;
-import thinclab.domainMaker.ddHelpers.SameDDTree;
 
 /*
  * @author adityas

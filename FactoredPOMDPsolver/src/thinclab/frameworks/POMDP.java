@@ -16,8 +16,8 @@ import org.apache.log4j.Logger;
 
 import thinclab.belief.Belief;
 import thinclab.belief.BeliefSet;
-import thinclab.domainMaker.ddHelpers.DDMaker;
-import thinclab.domainMaker.ddHelpers.DDTree;
+import thinclab.ddhelpers.DDMaker;
+import thinclab.ddhelpers.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.Action;

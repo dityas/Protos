@@ -13,9 +13,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.ddhelpers.DDMaker;
 import thinclab.domainMaker.L0Frame;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
-import thinclab.domainMaker.ddHelpers.DDMaker;
 import thinclab.examples.TigerL0Frame;
 
 /*
