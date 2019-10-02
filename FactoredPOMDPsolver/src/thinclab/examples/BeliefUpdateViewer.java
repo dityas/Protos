@@ -12,15 +12,14 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Stack;
+
+import org.apache.logging.log4j.LogManager;
 
 import thinclab.belief.InteractiveBelief;
-import thinclab.exceptions.SolverException;
-import thinclab.exceptions.VariableNotFoundException;
-import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.frameworks.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.legacy.StateVar;
+import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
@@ -48,7 +47,6 @@ public class BeliefUpdateViewer {
 		IPOMDPParser parser = new IPOMDPParser(this.domainFile);
 		parser.parseDomain();
 		
-		
 		this.ipomdp = new IPOMDP(parser, this.mjDepth, this.mjLookAhead);
 		System.out.println("IPOMDP initialized");
 	}
@@ -57,25 +55,16 @@ public class BeliefUpdateViewer {
 		
 		for (int t=0; t < this.mjDepth - mjLookAhead; t++) {
 			
-			System.out.println("\r\n============================================================");
-			
-			if (this.bt) {
-				System.out.println("--------------------------TRACE-----------------------------");
-//				String[] traces = this.ipomdp.oppModel.getDebugTraces();
-//				
-//				for (String trace : traces)
-//					System.out.println(trace);
-				System.out.println("------------------------------------------------------------");
-			}
 			this.step(t);
-			System.out.println("============================================================\r\n");
 		}
 	}
 	
 	public void step(int stepNumber) {
 		/*
-		 * Asks user input for aciton and observation and steps to the next belief state
+		 * Ask user input for action and observation and step to the next belief state
 		 */
+		
+		/* Print the current belief state with info about j's beliefs */
 		System.out.println("Time Step: " + stepNumber);
 		System.out.println("Current belief: ");
 		System.out.println(
@@ -83,6 +72,10 @@ public class BeliefUpdateViewer {
 						this.ipomdp, 
 						this.ipomdp.lookAheadRootInitBeliefs.get(0)).replace("<br>", "\r\n"));
 		
+		/* 
+		 * compute unfactored state space dimensions by multiplying the arity of all 
+		 * state variables. 
+		 */
 		int unfactoredS = 1;
 		for (StateVar st : this.ipomdp.S.subList(0, this.ipomdp.S.size() - 1)) {
 			unfactoredS *= st.arity;
@@ -109,7 +102,7 @@ public class BeliefUpdateViewer {
 		} 
 		
 		catch (Exception e) {
-			System.err.println("While stepping through the IPOMDP");
+			System.out.println("While stepping through the IPOMDP");
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -150,7 +143,7 @@ public class BeliefUpdateViewer {
 						this.bt = true;
 					
 					else {
-						System.err.println("Unknown option " + arg);
+						System.out.println("Unknown option " + arg);
 						System.exit(-1);
 					}
 					
@@ -174,7 +167,7 @@ public class BeliefUpdateViewer {
 	
 	public static void main(String[] args) {
 		
-//		LoggerFactory.stopLogging();
+		CustomConfigurationFactory.initializeLogging();
 		
 		System.out.println("Starting BeliefUpdateViewer");
 		BeliefUpdateViewer buViewer = new BeliefUpdateViewer();

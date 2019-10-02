@@ -581,8 +581,14 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 											this.ipomdp, 
 											belState, 
 											this.ipomdp.Ai.get(actId)), 
-									ArrayUtils.subarray(this.ipomdp.stateVarPrimeIndices, 0, this.ipomdp.stateVarIndices.length - 1),
-									ArrayUtils.subarray(this.ipomdp.stateVarIndices, 0, this.ipomdp.stateVarIndices.length - 1));
+									ArrayUtils.subarray(
+											this.ipomdp.stateVarPrimeIndices, 
+											0, 
+											this.ipomdp.stateVarIndices.length - 1),
+									ArrayUtils.subarray(
+											this.ipomdp.stateVarIndices, 
+											0, 
+											this.ipomdp.stateVarIndices.length - 1));
 					
 //					logger.debug("Marginals are " + Arrays.toString(marginals));
 					nextBelStates[actId].restrictN(marginals, obsConfig);
@@ -597,5 +603,14 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 		}
 		
 		return nextBelStates;
+	}
+	
+	// ---------------------------------------------------------------------------------------------
+	
+	public IPOMDP getIPOMDP() {
+		/*
+		 * Getter to access the IPOMDP
+		 */
+		return this.ipomdp;
 	}
 }
