@@ -47,7 +47,7 @@ class TestIPOMDP {
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		this.l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
+		this.l1DomainFile = "/home/adityas/git/repository/Protos/src/tiger.L1.txt";
 	}
 
 	@AfterEach
