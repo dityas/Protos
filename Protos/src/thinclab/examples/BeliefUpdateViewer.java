@@ -16,10 +16,12 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.belief.InteractiveBelief;
 import thinclab.frameworks.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.legacy.StateVar;
+import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -37,7 +39,9 @@ public class BeliefUpdateViewer {
 	
 	public boolean bt = false;
 	
-	IPOMDP ipomdp;
+	public IPOMDP ipomdp;
+	public FullInteractiveBeliefExpansion expansionStrat;
+	public OnlineInteractiveSymbolicPerseus solver;
 	
 	public void initialize() {
 		/*
@@ -48,8 +52,21 @@ public class BeliefUpdateViewer {
 		IPOMDPParser parser = new IPOMDPParser(this.domainFile);
 		parser.parseDomain();
 		
+		/* Initialize IPOMDP */
 		this.ipomdp = new IPOMDP(parser, this.mjDepth, this.mjLookAhead);
 		System.out.println("IPOMDP initialized");
+		
+		/* Initialize expansion strategy */
+		this.expansionStrat = new FullInteractiveBeliefExpansion(this.ipomdp);
+		System.out.println("IPOMDP initialized");
+		
+		/* Initialize solver */
+		this.solver = 
+				new OnlineInteractiveSymbolicPerseus(
+						this.ipomdp, 
+						this.expansionStrat, 
+						1, 100);
+		System.out.println("Solver initialized");
 	}
 	
 	public void loop() {
@@ -64,6 +81,10 @@ public class BeliefUpdateViewer {
 		/*
 		 * Ask user input for action and observation and step to the next belief state
 		 */
+		
+		/* compute suggestion */
+		this.solver.solveCurrentStep();
+		String suggestedAct = this.solver.getBestActionAtCurrentBelief();
 		
 		/* Print the current belief state with info about j's beliefs */
 		System.out.println("Time Step: " + stepNumber);
@@ -85,7 +106,8 @@ public class BeliefUpdateViewer {
 		System.out.println("Unfactored S dimensions are: " + unfactoredS);
 		
 		Scanner consoleReader = new Scanner(System.in);
-		System.out.println("Enter action from: " + this.ipomdp.Ai);
+		System.out.println("Enter action from: " + this.ipomdp.Ai + "[suggested: " + suggestedAct
+				+"]: ");
 		String action = consoleReader.nextLine();
 		
 		System.out.println("select observation from: " + this.ipomdp.obsCombinations);
@@ -95,15 +117,11 @@ public class BeliefUpdateViewer {
 		
 		long then = System.currentTimeMillis();
 		try {
-			
-			this.ipomdp.step(
-					this.ipomdp.lookAheadRootInitBeliefs.get(0), 
-					action, 
-					obs.toArray(new String[obs.size()]));
+			this.solver.nextStep(action, obs);
 		} 
 		
 		catch (Exception e) {
-			System.out.println("While stepping through the IPOMDP");
+			System.out.println("While stepping through the solver");
 			e.printStackTrace();
 			System.exit(-1);
 		}
