@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import cern.colt.Arrays;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.InteractiveBelief;
 import thinclab.exceptions.VariableNotFoundException;
@@ -501,15 +502,29 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 		DD[] valFnArray = 
 				ArrayUtils.addAll(
 						ArrayUtils.addAll(
-								Ti,
-								this.ipomdp.currentOi.get(this.ipomdp.Ai.get(bestActId))), 
-						new DD[] {mjTransition, nextValFn}); 
-
-		newAlpha = 
+								this.ipomdp.currentOi.get(this.ipomdp.Ai.get(bestActId)),
+								Ti), 
+						new DD[] {mjTransition, nextValFn});
+		
+		DD V = 
 				OP.addMultVarElim(
 						valFnArray, 
+						this.ipomdp.stateVarIndices[this.ipomdp.stateVarIndices.length - 1]);
+		
+//		int[] sumOutVars = 
+//				ArrayUtils.addAll(
+//						new int[] {this.ipomdp.oppModelVarIndex + 1},
+//						ArrayUtils.subarray(
+//								this.ipomdp.stateVarPrimeIndices,
+//								0, this.ipomdp.stateVarPrimeIndices.length - 1));
+		logger.debug("V has vars " + Arrays.toString(V.getVarSet()));
+		newAlpha = 
+				OP.addMultVarElim(
+						V, 
 						ArrayUtils.addAll(
-								this.ipomdp.stateVarPrimeIndices,
+								ArrayUtils.subarray(
+										this.ipomdp.stateVarPrimeIndices,
+										0, this.ipomdp.stateVarPrimeIndices.length - 1),
 								this.ipomdp.obsIVarPrimeIndices));
 		
 		newAlpha = 
@@ -519,7 +534,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 								this.ipomdp.currentRi.get(this.ipomdp.Ai.get(bestActId))));
 		
 		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
-//		logger.debug("New Alpha is " + newAlpha + " with value " + bestValue);
+		logger.debug("New Alpha has vars " + Arrays.toString(newAlpha.getVarSet()) 
+			+ " with value " + bestValue);
 		/*
 		 * package up to return
 		 */
