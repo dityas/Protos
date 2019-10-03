@@ -152,11 +152,12 @@ public class IPOMDP extends POMDP {
 			
 			/* Solve opponent model and create internal representation */
 			this.solveOpponentModels();
-			this.commitVariables();
-			this.initializeOfflineFunctions();
 			
-			/* Initialize Mj dependents */
+			/* initialize all DDs */
+			this.updateMjInIS();
+			this.initializeOfflineFunctions();
 			this.reinitializeOnlineFunctions();
+			
 		}
 		
 		catch (Exception e) {
@@ -504,8 +505,11 @@ public class IPOMDP extends POMDP {
 									+ childName).get(o));
 				}
 				
-				logger.debug("Made f(O', Aj, S') for O=" + o + " and Ai=" + Ai);
-				ddTrees[O.indexOf(o)] = OP.reorder(mjDDTree.toDD());
+				int oIndex = O.indexOf(o);
+				
+				ddTrees[oIndex] = OP.reorder(mjDDTree.toDD());
+				logger.debug("Made f(O', Aj, S') for O=" + o + " and Ai=" 
+						+ Ai + " with vars " + Arrays.toString(ddTrees[oIndex].getVarSet()));
 			}
 			
 			Oi.put(Ai, ddTrees);
@@ -558,11 +562,15 @@ public class IPOMDP extends POMDP {
 
 				ajDDTree.addChild(childName, ojDDTree);
 			}
-
-			Oj[omegaJList.indexOf(oj)] = OP.reorder(ajDDTree.toDD());
+			
+			int ojIndex = omegaJList.indexOf(oj); 
+			
+			Oj[ojIndex] = OP.reorder(ajDDTree.toDD());
+			logger.debug("For oj=" + oj + " OjDD contains vars " 
+					+ Arrays.toString(Oj[ojIndex].getVarSet()));
 		}
 		
-		logger.debug("Oj is " + Oj);
+		logger.debug("Oj initialized");
 		return Oj;
 	}
 	
@@ -838,20 +846,9 @@ public class IPOMDP extends POMDP {
 		
 		logger.debug("Reinitializing Mj dependents according to new Mj");
 		
-		/* First initialize new IS */
-		this.S.set(
-				this.oppModelVarIndex, 
-				this.oppModel.getOpponentModelStateVar(
-						this.oppModelVarIndex));
-		
-		logger.debug("IS initialized to " + this.S);
-		
-		Global.clearHashtables();
-		commitVariables();
-		
 		/* rebuild  P(Aj | Mj) */
 		this.currentAjGivenMj = this.oppModel.getAjFromMj(this.ddMaker, this.Aj);
-		logger.debug("f(Aj, Mj) for current look ahead horizon is " + this.S);
+		logger.debug("f(Aj, Mj) for current look ahead horizon initialized");
 		
 		/* rebuild  P(Mj' | Mj, Aj, Oj') */
 		this.currentMjTfn = this.makeOpponentModelTransitionDD();
@@ -982,6 +979,27 @@ public class IPOMDP extends POMDP {
 		
 		/* Expand from non zero Mj to create new Mj space */
 		this.oppModel.step(mjBelief, this.mjLookAhead);
+		
+		/* initialize new IS and commit variables */
+		this.updateMjInIS();
+	}
+	
+	private void updateMjInIS() {
+		/*
+		 * Commits new Mj variable to globals
+		 * 
+		 * Should be called every time opponent model is changed or when it traverses the next
+		 * time steps
+		 */
+		this.S.set(
+				this.oppModelVarIndex, 
+				this.oppModel.getOpponentModelStateVar(
+						this.oppModelVarIndex));
+		
+		logger.debug("IS initialized to " + this.S);
+		
+		Global.clearHashtables();
+		commitVariables();
 	}
 	
 	// -----------------------------------------------------------------------------------------

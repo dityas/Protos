@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import cern.colt.Arrays;
 import thinclab.ddhelpers.DDMaker;
 import thinclab.ddhelpers.DDTree;
 import thinclab.frameworks.POMDP;
@@ -102,8 +103,8 @@ public class OpponentModel {
 			/* Add nodes to */
 			nodesList.addAll(T.policyNodes);
 			
-			logger.info("Added " + T.policyNodes.size() + " PolicyNodes to Opponent Model");
-			logger.info("Opponent Model now contains " + this.nodesList.size() + " PolicyNodes");
+			logger.debug("Added " + T.policyNodes.size() + " PolicyNodes to Opponent Model");
+			logger.debug("Opponent Model now contains " + this.nodesList.size() + " PolicyNodes");
 		}
 
 		this.storeOpponentModel();
@@ -210,7 +211,7 @@ public class OpponentModel {
 		/*
 		 * Constructs an initial belief DDTree based on the current roots
 		 */
-		logger.info("Making initial belief for current opponent model traversal");
+		logger.debug("Making initial belief for current opponent model traversal");
 		DDTree beliefMj = ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
 		
 		if (this.previousMjBeliefs.size() == 0) {
@@ -245,8 +246,7 @@ public class OpponentModel {
 			}
 		}
 		
-		logger.info("Initial belief is " + beliefMj);
-		
+		logger.debug("Made initial belief");
 		return beliefMj;
 	}
 	
@@ -305,8 +305,10 @@ public class OpponentModel {
 						new String[] {"M_j", "A_j"},
 						triples.toArray(new String[triples.size()][]));
 		
-		logger.debug("P(Aj | Mj) DD is " + PAjMj);
-		return OP.reorder(PAjMj.toDD());
+		DD PAjMjDD = OP.reorder(PAjMj.toDD()); 
+		logger.debug("P(Aj | Mj) DD contains variables " + Arrays.toString(PAjMjDD.getVarSet()));
+		
+		return PAjMjDD;
 	}
 	
 	public String[][] getOpponentModelTriples() {
@@ -363,29 +365,10 @@ public class OpponentModel {
 		return this.localStorage.getBeliefTextForBelief(this.getNodeId(node));
 	}
 	
-//	public String[] getDebugTraces() {
-//		/*
-//		 * Back traces current non zero Mj beliefs for debugging
-//		 */
-//		int[] beliefIds = 
-//				this.previousMjBeliefs.keySet().stream()
-//					.map(b -> this.getNodeId(b))
-//					.mapToInt(Integer::intValue).toArray();
-//		
-//		return this.localStorage.getBackTraceDebugBanner(beliefIds);
-//	}
-	
 	public List<String> getCurrentRoots() {
 		
 		return this.currentRoots;
 	}
-	
-//	public BeliefTreeTable getLocalStorage() {
-//		/*
-//		 * Getter for the storage table
-//		 */
-//		return this.localStorage;
-//	}
 	
 	private int getNodeId(String node) {
 		/*

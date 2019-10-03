@@ -7,13 +7,14 @@
  */
 package thinclab.examples;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
 import java.util.List;
 import java.util.Scanner;
 
-import org.apache.logging.log4j.LogManager;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import thinclab.belief.InteractiveBelief;
 import thinclab.frameworks.IPOMDP;
@@ -111,73 +112,56 @@ public class BeliefUpdateViewer {
 		System.out.println("That took " + (now - then) + " millis.");
 	}
 	
-	public void parseArgs(String[] args) {
-		/*
-		 * Parse command line args
-		 */
-		
-		Deque<String> argQueue = new ArrayDeque<String>();
-		argQueue.addAll(Arrays.asList(args));
-		
-		while(!argQueue.isEmpty()) {
-			
-			String arg = argQueue.pop();
-			
-			switch (arg.charAt(0)) {
-			
-				case '-':
-					
-					/* domain file */
-					if (arg.contains("-f")) this.domainFile = argQueue.pop();
-					
-					/* parse look ahead horizon */
-					else if (arg.contains("-l")) 
-						this.mjLookAhead = Integer.parseInt(argQueue.pop());
-					
-					/* depth of j's policy tree */
-					else if (arg.contains("-d"))
-						this.mjDepth = Integer.parseInt(argQueue.pop());
-					
-					/* back trace switch */
-					else if (arg.contains("--bt"))
-						this.bt = true;
-					
-					else {
-						System.out.println("Unknown option " + arg);
-						System.exit(-1);
-					}
-					
-					break;
-					
-				default:
-					break;
-			}
-		}
-		
-		/* required args not provided */
-		if (this.domainFile == null || this.mjDepth == -1 || this.mjLookAhead == -1) {
-			System.err.println("Missing required args");
-			System.err.println("Required args are");
-			System.err.println("-f <ipomdp l1 domain file> path");
-			System.err.println("-l <look ahead horizon> int");
-			System.err.println("-d <j's policy tree depth> int");
-			System.exit(-1);
-		}
-	}
-	
 	public static void main(String[] args) {
 		
-		CustomConfigurationFactory.initializeLogging();
+		/* Parse CMD args */
+		CommandLineParser cliParser = new DefaultParser();
+		Options opt = new Options();
 		
-		System.out.println("Starting BeliefUpdateViewer");
-		BeliefUpdateViewer buViewer = new BeliefUpdateViewer();
+		/* domain file */
+		opt.addOption("d", true, "path to the domain file");
 		
-		/* Parse arguments */
-		buViewer.parseArgs(args);
-		System.out.println("Args parsed");
-		System.out.println("Domain file is " + buViewer.domainFile);
-		System.out.println("J's policy tree depth is " + buViewer.mjDepth);
-		System.out.println("I's look ahead horizon is " + buViewer.mjLookAhead);
+		/* log file */
+		opt.addOption("l", true, "log file path");
+		
+		/* max policy tree depth for Mj */
+		opt.addOption("h", true, "Max horizon for J's model");
+		
+		/* look ahead horizon for agent I */
+		opt.addOption("m", true, "I's look ahead horizon");
+		
+		CommandLine line = null;
+		BeliefUpdateViewer buViewer = null;
+		
+		try {
+			line = cliParser.parse(opt, args);
+			
+			/* set CLI args */
+			
+			/* if log file is given, initialize logging accordingly */
+			if (line.hasOption("l"))
+				CustomConfigurationFactory.setLogFileName(line.getOptionValue("l"));
+			
+			CustomConfigurationFactory.initializeLogging();
+			
+			System.out.println("Starting BeliefUpdateViewer");
+			buViewer = new BeliefUpdateViewer();
+			
+			/* set domain file */
+			buViewer.domainFile = line.getOptionValue("d");
+			
+			/* set mjDepth */
+			buViewer.mjDepth = new Integer(line.getOptionValue("h"));
+			
+			/* set look ahead */
+			buViewer.mjLookAhead = new Integer(line.getOptionValue("m"));
+		} 
+		
+		catch (ParseException e) {
+			System.out.println("While parsing args: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
 		
 		/* initialize */
 		buViewer.initialize();

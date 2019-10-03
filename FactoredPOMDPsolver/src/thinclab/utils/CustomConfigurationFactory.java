@@ -58,7 +58,7 @@ public class CustomConfigurationFactory extends ConfigurationFactory {
         		builder.newAppender("Stdout", "CONSOLE")
         			.addAttribute("target", ConsoleAppender.Target.SYSTEM_OUT);
         appenderBuilder.add(builder.newLayout("PatternLayout")
-        		.addAttribute("pattern", "[%t] %-5level: %msg%n"));
+        		.addAttribute("pattern", "%d{dd MMM yy HH:mm:ss} %c{1} [%-5level]: %msg%n"));
         appenderBuilder.add(
         		builder.newFilter(
         				"MarkerFilter", 
@@ -67,13 +67,18 @@ public class CustomConfigurationFactory extends ConfigurationFactory {
         		.addAttribute("marker", "FLOW"));
         
         /* Make file logger */
+        String logFileName = "/dev/null";
+        
+        if (CustomConfigurationFactory.fileName != null)
+        	logFileName = CustomConfigurationFactory.fileName;
+        	
         AppenderComponentBuilder fileAppenderBuilder = 
         		builder.newAppender("log", "File")
-        			.addAttribute("fileName", "log.txt")
+        			.addAttribute("fileName", logFileName)
         			.addAttribute("immediateFlush", "true");
         fileAppenderBuilder.add(
         		builder.newLayout("PatternLayout")
-        			.addAttribute("pattern", "[%t] %-5level: %msg%n"));
+        			.addAttribute("pattern", "%d{dd MMM yy HH:mm:ss} %c{1} [%-5level]: %msg%n"));
         fileAppenderBuilder.add(
         		builder.newFilter(
         				"MarkerFilter", 
@@ -119,9 +124,16 @@ public class CustomConfigurationFactory extends ConfigurationFactory {
         return new String[] {"*"};
     }
     
+    // ---------------------------------------------------------------------------------------------
+    
     public static void initializeLogging() {
     	System.setProperty(
     			"log4j.configurationFactory", 
     			CustomConfigurationFactory.class.getName());
+    }
+    
+    public static void setLogFileName(String fileName) {
+    	
+    	CustomConfigurationFactory.fileName = fileName;
     }
 }
