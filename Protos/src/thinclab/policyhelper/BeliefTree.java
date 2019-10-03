@@ -91,7 +91,7 @@ public class BeliefTree extends PolicyTree {
 		/*
 		 * Override super's expandForSingleStep to use all actions instead of just optimal ones
 		 */
-		this.logger.debug("Expanding from horizon " + currentH + " from " + previousLeaves.size() 
+		logger.debug("Expanding from horizon " + currentH + " from " + previousLeaves.size() 
 			+ " nodes");
 		
 		List<PolicyNode> nextNodes = new ArrayList<PolicyNode>();
@@ -148,7 +148,7 @@ public class BeliefTree extends PolicyTree {
 			nextNodes.add(newNode);
 		});
 		
-		this.logger.debug("For H=" + currentH + " branching factor is A=" + this.pomdp.nActions 
+		logger.debug("For H=" + currentH + " branching factor is A=" + this.pomdp.nActions 
 				+ " * O=" + this.allObsCombinations.size() + " * n=" + previousLeaves.size()
 				+ " = " + (this.pomdp.nActions*this.allObsCombinations.size()*previousLeaves.size())
 				+ " points out of which " + nextNodes.size() + " are unique");
