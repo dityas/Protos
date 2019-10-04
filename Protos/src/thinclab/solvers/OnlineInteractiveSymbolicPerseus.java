@@ -124,9 +124,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 						(IPOMDP) this.f, 
 						beliefs);
 		
-		/* Make a default alphaVector to start with */
-		this.alphaVectors = new DD[1];
-		this.alphaVectors[0] = DD.one;
+		/* Make a default alphaVectors as rewards to start with */
+		this.alphaVectors = 
+				this.ipomdp.currentRi.values().toArray(
+						new DD[this.ipomdp.currentRi.size()]); 
 		
 		/* try running interactive symbolic perseus */
 		try {
@@ -346,8 +347,9 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 				continue;
 			
 			if (bellmanErr < 0.001) {
-				logger.warn("BELLMAN ERROR LESS THAN 0.001. COVERGENCE! SOFTWARE VERSION 7.0. LOOKING"
-						+ " AT LIFE THROUGH THE EYES OF A TIRED HEART.");
+				logger.warn("BELLMAN ERROR LESS THAN 0.001. COVERGENCE! SOFTWARE VERSION 7.0... "
+						+ "LOOKING AT LIFE THROUGH THE EYES OF A TIRED HEART.");
+				this.logAlphaVectors();
 				break;
 			}
 		}
@@ -517,7 +519,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 //						ArrayUtils.subarray(
 //								this.ipomdp.stateVarPrimeIndices,
 //								0, this.ipomdp.stateVarPrimeIndices.length - 1));
-		logger.debug("V has vars " + Arrays.toString(V.getVarSet()));
+//		logger.debug("V has vars " + Arrays.toString(V.getVarSet()));
 		newAlpha = 
 				OP.addMultVarElim(
 						V, 
@@ -534,8 +536,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 								this.ipomdp.currentRi.get(this.ipomdp.Ai.get(bestActId))));
 		
 		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
-		logger.debug("New Alpha has vars " + Arrays.toString(newAlpha.getVarSet()) 
-			+ " with value " + bestValue);
+//		logger.debug("New Alpha has vars " + Arrays.toString(newAlpha.getVarSet()) 
+//			+ " with value " + bestValue);
 		/*
 		 * package up to return
 		 */
@@ -628,5 +630,20 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 		 * Getter to access the IPOMDP
 		 */
 		return this.ipomdp;
+	}
+	
+	public DD[] getAlphaVectors() {
+		/*
+		 * Returns the alpha vectors
+		 */
+		return this.alphaVectors;
+	}
+	
+	public void logAlphaVectors() {
+		
+		for (int i = 0; i < this.ipomdp.policy.length; i++) {
+			logger.debug("Alpha Vector " + i + " is " + this.alphaVectors[i] +
+					" for action " + this.ipomdp.getActions().get(i));
+		}
 	}
 }

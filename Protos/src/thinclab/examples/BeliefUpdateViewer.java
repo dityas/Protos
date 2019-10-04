@@ -16,6 +16,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import cern.colt.Arrays;
 import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.belief.InteractiveBelief;
 import thinclab.frameworks.IPOMDP;
