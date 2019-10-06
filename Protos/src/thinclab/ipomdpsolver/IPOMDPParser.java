@@ -232,6 +232,7 @@ public class IPOMDPParser extends ParseSPUDD {
 				this.stream.nextToken();
 				
 				if (this.stream.sval.compareTo("frame") == 0) {
+					Global.clearHashtables();
 					int frameID = this.parseFrameID();
 					int stratLevel = this.parseStratLevel();
 					
@@ -316,6 +317,7 @@ public class IPOMDPParser extends ParseSPUDD {
 		 * since the lower frames in the recursion tree may overwrite the 
 		 * globals set by the upper frames.
 		 */
+		Global.clearHashtables();
 		this.logger.info("Setting globals");
 		this.createPrimeVars();
 		

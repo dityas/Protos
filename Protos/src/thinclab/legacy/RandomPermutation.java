@@ -97,7 +97,7 @@ public class RandomPermutation implements Serializable {
     }
 
     public static void main(String args[]) {
-	System.out.println("len is "+args[0]);
+	System.out.println("len is "+10);
 	Random g = new Random();
 	RandomPermutation r = new RandomPermutation(g, 10);
 	r.display();

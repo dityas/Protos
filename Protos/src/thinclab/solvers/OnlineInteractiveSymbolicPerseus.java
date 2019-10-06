@@ -8,6 +8,7 @@
 package thinclab.solvers;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -126,8 +127,9 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 		
 		/* Make a default alphaVectors as rewards to start with */
 		this.alphaVectors = 
-				this.ipomdp.currentRi.values().toArray(
-						new DD[this.ipomdp.currentRi.size()]); 
+				this.ipomdp.currentRi.values().stream()
+					.map(a -> OP.reorder(a)).collect(Collectors.toList()).toArray(
+						new DD[this.ipomdp.currentRi.size()]);
 		
 		/* try running interactive symbolic perseus */
 		try {
@@ -163,10 +165,16 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 		int maxAlphaSetSize = maxAlpha;
 
 		bellmanErr = 20 * this.ipomdp.tolerance;
-
+		
+		long then = System.nanoTime();
+		
 		this.ipomdp.currentPointBasedValues = 
 				OP.factoredExpectationSparseNoMem(
 						beliefRegion, this.alphaVectors);
+		
+		long now = System.nanoTime();
+		
+		logger.debug("Computing point based values took " + ((now - then) / 1000) + " u secs.");
 		
 		DD[] primedV;
 		double maxAbsVal = 0;
@@ -231,7 +239,9 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 
 				Global.newHashtables();
 				count = count + 1;
-
+				
+				then = System.nanoTime();
+				
 				if (ipomdp.numNewAlphaVectors == 0)
 					choice = 0;
 				
@@ -253,7 +263,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 				}
 
 				int i = permutedIds.getSetDone(choice);
-
+				
+				now = System.nanoTime();
+				logger.debug("Choosing belief point took " + ((now - then) / 1000000) + " milli secs.");
+				
 				if (ipomdp.numNewAlphaVectors < 1
 						|| (OP.max(ipomdp.newPointBasedValues[i], ipomdp.numNewAlphaVectors)
 								- OP.max(ipomdp.currentPointBasedValues[i]) < steptolerance)) {
@@ -261,7 +274,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 					/*
 					 * dpBackup
 					 */
-					
+					then = System.nanoTime();
 					newVector = dpBackup(beliefRegion[i], primedV, maxAbsVal);
 
 					newVector.alphaVector = OP.approximate(
@@ -270,6 +283,9 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 					newVector.setWitness(i);
 
 					nDpBackups = nDpBackups + 1;
+					
+					now = System.nanoTime();
+					logger.debug("dp backup took " + ((now - then) / 1000000) + " milli secs.");
 					
 					/*
 					 * merge and trim
@@ -291,6 +307,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 													ipomdp.newPointBasedValues, 
 													ipomdp.numNewAlphaVectors)));
 					
+//					logger.debug("Improvement after backup is " + improvement);
 					if (improvement > ipomdp.tolerance) {
 						
 						for (int belid = 0; belid < beliefRegion.length; belid++) {
@@ -449,6 +466,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 		DD obsDd;
 		int[] obsConfig = new int[this.ipomdp.obsIVarIndices.length];
 		
+		long then = System.nanoTime();
+		
 		for (int alphaId = 0; alphaId < this.alphaVectors.length; alphaId++) {
 		
 			if (MySet.find(bestObsStrat, alphaId) >= 0) {
@@ -489,6 +508,9 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 			}
 		}
 		
+		long now = System.nanoTime();
+		logger.debug("Val fn computation took " + ((now - then) / 1000000) + " milli secs.");
+		
 		/* include Mj's transition for computing value function */
 		DD mjTransition = 
 				OP.addMultVarElim(
@@ -508,10 +530,15 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 								Ti), 
 						new DD[] {mjTransition, nextValFn});
 		
+		then = System.nanoTime();
+		
 		DD V = 
 				OP.addMultVarElim(
 						valFnArray, 
 						this.ipomdp.stateVarIndices[this.ipomdp.stateVarIndices.length - 1]);
+		
+		now = System.nanoTime();
+		logger.debug("V var elim took " + ((now - then) / 1000000) + " milli secs.");
 		
 //		int[] sumOutVars = 
 //				ArrayUtils.addAll(
@@ -520,6 +547,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 //								this.ipomdp.stateVarPrimeIndices,
 //								0, this.ipomdp.stateVarPrimeIndices.length - 1));
 //		logger.debug("V has vars " + Arrays.toString(V.getVarSet()));
+		
+		then = System.nanoTime();
 		newAlpha = 
 				OP.addMultVarElim(
 						V, 
@@ -529,11 +558,18 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 										0, this.ipomdp.stateVarPrimeIndices.length - 1),
 								this.ipomdp.obsIVarPrimeIndices));
 		
+		now = System.nanoTime();
+		logger.debug("new alpha var elim took " + ((now - then) / 1000000) + " milli secs.");
+		
+		then = System.nanoTime();
 		newAlpha = 
 				OP.addN(
 						IPOMDP.concatenateArray(
 								newAlpha, 
 								this.ipomdp.currentRi.get(this.ipomdp.Ai.get(bestActId))));
+		
+		now = System.nanoTime();
+		logger.debug("new alpha addN took " + ((now - then) / 1000000) + " milli secs.");
 		
 		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
 //		logger.debug("New Alpha has vars " + Arrays.toString(newAlpha.getVarSet()) 
@@ -643,7 +679,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 		
 		for (int i = 0; i < this.ipomdp.policy.length; i++) {
 			logger.debug("Alpha Vector " + i + " is " + this.alphaVectors[i] +
-					" for action " + this.ipomdp.getActions().get(i));
+					" for action " + this.ipomdp.getActions().get(this.ipomdp.policy[i]));
 		}
 	}
 }

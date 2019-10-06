@@ -685,26 +685,38 @@ public class IPOMDP extends POMDP {
 		 */
 		for (String Ai : actionCosts.keySet()) {
 			
-			DD[] rewTranFn = ArrayUtils.add(currentTi.get(Ai), actionCosts.get(Ai));
-			rewTranFn = ArrayUtils.add(rewTranFn, this.currentAjGivenMj);
-			
+//			DD[] rewTranFn = ArrayUtils.add(currentTi.get(Ai), actionCosts.get(Ai));
+//			rewTranFn = ArrayUtils.add(rewTranFn, this.currentAjGivenMj);
+
+//			DD RSMj = 
+//					OP.addMultVarElim(
+//							ArrayUtils.add(
+//									rewTranFn, 
+//									OP.addMultVarElim(
+//											ArrayUtils.add(this.currentOj, this.currentMjTfn), 
+//											this.obsJVarPrimeIndices)),
+//							this.stateVarIndices[this.stateVarIndices.length - 1]);
 			DD RSMj = 
 					OP.addMultVarElim(
-							ArrayUtils.add(
-									rewTranFn, 
-									OP.addMultVarElim(
-											ArrayUtils.add(this.currentOj, this.currentMjTfn), 
-											this.obsJVarPrimeIndices)),
+							new DD[] {
+									actionCosts.get(Ai), 
+									this.currentAjGivenMj},
 							this.stateVarIndices[this.stateVarIndices.length - 1]);
 			
-			Ri.put(
-					Ai, 
-					OP.addMultVarElim(
-							RSMj, 
-							ArrayUtils.subarray(
-									this.stateVarPrimeIndices, 
-									0, 
-									this.stateVarPrimeIndices.length - 1)));
+			logger.debug("For Ai=" + Ai + " R(S,Mj) has vars " + Arrays.toString(RSMj.getVarSet()));
+			
+//			Ri.put(
+//					Ai, 
+//					OP.addMultVarElim(
+//							RSMj, 
+//							ArrayUtils.subarray(
+//									this.stateVarPrimeIndices, 
+//									0, 
+//									this.stateVarPrimeIndices.length - 1)));
+			Ri.put(Ai, RSMj);
+			
+			logger.debug("For Ai=" + Ai + ", Ri is " 
+					+ Arrays.toString(Ri.get(Ai).getVarSet()));
 		}
 		
 		return Ri;

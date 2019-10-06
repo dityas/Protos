@@ -296,6 +296,7 @@ public class ParseSPUDD {
 		/*
 		 * Create prime variables
 		 */
+    	Global.clearHashtables();
 		int nVars = varNames.size();
 		for (int i=0; i<nVars; i++) {
 		    varNames.add((String)varNames.get(i) + "'");
@@ -326,6 +327,7 @@ public class ParseSPUDD {
 	
 		// create SAMEvariable dds
 		for (int varId=0; varId<Global.varNames.length/2; varId++) {
+			logger.debug("Creating SAME DD for " + Global.varNames[varId]);
 		    String ddName = new String("SAME") + Global.varNames[varId];
 		    DD[] children = new DD[Global.varDomSize[varId]];
 		    for (int i=0; i<Global.varDomSize[varId]; i++) {
@@ -334,6 +336,7 @@ public class ParseSPUDD {
 			    if (i==j) grandChildren[j] = DD.one;
 			    else grandChildren[j] = DD.zero;
 			}
+			logger.debug("Making child " + Global.valNames[varId][i]);
 			children[i] = DDnode.myNew(varId+1,grandChildren);
 		    }
 		    DD dd = DDnode.myNew(varId+1+Global.varNames.length/2, children);
@@ -374,6 +377,7 @@ public class ParseSPUDD {
 		    }
 		    valNames.add(varValNames);
 		    nObsVars++;
+		    logger.debug("Parsed " + varNames.lastElement() + " with values " + valNames.lastElement());
 		}
 		else if (stream.ttype == ')') {
 		    break;

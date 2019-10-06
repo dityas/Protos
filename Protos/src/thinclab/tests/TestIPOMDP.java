@@ -29,6 +29,7 @@ import thinclab.ipomdpsolver.OpponentModel;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
@@ -40,7 +41,9 @@ class TestIPOMDP {
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		this.l1DomainFile = "/home/adityas/git/repository/Protos/src/tiger.L1.txt";
+		CustomConfigurationFactory.initializeLogging();
+		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
+//		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/defender_l1.txt";
 	}
 
 	@AfterEach

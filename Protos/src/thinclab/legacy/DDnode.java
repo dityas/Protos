@@ -2,6 +2,8 @@ package thinclab.legacy;
 
 import java.util.*;
 
+import org.apache.log4j.Logger;
+
 import thinclab.ddhelpers.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.frameworks.POMDP;
@@ -16,6 +18,8 @@ public class DDnode extends DD {
     private int numLeaves;
     private DD children[];
     private double sum;
+    
+    private static final Logger logger = Logger.getLogger(DDnode.class);
 		
     private DDnode(int var, DD children[]) {
 	this.var = var;
