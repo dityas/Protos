@@ -15,6 +15,7 @@ import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
 import thinclab.policyhelper.PolicyTree;
 import thinclab.policyhelper.PolicyVisualizer;
+import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
@@ -26,6 +27,7 @@ public class RunTigerProblemPOMDP {
 	 */
 
 	public static void main(String[] args) {
+		CustomConfigurationFactory.initializeLogging();
 		TigerProblemPOMDP tigerPOMDP = new TigerProblemPOMDP();
 		
 		try {

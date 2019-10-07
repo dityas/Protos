@@ -72,7 +72,7 @@ public class IPOMDP extends POMDP {
 	 * every belief update
 	 */
 	public int oppModelVarIndex;
-	
+	public int AjIndex;
 	/*
 	 * DDs useful for belief update computation
 	 */
@@ -101,6 +101,7 @@ public class IPOMDP extends POMDP {
 	 * Variables for current look ahead horizon
 	 */
 	public DD currentMjTfn;
+	public DD currentTau;
 	public DD currentAjGivenMj;
 	public List<DD> lookAheadRootInitBeliefs = new ArrayList<DD>();
 	
@@ -243,6 +244,8 @@ public class IPOMDP extends POMDP {
 						"A_j", 
 						this.S.size(), 
 						this.Aj.toArray(new String[this.Aj.size()])));
+		
+		this.AjIndex = this.S.size();
 		
 		this.uniquePolicy = new boolean[this.Ai.size()]; 
 		this.initializeTFromParser(this.parser);
@@ -701,7 +704,7 @@ public class IPOMDP extends POMDP {
 							new DD[] {
 									actionCosts.get(Ai), 
 									this.currentAjGivenMj},
-							this.stateVarIndices[this.stateVarIndices.length - 1]);
+							this.AjIndex);
 			
 			logger.debug("For Ai=" + Ai + " R(S,Mj) has vars " + Arrays.toString(RSMj.getVarSet()));
 			
@@ -714,9 +717,6 @@ public class IPOMDP extends POMDP {
 //									0, 
 //									this.stateVarPrimeIndices.length - 1)));
 			Ri.put(Ai, RSMj);
-			
-			logger.debug("For Ai=" + Ai + ", Ri is " 
-					+ Arrays.toString(Ri.get(Ai).getVarSet()));
 		}
 		
 		return Ri;
@@ -865,6 +865,13 @@ public class IPOMDP extends POMDP {
 		/* rebuild  P(Mj' | Mj, Aj, Oj') */
 		this.currentMjTfn = this.makeOpponentModelTransitionDD();
 		logger.debug("f(Mj', Aj, Mj, Oj') initialized");
+		
+		/* compute tau and store */
+		this.currentTau = 
+				OP.addMultVarElim(
+						ArrayUtils.add(this.currentOj, this.currentMjTfn), 
+						this.obsJVarPrimeIndices);
+		logger.debug("TAU contains vars " + Arrays.toString(this.currentTau.getVarSet()));
 		
 		DDTree mjRootBelief = this.oppModel.getOpponentModelInitBelief(this.ddMaker);
 		

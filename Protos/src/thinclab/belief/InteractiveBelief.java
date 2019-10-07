@@ -102,11 +102,13 @@ public class InteractiveBelief extends Belief {
 		DD[] f3 = ArrayUtils.addAll(f2, f1);
 		
 		/* Collect tau = Sumout [Oj'] P(Oj', S', Aj) x P(Mj', Mj, Oj', Aj) */
-		DD tau = OP.addMultVarElim(
-					ArrayUtils.add(
-							ipomdp.currentOj, 
-							ipomdp.currentMjTfn),
-					ipomdp.obsJVarPrimeIndices);
+//		DD tau = OP.addMultVarElim(
+//					ArrayUtils.add(
+//							ipomdp.currentOj, 
+//							ipomdp.currentMjTfn),
+//					ipomdp.obsJVarPrimeIndices);
+		
+		DD tau = ipomdp.currentTau;
 		
 		/* Perform the sum out */
 		DD nextBelief = 
@@ -157,11 +159,13 @@ public class InteractiveBelief extends Belief {
 		DD[] f3 = ArrayUtils.addAll(f2, f1);
 		
 		/* Collect tau = Sumout [Oj'] P(Oj', S', Aj) x P(Mj', Mj, Oj', Aj) */
-		DD tau = OP.addMultVarElim(
-					ArrayUtils.add(
-							ipomdp.currentOj, 
-							ipomdp.currentMjTfn),
-					ipomdp.obsJVarPrimeIndices);
+//		DD tau = OP.addMultVarElim(
+//					ArrayUtils.add(
+//							ipomdp.currentOj, 
+//							ipomdp.currentMjTfn),
+//					ipomdp.obsJVarPrimeIndices);
+		
+		DD tau = ipomdp.currentTau;
 		
 		/* Perform the sum out */
 		DD nextBelief = 
@@ -208,14 +212,14 @@ public class InteractiveBelief extends Belief {
 		DD[] f3 = ArrayUtils.add(ipomdp.currentOj, ipomdp.currentMjTfn);
 		
 		/* Compute tau */
-		DD tau = OP.addMultVarElim(f3, ipomdp.obsJVarPrimeIndices);
+//		DD tau = OP.addMultVarElim(f3, ipomdp.obsJVarPrimeIndices);
 		
-		DD[] f4 = ArrayUtils.add(f2, tau);
+		DD[] f4 = ArrayUtils.add(f2, ipomdp.currentTau);
 		
 		DD[] cpts = new DD[f4.length];
 		
 		for (int i = 0; i < f4.length; i++)
-			cpts[i] = OP.addout(f4[i], ipomdp.stateVarIndices[ipomdp.stateVarIndices.length - 1]);
+			cpts[i] = OP.addout(f4[i], ipomdp.AjIndex);
 		
 		return ArrayUtils.addAll(cpts, startBelief);
 	}

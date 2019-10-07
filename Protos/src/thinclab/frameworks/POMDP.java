@@ -1574,12 +1574,14 @@ public class POMDP extends Framework implements Serializable {
 		
 		BeliefSet beliefSet = new BeliefSet(initBeliefList);
 		
-		beliefSet.expandBeliefRegionBF(this, 2);
+		beliefSet.expandBeliefRegionBF(this, 4);
 		this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 		
 		// initialize T
-		alphaVectors = new DD[1];
-		alphaVectors[0] = DD.one;
+		alphaVectors = new DD[this.nActions];
+		for (int i = 0; i < this.nActions; i++)
+			alphaVectors[i] = this.actions[i].rewFn;
+//		alphaVectors = new DD[] {DD.one};
 
 		for (int r=0; r < rounds; r++) {
 			this.pCache.resetOscillationTracking();
@@ -1587,8 +1589,8 @@ public class POMDP extends Framework implements Serializable {
 
 			boundedPerseusStartFromCurrent(100, r * numDpBackups, numDpBackups);
 
-			beliefSet.expandBeliefRegionSSGA(this, 100);
-			this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
+//			beliefSet.expandBeliefRegionSSGA(this, 100);
+//			this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 
 		}
 		
@@ -2195,7 +2197,7 @@ public class POMDP extends Framework implements Serializable {
 	
 			// this is done in pureStrategies now- still to do
 			for (int actId = 0; actId < nActions; actId++) {
-				System.out.println("computing pure strategy for action " + actId);
+//				System.out.println("computing pure strategy for action " + actId);
 				newAlpha = DD.zero;
 				bellmanErr = tolerance;
 				for (int i = 0; i < 50; i++) {
@@ -2281,11 +2283,13 @@ public class POMDP extends Framework implements Serializable {
 
 		currentPointBasedValues = OP.factoredExpectationSparseNoMem(belRegion,
 				alphaVectors);
+//		logger.debug("Currnet PBVs are " + Arrays.deepToString(currentPointBasedValues));
 //		System.out.println("DEBUG IS " + debug);
 //		System.out.println("currentPointBasedValues " + Arrays.deepToString(currentPointBasedValues));
 		DD[] primedV;
 		double maxAbsVal = 0;
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
+//			logger.debug("STEP:=====================================================================");
 			steptolerance = tolerance;
 
 			primedV = new DD[alphaVectors.length];
@@ -2410,17 +2414,19 @@ public class POMDP extends Framework implements Serializable {
 					// merge and trim
 					newValues = OP.factoredExpectationSparseNoMem(belRegion,
 							newVector.alphaVector);
+//					logger.debug("New Values are " + Arrays.toString(newValues));
+//					logger.debug("New PBVs were " + Arrays.deepToString(newPointBasedValues));
 					if (numNewAlphaVectors < 1) {
 						improvement = Double.POSITIVE_INFINITY;
 					} else {
 						improvement = OP.max(OP.sub(newValues, OP.getMax(
 								newPointBasedValues, numNewAlphaVectors)));
 					}
-					
+//					logger.debug("Improvement after backup is " + improvement);
 //					System.out.println("improvement is " + improvement);
 //					System.out.println("tolerance is " + tolerance);
 					if (improvement > tolerance) {
-						
+//						logger.debug("Adding the new Alpha Vector");
 						for (int belid = 0; belid < belRegion.length; belid++)
 							newPointBasedValues[belid][numNewAlphaVectors] = newValues[belid];
 						newAlphaVectors[numNewAlphaVectors] = newVector;
@@ -2503,6 +2509,7 @@ public class POMDP extends Framework implements Serializable {
 				logger.warn("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
 				break;
 			}
+//			logger.debug("END STEP:==================================================================");
 		}
 
 	}
@@ -2741,6 +2748,9 @@ public class POMDP extends Framework implements Serializable {
 				.addN(concatenateArray(newAlpha, actions[bestActId].rewFn));
 //		System.out.println("newAlpha is " + newAlpha);
 		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
+//		logger.debug("Best Value is " + bestValue);
+//		logger.debug("New Alpha has vars " + Arrays.toString(newAlpha.getVarSet()) 
+//			+ " with value " + bestValue);
 //		logger.debug("New Alpha is " + newAlpha + " with value " + bestValue);
 		// package up to return
 		AlphaVector returnAlpha = new AlphaVector(newAlpha, bestValue,

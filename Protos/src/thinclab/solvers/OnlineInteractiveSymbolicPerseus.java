@@ -7,13 +7,13 @@
  */
 package thinclab.solvers;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
-import cern.colt.Arrays;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.InteractiveBelief;
 import thinclab.exceptions.VariableNotFoundException;
@@ -166,21 +166,22 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 
 		bellmanErr = 20 * this.ipomdp.tolerance;
 		
-		long then = System.nanoTime();
-		
 		this.ipomdp.currentPointBasedValues = 
 				OP.factoredExpectationSparseNoMem(
 						beliefRegion, this.alphaVectors);
 		
-		long now = System.nanoTime();
+//		logger.debug("printing belief region");
+//		for (int i = 0; i < beliefRegion.length; i++) {
+//			logger.debug("Belief:" + i+ " " 
+//					+ InteractiveBelief.toStateMap(this.ipomdp, OP.reorder(OP.multN(beliefRegion[i]))));
+//		}
 		
-		logger.debug("Computing point based values took " + ((now - then) / 1000) + " u secs.");
-		
+//		logger.debug("Currnet PBVs are " + Arrays.deepToString(this.ipomdp.currentPointBasedValues));
 		DD[] primedV;
 		double maxAbsVal = 0;
 		
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
-
+//			logger.debug("STEP:=====================================================================");
 			steptolerance = ipomdp.tolerance;
 
 			primedV = new DD[this.alphaVectors.length];
@@ -225,6 +226,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 			 * since we may be able to cull more than one alpha vector when trimming, bringing us back 
 			 * below the cutoff
 			 */
+			int numIter = 0;
+			int numNew = 0;
 			while (ipomdp.numNewAlphaVectors < maxAlphaSetSize
 					&& !permutedIds.isempty()) {
 				
@@ -232,15 +235,13 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 					computeMaxMinImprovement(beliefRegion);
 					if (ipomdp.bestImprovement > ipomdp.tolerance
 							&& ipomdp.bestImprovement > -2 * ipomdp.worstDecline) {
-
+//						logger.warn("Breaking here");
 						break;
 					}
 				}
 
 				Global.newHashtables();
 				count = count + 1;
-				
-				then = System.nanoTime();
 				
 				if (ipomdp.numNewAlphaVectors == 0)
 					choice = 0;
@@ -256,16 +257,15 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 					diff = permutedIds.getDiffs(maxcurrpbv, maxnewpbv,
 							steptolerance);
 					
-					if (permutedIds.isempty())
+					if (permutedIds.isempty()) {
+//						logger.warn("Empty belief points");
 						break;
+					}
 					
 					choice = OP.sampleMultinomial(diff);
 				}
 
 				int i = permutedIds.getSetDone(choice);
-				
-				now = System.nanoTime();
-				logger.debug("Choosing belief point took " + ((now - then) / 1000000) + " milli secs.");
 				
 				if (ipomdp.numNewAlphaVectors < 1
 						|| (OP.max(ipomdp.newPointBasedValues[i], ipomdp.numNewAlphaVectors)
@@ -274,18 +274,15 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 					/*
 					 * dpBackup
 					 */
-					then = System.nanoTime();
+					
 					newVector = dpBackup(beliefRegion[i], primedV, maxAbsVal);
-
+					numIter += 1;
 					newVector.alphaVector = OP.approximate(
 							newVector.alphaVector, bellmanErr * (1 - ipomdp.discFact)
 									/ 2.0, onezero);
 					newVector.setWitness(i);
 
 					nDpBackups = nDpBackups + 1;
-					
-					now = System.nanoTime();
-					logger.debug("dp backup took " + ((now - then) / 1000000) + " milli secs.");
 					
 					/*
 					 * merge and trim
@@ -294,7 +291,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 							OP.factoredExpectationSparseNoMem(
 									beliefRegion, 
 									newVector.alphaVector);
-					
+//					logger.debug("New Values are " + Arrays.toString(newValues));
+//					logger.debug("New PBVs were " + Arrays.deepToString(ipomdp.newPointBasedValues));
 					if (ipomdp.numNewAlphaVectors < 1)
 						improvement = Double.POSITIVE_INFINITY; 
 					
@@ -309,7 +307,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 					
 //					logger.debug("Improvement after backup is " + improvement);
 					if (improvement > ipomdp.tolerance) {
-						
+//						logger.debug("Adding the new Alpha Vector");
+						numNew += 1;
 						for (int belid = 0; belid < beliefRegion.length; belid++) {
 							ipomdp.newPointBasedValues[belid][ipomdp.numNewAlphaVectors] = 
 								newValues[belid];
@@ -356,8 +355,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 			bellmanErr = Math.min(10, Math.max(ipomdp.bestImprovement, -ipomdp.worstDecline));
 			
 			logger.info("STEP: " + stepId 
-					+ " \tBELLMAN ERROR: " + bellmanErr
-					+ " \tBELIEF POINTS: " + beliefRegion.length
+					+ " \tB ERROR: " + bellmanErr
+					+ " \tBELIEFS: " + beliefRegion.length
 					+ " \tA VECTORS: " + this.alphaVectors.length);
 			
 			if (stepId % 100 < 5)
@@ -369,6 +368,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 				this.logAlphaVectors();
 				break;
 			}
+			
+//			logger.debug("END STEP:==================================================================");
 		}
 
 	}
@@ -466,8 +467,6 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 		DD obsDd;
 		int[] obsConfig = new int[this.ipomdp.obsIVarIndices.length];
 		
-		long then = System.nanoTime();
-		
 		for (int alphaId = 0; alphaId < this.alphaVectors.length; alphaId++) {
 		
 			if (MySet.find(bestObsStrat, alphaId) >= 0) {
@@ -494,6 +493,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 												IPOMDP.stackArray(
 														ipomdp.obsIVarPrimeIndices, 
 														obsConfig)));
+//						System.out.println(obsDd);
 					}
 				}
 				
@@ -508,20 +508,16 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 			}
 		}
 		
-		long now = System.nanoTime();
-		logger.debug("Val fn computation took " + ((now - then) / 1000000) + " milli secs.");
-		
 		/* include Mj's transition for computing value function */
-		DD mjTransition = 
-				OP.addMultVarElim(
-						ArrayUtils.add(ipomdp.currentOj, ipomdp.currentMjTfn), 
-						ipomdp.obsJVarPrimeIndices);
+		DD mjTransition = ipomdp.currentTau;
 		
 		/* Add P(AJ | MJ) to Ti */
 		DD[] Ti = 
 				ArrayUtils.add(
 						this.ipomdp.currentTi.get(this.ipomdp.Ai.get(bestActId)), 
 						this.ipomdp.currentAjGivenMj);
+		
+//		DD[] Ti = this.ipomdp.currentTi.get(this.ipomdp.Ai.get(bestActId));
 		
 		DD[] valFnArray = 
 				ArrayUtils.addAll(
@@ -530,25 +526,11 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 								Ti), 
 						new DD[] {mjTransition, nextValFn});
 		
-		then = System.nanoTime();
-		
 		DD V = 
 				OP.addMultVarElim(
 						valFnArray, 
-						this.ipomdp.stateVarIndices[this.ipomdp.stateVarIndices.length - 1]);
-		
-		now = System.nanoTime();
-		logger.debug("V var elim took " + ((now - then) / 1000000) + " milli secs.");
-		
-//		int[] sumOutVars = 
-//				ArrayUtils.addAll(
-//						new int[] {this.ipomdp.oppModelVarIndex + 1},
-//						ArrayUtils.subarray(
-//								this.ipomdp.stateVarPrimeIndices,
-//								0, this.ipomdp.stateVarPrimeIndices.length - 1));
+						this.ipomdp.AjIndex);
 //		logger.debug("V has vars " + Arrays.toString(V.getVarSet()));
-		
-		then = System.nanoTime();
 		newAlpha = 
 				OP.addMultVarElim(
 						V, 
@@ -557,21 +539,15 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 										this.ipomdp.stateVarPrimeIndices,
 										0, this.ipomdp.stateVarPrimeIndices.length - 1),
 								this.ipomdp.obsIVarPrimeIndices));
-		
-		now = System.nanoTime();
-		logger.debug("new alpha var elim took " + ((now - then) / 1000000) + " milli secs.");
-		
-		then = System.nanoTime();
+//		logger.debug("New alpha has vars " + Arrays.toString(newAlpha.getVarSet()));
 		newAlpha = 
 				OP.addN(
 						IPOMDP.concatenateArray(
 								newAlpha, 
 								this.ipomdp.currentRi.get(this.ipomdp.Ai.get(bestActId))));
 		
-		now = System.nanoTime();
-		logger.debug("new alpha addN took " + ((now - then) / 1000000) + " milli secs.");
-		
 		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
+//		logger.debug("Best Value is " + bestValue);
 //		logger.debug("New Alpha has vars " + Arrays.toString(newAlpha.getVarSet()) 
 //			+ " with value " + bestValue);
 		/*

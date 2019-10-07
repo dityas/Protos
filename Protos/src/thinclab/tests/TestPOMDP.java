@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.frameworks.POMDP;
+import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
@@ -21,12 +22,12 @@ import thinclab.frameworks.POMDP;
  */
 class TestPOMDP {
 
-	public String tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
-	public String attDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
+	public String tigerDom = "/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
+	public String attDom = "/home/adityas/git/repository/Protos/domains/attacker_l0.txt";
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		
+		CustomConfigurationFactory.initializeLogging();
 	}
 
 	@AfterEach
