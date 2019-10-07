@@ -235,7 +235,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 					computeMaxMinImprovement(beliefRegion);
 					if (ipomdp.bestImprovement > ipomdp.tolerance
 							&& ipomdp.bestImprovement > -2 * ipomdp.worstDecline) {
-//						logger.warn("Breaking here");
+						logger.warn("Breaking because bestImprovement " + ipomdp.bestImprovement + ""
+								+ "> tolerance " + ipomdp.tolerance + " && bestImprovement " +
+								ipomdp.bestImprovement + " > -2 * worstDecline " + 
+								(-2 * ipomdp.worstDecline));
 						break;
 					}
 				}
@@ -258,7 +261,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 							steptolerance);
 					
 					if (permutedIds.isempty()) {
-//						logger.warn("Empty belief points");
+						logger.warn("Breaking because no belief points...");
 						break;
 					}
 					
