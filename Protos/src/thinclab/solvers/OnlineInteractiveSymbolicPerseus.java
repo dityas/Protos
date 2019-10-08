@@ -231,17 +231,17 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 			while (ipomdp.numNewAlphaVectors < maxAlphaSetSize
 					&& !permutedIds.isempty()) {
 				
-				if (nDpBackups >= 2 * this.alphaVectors.length) {
-					computeMaxMinImprovement(beliefRegion);
-					if (ipomdp.bestImprovement > ipomdp.tolerance
-							&& ipomdp.bestImprovement > -2 * ipomdp.worstDecline) {
-						logger.warn("Breaking because bestImprovement " + ipomdp.bestImprovement + ""
-								+ "> tolerance " + ipomdp.tolerance + " && bestImprovement " +
-								ipomdp.bestImprovement + " > -2 * worstDecline " + 
-								(-2 * ipomdp.worstDecline));
-						break;
-					}
-				}
+//				if (nDpBackups >= 2 * this.alphaVectors.length) {
+//					computeMaxMinImprovement(beliefRegion);
+//					if (ipomdp.bestImprovement > ipomdp.tolerance
+//							&& ipomdp.bestImprovement > -2 * ipomdp.worstDecline) {
+//						logger.warn("Breaking because bestImprovement " + ipomdp.bestImprovement + ""
+//								+ "> tolerance " + ipomdp.tolerance + " && bestImprovement " +
+//								ipomdp.bestImprovement + " > -2 * worstDecline " + 
+//								(-2 * ipomdp.worstDecline));
+//						break;
+//					}
+//				}
 
 				Global.newHashtables();
 				count = count + 1;
