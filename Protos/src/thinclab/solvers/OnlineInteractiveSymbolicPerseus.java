@@ -310,7 +310,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 					
 					if (improvement > ipomdp.tolerance) {
 						logger.debug("Improvement after backup is " + improvement);
-						logger.debug("Adding the new Alpha Vector");
+						logger.debug("Adding the new Alpha Vector with vars " 
+								+ Arrays.toString(newVector.alphaVector.getVarSet()));
 						numNew += 1;
 						for (int belid = 0; belid < beliefRegion.length; belid++) {
 							ipomdp.newPointBasedValues[belid][ipomdp.numNewAlphaVectors] = 
