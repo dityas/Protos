@@ -7,9 +7,10 @@
  	(creak creak-left creak-right silence)
 )
 
-init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
 
 unnormalized
+
+init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
 
 dd tigerLocObs
 (tiger-location' (tiger-left  (growl' (growl-left  (0.85))
@@ -271,10 +272,12 @@ tolerance 0.001
 		
 		(observations 
 		 	(growl growl-left growl-right))
+		 	
+		unnormalized
 		
 		init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
-//		adjunct a1 (tiger-location (tiger-left (0.75)) (tiger-right (0.25)))
-//		adjunct a2 (tiger-location (tiger-left (0.25)) (tiger-right (0.75)))
+		adjunct a1 (tiger-location (tiger-left (0.75)) (tiger-right (0.25)))
+		adjunct a2 (tiger-location (tiger-left (0.25)) (tiger-right (0.75)))
 //		adjunct a3 (tiger-location (tiger-left (0.99)) (tiger-right (0.01)))
 		
 		action listen

@@ -1574,7 +1574,7 @@ public class POMDP extends Framework implements Serializable {
 		
 		BeliefSet beliefSet = new BeliefSet(initBeliefList);
 		
-		beliefSet.expandBeliefRegionBF(this, 4);
+		beliefSet.expandBeliefRegionBF(this, 2);
 		this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 		
 		// initialize T
@@ -1589,7 +1589,7 @@ public class POMDP extends Framework implements Serializable {
 
 			boundedPerseusStartFromCurrent(100, r * numDpBackups, numDpBackups);
 
-			beliefSet.expandBeliefRegionSSGA(this, 100);
+			beliefSet.expandBeliefRegionSSGA(this, 1000);
 			this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 
 		}
@@ -2290,6 +2290,7 @@ public class POMDP extends Framework implements Serializable {
 		double maxAbsVal = 0;
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 //			logger.debug("STEP:=====================================================================");
+//			logger.debug("A vecs are: " + Arrays.toString(alphaVectors));
 			steptolerance = tolerance;
 
 			primedV = new DD[alphaVectors.length];
@@ -2427,6 +2428,10 @@ public class POMDP extends Framework implements Serializable {
 //					System.out.println("tolerance is " + tolerance);
 					if (improvement > tolerance) {
 //						logger.debug("Adding the new Alpha Vector");
+//						logger.debug("Improvement after backup is " + improvement 
+//								+ " with previous max " + OP.getMax(currentPointBasedValues, 1)[0]);
+//						logger.debug("Adding the new Alpha Vector with vars " 
+//								+ Arrays.toString(newVector.alphaVector.getVarSet()));
 						for (int belid = 0; belid < belRegion.length; belid++)
 							newPointBasedValues[belid][numNewAlphaVectors] = newValues[belid];
 						newAlphaVectors[numNewAlphaVectors] = newVector;
@@ -2727,8 +2732,13 @@ public class POMDP extends Framework implements Serializable {
 					if (bestObsStrat[obsId] == alphaId) {
 						obsConfig = statedecode(obsId + 1, nObsVars,
 								obsVarsArity);
+//						logger.debug(Arrays.toString(obsConfig));
+//						logger.debug(Arrays.deepToString(stackArray(
+//								primeObsIndices, obsConfig)));
 						obsDd = OP.add(obsDd, Config.convert2dd(stackArray(
 								primeObsIndices, obsConfig)));
+//						logger.debug(Config.convert2dd(stackArray(
+//								primeObsIndices, obsConfig)));
 					}
 				}
 				nextValFn = OP.add(nextValFn, OP.multN(concatenateArray(
@@ -2781,6 +2791,8 @@ public class POMDP extends Framework implements Serializable {
 			obsProbs = OP.convert2array(dd_obsProbs, primeObsIndices);
 //			logger.debug("Obs Probs are " + Arrays.toString(obsProbs));
 			nextBelStates[actId] = new NextBelState(this, obsProbs, smallestProb);
+//			logger.debug("Obs Probs are " + Arrays.toString(obsProbs));
+//			logger.debug("Obs Config is " + Arrays.deepToString(obsConfig));
 
 			/*
 			 * Compute marginals

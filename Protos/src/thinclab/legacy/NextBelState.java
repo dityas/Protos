@@ -9,6 +9,8 @@ package thinclab.legacy;
 
 import java.util.Arrays;
 
+import org.apache.log4j.Logger;
+
 import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
 
@@ -27,7 +29,9 @@ public class NextBelState {
 	public double sumObsValues;
 	public IPOMDP ipomdp;
 	public POMDP pomdp;
-
+	
+	private static final Logger logger = Logger.getLogger(NextBelState.class);
+	
 	public NextBelState(POMDP p, double[] obsProbs, double smallestProb) {
 		/*
 		 * For POMDPs
@@ -61,7 +65,7 @@ public class NextBelState {
 			if (obsProbs[i] > smallestProb)
 				numValidObs++;
 		
-		nextBelStates = new DD[numValidObs][this.ipomdp.nStateVars];
+		nextBelStates = new DD[numValidObs][this.ipomdp.nStateVars - 1];
 		nzObsIds = new int[numValidObs];
 		obsStrat = new int[this.ipomdp.obsCombinations.size()];
 		obsValues = new double[numValidObs];
@@ -177,11 +181,17 @@ public class NextBelState {
 		for (int obsPtr = 0; obsPtr < numValidObs; obsPtr++) {
 			
 			obsId = nzObsIds[obsPtr];
-//			System.out.println("NextBelStates[obsPtr] = " + Arrays.toString(nextBelStates[obsPtr]));
-			if (this.ipomdp == null)
-				obsProb = nextBelStates[obsPtr][this.pomdp.nStateVars].getVal();
 			
-			else obsProb = nextBelStates[obsPtr][this.ipomdp.nStateVars - 1].getVal();
+			if (this.ipomdp == null) {
+				obsProb = nextBelStates[obsPtr][this.pomdp.nStateVars].getVal();
+//				logger.debug("NextBelStates[obsPtr] = " + (nextBelStates[obsPtr][this.pomdp.nStateVars]));
+			}
+				
+			
+			else {
+				obsProb = nextBelStates[obsPtr][this.ipomdp.nStateVars - 1].getVal();
+//				logger.debug("NextBelStates[obsPtr] = " + (nextBelStates[obsPtr][this.ipomdp.nStateVars - 1]));
+			}
 			
 //			System.out.println("NextBelStates[obsPtr][nS] = " 
 //					+ nextBelStates[obsPtr][this.ipomdp.nStateVars - 1]);}

@@ -66,7 +66,7 @@ public class BeliefUpdateViewer {
 				new OnlineInteractiveSymbolicPerseus(
 						this.ipomdp, 
 						this.expansionStrat, 
-						1, 100);
+						1, 1000);
 		System.out.println("Solver initialized");
 	}
 	

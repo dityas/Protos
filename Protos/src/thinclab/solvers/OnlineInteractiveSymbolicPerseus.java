@@ -176,12 +176,14 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 //					+ InteractiveBelief.toStateMap(this.ipomdp, OP.reorder(OP.multN(beliefRegion[i]))));
 //		}
 		
-//		logger.debug("Currnet PBVs are " + Arrays.deepToString(this.ipomdp.currentPointBasedValues));
+//		logger.debug("Current PBVs are " + Arrays.deepToString(this.ipomdp.currentPointBasedValues));
 		DD[] primedV;
 		double maxAbsVal = 0;
 		
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 //			logger.debug("STEP:=====================================================================");
+//			logger.debug("A vecs are: " + Arrays.toString(this.alphaVectors));
+//			logger.debug("Ri : " + this.ipomdp.currentRi);
 			steptolerance = ipomdp.tolerance;
 
 			primedV = new DD[this.alphaVectors.length];
@@ -228,20 +230,24 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 			 */
 			int numIter = 0;
 			int numNew = 0;
+//			int b = 0;
 			while (ipomdp.numNewAlphaVectors < maxAlphaSetSize
 					&& !permutedIds.isempty()) {
 				
-//				if (nDpBackups >= 2 * this.alphaVectors.length) {
-//					computeMaxMinImprovement(beliefRegion);
-//					if (ipomdp.bestImprovement > ipomdp.tolerance
-//							&& ipomdp.bestImprovement > -2 * ipomdp.worstDecline) {
+//			while (ipomdp.numNewAlphaVectors < maxAlphaSetSize
+//					&& b < beliefRegion.length) {
+				
+				if (nDpBackups >= 2 * this.alphaVectors.length) {
+					computeMaxMinImprovement(beliefRegion);
+					if (ipomdp.bestImprovement > ipomdp.tolerance
+							&& ipomdp.bestImprovement > -2 * ipomdp.worstDecline) {
 //						logger.warn("Breaking because bestImprovement " + ipomdp.bestImprovement + ""
 //								+ "> tolerance " + ipomdp.tolerance + " && bestImprovement " +
 //								ipomdp.bestImprovement + " > -2 * worstDecline " + 
 //								(-2 * ipomdp.worstDecline));
-//						break;
-//					}
-//				}
+						break;
+					}
+				}
 
 				Global.newHashtables();
 				count = count + 1;
@@ -261,7 +267,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 							steptolerance);
 					
 					if (permutedIds.isempty()) {
-						logger.warn("Breaking because no belief points...");
+//						logger.warn("Breaking because no belief points...");
 						break;
 					}
 					
@@ -284,7 +290,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 							newVector.alphaVector, bellmanErr * (1 - ipomdp.discFact)
 									/ 2.0, onezero);
 					newVector.setWitness(i);
-
+//					b += 1;
 					nDpBackups = nDpBackups + 1;
 					
 					/*
@@ -294,7 +300,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 							OP.factoredExpectationSparseNoMem(
 									beliefRegion, 
 									newVector.alphaVector);
-//					logger.debug("New Values are " + Arrays.toString(newValues));
+//					logger.debug("New Values computed");
 //					logger.debug("New PBVs were " + Arrays.deepToString(ipomdp.newPointBasedValues));
 					if (ipomdp.numNewAlphaVectors < 1)
 						improvement = Double.POSITIVE_INFINITY; 
@@ -309,9 +315,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 													ipomdp.numNewAlphaVectors)));
 					
 					if (improvement > ipomdp.tolerance) {
-						logger.debug("Improvement after backup is " + improvement);
-						logger.debug("Adding the new Alpha Vector with vars " 
-								+ Arrays.toString(newVector.alphaVector.getVarSet()));
+//						logger.debug("Improvement after backup is " + improvement 
+//								+ " with previous max " + OP.getMax(this.ipomdp.currentPointBasedValues, 1)[0]);
+//						logger.debug("Adding the new Alpha Vector with vars " 
+//								+ Arrays.toString(newVector.alphaVector.getVarSet()));
 						numNew += 1;
 						for (int belid = 0; belid < beliefRegion.length; belid++) {
 							ipomdp.newPointBasedValues[belid][ipomdp.numNewAlphaVectors] = 
@@ -452,7 +459,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 			actValue = actValue + ipomdp.discFact
 					* nextBelStates[actId].getSumObsValues();
 			
-//			logger.debug(" actId " + actId + " actValue " + 
+//			logger.debug(" actId " + actId +" " + this.ipomdp.getActions().get(actId) + " actValue " + 
 //					actValue + " sumobsvalues " + nextBelStates[actId].getSumObsValues());
 			
 			if (actValue > bestValue) {
@@ -489,7 +496,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 												this.ipomdp.obsVarsArity, 
 												0, 
 												this.ipomdp.obsIVarIndices.length));
-						
+//						logger.debug(Arrays.toString(obsConfig));
+//						logger.debug(Arrays.deepToString(IPOMDP.stackArray(
+//								ipomdp.obsIVarPrimeIndices, 
+//								obsConfig)));
 						obsDd = 
 								OP.add(
 										obsDd, 
@@ -497,7 +507,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 												IPOMDP.stackArray(
 														ipomdp.obsIVarPrimeIndices, 
 														obsConfig)));
-//						System.out.println(obsDd);
+//						logger.debug(Config.convert2dd(
+//								IPOMDP.stackArray(
+//										ipomdp.obsIVarPrimeIndices, 
+//										obsConfig)));
 					}
 				}
 				
@@ -603,6 +616,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 			obsProbs = OP.convert2array(dd_obsProbs, this.ipomdp.obsIVarPrimeIndices);
 			nextBelStates[actId] = new NextBelState(this.ipomdp, obsProbs, smallestProb);
 //			logger.debug("Obs Probs are " + Arrays.toString(obsProbs));
+//			logger.debug("Obs Config is " + Arrays.deepToString(obsConfig));
 			
 			/*
 			 * Compute marginals

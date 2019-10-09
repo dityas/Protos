@@ -199,29 +199,31 @@ public class InteractiveBelief extends Belief {
 		 * Returns all CPTs for marginalization inside Hoey's symbolic perseus.
 		 */
 		
-		/* f(S, Mj) does not depend on Aj */
-		DD[] f1 = startBelief;
-		
+//		/* f(S, Mj) does not depend on Aj */
+//		DD[] f1 = startBelief;
+//		
 		/* [f(S', Aj, S), f(Aj, Mj)] */
 		DD[] f2 = ArrayUtils.add(ipomdp.currentTi.get(actName), ipomdp.currentAjGivenMj);
 		
 		/* [f(S', Aj, S), f(Aj, Mj), f(Oi', Aj, S)] */
-		f2 = ArrayUtils.addAll(f1, ipomdp.currentOi.get(actName));
+		f2 = ArrayUtils.addAll(f2, ipomdp.currentOi.get(actName));
 		
-		/* tau */
-		DD[] f3 = ArrayUtils.add(ipomdp.currentOj, ipomdp.currentMjTfn);
+//		/* tau */
+//		DD[] f3 = ArrayUtils.add(ipomdp.currentOj, ipomdp.currentMjTfn);
 		
 		/* Compute tau */
 //		DD tau = OP.addMultVarElim(f3, ipomdp.obsJVarPrimeIndices);
 		
 		DD[] f4 = ArrayUtils.add(f2, ipomdp.currentTau);
 		
-		DD[] cpts = new DD[f4.length];
+		DD addOutAj = OP.addMultVarElim(f4, ipomdp.AjIndex);
 		
-		for (int i = 0; i < f4.length; i++)
-			cpts[i] = OP.addout(f4[i], ipomdp.AjIndex);
+//		DD[] cpts = new DD[f4.length];
+//		
+//		for (int i = 0; i < f4.length; i++)
+//			cpts[i] = OP.addout(f4[i], ipomdp.AjIndex);
 		
-		return ArrayUtils.addAll(cpts, startBelief);
+		return ArrayUtils.addAll(startBelief, addOutAj);
 	}
 	
 	// ------------------------------------------------------------------------------------------
