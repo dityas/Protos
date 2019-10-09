@@ -8,6 +8,9 @@
 
 package thinclab.ddhelpers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 
@@ -40,6 +43,18 @@ public class DDTreeLeaf extends DDTree {
 		}
 		
 		return true;
+	}
+	
+	// ----------------------------------------------------------------------------------
+	
+	@Override
+	public List<List<String>> getCPT(List<String> previousVals) {
+		
+		List<List<String>> cpt = new ArrayList<List<String>>();
+		previousVals.add(Double.toString(this.val));
+		
+		cpt.add(previousVals);
+		return cpt;
 	}
 	
 	// ----------------------------------------------------------------------------------

@@ -305,5 +305,11 @@ public class DDMaker {
 		}
 		return parent;
 	}
+	
+	// --------------------------------------------------------------------------------------------
+	
+	public HashMap<String, String[]> getVariablesMap() {
+		return this.variablesHashMap;
+	}
 
 }

@@ -5,11 +5,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.ddhelpers.DDMaker;
 import thinclab.ddhelpers.DDTree;
 import thinclab.ddhelpers.DDTreeLeaf;
 import thinclab.examples.AttackerDomainPOMDP;
@@ -161,6 +163,24 @@ class TestDDTree {
 		}
 		
 		assertTrue(pomdp.alphaVectors[0].equals(pomdp.alphaVectors[0].toDDTree().toDD()));
+	}
+	
+	@Test
+	void testGetCPT() {
+		System.out.println("Running testGetCPT()");
+		DDMaker d = new DDMaker();
+		d.addVariable("A", new String[] {"a1", "a2"});
+		d.addVariable("B", new String[] {"b1", "b2"});
+		d.addVariable("C", new String[] {"c1", "c2"});
+		d.primeVariables();
+		
+		DDTree t = d.getDDTreeFromSequence(new String[] {"A", "B", "C"});
+		
+		List<List<String>> cpt = t.getCPT(); 
+		
+		System.out.println(cpt);
+		
+		assertTrue(cpt.size() == 2*2*2);
 	}
 
 }

@@ -7,8 +7,10 @@
  */
 package thinclab.ddhelpers;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
 import thinclab.legacy.DD;
@@ -195,6 +197,31 @@ public class DDTree {
 		 * arrays use Matlab-like indices.
 		 */
 		return DDnode.myNew(varIndex + 1, children);
+	}
+	
+	// ----------------------------------------------------------------------------------
+	
+	public List<List<String>> getCPT(List<String> previousVals) {
+		/*
+		 * Convert the DD into a CPT
+		 */
+		List<List<String>> cpt = new ArrayList<List<String>>();
+		
+		for (String child : this.children.keySet()) {
+			
+			/* Add child */
+			List<String> row = new ArrayList<String>(previousVals);
+			row.add(child);
+			
+			cpt.addAll(this.children.get(child).getCPT(row));
+		}
+		
+		return cpt;
+	}
+	
+	public List<List<String>> getCPT() {
+		
+		return this.getCPT(new ArrayList<String>());
 	}
 	
 	// ----------------------------------------------------------------------------------
