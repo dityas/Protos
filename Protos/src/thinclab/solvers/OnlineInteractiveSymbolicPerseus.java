@@ -276,6 +276,9 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 
 				int i = permutedIds.getSetDone(choice);
 				
+				/* count belief point used */
+				numIter += 1;
+				
 				if (ipomdp.numNewAlphaVectors < 1
 						|| (OP.max(ipomdp.newPointBasedValues[i], ipomdp.numNewAlphaVectors)
 								- OP.max(ipomdp.currentPointBasedValues[i]) < steptolerance)) {
@@ -367,7 +370,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 			
 			logger.info("STEP: " + stepId 
 					+ " \tB ERROR: " + bellmanErr
-					+ " \tBELIEFS: " + beliefRegion.length
+					+ " \tUSED|TOTAL BELIEFS: " + numIter + "|" + beliefRegion.length
 					+ " \tA VECTORS: " + this.alphaVectors.length);
 			
 			if (stepId % 100 < 5)
