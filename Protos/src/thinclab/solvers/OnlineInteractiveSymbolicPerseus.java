@@ -368,18 +368,18 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 
 			bellmanErr = Math.min(10, Math.max(ipomdp.bestImprovement, -ipomdp.worstDecline));
 			
-			logger.info("STEP: " + stepId 
-					+ " \tB ERROR: " + bellmanErr
-					+ " \tUSED|TOTAL BELIEFS: " + numIter + "|" + beliefRegion.length
+			logger.info("I: " + stepId 
+					+ " \tB ERROR: " + Double.toString(bellmanErr).substring(0, 5)
+					+ " \tUSED/TOTAL BELIEFS: " + numIter + "/" + beliefRegion.length
 					+ " \tA VECTORS: " + this.alphaVectors.length);
 			
 			if (stepId % 100 < 5)
 				continue;
 			
-			if (bellmanErr < 0.001) {
-				logger.warn("BELLMAN ERROR LESS THAN 0.001. COVERGENCE! SOFTWARE VERSION 7.0... "
+			if (bellmanErr < 0.01) {
+				logger.warn("BELLMAN ERROR LESS THAN 0.01. COVERGENCE! SOFTWARE VERSION 7.0... "
 						+ "LOOKING AT LIFE THROUGH THE EYES OF A TIRED HEART.");
-				this.logAlphaVectors();
+//				this.logAlphaVectors();
 				break;
 			}
 			

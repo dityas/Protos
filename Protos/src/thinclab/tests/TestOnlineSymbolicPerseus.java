@@ -19,6 +19,7 @@ import thinclab.frameworks.POMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.solvers.OnlineSolver;
+import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
@@ -31,7 +32,7 @@ class TestOnlineSymbolicPerseus {
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		this.l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
+		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
 //		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
 	}
@@ -42,6 +43,7 @@ class TestOnlineSymbolicPerseus {
 
 	@Test
 	void testFHLASolverUtiliyComputation() {
+		CustomConfigurationFactory.initializeLogging();
 		System.out.println("Running testFHLASolverUtiliyComputation()");
 		
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);

@@ -1589,7 +1589,7 @@ public class POMDP extends Framework implements Serializable {
 
 			boundedPerseusStartFromCurrent(100, r * numDpBackups, numDpBackups);
 
-			beliefSet.expandBeliefRegionSSGA(this, 1000);
+			beliefSet.expandBeliefRegionSSGA(this, 100);
 			this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 
 		}

@@ -91,21 +91,21 @@ class TestIPOMDP {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		try {
-			tigerL1IPOMDP.solveOpponentModels();
-			
-			/* 
-			 * Stage and commit additional state and variables to populate global 
-			 * arrays
-			 */
-			tigerL1IPOMDP.S.set(
-					tigerL1IPOMDP.oppModelVarIndex, 
-					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
-							tigerL1IPOMDP.oppModelVarIndex));
-			
-			Global.clearHashtables();
-			tigerL1IPOMDP.commitVariables();
-			
-			tigerL1IPOMDP.currentOi = tigerL1IPOMDP.makeOi();
+//			tigerL1IPOMDP.solveOpponentModels();
+//			
+//			/* 
+//			 * Stage and commit additional state and variables to populate global 
+//			 * arrays
+//			 */
+//			tigerL1IPOMDP.S.set(
+//					tigerL1IPOMDP.oppModelVarIndex, 
+//					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
+//							tigerL1IPOMDP.oppModelVarIndex));
+//			
+//			Global.clearHashtables();
+//			tigerL1IPOMDP.commitVariables();
+//			
+//			tigerL1IPOMDP.currentOi = tigerL1IPOMDP.makeOi();
 			
 //			System.out.println(Arrays.toString(tigerL1IPOMDP.makeOi().get("listen")));
 //			System.out.println(Arrays.toString(tigerL1IPOMDP.makeOi().get("open-right")));
@@ -151,17 +151,17 @@ class TestIPOMDP {
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 10, 3);
 		try {
 			
-			tigerL1IPOMDP.solveOpponentModels();
-			
-			tigerL1IPOMDP.S.set(
-					tigerL1IPOMDP.oppModelVarIndex, 
-					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
-							tigerL1IPOMDP.oppModelVarIndex));
-			
-			Global.clearHashtables();
-			tigerL1IPOMDP.commitVariables();
-			
-			tigerL1IPOMDP.currentTi = tigerL1IPOMDP.makeTi();
+//			tigerL1IPOMDP.solveOpponentModels();
+//			
+//			tigerL1IPOMDP.S.set(
+//					tigerL1IPOMDP.oppModelVarIndex, 
+//					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
+//							tigerL1IPOMDP.oppModelVarIndex));
+//			
+//			Global.clearHashtables();
+//			tigerL1IPOMDP.commitVariables();
+//			
+//			tigerL1IPOMDP.currentTi = tigerL1IPOMDP.makeTi();
 
 //			System.out.println(Arrays.toString(tigerL1IPOMDP.makeTi().get("listen")));
 //			System.out.println(Arrays.toString(tigerL1IPOMDP.makeTi().get("open-right")));
@@ -202,13 +202,13 @@ class TestIPOMDP {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP();
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 15);
 		try {
-			tigerL1IPOMDP.initializeFromParsers(parser);
-			tigerL1IPOMDP.setMjDepth(10);
-			tigerL1IPOMDP.setMjLookAhead(2);
-			tigerL1IPOMDP.solveOpponentModels();
-			tigerL1IPOMDP.commitVariables();
+//			tigerL1IPOMDP.initializeFromParsers(parser);
+//			tigerL1IPOMDP.setMjDepth(10);
+//			tigerL1IPOMDP.setMjLookAhead(2);
+//			tigerL1IPOMDP.solveOpponentModels();
+//			tigerL1IPOMDP.commitVariables();
 //			tigerL1IPOMDP.reinitializeOnlineFunctions();
 //			tigerL1IPOMDP.initializeOfflineFunctions();
 			
@@ -235,7 +235,7 @@ class TestIPOMDP {
 		 * Initialize IPOMDP
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 10, 2);
-		tigerL1IPOMDP.solveOpponentModels();
+//		tigerL1IPOMDP.solveOpponentModels();
 		
 		assertEquals(tigerL1IPOMDP.Omega.size(),
 					2 + 
@@ -292,17 +292,17 @@ class TestIPOMDP {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		try {
-			tigerL1IPOMDP.solveOpponentModels();
-			
-			tigerL1IPOMDP.S.set(
-					tigerL1IPOMDP.oppModelVarIndex, 
-					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
-							tigerL1IPOMDP.oppModelVarIndex));
-			
-			Global.clearHashtables();
-			tigerL1IPOMDP.commitVariables();
-			
-			tigerL1IPOMDP.currentMjTfn = tigerL1IPOMDP.makeOpponentModelTransitionDD();
+//			tigerL1IPOMDP.solveOpponentModels();
+//			
+//			tigerL1IPOMDP.S.set(
+//					tigerL1IPOMDP.oppModelVarIndex, 
+//					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
+//							tigerL1IPOMDP.oppModelVarIndex));
+//			
+//			Global.clearHashtables();
+//			tigerL1IPOMDP.commitVariables();
+//			
+//			tigerL1IPOMDP.currentMjTfn = tigerL1IPOMDP.makeOpponentModelTransitionDD();
 			
 //			System.out.println(tigerL1IPOMDP.currentMjTfn);
 			assertTrue(
@@ -358,20 +358,20 @@ class TestIPOMDP {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		try {
-			tigerL1IPOMDP.solveOpponentModels();
-//			tigerL1IPOMDP.initializeIS();
+////			tigerL1IPOMDP.solveOpponentModels();
+//////			tigerL1IPOMDP.initializeIS();
+////			
+////			tigerL1IPOMDP.S.set(
+////					tigerL1IPOMDP.oppModelVarIndex, 
+////					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
+////							tigerL1IPOMDP.oppModelVarIndex));
+//			
+//			Global.clearHashtables();
+//			tigerL1IPOMDP.commitVariables();
+//			tigerL1IPOMDP.currentTi = tigerL1IPOMDP.makeTi();
+//			tigerL1IPOMDP.currentRi = tigerL1IPOMDP.makeRi();
 			
-			tigerL1IPOMDP.S.set(
-					tigerL1IPOMDP.oppModelVarIndex, 
-					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
-							tigerL1IPOMDP.oppModelVarIndex));
-			
-			Global.clearHashtables();
-			tigerL1IPOMDP.commitVariables();
-			tigerL1IPOMDP.currentTi = tigerL1IPOMDP.makeTi();
-			tigerL1IPOMDP.currentRi = tigerL1IPOMDP.makeRi();
-			
-			System.out.println(tigerL1IPOMDP.currentRi.get("listen"));
+//			System.out.println(tigerL1IPOMDP.currentRi.get("listen"));
 		} 
 		
 		catch (Exception e) {

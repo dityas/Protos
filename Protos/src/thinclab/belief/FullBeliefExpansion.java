@@ -136,8 +136,6 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 				 */
 				for (List<String> observation : this.allPossibleObs) {
 					
-					logger.debug("Applying action " + action + " and obs " + observation);
-					
 					DD nextBelief = 
 							this.beliefUpdate(
 									this.f, 
