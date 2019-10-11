@@ -31,6 +31,32 @@ dd privEscExploitPrivs
 )
 enddd
 
+dd persistExecResult
+(PERSIST_LEVEL'
+	(admin
+	(EXEC_RESULT'
+		(fail
+			(0.01))
+		(success
+			(0.99))
+	))
+	(none
+	(EXEC_RESULT'
+		(fail
+			(0.99))
+		(success
+			(0.01))
+	))
+	(user
+	(EXEC_RESULT'
+		(fail
+			(0.01))
+		(success
+			(0.99))
+	))
+)
+enddd
+
 dd whoamiTermOutput
 (PRIVS'
 	(admin
@@ -130,6 +156,71 @@ dd credsReconTermOutput
 			(0.0))
 		(creds
 			(0.9))
+	))
+)
+enddd
+
+dd persistPersistLevel
+(PRIVS
+	(admin
+	(PERSIST_LEVEL
+		(admin
+			(PERSIST_LEVEL'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+		(none
+			(PERSIST_LEVEL'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+		(user
+			(PERSIST_LEVEL'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+	))
+	(user
+	(PERSIST_LEVEL
+		(admin
+			(PERSIST_LEVEL'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+		(none
+			(PERSIST_LEVEL'
+			(admin
+					(0.0))
+			(none
+					(0.0))
+			(user
+					(1.0))
+		))
+		(user
+			(PERSIST_LEVEL'
+			(admin
+					(0.0))
+			(none
+					(0.0))
+			(user
+					(1.0))
+		))
 	))
 )
 enddd
