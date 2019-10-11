@@ -288,7 +288,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 					 */
 					
 					newVector = dpBackup(beliefRegion[i], primedV, maxAbsVal);
-					numIter += 1;
+//					numIter += 1;
 					newVector.alphaVector = OP.approximate(
 							newVector.alphaVector, bellmanErr * (1 - ipomdp.discFact)
 									/ 2.0, onezero);
