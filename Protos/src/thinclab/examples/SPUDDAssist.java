@@ -7,6 +7,8 @@
  */
 package thinclab.examples;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -167,6 +169,48 @@ public class SPUDDAssist {
 		}
 	}
 	
+	public void importVarsFromFile(String[] cliArgs) {
+		/*
+		 * Import variables from a file
+		 * 
+		 * The variables should be written as comma separated strings in the following format:
+		 * 
+		 *  	Var1, value1, value2
+		 *  	Var2, value1, value2
+		 */
+		try {
+			
+			System.out.println("Importing vars from " + cliArgs[0]);
+			
+			this.ddMaker.clearContext();
+			this.ddMap.clear();
+			
+			BufferedReader reader = new BufferedReader(new FileReader(cliArgs[0]));
+			
+			while(true) {
+				String line = reader.readLine();
+				
+				if (line == null || line.length() == 0) break;
+				
+				String[] varDef = line.split(",\\s*");
+				
+				if (varDef.length == 0) break;
+				
+				this.ddMaker.addVariable(varDef[0], ArrayUtils.subarray(varDef, 1, varDef.length));
+			}
+			
+			reader.close();
+			this.ddMaker.primeVariables();
+			
+			this.showCurrentVariables();
+		} 
+		
+		catch (Exception e) {
+			System.err.println("While trying to import vars from file");
+			System.exit(-1);
+		}
+	}
+	
 	// -----------------------------------------------------------------------------------------
 	
 	private void showCurrentVariables() {
@@ -234,6 +278,9 @@ public class SPUDDAssist {
 			
 			else if (command[0].toLowerCase().contentEquals("write"))
 				this.writeToFile(ArrayUtils.subarray(command, 1, command.length));
+			
+			else if (command[0].toLowerCase().contentEquals("importvars"))
+				this.importVarsFromFile(ArrayUtils.subarray(command, 1, command.length));
 				
 			else if (command[0].toLowerCase().contentEquals("reset")) {
 				this.ddMaker.clearContext();
