@@ -1,0 +1,96 @@
+
+(variables
+(M_COMPROMISED yes no)
+(ASSETS_DISCOVERED yes no)
+(EXFIL_ONGOING yes no)
+)
+
+
+(observations
+(EXPLOIT_SUCCESS yes no)
+(SECRETS_FOUND yes no)
+(UPLOAD_INIT yes no)
+)
+
+
+init [*
+ (  M_COMPROMISED  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ (  ASSETS_DISCOVERED  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ (  EXFIL_ONGOING  ( yes (0.0)  )  ( no (1.0)  )  ) 
+]
+
+
+action EXPLOIT
+M_COMPROMISED (  M_COMPROMISED  ( no (  M_COMPROMISED'  ( yes (0.9)  )  ( no (0.1)  )  ) 
+ )  ( yes (  M_COMPROMISED'  ( yes (1.0)  )  ( no (0.0)  )  ) 
+ )  ) 
+ASSETS_DISCOVERED (  ASSETS_DISCOVERED  ( no (  ASSETS_DISCOVERED'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ )  ( yes (  ASSETS_DISCOVERED'  ( yes (1.0)  )  ( no (0.0)  )  ) 
+ )  ) 
+EXFIL_ONGOING (  EXFIL_ONGOING  ( no (  EXFIL_ONGOING'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ )  ( yes (  EXFIL_ONGOING'  ( yes (1.0)  )  ( no (0.0)  )  ) 
+ )  ) 
+observe
+EXPLOIT_SUCCESS (  M_COMPROMISED'  ( no (  EXPLOIT_SUCCESS'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ )  ( yes (  EXPLOIT_SUCCESS'  ( yes (0.9)  )  ( no (0.1)  )  ) 
+ )  ) 
+SECRETS_FOUND (  SECRETS_FOUND'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+UPLOAD_INIT (  UPLOAD_INIT'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+endobserve
+endaction
+action FILE_RECON
+M_COMPROMISED (  M_COMPROMISED  ( no (  M_COMPROMISED'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ )  ( yes (  M_COMPROMISED'  ( yes (1.0)  )  ( no (0.0)  )  ) 
+ )  ) 
+ASSETS_DISCOVERED (  ASSETS_DISCOVERED  ( no (  M_COMPROMISED  ( no (  ASSETS_DISCOVERED'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ )  ( yes (  ASSETS_DISCOVERED'  ( yes (0.9)  )  ( no (0.1)  )  ) 
+ )  ) 
+ )  ( yes (  M_COMPROMISED  ( no (  ASSETS_DISCOVERED'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ )  ( yes (  ASSETS_DISCOVERED'  ( yes (1.0)  )  ( no (0.0)  )  ) 
+ )  ) 
+ )  ) 
+EXFIL_ONGOING (  EXFIL_ONGOING  ( no (  EXFIL_ONGOING'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ )  ( yes (  EXFIL_ONGOING'  ( yes (1.0)  )  ( no (0.0)  )  ) 
+ )  ) 
+observe
+EXPLOIT_SUCCESS (  EXPLOIT_SUCCESS'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+SECRETS_FOUND (  ASSETS_DISCOVERED'  ( no (  SECRETS_FOUND'  ( yes (0.3)  )  ( no (0.7)  )  ) 
+ )  ( yes (  SECRETS_FOUND'  ( yes (0.9)  )  ( no (0.1)  )  ) 
+ )  ) 
+UPLOAD_INIT (  UPLOAD_INIT'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+endobserve
+endaction
+action EXFIL
+M_COMPROMISED (  M_COMPROMISED  ( no (  M_COMPROMISED'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ )  ( yes (  M_COMPROMISED'  ( yes (1.0)  )  ( no (0.0)  )  ) 
+ )  ) 
+ASSETS_DISCOVERED (  ASSETS_DISCOVERED  ( no (  ASSETS_DISCOVERED'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ )  ( yes (  ASSETS_DISCOVERED'  ( yes (1.0)  )  ( no (0.0)  )  ) 
+ )  ) 
+EXFIL_ONGOING (  EXFIL_ONGOING  ( no (  M_COMPROMISED  ( no (  EXFIL_ONGOING'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ )  ( yes (  EXFIL_ONGOING'  ( yes (0.9)  )  ( no (0.1)  )  ) 
+ )  ) 
+ )  ( yes (  M_COMPROMISED  ( no (  EXFIL_ONGOING'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+ )  ( yes (  EXFIL_ONGOING'  ( yes (1.0)  )  ( no (0.0)  )  ) 
+ )  ) 
+ )  ) 
+observe
+EXPLOIT_SUCCESS (  EXPLOIT_SUCCESS'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+SECRETS_FOUND (  SECRETS_FOUND'  ( yes (0.0)  )  ( no (1.0)  )  ) 
+UPLOAD_INIT (  EXFIL_ONGOING'  ( no (  UPLOAD_INIT'  ( yes (0.1)  )  ( no (0.9)  )  ) 
+ )  ( yes (  UPLOAD_INIT'  ( yes (0.9)  )  ( no (0.1)  )  ) 
+ )  ) 
+endobserve
+endaction
+
+reward  (  M_COMPROMISED  ( no (  ASSETS_DISCOVERED  ( no (  EXFIL_ONGOING  ( yes (0.0)  )  ( no (0.0)  )  ) 
+ )  ( yes (  EXFIL_ONGOING  ( yes (0.0)  )  ( no (0.0)  )  ) 
+ )  ) 
+ )  ( yes (  ASSETS_DISCOVERED  ( no (  EXFIL_ONGOING  ( yes (-5.0)  )  ( no (0.0)  )  ) 
+ )  ( yes (  EXFIL_ONGOING  ( yes (5.0)  )  ( no (0.0)  )  ) 
+ )  ) 
+ )  ) 
+
+discount 0.9
+tolerance 0.001
+
