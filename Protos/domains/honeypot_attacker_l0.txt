@@ -1,0 +1,379 @@
+(variables
+	(HAS_CREDS real fake both none)
+	(TERM_OUTPUT user admin data creds none)
+	(FAKE_DATA_ACCESSED yes no)
+	(PRIVS user admin)
+	(HAS_DATA real fake both none)
+	(EXFIL_STARTED yes no)
+	(DATA_ACCESSED yes no)
+	(CREDS_ACCESSED yes no)
+	(FAKE_CREDS_ACCESSED yes no)
+	(PERSIST_LEVEL none user admin)
+	(EXEC_RESULT success fail)
+)
+
+dd privEscExploitPrivs
+(PRIVS
+	(admin
+	(PRIVS'
+		(admin
+			(1.0))
+		(user
+			(0.0))
+	))
+	(user
+	(PRIVS'
+		(admin
+			(0.6))
+		(user
+			(0.4))
+	))
+)
+enddd
+
+dd persistExecResult
+(PERSIST_LEVEL'
+	(admin
+	(EXEC_RESULT'
+		(fail
+			(0.01))
+		(success
+			(0.99))
+	))
+	(none
+	(EXEC_RESULT'
+		(fail
+			(0.99))
+		(success
+			(0.01))
+	))
+	(user
+	(EXEC_RESULT'
+		(fail
+			(0.01))
+		(success
+			(0.99))
+	))
+)
+enddd
+
+dd whoamiTermOutput
+(PRIVS'
+	(admin
+	(TERM_OUTPUT'
+		(data
+			(0.0))
+		(admin
+			(1.0))
+		(none
+			(0.0))
+		(user
+			(0.0))
+		(creds
+			(0.0))
+	))
+	(user
+	(TERM_OUTPUT'
+		(data
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(0.0))
+		(user
+			(1.0))
+		(creds
+			(0.0))
+	))
+)
+enddd
+
+dd privEscExploitTermOutput
+(TERM_OUTPUT'
+	(data
+	(0.2))
+	(admin
+	(0.2))
+	(none
+	(0.2))
+	(user
+	(0.2))
+	(creds
+	(0.2))
+)
+enddd
+
+dd credsReconTermOutput
+(HAS_CREDS'
+	(fake
+	(TERM_OUTPUT'
+		(data
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(0.1))
+		(user
+			(0.0))
+		(creds
+			(0.9))
+	))
+	(real
+	(TERM_OUTPUT'
+		(data
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(0.1))
+		(user
+			(0.0))
+		(creds
+			(0.9))
+	))
+	(none
+	(TERM_OUTPUT'
+		(data
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(1.0))
+		(user
+			(0.0))
+		(creds
+			(0.0))
+	))
+	(both
+	(TERM_OUTPUT'
+		(data
+			(0.0))
+		(admin
+			(0.0))
+		(none
+			(0.1))
+		(user
+			(0.0))
+		(creds
+			(0.9))
+	))
+)
+enddd
+
+dd persistPersistLevel
+(PRIVS
+	(admin
+	(PERSIST_LEVEL
+		(admin
+			(PERSIST_LEVEL'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+		(none
+			(PERSIST_LEVEL'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+		(user
+			(PERSIST_LEVEL'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+	))
+	(user
+	(PERSIST_LEVEL
+		(admin
+			(PERSIST_LEVEL'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+		(none
+			(PERSIST_LEVEL'
+			(admin
+					(0.0))
+			(none
+					(0.0))
+			(user
+					(1.0))
+		))
+		(user
+			(PERSIST_LEVEL'
+			(admin
+					(0.0))
+			(none
+					(0.0))
+			(user
+					(1.0))
+		))
+	))
+)
+enddd
+
+dd privEscExploitExecResult
+(PRIVS'
+	(admin
+	(EXEC_RESULT'
+		(fail
+			(0.01))
+		(success
+			(0.99))
+	))
+	(user
+	(EXEC_RESULT'
+		(fail
+			(0.99))
+		(success
+			(0.01))
+	))
+)
+enddd
+
+dd allNoInfoExecResult
+(EXEC_RESULT'
+	(fail
+	(0.5))
+	(success
+	(0.5))
+)
+enddd
+
+dd fileReconTermOutput
+(PRIVS'
+	(admin
+	(HAS_DATA'
+		(fake
+			(TERM_OUTPUT'
+			(data
+					(0.9))
+			(admin
+					(0.0))
+			(none
+					(0.1))
+			(user
+					(0.0))
+			(creds
+					(0.0))
+		))
+		(real
+			(TERM_OUTPUT'
+			(data
+					(0.9))
+			(admin
+					(0.0))
+			(none
+					(0.1))
+			(user
+					(0.0))
+			(creds
+					(0.0))
+		))
+		(none
+			(TERM_OUTPUT'
+			(data
+					(0.1))
+			(admin
+					(0.0))
+			(none
+					(0.9))
+			(user
+					(0.0))
+			(creds
+					(0.0))
+		))
+		(both
+			(TERM_OUTPUT'
+			(data
+					(0.9))
+			(admin
+					(0.0))
+			(none
+					(0.1))
+			(user
+					(0.0))
+			(creds
+					(0.0))
+		))
+	))
+	(user
+	(HAS_DATA'
+		(fake
+			(TERM_OUTPUT'
+			(data
+					(0.9))
+			(admin
+					(0.0))
+			(none
+					(0.1))
+			(user
+					(0.0))
+			(creds
+					(0.0))
+		))
+		(real
+			(TERM_OUTPUT'
+			(data
+					(0.1))
+			(admin
+					(0.0))
+			(none
+					(0.9))
+			(user
+					(0.0))
+			(creds
+					(0.0))
+		))
+		(none
+			(TERM_OUTPUT'
+			(data
+					(0.1))
+			(admin
+					(0.0))
+			(none
+					(0.9))
+			(user
+					(0.0))
+			(creds
+					(0.0))
+		))
+		(both
+			(TERM_OUTPUT'
+			(data
+					(0.9))
+			(admin
+					(0.0))
+			(none
+					(0.1))
+			(user
+					(0.0))
+			(creds
+					(0.0))
+		))
+	))
+)
+enddd
+
+dd whoamiExecResult
+(EXEC_RESULT'
+	(fail
+	(0.5))
+	(success
+	(0.5))
+)
+enddd
+
