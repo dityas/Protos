@@ -41,16 +41,16 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 	 */
 	
 	/* max rounds and dpBackups for symbolic perseus */
-	private int maxRounds;
-	private int dpBackups;
+	int maxRounds;
+	int dpBackups;
 	
 	/* Store reference to the IPOMDP for use later */
-	private IPOMDP ipomdp;
+	IPOMDP ipomdp;
 	
 	/*
 	 * Keep alphaVectors inside the solver instead of in the IPOMDP objects
 	 */
-	private DD[] alphaVectors;
+	DD[] alphaVectors;
 	
 	private static final Logger logger = 
 			Logger.getLogger(OnlineInteractiveSymbolicPerseus.class);

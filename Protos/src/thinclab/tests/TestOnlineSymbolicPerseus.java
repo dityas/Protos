@@ -17,6 +17,7 @@ import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.solvers.OnlineSolver;
 import thinclab.utils.CustomConfigurationFactory;
@@ -100,5 +101,47 @@ class TestOnlineSymbolicPerseus {
 //		assertNotNull(p1.alphaVectors);
 ////		assertNotNull(p2.alphaVectors);
 //	}
+	
+	@Test
+	void testOnlineIPBVI() {
+		CustomConfigurationFactory.setLogFileName("test.log");
+		CustomConfigurationFactory.initializeLogging();
+		System.out.println("Running testFHLASolverUtiliyComputation()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		
+		FullInteractiveBeliefExpansion fb = 
+				new FullInteractiveBeliefExpansion(
+						tigerL1IPOMDP);
+		
+		OnlineIPBVISolver solver = 
+				new OnlineIPBVISolver(
+						tigerL1IPOMDP, 
+						fb, 1, 100);
+		
+		solver.solveCurrentStep();
+		
+		solver.nextStep(
+				solver.getBestActionAtCurrentBelief(), 
+				tigerL1IPOMDP.obsCombinations.get(2));
+		
+		solver.solveCurrentStep();
+		
+		solver.nextStep(
+				solver.getBestActionAtCurrentBelief(), 
+				tigerL1IPOMDP.obsCombinations.get(2));
+		
+		solver.solveCurrentStep();
+		
+		solver.nextStep(
+				solver.getBestActionAtCurrentBelief(), 
+				tigerL1IPOMDP.obsCombinations.get(2));
+	}
 
 }
