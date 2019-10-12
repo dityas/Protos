@@ -58,7 +58,9 @@ public class PolicyVisualizer {
 			@Override
 			public String transform(PolicyNode node) {
 				if (node.startNode) {
-					return "<html>" + node.actName + node.getBeliefLabel();
+					return "<html>" 
+							+ node.actName 
+							+ node.factoredBelief.toString();
 				}
 				
 				else {
