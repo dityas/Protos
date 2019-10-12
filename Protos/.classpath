@@ -39,7 +39,6 @@
 	<classpathentry kind="lib" path="lib/logback-access-1.2.3.jar"/>
 	<classpathentry kind="lib" path="lib/logback-classic-1.2.3.jar"/>
 	<classpathentry kind="lib" path="lib/logback-core-1.2.3.jar"/>
-	<classpathentry kind="lib" path="lib/neo4j-java-driver-1.7.5.jar"/>
 	<classpathentry kind="lib" path="lib/sqlite-jdbc-3.27.2.1.jar"/>
 	<classpathentry kind="lib" path="lib/stax-api-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/vecmath-1.3.1.jar"/>
