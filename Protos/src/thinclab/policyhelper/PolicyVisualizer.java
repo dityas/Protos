@@ -11,6 +11,7 @@ import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 
 import javax.swing.JFrame;
 
@@ -60,7 +61,7 @@ public class PolicyVisualizer {
 				if (node.startNode) {
 					return "<html>" 
 							+ node.actName 
-							+ node.factoredBelief.toString();
+							+ node.getBeliefLabel();
 				}
 				
 				else {
@@ -98,8 +99,19 @@ public class PolicyVisualizer {
 			public Shape transform(PolicyNode node) {
 				
 				if (node.startNode) {
-					float height = (float) node.factoredBelief.size() * 20 + 40;
-					return new Rectangle2D.Float(-110 , -1 * height / 2, 220, height);
+					
+					String label = node.getBeliefLabel();
+					
+					float height = (float) label.split("<br>").length * 20 + 40;
+					int width = 
+							Arrays.asList(label.split("<br>"))
+								.stream()
+								.map(i -> i.length())
+								.mapToInt(j -> j)
+								.max()
+								.orElse(label.length());
+					
+					return new Rectangle2D.Float(-4 * width , -1 * height / 2, width * 8, height);
 				}
 				
 				else {
