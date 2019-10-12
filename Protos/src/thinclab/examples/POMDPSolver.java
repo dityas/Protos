@@ -18,6 +18,8 @@ import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
 import thinclab.policyhelper.PolicyVisualizer;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.visualizers.Visualizer;
+import thinclab.utils.visualizers.VizGraph;
 
 /*
  * @author adityas
