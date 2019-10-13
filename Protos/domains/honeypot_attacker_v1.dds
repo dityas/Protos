@@ -1,227 +1,86 @@
 (variables
+	(ASSETS_FOUND data creds none)
 	(HAS_CREDS yes no)
-	(TERM_OUTPUT user admin data creds none success fail)
 	(PRIVS user admin)
 	(HAS_DATA yes no)
 	(DATA_ACCESSED yes no)
 	(CREDS_ACCESSED yes no)
 	(PERSIST_LEVEL none user admin)
+	(EXEC_RESULT success fail)
 )
 
-dd nopTermOutput
-(TERM_OUTPUT'
-	(fail
-	(0.0))
-	(data
-	(0.0))
-	(success
-	(0.0))
-	(admin
-	(0.0))
-	(none
-	(1.0))
-	(user
-	(0.0))
-	(creds
-	(0.0))
-)
-enddd
-
-dd whoamiTermOutput
-(PRIVS'
-	(admin
-	(TERM_OUTPUT'
-		(fail
-			(0.0))
-		(data
-			(0.0))
-		(success
-			(0.0))
-		(admin
-			(1.0))
-		(none
-			(0.0))
-		(user
-			(0.0))
-		(creds
-			(0.0))
-	))
-	(user
-	(TERM_OUTPUT'
-		(fail
-			(0.0))
-		(data
-			(0.0))
-		(success
-			(0.0))
-		(admin
-			(0.0))
-		(none
-			(0.0))
-		(user
-			(1.0))
-		(creds
-			(0.0))
-	))
-)
-enddd
-
-dd credsDiscoveryCredsAccessed
+dd dumpCredsHasCreds
 (HAS_CREDS
 	(no
-	(CREDS_ACCESSED
+	(HAS_CREDS'
 		(no
-			(CREDS_ACCESSED'
-			(no
-					(1.0))
-			(yes
-					(0.0))
-		))
+			(1.0))
 		(yes
-			(CREDS_ACCESSED'
-			(no
-					(1.0))
-			(yes
-					(0.0))
-		))
+			(0.0))
 	))
 	(yes
-	(CREDS_ACCESSED
+	(HAS_CREDS'
 		(no
-			(CREDS_ACCESSED'
-			(no
-					(0.1))
-			(yes
-					(0.9))
-		))
+			(1.0))
 		(yes
-			(CREDS_ACCESSED'
-			(no
-					(0.0))
-			(yes
-					(1.0))
-		))
+			(0.0))
 	))
 )
 enddd
 
-dd persistPersistLevel
+dd privEscExploit
 (PRIVS
 	(admin
-	(PERSIST_LEVEL
+	(PRIVS'
 		(admin
-			(PERSIST_LEVEL'
-			(admin
-					(1.0))
-			(none
-					(0.0))
-			(user
-					(0.0))
-		))
-		(none
-			(PERSIST_LEVEL'
-			(admin
-					(1.0))
-			(none
-					(0.0))
-			(user
-					(0.0))
-		))
+			(1.0))
 		(user
-			(PERSIST_LEVEL'
-			(admin
-					(1.0))
-			(none
-					(0.0))
-			(user
-					(0.0))
-		))
+			(0.0))
 	))
 	(user
-	(PERSIST_LEVEL
+	(PRIVS'
 		(admin
-			(PERSIST_LEVEL'
-			(admin
-					(1.0))
-			(none
-					(0.0))
-			(user
-					(0.0))
-		))
-		(none
-			(PERSIST_LEVEL'
-			(admin
-					(0.0))
-			(none
-					(0.0))
-			(user
-					(1.0))
-		))
+			(0.75))
 		(user
-			(PERSIST_LEVEL'
-			(admin
-					(0.0))
-			(none
-					(0.0))
-			(user
-					(1.0))
-		))
+			(0.25))
 	))
 )
 enddd
 
-dd persistTermOutput
-(PERSIST_LEVEL'
+dd privEscValidLoginExecResult
+(PRIVS'
 	(admin
-	(TERM_OUTPUT'
+	(EXEC_RESULT'
 		(fail
-			(0.0))
-		(data
 			(0.0))
 		(success
 			(1.0))
-		(admin
-			(0.0))
-		(none
-			(0.0))
-		(user
-			(0.0))
-		(creds
-			(0.0))
-	))
-	(none
-	(TERM_OUTPUT'
-		(fail
-			(1.0))
-		(data
-			(0.0))
-		(success
-			(0.0))
-		(admin
-			(0.0))
-		(none
-			(0.0))
-		(user
-			(0.0))
-		(creds
-			(0.0))
 	))
 	(user
-	(TERM_OUTPUT'
+	(EXEC_RESULT'
 		(fail
+			(0.9))
+		(success
+			(0.1))
+	))
+)
+enddd
+
+dd dumpCredsExecResult
+(CREDS_ACCESSED'
+	(no
+	(EXEC_RESULT'
+		(fail
+			(1.0))
+		(success
 			(0.0))
-		(data
+	))
+	(yes
+	(EXEC_RESULT'
+		(fail
 			(0.0))
 		(success
 			(1.0))
-		(admin
-			(0.0))
-		(none
-			(0.0))
-		(user
-			(0.0))
-		(creds
-			(0.0))
 	))
 )
 enddd
