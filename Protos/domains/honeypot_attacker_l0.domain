@@ -130,8 +130,8 @@ dd isValuableDefault
 				(IS_VALUABLE
 					(yes
 						(IS_VALUABLE'
-							(yes 	(0.0))
-							(no 	(1.0))
+							(yes 	(1.0))
+							(no 	(0.0))
 						)
 					)
 					
@@ -220,37 +220,6 @@ enddd
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // PERSIST 
 
-dd persistReward
-
-(IS_VALUABLE
-	(yes
-		(PRIVS	
-		   	(admin
-        	(PERSIST_LEVEL
-        		(admin
-        			(0.1))
-        		(none
-        			(-3.0))
-        		(user
-        			(0.0))
-        	))
-        	(user
-        	(PERSIST_LEVEL
-        		(admin
-        			(0.1))
-        		(none
-        			(-0.5))
-        		(user
-        			(0.1))
-        	))
-        )
-	)
-	
-	(no		(2.0))
-)
-enddd
-
-
 dd persistPersistLevel
 (PRIVS
 	(admin
@@ -267,20 +236,20 @@ dd persistPersistLevel
 		(none
 			(PERSIST_LEVEL'
 			(admin
-					(0.99))
+					(1.0))
 			(none
-					(0.01))
+					(0.0))
 			(user
 					(0.0))
 		))
 		(user
 			(PERSIST_LEVEL'
 			(admin
-					(0.99))
+					(1.0))
 			(none
 					(0.0))
 			(user
-					(0.01))
+					(0.0))
 		))
 	))
 	(user
@@ -290,18 +259,18 @@ dd persistPersistLevel
 			(admin
 					(0.0))
 			(none
-					(0.01))
+					(0.0))
 			(user
-					(0.99))
+					(1.0))
 		))
 		(none
 			(PERSIST_LEVEL'
 			(admin
 					(0.0))
 			(none
-					(0.01))
+					(0.0))
 			(user
-					(0.99))
+					(1.0))
 		))
 		(user
 			(PERSIST_LEVEL'
@@ -315,7 +284,6 @@ dd persistPersistLevel
 	))
 )
 enddd
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // CREDS_RECON
@@ -344,9 +312,9 @@ dd credsReconCredsAccessed
 		(no
 			(CREDS_ACCESSED'
 			(no
-					(0.25))
+					(0.5))
 			(yes
-					(0.75))
+					(0.5))
 		))
 		(yes
 			(CREDS_ACCESSED'
@@ -415,9 +383,9 @@ dd privEscValidLoginPrivs
 		(user
 			(PRIVS'
 			(admin
-					(0.75))
+					(0.1))
 			(user
-					(0.25))
+					(0.0))
 		))
 	))
 )
@@ -1283,8 +1251,8 @@ tolerance 0.001
 						(IS_VALUABLE
 							(yes
 								(IS_VALUABLE'
-									(yes 	(0.0))
-									(no 	(1.0))
+									(yes 	(1.0))
+									(no 	(0.0))
 								)
 							)
 							
@@ -1373,20 +1341,20 @@ tolerance 0.001
 				(none
 					(PERSIST_LEVEL'
 					(admin
-							(0.99))
+							(1.0))
 					(none
-							(0.01))
+							(0.0))
 					(user
 							(0.0))
 				))
 				(user
 					(PERSIST_LEVEL'
 					(admin
-							(0.99))
+							(1.0))
 					(none
 							(0.0))
 					(user
-							(0.01))
+							(0.0))
 				))
 			))
 			(user
@@ -1396,18 +1364,18 @@ tolerance 0.001
 					(admin
 							(0.0))
 					(none
-							(0.01))
+							(0.0))
 					(user
-							(0.99))
+							(1.0))
 				))
 				(none
 					(PERSIST_LEVEL'
 					(admin
 							(0.0))
 					(none
-							(0.01))
+							(0.0))
 					(user
-							(0.99))
+							(1.0))
 				))
 				(user
 					(PERSIST_LEVEL'
@@ -1525,9 +1493,9 @@ tolerance 0.001
 				(no
 					(CREDS_ACCESSED'
 					(no
-							(0.25))
+							(0.5))
 					(yes
-							(0.75))
+							(0.5))
 				))
 				(yes
 					(CREDS_ACCESSED'
@@ -1596,11 +1564,29 @@ tolerance 0.001
 				(user
 					(PRIVS'
 					(admin
-							(0.75))
+							(1.0))
 					(user
-							(0.25))
+							(0.0))
 				))
 			))
+		)
+		enddd
+		
+		dd privEscValidLoginHasCreds
+		(PRIVS
+			(user
+				(HAS_CREDS'
+					(yes	(0.0))
+					(no		(1.0))
+				)
+			)
+			
+			(admin
+				(HAS_CREDS'
+					(yes	(0.0))
+					(no		(1.0))
+				)
+			)
 		)
 		enddd
 		
@@ -1642,8 +1628,8 @@ tolerance 0.001
 							
 							(no
 								(DATA_ACCESSED'
-									(yes	(0.01))
-									(no		(0.99))
+									(yes	(0.0))
+									(no		(1.0))
 								)
 							)
 						)
@@ -1660,8 +1646,8 @@ tolerance 0.001
 							
 							(no
 								(DATA_ACCESSED'
-									(yes	(0.99))
-									(no		(0.01))
+									(yes	(1.0))
+									(no		(0.0))
 								)
 							)
 						)
@@ -1881,7 +1867,7 @@ tolerance 0.001
 		action PRIV_ESC_VALID_LOGIN
 		
 			IS_VALUABLE		(isValuableDefault)
-			HAS_CREDS 		(SAMEHAS_CREDS)
+			HAS_CREDS 		(privEscValidLoginHasCreds)
 			PRIVS 			(privEscValidLoginPrivs)
 			HAS_DATA 		(SAMEHAS_DATA)
 			DATA_ACCESSED 	(SAMEDATA_ACCESSED)
@@ -1947,5 +1933,6 @@ tolerance 0.001
 		discount 0.9
 		
 		tolerance 0.001
+
 	)
 )
