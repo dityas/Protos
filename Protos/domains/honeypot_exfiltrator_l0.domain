@@ -147,8 +147,8 @@ dd isValuableDefault
 				(IS_VALUABLE
 					(yes
 						(IS_VALUABLE'
-							(yes 	(0.0))
-							(no 	(1.0))
+							(yes 	(1.0))
+							(no 	(0.0))
 						)
 					)
 					
@@ -237,20 +237,20 @@ dd persistPersistLevel
 		(none
 			(PERSIST_LEVEL'
 			(admin
-					(0.99))
+					(1.0))
 			(none
-					(0.01))
+					(0.0))
 			(user
 					(0.0))
 		))
 		(user
 			(PERSIST_LEVEL'
 			(admin
-					(0.99))
+					(1.0))
 			(none
 					(0.0))
 			(user
-					(0.01))
+					(0.0))
 		))
 	))
 	(user
@@ -260,18 +260,18 @@ dd persistPersistLevel
 			(admin
 					(0.0))
 			(none
-					(0.01))
+					(0.0))
 			(user
-					(0.99))
+					(1.0))
 		))
 		(none
 			(PERSIST_LEVEL'
 			(admin
 					(0.0))
 			(none
-					(0.01))
+					(0.0))
 			(user
-					(0.99))
+					(1.0))
 		))
 		(user
 			(PERSIST_LEVEL'
@@ -389,9 +389,9 @@ dd credsReconCredsAccessed
 		(no
 			(CREDS_ACCESSED'
 			(no
-					(0.25))
+					(0.5))
 			(yes
-					(0.75))
+					(0.5))
 		))
 		(yes
 			(CREDS_ACCESSED'
@@ -460,11 +460,29 @@ dd privEscValidLoginPrivs
 		(user
 			(PRIVS'
 			(admin
-					(0.75))
+					(1.0))
 			(user
-					(0.25))
+					(0.0))
 		))
 	))
+)
+enddd
+
+dd privEscValidLoginHasCreds
+(PRIVS
+	(user
+		(HAS_CREDS'
+			(yes	(0.0))
+			(no		(1.0))
+		)
+	)
+	
+	(admin
+		(HAS_CREDS'
+			(yes	(0.0))
+			(no		(1.0))
+		)
+	)
 )
 enddd
 
@@ -506,8 +524,8 @@ dd fileReconDataAccessed
 					
 					(no
 						(DATA_ACCESSED'
-							(yes	(0.01))
-							(no		(0.99))
+							(yes	(0.0))
+							(no		(1.0))
 						)
 					)
 				)
@@ -524,8 +542,8 @@ dd fileReconDataAccessed
 					
 					(no
 						(DATA_ACCESSED'
-							(yes	(0.99))
-							(no		(0.01))
+							(yes	(1.0))
+							(no		(0.0))
 						)
 					)
 				)
@@ -745,7 +763,7 @@ endaction
 action PRIV_ESC_VALID_LOGIN
 
 	IS_VALUABLE		(isValuableDefault)
-	HAS_CREDS 		(SAMEHAS_CREDS)
+	HAS_CREDS 		(privEscValidLoginHasCreds)
 	PRIVS 			(privEscValidLoginPrivs)
 	HAS_DATA 		(SAMEHAS_DATA)
 	DATA_ACCESSED 	(SAMEDATA_ACCESSED)
