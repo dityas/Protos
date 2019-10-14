@@ -85,3 +85,26 @@ dd dumpCredsExecResult
 )
 enddd
 
+dd persistReward
+(PRIVS
+	(admin
+	(PERSIST_LEVEL
+		(admin
+			(0.1))
+		(none
+			(-1.0))
+		(user
+			(0.0))
+	))
+	(user
+	(PERSIST_LEVEL
+		(admin
+			(0.1))
+		(none
+			(-0.5))
+		(user
+			(0.1))
+	))
+)
+enddd
+
