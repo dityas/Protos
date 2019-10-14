@@ -1596,6 +1596,13 @@ public class POMDP extends Framework implements Serializable {
 		
 		this.alphaVectors = this.pCache.getMaxAlphaVecs();
 		this.policy = this.pCache.getMaxPolicy();
+		
+		/* null out memory heavy stuff */
+		this.beliefLeaves = null;
+		this.beliefPoints = null;
+		beliefSet = null;
+		this.beliefRegionList = null;
+		this.belRegion = null;
 	}
 
 	public double evaluatePolicyStationary(int nRuns, int nSteps) {
