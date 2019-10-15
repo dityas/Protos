@@ -23,8 +23,8 @@ init [*
 	)
 	
 	(PRIVS
-		(user	(0.5))
-		(admin	(0.5))
+		(user	(1.0))
+		(admin	(0.0))
 	)
 ]
 
@@ -33,6 +33,8 @@ init [*
 // CREDS_RECON
 // FILE_RECON
 // PRIV_ESC_USING_CREDS
+// PRIV_ESC_USING_Z_DAY
+// CHECK_ROOT
 // START_EXFIL
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,15 +77,15 @@ dd credsReconExecResult
 (HAS_CREDS'
 	(yes
 		(EXEC_RESULT'
-			(success	(0.95))
-			(fail		(0.05))
+			(success	(0.99))
+			(fail		(0.01))
 		)
 	)
 	
 	(no
 		(EXEC_RESULT'
-			(success	(0.05))
-			(fail		(0.95))
+			(success	(0.5))
+			(fail		(0.5))
 		)
 	)
 )
