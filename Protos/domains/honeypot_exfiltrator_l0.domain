@@ -710,8 +710,6 @@ action PERSIST
 		EXEC_RESULT		(persistExecResult)
 		
 	endobserve
-	
-//	cost (persistReward)
 
 endaction
 
