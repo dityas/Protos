@@ -12,6 +12,7 @@ import java.util.List;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.frameworks.Framework;
 import thinclab.legacy.DD;
+import thinclab.utils.PolicyCache;
 
 /*
  * @author adityas
@@ -25,6 +26,8 @@ public abstract class OnlineSolver {
 	
 	public Framework f;
 	public BeliefRegionExpansionStrategy expansionStrategy;
+	
+	PolicyCache pCache = new PolicyCache(5);
 
 	// ------------------------------------------------------------------------------------------
 	

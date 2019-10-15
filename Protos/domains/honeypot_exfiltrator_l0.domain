@@ -1,0 +1,829 @@
+(variables
+	(IS_VALUABLE yes no)
+	(HAS_CREDS yes no)
+	(PRIVS user admin)
+	(HAS_DATA yes no)
+	(DATA_ACCESSED yes no)
+	(CREDS_ACCESSED yes no)
+	(PERSIST_LEVEL none user admin)
+)
+
+(observations
+	(EXEC_RESULT success fail)
+	(ASSETS_FOUND data creds none)
+)
+
+unnormalized
+
+init [*
+
+	(IS_VALUABLE
+		(yes	(0.5))
+		(no		(0.5))
+	)
+	
+	(HAS_CREDS
+		(yes	(0.5))
+		(no		(0.5))
+	)
+	
+	(PRIVS
+		(user	(0.5))
+		(admin	(0.5))
+	)
+	
+	(HAS_DATA
+		(yes	(0.5))
+		(no		(0.5))
+	)
+	
+	(DATA_ACCESSED
+		(yes	(0.0))
+		(no		(1.0))
+	)
+	
+	(CREDS_ACCESSED
+		(yes	(0.0))
+		(no		(1.0))
+	)
+	
+	(PERSIST_LEVEL
+		(none 	(1.0))
+		(user	(0.0))
+		(admin	(0.0))
+	)
+
+]
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// CHECK_ROOT
+
+dd checkRootExecResult
+(PRIVS'
+	(admin
+	(EXEC_RESULT'
+		(fail
+			(0.0))
+		(success
+			(1.0))
+	))
+	(user
+	(EXEC_RESULT'
+		(fail
+			(1.0))
+		(success
+			(0.0))
+	))
+)
+enddd
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// NOP
+
+dd isValuableDefault
+(HAS_CREDS
+	(yes
+		(HAS_DATA
+			(yes
+				(IS_VALUABLE
+					(yes
+						(IS_VALUABLE'
+							(yes 	(1.0))
+							(no 	(0.0))
+						)
+					)
+					
+					(no
+						(IS_VALUABLE'
+							(yes 	(1.0))
+							(no 	(0.0))
+						)
+					)
+				)
+			)
+			
+			(no
+				(IS_VALUABLE
+					(yes
+						(IS_VALUABLE'
+							(yes 	(1.0))
+							(no 	(0.0))
+						)
+					)
+					
+					(no
+						(IS_VALUABLE'
+							(yes 	(1.0))
+							(no 	(0.0))
+						)
+					)
+				)
+			)
+		)
+	)
+	
+	(no
+		(HAS_DATA
+			(yes
+				(IS_VALUABLE
+					(yes
+						(IS_VALUABLE'
+							(yes 	(1.0))
+							(no 	(0.0))
+						)
+					)
+					
+					(no
+						(IS_VALUABLE'
+							(yes 	(1.0))
+							(no 	(0.0))
+						)
+					)
+				)
+			)
+			
+			(no
+				(IS_VALUABLE
+					(yes
+						(IS_VALUABLE'
+							(yes 	(1.0))
+							(no 	(0.0))
+						)
+					)
+					
+					(no
+						(IS_VALUABLE'
+							(yes 	(0.0))
+							(no 	(1.0))
+						)
+					)
+				)
+			)
+		)
+	)
+)	
+
+enddd
+
+
+dd nopAssetsFound
+(ASSETS_FOUND'
+	(data
+	(0.0))
+	(none
+	(1.0))
+	(creds
+	(0.0))
+)
+enddd
+
+dd nopExecResult
+(EXEC_RESULT'
+	(fail
+	(0.0))
+	(success
+	(1.0))
+)
+enddd
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// PERSIST 
+
+dd persistReward
+
+(IS_VALUABLE
+	(yes
+		(PRIVS	
+		   	(admin
+        	(PERSIST_LEVEL
+        		(admin
+        			(0.1))
+        		(none
+        			(-3.0))
+        		(user
+        			(0.0))
+        	))
+        	(user
+        	(PERSIST_LEVEL
+        		(admin
+        			(0.1))
+        		(none
+        			(-0.5))
+        		(user
+        			(0.1))
+        	))
+        )
+	)
+	
+	(no		(2.0))
+)
+enddd
+
+
+dd persistPersistLevel
+(PRIVS
+	(admin
+	(PERSIST_LEVEL
+		(admin
+			(PERSIST_LEVEL'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+		(none
+			(PERSIST_LEVEL'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+		(user
+			(PERSIST_LEVEL'
+			(admin
+					(1.0))
+			(none
+					(0.0))
+			(user
+					(0.0))
+		))
+	))
+	(user
+	(PERSIST_LEVEL
+		(admin
+			(PERSIST_LEVEL'
+			(admin
+					(0.0))
+			(none
+					(0.0))
+			(user
+					(1.0))
+		))
+		(none
+			(PERSIST_LEVEL'
+			(admin
+					(0.0))
+			(none
+					(0.0))
+			(user
+					(1.0))
+		))
+		(user
+			(PERSIST_LEVEL'
+			(admin
+					(0.0))
+			(none
+					(0.0))
+			(user
+					(1.0))
+		))
+	))
+)
+enddd
+
+dd persistExecResult
+(PRIVS'
+	(admin
+	(PERSIST_LEVEL'
+		(admin
+			(EXEC_RESULT'
+			(fail
+					(0.0))
+			(success
+					(1.0))
+		))
+		(none
+			(EXEC_RESULT'
+			(fail
+					(1.0))
+			(success
+					(0.0))
+		))
+		(user
+			(EXEC_RESULT'
+			(fail
+					(1.0))
+			(success
+					(0.0))
+		))
+	))
+	(user
+	(PERSIST_LEVEL'
+		(admin
+			(EXEC_RESULT'
+			(fail
+					(1.0))
+			(success
+					(0.0))
+		))
+		(none
+			(EXEC_RESULT'
+			(fail
+					(1.0))
+			(success
+					(0.0))
+		))
+		(user
+			(EXEC_RESULT'
+			(fail
+					(0.0))
+			(success
+					(1.0))
+		))
+	))
+)
+enddd
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// CREDS_RECON
+
+dd credsReconAssetsFound
+(CREDS_ACCESSED'
+	(no
+	(ASSETS_FOUND'
+		(data
+			(0.0))
+		(none
+			(0.9))
+		(creds
+			(0.1))
+	))
+	(yes
+	(ASSETS_FOUND'
+		(data
+			(0.0))
+		(none
+			(0.1))
+		(creds
+			(0.9))
+	))
+)
+enddd
+
+dd credsReconCredsAccessed
+(HAS_CREDS
+	(no
+	(CREDS_ACCESSED
+		(no
+			(CREDS_ACCESSED'
+			(no
+					(1.0))
+			(yes
+					(0.0))
+		))
+		(yes
+			(CREDS_ACCESSED'
+			(no
+					(1.0))
+			(yes
+					(0.0))
+		))
+	))
+	(yes
+	(CREDS_ACCESSED
+		(no
+			(CREDS_ACCESSED'
+			(no
+					(0.5))
+			(yes
+					(0.5))
+		))
+		(yes
+			(CREDS_ACCESSED'
+			(no
+					(0.0))
+			(yes
+					(1.0))
+		))
+	))
+)
+enddd
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// PRIV_ESC_EXPLOIT
+
+dd privEscExploitPrivs
+(PRIVS
+	(admin
+	(PRIVS'
+		(admin
+			(1.0))
+		(user
+			(0.0))
+	))
+	(user
+	(PRIVS'
+		(admin
+			(0.5))
+		(user
+			(0.5))
+	))
+)
+enddd
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// PRIV_ESC_VALID_LOGIN
+
+dd privEscValidLoginPrivs
+(CREDS_ACCESSED
+	(no
+	(PRIVS
+		(admin
+			(PRIVS'
+			(admin
+					(0.0))
+			(user
+					(1.0))
+		))
+		(user
+			(PRIVS'
+			(admin
+					(0.0))
+			(user
+					(1.0))
+		))
+	))
+	(yes
+	(PRIVS
+		(admin
+			(PRIVS'
+			(admin
+					(1.0))
+			(user
+					(0.0))
+		))
+		(user
+			(PRIVS'
+			(admin
+					(1.0))
+			(user
+					(0.0))
+		))
+	))
+)
+enddd
+
+dd privEscValidLoginHasCreds
+(PRIVS
+	(user
+		(HAS_CREDS'
+			(yes	(0.0))
+			(no		(1.0))
+		)
+	)
+	
+	(admin
+		(HAS_CREDS'
+			(yes	(0.0))
+			(no		(1.0))
+		)
+	)
+)
+enddd
+
+dd privEscValidLoginExecResult
+(PRIVS'
+	(admin
+	(EXEC_RESULT'
+		(fail
+			(0.0))
+		(success
+			(1.0))
+	))
+	(user
+	(EXEC_RESULT'
+		(fail
+			(0.9))
+		(success
+			(0.1))
+	))
+)
+enddd
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FILE_RECON
+
+dd fileReconDataAccessed
+
+(HAS_DATA
+	(yes
+		(PRIVS
+			(user
+				(DATA_ACCESSED
+					(yes
+						(DATA_ACCESSED'
+							(yes	(1.0))
+							(no		(0.0))
+						)
+					)
+					
+					(no
+						(DATA_ACCESSED'
+							(yes	(0.0))
+							(no		(1.0))
+						)
+					)
+				)
+			)
+			
+			(admin
+				(DATA_ACCESSED
+					(yes
+						(DATA_ACCESSED'
+							(yes	(1.0))
+							(no		(0.0))
+						)
+					)
+					
+					(no
+						(DATA_ACCESSED'
+							(yes	(1.0))
+							(no		(0.0))
+						)
+					)
+				)
+			)
+		)
+	)
+	
+	(no
+		(PRIVS
+			(user
+				(DATA_ACCESSED
+					(yes
+						(DATA_ACCESSED'
+							(yes	(0.0))
+							(no		(1.0))
+						)
+					)
+					
+					(no
+						(DATA_ACCESSED'
+							(yes	(0.0))
+							(no		(1.0))
+						)
+					)
+				)
+			)
+			
+			(admin
+				(DATA_ACCESSED
+					(yes
+						(DATA_ACCESSED'
+							(yes	(0.0))
+							(no		(1.0))
+						)
+					)
+					
+					(no
+						(DATA_ACCESSED'
+							(yes	(0.0))
+							(no		(1.0))
+						)
+					)
+				)
+			)
+		)
+	)
+)
+
+enddd
+
+
+dd fileReconAssetsFound
+(DATA_ACCESSED'
+	(yes
+		(ASSETS_FOUND'
+			(none	(0.1))
+			(creds	(0.0))
+			(data	(0.9))	
+		)
+	)
+	
+	(no
+		(ASSETS_FOUND'
+			(none	(0.9))
+			(creds	(0.0))
+			(data	(0.1))	
+		)
+	)
+)
+enddd
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// START_EXFIL
+
+dd startExfilReward
+(IS_VALUABLE
+	(yes
+		(DATA_ACCESSED
+			(yes	(-2.0))
+			(no		(1.0))
+		)	
+	)
+	
+	(no
+		(DATA_ACCESSED
+			(yes	(1.0))
+			(no		(1.0))
+		)
+	)
+)
+enddd
+
+
+// Actions
+// NOP
+// EXIT
+// PRIV_ESC_VALID_LOGIN
+// PRIV_ESC_EXPLOIT
+// START_EXFIL
+// MANIPULATE_DATA
+// DESTROY_DATA
+// PERSIST
+// FILE_RECON
+// CREDS_DISCOVERY
+// DUMP_CREDS
+// WHOAMI
+
+
+action CHECK_ROOT
+
+	IS_VALUABLE		(isValuableDefault)
+	HAS_CREDS 		(SAMEHAS_CREDS)
+	PRIVS 			(SAMEPRIVS)
+	HAS_DATA 		(SAMEHAS_DATA)
+	DATA_ACCESSED 	(SAMEDATA_ACCESSED)
+	CREDS_ACCESSED 	(SAMECREDS_ACCESSED)
+	PERSIST_LEVEL 	(SAMEPERSIST_LEVEL)
+	
+	observe
+		
+		ASSETS_FOUND	(nopAssetsFound)
+		EXEC_RESULT		(checkRootExecResult)
+		
+	endobserve
+	
+	cost	(0.001)
+
+endaction
+
+
+action NOP
+
+	IS_VALUABLE		(isValuableDefault)
+	HAS_CREDS 		(SAMEHAS_CREDS)
+	PRIVS 			(SAMEPRIVS)
+	HAS_DATA 		(SAMEHAS_DATA)
+	DATA_ACCESSED 	(SAMEDATA_ACCESSED)
+	CREDS_ACCESSED 	(SAMECREDS_ACCESSED)
+	PERSIST_LEVEL 	(SAMEPERSIST_LEVEL)
+	
+	observe
+		
+		ASSETS_FOUND	(nopAssetsFound)
+		EXEC_RESULT		(nopExecResult)
+		
+	endobserve
+
+endaction
+
+
+action PERSIST
+
+	IS_VALUABLE		(isValuableDefault)
+	HAS_CREDS 		(SAMEHAS_CREDS)
+	PRIVS 			(SAMEPRIVS)
+	HAS_DATA 		(SAMEHAS_DATA)
+	DATA_ACCESSED 	(SAMEDATA_ACCESSED)
+	CREDS_ACCESSED 	(SAMECREDS_ACCESSED)
+	PERSIST_LEVEL 	(persistPersistLevel)
+	
+	observe
+		
+		ASSETS_FOUND	(nopAssetsFound)
+		EXEC_RESULT		(persistExecResult)
+		
+	endobserve
+
+endaction
+
+
+action CREDS_RECON
+
+	IS_VALUABLE		(isValuableDefault)
+	HAS_CREDS 		(SAMEHAS_CREDS)
+	PRIVS 			(SAMEPRIVS)
+	HAS_DATA 		(SAMEHAS_DATA)
+	DATA_ACCESSED 	(SAMEDATA_ACCESSED)
+	CREDS_ACCESSED 	(credsReconCredsAccessed)
+	PERSIST_LEVEL 	(SAMEPERSIST_LEVEL)
+	
+	observe
+		
+		ASSETS_FOUND	(credsReconAssetsFound)
+		EXEC_RESULT		(nopExecResult)
+		
+	endobserve
+	
+	cost (0.01)
+
+endaction
+
+
+action PRIV_ESC_EXPLOIT
+
+	IS_VALUABLE		(isValuableDefault)
+	HAS_CREDS 		(SAMEHAS_CREDS)
+	PRIVS 			(privEscExploitPrivs)
+	HAS_DATA 		(SAMEHAS_DATA)
+	DATA_ACCESSED 	(SAMEDATA_ACCESSED)
+	CREDS_ACCESSED 	(SAMECREDS_ACCESSED)
+	PERSIST_LEVEL 	(SAMEPERSIST_LEVEL)
+	
+	observe
+		
+		ASSETS_FOUND	(nopAssetsFound)
+		EXEC_RESULT		(nopExecResult)
+		
+	endobserve
+	
+	cost (0.5)
+
+endaction
+
+
+action PRIV_ESC_VALID_LOGIN
+
+	IS_VALUABLE		(isValuableDefault)
+	HAS_CREDS 		(privEscValidLoginHasCreds)
+	PRIVS 			(privEscValidLoginPrivs)
+	HAS_DATA 		(SAMEHAS_DATA)
+	DATA_ACCESSED 	(SAMEDATA_ACCESSED)
+	CREDS_ACCESSED 	(SAMECREDS_ACCESSED)
+	PERSIST_LEVEL 	(SAMEPERSIST_LEVEL)
+	
+	observe
+		
+		ASSETS_FOUND	(nopAssetsFound)
+		EXEC_RESULT		(privEscValidLoginExecResult)
+		
+	endobserve
+	
+	cost (0.1)
+
+endaction
+
+action FILE_RECON
+
+	IS_VALUABLE		(isValuableDefault)
+	HAS_CREDS 		(SAMEHAS_CREDS)
+	PRIVS 			(SAMEPRIVS)
+	HAS_DATA 		(SAMEHAS_DATA)
+	DATA_ACCESSED 	(fileReconDataAccessed)
+	CREDS_ACCESSED 	(SAMECREDS_ACCESSED)
+	PERSIST_LEVEL 	(SAMEPERSIST_LEVEL)
+	
+	observe
+		
+		ASSETS_FOUND	(fileReconAssetsFound)
+		EXEC_RESULT		(nopExecResult)
+		
+	endobserve
+	
+	cost	(0.01)
+
+endaction
+
+
+action START_EXFIL
+
+	IS_VALUABLE		(isValuableDefault)
+	HAS_CREDS 		(SAMEHAS_CREDS)
+	PRIVS 			(SAMEPRIVS)
+	HAS_DATA 		(HAS_DATA'	(yes	(0.0))	(no		(1.0)))
+	DATA_ACCESSED 	(DATA_ACCESSED'	(yes	(0.0))	(no		(1.0)))
+	CREDS_ACCESSED 	(SAMECREDS_ACCESSED)
+	PERSIST_LEVEL 	(SAMEPERSIST_LEVEL)
+	
+	observe
+		
+		ASSETS_FOUND	(nopAssetsFound)
+		EXEC_RESULT		(nopExecResult)
+		
+	endobserve
+
+	cost	(startExfilReward)
+
+endaction
+
+
+
+discount 0.9
+
+tolerance 0.001

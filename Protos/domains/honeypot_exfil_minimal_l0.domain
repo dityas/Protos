@@ -1,0 +1,426 @@
+(variables
+	(HAS_CREDS yes no)
+	(PRIVS user admin)
+	(HAS_DATA yes no)
+)
+
+(observations
+	(EXEC_RESULT success fail)
+)
+
+unnormalized
+
+init [*
+	
+	(HAS_CREDS
+		(yes	(0.5))
+		(no		(0.5))
+	)
+	
+	(HAS_DATA
+		(yes	(0.5))
+		(no		(0.5))
+	)
+	
+	(PRIVS
+		(user	(1.0))
+		(admin	(0.0))
+	)
+]
+
+// Actions
+// NOP
+// CREDS_RECON
+// FILE_RECON
+// PRIV_ESC_USING_CREDS
+// PRIV_ESC_USING_Z_DAY
+// CHECK_ROOT
+// START_EXFIL
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// NOP
+
+dd defaultExecResult
+(EXEC_RESULT'
+	(success	(0.5))
+	(fail		(0.5))
+)
+enddd
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// CHECK_ROOT
+
+dd checkRootExecResult
+(PRIVS'
+	(user
+		(EXEC_RESULT'
+			(success	(0.01))
+			(fail	 	(0.99))
+		)
+	)
+	
+	(admin
+		(EXEC_RESULT'
+			(success	(0.99))
+			(fail	 	(0.01))
+		)
+	)
+)
+enddd
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// CREDS_RECON
+
+dd credsReconExecResult
+(HAS_CREDS'
+	(yes
+		(EXEC_RESULT'
+			(success	(0.99))
+			(fail		(0.01))
+		)
+	)
+	
+	(no
+		(EXEC_RESULT'
+			(success	(0.5))
+			(fail		(0.5))
+		)
+	)
+)
+enddd
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// FILE_RECON
+
+dd fileReconExecResult
+(HAS_DATA'
+	(yes
+		(PRIVS'
+			(user
+				(EXEC_RESULT'
+					(success	(0.75))
+					(fail		(0.25))
+				)
+			)
+			
+			(admin
+				(EXEC_RESULT'
+					(success	(0.99))
+					(fail		(0.01))
+				)
+			)
+		)
+	)
+	
+	(no
+		(PRIVS'
+			(user
+				(EXEC_RESULT'
+					(success	(0.01))
+					(fail		(0.99))
+				)
+			)
+			
+			(admin
+				(EXEC_RESULT'
+					(success	(0.01))
+					(fail		(0.99))
+				)
+			)
+		)
+	)
+)
+
+enddd
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// START_EXFIL
+
+dd startExfilReward
+
+(HAS_DATA
+	(yes
+		(PRIVS
+			(user	(0.0))
+			(admin	(-10.0))
+		)
+	)
+	
+	(no		(100.0))	
+)
+
+enddd
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// PRIV_ESC_USING_CREDS
+
+dd privEscUsingCredsExecResult
+
+(PRIVS'
+	(user
+		(EXEC_RESULT'
+			(success	(0.01))
+			(fail		(0.99))
+		)
+	)
+	
+	(admin
+		(EXEC_RESULT'
+			(success	(0.99))
+			(fail		(0.01))
+		)
+	)
+)
+enddd
+
+dd privEscUsingCredsPrivs
+(HAS_CREDS
+	(yes
+		(PRIVS
+			(user
+				(PRIVS'
+					(user	(0.01))
+					(admin	(0.99))
+				)
+			)
+			
+			(admin
+				(PRIVS'
+					(user	(0.0))
+					(admin	(1.0))
+				)
+			)
+		)
+	)
+	
+	(no
+		(PRIVS
+			(user
+				(PRIVS'
+					(user	(1.0))
+					(admin	(0.0))
+				)
+			)
+			
+			(admin
+				(PRIVS'
+					(user	(0.0))
+					(admin	(1.0))
+				)
+			)
+		)
+	)
+)
+enddd
+
+dd privEscUsingCredsReward
+
+(PRIVS
+	(user
+		(HAS_CREDS
+			(yes	(-1.0))
+			(no		(2.0))
+		)	
+	)
+	
+	(admin
+		(HAS_CREDS
+			(yes	(2.0))
+			(no		(2.0))
+		)
+	)
+)
+enddd
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// PRIV_ESC_USING_Z_DAY
+
+dd privEscUsingZDayPrivs
+(PRIVS
+	(user
+		(PRIVS'
+			(user	(0.01))
+			(admin	(0.99))
+		)
+	)
+	
+	(admin
+		(PRIVS'
+			(user	(0.0))
+			(admin	(1.0))
+		)
+	)
+)
+enddd
+
+dd privEscUsingZDayReward
+
+(PRIVS
+	(user
+		(HAS_DATA
+			(yes	(-1.0))
+			(no		(2.0))
+		)	
+	)
+	
+	(admin
+		(HAS_DATA
+			(yes	(2.0))
+			(no		(2.0))
+		)
+	)
+)
+enddd
+
+
+
+////////////////////////////////////////////////////////////////
+// NOP
+////////////////////////////////////////////////////////////////
+
+action NOP
+
+	HAS_CREDS 			(SAMEHAS_CREDS)
+	PRIVS 				(SAMEPRIVS)
+	HAS_DATA 			(SAMEHAS_DATA)
+	
+	observe
+	
+		EXEC_RESULT (defaultExecResult)
+		
+	endobserve
+	
+endaction
+
+
+////////////////////////////////////////////////////////////////
+// CHECK_ROOT
+////////////////////////////////////////////////////////////////
+
+action CHECK_ROOT
+
+	HAS_CREDS 			(SAMEHAS_CREDS)
+	PRIVS 				(SAMEPRIVS)
+	HAS_DATA 			(SAMEHAS_DATA)
+	
+	observe
+	
+		EXEC_RESULT (checkRootExecResult)
+		
+	endobserve
+	
+	cost (0.001)
+	
+endaction
+
+
+////////////////////////////////////////////////////////////////
+// CREDS_RECON
+////////////////////////////////////////////////////////////////
+
+action CREDS_RECON
+
+	HAS_CREDS 			(SAMEHAS_CREDS)
+	PRIVS 				(SAMEPRIVS)
+	HAS_DATA 			(SAMEHAS_DATA)
+	
+	observe
+	
+		EXEC_RESULT (credsReconExecResult)
+		
+	endobserve
+	
+	cost (0.1)
+	
+endaction
+
+
+////////////////////////////////////////////////////////////////
+// FILE_RECON
+////////////////////////////////////////////////////////////////
+
+action FILE_RECON
+
+	HAS_CREDS 			(SAMEHAS_CREDS)
+	PRIVS 				(SAMEPRIVS)
+	HAS_DATA 			(SAMEHAS_DATA)
+	
+	observe
+	
+		EXEC_RESULT (fileReconExecResult)
+		
+	endobserve
+	
+	cost (0.1)
+	
+endaction
+
+
+////////////////////////////////////////////////////////////////
+// START_EXFIL
+////////////////////////////////////////////////////////////////
+
+action START_EXFIL
+
+	HAS_CREDS 			(HAS_CREDSno)
+	PRIVS 				(SAMEPRIVS)
+	HAS_DATA 			(HAS_DATAno)
+	
+	observe
+	
+		EXEC_RESULT (defaultExecResult)
+		
+	endobserve
+	
+	cost (startExfilReward)
+	
+endaction
+
+
+////////////////////////////////////////////////////////////////
+// PRIV_ESC_USING_CREDS
+////////////////////////////////////////////////////////////////
+
+action PRIV_ESC_USING_CREDS
+
+	HAS_CREDS 			(HAS_CREDSno)
+	PRIVS 				(privEscUsingCredsPrivs)
+	HAS_DATA 			(SAMEHAS_DATA)
+	
+	observe
+	
+		EXEC_RESULT (privEscUsingCredsExecResult)
+		
+	endobserve
+	
+	cost (privEscUsingCredsReward)
+	
+endaction
+
+
+////////////////////////////////////////////////////////////////
+// PRIV_ESC_USING_Z_DAY
+////////////////////////////////////////////////////////////////
+
+action PRIV_ESC_USING_Z_DAY
+
+	HAS_CREDS 			(SAMEHAS_CREDS)
+	PRIVS 				(privEscUsingZDayPrivs)
+	HAS_DATA 			(SAMEHAS_DATA)
+	
+	observe
+	
+		EXEC_RESULT (defaultExecResult)
+		
+	endobserve
+	
+	cost (privEscUsingZDayReward)
+	
+endaction
+
+
+discount 0.9
+
+tolerance 0.001
