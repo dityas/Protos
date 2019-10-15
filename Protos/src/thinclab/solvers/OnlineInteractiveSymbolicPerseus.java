@@ -9,6 +9,7 @@ package thinclab.solvers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -135,6 +136,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 		try {
 			
 			for (int r = 0; r < this.maxRounds; r++) {
+				
+				/* reset policy cache */
+				this.pCache.resetOscillationTracking();
+				this.pCache.resetAlphaVecsMap();
 				
 				boundedPerseusStartFromCurrent(
 						100, 
@@ -369,7 +374,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 			bellmanErr = Math.min(10, Math.max(ipomdp.bestImprovement, -ipomdp.worstDecline));
 			
 			logger.info("I: " + stepId 
-					+ " \tB ERROR: " + Double.toString(bellmanErr).substring(0, 5)
+					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
 					+ " \tUSED/TOTAL BELIEFS: " + numIter + "/" + beliefRegion.length
 					+ " \tA VECTORS: " + this.alphaVectors.length);
 			
