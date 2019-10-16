@@ -43,7 +43,6 @@ class TestIPOMDP {
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
-//		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/defender_l1.txt";
 	}
 
 	@AfterEach

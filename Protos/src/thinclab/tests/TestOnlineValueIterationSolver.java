@@ -44,14 +44,14 @@ public String l1DomainFile;
 		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 10, 3);
+		IPOMDP ipomdp = new IPOMDP(parser, 5, 3);
 		
 		OnlineValueIterationSolver solver = new OnlineValueIterationSolver(ipomdp);
 		
 		System.out.println(
 				solver.computeUtilityRecursive(
 						ipomdp.getInitialBeliefs().get(0), 
-						ipomdp.mjLookAhead));
+						0));
 	}
 
 }

@@ -1,3 +1,4 @@
 bin/
 *.pomdp
 target/
+/test.log

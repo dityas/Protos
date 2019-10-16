@@ -44,6 +44,7 @@ class TestOnlineSymbolicPerseus {
 
 	@Test
 	void testFHLASolverUtiliyComputation() {
+		CustomConfigurationFactory.setLogFileName("test.log");
 		CustomConfigurationFactory.initializeLogging();
 		System.out.println("Running testFHLASolverUtiliyComputation()");
 		
@@ -68,21 +69,25 @@ class TestOnlineSymbolicPerseus {
 		
 		solver.solveCurrentStep();
 		
+		System.out.println(tigerL1IPOMDP.currentStateBeliefs);
+		
 		solver.nextStep(
 				solver.getBestActionAtCurrentBelief(), 
 				tigerL1IPOMDP.obsCombinations.get(2));
+		
+		System.out.println(tigerL1IPOMDP.currentStateBeliefs);
 		
 		solver.solveCurrentStep();
 		
-		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
-				tigerL1IPOMDP.obsCombinations.get(2));
-		
-		solver.solveCurrentStep();
-		
-		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
-				tigerL1IPOMDP.obsCombinations.get(2));
+//		solver.nextStep(
+//				solver.getBestActionAtCurrentBelief(), 
+//				tigerL1IPOMDP.obsCombinations.get(2));
+//		
+//		solver.solveCurrentStep();
+//		
+//		solver.nextStep(
+//				solver.getBestActionAtCurrentBelief(), 
+//				tigerL1IPOMDP.obsCombinations.get(2));
 	}
 	
 //	@Test

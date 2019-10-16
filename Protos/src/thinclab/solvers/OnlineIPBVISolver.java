@@ -7,6 +7,7 @@
  */
 package thinclab.solvers;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,7 @@ import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.frameworks.IPOMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 
 /*
@@ -159,7 +161,8 @@ public class OnlineIPBVISolver extends OnlineInteractiveSymbolicPerseus {
 		double maxAbsVal = 0;
 		
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
-
+			logger.debug("STEP:=====================================================================");
+//			logger.debug("A vecs are: " + Arrays.toString(this.alphaVectors));
 			steptolerance = ipomdp.tolerance;
 
 			primedV = new DD[this.alphaVectors.length];
@@ -199,7 +202,7 @@ public class OnlineIPBVISolver extends OnlineInteractiveSymbolicPerseus {
 			 */
 			
 			for (int i = 0; i < beliefRegion.length; i++) {
-			
+				Global.newHashtables();
 				/*
 				 * dpBackup
 				 */
@@ -221,10 +224,10 @@ public class OnlineIPBVISolver extends OnlineInteractiveSymbolicPerseus {
 								beliefRegion, 
 								newVector.alphaVector);
 
-//				if (this.numNewAlphaVectors < 1)
-//					improvement = Double.POSITIVE_INFINITY; 
-//				
-//				else
+				if (this.numNewAlphaVectors < 1)
+					improvement = Double.POSITIVE_INFINITY; 
+				
+				else
 					improvement = 
 						OP.max(
 								OP.sub(
@@ -238,7 +241,7 @@ public class OnlineIPBVISolver extends OnlineInteractiveSymbolicPerseus {
 						this.newPointBasedValues[belid][this.numNewAlphaVectors] = 
 							newValues[belid];
 					}
-//					logger.debug("improvement over previous is " + improvement);
+					logger.debug("improvement over previous is " + improvement);
 					this.newAlphaVectors[this.numNewAlphaVectors] = newVector;
 					this.numNewAlphaVectors++;
 				}

@@ -142,7 +142,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 				this.pCache.resetAlphaVecsMap();
 				
 				boundedPerseusStartFromCurrent(
-						100, 
+						15, 
 						r * this.dpBackups, 
 						this.dpBackups, 
 						factoredBeliefRegion);
@@ -180,13 +180,13 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 //			logger.debug("Belief:" + i+ " " 
 //					+ InteractiveBelief.toStateMap(this.ipomdp, OP.reorder(OP.multN(beliefRegion[i]))));
 //		}
-		
+		logger.debug("Ri : " + this.ipomdp.currentRi);
 //		logger.debug("Current PBVs are " + Arrays.deepToString(this.ipomdp.currentPointBasedValues));
 		DD[] primedV;
 		double maxAbsVal = 0;
 		
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
-//			logger.debug("STEP:=====================================================================");
+			logger.debug("STEP:=====================================================================");
 //			logger.debug("A vecs are: " + Arrays.toString(this.alphaVectors));
 //			logger.debug("Ri : " + this.ipomdp.currentRi);
 			steptolerance = ipomdp.tolerance;
@@ -308,7 +308,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 							OP.factoredExpectationSparseNoMem(
 									beliefRegion, 
 									newVector.alphaVector);
-//					logger.debug("New Values computed");
+					
 //					logger.debug("New PBVs were " + Arrays.deepToString(ipomdp.newPointBasedValues));
 					if (ipomdp.numNewAlphaVectors < 1)
 						improvement = Double.POSITIVE_INFINITY; 
@@ -323,8 +323,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 													ipomdp.numNewAlphaVectors)));
 					
 					if (improvement > ipomdp.tolerance) {
-//						logger.debug("Improvement after backup is " + improvement 
-//								+ " with previous max " + OP.getMax(this.ipomdp.currentPointBasedValues, 1)[0]);
+						logger.debug("Improvement after backup is " + improvement);
 //						logger.debug("Adding the new Alpha Vector with vars " 
 //								+ Arrays.toString(newVector.alphaVector.getVarSet()));
 						numNew += 1;
@@ -575,6 +574,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineSolver {
 //		logger.debug("Best Value is " + bestValue);
 //		logger.debug("New Alpha has vars " + Arrays.toString(newAlpha.getVarSet()) 
 //			+ " with value " + bestValue);
+		
 		/*
 		 * package up to return
 		 */
