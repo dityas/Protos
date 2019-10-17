@@ -8,6 +8,7 @@
 package thinclab.solvers;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -31,12 +32,6 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 	
 	
 	private IPOMDP ipomdp;
-	
-	/*
-	 * Cache belief updates onces they are done to save time
-	 */
-	private HashMap<DD, HashMap<List<List<String>>, DD>> beliefUpdateCache = 
-			new HashMap<DD, HashMap<List<List<String>>, DD>>();
 	
 	private final static Logger logger = Logger.getLogger(OnlineValueIterationSolver.class);
 	
@@ -67,42 +62,69 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 		 */
 		
 		HashMap<String, Double> utility = new HashMap<String, Double>();
-		
-		/* if this is the boundary of the look ahead, just compute ER(S, Ai) */
-		if (depth >= this.ipomdp.mjLookAhead) {
+	
+		/* compute ER(S, Ai) */
+		for (String Ai : this.ipomdp.getActions()) {
 			
-			for (String Ai : this.ipomdp.getActions()) {
-				
-				/* Compute ER(S, Ai) */
-				DD[] ER = new DD[] {this.ipomdp.currentRi.get(Ai), belief};
-				
-				
-				
-				
-				/* Final utility */
-				utility.put(
-						Ai, 
-						OP.addMultVarElim(
-								new DD[] {
-										this.ipomdp.currentRi.get(Ai),
-										belief}, 
-								ArrayUtils.subarray(
-										this.ipomdp.stateVarIndices,
-										0,
-										this.ipomdp.stateVarIndices.length - 1)).getVal());
-			}
-			
+			utility.put(
+					Ai, 
+					OP.addMultVarElim(
+							new DD[] {
+									this.ipomdp.currentRi.get(Ai),
+									belief}, 
+							ArrayUtils.subarray(
+									this.ipomdp.stateVarIndices,
+									0,
+									this.ipomdp.stateVarIndices.length - 1)).getVal());
 		}
 		
-		else {
+		if (depth < ipomdp.mjLookAhead) {
 			
 			try {
 				HashMap<String, NextBelState> nextBeliefs = 
 						oneStepNZPrimeBelStates(
 								InteractiveBelief.factorInteractiveBelief(ipomdp, belief), 
-								true, 0.000001);
+								false, 0.000001);
 				
-				System.out.println(nextBeliefs);
+				for (String Ai : nextBeliefs.keySet()) {
+					
+					/* Compute the next belief state */
+					double utilityAi = 0.0;
+					DD[][] nextBelStates = nextBeliefs.get(Ai).nextBelStates;
+					
+					for (DD[] nextBelState : nextBelStates) {
+						
+						/* Unfactor the belief point */
+						DD nextBelief = 
+								OP.primeVars(
+										OP.multN(
+												ArrayUtils.subarray(
+														nextBelState, 
+														0, nextBelState.length - 1)), 
+										-(ipomdp.S.size() + ipomdp.Omega.size()));
+						
+						double obsProb = nextBelState[nextBelState.length - 1].getVal();
+						
+						if (obsProb < 0.00001) continue;
+						
+						/* Get utilities for nextBelief */
+						HashMap<String, Double> nextUtils = 
+								computeUtilityRecursive(nextBelief, depth + 1);
+						
+						/* Find max utility */
+						double maxUtil = 
+								nextUtils.values().stream()
+									.max(Comparator.comparing(Double::valueOf)).get();
+						
+						/* compute P(Oi=o | Ai, b) * U(SE(b, Ai, o)) */
+						utilityAi += (obsProb * maxUtil);
+						
+					} /* for all possible o in Oi */
+					
+					/* gamma * utilityAi */
+					double ER = utility.get(Ai);
+					utility.put(Ai, ER + (ipomdp.discFact * utilityAi));
+				}
 			} 
 			
 			catch (ZeroProbabilityObsException | VariableNotFoundException e) {
@@ -110,6 +132,7 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 			}
 		}
 		
+//		logger.debug("At lookahead=" + depth + " utility is " + utility);
 		return utility;
 	}
 
