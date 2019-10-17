@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -30,10 +31,21 @@ import thinclab.legacy.OP;
  */
 public class OnlineValueIterationSolver extends OnlineSolver {
 	
+	/*
+	 * Computes the utility for all actions for a fixed look ahead horizon.
+	 * 
+	 * Note that the policy obtained using this solver is not optimal for infinite horizon.
+	 */
 	
+	/* store IPOMDP reference */
 	private IPOMDP ipomdp;
 	
+	/* Store utilities for current step */
+	private HashMap<String, Double> currentUtilities;
+	
 	private final static Logger logger = Logger.getLogger(OnlineValueIterationSolver.class);
+	
+	// --------------------------------------------------------------------------------------
 	
 	public OnlineValueIterationSolver(IPOMDP ipomdp) {
 		
@@ -41,17 +53,43 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 		
 		this.ipomdp = ipomdp;
 	}
+
+	// --------------------------------------------------------------------------------------
 	
+	@Override
+	public void solveCurrentStep() {
+		/*
+		 * Override this method because VI does not need the belief expansion separately.
+		 */
+		DD currentBelief = ipomdp.getInitialBeliefs().get(0); 
+		
+		this.currentUtilities = 
+				this.computeUtilityRecursive(
+						currentBelief, ipomdp.mjLookAhead);
+		
+		logger.info("Utilities for belief " + InteractiveBelief.toStateMap(ipomdp, currentBelief)
+				+ " for a look ahead of " + ipomdp.mjLookAhead + " are " + this.currentUtilities);
+		
+	}
 	
 	@Override
 	public void solveForBeliefs(List<DD> beliefs) {
-		
+		/* 
+		 * Value iteration does not do belief expansion separately. So don't implement
+		 * this method
+		 */
 	}
 
 	@Override
 	public String getBestActionAtCurrentBelief() {
+		/*
+		 * Return the action with the highest utility value from the current utilities
+		 */
+		Entry<String, Double> entry = this.currentUtilities.entrySet().stream()
+			.max((i, j) -> i.getValue().compareTo(j.getValue()))
+			.get();
 		
-		return null;
+		return entry.getKey();
 	}
 	
 	// ---------------------------------------------------------------------------------
@@ -132,7 +170,6 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 			}
 		}
 		
-//		logger.debug("At lookahead=" + depth + " utility is " + utility);
 		return utility;
 	}
 
@@ -220,8 +257,24 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 	
 	@Override
 	public void nextStep(String action, List<String> obs) {
-		// TODO Auto-generated method stub
-
+		
+		try {
+			/*
+			 * Transition the IPOMDP to a new belief by taking the specified action
+			 * and observing obs.
+			 */
+			this.ipomdp.step(
+					this.ipomdp.getInitialBeliefs().get(0), 
+					action, 
+					obs.toArray(new String[obs.size()]));
+		} 
+		
+		catch (ZeroProbabilityObsException | VariableNotFoundException e) {
+			logger.error("While taking action " 
+					+ action + " and observing " + obs 
+					+ " got error: " + e.getMessage());
+			System.exit(-1);
+		}
 	}
 
 }
