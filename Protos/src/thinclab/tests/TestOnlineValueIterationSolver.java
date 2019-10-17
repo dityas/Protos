@@ -29,7 +29,7 @@ public String l1DomainFile;
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
-		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
+		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.enemy.txt";
 //		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/defender_l1.txt";
 	}
 
@@ -44,14 +44,27 @@ public String l1DomainFile;
 		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 10, 3);
+		IPOMDP ipomdp = new IPOMDP(parser, 8, 3);
 		
 		OnlineValueIterationSolver solver = new OnlineValueIterationSolver(ipomdp);
 		
-		System.out.println(
-				solver.computeUtilityRecursive(
-						ipomdp.getInitialBeliefs().get(0), 
-						ipomdp.mjLookAhead));
+		solver.solveCurrentStep();
+		
+		solver.nextStep(
+				solver.getBestActionAtCurrentBelief(), 
+				ipomdp.obsCombinations.get(2));
+		
+		solver.solveCurrentStep();
+		
+		solver.nextStep(
+				solver.getBestActionAtCurrentBelief(), 
+				ipomdp.obsCombinations.get(2));
+		
+		solver.solveCurrentStep();
+		
+		solver.nextStep(
+				solver.getBestActionAtCurrentBelief(), 
+				ipomdp.obsCombinations.get(2));
 	}
 
 }

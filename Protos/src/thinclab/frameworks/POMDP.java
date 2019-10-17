@@ -1483,7 +1483,7 @@ public class POMDP extends Framework implements Serializable {
 		
 		BeliefSet beliefSet = new BeliefSet(initBeliefList);
 		
-		beliefSet.expandBeliefRegionBF(this, 2);
+		beliefSet.expandBeliefRegionBF(this, 3);
 		this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 		
 		// initialize T
@@ -1497,7 +1497,7 @@ public class POMDP extends Framework implements Serializable {
 			this.pCache.resetAlphaVecsMap();
 
 			boundedPerseusStartFromCurrent(100, r * numDpBackups, numDpBackups);
-
+//			PBVIStartFromCurrent(1000, r * numDpBackups, numDpBackups);
 			beliefSet.expandBeliefRegionSSGA(this, 100);
 			this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 
@@ -2434,6 +2434,183 @@ public class POMDP extends Framework implements Serializable {
 		}
 
 	}
+	
+	
+	public void PBVIStartFromCurrent(int maxAlpha, int firstStep,
+			int nSteps) {
+		double bellmanErr;
+		double[] onezero = { 0 };
+		double steptolerance;
+
+		maxAlphaSetSize = maxAlpha;
+
+		bellmanErr = 20 * tolerance;
+
+		currentPointBasedValues = OP.factoredExpectationSparseNoMem(belRegion,
+				alphaVectors);
+//		logger.debug("Currnet PBVs are " + Arrays.deepToString(currentPointBasedValues));
+//		System.out.println("DEBUG IS " + debug);
+//		System.out.println("currentPointBasedValues " + Arrays.deepToString(currentPointBasedValues));
+		DD[] primedV;
+		double maxAbsVal = 0;
+		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
+//			logger.debug("STEP:=====================================================================");
+//			logger.debug("A vecs are: " + Arrays.toString(alphaVectors));
+			steptolerance = tolerance;
+
+			primedV = new DD[alphaVectors.length];
+			for (int i = 0; i < alphaVectors.length; i++) {
+				primedV[i] = OP.primeVars(alphaVectors[i], nVars);
+			}
+			
+			maxAbsVal = Math.max(
+					OP.maxabs(concatenateArray(OP.maxAllN(alphaVectors),
+							OP.minAllN(alphaVectors))), 1e-10);
+//			System.out.println("maxAbsVal: " + maxAbsVal);
+
+			// could be one more than the maximum number at most
+			newAlphaVectors = new AlphaVector[maxAlphaSetSize + 1];
+			newPointBasedValues = new double[belRegion.length][maxAlphaSetSize + 1];
+			numNewAlphaVectors = 0;
+			
+//			System.out.println("After init");
+//			System.out.println(Arrays.deepToString(newPointBasedValues));
+
+			AlphaVector newVector;
+			double[] diff = new double[belRegion.length];
+			double[] maxcurrpbv;
+			double[] maxnewpbv;
+			double[] newValues;
+			double improvement;
+
+			// we allow the number of new alpha vectors to get one bigger than
+			// the maximum allowed size, since we may be able to cull more than
+			// one
+			// alpha vector when trimming, bringing us back below the cutoff
+			int numUsed = 0;
+			for (int i = 0; i < belRegion.length; i++) {
+				Global.newHashtables();
+//				
+					newVector = dpBackup(belRegion[i], primedV, maxAbsVal);
+					// newVector.alphaVector.display();
+					numUsed += 1;
+					newVector.alphaVector = OP.approximate(
+							newVector.alphaVector, bellmanErr * (1 - discFact)
+									/ 2.0, onezero);
+					newVector.setWitness(i);
+
+//					System.out.print(" " + OP.nEdges(newVector.alphaVector)
+//							+ " edges, " + OP.nNodes(newVector.alphaVector)
+//							+ " nodes, " + OP.nLeaves(newVector.alphaVector)
+//							+ " leaves");
+					
+//					System.out.println("New alpha vector is " + newVector.alphaVector);
+					
+					// merge and trim
+					newValues = OP.factoredExpectationSparseNoMem(belRegion,
+							newVector.alphaVector);
+//					logger.debug("New Values are " + Arrays.toString(newValues));
+//					logger.debug("New PBVs were " + Arrays.deepToString(newPointBasedValues));
+					if (numNewAlphaVectors < 1) {
+						improvement = Double.POSITIVE_INFINITY;
+					} else {
+						improvement = OP.max(OP.sub(newValues, OP.getMax(
+								newPointBasedValues, numNewAlphaVectors)));
+					}
+//					logger.debug("Improvement after backup is " + improvement);
+//					System.out.println("improvement is " + improvement);
+//					System.out.println("tolerance is " + tolerance);
+					if (improvement > tolerance) {
+//						logger.debug("Adding the new Alpha Vector");
+//						logger.debug("Improvement after backup is " + improvement 
+//								+ " with previous max " + OP.getMax(currentPointBasedValues, 1)[0]);
+//						logger.debug("Adding the new Alpha Vector with vars " 
+//								+ Arrays.toString(newVector.alphaVector.getVarSet()));
+						for (int belid = 0; belid < belRegion.length; belid++)
+							newPointBasedValues[belid][numNewAlphaVectors] = newValues[belid];
+						newAlphaVectors[numNewAlphaVectors] = newVector;
+						numNewAlphaVectors++;
+					}
+				
+//				System.out.println("numNewAlphaVectors=" + numNewAlphaVectors);
+////				System.out.println("newPointBasedValues " + Arrays.deepToString(newPointBasedValues));
+//				System.out.println("dpBackup value " 
+//						+ (OP.max(newPointBasedValues[i], numNewAlphaVectors)
+//							- OP.max(currentPointBasedValues[i])));
+//				System.out.println((numNewAlphaVectors < maxAlphaSetSize && !permutedIds.isempty()));
+			}
+			// iteration is over,
+//			System.out.println("iteration " + stepId
+//					+ " is over...number of new alpha vectors: "
+//					+ numNewAlphaVectors + "   numdp backupds " + nDpBackups);
+
+			// compute statistics
+			//
+			computeMaxMinImprovement();
+
+			// save data and copy over new to old
+			alphaVectors = new DD[numNewAlphaVectors];
+			currentPointBasedValues = new double[newPointBasedValues.length][numNewAlphaVectors];
+//			System.out.println("policy/values are: ");
+			policy = new int[numNewAlphaVectors];
+			policyvalue = new double[numNewAlphaVectors];
+			for (int j = 0; j < nActions; j++)
+				uniquePolicy[j] = false;
+
+			for (int j = 0; j < numNewAlphaVectors; j++) {
+				alphaVectors[j] = newAlphaVectors[j].alphaVector;
+//				System.out.println(" " + newAlphaVectors[j].actId + "/"
+//						+ newAlphaVectors[j].value);
+				policy[j] = newAlphaVectors[j].actId;
+				policyvalue[j] = newAlphaVectors[j].value;
+				uniquePolicy[policy[j]] = true;
+			}
+//			System.out.println("unique policy :");
+//			for (int j = 0; j < nActions; j++)
+//				if (uniquePolicy[j])
+//					System.out.print(" " + j);
+//			System.out.println();
+
+//			for (int i = 0; i < alphaVectors.length; i++) {
+//				double bval = OP.factoredExpectationSparseNoMem(
+//						belRegion[newAlphaVectors[i].witness], alphaVectors[i]);
+//				System.err.println(" " + stepId + " " + policy[i] + " " + bval);
+//			}
+//			System.out.println("Unique policy is " + Arrays.toString(uniquePolicy));
+			for (int j = 0; j < belRegion.length; j++) {
+				System.arraycopy(newPointBasedValues[j], 0,
+						currentPointBasedValues[j], 0, numNewAlphaVectors);
+			}
+//			System.out.println("best improvement: " + bestImprovement
+//					+ "  worstDecline " + worstDecline);
+			bellmanErr = Math.min(10, Math.max(bestImprovement, -worstDecline));
+			logger.info("STEP: " + stepId 
+					+ " \tBELLMAN ERROR: " + bellmanErr
+					+ " \tUSED/BELIEF POINTS: " + numUsed + "/" + this.belRegion.length
+					+ " \tA VECTORS: " + alphaVectors.length);
+			
+			if (stepId % 100 < 5) continue;
+			
+			else {
+				this.pCache.cachePolicy(this.alphaVectors.length,
+										this.alphaVectors,
+										this.policy);
+				
+				if (this.pCache.isOscillating(new Float(bellmanErr))) {
+					logger.warn(
+							"BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
+					break;
+				}
+			} // else
+			
+			if (bellmanErr < 0.001) {
+				logger.warn("BELLMAN ERROR LESS THAN 0.001. PROBABLY CONVERGED.");
+				break;
+			}
+//			logger.debug("END STEP:==================================================================");
+		}
+
+	}
 
 	public void computeMaxMinImprovement() {
 		double imp;
@@ -2807,7 +2984,7 @@ public class POMDP extends Framework implements Serializable {
 		/* sub 1 from index to compensate for Matlab-like indexing in Globals */
 		String varName = Global.varNames[varIndex - 1];
 		
-		if (varName.substring(varName.length() - 2).contains("_P"))
+		if (varName.length() > 2 && varName.substring(varName.length() - 2).contains("_P"))
 			return varName.substring(0, varName.length() - 2) + "'";
 		
 		else return varName;

@@ -23,7 +23,7 @@ import thinclab.utils.CustomConfigurationFactory;
 class TestPOMDP {
 
 	public String tigerDom = "/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
-	public String attDom = "/home/adityas/git/repository/Protos/domains/attacker_l0.txt";
+	public String attDom = "/home/adityas/git/repository/Protos/domains/cycle7.SPUDD.txt";
 	
 	@BeforeEach
 	void setUp() throws Exception {
@@ -62,16 +62,16 @@ class TestPOMDP {
 	void testPOMDPSolvePBVI() {
 		System.out.println("Running testPOMDPSolvePBVI()");
 		
-		POMDP p1 = new POMDP(this.tigerDom);
-//		POMDP p2 = new POMDP(this.attDom);
+//		POMDP p1 = new POMDP(this.tigerDom);
+		POMDP p2 = new POMDP(this.attDom);
 		
-		assertNull(p1.alphaVectors);
+//		assertNull(p1.alphaVectors);
 //		assertNull(p2.alphaVectors);
 		
-		p1.solvePBVI(3, 100);
-//		p2.solvePBVI(15, 100);
+//		p1.solvePBVI(3, 100);
+		p2.solvePBVI(1, 100);
 		
-		assertNotNull(p1.alphaVectors);
+//		assertNotNull(p1.alphaVectors);
 //		assertNotNull(p2.alphaVectors);
 	}
 
