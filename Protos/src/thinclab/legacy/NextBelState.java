@@ -8,9 +8,14 @@
 package thinclab.legacy;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import thinclab.belief.InteractiveBelief;
+import thinclab.exceptions.VariableNotFoundException;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
 
@@ -208,5 +213,88 @@ public class NextBelState {
 			obsValues[obsPtr] = obsProb * alphaValue;
 			sumObsValues += obsValues[obsPtr];
 		}
+	}
+	
+	// -----------------------------------------------------------------------------------------
+	/*
+	 * Functions to get single step NextBelStates 
+	 */
+	
+	public static HashMap<String, NextBelState> oneStepNZPrimeBelStates(
+			IPOMDP ipomdp,
+			DD[] belState,
+			boolean normalize, 
+			double smallestProb) throws ZeroProbabilityObsException, VariableNotFoundException {
+		/*
+		 * Computes the next belief states and the observation probabilities that lead to them
+		 */
+		
+		int[][] obsConfig = 
+				new int[ipomdp.obsCombinations.size()][ipomdp.obsIVarIndices.length];
+		
+		double[] obsProbs;
+		DD[] marginals = new DD[ipomdp.stateVarIndices.length + 1];
+		DD dd_obsProbs;
+		
+		for (int obsId = 0; obsId < ipomdp.obsCombinations.size(); obsId++)
+			obsConfig[obsId] = 
+				ipomdp.statedecode(
+						obsId + 1,
+						ipomdp.obsIVarIndices.length, 
+						ArrayUtils.subarray(
+								ipomdp.obsVarsArity, 
+								0, 
+								ipomdp.obsIVarIndices.length));
+		
+		Global.newHashtables();
+		
+		HashMap<String, NextBelState> nextBelStates = new HashMap<String, NextBelState>();
+		
+		for (String Ai: ipomdp.getActions()) {
+		
+			/* Assuming factored belief was normalized */
+			dd_obsProbs = 
+					InteractiveBelief.getL1BeliefUpdateNorm(
+							ipomdp, 
+							OP.reorder(OP.multN(belState)), Ai);
+
+			obsProbs = OP.convert2array(dd_obsProbs, ipomdp.obsIVarPrimeIndices);
+			nextBelStates.put(Ai, new NextBelState(ipomdp, obsProbs, smallestProb));
+//			logger.debug("Obs Probs are " + Arrays.toString(obsProbs));
+//			logger.debug("Obs Config is " + Arrays.deepToString(obsConfig));
+			
+			/*
+			 * Compute marginals
+			 */
+			try {
+				if (!nextBelStates.get(Ai).isempty()) {
+					marginals = 
+							OP.marginals(
+									InteractiveBelief.getCpts(
+											ipomdp, 
+											belState, 
+											Ai), 
+									ArrayUtils.subarray(
+											ipomdp.stateVarPrimeIndices, 
+											0, 
+											ipomdp.stateVarIndices.length - 1),
+									ArrayUtils.subarray(
+											ipomdp.stateVarIndices, 
+											0, 
+											ipomdp.stateVarIndices.length - 1));
+					
+//					logger.debug("Marginals are " + Arrays.toString(marginals));
+					nextBelStates.get(Ai).restrictN(marginals, obsConfig);
+//					logger.debug("After computing marginals " + nextBelStates[actId]);
+				}
+			}
+			
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+		return nextBelStates;
 	}
 }

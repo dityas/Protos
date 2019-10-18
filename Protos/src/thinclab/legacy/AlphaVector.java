@@ -1,6 +1,13 @@
 package thinclab.legacy;
 
 import java.io.Serializable;
+import java.util.HashMap;
+
+import org.apache.commons.lang3.ArrayUtils;
+
+import thinclab.exceptions.VariableNotFoundException;
+import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.IPOMDP;
 
 public class AlphaVector implements Serializable {
 	/**
@@ -31,6 +38,158 @@ public class AlphaVector implements Serializable {
 
 	public void setWitness(int i) {
 		witness = i;
+	}
+	
+	// ---------------------------------------------------------------------------------------
+	
+	public static AlphaVector dpBackup(
+			IPOMDP ipomdp,
+			DD[] belState, 
+			DD[] primedV, 
+			double maxAbsVal,
+			int numAlpha) throws ZeroProbabilityObsException, VariableNotFoundException {
+		
+		HashMap<String, NextBelState> nextBelStates;
+		
+		/* get next unnormalised belief states */
+		double smallestProb;
+		
+		smallestProb = ipomdp.tolerance / maxAbsVal;
+		nextBelStates = 
+				NextBelState.oneStepNZPrimeBelStates(
+						ipomdp, 
+						belState, 
+						true, 
+						smallestProb);
+
+		/* precompute obsVals */
+		nextBelStates.values().forEach(n -> n.getObsVals(primedV));
+
+		double bestValue = Double.NEGATIVE_INFINITY;
+		double actValue;
+		String bestAction = null;
+		
+		int nObservations = ipomdp.obsCombinations.size();
+		
+		int[] bestObsStrat = new int[nObservations];
+
+		for (String Ai : ipomdp.getActions()) {
+			
+			actValue = 0.0;
+			
+			/* compute immediate rewards */
+			actValue = 
+					actValue + OP.factoredExpectationSparseNoMem(
+							belState, 
+							ipomdp.currentRi.get(Ai));
+
+			/* compute observation strategy */
+			nextBelStates.get(Ai).getObsStrat();
+			actValue = actValue + ipomdp.discFact
+					* nextBelStates.get(Ai).getSumObsValues();
+			
+			if (actValue > bestValue) {
+				
+				bestValue = actValue;
+				bestAction = Ai;
+				bestObsStrat = nextBelStates.get(Ai).obsStrat;
+			}
+		}
+		
+		/* construct corresponding alpha vector */
+		DD newAlpha = DD.zero;
+		DD nextValFn = DD.zero;
+		DD obsDd;
+		int[] obsConfig = new int[ipomdp.obsIVarIndices.length];
+		
+		for (int alphaId = 0; alphaId < numAlpha; alphaId++) {
+		
+			if (MySet.find(bestObsStrat, alphaId) >= 0) {
+
+				obsDd = DD.zero;
+
+				for (int obsId = 0; obsId < nObservations; obsId++) {
+					
+					if (bestObsStrat[obsId] == alphaId) {
+						
+						obsConfig = 
+								ipomdp.statedecode(
+										obsId + 1, 
+										ipomdp.obsIVarIndices.length, 
+										ArrayUtils.subarray(
+												ipomdp.obsVarsArity, 
+												0, 
+												ipomdp.obsIVarIndices.length));
+
+						obsDd = 
+								OP.add(
+										obsDd, 
+										Config.convert2dd(
+												IPOMDP.stackArray(
+														ipomdp.obsIVarPrimeIndices, 
+														obsConfig)));
+
+					}
+				}
+				
+				nextValFn = 
+						OP.add(
+								nextValFn, 
+								OP.multN(
+										IPOMDP.concatenateArray(
+												DDleaf.myNew(ipomdp.discFact), 
+												obsDd, 
+												primedV[alphaId])));
+			}
+		}
+		
+		/* include Mj's transition for computing value function */
+		DD mjTransition = ipomdp.currentTau;
+		
+		/* Add P(AJ | MJ) to Ti */
+		DD[] Ti = 
+				ArrayUtils.add(
+						ipomdp.currentTi.get(bestAction), 
+						ipomdp.currentAjGivenMj);
+		
+		DD[] valFnArray = 
+				ArrayUtils.addAll(
+						ArrayUtils.addAll(
+								ipomdp.currentOi.get(bestAction),
+								Ti), 
+						new DD[] {mjTransition, nextValFn});
+		
+		DD V = 
+				OP.addMultVarElim(
+						valFnArray, 
+						ipomdp.AjIndex);
+
+		newAlpha = 
+				OP.addMultVarElim(
+						V, 
+						ArrayUtils.addAll(
+								ArrayUtils.subarray(
+										ipomdp.stateVarPrimeIndices,
+										0, ipomdp.stateVarPrimeIndices.length - 1),
+								ipomdp.obsIVarPrimeIndices));
+
+		newAlpha = 
+				OP.addN(
+						IPOMDP.concatenateArray(
+								newAlpha, 
+								ipomdp.currentRi.get(bestAction)));
+		
+		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
+
+		/* package up to return */
+		AlphaVector returnAlpha = 
+				new AlphaVector(
+						newAlpha, 
+						bestValue, 
+						ipomdp.getActions().indexOf(bestAction), 
+						bestObsStrat);
+		
+		return returnAlpha;
 	}
 
 }
