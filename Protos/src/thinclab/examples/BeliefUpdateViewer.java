@@ -23,6 +23,8 @@ import thinclab.frameworks.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.legacy.StateVar;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
+import thinclab.solvers.OnlineSolver;
+import thinclab.solvers.OnlineValueIterationSolver;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -42,7 +44,7 @@ public class BeliefUpdateViewer {
 	
 	public IPOMDP ipomdp;
 	public FullInteractiveBeliefExpansion expansionStrat;
-	public OnlineInteractiveSymbolicPerseus solver;
+	public OnlineSolver solver;
 	
 	public void initialize() {
 		/*
@@ -62,11 +64,12 @@ public class BeliefUpdateViewer {
 		System.out.println("IPOMDP initialized");
 		
 		/* Initialize solver */
-		this.solver = 
-				new OnlineInteractiveSymbolicPerseus(
-						this.ipomdp, 
-						this.expansionStrat, 
-						1, 1000);
+//		this.solver = 
+//				new OnlineInteractiveSymbolicPerseus(
+//						this.ipomdp, 
+//						this.expansionStrat, 
+//						1, 1000);
+		this.solver = new OnlineValueIterationSolver(ipomdp);
 		System.out.println("Solver initialized");
 	}
 	

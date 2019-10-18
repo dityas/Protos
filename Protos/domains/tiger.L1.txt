@@ -45,9 +45,9 @@ endaction
 action listen__open-left
     tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
     observe
-        growl (tigerLocObs)
+//        growl (tigerLocObs)
 
-//		growl (growl' (growl-left	(0.5))	(growl-right	(0.5)))
+		growl (growl' (growl-left	(0.5))	(growl-right	(0.5)))
 		      
 		creak (tiger-location'
 				
@@ -91,9 +91,9 @@ endaction
 action listen__open-right
     tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
     observe
-        growl (tigerLocObs)
+//        growl (tigerLocObs)
 
-//		growl (growl' (growl-left	(0.5))	(growl-right	(0.5)))
+		growl (growl' (growl-left	(0.5))	(growl-right	(0.5)))
 		
 		creak (creak'
 				(silence
@@ -276,8 +276,8 @@ tolerance 0.001
 		unnormalized
 		
 		init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
-//		adjunct a1 (tiger-location (tiger-left (0.75)) (tiger-right (0.25)))
-//		adjunct a2 (tiger-location (tiger-left (0.25)) (tiger-right (0.75)))
+		adjunct a1 (tiger-location (tiger-left (0.75)) (tiger-right (0.25)))
+		adjunct a2 (tiger-location (tiger-left (0.25)) (tiger-right (0.75)))
 //		adjunct a3 (tiger-location (tiger-left (0.99)) (tiger-right (0.01)))
 		
 		action listen

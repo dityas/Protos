@@ -1483,21 +1483,20 @@ public class POMDP extends Framework implements Serializable {
 		
 		BeliefSet beliefSet = new BeliefSet(initBeliefList);
 		
-		beliefSet.expandBeliefRegionBF(this, 3);
+		beliefSet.expandBeliefRegionBF(this, 2);
 		this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 		
 		// initialize T
 		alphaVectors = new DD[this.nActions];
 		for (int i = 0; i < this.nActions; i++)
 			alphaVectors[i] = this.actions[i].rewFn;
-//		alphaVectors = new DD[] {DD.one};
 
 		for (int r=0; r < rounds; r++) {
 			this.pCache.resetOscillationTracking();
 			this.pCache.resetAlphaVecsMap();
 
 			boundedPerseusStartFromCurrent(100, r * numDpBackups, numDpBackups);
-//			PBVIStartFromCurrent(1000, r * numDpBackups, numDpBackups);
+
 			beliefSet.expandBeliefRegionSSGA(this, 100);
 			this.belRegion = beliefSet.getFactoredBeliefRegionArray(this);
 

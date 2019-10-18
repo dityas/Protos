@@ -65,7 +65,7 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 		
 		this.currentUtilities = 
 				this.computeUtilityRecursive(
-						currentBelief, ipomdp.mjLookAhead);
+						currentBelief, 0);
 		
 		logger.info("Utilities for belief " + InteractiveBelief.toStateMap(ipomdp, currentBelief)
 				+ " for a look ahead of " + ipomdp.mjLookAhead + " are " + this.currentUtilities);
