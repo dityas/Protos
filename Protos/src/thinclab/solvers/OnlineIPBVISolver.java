@@ -295,12 +295,13 @@ public class OnlineIPBVISolver extends OnlineSolver {
 			}
 
 			bellmanErr = Math.min(10, Math.max(this.bestImprovement, -this.worstDecline));
-
+			float errorVar = this.getErrorVariance((float) bellmanErr);
+			
 			logger.info("I: " + stepId 
-					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
-					+ " \tUSED/TOTAL BELIEFS: " + nDpBackups 
+					+ "\tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
+					+ "\tUSED/TOTAL BELIEFS: " + nDpBackups 
 					+ "/" + beliefRegion.length 
-					+ " \tA VECTORS: " + this.alphaVectors.length);
+					+ "\tA VECTORS: " + this.alphaVectors.length);
 
 			if (stepId % 100 < 5)
 				continue;
@@ -311,12 +312,11 @@ public class OnlineIPBVISolver extends OnlineSolver {
 				break;
 			}
 
-//			this.pCache.cachePolicy(this.alphaVectors.length, this.alphaVectors, this.policy);
-//
-//			if (stepId > 50 && this.pCache.isOscillating(new Float(bellmanErr))) {
-//				logger.warn("BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
-//				break;
-//			}
+			if (stepId > 75 && errorVar < 0.0000001) {
+				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
+						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
+				break;
+			}
 
 		}
 

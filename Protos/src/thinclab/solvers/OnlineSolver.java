@@ -9,6 +9,8 @@ package thinclab.solvers;
 
 import java.util.List;
 
+import org.apache.commons.collections15.buffer.CircularFifoBuffer;
+
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.frameworks.Framework;
 import thinclab.legacy.DD;
@@ -28,6 +30,8 @@ public abstract class OnlineSolver {
 	public BeliefRegionExpansionStrategy expansionStrategy;
 	
 	PolicyCache pCache = new PolicyCache(5);
+	
+	CircularFifoBuffer<Float> bErrorVals = new CircularFifoBuffer<Float>(5);
 
 	// ------------------------------------------------------------------------------------------
 	
@@ -65,5 +69,28 @@ public abstract class OnlineSolver {
 	
 	/* Update belief after taking action and observing */
 	public abstract void nextStep(String action, List<String> obs);
+	
+	public float getErrorVariance(float bellManError) {
+		/*
+		 * Computes the variance of the last 5 iterations of the solver and
+		 * returns the variance
+		 */
+		bErrorVals.add(bellManError);
+		
+		float mean = 
+				(float) bErrorVals.stream()
+					.mapToDouble(Double::valueOf)
+					.average()
+					.getAsDouble();
+		
+		float variance = 
+				(float) (bErrorVals.stream()
+					.map(v -> Math.pow((v - mean), 2))
+					.mapToDouble(Double::valueOf)
+					.sum() / (float) bErrorVals.size());
+		
+		return variance;
+					
+	}
 
 }

@@ -324,6 +324,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			}
 
 			bellmanErr = Math.min(10, Math.max(this.bestImprovement, -this.worstDecline));
+			float errorVar = this.getErrorVariance((float) bellmanErr);
 			
 			logger.info("I: " + stepId 
 					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
@@ -338,6 +339,12 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 						+ "LOOKING AT LIFE THROUGH THE EYES OF A TIRED HEART.");
 				
 				if (debug) this.logAlphaVectors();
+				break;
+			}
+			
+			if (stepId > 75 && errorVar < 0.0000001) {
+				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
+						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;
 			}
 			
