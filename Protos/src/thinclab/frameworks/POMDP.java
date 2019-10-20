@@ -351,6 +351,9 @@ public class POMDP extends Framework implements Serializable {
 		this.setBeliefs();
 		
 		logger.info("POMDP initialised");
+		
+		/* Null parser reference after parsing is done */
+		this.parser = null;
 	}
 	
 	public void initializeFrameFromParser(ParseSPUDD parserObj) {

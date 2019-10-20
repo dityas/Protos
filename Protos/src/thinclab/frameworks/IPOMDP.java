@@ -7,6 +7,12 @@
  */
 package thinclab.frameworks;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,7 +32,6 @@ import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.OpponentModel;
-import thinclab.ipomdpsolver.InteractiveBelief.LookAheadTree;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
@@ -80,12 +85,8 @@ public class IPOMDP extends POMDP {
 	/* Mj's transition DD */
 	public DD MjTFn;
 	
-	/*
-	 * Additional DDTree variables.
-	 */	
-	/* 
-	 * O_j
-	 */
+	/* actions costs stored locally to avoid storing the full parser object */
+	private HashMap<String, DDTree> costMap;
 	
 	/* Staging area for j's observation functions */
 	public List<HashMap<String, HashMap<String, DDTree>>> OjTheta = 
@@ -111,7 +112,6 @@ public class IPOMDP extends POMDP {
 	public DD[] currentOj;
 	
 	public List<DDTree> currentStateBeliefs = new ArrayList<DDTree>();
-	public LookAheadTree currentLookAheadTree;
 	
 	/*
 	 * generate a list of all possible observations and store it to avoid
@@ -259,6 +259,11 @@ public class IPOMDP extends POMDP {
 		this.currentStateBeliefs.addAll(this.adjunctBeliefs);
 		
 		this.obsCombinations = this.getAllPossibleObservations();
+		
+		this.costMap = this.parser.costMap;
+		
+		/* Null parser reference after parsing is done */
+		this.parser = null;
 	}
 	
 	public void setAi(List<String> actionNames) {
@@ -661,7 +666,7 @@ public class IPOMDP extends POMDP {
 							child, 
 							OP.sub(
 									OP.reorder(this.R.toDD()), 
-									OP.reorder(this.parser.costMap.get(
+									OP.reorder(this.costMap.get(
 											Ai + "__" 
 											+ child)
 												.toDD())).toDDTree());
@@ -1059,5 +1064,37 @@ public class IPOMDP extends POMDP {
 		 * Returns the current beliefs of the IPOMDP
 		 */
 		return this.lookAheadRootInitBeliefs;
+	}
+	
+	// -----------------------------------------------------------------------------
+	/*
+	 * Serialization functions
+	 */
+	
+	public static void saveIPOMDP(IPOMDP ipomdp, String filename) throws IOException {
+		/*
+		 * Serializes the IPOMDP object and saves it to the given filename.
+		 */
+		ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(filename));
+		
+		objOut.writeObject(ipomdp);
+		objOut.flush();
+		objOut.close();
+		
+		logger.info("Saved IPOMDP object to " + filename);
+	}
+	
+	public static IPOMDP loadIPOMDP(String filename) 
+			throws FileNotFoundException, IOException, ClassNotFoundException {
+		/*
+		 * Load the serialized IPOMDP object from the given file
+		 */
+		ObjectInputStream objIn = new ObjectInputStream(new FileInputStream(filename));
+		IPOMDP ipomdp = (IPOMDP) objIn.readObject();
+		objIn.close();
+		
+		logger.info("Loaded IPOMDP from " + filename);
+		
+		return ipomdp;
 	}
 }

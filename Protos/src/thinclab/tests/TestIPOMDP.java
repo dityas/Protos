@@ -9,6 +9,7 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -21,6 +22,8 @@ import thinclab.domainMaker.L0Frame;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
+import thinclab.exceptions.VariableNotFoundException;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
@@ -426,5 +429,36 @@ class TestIPOMDP {
 			fail();
 		}
 		
+	}
+	
+	@Test
+	void testIPOMDPSerialization() 
+			throws ZeroProbabilityObsException, 
+				VariableNotFoundException, 
+				IOException, 
+				ClassNotFoundException {
+		System.out.println("Running testIPOMDPSerialization()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		
+		tigerL1IPOMDP.step(
+				tigerL1IPOMDP.getInitialBeliefs().get(0), 
+				"listen", 
+				new String[] {"growl-left", "silence"});
+		
+		IPOMDP.saveIPOMDP(tigerL1IPOMDP, "/tmp/tigerIPOMDP.obj");
+		
+		IPOMDP ipomdp = IPOMDP.loadIPOMDP("/tmp/tigerIPOMDP.obj");
+		
+		ipomdp.step(
+				ipomdp.getInitialBeliefs().get(0), 
+				"listen", 
+				new String[] {"growl-left", "silence"});
 	}
 }

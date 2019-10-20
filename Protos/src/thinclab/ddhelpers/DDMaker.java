@@ -8,6 +8,7 @@
 
 package thinclab.ddhelpers;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,11 +21,14 @@ import org.apache.log4j.Logger;
 import thinclab.domainMaker.SPUDDHelpers.NextLevelVariablesContext;
 import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 
-public class DDMaker {
+public class DDMaker implements Serializable {
+	
 	/*
 	 * Helper class for making DDs from variable sequences and triples and all that
 	 */
 	
+	private static final long serialVersionUID = -3426937338090541871L;
+
 	private static final Logger logger = Logger.getLogger(DDMaker.class);
 	
 	private HashMap<String, String[]> variablesHashMap = new HashMap<String, String[]>();

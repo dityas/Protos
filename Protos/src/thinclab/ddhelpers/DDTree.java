@@ -7,6 +7,7 @@
  */
 package thinclab.ddhelpers;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,7 +18,9 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 
-public class DDTree {
+public class DDTree implements Serializable {
+	
+	private static final long serialVersionUID = -60184357181539883L;
 	
 	public String varName = "UnnamedVar";
 	public HashMap<String, DDTree> children = new HashMap<String, DDTree>();

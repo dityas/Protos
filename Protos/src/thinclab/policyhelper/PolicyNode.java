@@ -1,5 +1,6 @@
 package thinclab.policyhelper;
 
+import java.io.Serializable;
 import java.util.*;
 
 import org.apache.log4j.Logger;
@@ -8,7 +9,9 @@ import thinclab.belief.Belief;
 import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 
-public class PolicyNode {
+public class PolicyNode implements Serializable {
+	
+	private static final long serialVersionUID = -5523013082898050215L;
 	
 	int alphaId=-1;
 	int actId = 1;

@@ -11,8 +11,11 @@ import org.apache.log4j.Logger;
 import thinclab.ddhelpers.DDTree;
 
 
-public class ParseSPUDD {
-    public HashMap existingDds;
+public class ParseSPUDD implements Serializable {
+
+	private static final long serialVersionUID = 8189670234328059540L;
+	
+	public HashMap existingDds;
     public StreamTokenizer stream;
 
     public Vector<String> varNames;

@@ -10,6 +10,7 @@ package thinclab.ipomdpsolver;
 import thinclab.utils.BeliefTreeTable;
 import thinclab.utils.GraphStorage;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +34,8 @@ import thinclab.policyhelper.PolicyNode;
  * @author adityas
  *
  */
-public class OpponentModel {
+public class OpponentModel implements Serializable {
+	
 	/*
 	 * Defines the opponent model as a single transition function between opponent's
 	 * policy tree nodes
@@ -42,6 +44,9 @@ public class OpponentModel {
 	 * frame are combined single transition function between different nodes on these policy trees.
 	 * Each node in the policy tree is associated with a single optimal action and a single belief.
 	 */
+	
+	private static final long serialVersionUID = 8861383773089046107L;
+	
 	public List<PolicyNode> nodesList = new ArrayList<PolicyNode>();
 	public HashMap<String, PolicyNode> nodeIndex = new HashMap<String, PolicyNode>();
 	
