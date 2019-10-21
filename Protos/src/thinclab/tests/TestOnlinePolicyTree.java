@@ -55,14 +55,17 @@ class TestOnlinePolicyTree {
 //						1, 100);
 		OnlineValueIterationSolver solver = new OnlineValueIterationSolver(tigerL1IPOMDP);
 		
-		OnlinePolicyTree T = new OnlinePolicyTree(solver, 1);
+		OnlinePolicyTree T = new OnlinePolicyTree(solver, 3);
 		T.buildTree();
 		
 		System.out.println(T.nodeIdToFileNameMap);
 		System.out.println(T.idToNodeMap);
+		System.out.println(T.edgeMap);
 		
-		assertEquals(T.idToNodeMap.size(), 7);
+//		assertEquals(T.idToNodeMap.size(), 3);
 		assertEquals(T.nodeIdToFileNameMap.size(), T.idToNodeMap.size());
+		
+		System.out.println(T.getDotString());
 	}
 
 }

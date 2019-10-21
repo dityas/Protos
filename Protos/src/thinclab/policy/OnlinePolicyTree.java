@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
@@ -80,6 +81,7 @@ public class OnlinePolicyTree {
 		 */
 		
 		List<Integer> nextNodes = new ArrayList<Integer>();
+		HashMap<String, Integer> nodeMap = new HashMap<String, Integer>();
 		
 		/* For each previous Node */
 		for (int parentId : previousNodes) {
@@ -161,42 +163,59 @@ public class OnlinePolicyTree {
 				/* solve the IPOMDP for the current state */
 				this.solver.solveCurrentStep();
 				
-				/* Store the solved IPOMDP */
+				/* See if the next belief already exists */
 				IPOMDP nextStepIPOMDP = (IPOMDP) this.solver.getFramework();
-				String fName = this.storageDir + "IPOMDP_stateAtNode_" 
-						+ this.currentPolicyNodeCounter + ".obj";
-				
-				try {
-					IPOMDP.saveIPOMDP(nextStepIPOMDP, fName);
-				} 
-				
-				catch (IOException e) {
-					logger.error("While saving IPOMDP to " + fName);
-					e.printStackTrace();
-					System.exit(-1);
-				}
 				
 				String belief = 
 						InteractiveBelief.toStateMap(
 								nextStepIPOMDP, 
 								nextStepIPOMDP.getCurrentBeliefs().get(0)).toString();
 				
-				/* Store new policy Node */
-				this.nodeIdToFileNameMap.put(this.currentPolicyNodeCounter, fName);
-				this.idToNodeMap.put(
-						this.currentPolicyNodeCounter, 
-						new PolicyNode(
-								this.currentPolicyNodeCounter, T + 1, 
-								belief, this.solver.getBestActionAtCurrentBelief()));
+				/* If not already computed, compute and save the IPOMDP state */
+				if (!nodeMap.containsKey(belief)) { 
+					
+					nodeMap.put(belief, this.currentPolicyNodeCounter);
+					
+					/* Save the IPOMDP state */
+					String fName = this.storageDir + "IPOMDP_stateAtNode_" 
+							+ this.currentPolicyNodeCounter + ".obj";
+					
+					try {
+						IPOMDP.saveIPOMDP(nextStepIPOMDP, fName);
+					} 
+					
+					catch (IOException e) {
+						logger.error("While saving IPOMDP to " + fName);
+						e.printStackTrace();
+						System.exit(-1);
+					}
+					
+					this.nodeIdToFileNameMap.put(this.currentPolicyNodeCounter, fName);
+					
+					/* Store new policy Node */
+					this.idToNodeMap.put(
+							this.currentPolicyNodeCounter, 
+							new PolicyNode(
+									this.currentPolicyNodeCounter, T + 1, 
+									belief, this.solver.getBestActionAtCurrentBelief()));
+					
+					/* increment node id */
+					this.currentPolicyNodeCounter += 1;
+					
+				}
 				
-				nextNodes.add(this.currentPolicyNodeCounter);
+				int nodeId = nodeMap.get(belief);
 				
-				this.currentPolicyNodeCounter += 1;
+				/* Create edge */
+				if (!this.edgeMap.containsKey(parentId)) 
+					this.edgeMap.put(parentId, new HashMap<List<String>, Integer>());
+				
+				this.edgeMap.get(parentId).put(obs, nodeId);
 				
 			} /* for all observations */
 		} /* for all actions */
 		
-		return nextNodes;
+		return new ArrayList<Integer>(nodeMap.values());
 	}
 	
 	public void buildTree() {
@@ -212,5 +231,43 @@ public class OnlinePolicyTree {
 			List<Integer> nextNodes = this.getNextPolicyNodes(prevNodes, t);
 			prevNodes = nextNodes;
 		}
+	}
+	
+	// ------------------------------------------------------------------------------------------
+	
+	public String getDotString() {
+		/*
+		 * Converts to graphviz compatible dot string
+		 */
+		String endl = "\r\n";
+		String dotString = "digraph G{ " + endl;
+		
+		/* Make nodes */
+		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
+			dotString += " " + entry.getKey() + " [shape=record, label=\"{"
+					+ "Ai=" + entry.getValue().actName + " | "
+					+ entry.getValue().sBelief
+						.replace("{", "(")
+						.replace("}", ")")
+						.replace("),", "),|")
+					+ "}\"];" + endl;
+		}
+		
+		dotString += endl;
+		
+		for (Entry<Integer, HashMap<List<String>, Integer>> edges : this.edgeMap.entrySet()) {
+			
+			String from = edges.getKey().toString();
+			
+			for (Entry<List<String>, Integer> ends : edges.getValue().entrySet()) {
+				
+				dotString += " " + from + " -> " + ends.getValue()
+					+ " [label=\"" + ends.getKey().toString() + "\"]" + endl;
+			}
+		}
+		
+		dotString += "}" + endl;
+		
+		return dotString;
 	}
 }
