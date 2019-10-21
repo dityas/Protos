@@ -17,6 +17,7 @@ import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.InteractiveBelief;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.Framework;
 import thinclab.frameworks.IPOMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
@@ -79,6 +80,15 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	}
 
 	// -------------------------------------------------------------------------------------------
+	
+	@Override
+	public void setFramework(Framework ipomdp) {
+		/*
+		 * Replaces the IPOMDP reference with given arg
+		 */
+		this.ipomdp = (IPOMDP) ipomdp;
+		super.setFramework(ipomdp);
+	}
 
 	@Override
 	public void solveForBeliefs(List<DD> beliefs) {

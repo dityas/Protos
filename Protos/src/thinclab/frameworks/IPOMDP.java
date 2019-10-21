@@ -258,7 +258,9 @@ public class IPOMDP extends POMDP {
 		this.currentStateBeliefs.add(this.initBeliefDdTree);
 		this.currentStateBeliefs.addAll(this.adjunctBeliefs);
 		
-		this.obsCombinations = this.getAllPossibleObservations();
+		this.obsCombinations = 
+				super.recursiveObsCombinations(
+						this.Omega.subList(0, this.Omega.size() - this.OmegaJNames.size()));
 		
 		this.costMap = this.parser.costMap;
 		
@@ -1013,9 +1015,7 @@ public class IPOMDP extends POMDP {
 		 * Observation combinations will only contain combinations of values of
 		 * agent i's observation variables
 		 */
-		return this.recursiveObsCombinations(
-				this.Omega.subList(
-						0, this.Omega.size() - this.OmegaJNames.size()));
+		return this.obsCombinations;
 	}
 	
 	@Override

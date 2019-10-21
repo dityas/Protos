@@ -1,0 +1,216 @@
+/*
+ *	THINC Lab at UGA | Cyber Deception Group
+ *
+ *	Author: Aditya Shinde
+ * 
+ *	email: shinde.aditya386@gmail.com
+ */
+package thinclab.policy;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import thinclab.belief.InteractiveBelief;
+import thinclab.frameworks.IPOMDP;
+import thinclab.legacy.DD;
+import thinclab.policyhelper.PolicyNode;
+import thinclab.solvers.OnlineSolver;
+
+/*
+ * @author adityas
+ *
+ */
+public class OnlinePolicyTree {
+	
+	/*
+	 * Makes a static policy tree from online solvers
+	 * 
+	 * This representation is computed by taking an online solver and walking it through
+	 * all possible observation combinations for a fixed horizon
+	 */
+	
+	/* Store solver instance and max time steps */
+	public OnlineSolver solver;
+	public int maxT;
+	
+	/* Directory to store intermediate IPOMDP states. Default is /tmp/ */
+	public String storageDir = "/tmp/";
+	
+	/* Store filenames where IPOMDP state was serialized */
+	public HashMap<Integer, String> nodeIdToFileNameMap = new HashMap<Integer, String>();
+	public HashMap<Integer, PolicyNode> idToNodeMap = new HashMap<Integer, PolicyNode>();
+	public HashMap<Integer, HashMap<List<String>, Integer>> edgeMap =
+			new HashMap<Integer, HashMap<List<String>, Integer>>();
+	
+	public int currentPolicyNodeCounter = 0;
+	
+	public List<List<String>> observations;
+	
+	private static final Logger logger = Logger.getLogger(OnlinePolicyTree.class);
+	
+	// ---------------------------------------------------------------------------------------
+	
+	public OnlinePolicyTree(OnlineSolver solver, int maxT) {
+		
+		this.solver = solver;
+		this.maxT = maxT;
+		
+		this.observations = ((IPOMDP) this.solver.getFramework()).getAllPossibleObservations();
+		
+		logger.info("Making OnlinePolicyTree for maxT " + this.maxT);
+	}
+	
+	// ---------------------------------------------------------------------------------------
+	
+	public void computeAllObservationPaths() {
+		/*
+		 * Computes and stores the paths of all possible observations for the given IPOMDP
+		 * and walks the solver through them one by one
+		 */
+	}
+	
+	public List<Integer> getNextPolicyNodes(List<Integer> previousNodes, int T) {
+		/*
+		 * Compute the next PolicyNode from the list of previous PolicyNodes
+		 */
+		
+		List<Integer> nextNodes = new ArrayList<Integer>();
+		
+		/* For each previous Node */
+		for (int parentId : previousNodes) {
+			
+			/* For all combinations */
+			for (List<String> obs : this.observations) {
+				
+				/*
+				 * If IPOMDP has not been solved for this state, solve it and
+				 * save the IPOMDP state to file. 
+				 */
+				if (!this.nodeIdToFileNameMap.containsKey(parentId)) {
+					
+					/* Solve current step and store the solved IPOMDP */
+					this.solver.resetBeliefExpansion();
+					this.solver.solveCurrentStep();
+					
+					String optimalAction = this.solver.getBestActionAtCurrentBelief();
+					DD beliefDD = 
+							((IPOMDP) this.solver.getFramework())
+								.getCurrentBeliefs()
+								.get(0);
+					
+					String belief = 
+							InteractiveBelief.toStateMap(
+									(IPOMDP) this.solver.getFramework(), 
+									beliefDD).toString();
+					
+					PolicyNode node = 
+							new PolicyNode(
+									this.currentPolicyNodeCounter, 
+									T, belief, optimalAction);
+					
+					/* Save IPOMDP state */
+					String fName = 
+							this.storageDir 
+								+ "IPOMDP_stateAtNode_" 
+								+ this.currentPolicyNodeCounter
+								+ ".obj";
+					
+					try {
+						IPOMDP.saveIPOMDP((IPOMDP) this.solver.getFramework(), fName);
+					} 
+					
+					catch (IOException e) {
+						logger.error("While storing IPOMDP state in " + fName);
+						e.printStackTrace();
+						System.exit(-1);
+					}
+					
+					/* populate hashmaps */
+					this.idToNodeMap.put(this.currentPolicyNodeCounter, node);
+					this.nodeIdToFileNameMap.put(this.currentPolicyNodeCounter, fName);
+					
+					/* increment node counter */
+					this.currentPolicyNodeCounter += 1;
+				}
+					
+				try {
+					
+					/* Load solved IPOMDP */
+					IPOMDP ipomdp = 
+							IPOMDP.loadIPOMDP(
+									this.nodeIdToFileNameMap.get(parentId));
+					
+					/* Replace IPOMDP reference in solver */
+					this.solver.setFramework(ipomdp);
+				} 
+				
+				catch (Exception e) {
+					logger.error("While loading IPOMDP from file");
+					e.printStackTrace();
+					System.exit(-1);
+				}
+				
+				/* Step the solver */
+				this.solver.nextStep(this.idToNodeMap.get(parentId).actName, obs);
+				
+				/* solve the IPOMDP for the current state */
+				this.solver.solveCurrentStep();
+				
+				/* Store the solved IPOMDP */
+				IPOMDP nextStepIPOMDP = (IPOMDP) this.solver.getFramework();
+				String fName = this.storageDir + "IPOMDP_stateAtNode_" 
+						+ this.currentPolicyNodeCounter + ".obj";
+				
+				try {
+					IPOMDP.saveIPOMDP(nextStepIPOMDP, fName);
+				} 
+				
+				catch (IOException e) {
+					logger.error("While saving IPOMDP to " + fName);
+					e.printStackTrace();
+					System.exit(-1);
+				}
+				
+				String belief = 
+						InteractiveBelief.toStateMap(
+								nextStepIPOMDP, 
+								nextStepIPOMDP.getCurrentBeliefs().get(0)).toString();
+				
+				/* Store new policy Node */
+				this.nodeIdToFileNameMap.put(this.currentPolicyNodeCounter, fName);
+				this.idToNodeMap.put(
+						this.currentPolicyNodeCounter, 
+						new PolicyNode(
+								this.currentPolicyNodeCounter, T + 1, 
+								belief, this.solver.getBestActionAtCurrentBelief()));
+				
+				nextNodes.add(this.currentPolicyNodeCounter);
+				
+				this.currentPolicyNodeCounter += 1;
+				
+			} /* for all observations */
+		} /* for all actions */
+		
+		return nextNodes;
+	}
+	
+	public void buildTree() {
+		/*
+		 * Builds the full OnlinePolicyTree upto maxT
+		 */
+		
+		List<Integer> prevNodes = new ArrayList<Integer>();
+		prevNodes.add(0);
+		
+		for (int t = 0; t < this.maxT; t++) {
+			
+			List<Integer> nextNodes = this.getNextPolicyNodes(prevNodes, t);
+			prevNodes = nextNodes;
+		}
+	}
+}
