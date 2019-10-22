@@ -16,6 +16,10 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
 import thinclab.belief.InteractiveBelief;
 import thinclab.frameworks.IPOMDP;
 import thinclab.legacy.DD;
@@ -269,5 +273,50 @@ public class OnlinePolicyTree {
 		dotString += "}" + endl;
 		
 		return dotString;
+	}
+	
+	public String getJSONString() {
+		/*
+		 * Converts computed policy tree to JSON format
+		 */
+		
+		Gson gsonHandler = 
+				new GsonBuilder()
+					.disableHtmlEscaping()
+					.setPrettyPrinting()
+					.create();
+		
+		/* Hold nodes and edges in HashMaps of Strings */
+		HashMap<Integer, HashMap<String, String>> nodeJSONMap = 
+				new HashMap<Integer, HashMap<String, String>>();
+		HashMap<Integer, HashMap<String, String>> edgesJSONMap = 
+				new HashMap<Integer, HashMap<String, String>>();
+		
+		/* populate nodes */
+		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
+			
+			/* add optimal action and beliefs at node */
+			nodeJSONMap.put(entry.getKey(), new HashMap<String, String>());
+			nodeJSONMap.get(entry.getKey()).put("action", entry.getValue().actName);
+			nodeJSONMap.get(entry.getKey()).put("belief", entry.getValue().sBelief);
+		}
+		
+		/* populate edges */
+		for (int fromNode : this.edgeMap.keySet()) {
+			
+			edgesJSONMap.put(fromNode, new HashMap<String, String>());
+			
+			for (Entry<List<String>, Integer> entry : this.edgeMap.get(fromNode).entrySet())
+				edgesJSONMap.get(fromNode).put(
+						entry.getKey().toString(), 
+						entry.getValue().toString());
+		}
+		
+		
+		JsonObject jsonContainer = new JsonObject();
+		jsonContainer.add("nodes", gsonHandler.toJsonTree(nodeJSONMap));
+		jsonContainer.add("edges", gsonHandler.toJsonTree(edgesJSONMap));
+		
+		return gsonHandler.toJson(jsonContainer);
 	}
 }

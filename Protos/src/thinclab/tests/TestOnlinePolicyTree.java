@@ -46,7 +46,7 @@ class TestOnlinePolicyTree {
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 7, 3);
 		
 //		OnlineIPBVISolver solver = 
 //				new OnlineIPBVISolver(
@@ -55,7 +55,7 @@ class TestOnlinePolicyTree {
 //						1, 100);
 		OnlineValueIterationSolver solver = new OnlineValueIterationSolver(tigerL1IPOMDP);
 		
-		OnlinePolicyTree T = new OnlinePolicyTree(solver, 3);
+		OnlinePolicyTree T = new OnlinePolicyTree(solver, 1);
 		T.buildTree();
 		
 		System.out.println(T.nodeIdToFileNameMap);
@@ -66,6 +66,7 @@ class TestOnlinePolicyTree {
 		assertEquals(T.nodeIdToFileNameMap.size(), T.idToNodeMap.size());
 		
 		System.out.println(T.getDotString());
+		System.out.println(T.getJSONString());
 	}
 
 }
