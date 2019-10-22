@@ -28,9 +28,6 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	 * Explore the full belief region using a breadth first search
 	 */
 	
-	/* reference to the POMDP */
-	private Framework f;
-	
 	/* All possible combinations of observations */
 	public List<List<String>> allPossibleObs;
 	
@@ -51,7 +48,7 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		
 		super(maxDepth);
 		
-		this.f = f;
+		this.setFramework(f);
 		this.allPossibleObs = f.getAllPossibleObservations();
 		
 		logger.debug("Initialized FullBeliefExpansion search till max depth " 
@@ -176,6 +173,15 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		
 		this.exploredBeliefs.clear();
 		this.exploredBeliefs.addAll(this.leaves);
+		
+		logger.debug("Belief root reset to " + this.leaves);
+	}
+	
+	public void setFramework(Framework f) {
+		/*
+		 * Setter for the framework member
+		 */
+		this.f = f;
 	}
 
 }

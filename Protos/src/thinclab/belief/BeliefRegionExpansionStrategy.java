@@ -9,6 +9,7 @@ package thinclab.belief;
 
 import java.util.List;
 
+import thinclab.frameworks.Framework;
 import thinclab.legacy.DD;
 
 /*
@@ -24,6 +25,9 @@ public abstract class BeliefRegionExpansionStrategy {
 	
 	/* Bound on the depth of the search in the belief space */
 	private int H;
+	
+	/* Store reference to framework */
+	Framework f;
 	
 	// -----------------------------------------------------------------------------------
 	
@@ -53,5 +57,13 @@ public abstract class BeliefRegionExpansionStrategy {
 	
 	/* Reset search to new roots if the framework transitions to a different belief */
 	public abstract void resetToNewInitialBelief();
-
+	
+	// -------------------------------------------------------------------------------------
+	
+	public void setFramework(Framework f) {
+		/*
+		 * Setter for the framework member
+		 */
+		this.f = f;
+	}
 }

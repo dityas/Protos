@@ -70,6 +70,30 @@ public abstract class OnlineSolver {
 	/* Update belief after taking action and observing */
 	public abstract void nextStep(String action, List<String> obs);
 	
+	// -----------------------------------------------------------------------------------------
+	
+	public void resetBeliefExpansion() {
+		/*
+		 * Reset the belief search to th current belief of the framework
+		 */
+		this.expansionStrategy.resetToNewInitialBelief();
+	}
+	
+	public Framework getFramework() {
+		/*
+		 * Getter for the framework object
+		 */
+		return this.f;
+	}
+	
+	public void setFramework(Framework f) {
+		/*
+		 * Setter for the framework object
+		 */
+		this.f = f;
+		this.expansionStrategy.setFramework(f);
+	}
+	
 	public float getErrorVariance(float bellManError) {
 		/*
 		 * Computes the variance of the last 5 iterations of the solver and

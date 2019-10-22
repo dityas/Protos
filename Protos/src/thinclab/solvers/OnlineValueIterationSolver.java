@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import thinclab.belief.InteractiveBelief;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.Framework;
 import thinclab.frameworks.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
@@ -274,6 +275,22 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 					+ " got error: " + e.getMessage());
 			System.exit(-1);
 		}
+	}
+	
+	@Override
+	public void resetBeliefExpansion() {
+		/*
+		 * Leave this empty because VI does not use belief expansion
+		 */
+	}
+	
+	@Override
+	public void setFramework(Framework f) {
+		/*
+		 * Setter for the framework object
+		 */
+		this.f = f;
+		this.ipomdp = (IPOMDP) f;
 	}
 
 }

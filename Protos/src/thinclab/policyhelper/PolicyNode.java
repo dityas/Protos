@@ -136,7 +136,8 @@ public class PolicyNode implements Serializable {
 		return "PolicyNode \t [ID = " + this.id
 				+ " \t level=" + this.H 
 				+ " \t action=" + this.actName 
-				+ " \t belief=" + this.factoredBelief 
+				+ " \t belief=" + this.factoredBelief
+				+ " \t belief=" + this.sBelief
 				+ " \t nextNode=" + nextNode.toString() + "]\r\n";
 	}
 	
