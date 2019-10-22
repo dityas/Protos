@@ -101,13 +101,6 @@ public class InteractiveBelief extends Belief {
 		/* Collect f3 = f1 x f2 */
 		DD[] f3 = ArrayUtils.addAll(f2, f1);
 		
-		/* Collect tau = Sumout [Oj'] P(Oj', S', Aj) x P(Mj', Mj, Oj', Aj) */
-//		DD tau = OP.addMultVarElim(
-//					ArrayUtils.add(
-//							ipomdp.currentOj, 
-//							ipomdp.currentMjTfn),
-//					ipomdp.obsJVarPrimeIndices);
-		
 		DD tau = ipomdp.currentTau;
 		
 		/* Perform the sum out */

@@ -308,7 +308,7 @@ public class BeliefSet {
 		Iterator<DD> beliefSetIterator = this.beliefSet.iterator();
 		
 		while (beliefSetIterator.hasNext()) {
-			factoredBelRegion.add(Belief.factorBeliefPoint(p, beliefSetIterator.next()));
+			factoredBelRegion.add(Belief.factorBelief(p, beliefSetIterator.next()));
 		}
 		
 		return factoredBelRegion;

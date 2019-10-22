@@ -1044,6 +1044,16 @@ public class IPOMDP extends POMDP {
 		return this.lookAheadRootInitBeliefs;
 	}
 	
+	@Override
+	public int[] getStateVarIndices() {
+		return ArrayUtils.subarray(this.stateVarIndices, 0, this.stateVarIndices.length - 1);
+	}
+	
+	@Override
+	public int[] getObsVarIndices() {
+		return this.obsIVarIndices;
+	}
+	
 	public String getLowerLevelBeliefLabel(String valName) {
 		/*
 		 * Gets the lower level belief state map for the given valName

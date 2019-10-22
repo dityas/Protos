@@ -17,11 +17,13 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.FullInteractiveBeliefExpansion;
+import thinclab.belief.SSGABeliefExpansion;
 import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
@@ -35,8 +37,10 @@ class TestBeliefExpansionStartegies {
 	
 	@BeforeEach
 	void setUp() throws Exception {
+		
+		CustomConfigurationFactory.initializeLogging();
 		this.tigerDom = 
-				"/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
+				"/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
 		
 		this.pomdp = new POMDP(this.tigerDom);
 	}
@@ -49,9 +53,9 @@ class TestBeliefExpansionStartegies {
 	void testFullBeliefExpansion() {
 		System.out.println("Running testFullBeliefExpansion()");
 		
-		FullBeliefExpansion fb = new FullBeliefExpansion(this.pomdp, 10);
+		FullBeliefExpansion fb = new FullBeliefExpansion(this.pomdp, 2);
 		assertNotNull(fb);
-		assertTrue(fb.getHBound() == 10);
+		assertTrue(fb.getHBound() == 2);
 		
 		List<DD> beliefs0 = fb.getBeliefPoints();
 		
@@ -65,6 +69,35 @@ class TestBeliefExpansionStartegies {
 		
 		assertTrue(beliefs0.size() <= beliefs1.size());
 		assertTrue(beliefs1.size() <= beliefs2.size());
+		
+		assertTrue(beliefs0.size() == 1);
+		assertTrue(beliefs1.size() == 3);
+		assertTrue(beliefs2.size() == 5);
+	}
+	
+	@Test
+	void testSSGABeliefExpansion() {
+		System.out.println("Running testSSGABeliefExpansion()");
+		
+		this.pomdp.solvePBVI(1, 10);
+		
+		SSGABeliefExpansion ssgaBE = new SSGABeliefExpansion(this.pomdp, 100, 1000);
+		assertNotNull(ssgaBE);
+//		assertTrue(ssgaBE.getHBound() == 10);
+		
+		List<DD> beliefs0 = ssgaBE.getBeliefPoints();
+		
+		ssgaBE.expand();
+		
+		List<DD> beliefs1 = ssgaBE.getBeliefPoints();
+		
+		ssgaBE.expand();
+		
+		List<DD> beliefs2 = ssgaBE.getBeliefPoints();
+		
+		assertTrue(beliefs0.size() <= beliefs1.size());
+		assertTrue(beliefs1.size() <= beliefs2.size());
+		
 	}
 	
 	@Test
@@ -73,7 +106,7 @@ class TestBeliefExpansionStartegies {
 		
 		Global.clearHashtables();
 		
-		String l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
+		String l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 		
 		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
 		parser.parseDomain();

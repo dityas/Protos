@@ -297,4 +297,54 @@ public class NextBelState {
 		
 		return nextBelStates;
 	}
+	
+	public static NextBelState[] oneStepNZPrimeBelStates(
+			POMDP pomdp, DD[] belState, boolean normalize, double smallestProb) {
+		
+
+		int[][] obsConfig = new int[pomdp.nObservations][pomdp.nObsVars];
+		double[] obsProbs;
+		DD[] marginals = new DD[pomdp.nStateVars + 1];
+		DD dd_obsProbs;
+		
+		for (int obsId = 0; obsId < pomdp.nObservations; obsId++)
+			obsConfig[obsId] = pomdp.statedecode(obsId + 1, pomdp.nObsVars, pomdp.obsVarsArity);
+
+		Global.newHashtables();
+		NextBelState[] nextBelStates = new NextBelState[pomdp.nActions];
+		
+		for (int actId = 0; actId < pomdp.nActions; actId++) {
+			
+			dd_obsProbs = 
+					OP.addMultVarElim(
+							ArrayUtils.addAll(
+									belState, 
+									ArrayUtils.addAll(
+											pomdp.actions[actId].transFn, 
+											pomdp.actions[actId].obsFn)), 
+							ArrayUtils.addAll(pomdp.varIndices, pomdp.primeVarIndices));
+
+			obsProbs = OP.convert2array(dd_obsProbs, pomdp.primeObsIndices);
+			nextBelStates[actId] = new NextBelState(pomdp, obsProbs, smallestProb);
+
+			/* Compute marginals */
+			if (!nextBelStates[actId].isempty()) {
+				marginals = 
+						OP.marginals(
+								ArrayUtils.addAll(
+										belState, 
+										ArrayUtils.addAll(
+												pomdp.actions[actId].transFn, 
+												pomdp.actions[actId].obsFn)), 
+								pomdp.primeVarIndices, 
+								pomdp.varIndices);
+				
+				nextBelStates[actId].restrictN(marginals, obsConfig);
+
+			}
+
+		}
+		
+		return nextBelStates;
+	}
 }

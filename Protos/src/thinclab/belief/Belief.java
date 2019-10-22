@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
@@ -28,7 +29,7 @@ public class Belief {
 	 * Handles operations with belief DDs for POMDPs
 	 */
 	
-	public static DD[] factorBeliefPoint(POMDP p, DD beliefPoint) {
+	public static DD[] factorBelief(POMDP p, DD beliefPoint) {
 		/*
 		 * factors belief state into a DD array
 		 */
@@ -230,6 +231,27 @@ public class Belief {
 	
 	// --------------------------------------------------------------------------------------
 	
+	public static DD[][] factorBeliefRegion(POMDP pomdp, List<DD> beliefRegion) {
+		/*
+		 * Factors the full belief region represented as a list
+		 */
+		pomdp.setGlobals();
+		DD[][] belRegion = new DD[beliefRegion.size()][pomdp.nStateVars];
+		
+		/* Convert to array because accessing known elements is faster in arrays */
+		DD[] beliefRegionArray = beliefRegion.toArray(new DD[beliefRegion.size()]);
+		
+		for (int i = 0; i < beliefRegion.size(); i++)
+			belRegion[i] = 
+				Belief.factorBelief(
+						pomdp, 
+						beliefRegionArray[i]);
+				
+		return belRegion;
+	}
+	
+	// --------------------------------------------------------------------------------------
+	
 	public static boolean checkEquals(DD belief, DD otherBelief) {
 		/*
 		 * Checks if belief is equal to other belief
@@ -252,13 +274,13 @@ public class Belief {
 	
 	public static boolean checkEquals(POMDP p, DD[] belief, DD otherBelief) {
 		
-		DD[] otherBeliefFactored = Belief.factorBeliefPoint(p, otherBelief);
+		DD[] otherBeliefFactored = Belief.factorBelief(p, otherBelief);
 		return Belief.checkEquals(belief, otherBeliefFactored);
 	}
 	
 	public static boolean checkEquals(POMDP p, DD belief, DD[] otherBelief) {
 		
-		DD[] beliefFactored = Belief.factorBeliefPoint(p, belief);
+		DD[] beliefFactored = Belief.factorBelief(p, belief);
 		return Belief.checkEquals(beliefFactored, otherBelief);
 	}
 

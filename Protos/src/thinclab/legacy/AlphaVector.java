@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.frameworks.IPOMDP;
+import thinclab.frameworks.POMDP;
 
 public class AlphaVector implements Serializable {
 	/**
@@ -187,6 +188,122 @@ public class AlphaVector implements Serializable {
 						newAlpha, 
 						bestValue, 
 						ipomdp.getActions().indexOf(bestAction), 
+						bestObsStrat);
+		
+		return returnAlpha;
+	}
+	
+	
+	public static AlphaVector dpBackup(
+			POMDP pomdp, DD[] belState, DD[] primedV, double maxAbsVal, int numAlphas) {
+		/*
+		 * Backup operation for POMDPs
+		 */
+		
+		NextBelState[] nextBelStates;
+		
+		double smallestProb;
+		smallestProb = pomdp.tolerance / maxAbsVal;
+		
+		nextBelStates = 
+				NextBelState.oneStepNZPrimeBelStates(pomdp, belState, true, smallestProb);
+
+		/* precompute obsVals */
+		for (int actId = 0; actId < pomdp.nActions; actId++) {
+			nextBelStates[actId].getObsVals(primedV);
+		}
+		
+		double bestValue = Double.NEGATIVE_INFINITY;
+		double actValue;
+		
+		int bestActId = 0;
+		int[] bestObsStrat = new int[pomdp.nObservations];
+
+		for (int actId = 0; actId < pomdp.nActions; actId++) {
+			actValue = 0.0;
+			
+			/* compute immediate rewards */
+			actValue = 
+					actValue 
+						+ OP.factoredExpectationSparseNoMem(
+								belState, 
+								pomdp.actions[actId].rewFn);
+
+			/* compute observation strategy */
+			nextBelStates[actId].getObsStrat();
+			actValue = 
+					actValue + pomdp.discFact * nextBelStates[actId].getSumObsValues();
+
+			if (actValue > bestValue) {
+				bestValue = actValue;
+				bestActId = actId;
+				bestObsStrat = nextBelStates[actId].obsStrat;
+			}
+		}
+
+		/* construct the alpha vector */
+		DD newAlpha = DD.zero;
+		DD nextValFn = DD.zero;
+		DD obsDd;
+		
+		int[] obsConfig = new int[pomdp.nObsVars];
+		for (int alphaId = 0; alphaId < numAlphas; alphaId++) {
+			
+			if (MySet.find(bestObsStrat, alphaId) >= 0) {
+				
+				obsDd = DD.zero;
+				
+				for (int obsId = 0; obsId < pomdp.nObservations; obsId++) {
+					
+					if (bestObsStrat[obsId] == alphaId) {
+						obsConfig = 
+								pomdp.statedecode(
+										obsId + 1, 
+										pomdp.nObsVars, 
+										pomdp.obsVarsArity);
+
+						obsDd = 
+								OP.add(
+										obsDd, 
+										Config.convert2dd(
+												POMDP.stackArray(
+														pomdp.primeObsIndices, 
+														obsConfig)));
+
+					}
+				}
+				
+				nextValFn = 
+						OP.add(nextValFn, 
+								OP.multN(ArrayUtils.addAll(
+										new DD[] {DDleaf.myNew(pomdp.discFact)}, 
+										new DD[] {obsDd, primedV[alphaId]})));
+			}
+		}
+		
+		newAlpha = 
+				OP.addMultVarElim(
+						ArrayUtils.addAll(
+								pomdp.actions[bestActId].transFn, 
+								ArrayUtils.addAll(pomdp.actions[bestActId].obsFn, nextValFn)), 
+						ArrayUtils.addAll(
+								pomdp.primeVarIndices, 
+								pomdp.primeObsIndices));
+
+		newAlpha = 
+				OP.addN(
+						ArrayUtils.addAll(
+								new DD[] {newAlpha}, 
+								pomdp.actions[bestActId].rewFn));
+
+		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
+
+		/* package up to return */
+		AlphaVector returnAlpha = 
+				new AlphaVector(
+						newAlpha, 
+						bestValue, 
+						bestActId, 
 						bestObsStrat);
 		
 		return returnAlpha;
