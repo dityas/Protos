@@ -742,6 +742,8 @@ public class POMDP extends Framework implements Serializable {
 		this.S.stream().forEach(s -> this.ddMaker.addVariable(s.name, s.valNames));
 		this.Omega.stream().forEach(o -> this.ddMaker.addVariable(o.name, o.valNames));
 		this.ddMaker.primeVariables();
+		
+		logger.debug("Context belongs to frame " + this.frameID + " at level " + this.level);
 	}
 	
 	// -----------------------------------------------------------------------------------------------

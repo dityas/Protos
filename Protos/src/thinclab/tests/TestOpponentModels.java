@@ -31,6 +31,7 @@ import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
 import thinclab.utils.BeliefTreeTable;
+import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
@@ -49,9 +50,11 @@ class TestOpponentModels {
 	@BeforeEach
 	void setUp() throws Exception {
 		
-		this.l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
-		this.l1DomainFile2 = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
-		this.pomdpDomain = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
+		CustomConfigurationFactory.initializeLogging();
+		
+		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
+		this.l1DomainFile2 = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
+		this.pomdpDomain = "/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
 		
 		this.pomdp = new POMDP(this.pomdpDomain);
 		this.pomdp.solvePBVI(5, 100);
