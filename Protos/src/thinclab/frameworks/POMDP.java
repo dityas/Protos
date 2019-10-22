@@ -1918,7 +1918,7 @@ public class POMDP extends Framework implements Serializable {
 		// If first iteration, add initial belief
 		if (beliefLeaves.size() == 0 && beliefPoints.size() == 0) {
 			beliefLeaves.add(this.initialBelState);
-			beliefPoints.add(Belief.factorBeliefPoint(this, this.initialBelState));
+			beliefPoints.add(Belief.factorBelief(this, this.initialBelState));
 			numNewPoints+=1;
 		}
 		
@@ -1950,7 +1950,7 @@ public class POMDP extends Framework implements Serializable {
 							// Add if does not already exist
 							if (this.checkBeliefPointExists(this.beliefPoints, nextBelief)) {
 								newBeliefPoints.add(nextBelief);
-								beliefPoints.add(Belief.factorBeliefPoint(this, nextBelief));
+								beliefPoints.add(Belief.factorBelief(this, nextBelief));
 //								System.out.println("FOUND NEW BELIEF POINT");
 								numNewPoints+=1;
 							}
@@ -1999,7 +1999,7 @@ public class POMDP extends Framework implements Serializable {
 		// Add initial belief we are starting from scratch
 		if (beliefPoints.size() == 0 && beliefLeaves.size() == 0) {
 //			beliefLeaves.add(this.initialBelState);
-			beliefPoints.add(Belief.factorBeliefPoint(this, startBel));
+			beliefPoints.add(Belief.factorBelief(this, startBel));
 		}
 		
 		// Build the next stage of the belief tree 
@@ -2038,7 +2038,7 @@ public class POMDP extends Framework implements Serializable {
 				// Add if does not already exist
 				if (this.checkBeliefPointExists(this.beliefPoints, nextBelief)) {
 //					newBeliefPoints.add(nextBelief);
-					beliefPoints.add(Belief.factorBeliefPoint(this, nextBelief));
+					beliefPoints.add(Belief.factorBelief(this, nextBelief));
 //								System.out.println("FOUND NEW BELIEF POINT");
 					numNewPoints+=1;
 				}
@@ -3134,6 +3134,16 @@ public class POMDP extends Framework implements Serializable {
 	@Override
 	public List<DD> getInitialBeliefs() {
 		return this.getInitialBeliefsList();
+	}
+	
+	@Override
+	public int[] getStateVarIndices() {
+		return this.varIndices;
+	}
+	
+	@Override
+	public int[] getObsVarIndices() {
+		return this.obsIndices;
 	}
 	
 	// -------------------------------------------------------------------------------

@@ -93,7 +93,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	@Override
 	public void solveForBeliefs(List<DD> beliefs) {
 		/*
-		 * Use online symbolic perseus to get solution for given beliefs
+		 * Use online IPBVI to get solution for given beliefs
 		 */
 
 		logger.debug("Solving for " + beliefs.size() + " belief points.");
@@ -108,7 +108,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 					.collect(Collectors.toList())
 					.toArray(new DD[this.ipomdp.currentRi.size()]);
 
-		/* try running interactive symbolic perseus */
+		/* try running IPBVI */
 		try {
 
 			for (int r = 0; r < this.maxRounds; r++) {

@@ -29,6 +29,10 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	 * Runs an SSGA belief expansion starting from the initial belief of the given POMDP
 	 */
 	
+	/* reference to the recent policy of the solver */
+	public DD[] alphaVectors;
+	public int[] policy;
+	
 	/* reference to the POMDP */
 	public POMDP p;
 	
@@ -40,7 +44,9 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	private HashSet<DD> exploredBeliefs;
 	
 	/* number of iterations of SSGA during each expansion */
-	private int nIterations; 
+	private int nIterations;
+	
+	private boolean initialExpansionDone = false;
 	
 	private static final Logger logger = Logger.getLogger(SSGABeliefExpansion.class);
 	
@@ -52,6 +58,8 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		 */
 		
 		super(maxDepth);
+		
+		this.setFramework(p);
 		
 		this.p = p;
 		this.allPossibleObs = this.p.getAllPossibleObservations();
@@ -68,63 +76,108 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	}
 	
 	// ----------------------------------------------------------------------------------------
-
+	
+	public void setRecentPolicy(DD[] aVectors, int[] policy) {
+		/*
+		 * Updates the references to the solver's most recent policy
+		 */
+		this.alphaVectors = aVectors;
+		this.policy = policy;
+	}
+	
+	public void expandInitial() {
+		/*
+		 * Returns a full belief expansion for 2 time steps to start off SSGA expansion
+		 * 
+		 * Use this only as a driver to start the expansion
+		 */
+		
+		logger.debug("Running initial expansion");
+		
+		/* Run a short expansion */
+		FullBeliefExpansion be = new FullBeliefExpansion(this.p, 2);
+		be.expand();
+		
+		/* add explored beliefs */
+		this.exploredBeliefs.addAll(be.getBeliefPoints());
+		this.initialBeliefs.addAll(be.getBeliefPoints());
+		
+		/* turn off initial expansion flag */
+		this.initialExpansionDone = true;
+	}
+	
 	@Override
 	public void expand() {
 		/*
 		 * Run SSGA expansion for nIterations
 		 */
 		
-		/* Create multinomial for sampling actions */
-		double[] explore = new double[2];
-		explore[0] = 0.6;
-		explore[1] = 0.4;
+		if (!initialExpansionDone)
+			this.expandInitial();
 		
-		/* Start traversal from initial beliefs */
-		for (DD belief : this.initialBeliefs) {
+		else {
+			/* Create multinomial for sampling actions */
+			double[] explore = new double[2];
+			explore[0] = 0.6;
+			explore[1] = 0.4;
 			
-			for (int i=0; i < this.getHBound(); i++) {
-				
-				/* Initialize linked list to store new beliefs */
-				int usePolicy = OP.sampleMultinomial(explore);
-				
-				/* action sampling */
-				int act;
-				
-				if (usePolicy == 0) act = p.policyQuery(belief);
-				
-				else act = Global.random.nextInt(p.nActions);
-
-				/* sample obs */
-				DD obsDist = OP.addMultVarElim(POMDP.concatenateArray(belief,
-						p.actions[act].transFn,
-						p.actions[act].obsFn),
-					POMDP.concatenateArray(p.varIndices, 
-						p.primeVarIndices));
-
-				int[][] obsConfig = OP.sampleMultinomial(obsDist, p.primeObsIndices);
-				
-				/* Get next belief */
-				try {
-					DD nextBelief = Belief.beliefUpdate(p, belief,
-						act, 
-						obsConfig);
-					
-					/* Add belief point if it doesn't already exist */
-					if (!this.exploredBeliefs.contains(nextBelief))
-						this.exploredBeliefs.add(nextBelief);
-					
-					belief = nextBelief;
-				} 
-				
-				catch (ZeroProbabilityObsException e) {
-					System.err.println(e.getMessage());
-					continue;
-				}
-				
-			} /* while leafIterator */
+			/* for iterations */
+			for (int n = 0; n < this.nIterations; n++) {
 			
-		} /* for horizon */
+				/* Start traversal from initial beliefs */
+				for (DD belief : this.initialBeliefs) {
+					
+					for (int i=0; i < this.getHBound(); i++) {
+						
+						/* Initialize linked list to store new beliefs */
+						int usePolicy = OP.sampleMultinomial(explore);
+						
+						/* action sampling */
+						int act;
+						
+						if (usePolicy == 0) 
+							act = 
+								p.getActions().indexOf(
+										POMDP.getActionFromPolicy(
+												p, belief, this.alphaVectors, this.policy));
+						
+						else act = Global.random.nextInt(p.nActions);
+		
+						/* sample obs */
+						DD obsDist = OP.addMultVarElim(POMDP.concatenateArray(belief,
+								p.actions[act].transFn,
+								p.actions[act].obsFn),
+							POMDP.concatenateArray(p.varIndices, 
+								p.primeVarIndices));
+		
+						int[][] obsConfig = OP.sampleMultinomial(obsDist, p.primeObsIndices);
+						
+						/* Get next belief */
+						try {
+							DD nextBelief = Belief.beliefUpdate(p, belief,
+								act, 
+								obsConfig);
+							
+							/* Add belief point if it doesn't already exist */
+							if (!this.exploredBeliefs.contains(nextBelief))
+								this.exploredBeliefs.add(nextBelief);
+							
+							belief = nextBelief;
+						} 
+						
+						catch (ZeroProbabilityObsException e) {
+							System.err.println(e.getMessage());
+							continue;
+						}
+						
+					} /* for horizon */
+					
+				} /* for leaf */
+				
+			} /* for iterations */
+		
+			logger.debug("Total beliefs explored are " + this.exploredBeliefs.size());
+		}
 
 	}
 
