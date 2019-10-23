@@ -121,7 +121,8 @@ class TestPOMDPSolvers {
 	}
 	
 	@Test
-	void testOfflineSymbolicPerseusSolverWithFullExpansionForPOMDP() throws ZeroProbabilityObsException {
+	void testOfflineSymbolicPerseusSolverWithFullExpansionForPOMDP() 
+			throws ZeroProbabilityObsException {
 		System.out.println("Running testOfflineSymbolicPerseusSolverWithFullExpansionForPOMDP()");
 		
 		POMDP p1 = new POMDP(this.tigerDom);
