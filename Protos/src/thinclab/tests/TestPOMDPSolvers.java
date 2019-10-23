@@ -79,7 +79,7 @@ class TestPOMDPSolvers {
 		DD initial = p1.getInitialBeliefs().get(0);
 		
 		assertTrue(
-				solver.getBestActionAtBelief(
+				solver.getActionForBelief(
 						p1.getInitialBeliefs().get(0)).contentEquals("listen"));
 		
 		DD nextBelief = 
@@ -90,7 +90,7 @@ class TestPOMDPSolvers {
 						new String[] {"growl-left"});
 		
 		assertTrue(
-				solver.getBestActionAtBelief(nextBelief).contentEquals("listen"));
+				solver.getActionForBelief(nextBelief).contentEquals("listen"));
 	}
 	
 	@Test
@@ -106,7 +106,7 @@ class TestPOMDPSolvers {
 		DD initial = p1.getInitialBeliefs().get(0);
 		
 		assertTrue(
-				solver.getBestActionAtBelief(
+				solver.getActionForBelief(
 						p1.getInitialBeliefs().get(0)).contentEquals("listen"));
 		
 		DD nextBelief = 
@@ -117,7 +117,7 @@ class TestPOMDPSolvers {
 						new String[] {"growl-left"});
 		
 		assertTrue(
-				solver.getBestActionAtBelief(nextBelief).contentEquals("listen"));
+				solver.getActionForBelief(nextBelief).contentEquals("listen"));
 	}
 	
 	@Test
@@ -134,7 +134,7 @@ class TestPOMDPSolvers {
 		DD initial = p1.getInitialBeliefs().get(0);
 		
 		assertTrue(
-				solver.getBestActionAtBelief(
+				solver.getActionForBelief(
 						p1.getInitialBeliefs().get(0)).contentEquals("listen"));
 		
 		DD nextBelief = 
@@ -145,7 +145,7 @@ class TestPOMDPSolvers {
 						new String[] {"growl-left"});
 		
 		assertTrue(
-				solver.getBestActionAtBelief(nextBelief).contentEquals("listen"));
+				solver.getActionForBelief(nextBelief).contentEquals("listen"));
 	}
 	
 	@Test

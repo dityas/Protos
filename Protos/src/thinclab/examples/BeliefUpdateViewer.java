@@ -88,7 +88,7 @@ public class BeliefUpdateViewer {
 		
 		/* compute suggestion */
 		this.solver.solveCurrentStep();
-		String suggestedAct = this.solver.getBestActionAtCurrentBelief();
+		String suggestedAct = this.solver.getActionAtCurrentBelief();
 		
 		/* Print the current belief state with info about j's beliefs */
 		System.out.println("Time Step: " + stepNumber);

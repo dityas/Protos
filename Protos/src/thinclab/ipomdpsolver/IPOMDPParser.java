@@ -97,7 +97,7 @@ public class IPOMDPParser extends ParseSPUDD {
 				    primeVarsCreated = true;
 				    createPrimeVars();
 				}
-				
+
 				stream.nextToken();
 				
 				switch(stream.ttype) {

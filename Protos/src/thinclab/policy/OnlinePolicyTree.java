@@ -30,7 +30,7 @@ import thinclab.solvers.OnlineSolver;
  * @author adityas
  *
  */
-public class OnlinePolicyTree {
+public class OnlinePolicyTree extends StructuredTree {
 	
 	/*
 	 * Makes a static policy tree from online solvers
@@ -41,21 +41,13 @@ public class OnlinePolicyTree {
 	
 	/* Store solver instance and max time steps */
 	public OnlineSolver solver;
-	public int maxT;
 	
 	/* Directory to store intermediate IPOMDP states. Default is /tmp/ */
 	public String storageDir = "/tmp/";
 	
 	/* Store filenames where IPOMDP state was serialized */
 	public HashMap<Integer, String> nodeIdToFileNameMap = new HashMap<Integer, String>();
-	public HashMap<Integer, PolicyNode> idToNodeMap = new HashMap<Integer, PolicyNode>();
-	public HashMap<Integer, HashMap<List<String>, Integer>> edgeMap =
-			new HashMap<Integer, HashMap<List<String>, Integer>>();
-	
-	public int currentPolicyNodeCounter = 0;
-	
-	public List<List<String>> observations;
-	
+
 	private static final Logger logger = Logger.getLogger(OnlinePolicyTree.class);
 	
 	// ---------------------------------------------------------------------------------------
@@ -84,7 +76,6 @@ public class OnlinePolicyTree {
 		 * Compute the next PolicyNode from the list of previous PolicyNodes
 		 */
 		
-		List<Integer> nextNodes = new ArrayList<Integer>();
 		HashMap<String, Integer> nodeMap = new HashMap<String, Integer>();
 		
 		/* For each previous Node */
@@ -103,7 +94,7 @@ public class OnlinePolicyTree {
 					this.solver.resetBeliefExpansion();
 					this.solver.solveCurrentStep();
 					
-					String optimalAction = this.solver.getBestActionAtCurrentBelief();
+					String optimalAction = this.solver.getActionAtCurrentBelief();
 					DD beliefDD = 
 							((IPOMDP) this.solver.getFramework())
 								.getCurrentBeliefs()
@@ -201,7 +192,7 @@ public class OnlinePolicyTree {
 							this.currentPolicyNodeCounter, 
 							new PolicyNode(
 									this.currentPolicyNodeCounter, T + 1, 
-									belief, this.solver.getBestActionAtCurrentBelief()));
+									belief, this.solver.getActionAtCurrentBelief()));
 					
 					/* increment node id */
 					this.currentPolicyNodeCounter += 1;
@@ -275,48 +266,4 @@ public class OnlinePolicyTree {
 		return dotString;
 	}
 	
-	public String getJSONString() {
-		/*
-		 * Converts computed policy tree to JSON format
-		 */
-		
-		Gson gsonHandler = 
-				new GsonBuilder()
-					.disableHtmlEscaping()
-					.setPrettyPrinting()
-					.create();
-		
-		/* Hold nodes and edges in HashMaps of Strings */
-		HashMap<Integer, HashMap<String, String>> nodeJSONMap = 
-				new HashMap<Integer, HashMap<String, String>>();
-		HashMap<Integer, HashMap<String, String>> edgesJSONMap = 
-				new HashMap<Integer, HashMap<String, String>>();
-		
-		/* populate nodes */
-		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
-			
-			/* add optimal action and beliefs at node */
-			nodeJSONMap.put(entry.getKey(), new HashMap<String, String>());
-			nodeJSONMap.get(entry.getKey()).put("action", entry.getValue().actName);
-			nodeJSONMap.get(entry.getKey()).put("belief", entry.getValue().sBelief);
-		}
-		
-		/* populate edges */
-		for (int fromNode : this.edgeMap.keySet()) {
-			
-			edgesJSONMap.put(fromNode, new HashMap<String, String>());
-			
-			for (Entry<List<String>, Integer> entry : this.edgeMap.get(fromNode).entrySet())
-				edgesJSONMap.get(fromNode).put(
-						entry.getKey().toString(), 
-						entry.getValue().toString());
-		}
-		
-		
-		JsonObject jsonContainer = new JsonObject();
-		jsonContainer.add("nodes", gsonHandler.toJsonTree(nodeJSONMap));
-		jsonContainer.add("edges", gsonHandler.toJsonTree(edgesJSONMap));
-		
-		return gsonHandler.toJson(jsonContainer);
-	}
 }

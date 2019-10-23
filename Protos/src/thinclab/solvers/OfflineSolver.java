@@ -20,7 +20,7 @@ import thinclab.legacy.DD;
  * @author adityas
  *
  */
-public abstract class OfflineSolver {
+public abstract class OfflineSolver extends BaseSolver {
 
 	/*
 	 * Defines the basic skeleton and structure for implementing offline solvers
@@ -31,7 +31,6 @@ public abstract class OfflineSolver {
 	 * in the current context and the next belief can be computed from any belief. 
 	 */
 	
-	public Framework f;
 	public BeliefRegionExpansionStrategy expansionStrategy;
 	
 	CircularFifoBuffer<Float> bErrorVals = new CircularFifoBuffer<Float>(5);
@@ -55,9 +54,6 @@ public abstract class OfflineSolver {
 	
 	/* Actual solution method */
 	public abstract void solveForBeliefs(List<DD> beliefs);
-	
-	/* Find best action for current belief */
-	public abstract String getBestActionAtBelief(DD belief);
 	
 	// -----------------------------------------------------------------------------------------
 	

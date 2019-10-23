@@ -51,19 +51,19 @@ public String l1DomainFile;
 		solver.solveCurrentStep();
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				ipomdp.obsCombinations.get(2));
 		
 		solver.solveCurrentStep();
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				ipomdp.obsCombinations.get(2));
 		
 		solver.solveCurrentStep();
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				ipomdp.obsCombinations.get(2));
 	}
 

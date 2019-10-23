@@ -33,6 +33,7 @@ public abstract class Framework {
 	public abstract List<DD> getInitialBeliefs();
 	public abstract int[] getStateVarIndices();
 	public abstract int[] getObsVarIndices();
+	public abstract void setGlobals();
 	
 	// ---------------------------------------------------------------------------------
 	

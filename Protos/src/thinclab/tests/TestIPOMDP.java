@@ -75,6 +75,8 @@ class TestIPOMDP {
 			fail();
 		}
 		
+		System.out.println(tigerL1IPOMDP);
+		
 		assertEquals(tigerL1IPOMDP.lowerLevelFrames.size(), parser.childFrames.size());
 	}
 	

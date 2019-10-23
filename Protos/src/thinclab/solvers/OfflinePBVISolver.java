@@ -131,7 +131,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 	}
 
 	@Override
-	public String getBestActionAtBelief(DD belief) {
+	public String getActionForBelief(DD belief) {
 		/*
 		 * Return the best action at belief using the offline policy
 		 */

@@ -615,6 +615,7 @@ public class POMDP extends Framework implements Serializable {
 		this.setAdjuncts();
 	}
 	
+	@Override
 	public void setGlobals() {
 		/*
 		 * Sets the globals statics according to the current frame
@@ -623,6 +624,7 @@ public class POMDP extends Framework implements Serializable {
 		 * the globals during their initialization, this method has to be called manually whenever
 		 * the current frame is being solved for an IPOMDP
 		 */
+		
 		Global.clearHashtables();
 		Global.setVarDomSize(varDomSize);
 		Global.setVarNames(varName);
@@ -650,6 +652,7 @@ public class POMDP extends Framework implements Serializable {
 					nVars + nStateVars + i + 1, 
 					obsVars[i].valNames);
 		}
+			
 	}
 	
 	public void commitVariables() {

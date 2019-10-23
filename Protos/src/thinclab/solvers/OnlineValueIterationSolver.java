@@ -81,7 +81,7 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 	}
 
 	@Override
-	public String getBestActionAtCurrentBelief() {
+	public String getActionAtCurrentBelief() {
 		/*
 		 * Return the action with the highest utility value from the current utilities
 		 */
@@ -90,6 +90,14 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 			.get();
 		
 		return entry.getKey();
+	}
+	
+	@Override
+	public String getActionForBelief(DD belief) {
+		/*
+		 * Not applicable for value iteration solver for finite horizon
+		 */
+		return null;
 	}
 	
 	// ---------------------------------------------------------------------------------

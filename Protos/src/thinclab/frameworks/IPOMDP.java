@@ -48,12 +48,6 @@ public class IPOMDP extends POMDP {
 	private static final Logger logger = Logger.getLogger(IPOMDP.class);
 	
 	/*
-	 * The strategy level and frame ID of the frame represented by the IPOMDP object
-	 */
-	public int frameID;
-	public int stratLevel;
-	
-	/*
 	 * Reference to Parser object and info extract from parser
 	 */
 	public IPOMDPParser parser;
@@ -266,6 +260,14 @@ public class IPOMDP extends POMDP {
 		
 		/* Null parser reference after parsing is done */
 		this.parser = null;
+		
+		/*
+		 * Set level and frame manually
+		 * 
+		 * TODO: recursively parse frames to assign IPOMDP frames automatically
+		 */
+		this.frameID = 0;
+		this.level = 1;
 	}
 	
 	public void setAi(List<String> actionNames) {

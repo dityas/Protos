@@ -1,0 +1,322 @@
+/*
+ *	THINC Lab at UGA | Cyber Deception Group
+ *
+ *	Author: Aditya Shinde
+ * 
+ *	email: shinde.aditya386@gmail.com
+ */
+package thinclab.policy;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
+
+import org.apache.log4j.Logger;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
+import thinclab.belief.Belief;
+import thinclab.belief.InteractiveBelief;
+import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.frameworks.Framework;
+import thinclab.frameworks.IPOMDP;
+import thinclab.frameworks.POMDP;
+import thinclab.legacy.DD;
+import thinclab.policyhelper.PolicyNode;
+import thinclab.solvers.BaseSolver;
+
+/*
+ * @author adityas
+ *
+ */
+public class StructuredTree {
+	
+	public int maxT;
+	
+	/* Store the tree structure as a map of nodes and edges */
+	public HashMap<Integer, PolicyNode> idToNodeMap = new HashMap<Integer, PolicyNode>();
+	public HashMap<Integer, HashMap<List<String>, Integer>> edgeMap =
+			new HashMap<Integer, HashMap<List<String>, Integer>>();
+	
+	public int currentPolicyNodeCounter = 0;
+	
+	public List<List<String>> observations;
+	
+	private static final Logger logger = Logger.getLogger(StructuredTree.class);
+	
+	// ----------------------------------------------------------------------------------------
+	
+	public void makeNextNode(
+			int parentNodeId, 
+			DD parentNodeBelief,
+			Framework f,
+			String action,
+			List<String> obs,
+			HashMap<DD, Integer> currentLevelBeliefSet) {
+		
+		/* 
+		 * Make the next node after taking action at parentNodeBelief and observing the
+		 * specified observation
+		 */
+		DD belief = this.idToNodeMap.get(parentNodeId).belief;
+		
+		try {
+			
+			DD nextBelief;
+			
+			/*
+			 * If the process is an IPOMDP, do an IPOMDP belief update
+			 * else POMDP belief update
+			 */
+			if (f instanceof IPOMDP) {
+				nextBelief = 
+						InteractiveBelief.staticL1BeliefUpdate(
+								(IPOMDP) f, 
+								belief, 
+								action, 
+								obs.toArray(new String[obs.size()]));
+			}
+			
+			else {
+				nextBelief = 
+						Belief.beliefUpdate(
+								(POMDP) f, 
+								belief, 
+								f.getActions().indexOf(action), 
+								obs.toArray(new String[obs.size()])); 
+			}
+			
+			/* add to belief set if nextBelief is unique */
+			if (!currentLevelBeliefSet.containsKey(nextBelief)) {
+				currentLevelBeliefSet.put(nextBelief, this.currentPolicyNodeCounter);
+				this.currentPolicyNodeCounter += 1;
+				
+				int nextNodeId = currentLevelBeliefSet.get(nextBelief);
+				PolicyNode nextNode = new PolicyNode();
+				
+				nextNode.id = nextNodeId;
+				nextNode.belief = nextBelief;
+				nextNode.actName = "";
+				
+				if (f instanceof IPOMDP)
+					nextNode.sBelief = 
+						InteractiveBelief.toStateMap(
+								(IPOMDP) f, 
+								nextBelief).toString();
+				
+				else 
+					nextNode.sBelief =
+						Belief.toStateMap((POMDP) f, nextBelief).toString();
+				
+				/* add next unique node to the nodes map */
+				this.idToNodeMap.put(nextNodeId, nextNode);
+			}
+			
+			int nextNodeId = currentLevelBeliefSet.get(nextBelief);
+			
+			if (!this.edgeMap.containsKey(parentNodeId))
+				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
+			
+			/* construct edge as action + obs */
+			List<String> edge = new ArrayList<String>();
+			edge.add(action);
+			edge.addAll(obs);
+			
+			this.edgeMap.get(parentNodeId).put(edge, nextNodeId);
+			
+		}
+		
+		catch (ZeroProbabilityObsException o) {
+			
+		}
+		
+		catch (Exception e) {
+			logger.error("While running belief update " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+	
+	public void makeNextNode(
+			int parentNodeId, 
+			DD parentNodeBelief,
+			BaseSolver solver,
+			String action,
+			List<String> obs,
+			HashMap<String, Integer> currentLevelBeliefSet) {
+		
+		/* 
+		 * Make the next node after taking action at parentNodeBelief and observing the
+		 * specified observation
+		 */
+		DD belief = this.idToNodeMap.get(parentNodeId).belief;
+		
+		try {
+			
+			DD nextBelief;
+			
+			/*
+			 * If the process is an IPOMDP, do an IPOMDP belief update
+			 * else POMDP belief update
+			 */
+			if (solver.f instanceof IPOMDP) {
+				nextBelief = 
+						InteractiveBelief.staticL1BeliefUpdate(
+								(IPOMDP) solver.f, 
+								belief, 
+								action, 
+								obs.toArray(new String[obs.size()]));
+			}
+			
+			else {
+				nextBelief = 
+						Belief.beliefUpdate(
+								(POMDP) solver.f, 
+								belief, 
+								solver.f.getActions().indexOf(action), 
+								obs.toArray(new String[obs.size()])); 
+			}
+			
+			String nextBeliefString;
+			
+			if (solver.f instanceof IPOMDP)
+				nextBeliefString = 
+					InteractiveBelief.toStateMap((IPOMDP) solver.f, nextBelief).toString();
+			
+			else nextBeliefString = Belief.toStateMap((POMDP) solver.f, nextBelief).toString();
+			
+			/* add to belief set if nextBelief is unique */
+			if (!currentLevelBeliefSet.containsKey(nextBeliefString)) {
+				currentLevelBeliefSet.put(nextBeliefString, this.currentPolicyNodeCounter);
+				this.currentPolicyNodeCounter += 1;
+				
+				int nextNodeId = currentLevelBeliefSet.get(nextBeliefString);
+				PolicyNode nextNode = new PolicyNode();
+				
+				nextNode.id = nextNodeId;
+				nextNode.belief = nextBelief;
+				nextNode.actName = solver.getActionForBelief(nextBelief);
+				
+				if (solver.f instanceof IPOMDP)
+					nextNode.sBelief = 
+						InteractiveBelief.toStateMap(
+								(IPOMDP) solver.f, 
+								nextBelief).toString();
+				
+				else 
+					nextNode.sBelief =
+						Belief.toStateMap((POMDP) solver.f, nextBelief).toString();
+				
+				/* add next unique node to the nodes map */
+				this.idToNodeMap.put(nextNodeId, nextNode);
+			}
+			
+			int nextNodeId = currentLevelBeliefSet.get(nextBeliefString);
+			
+			if (!this.edgeMap.containsKey(parentNodeId))
+				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
+			
+			this.edgeMap.get(parentNodeId).put(obs, nextNodeId);
+			
+		}
+		
+		catch (ZeroProbabilityObsException o) {
+			
+		}
+		
+		catch (Exception e) {
+			logger.error("While running belief update " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+	
+	// ----------------------------------------------------------------------------------------
+	
+	public String getJSONString() {
+		/*
+		 * Converts computed policy tree to JSON format
+		 */
+		
+		Gson gsonHandler = 
+				new GsonBuilder()
+					.disableHtmlEscaping()
+					.setPrettyPrinting()
+					.create();
+		
+		/* Hold nodes and edges in HashMaps of Strings */
+		HashMap<Integer, HashMap<String, String>> nodeJSONMap = 
+				new HashMap<Integer, HashMap<String, String>>();
+		HashMap<Integer, HashMap<String, String>> edgesJSONMap = 
+				new HashMap<Integer, HashMap<String, String>>();
+		
+		/* populate nodes */
+		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
+			
+			/* add optimal action and beliefs at node */
+			nodeJSONMap.put(entry.getKey(), new HashMap<String, String>());
+			nodeJSONMap.get(entry.getKey()).put("action", entry.getValue().actName);
+			nodeJSONMap.get(entry.getKey()).put("belief", entry.getValue().sBelief);
+		}
+		
+		/* populate edges */
+		for (int fromNode : this.edgeMap.keySet()) {
+			
+			edgesJSONMap.put(fromNode, new HashMap<String, String>());
+			
+			for (Entry<List<String>, Integer> entry : this.edgeMap.get(fromNode).entrySet())
+				edgesJSONMap.get(fromNode).put(
+						entry.getKey().toString(), 
+						entry.getValue().toString());
+		}
+		
+		
+		JsonObject jsonContainer = new JsonObject();
+		jsonContainer.add("nodes", gsonHandler.toJsonTree(nodeJSONMap));
+		jsonContainer.add("edges", gsonHandler.toJsonTree(edgesJSONMap));
+		
+		return gsonHandler.toJson(jsonContainer);
+	}
+	
+	public String getDotString() {
+		/*
+		 * Converts to graphviz compatible dot string
+		 */
+		String endl = "\r\n";
+		String dotString = "digraph G{ " + endl;
+		
+		dotString += "graph [ranksep=3];" + endl;
+		
+		/* Make nodes */
+		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
+			dotString += " " + entry.getKey() + " [shape=record, label=\"{"
+					+ "Ai=" + entry.getValue().actName + " | "
+					+ entry.getValue().sBelief
+						.replace("{", "(")
+						.replace("}", ")")
+						.replace("),", "),|")
+					+ "}\"];" + endl;
+		}
+		
+		dotString += endl;
+		
+		for (Entry<Integer, HashMap<List<String>, Integer>> edges : this.edgeMap.entrySet()) {
+			
+			String from = edges.getKey().toString();
+			
+			for (Entry<List<String>, Integer> ends : edges.getValue().entrySet()) {
+				
+				dotString += " " + from + " -> " + ends.getValue()
+					+ " [label=\"" + ends.getKey().toString() + "\"]" + endl;
+			}
+		}
+		
+		dotString += "}" + endl;
+		
+		return dotString;
+	}
+
+}

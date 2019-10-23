@@ -20,13 +20,12 @@ import thinclab.utils.PolicyCache;
  * @author adityas
  *
  */
-public abstract class OnlineSolver {
+public abstract class OnlineSolver extends BaseSolver {
 	
 	/*
 	 * Defines the basic skeleton and structure for implementing Online Solvers
 	 */
-	
-	public Framework f;
+
 	public BeliefRegionExpansionStrategy expansionStrategy;
 	
 	PolicyCache pCache = new PolicyCache(5);
@@ -65,7 +64,7 @@ public abstract class OnlineSolver {
 	public abstract void solveForBeliefs(List<DD> beliefs);
 	
 	/* Find best action for current belief */
-	public abstract String getBestActionAtCurrentBelief();
+	public abstract String getActionAtCurrentBelief();
 	
 	/* Update belief after taking action and observing */
 	public abstract void nextStep(String action, List<String> obs);
