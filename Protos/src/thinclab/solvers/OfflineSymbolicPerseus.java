@@ -7,16 +7,13 @@
  */
 package thinclab.solvers;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.Belief;
 import thinclab.belief.BeliefRegionExpansionStrategy;
-import thinclab.belief.SSGABeliefExpansion;
 import thinclab.frameworks.POMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
@@ -34,6 +31,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 	 * Jesse Hoey's symbolic perseus for POMDPs
 	 */
 	
+	private static final long serialVersionUID = 3643319647660633983L;
 	private static final Logger logger = Logger.getLogger(OfflineSymbolicPerseus.class);
 	
 	// -------------------------------------------------------------------------------------

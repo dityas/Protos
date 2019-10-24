@@ -7,6 +7,7 @@
  */
 package thinclab.policy;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,8 +33,10 @@ import thinclab.solvers.BaseSolver;
  * @author adityas
  *
  */
-public class StructuredTree {
+public class StructuredTree implements Serializable {
 	
+	private static final long serialVersionUID = 3354440539923303241L;
+
 	public int maxT;
 	
 	/* Store the tree structure as a map of nodes and edges */

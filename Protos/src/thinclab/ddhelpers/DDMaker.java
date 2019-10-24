@@ -13,13 +13,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
-import thinclab.domainMaker.SPUDDHelpers.NextLevelVariablesContext;
-import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 
 public class DDMaker implements Serializable {
 	
@@ -38,21 +35,6 @@ public class DDMaker implements Serializable {
 	
 	public DDMaker() {
 		
-	}
-	
-	public DDMaker(VariablesContext varContext) {
-		/*
-		 * Initialize variables from a VariablesContext
-		 */
-		this();
-		
-		/* Add state variables */
-		for (int s=0; s < varContext.varNames.length; s++) 
-			this.addVariable(varContext.varNames[s], varContext.varValNames[s]);
-		
-		/* Add obs variables */
-		for (int o=0; o < varContext.obsNames.length; o++) 
-			this.addVariable(varContext.obsNames[o], varContext.obsValNames[o]);
 	}
 	
 	// ----------------------------------------------------------------------------
@@ -126,50 +108,6 @@ public class DDMaker implements Serializable {
 		this.variablesHashMap.clear();
 		this.primed = false;
 	}
-	
-	// ------------------------------------------------------------------------------
-	// Create instance from variables context
-	
-	public void addFromVariablesContext(VariablesContext varContext) {
-		this.addAllAndPrime(varContext.getVarNames(),
-				varContext.getVarValNames(), 
-				varContext.getObsNames(), 
-				varContext.getObsValNames());
-	}
-	
-	public void addFromNextLevelVariablesContext(NextLevelVariablesContext varContext) {
-		/*
-		 * For using DDMaker with higher domains. This adds variables just like VariablesContext does
-		 * but also adds policy and opp obs in the state vars
-		 */
-		
-		String[] varNames = varContext.getVarNames();
-		String[][] varValNames = varContext.getVarValNames();
-		String[] oppObsForStateNames = varContext.getOppObsForStateNames();
-		String[][] oppObsForStateValNames = varContext.getOppObsForStateValNames();
-		String oppPolicyName = varContext.getOppPolicyName();
-		String[] oppPolicyValNames = varContext.getOppPolicyValNames();
-		
-		String[] obsNames = varContext.getObsNames();
-		String[][] obsValNames = varContext.getObsValNames();
-		
-		List<String> stateVars = new ArrayList<String>();
-		stateVars.addAll(Arrays.asList(varNames));
-		stateVars.addAll(Arrays.asList(oppObsForStateNames));
-		stateVars.add(oppPolicyName);
-		
-		List<String[]> stateVarVals = new ArrayList<String[]>();
-		stateVarVals.addAll(Arrays.asList(varValNames));
-		stateVarVals.addAll(Arrays.asList(oppObsForStateValNames));
-		stateVarVals.add(oppPolicyValNames);
-		
-		this.addAllAndPrime(stateVars.toArray(new String[stateVars.size()]),
-				stateVarVals.toArray(new String[stateVarVals.size()][]), 
-				obsNames, 
-				obsValNames);
-	}
-	
-	// ------------------------------------------------------------------------------
 	
 	// -----------------------------------------------------------------------------
 	

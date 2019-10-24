@@ -26,6 +26,8 @@ public abstract class OnlineSolver extends BaseSolver {
 	 * Defines the basic skeleton and structure for implementing Online Solvers
 	 */
 
+	private static final long serialVersionUID = -2064622541038073651L;
+
 	public BeliefRegionExpansionStrategy expansionStrategy;
 	
 	PolicyCache pCache = new PolicyCache(5);

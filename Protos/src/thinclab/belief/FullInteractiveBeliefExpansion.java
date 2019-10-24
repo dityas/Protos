@@ -26,6 +26,7 @@ public class FullInteractiveBeliefExpansion extends FullBeliefExpansion {
 	 * Search the full interactive belief space for IPOMDPs
 	 */
 	
+	private static final long serialVersionUID = -5492971155889649353L;
 	private static final Logger logger = Logger.getLogger(FullInteractiveBeliefExpansion.class);
 	
 	// --------------------------------------------------------------------------------------------

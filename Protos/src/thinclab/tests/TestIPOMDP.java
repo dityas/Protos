@@ -19,8 +19,6 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.belief.InteractiveBelief;
 import thinclab.ddhelpers.DDTree;
-import thinclab.domainMaker.L0Frame;
-import thinclab.domainMaker.SPUDDHelpers.VariablesContext;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;

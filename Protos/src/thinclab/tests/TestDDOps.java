@@ -21,8 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.belief.Belief;
-import thinclab.examples.AttackerDomainPOMDP;
-import thinclab.examples.TigerProblemPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
@@ -49,12 +47,8 @@ class TestDDOps {
 	void setUp() throws Exception {
 		
 		if (!setUpDone) {
-			AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
-//			TigerProblemPOMDP attackerPOMDP = new TigerProblemPOMDP();
-			File domainFile = File.createTempFile("AttackerPOMDP", ".POMDP");
-			attackerPOMDP.makeAll();
-			attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
-			pomdp = new POMDP(domainFile.getAbsolutePath());
+			
+			pomdp = new POMDP("/home/adityas/git/repository/domains/tiger.95.SPUDD.txt");
 			pomdp.solvePBVI(5, 100);
 			
 			/*

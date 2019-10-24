@@ -34,6 +34,8 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	 * Implements interactive point based value iteration for solving IPOMDPs
 	 */
 
+	private static final long serialVersionUID = 4278938278257692053L;
+
 	/* Variables to hold point based values */
 	double[][] currentPointBasedValues;
 	double[][] newPointBasedValues;
@@ -192,6 +194,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 
 	// --------------------------------------------------------------------------------------------
 
+	@SuppressWarnings("unused")
 	public void IPBVI(int maxAlpha, int firstStep, int nSteps, DD[][] beliefRegion)
 			throws ZeroProbabilityObsException, VariableNotFoundException {
 

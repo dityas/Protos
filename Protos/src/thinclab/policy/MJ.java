@@ -8,6 +8,7 @@
 package thinclab.policy;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -17,8 +18,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
-import cern.colt.Arrays;
-import edu.uci.ics.jung.algorithms.metrics.TriadicCensus;
 import thinclab.ddhelpers.DDMaker;
 import thinclab.ddhelpers.DDTree;
 import thinclab.legacy.DD;
@@ -37,6 +36,8 @@ public class MJ extends DynamicBeliefTree {
 	 * to talk with Mj DDs
 	 */
 	
+	private static final long serialVersionUID = -3580584950505049855L;
+
 	/*
 	 * Previous belief over Mj
 	 * 
@@ -142,7 +143,8 @@ public class MJ extends DynamicBeliefTree {
 						triples.toArray(new String[triples.size()][]));
 		
 		DD PAjMjDD = OP.reorder(PAjMj.toDD()); 
-		logger.debug("P(Aj | Mj) DD contains variables " + Arrays.toString(PAjMjDD.getVarSet()));
+		logger.debug("P(Aj | Mj) DD contains variables " 
+				+ Arrays.toString(PAjMjDD.getVarSet()));
 		
 		return PAjMjDD;
 	}
@@ -239,6 +241,23 @@ public class MJ extends DynamicBeliefTree {
 		
 		logger.debug("Made initial belief");
 		return beliefMj;
+	}
+	
+	public String getOptimalActionAtNode(String node) {
+		/*
+		 * Returns j's optimal action at the belief point at node
+		 */
+		return this.idToNodeMap.get(MJ.getNodeId(node)).actName;
+	}
+	
+	public String getBeliefTextAtNode(String node) {
+		/*
+		 * Returns j's beliefs at node
+		 * 
+		 * Note that this method only returns the string representation and not the actual
+		 * usable belief
+		 */
+		return this.idToNodeMap.get(MJ.getNodeId(node)).sBelief;
 	}
 	
 	// -------------------------------------------------------------------------------------

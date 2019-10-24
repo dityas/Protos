@@ -7,6 +7,8 @@
  */
 package thinclab.solvers;
 
+import java.io.Serializable;
+
 import thinclab.frameworks.Framework;
 import thinclab.legacy.DD;
 
@@ -14,7 +16,9 @@ import thinclab.legacy.DD;
  * @author adityas
  *
  */
-public abstract class BaseSolver {
+public abstract class BaseSolver implements Serializable {
+	
+	private static final long serialVersionUID = 1521369802284824797L;
 	
 	/* reference to the framework */
 	public Framework f;

@@ -64,6 +64,8 @@ public class InteractiveBelief extends Belief {
 		 * 		 		x	Sigma[Oj'] (P(Oj', S', M_j) x P(M_j', M_j, Oj')) 
 		 */
 		
+		ipomdp.setGlobals();
+		
 		/* First reduce Oi based on observations */
 		Global.clearHashtables();
 
@@ -102,7 +104,7 @@ public class InteractiveBelief extends Belief {
 		DD[] f3 = ArrayUtils.addAll(f2, f1);
 		
 		DD tau = ipomdp.currentTau;
-		
+
 		/* Perform the sum out */
 		DD nextBelief = 
 				OP.addMultVarElim(

@@ -31,6 +31,8 @@ public abstract class OfflineSolver extends BaseSolver {
 	 * in the current context and the next belief can be computed from any belief. 
 	 */
 	
+	private static final long serialVersionUID = 1927693473988528606L;
+
 	public BeliefRegionExpansionStrategy expansionStrategy;
 	
 	CircularFifoBuffer<Float> bErrorVals = new CircularFifoBuffer<Float>(5);

@@ -37,6 +37,8 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 	 * Note that the policy obtained using this solver is not optimal for infinite horizon.
 	 */
 	
+	private static final long serialVersionUID = -3200021610043094422L;
+
 	/* store IPOMDP reference */
 	private IPOMDP ipomdp;
 	

@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import thinclab.ddhelpers.DDMaker;
 import thinclab.ddhelpers.DDTree;
 import thinclab.ddhelpers.DDTreeLeaf;
-import thinclab.examples.AttackerDomainPOMDP;
 import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
@@ -103,19 +102,16 @@ class TestDDTree {
 		/*
 		 * Make test POMDP domain and solve it
 		 */
-		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
 		
 		POMDP pomdp = null;
 		
 		try {
-			File domainFile = File.createTempFile("AttackerPOMDP", ".POMDP");
-			attackerPOMDP.makeAll();
-			attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
-			pomdp = new POMDP(domainFile.getAbsolutePath());
+			
+			pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/attacker_l0.txt");
 			pomdp.solvePBVI(5, 100);
-		} 
+		}
 		
-		catch (IOException e) {
+		catch (Exception e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
 		}
@@ -145,19 +141,16 @@ class TestDDTree {
 	void testDDToDDTree() {
 		System.out.println("Running testDDToDDTree()");
 		
-		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
+//		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
 		
 		POMDP pomdp = null;
 		
 		try {
-			File domainFile = File.createTempFile("AttackerPOMDP", ".POMDP");
-			attackerPOMDP.makeAll();
-			attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
-			pomdp = new POMDP(domainFile.getAbsolutePath());
+			pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
 			pomdp.solvePBVI(5, 100);
 		} 
 		
-		catch (IOException e) {
+		catch (Exception e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
 		}

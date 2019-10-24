@@ -32,7 +32,6 @@ import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.ipomdpsolver.IPOMDPParser;
-import thinclab.ipomdpsolver.OpponentModel;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
@@ -67,7 +66,6 @@ public class IPOMDP extends POMDP {
 	 * Store a local reference to OpponentModel object to get easier access to node
 	 * indices and all that
 	 */
-	public OpponentModel oppModel;
 	public MJ Mj;
 	
 	/*
@@ -76,9 +74,7 @@ public class IPOMDP extends POMDP {
 	 */
 	public int oppModelVarIndex;
 	public int AjIndex;
-	/*
-	 * DDs useful for belief update computation
-	 */
+	
 	
 	/* Mj's transition DD */
 	public DD MjTFn;
@@ -150,7 +146,7 @@ public class IPOMDP extends POMDP {
 			logger.info("IPOMDP initialized");
 			
 			/* Solve opponent model and create internal representation */
-			this.solveOpponentModels();
+			this.solveMj();
 			
 			/* initialize all DDs */
 			this.updateMjInIS();
@@ -304,7 +300,7 @@ public class IPOMDP extends POMDP {
 	
 	// ------------------------------------------------------------------------------------------
 	
-	public void solveOpponentModels() throws SolverException {
+	public void solveMj() throws SolverException {
 		/*
 		 * Calls IPBVI or PBVI on the lower level frames depending on whether they are IPOMDPs
 		 * or POMDPs
@@ -317,25 +313,23 @@ public class IPOMDP extends POMDP {
 		 */
 		Global.clearHashtables();
 		
-		POMDP opponentModel = this.lowerLevelFrames.get(0);
+		POMDP mj = this.lowerLevelFrames.get(0);
 		OfflineSymbolicPerseus solver = 
 				new OfflineSymbolicPerseus(
-						opponentModel, 
-						new SSGABeliefExpansion(opponentModel, 100, 1), 
+						mj, 
+						new SSGABeliefExpansion(mj, 100, 1), 
 						10, 100);
 		
-		if (opponentModel.level > 0) ((IPOMDP) opponentModel).solveIPBVI(15, 100);
+		if (mj.level > 0) ((IPOMDP) mj).solveIPBVI(15, 100);
 		
-		else if (opponentModel.level == 0) {
-			/*
-			 * For solving the POMDP at lowest level, set the globals
-			 */
-			opponentModel.setGlobals();
+		else if (mj.level == 0) {
+			
+			/* For solving the POMDP at lowest level, set the globals */
+			mj.setGlobals();
 			
 			/* modification for new solver API */
-//				opponentModel.solvePBVI(15, 100);
 			solver.solve();
-			logger.debug("Solved lower frame " + opponentModel);
+			logger.debug("Solved lower frame " + mj);
 			
 			/*
 			 * NOTE: After this point, extract all the required information
@@ -344,26 +338,22 @@ public class IPOMDP extends POMDP {
 			 */
 			
 			/* store opponent's Oj */
-			this.OjTheta.add(opponentModel.getOi());
-			logger.debug("Extracted Oj for " + opponentModel);
+			this.OjTheta.add(mj.getOi());
+			logger.debug("Extracted Oj for " + mj);
 		}
 		
 		else 
 			throw new SolverException("Frame " + 
-				this.lowerLevelFrames.indexOf(opponentModel) + 
+				this.lowerLevelFrames.indexOf(mj) + 
 				" is not a POMDP or IPOMDP");
 		
 		/* Rename extracted functions */
 		this.renameOjDDTrees();
 		
 		/* Set Opponent Model object */
-//		this.oppModel = new OpponentModel(this.lowerLevelFrames, this.mjDepth);
 		this.Mj = new MJ(solver, 3);
 		
 		logger.info("Solved lower frames");
-		
-		/* Start the initial look ahead */
-//		this.oppModel.buildLocalModel(this.mjLookAhead);
 	}
 	
 	public void solveIPBVI(int rounds, int numDpBackups) {
@@ -392,7 +382,7 @@ public class IPOMDP extends POMDP {
 		 */
 		
 		/* Finally, add the oppModel state var to the staging list */
-		this.S.add(this.oppModel.getOpponentModelStateVar(this.oppModelVarIndex));
+		this.S.add(this.Mj.getOpponentModelStateVar(this.oppModelVarIndex));
 	}
 	
 	public void setUpOmegaJ() {
@@ -1073,14 +1063,14 @@ public class IPOMDP extends POMDP {
 		 * Gets the lower level belief state map for the given valName
 		 */
 		
-		return this.oppModel.getBeliefTextAtNode(valName);
+		return this.Mj.getBeliefTextAtNode(valName);
 	}
 	
 	public String getOptimalActionAtMj(String mjNode) {
 		/*
 		 * Just a wrapped up call to OpponentModels getOptimalActionAtNode method 
 		 */
-		return this.oppModel.getOptimalActionAtNode(mjNode);
+		return this.Mj.getOptimalActionAtNode(mjNode);
 	}
 	
 	public List<DD> getCurrentBeliefs() {

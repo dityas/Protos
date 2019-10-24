@@ -9,7 +9,6 @@ package thinclab.ipomdpsolver;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +26,7 @@ import thinclab.legacy.ParseSPUDD;
  *
  */
 public class IPOMDPParser extends ParseSPUDD {
+	
 	/*
 	 * Recursively parses nested IPOMDP domains
 	 * 
@@ -35,6 +35,9 @@ public class IPOMDPParser extends ParseSPUDD {
 	 * 		frameID:		Frame ID for the current frame
 	 * 		childFrames:	List of lower strategy level child frame parse objects
 	 */
+	
+	private static final long serialVersionUID = -5363714209771866270L;
+	
 	public int level;
 	public int frameID;
 	public List<ParseSPUDD> childFrames = new ArrayList<ParseSPUDD>();
@@ -214,7 +217,7 @@ public class IPOMDPParser extends ParseSPUDD {
 			/*
 			 * Loop the frame parser to parse possible multiple frames
 			 */
-			this.logger.info("Parsing new frame");
+			logger.info("Parsing new frame");
 			this.stream.nextToken();
 			
 			/*
@@ -318,7 +321,7 @@ public class IPOMDPParser extends ParseSPUDD {
 		 * globals set by the upper frames.
 		 */
 		Global.clearHashtables();
-		this.logger.info("Setting globals");
+		logger.info("Setting globals");
 		this.createPrimeVars();
 		
 		String[] actNamesArray = new String[actNames.size()];

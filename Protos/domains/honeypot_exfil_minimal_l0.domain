@@ -1,7 +1,8 @@
 (variables
-	(HAS_CREDS yes no)
+	(HAS_VULN yes no)
+	(HAS_CREDS user admin none)
 	(PRIVS user admin)
-	(HAS_DATA yes no)
+	(HAS_DATA user admin none)
 )
 
 (observations
@@ -12,20 +13,28 @@ unnormalized
 
 init [*
 	
-	(HAS_CREDS
+	(HAS_VULN
 		(yes	(0.5))
 		(no		(0.5))
 	)
 	
-	(HAS_DATA
-		(yes	(0.5))
-		(no		(0.5))
+	(HAS_CREDS
+		(user		(0.33))
+		(admin		(0.33))
+		(none		(0.34))
 	)
 	
 	(PRIVS
 		(user	(1.0))
 		(admin	(0.0))
 	)
+	
+	(HAS_DATA
+		(user		(0.33))
+		(admin		(0.33))
+		(none		(0.34))
+	)
+	
 ]
 
 // Actions
@@ -46,6 +55,28 @@ dd defaultExecResult
 	(fail		(0.5))
 )
 enddd
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// VULN_SCAN
+
+dd vulnScanExecResult
+(HAS_VULN'
+	(yes
+		(EXEC_RESULT'
+			(success	(0.9))
+			(fail		(0.1))
+		)
+	)
+	
+	(no
+		(EXEC_RESULT'
+			(success	(0.1))
+			(fail		(0.9))
+		)
+	)
+)
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // CHECK_ROOT
@@ -75,17 +106,24 @@ enddd
 
 dd credsReconExecResult
 (HAS_CREDS'
-	(yes
+	(user
 		(EXEC_RESULT'
 			(success	(0.99))
 			(fail		(0.01))
 		)
 	)
 	
-	(no
+	(admin
 		(EXEC_RESULT'
-			(success	(0.5))
-			(fail		(0.5))
+			(success	(0.99))
+			(fail		(0.1))
+		)
+	)
+	
+	(none
+		(EXEC_RESULT'
+			(success	(0.01))
+			(fail		(0.99))
 		)
 	)
 )
@@ -96,12 +134,12 @@ enddd
 
 dd fileReconExecResult
 (HAS_DATA'
-	(yes
+	(user
 		(PRIVS'
 			(user
 				(EXEC_RESULT'
-					(success	(0.75))
-					(fail		(0.25))
+					(success	(0.99))
+					(fail		(0.01))
 				)
 			)
 			
@@ -114,7 +152,7 @@ dd fileReconExecResult
 		)
 	)
 	
-	(no
+	(admin
 		(PRIVS'
 			(user
 				(EXEC_RESULT'
@@ -125,8 +163,26 @@ dd fileReconExecResult
 			
 			(admin
 				(EXEC_RESULT'
-					(success	(0.01))
-					(fail		(0.99))
+					(success	(0.99))
+					(fail		(0.01))
+				)
+			)
+		)
+	)
+	
+	(none
+		(PRIVS'
+			(user
+				(EXEC_RESULT'
+					(success	(0.75))
+					(fail		(0.25))
+				)
+			)
+			
+			(admin
+				(EXEC_RESULT'
+					(success	(0.99))
+					(fail		(0.01))
 				)
 			)
 		)
@@ -282,6 +338,7 @@ enddd
 
 action NOP
 
+	HAS_VULN			(SAMEHAS_VULN)
 	HAS_CREDS 			(SAMEHAS_CREDS)
 	PRIVS 				(SAMEPRIVS)
 	HAS_DATA 			(SAMEHAS_DATA)
@@ -296,11 +353,32 @@ endaction
 
 
 ////////////////////////////////////////////////////////////////
+// VULN_SCAN
+////////////////////////////////////////////////////////////////
+
+action VULN_SCAN
+
+	HAS_VULN			(SAMEHAS_VULN)
+	HAS_CREDS 			(SAMEHAS_CREDS)
+	PRIVS 				(SAMEPRIVS)
+	HAS_DATA 			(SAMEHAS_DATA)
+	
+	observe
+	
+		EXEC_RESULT (vulnScanExecResult)
+		
+	endobserve
+	
+endaction
+
+
+////////////////////////////////////////////////////////////////
 // CHECK_ROOT
 ////////////////////////////////////////////////////////////////
 
 action CHECK_ROOT
 
+	HAS_VULN			(SAMEHAS_VULN)
 	HAS_CREDS 			(SAMEHAS_CREDS)
 	PRIVS 				(SAMEPRIVS)
 	HAS_DATA 			(SAMEHAS_DATA)
@@ -322,6 +400,7 @@ endaction
 
 action CREDS_RECON
 
+	HAS_VULN			(SAMEHAS_VULN)
 	HAS_CREDS 			(SAMEHAS_CREDS)
 	PRIVS 				(SAMEPRIVS)
 	HAS_DATA 			(SAMEHAS_DATA)
@@ -343,6 +422,7 @@ endaction
 
 action FILE_RECON
 
+	HAS_VULN			(SAMEHAS_VULN)
 	HAS_CREDS 			(SAMEHAS_CREDS)
 	PRIVS 				(SAMEPRIVS)
 	HAS_DATA 			(SAMEHAS_DATA)
@@ -364,6 +444,7 @@ endaction
 
 action START_EXFIL
 
+	HAS_VULN			(SAMEHAS_VULN)
 	HAS_CREDS 			(HAS_CREDSno)
 	PRIVS 				(SAMEPRIVS)
 	HAS_DATA 			(HAS_DATAno)
@@ -385,6 +466,7 @@ endaction
 
 action PRIV_ESC_USING_CREDS
 
+	HAS_VULN			(SAMEHAS_VULN)
 	HAS_CREDS 			(HAS_CREDSno)
 	PRIVS 				(privEscUsingCredsPrivs)
 	HAS_DATA 			(SAMEHAS_DATA)
@@ -406,6 +488,7 @@ endaction
 
 action PRIV_ESC_USING_Z_DAY
 
+	HAS_VULN			(SAMEHAS_VULN)
 	HAS_CREDS 			(SAMEHAS_CREDS)
 	PRIVS 				(privEscUsingZDayPrivs)
 	HAS_DATA 			(SAMEHAS_DATA)

@@ -28,6 +28,8 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	 * Explore the full belief region using a breadth first search
 	 */
 	
+	private static final long serialVersionUID = -2061648460611553584L;
+
 	/* All possible combinations of observations */
 	public List<List<String>> allPossibleObs;
 	

@@ -25,6 +25,7 @@ import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.visualizers.Visualizer;
 import thinclab.utils.visualizers.VizGraph;
 
@@ -40,47 +41,16 @@ class TestL1InteractiveBelief {
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		this.l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
+		
+		CustomConfigurationFactory.initializeLogging();
+		
+		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 		
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
-		tigerL1IPOMDP = new IPOMDP();
-		tigerL1IPOMDP.initializeFromParsers(parser);
-		tigerL1IPOMDP.setMjDepth(10);
-		tigerL1IPOMDP.setMjLookAhead(3);
-		
-		tigerL1IPOMDP.solveOpponentModels();
-		
-		tigerL1IPOMDP.S.set(
-				tigerL1IPOMDP.oppModelVarIndex, 
-				tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
-						tigerL1IPOMDP.oppModelVarIndex));
-		
-		Global.clearHashtables();
-		tigerL1IPOMDP.commitVariables();
-		
-		tigerL1IPOMDP.currentAjGivenMj = 
-				tigerL1IPOMDP.oppModel.getAjFromMj(
-						tigerL1IPOMDP.ddMaker, 
-						tigerL1IPOMDP.Aj);
-		
-		tigerL1IPOMDP.currentMjTfn = tigerL1IPOMDP.makeOpponentModelTransitionDD();
-		
-		tigerL1IPOMDP.currentOi = tigerL1IPOMDP.makeOi();
-		tigerL1IPOMDP.currentTi = tigerL1IPOMDP.makeTi();
-		tigerL1IPOMDP.currentOj = tigerL1IPOMDP.makeOj();
-		tigerL1IPOMDP.currentRi = tigerL1IPOMDP.makeRi();
-		
-		DDTree mjRootBelief = 
-				tigerL1IPOMDP.oppModel.getOpponentModelInitBelief(
-						tigerL1IPOMDP.ddMaker);
-		
-		tigerL1IPOMDP.lookAheadRootInitBeliefs.clear();
-		tigerL1IPOMDP.currentStateBeliefs.stream()
-			.forEach(s -> tigerL1IPOMDP.lookAheadRootInitBeliefs.add(
-					OP.multN(new DD[] {s.toDD(), mjRootBelief.toDD()})));
-		
+		tigerL1IPOMDP = new IPOMDP(parser, 10, 3);
+			
 	}
 
 	@AfterEach

@@ -29,6 +29,8 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	 * Runs an SSGA belief expansion starting from the initial belief of the given POMDP
 	 */
 	
+	private static final long serialVersionUID = 4990909984057211665L;
+	
 	/* reference to the recent policy of the solver */
 	public DD[] alphaVectors;
 	public int[] policy;

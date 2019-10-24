@@ -36,6 +36,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 	 * 
 	 */
 	
+	private static final long serialVersionUID = 3646574134759239287L;
+	
 	private static final Logger logger = 
 			Logger.getLogger(OnlineInteractiveSymbolicPerseus.class);
 	

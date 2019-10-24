@@ -33,6 +33,8 @@ public class OfflinePBVISolver extends OfflineSolver {
 	 * Offline PBVI solver for POMDPs
 	 */
 	
+	private static final long serialVersionUID = -8890386097993230541L;
+	
 	/* Variables to hold point based values */
 	double[][] currentPointBasedValues;
 	double[][] newPointBasedValues;
@@ -152,6 +154,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 	
 	// --------------------------------------------------------------------------------------
 	
+	@SuppressWarnings("unused")
 	public void PBVI(
 			int maxAlpha, 
 			int firstStep,
