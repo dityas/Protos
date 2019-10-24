@@ -82,7 +82,7 @@ public class StaticBeliefTree extends StructuredTree {
 					
 					this.makeNextBeliefNode(
 							parentId, 
-							belief, f, action, this.solver, obs, nodeMap);
+							belief, f, action, this.solver, obs, nodeMap, T);
 			
 				} /* for all actions */
 			} /* for all observations */
@@ -104,6 +104,7 @@ public class StaticBeliefTree extends StructuredTree {
 			PolicyNode node = new PolicyNode();
 			node.id = i;
 			node.belief = this.f.getInitialBeliefs().get(i);
+			node.H = 0;
 			
 			if (this.f instanceof IPOMDP)
 				node.sBelief = 

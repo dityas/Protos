@@ -9,6 +9,11 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +23,10 @@ import thinclab.belief.SSGABeliefExpansion;
 import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.legacy.DD;
+import thinclab.legacy.OP;
+import thinclab.policy.DynamicBeliefTree;
+import thinclab.policy.MJ;
 import thinclab.policy.OnlinePolicyTree;
 import thinclab.policy.StaticBeliefTree;
 import thinclab.policy.StaticPolicyTree;
@@ -30,7 +39,7 @@ import thinclab.utils.CustomConfigurationFactory;
  * @author adityas
  *
  */
-class TestOnlinePolicyTree {
+class TestStructures {
 
 	public String l1DomainFile;
 	
@@ -98,16 +107,7 @@ class TestOnlinePolicyTree {
 		t.buildTree();
 		
 		System.out.println(t.getDotString());
-		
-//		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-//		parser.parseDomain();
-//		
-//		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 7, 2);
-//
-//		StaticBeliefTree sT = new StaticBeliefTree(tigerL1IPOMDP, 2);
-//		sT.buildTree();
-//		
-//		System.out.println(sT.getDotString());
+	
 	}
 	
 	@Test
@@ -115,9 +115,7 @@ class TestOnlinePolicyTree {
 		System.out.println("Running testStaticPolicyTree()");
 		
 		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
-//		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/attacker_l0.txt");
-//		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/honeypot_exfil_minimal_l0.domain");
-		
+	
 		OfflineSymbolicPerseus solver = 
 				new OfflineSymbolicPerseus(
 						pomdp, 
@@ -149,6 +147,123 @@ class TestOnlinePolicyTree {
 		sT.buildTree();
 		
 		System.out.println(sT.getDotString());
+	}
+	
+	@Test
+	void testDynamicBeliefTree() {
+		System.out.println("Running testDynamicBeliefTree()");
+		
+		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
+	
+		OfflineSymbolicPerseus solver = 
+				new OfflineSymbolicPerseus(
+						pomdp, 
+						new SSGABeliefExpansion(pomdp, 20, 1), 
+						5, 100);
+		
+		solver.solve();
+		
+		DynamicBeliefTree T = new DynamicBeliefTree(solver, 3);
+		
+		HashSet<Integer> prevLeaves = new HashSet<Integer>(T.leafNodes);
+		System.out.println(prevLeaves);
+		
+		T.buildTree();
+		
+		HashSet<Integer> nextLeaves = new HashSet<Integer>(T.leafNodes);
+		System.out.println(nextLeaves);
+		System.out.println(prevLeaves);
+		System.out.println(nextLeaves.containsAll(prevLeaves));
+		/* check if leaf nodes are updated properly */
+		assertTrue(!nextLeaves.containsAll(prevLeaves));
+		
+		T.buildTree();
+		
+		HashSet<Integer> nextNextLeaves = new HashSet<Integer>(T.leafNodes);
+		System.out.println(nextNextLeaves);
+		
+		assertTrue(!nextNextLeaves.containsAll(nextLeaves));
+		
+		List<Integer> nonZeroTest = new ArrayList<Integer>(nextNextLeaves).subList(0, 5);
+		System.out.println(T.idToNodeMap);
+		T.pruneZeroProbabilityLeaves(nonZeroTest);
+		System.out.println(T.idToNodeMap);
+		
+		assertTrue(nonZeroTest.size() == T.idToNodeMap.size());
+		assertTrue(T.edgeMap.size() == 0);
+		
+		
+	}
+	
+	
+	@Test
+	void testMJ() {
+		System.out.println("Running testMJ()");
+		
+		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
+	
+		OfflineSymbolicPerseus solver = 
+				new OfflineSymbolicPerseus(
+						pomdp, 
+						new SSGABeliefExpansion(pomdp, 20, 1), 
+						5, 100);
+		
+		solver.solve();
+		
+		MJ Mj = new MJ(solver, 3);
+		
+		System.out.println(Mj.getOpponentModelStateVar(1));
+		
+		/* only true for tiger problem */
+		assertTrue(Mj.getOpponentModelStateVar(1).arity == 16);
+		
+		/* next tests on IPOMDP */
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 7, 3);
+		tigerL1IPOMDP.setGlobals();
+		
+		/* manually assemble solver */
+		OfflineSymbolicPerseus Solver = 
+				new OfflineSymbolicPerseus(
+						tigerL1IPOMDP.lowerLevelFrames.get(0), 
+						new SSGABeliefExpansion(pomdp, 20, 1), 
+						5, 100);
+		
+		tigerL1IPOMDP.setGlobals();
+		Solver.solve();
+		
+		MJ mj = new MJ(Solver, 3);
+		System.out.println(mj.getOpponentModelStateVar(tigerL1IPOMDP.oppModelVarIndex));
+		assertTrue(mj.getOpponentModelStateVar(1).arity == 16);
+		
+		/* manually inject Mj in the IPOMDP */
+		System.out.println(tigerL1IPOMDP.S);
+		tigerL1IPOMDP.S.remove(tigerL1IPOMDP.oppModelVarIndex);
+		tigerL1IPOMDP.S.add(
+				tigerL1IPOMDP.oppModelVarIndex, 
+				mj.getOpponentModelStateVar(tigerL1IPOMDP.oppModelVarIndex));
+		tigerL1IPOMDP.commitVariables();
+		
+		/* test PAjMj */
+		DD PAjMj = mj.getAjGivenMj(tigerL1IPOMDP.ddMaker, tigerL1IPOMDP.getActions());
+//		System.out.println(PAjMj);
+		assertTrue(
+				OP.maxAll(
+						OP.abs(
+							OP.sub(
+								DD.one, 
+								OP.addMultVarElim(
+									PAjMj, 3)))) < 1e-8);
+		
+//		System.out.println(mj.idToNodeMap);
+//		System.out.println(mj.edgeMap);
+//		System.out.println(mj.getJSONString());
+		/* test Mj transition */
+		System.out.println(Arrays.deepToString(mj.getMjTransitionTriples()));
+		
+		System.out.println(mj.getMjInitBelief(tigerL1IPOMDP.ddMaker));
 	}
 
 }

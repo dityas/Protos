@@ -56,7 +56,8 @@ public class StructuredTree {
 			String action,
 			BaseSolver solver,
 			List<String> obs,
-			HashMap<DD, Integer> currentLevelBeliefSet) {
+			HashMap<DD, Integer> currentLevelBeliefSet,
+			int level) {
 		
 		/* 
 		 * Make the next node after taking action at parentNodeBelief and observing the
@@ -100,6 +101,7 @@ public class StructuredTree {
 				
 				nextNode.id = nextNodeId;
 				nextNode.belief = nextBelief;
+				nextNode.H = level;
 				
 				if (solver != null)
 					nextNode.actName = solver.getActionForBelief(nextBelief);
@@ -152,7 +154,8 @@ public class StructuredTree {
 			BaseSolver solver,
 			String action,
 			List<String> obs,
-			HashMap<String, Integer> currentLevelBeliefSet) {
+			HashMap<String, Integer> currentLevelBeliefSet,
+			int level) {
 		
 		/* 
 		 * Make the next node after taking action at parentNodeBelief and observing the
@@ -205,6 +208,7 @@ public class StructuredTree {
 				nextNode.id = nextNodeId;
 				nextNode.belief = nextBelief;
 				nextNode.actName = solver.getActionForBelief(nextBelief);
+				nextNode.H = level;
 				
 				if (solver.f instanceof IPOMDP)
 					nextNode.sBelief = 

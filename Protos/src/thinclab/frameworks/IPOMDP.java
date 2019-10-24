@@ -24,6 +24,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.InteractiveBelief;
+import thinclab.belief.SSGABeliefExpansion;
 import thinclab.ddhelpers.DDMaker;
 import thinclab.ddhelpers.DDTree;
 import thinclab.exceptions.ParserException;
@@ -37,6 +38,8 @@ import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.legacy.ParseSPUDD;
 import thinclab.legacy.StateVar;
+import thinclab.policy.MJ;
+import thinclab.solvers.OfflineSymbolicPerseus;
 
 /*
  * @author adityas
@@ -65,6 +68,7 @@ public class IPOMDP extends POMDP {
 	 * indices and all that
 	 */
 	public OpponentModel oppModel;
+	public MJ Mj;
 	
 	/*
 	 * We will need to know the varIndex for the opponentModel statevar to replace it after
@@ -304,52 +308,62 @@ public class IPOMDP extends POMDP {
 		/*
 		 * Calls IPBVI or PBVI on the lower level frames depending on whether they are IPOMDPs
 		 * or POMDPs
+		 * 
+		 * WARNING: Only work for a single frame
 		 */
-		for (POMDP opponentModel : this.lowerLevelFrames) {
+			
+		/*
+		 * Check if lower frame is POMDP or IPOMDP and call the solve method accordingly
+		 */
+		Global.clearHashtables();
+		
+		POMDP opponentModel = this.lowerLevelFrames.get(0);
+		OfflineSymbolicPerseus solver = 
+				new OfflineSymbolicPerseus(
+						opponentModel, 
+						new SSGABeliefExpansion(opponentModel, 100, 1), 
+						10, 100);
+		
+		if (opponentModel.level > 0) ((IPOMDP) opponentModel).solveIPBVI(15, 100);
+		
+		else if (opponentModel.level == 0) {
+			/*
+			 * For solving the POMDP at lowest level, set the globals
+			 */
+			opponentModel.setGlobals();
+			
+			/* modification for new solver API */
+//				opponentModel.solvePBVI(15, 100);
+			solver.solve();
+			logger.debug("Solved lower frame " + opponentModel);
 			
 			/*
-			 * Check if lower frame is POMDP or IPOMDP and call the solve method accordingly
+			 * NOTE: After this point, extract all the required information
+			 * from the lower level frame. The frame should not be accessed after
+			 * exiting this function because the Global arrays will be changed.
 			 */
-			Global.clearHashtables();
 			
-			if (opponentModel.level > 0) ((IPOMDP) opponentModel).solveIPBVI(15, 100);
-			
-			else if (opponentModel.level == 0) {
-				/*
-				 * For solving the POMDP at lowest level, set the globals
-				 */
-				opponentModel.setGlobals();
-				opponentModel.solvePBVI(15, 100);
-				logger.debug("Solved lower frame " + opponentModel);
-				
-				/*
-				 * NOTE: After this point, extract all the required information
-				 * from the lower level frame. The frame should not be accessed after
-				 * exiting this function because the Global arrays will be changed.
-				 */
-				
-				/* store opponent's Oj */
-				this.OjTheta.add(opponentModel.getOi());
-				logger.debug("Extracted Oj for " + opponentModel);
-			}
-			
-			else 
-				throw new SolverException("Frame " + 
-					this.lowerLevelFrames.indexOf(opponentModel) + 
-					" is not a POMDP or IPOMDP");
-			
-		} /* frame iterator */
+			/* store opponent's Oj */
+			this.OjTheta.add(opponentModel.getOi());
+			logger.debug("Extracted Oj for " + opponentModel);
+		}
+		
+		else 
+			throw new SolverException("Frame " + 
+				this.lowerLevelFrames.indexOf(opponentModel) + 
+				" is not a POMDP or IPOMDP");
 		
 		/* Rename extracted functions */
 		this.renameOjDDTrees();
 		
 		/* Set Opponent Model object */
-		this.oppModel = new OpponentModel(this.lowerLevelFrames, this.mjDepth);
+//		this.oppModel = new OpponentModel(this.lowerLevelFrames, this.mjDepth);
+		this.Mj = new MJ(solver, 3);
 		
 		logger.info("Solved lower frames");
 		
 		/* Start the initial look ahead */
-		this.oppModel.buildLocalModel(this.mjLookAhead);
+//		this.oppModel.buildLocalModel(this.mjLookAhead);
 	}
 	
 	public void solveIPBVI(int rounds, int numDpBackups) {
@@ -420,10 +434,11 @@ public class IPOMDP extends POMDP {
 		
 		/* Make DDMaker */
 		DDMaker ddMaker = new DDMaker();
+		
+		StateVar MjVar = this.S.get(this.oppModelVarIndex);
 		ddMaker.addVariable(
-				"M_j", 
-				this.oppModel.currentNodes.toArray(
-						new String[this.oppModel.currentNodes.size()]));
+				MjVar.name, 
+				MjVar.valNames);
 		
 		ddMaker.addVariable(
 				"A_j", 
@@ -459,7 +474,7 @@ public class IPOMDP extends POMDP {
 		varSequence.add("M_j'");
 		
 		/* Get triples */
-		String[][] triples = this.oppModel.getOpponentModelTriples();
+		String[][] triples = this.Mj.getMjTransitionTriples();
 		
 		/* Get the DDTree from the DDMaker */
 		DDTree MjDD = ddMaker.getDDTreeFromSequence(
@@ -850,7 +865,7 @@ public class IPOMDP extends POMDP {
 		logger.debug("Reinitializing Mj dependents according to new Mj");
 		
 		/* rebuild  P(Aj | Mj) */
-		this.currentAjGivenMj = this.oppModel.getAjFromMj(this.ddMaker, this.Aj);
+		this.currentAjGivenMj = this.Mj.getAjGivenMj(this.ddMaker, this.Aj);
 		logger.debug("f(Aj, Mj) for current look ahead horizon initialized");
 		
 		/* rebuild  P(Mj' | Mj, Aj, Oj') */
@@ -864,7 +879,7 @@ public class IPOMDP extends POMDP {
 						this.obsJVarPrimeIndices);
 		logger.debug("TAU contains vars " + Arrays.toString(this.currentTau.getVarSet()));
 		
-		DDTree mjRootBelief = this.oppModel.getOpponentModelInitBelief(this.ddMaker);
+		DDTree mjRootBelief = this.Mj.getMjInitBelief(this.ddMaker);
 		
 		this.lookAheadRootInitBeliefs.clear();
 		
@@ -944,10 +959,7 @@ public class IPOMDP extends POMDP {
 		/*
 		 * Changes the belief space according to the new policy nodes in the current belief 
 		 */
-		
-		/* remove all current Mj nodes from the opponent model object */
-		this.oppModel.clearCurrentContext();
-		
+
 		/* factor the interactive belief to get belief of the physical state */
 		DD[] factoredBelief = InteractiveBelief.factorInteractiveBelief(this, belief);
 		
@@ -985,7 +997,7 @@ public class IPOMDP extends POMDP {
 		 */
 		
 		/* Expand from non zero Mj to create new Mj space */
-		this.oppModel.step(mjBelief, this.mjLookAhead);
+		this.Mj.step(mjBelief, this.mjLookAhead);
 		
 		/* initialize new IS and commit variables */
 		this.updateMjInIS();
@@ -1000,7 +1012,7 @@ public class IPOMDP extends POMDP {
 		 */
 		this.S.set(
 				this.oppModelVarIndex, 
-				this.oppModel.getOpponentModelStateVar(
+				this.Mj.getOpponentModelStateVar(
 						this.oppModelVarIndex));
 		
 		logger.debug("IS initialized to " + this.S);

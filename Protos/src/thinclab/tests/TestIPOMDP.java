@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -399,7 +400,10 @@ class TestIPOMDP {
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		try {
 
-			List<String> beliefNodes = tigerL1IPOMDP.oppModel.currentRoots;
+			List<String> beliefNodes = 
+					tigerL1IPOMDP.Mj.idToNodeMap.keySet().stream()
+						.map(i -> "m" + i)
+						.collect(Collectors.toList());
 			System.out.println(beliefNodes);
 			
 			System.out.println(
@@ -417,7 +421,11 @@ class TestIPOMDP {
 					"listen", 
 					new String[] {"growl-right", "silence"});
 			
-			List<String> beliefNodesNow = tigerL1IPOMDP.oppModel.currentRoots;
+			List<String> beliefNodesNow = 
+					tigerL1IPOMDP.Mj.idToNodeMap.keySet().stream()
+						.map(i -> "m" + i)
+						.collect(Collectors.toList());
+			
 			System.out.println(beliefNodesNow);
 			System.out.println(
 					InteractiveBelief.toStateMap(

@@ -71,7 +71,7 @@ public class StaticPolicyTree extends StaticBeliefTree {
 						this.solver, 
 						this.solver.getActionForBelief(belief), 
 						obs, 
-						nodeMap);
+						nodeMap, T);
 			
 			} /* for all observations */
 		} /* for all parents */
