@@ -168,18 +168,16 @@ public class OnlineIPBVISolver extends OnlineSolver {
 				this.worstDecline = imp;
 		}
 	}
+	
+	@Override
+	public boolean hasSolution() {
+		
+		return (this.alphaVectors != null);
+	}
 
 	@Override
 	public String getActionAtCurrentBelief() {
 
-//		int alphaId = 
-//				this.ipomdp.policyBestAlphaMatch(
-//						this.ipomdp.getInitialBeliefs().get(0), 
-//						this.alphaVectors, 
-//						this.policy);
-//
-//		return this.ipomdp.Ai.get(this.policy[alphaId]);
-		
 		return this.getActionForBelief(this.ipomdp.getCurrentBeliefs().get(0));
 	}
 	

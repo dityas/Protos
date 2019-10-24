@@ -100,6 +100,11 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 		return null;
 	}
 	
+	@Override
+	public boolean hasSolution() {
+		return (this.currentUtilities != null);
+	}
+	
 	// ---------------------------------------------------------------------------------
 	
 	public HashMap<String, Double> computeUtilityRecursive(DD belief, int depth) {

@@ -86,15 +86,28 @@ class TestOnlinePolicyTree {
 		System.out.println(T.getDotString());
 		assertTrue(T.idToNodeMap.size() == 9);
 		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
+		OfflineSymbolicPerseus sp = 
+				new OfflineSymbolicPerseus(
+						pomdp, 
+						new SSGABeliefExpansion(pomdp, 100, 1), 
+						5, 100);
 		
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 7, 2);
-
-		StaticBeliefTree sT = new StaticBeliefTree(tigerL1IPOMDP, 2);
-		sT.buildTree();
+		sp.solve();
 		
-		System.out.println(sT.getDotString());
+		StaticBeliefTree t = new StaticBeliefTree(sp, 3);
+		t.buildTree();
+		
+		System.out.println(t.getDotString());
+		
+//		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+//		parser.parseDomain();
+//		
+//		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 7, 2);
+//
+//		StaticBeliefTree sT = new StaticBeliefTree(tigerL1IPOMDP, 2);
+//		sT.buildTree();
+//		
+//		System.out.println(sT.getDotString());
 	}
 	
 	@Test

@@ -49,11 +49,12 @@ public class StructuredTree {
 	
 	// ----------------------------------------------------------------------------------------
 	
-	public void makeNextNode(
+	public void makeNextBeliefNode(
 			int parentNodeId, 
 			DD parentNodeBelief,
 			Framework f,
 			String action,
+			BaseSolver solver,
 			List<String> obs,
 			HashMap<DD, Integer> currentLevelBeliefSet) {
 		
@@ -99,7 +100,12 @@ public class StructuredTree {
 				
 				nextNode.id = nextNodeId;
 				nextNode.belief = nextBelief;
-				nextNode.actName = "";
+				
+				if (solver != null)
+					nextNode.actName = solver.getActionForBelief(nextBelief);
+				
+				else
+					nextNode.actName = "";
 				
 				if (f instanceof IPOMDP)
 					nextNode.sBelief = 
@@ -140,7 +146,7 @@ public class StructuredTree {
 		}
 	}
 	
-	public void makeNextNode(
+	public void makeNextPolicyNode(
 			int parentNodeId, 
 			DD parentNodeBelief,
 			BaseSolver solver,

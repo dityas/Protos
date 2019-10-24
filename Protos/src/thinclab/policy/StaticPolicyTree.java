@@ -65,7 +65,7 @@ public class StaticPolicyTree extends StaticBeliefTree {
 				
 				DD belief = this.idToNodeMap.get(parentId).belief;
 				
-				this.makeNextNode(
+				this.makeNextPolicyNode(
 						parentId, 
 						belief, 
 						this.solver, 

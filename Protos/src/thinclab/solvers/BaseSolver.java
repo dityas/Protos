@@ -20,5 +20,8 @@ public abstract class BaseSolver {
 	public Framework f;
 	
 	public abstract String getActionForBelief(DD belief);
+	
+	/* return the status of the solver */
+	public abstract boolean hasSolution();
 
 }

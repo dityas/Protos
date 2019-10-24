@@ -10,18 +10,17 @@ package thinclab.policy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import org.apache.log4j.Logger;
 
 import thinclab.belief.Belief;
 import thinclab.belief.InteractiveBelief;
-import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.frameworks.Framework;
 import thinclab.frameworks.IPOMDP;
 import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 import thinclab.policyhelper.PolicyNode;
+import thinclab.solvers.BaseSolver;
 
 /*
  * @author adityas
@@ -33,8 +32,9 @@ public class StaticBeliefTree extends StructuredTree {
 	 * Holds a static belief tree which is expanded to max H at once. 
 	 */
 	
-	/* reference for the framework */
+	/* reference for the framework and solver */
 	Framework f;
+	BaseSolver solver = null;
 	
 	private static final Logger logger = Logger.getLogger(StaticBeliefTree.class);
 	
@@ -53,6 +53,12 @@ public class StaticBeliefTree extends StructuredTree {
 		this.observations = this.f.getAllPossibleObservations();
 		
 		logger.debug("Initializing StaticBeliefTree for maxT " + this.maxT);
+	}
+	
+	public StaticBeliefTree(BaseSolver solver, int maxH) {
+		
+		this(solver.f, maxH);
+		this.solver = solver;
 	}
 	
 	// -------------------------------------------------------------------------------------
@@ -74,9 +80,9 @@ public class StaticBeliefTree extends StructuredTree {
 					
 					DD belief = this.idToNodeMap.get(parentId).belief;
 					
-					this.makeNextNode(
+					this.makeNextBeliefNode(
 							parentId, 
-							belief, f, action, obs, nodeMap);
+							belief, f, action, this.solver, obs, nodeMap);
 			
 				} /* for all actions */
 			} /* for all observations */
@@ -109,6 +115,12 @@ public class StaticBeliefTree extends StructuredTree {
 				node.sBelief =
 					Belief.toStateMap((POMDP) this.f, node.belief).toString();
 			
+			if (this.solver != null)
+				node.actName = this.solver.getActionForBelief(node.belief);
+			
+			else 
+				node.actName = "";
+				
 			this.idToNodeMap.put(i, node);
 			
 			this.currentPolicyNodeCounter += 1;

@@ -145,6 +145,11 @@ public class OfflinePBVISolver extends OfflineSolver {
 		return this.p.getActions().get(this.policy[alphaId]);
 	}
 	
+	@Override
+	public boolean hasSolution() {
+		return (this.alphaVectors != null);
+	}
+	
 	// --------------------------------------------------------------------------------------
 	
 	public void PBVI(
