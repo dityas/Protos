@@ -12,7 +12,7 @@ import java.util.List;
 import org.apache.commons.collections15.buffer.CircularFifoBuffer;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
-import thinclab.frameworks.Framework;
+import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.legacy.DD;
 import thinclab.utils.PolicyCache;
 
@@ -36,7 +36,7 @@ public abstract class OnlineSolver extends BaseSolver {
 
 	// ------------------------------------------------------------------------------------------
 	
-	public OnlineSolver(Framework f, BeliefRegionExpansionStrategy b) {
+	public OnlineSolver(DecisionProcess f, BeliefRegionExpansionStrategy b) {
 		/*
 		 * Set properties and all that
 		 */
@@ -80,14 +80,14 @@ public abstract class OnlineSolver extends BaseSolver {
 		this.expansionStrategy.resetToNewInitialBelief();
 	}
 	
-	public Framework getFramework() {
+	public DecisionProcess getFramework() {
 		/*
 		 * Getter for the framework object
 		 */
 		return this.f;
 	}
 	
-	public void setFramework(Framework f) {
+	public void setFramework(DecisionProcess f) {
 		/*
 		 * Setter for the framework object
 		 */

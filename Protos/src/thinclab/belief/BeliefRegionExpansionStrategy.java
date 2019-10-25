@@ -10,7 +10,7 @@ package thinclab.belief;
 import java.io.Serializable;
 import java.util.List;
 
-import thinclab.frameworks.Framework;
+import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.legacy.DD;
 
 /*
@@ -30,7 +30,7 @@ public abstract class BeliefRegionExpansionStrategy implements Serializable {
 	private int H;
 	
 	/* Store reference to framework */
-	Framework f;
+	DecisionProcess f;
 	
 	// -----------------------------------------------------------------------------------
 	
@@ -63,7 +63,7 @@ public abstract class BeliefRegionExpansionStrategy implements Serializable {
 	
 	// -------------------------------------------------------------------------------------
 	
-	public void setFramework(Framework f) {
+	public void setFramework(DecisionProcess f) {
 		/*
 		 * Setter for the framework member
 		 */

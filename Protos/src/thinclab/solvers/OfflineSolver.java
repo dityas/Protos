@@ -13,7 +13,7 @@ import org.apache.commons.collections15.buffer.CircularFifoBuffer;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
-import thinclab.frameworks.Framework;
+import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.legacy.DD;
 
 /*
@@ -41,7 +41,7 @@ public abstract class OfflineSolver extends BaseSolver {
 
 	// ------------------------------------------------------------------------------------------
 	
-	public OfflineSolver(Framework f, BeliefRegionExpansionStrategy b) {
+	public OfflineSolver(DecisionProcess f, BeliefRegionExpansionStrategy b) {
 		/*
 		 * Set properties and all that
 		 */
@@ -67,14 +67,14 @@ public abstract class OfflineSolver extends BaseSolver {
 				+ " This operation will have no effect");
 	}
 	
-	public Framework getFramework() {
+	public DecisionProcess getFramework() {
 		/*
 		 * Getter for the framework object
 		 */
 		return this.f;
 	}
 	
-	public void setFramework(Framework f) {
+	public void setFramework(DecisionProcess f) {
 		/*
 		 * Setter for the framework object
 		 */

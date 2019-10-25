@@ -21,12 +21,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.belief.Belief;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.MySet;
 import thinclab.legacy.OP;
+import thinclab.solvers.OfflineSymbolicPerseus;
+import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
@@ -46,10 +48,21 @@ class TestDDOps {
 	@BeforeEach
 	void setUp() throws Exception {
 		
+		CustomConfigurationFactory.initializeLogging();
+		
 		if (!setUpDone) {
 			
-			pomdp = new POMDP("/home/adityas/git/repository/domains/tiger.95.SPUDD.txt");
-			pomdp.solvePBVI(5, 100);
+			pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/attacker_l0.txt");
+			
+			OfflineSymbolicPerseus solver = 
+					OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
+							this.pomdp, 
+							100, 
+							1, 
+							10, 
+							100);
+			
+			solver.solve();
 			
 			/*
 			 * Initial belief
@@ -58,16 +71,19 @@ class TestDDOps {
 			Global.clearHashtables();
 			
 			/* Belief after NOP on Init and getting none obs */
-			this.bNOPNoneFromInit = pomdp.beliefUpdate(pomdp.initialBelState, 5, new String[] {"none"});
+			this.bNOPNoneFromInit = 
+					Belief.beliefUpdate(
+							pomdp, 
+							pomdp.initialBelState, 5, new String[] {"none"});
 			Global.clearHashtables();
 			
 			/* Belief after PRIV_ESC on init belief and getting success */
-			this.bPRIVFromInit = pomdp.beliefUpdate(pomdp.initialBelState, 1, new String[] {"success"});
+			this.bPRIVFromInit = Belief.beliefUpdate(pomdp, pomdp.initialBelState, 1, new String[] {"success"});
 			Global.clearHashtables();
 			
 			/* Belief after PRIV_ESC on bPREVFromInit belief and getting success */
-			this.bFILEFromInit = pomdp.beliefUpdate(pomdp.initialBelState,
-									pomdp.findActionByName("FILE_RECON"), 
+			this.bFILEFromInit = Belief.beliefUpdate(pomdp, pomdp.initialBelState,
+									pomdp.getActions().indexOf("FILE_RECON"), 
 									new String[] {"data_c"});
 			Global.clearHashtables();
 			
@@ -104,6 +120,10 @@ class TestDDOps {
 		HashSet<DD> ddHashSet = new HashSet<DD>();
 		
 		ddHashSet.add(this.initBelief);
+		
+		System.out.println(Belief.toStateMap(pomdp, this.initBelief));
+		System.out.println(Belief.toStateMap(pomdp, this.bNOPNoneFromInit));
+		System.out.println(Belief.toStateMap(pomdp, this.bPRIVFromInit));
 		assertTrue(ddHashSet.contains(this.bNOPNoneFromInit));
 		assertFalse(ddHashSet.contains(this.bPRIVFromInit));
 	}

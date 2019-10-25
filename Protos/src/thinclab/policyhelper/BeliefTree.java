@@ -14,8 +14,8 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.Belief;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 
 /*

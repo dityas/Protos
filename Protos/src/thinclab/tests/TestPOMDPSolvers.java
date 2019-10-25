@@ -16,8 +16,8 @@ import org.junit.jupiter.api.Test;
 import thinclab.belief.Belief;
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
@@ -148,12 +148,12 @@ class TestPOMDPSolvers {
 				solver.getActionForBelief(nextBelief).contentEquals("listen"));
 	}
 	
-	@Test
-	void testPOMDPSolve() {
-		System.out.println("Running testPOMDPSolve");
-		POMDP p1 = new POMDP(this.tigerDom);
-		p1.solvePBVI(15, 100);
-		
-	}
+//	@Test
+//	void testPOMDPSolve() {
+//		System.out.println("Running testPOMDPSolve");
+//		POMDP p1 = new POMDP(this.tigerDom);
+//		p1.solvePBVI(15, 100);
+//		
+//	}
 
 }

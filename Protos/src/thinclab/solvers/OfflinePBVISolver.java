@@ -17,7 +17,8 @@ import org.apache.log4j.Logger;
 import thinclab.belief.Belief;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
-import thinclab.frameworks.POMDP;
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
@@ -42,7 +43,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 	double worstDecline;
 
 	/* Variables to hold AlphaVectors */
-	DD[] alphaVectors;
+	public DD[] alphaVectors;
 	AlphaVector[] newAlphaVectors;
 	int numNewAlphaVectors;
 
@@ -138,13 +139,8 @@ public class OfflinePBVISolver extends OfflineSolver {
 		 * Return the best action at belief using the offline policy
 		 */
 		
-		int alphaId = 
-				this.p.policyBestAlphaMatch(
-						belief, 
-						this.alphaVectors, 
-						this.policy);
-
-		return this.p.getActions().get(this.policy[alphaId]);
+		return DecisionProcess.getActionFromPolicy(
+				(POMDP) f, belief, this.alphaVectors, this.policy);
 	}
 	
 	@Override

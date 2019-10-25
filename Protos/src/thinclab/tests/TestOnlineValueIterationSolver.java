@@ -13,7 +13,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.frameworks.IPOMDP;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.solvers.OnlineValueIterationSolver;
 import thinclab.utils.CustomConfigurationFactory;

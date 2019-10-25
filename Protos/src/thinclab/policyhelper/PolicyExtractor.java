@@ -1,8 +1,8 @@
 package thinclab.policyhelper;
 import java.util.Map;
 
+import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 import thinclab.policyhelper.PolicyNode;
 

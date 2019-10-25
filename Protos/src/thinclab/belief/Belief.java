@@ -12,9 +12,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.IPOMDP;
-import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.MySet;

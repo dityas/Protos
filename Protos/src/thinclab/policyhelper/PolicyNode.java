@@ -5,8 +5,7 @@ import java.util.*;
 
 import org.apache.log4j.Logger;
 
-import thinclab.belief.Belief;
-import thinclab.frameworks.POMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 
 public class PolicyNode implements Serializable {
@@ -49,43 +48,43 @@ public class PolicyNode implements Serializable {
 		
 	}
 	
-	public PolicyNode(POMDP p, DD belief) {
-		/*
-		 * Populates the POMDP and belief fields and computes the best action given the belief
-		 */
-		this.p = p;
-		this.belief = belief;
-		
-		/*
-		 * Find best alphaId and action
-		 */
-		this.alphaId = this.p.policyBestAlphaMatch(belief, this.p.alphaVectors, this.p.policy);
-		this.actId = this.p.policy[this.alphaId];
-		this.actName = this.p.actions[this.actId].name;
-		
-		/*
-		 * Fill in belief state map
-		 */
-		this.factoredBelief = Belief.toStateMap(this.p, belief);
-	}
+//	public PolicyNode(POMDP p, DD belief) {
+//		/*
+//		 * Populates the POMDP and belief fields and computes the best action given the belief
+//		 */
+//		this.p = p;
+//		this.belief = belief;
+//		
+//		/*
+//		 * Find best alphaId and action
+//		 */
+//		this.alphaId = this.p.policyBestAlphaMatch(belief, this.p.alphaVectors, this.p.policy);
+//		this.actId = this.p.policy[this.alphaId];
+//		this.actName = this.p.actions[this.actId].name;
+//		
+//		/*
+//		 * Fill in belief state map
+//		 */
+//		this.factoredBelief = Belief.toStateMap(this.p, belief);
+//	}
 	
-	public PolicyNode(POMDP p, DD belief, int level, int maxDepth) {
-		/*
-		 * Initialize PolicyNode for a level in the policy tree
-		 */
-		this(p, belief);
-	}
-	
-	public PolicyNode(POMDP p, DD belief, int horizon) {
-		/*
-		 * Constructor to store belief, action and horizon
-		 */
-		this(p, belief);
-		this.H = horizon;
-		
-		this.logger.debug("New PolicyNode initialized with belief " + Belief.toStateMap(p, belief)
-				+ " and optimal action " + this.actName + " at time step " + this.H);
-	}
+//	public PolicyNode(POMDP p, DD belief, int level, int maxDepth) {
+//		/*
+//		 * Initialize PolicyNode for a level in the policy tree
+//		 */
+//		this(p, belief);
+//	}
+//	
+//	public PolicyNode(POMDP p, DD belief, int horizon) {
+//		/*
+//		 * Constructor to store belief, action and horizon
+//		 */
+//		this(p, belief);
+//		this.H = horizon;
+//		
+//		this.logger.debug("New PolicyNode initialized with belief " + Belief.toStateMap(p, belief)
+//				+ " and optimal action " + this.actName + " at time step " + this.H);
+//	}
 	
 	public PolicyNode(int id, int timeStep, String sBelief, String action) {
 		/*

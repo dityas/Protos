@@ -18,11 +18,12 @@ import org.junit.jupiter.api.Test;
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
-import thinclab.frameworks.IPOMDP;
-import thinclab.frameworks.POMDP;
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -79,7 +80,14 @@ class TestBeliefExpansionStartegies {
 	void testSSGABeliefExpansion() {
 		System.out.println("Running testSSGABeliefExpansion()");
 		
-		this.pomdp.solvePBVI(1, 10);
+		OfflineSymbolicPerseus solver = 
+				OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
+						this.pomdp, 
+						100, 
+						1, 
+						10, 
+						100);
+		solver.solve();
 		
 		SSGABeliefExpansion ssgaBE = new SSGABeliefExpansion(this.pomdp, 100, 1000);
 		assertNotNull(ssgaBE);

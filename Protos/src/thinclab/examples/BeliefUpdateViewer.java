@@ -19,7 +19,7 @@ import org.apache.commons.cli.ParseException;
 import cern.colt.Arrays;
 import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.belief.InteractiveBelief;
-import thinclab.frameworks.IPOMDP;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.legacy.StateVar;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;

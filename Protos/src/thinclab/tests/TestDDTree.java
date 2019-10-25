@@ -14,14 +14,17 @@ import org.junit.jupiter.api.Test;
 import thinclab.ddhelpers.DDMaker;
 import thinclab.ddhelpers.DDTree;
 import thinclab.ddhelpers.DDTreeLeaf;
-import thinclab.frameworks.POMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
+import thinclab.solvers.OfflineSymbolicPerseus;
+import thinclab.utils.CustomConfigurationFactory;
 
 class TestDDTree {
 
 	@BeforeEach
 	void setUp() throws Exception {
+		CustomConfigurationFactory.initializeLogging();
 	}
 
 	@AfterEach
@@ -108,7 +111,15 @@ class TestDDTree {
 		try {
 			
 			pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/attacker_l0.txt");
-			pomdp.solvePBVI(5, 100);
+			
+			OfflineSymbolicPerseus solver = 
+					OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
+							pomdp, 
+							50, 
+							1, 
+							10, 
+							100);
+			solver.solve();
 		}
 		
 		catch (Exception e) {
@@ -144,10 +155,18 @@ class TestDDTree {
 //		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
 		
 		POMDP pomdp = null;
-		
+		OfflineSymbolicPerseus solver = null;
 		try {
 			pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
-			pomdp.solvePBVI(5, 100);
+			
+			solver = 
+					OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
+							pomdp, 
+							50, 
+							1, 
+							10, 
+							100);
+			solver.solve();
 		} 
 		
 		catch (Exception e) {
@@ -155,7 +174,7 @@ class TestDDTree {
 			System.exit(1);
 		}
 		
-		assertTrue(pomdp.alphaVectors[0].equals(pomdp.alphaVectors[0].toDDTree().toDD()));
+		assertTrue(solver.alphaVectors[0].equals(solver.alphaVectors[0].toDDTree().toDD()));
 	}
 	
 	@Test

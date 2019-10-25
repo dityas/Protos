@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 import cern.colt.Arrays;
 import thinclab.ddhelpers.DDMaker;
 import thinclab.ddhelpers.DDTree;
-import thinclab.frameworks.POMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;

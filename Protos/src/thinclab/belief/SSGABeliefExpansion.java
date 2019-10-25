@@ -13,8 +13,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
@@ -69,10 +69,10 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		
 		/* add initial beliefs from the POMDP */
 		this.initialBeliefs = new ArrayList<DD>();
-		this.initialBeliefs.addAll(this.p.getInitialBeliefsList());
+		this.initialBeliefs.addAll(this.p.getInitialBeliefs());
 		
 		this.exploredBeliefs = new HashSet<DD>();
-		this.exploredBeliefs.addAll(this.p.getInitialBeliefsList());
+		this.exploredBeliefs.addAll(this.p.getInitialBeliefs());
 		
 		logger.debug("SSGA expansion search initialized");
 	}

@@ -5,13 +5,10 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.frameworks;
+package thinclab.decisionprocesses;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
-import thinclab.belief.Belief;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 
@@ -19,7 +16,7 @@ import thinclab.legacy.OP;
  * @author adityas
  *
  */
-public abstract class Framework {
+public abstract class DecisionProcess {
 	/*
 	 * Defines the basic skeleton for a POMDP or IPOMDP object
 	 */
@@ -38,7 +35,7 @@ public abstract class Framework {
 	// ---------------------------------------------------------------------------------
 	
 	public static String getActionFromPolicy(
-			Framework f, DD belief, DD[] alphaVectors, int[] policy) {
+			DecisionProcess f, DD belief, DD[] alphaVectors, int[] policy) {
 		
 		/*
 		 * Compute the dot product of each alpha vector with the belief and

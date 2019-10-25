@@ -19,8 +19,8 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.belief.InteractiveBelief;
 import thinclab.ddhelpers.DDTree;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.IPOMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;

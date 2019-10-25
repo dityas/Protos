@@ -21,10 +21,10 @@ import com.google.gson.JsonObject;
 
 import thinclab.belief.Belief;
 import thinclab.belief.InteractiveBelief;
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.Framework;
-import thinclab.frameworks.IPOMDP;
-import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 import thinclab.policyhelper.PolicyNode;
 import thinclab.solvers.BaseSolver;
@@ -55,7 +55,7 @@ public class StructuredTree implements Serializable {
 	public void makeNextBeliefNode(
 			int parentNodeId, 
 			DD parentNodeBelief,
-			Framework f,
+			DecisionProcess f,
 			String action,
 			BaseSolver solver,
 			List<String> obs,

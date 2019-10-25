@@ -19,12 +19,12 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.belief.InteractiveBelief;
 import thinclab.ddhelpers.DDTree;
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.IPOMDP;
-import thinclab.frameworks.POMDP;
 import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.ipomdpsolver.InteractiveStateVar;
 import thinclab.ipomdpsolver.OpponentModel;

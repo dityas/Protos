@@ -21,7 +21,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import thinclab.belief.InteractiveBelief;
-import thinclab.frameworks.IPOMDP;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.policyhelper.PolicyNode;
 import thinclab.solvers.OnlineSolver;

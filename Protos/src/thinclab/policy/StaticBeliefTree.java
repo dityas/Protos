@@ -15,9 +15,9 @@ import org.apache.log4j.Logger;
 
 import thinclab.belief.Belief;
 import thinclab.belief.InteractiveBelief;
-import thinclab.frameworks.Framework;
-import thinclab.frameworks.IPOMDP;
-import thinclab.frameworks.POMDP;
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 import thinclab.policyhelper.PolicyNode;
 import thinclab.solvers.BaseSolver;
@@ -33,14 +33,14 @@ public class StaticBeliefTree extends StructuredTree {
 	 */
 	
 	/* reference for the framework and solver */
-	Framework f;
+	DecisionProcess f;
 	BaseSolver solver = null;
 	
 	private static final Logger logger = Logger.getLogger(StaticBeliefTree.class);
 	
 	// ------------------------------------------------------------------------------------
 	
-	public StaticBeliefTree(Framework f, int maxH) {
+	public StaticBeliefTree(DecisionProcess f, int maxH) {
 		
 		/* set attributes */
 		this.f = f;

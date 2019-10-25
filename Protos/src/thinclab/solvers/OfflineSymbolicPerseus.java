@@ -14,7 +14,9 @@ import org.apache.log4j.Logger;
 
 import thinclab.belief.Belief;
 import thinclab.belief.BeliefRegionExpansionStrategy;
-import thinclab.frameworks.POMDP;
+import thinclab.belief.SSGABeliefExpansion;
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
@@ -265,5 +267,22 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			}
 		}
 
+	}
+	
+	public static OfflineSymbolicPerseus createSolverWithSSGAExpansion(
+			DecisionProcess DP,
+			int searchDepth,
+			int searchIterations,
+			int rounds,
+			int backups) {
+		/*
+		 * Creates a Offline Symbolic Perseus Solver with given params
+		 */
+		
+		return new OfflineSymbolicPerseus(
+				(POMDP) DP, 
+				new SSGABeliefExpansion((POMDP) DP, searchDepth, searchIterations), 
+				rounds, 
+				backups);
 	}
 }

@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.frameworks;
+package thinclab.decisionprocesses;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

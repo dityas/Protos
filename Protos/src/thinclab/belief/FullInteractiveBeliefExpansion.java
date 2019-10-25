@@ -11,10 +11,10 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.Framework;
-import thinclab.frameworks.IPOMDP;
 import thinclab.legacy.DD;
 
 /*
@@ -31,7 +31,7 @@ public class FullInteractiveBeliefExpansion extends FullBeliefExpansion {
 	
 	// --------------------------------------------------------------------------------------------
 	
-	public FullInteractiveBeliefExpansion(Framework f) {
+	public FullInteractiveBeliefExpansion(DecisionProcess f) {
 		/*
 		 * Set properties and all that
 		 */
@@ -44,7 +44,7 @@ public class FullInteractiveBeliefExpansion extends FullBeliefExpansion {
 	
 	@Override
 	public DD beliefUpdate(
-			Framework f, 
+			DecisionProcess f, 
 			DD previousBelief, 
 			String action,
 			List<String> obs) {

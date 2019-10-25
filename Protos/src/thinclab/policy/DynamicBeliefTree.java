@@ -16,8 +16,8 @@ import org.apache.log4j.Logger;
 
 import thinclab.belief.Belief;
 import thinclab.belief.InteractiveBelief;
-import thinclab.frameworks.IPOMDP;
-import thinclab.frameworks.POMDP;
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.policyhelper.PolicyNode;
 import thinclab.solvers.BaseSolver;
 

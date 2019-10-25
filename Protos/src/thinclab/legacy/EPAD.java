@@ -3,7 +3,7 @@ package thinclab.legacy;
 import java.io.*;
 import java.lang.*;
 
-import thinclab.frameworks.POMDP;
+import thinclab.decisionprocesses.POMDP;
 
 
 public class EPAD {

@@ -15,10 +15,10 @@ import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.InteractiveBelief;
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.Framework;
-import thinclab.frameworks.IPOMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
@@ -84,7 +84,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	// -------------------------------------------------------------------------------------------
 	
 	@Override
-	public void setFramework(Framework ipomdp) {
+	public void setFramework(DecisionProcess ipomdp) {
 		/*
 		 * Replaces the IPOMDP reference with given arg
 		 */
@@ -188,7 +188,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 		/*
 		 * Return best action at given belief
 		 */
-		return Framework.getActionFromPolicy(
+		return DecisionProcess.getActionFromPolicy(
 				this.f, belief, this.alphaVectors, this.policy);
 	}
 

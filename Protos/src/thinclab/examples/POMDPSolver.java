@@ -13,10 +13,12 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import thinclab.frameworks.POMDP;
+import thinclab.belief.SSGABeliefExpansion;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.policyhelper.PolicyExtractor;
 import thinclab.policyhelper.PolicyGraph;
 import thinclab.policyhelper.PolicyVisualizer;
+import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.visualizers.Visualizer;
 import thinclab.utils.visualizers.VizGraph;
@@ -57,7 +59,15 @@ public class POMDPSolver {
 		 * Starts the solver and waits for convergence or max rounds
 		 */
 		this.pomdp = new POMDP(this.domainFile);
-		this.pomdp.solvePBVI(this.perseusRounds, this.numDpBackups);
+		
+		OfflineSymbolicPerseus solver = 
+				new OfflineSymbolicPerseus(
+						this.pomdp, 
+						new SSGABeliefExpansion(this.pomdp, 100, 1), 
+						10, 
+						100);
+		
+		solver.solve();
 	}
 	
 	public void showPolicyGraph() {
