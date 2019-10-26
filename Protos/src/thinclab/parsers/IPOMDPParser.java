@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.ipomdpsolver;
+package thinclab.parsers;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -19,7 +19,6 @@ import org.apache.log4j.Logger;
 import thinclab.ddhelpers.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.legacy.Global;
-import thinclab.legacy.ParseSPUDD;
 
 /*
  * @author adityas

@@ -1,4 +1,4 @@
-package thinclab.legacy;
+package thinclab.parsers;
 
 import java.io.*;
 import java.util.*;
@@ -9,6 +9,12 @@ import java.util.stream.IntStream;
 import org.apache.log4j.Logger;
 
 import thinclab.ddhelpers.DDTree;
+import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
+import thinclab.legacy.DDnode;
+import thinclab.legacy.Global;
+import thinclab.legacy.OP;
+import thinclab.legacy.StateVar;
 
 
 public class ParseSPUDD implements Serializable {

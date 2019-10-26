@@ -22,8 +22,8 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.legacy.MySet;
 import thinclab.legacy.OP;
-import thinclab.legacy.ParseSPUDD;
 import thinclab.legacy.StateVar;
+import thinclab.parsers.ParseSPUDD;
 import thinclab.utils.PolicyCache;
 
 public class POMDP extends DecisionProcess implements Serializable {

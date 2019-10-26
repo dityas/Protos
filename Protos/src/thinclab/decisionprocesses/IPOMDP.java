@@ -31,12 +31,12 @@ import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
-import thinclab.legacy.ParseSPUDD;
 import thinclab.legacy.StateVar;
+import thinclab.parsers.IPOMDPParser;
+import thinclab.parsers.ParseSPUDD;
 import thinclab.policy.MJ;
 import thinclab.solvers.OfflineSymbolicPerseus;
 

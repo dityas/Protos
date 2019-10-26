@@ -20,9 +20,9 @@ import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
-import thinclab.ipomdpsolver.IPOMDPParser;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.parsers.IPOMDPParser;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 

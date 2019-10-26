@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
-import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.parsers.IPOMDPParser;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.solvers.OnlineSolver;

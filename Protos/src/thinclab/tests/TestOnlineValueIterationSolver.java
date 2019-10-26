@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.decisionprocesses.IPOMDP;
-import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.parsers.IPOMDPParser;
 import thinclab.solvers.OnlineValueIterationSolver;
 import thinclab.utils.CustomConfigurationFactory;
 
