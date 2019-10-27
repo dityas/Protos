@@ -13,6 +13,7 @@ import org.apache.commons.collections15.buffer.CircularFifoBuffer;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.utils.PolicyCache;
 
@@ -69,7 +70,8 @@ public abstract class OnlineSolver extends BaseSolver {
 	public abstract String getActionAtCurrentBelief();
 	
 	/* Update belief after taking action and observing */
-	public abstract void nextStep(String action, List<String> obs);
+	public abstract void nextStep(String action, List<String> obs) 
+			throws ZeroProbabilityObsException;
 	
 	// -----------------------------------------------------------------------------------------
 	
@@ -91,6 +93,7 @@ public abstract class OnlineSolver extends BaseSolver {
 		/*
 		 * Setter for the framework object
 		 */
+		this.f.setGlobals();
 		this.f = f;
 		this.expansionStrategy.setFramework(f);
 	}

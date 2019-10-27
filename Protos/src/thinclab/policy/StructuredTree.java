@@ -7,6 +7,7 @@
  */
 package thinclab.policy;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.policyhelper.PolicyNode;
 import thinclab.solvers.BaseSolver;
+import thinclab.solvers.OnlineSolver;
 
 /*
  * @author adityas
@@ -76,7 +78,7 @@ public class StructuredTree implements Serializable {
 			 * If the process is an IPOMDP, do an IPOMDP belief update
 			 * else POMDP belief update
 			 */
-			if (f instanceof IPOMDP) {
+			if (f.getType().contentEquals("IPOMDP")) {
 				nextBelief = 
 						InteractiveBelief.staticL1BeliefUpdate(
 								(IPOMDP) f, 
@@ -112,15 +114,10 @@ public class StructuredTree implements Serializable {
 				else
 					nextNode.actName = "";
 				
-				if (f instanceof IPOMDP)
-					nextNode.sBelief = 
-						InteractiveBelief.toStateMap(
-								(IPOMDP) f, 
-								nextBelief).toString();
+				if (f.getType().contentEquals("IPOMDP"))
+					nextNode.sBelief = ((IPOMDP) f).getBeliefString(nextBelief);
 				
-				else 
-					nextNode.sBelief =
-						Belief.toStateMap((POMDP) f, nextBelief).toString();
+				else nextNode.sBelief = f.getBeliefString(nextBelief);
 				
 				/* add next unique node to the nodes map */
 				this.idToNodeMap.put(nextNodeId, nextNode);
@@ -164,8 +161,6 @@ public class StructuredTree implements Serializable {
 		 * Make the next node after taking action at parentNodeBelief and observing the
 		 * specified observation
 		 */
-		DD belief = this.idToNodeMap.get(parentNodeId).belief;
-		
 		try {
 			
 			DD nextBelief;
@@ -174,11 +169,11 @@ public class StructuredTree implements Serializable {
 			 * If the process is an IPOMDP, do an IPOMDP belief update
 			 * else POMDP belief update
 			 */
-			if (solver.f instanceof IPOMDP) {
+			if (solver.f.getType().contentEquals("IPOMDP")) {
 				nextBelief = 
 						InteractiveBelief.staticL1BeliefUpdate(
 								(IPOMDP) solver.f, 
-								belief, 
+								parentNodeBelief, 
 								action, 
 								obs.toArray(new String[obs.size()]));
 			}
@@ -187,18 +182,12 @@ public class StructuredTree implements Serializable {
 				nextBelief = 
 						Belief.beliefUpdate(
 								(POMDP) solver.f, 
-								belief, 
+								parentNodeBelief, 
 								solver.f.getActions().indexOf(action), 
 								obs.toArray(new String[obs.size()])); 
 			}
 			
-			String nextBeliefString;
-			
-			if (solver.f instanceof IPOMDP)
-				nextBeliefString = 
-					InteractiveBelief.toStateMap((IPOMDP) solver.f, nextBelief).toString();
-			
-			else nextBeliefString = Belief.toStateMap((POMDP) solver.f, nextBelief).toString();
+			String nextBeliefString = solver.f.getBeliefString(nextBelief);
 			
 			/* add to belief set if nextBelief is unique */
 			if (!currentLevelBeliefSet.containsKey(nextBeliefString)) {
@@ -212,16 +201,7 @@ public class StructuredTree implements Serializable {
 				nextNode.belief = nextBelief;
 				nextNode.actName = solver.getActionForBelief(nextBelief);
 				nextNode.H = level;
-				
-				if (solver.f instanceof IPOMDP)
-					nextNode.sBelief = 
-						InteractiveBelief.toStateMap(
-								(IPOMDP) solver.f, 
-								nextBelief).toString();
-				
-				else 
-					nextNode.sBelief =
-						Belief.toStateMap((POMDP) solver.f, nextBelief).toString();
+				nextNode.sBelief = nextBeliefString;
 				
 				/* add next unique node to the nodes map */
 				this.idToNodeMap.put(nextNodeId, nextNode);

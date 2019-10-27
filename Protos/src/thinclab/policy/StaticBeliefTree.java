@@ -32,6 +32,8 @@ public class StaticBeliefTree extends StructuredTree {
 	 * Holds a static belief tree which is expanded to max H at once. 
 	 */
 	
+	private static final long serialVersionUID = 359334337512902886L;
+	
 	/* reference for the framework and solver */
 	DecisionProcess f;
 	BaseSolver solver = null;

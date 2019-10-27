@@ -15,7 +15,6 @@ import org.apache.log4j.Logger;
 
 import thinclab.belief.Belief;
 import thinclab.belief.InteractiveBelief;
-import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
@@ -31,7 +30,9 @@ public class StaticPolicyTree extends StaticBeliefTree {
 	/*
 	 * Defines a policy tree using an infinite horizon policy
 	 */
-	
+
+	private static final long serialVersionUID = 1455811940849589344L;
+
 	/* reference to the solver */
 	BaseSolver solver;
 	
@@ -95,15 +96,11 @@ public class StaticPolicyTree extends StaticBeliefTree {
 			node.belief = this.f.getInitialBeliefs().get(i);
 			node.actName = this.solver.getActionForBelief(node.belief);
 			
-			if (this.f instanceof IPOMDP)
-				node.sBelief = 
-					InteractiveBelief.toStateMap(
-							(IPOMDP) this.f, 
-							node.belief).toString();
+			if (this.f.getType().contentEquals("IPOMDP"))
+				node.sBelief = ((IPOMDP) this.f).getBeliefString(node.belief);
 			
 			else 
-				node.sBelief =
-					Belief.toStateMap((POMDP) this.f, node.belief).toString();
+				node.sBelief = this.f.getBeliefString(node.belief);
 			
 			this.idToNodeMap.put(i, node);
 			

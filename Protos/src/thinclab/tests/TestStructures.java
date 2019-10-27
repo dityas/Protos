@@ -13,21 +13,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.belief.FullInteractiveBeliefExpansion;
+import thinclab.belief.InteractiveBelief;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
+import thinclab.exceptions.VariableNotFoundException;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.policy.DynamicBeliefTree;
 import thinclab.policy.MJ;
-import thinclab.policy.OnlinePolicyTree;
+import thinclab.policy.WalkablePolicyTree;
 import thinclab.policy.StaticBeliefTree;
 import thinclab.policy.StaticPolicyTree;
 import thinclab.solvers.OfflineSymbolicPerseus;
@@ -62,14 +66,14 @@ class TestStructures {
 		
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 7, 3);
 		
-//		OnlineIPBVISolver solver = 
-//				new OnlineIPBVISolver(
-//						tigerL1IPOMDP, 
-//						new FullInteractiveBeliefExpansion(tigerL1IPOMDP), 
-//						1, 100);
-		OnlineValueIterationSolver solver = new OnlineValueIterationSolver(tigerL1IPOMDP);
+		OnlineIPBVISolver solver = 
+				new OnlineIPBVISolver(
+						tigerL1IPOMDP, 
+						new FullInteractiveBeliefExpansion(tigerL1IPOMDP), 
+						1, 100);
+//		OnlineValueIterationSolver solver = new OnlineValueIterationSolver(tigerL1IPOMDP);
 		
-		OnlinePolicyTree T = new OnlinePolicyTree(solver, 1);
+		WalkablePolicyTree T = new WalkablePolicyTree(solver, 3);
 		T.buildTree();
 		
 		System.out.println(T.nodeIdToFileNameMap);
@@ -142,7 +146,7 @@ class TestStructures {
 						1, 100);
 
 		isolver.solveCurrentStep();
-		
+//		System.out.println(isolver.expansionStrategy.getBeliefPoints().stream().map(b -> isolver.f.getBeliefString(b)).collect(Collectors.toList()));
 		StaticPolicyTree sT = new StaticPolicyTree(isolver, 3);
 		sT.buildTree();
 		
@@ -197,7 +201,7 @@ class TestStructures {
 	
 	
 	@Test
-	void testMJ() {
+	void testMJ() throws ZeroProbabilityObsException, VariableNotFoundException {
 		System.out.println("Running testMJ()");
 		
 		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
@@ -264,6 +268,26 @@ class TestStructures {
 		System.out.println(Arrays.deepToString(mj.getMjTransitionTriples()));
 		
 		System.out.println(mj.getMjInitBelief(tigerL1IPOMDP.ddMaker));
+		
+		DD nextBel = 
+				InteractiveBelief.staticL1BeliefUpdate(
+						tigerL1IPOMDP, 
+						mj.getMjInitBelief(tigerL1IPOMDP.ddMaker).toDD(), 
+						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(2).toArray(new String[2]));
+		
+		System.out.println(tigerL1IPOMDP.getBeliefString(nextBel));
+		
+		Mj.step(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel).get("M_j"), 3);
+		
+		nextBel = 
+				InteractiveBelief.staticL1BeliefUpdate(
+						tigerL1IPOMDP, 
+						nextBel, 
+						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(5).toArray(new String[2]));
+		
+		System.out.println(tigerL1IPOMDP.getBeliefString(nextBel));
+		
+		Mj.step(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel).get("M_j"), 3);
 	}
 
 }

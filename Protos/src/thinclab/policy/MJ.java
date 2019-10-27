@@ -191,7 +191,7 @@ public class MJ extends DynamicBeliefTree {
 		 * belief state
 		 */
 		this.previousMjBeliefs.clear();
-		this.previousMjBeliefs = previousBelief;
+		this.previousMjBeliefs.putAll(previousBelief);
 	}
 	
 	public DDTree getMjInitBelief(DDMaker ddMaker) {

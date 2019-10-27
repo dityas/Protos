@@ -8,9 +8,7 @@
 package thinclab.decisionprocesses;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -881,7 +879,8 @@ public class IPOMDP extends POMDP {
 											s.toDD(), 
 											mjRootBelief.toDD()}))));
 		
-		logger.debug("Current look ahead init beliefs are " + this.lookAheadRootInitBeliefs);
+		logger.debug("Current look ahead init beliefs are " 
+				+ InteractiveBelief.toStateMap(this, this.lookAheadRootInitBeliefs.get(0)));
 		
 		this.currentRi = this.makeRi();
 		logger.debug("Ri initialized for current look ahead horizon");
@@ -1058,6 +1057,11 @@ public class IPOMDP extends POMDP {
 		return this.obsIVarIndices;
 	}
 	
+	@Override
+	public String getType() {
+		return "IPOMDP";
+	}
+	
 	public String getLowerLevelBeliefLabel(String valName) {
 		/*
 		 * Gets the lower level belief state map for the given valName
@@ -1073,11 +1077,27 @@ public class IPOMDP extends POMDP {
 		return this.Mj.getOptimalActionAtNode(mjNode);
 	}
 	
-	public List<DD> getCurrentBeliefs() {
+	@Override
+	public DD getCurrentBelief() {
 		/*
-		 * Returns the current beliefs of the IPOMDP
+		 * Returns the current belief of the IPOMDP
 		 */
-		return this.lookAheadRootInitBeliefs;
+		return this.lookAheadRootInitBeliefs.get(0);
+	}
+	
+	@Override
+	public String getBeliefString(DD belief) {
+		
+		HashMap<String, HashMap<String, Float>> map = InteractiveBelief.toStateMap(this, belief);
+		
+		HashMap<String, Float> lowerBeliefs = new HashMap<String, Float>();
+		
+		for (String node : map.get("M_j").keySet())
+			lowerBeliefs.put(this.getLowerLevelBeliefLabel(node), map.get("M_j").get(node));
+		
+		map.replace("M_j", lowerBeliefs);
+		
+		return map.toString();
 	}
 	
 	// -----------------------------------------------------------------------------
@@ -1085,30 +1105,48 @@ public class IPOMDP extends POMDP {
 	 * Serialization functions
 	 */
 	
-	public static void saveIPOMDP(IPOMDP ipomdp, String filename) throws IOException {
+	public static void saveIPOMDP(IPOMDP ipomdp, String filename) {
 		/*
 		 * Serializes the IPOMDP object and saves it to the given filename.
 		 */
-		ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(filename));
 		
-		objOut.writeObject(ipomdp);
-		objOut.flush();
-		objOut.close();
+		try {
+			ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(filename));
+			
+			objOut.writeObject(ipomdp);
+			objOut.flush();
+			objOut.close();
+			
+			logger.info("Saved IPOMDP object to " + filename);
+		}
 		
-		logger.info("Saved IPOMDP object to " + filename);
+		catch (Exception e) {
+			logger.error("While saving IPOMDP state in " + filename + " :");
+			e.printStackTrace();
+			System.exit(-1);
+		}
 	}
 	
-	public static IPOMDP loadIPOMDP(String filename) 
-			throws FileNotFoundException, IOException, ClassNotFoundException {
+	public static IPOMDP loadIPOMDP(String filename) {
 		/*
 		 * Load the serialized IPOMDP object from the given file
 		 */
-		ObjectInputStream objIn = new ObjectInputStream(new FileInputStream(filename));
-		IPOMDP ipomdp = (IPOMDP) objIn.readObject();
-		objIn.close();
 		
-		logger.info("Loaded IPOMDP from " + filename);
+		try {
+			ObjectInputStream objIn = new ObjectInputStream(new FileInputStream(filename));
+			IPOMDP ipomdp = (IPOMDP) objIn.readObject();
+			objIn.close();
+			
+			logger.info("Loaded IPOMDP from " + filename);
+			
+			return ipomdp;
+		}
 		
-		return ipomdp;
+		catch (Exception e) {
+			logger.error("While loading IPOMDP from " + filename + ": ");
+			e.printStackTrace();
+			System.exit(-1);
+			return null;
+		}
 	}
 }

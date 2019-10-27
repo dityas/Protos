@@ -25,8 +25,6 @@ import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.ipomdpsolver.InteractiveStateVar;
-import thinclab.ipomdpsolver.OpponentModel;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;

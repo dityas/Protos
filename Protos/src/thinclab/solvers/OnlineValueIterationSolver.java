@@ -271,7 +271,7 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 	// ---------------------------------------------------------------------------------
 	
 	@Override
-	public void nextStep(String action, List<String> obs) {
+	public void nextStep(String action, List<String> obs) throws ZeroProbabilityObsException {
 		
 		try {
 			/*
@@ -284,7 +284,7 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 					obs.toArray(new String[obs.size()]));
 		} 
 		
-		catch (ZeroProbabilityObsException | VariableNotFoundException e) {
+		catch (VariableNotFoundException e) {
 			logger.error("While taking action " 
 					+ action + " and observing " + obs 
 					+ " got error: " + e.getMessage());

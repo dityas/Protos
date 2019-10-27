@@ -7,14 +7,10 @@
  */
 package thinclab.executables;
 
-import java.io.PrintWriter;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.POMDP;
@@ -23,8 +19,6 @@ import thinclab.policyhelper.PolicyGraph;
 import thinclab.policyhelper.PolicyVisualizer;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
-import thinclab.utils.visualizers.Visualizer;
-import thinclab.utils.visualizers.VizGraph;
 
 /*
  * @author adityas

@@ -28,9 +28,12 @@ public abstract class DecisionProcess {
 	public abstract List<String> getObsVarNames();
 	public abstract List<String> getStateVarNames();
 	public abstract List<DD> getInitialBeliefs();
+	public abstract DD getCurrentBelief();
 	public abstract int[] getStateVarIndices();
 	public abstract int[] getObsVarIndices();
 	public abstract void setGlobals();
+	public abstract String getType();
+	public abstract String getBeliefString(DD belief);
 	
 	// ---------------------------------------------------------------------------------
 	

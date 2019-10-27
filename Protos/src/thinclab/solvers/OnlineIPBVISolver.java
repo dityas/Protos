@@ -128,7 +128,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	}
 
 	@Override
-	public void nextStep(String action, List<String> obs) {
+	public void nextStep(String action, List<String> obs) throws ZeroProbabilityObsException {
 
 		try {
 			/*
@@ -143,7 +143,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 			this.expansionStrategy.resetToNewInitialBelief();
 		}
 
-		catch (ZeroProbabilityObsException | VariableNotFoundException e) {
+		catch (VariableNotFoundException e) {
 			logger.error("While taking action " 
 					+ action + " and observing " 
 					+ obs + " got error: " + e.getMessage());
@@ -180,7 +180,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	@Override
 	public String getActionAtCurrentBelief() {
 
-		return this.getActionForBelief(this.ipomdp.getCurrentBeliefs().get(0));
+		return this.getActionForBelief(this.ipomdp.getCurrentBelief());
 	}
 	
 	@Override

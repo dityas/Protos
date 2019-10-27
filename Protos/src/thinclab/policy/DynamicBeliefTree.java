@@ -31,6 +31,8 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 	 * Belief Tree structure which expands online
 	 */
 	
+	private static final long serialVersionUID = -3964769935114420809L;
+
 	/* keep a track of recent leaf nodes */
 	public HashSet<Integer> leafNodes = new HashSet<Integer>();
 	
@@ -118,14 +120,22 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 		 * check if all nonZeroLeafs are in the super set of the current leafs.
 		 * Else the expansion function and the IPOMDP are not in sync
 		 */
+		logger.debug("Previous roots are: " + this.leafNodes);
+		
 		if (this.leafNodes.containsAll(nonZeroLeafIds))
 			this.leafNodes.retainAll(nonZeroLeafIds);
 		
-		else logger.error("Mj and IPOMDP sync lost: current non zero belief " + nonZeroLeafIds
+		else {
+			logger.error("Mj and IPOMDP sync lost: current non zero belief " + nonZeroLeafIds
 				+ " not in leafs tracked by belief tree " + this.leafNodes);
+			
+			System.exit(-1);
+		}
 		
 		/* prune leaves from the maps */
 		this.pruneNodeAndEdgeMaps();
+		
+		logger.debug("After pruning, non zero roots are: " + this.leafNodes);
 	}
 	
 	public void pruneNodeAndEdgeMaps() {

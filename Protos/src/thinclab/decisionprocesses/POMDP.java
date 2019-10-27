@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
+import thinclab.belief.Belief;
 import thinclab.ddhelpers.DDMaker;
 import thinclab.ddhelpers.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
@@ -98,11 +99,11 @@ public class POMDP extends DecisionProcess implements Serializable {
 //	private List<DD> beliefLeaves = new ArrayList<DD>();
 //	private List<DD[]> beliefPoints = new ArrayList<DD[]>();
 	
-	/*
-	 *  Policy cache
-	 */
-	public PolicyCache pCache = new PolicyCache(5);
-	
+//	/*
+//	 *  Policy cache
+//	 */
+//	public PolicyCache pCache = new PolicyCache(5);
+//	
 	// ---------------------------------------------------------------------
 	/*
 	 * Storage variables for DDTree representation
@@ -129,6 +130,7 @@ public class POMDP extends DecisionProcess implements Serializable {
     
     public List<DDTree> adjunctBeliefs = new ArrayList<DDTree>();
     public List<DD> initialBeliefs = new ArrayList<DD>();
+    public DD currentBelief;
     
     /*
      * Keep a DDMaker in case new DDs need to be made
@@ -3123,8 +3125,32 @@ public class POMDP extends DecisionProcess implements Serializable {
 	}
 	
 	@Override
+	public DD getCurrentBelief() {
+		/*
+		 * In case of online solvers, the POMDP will have to maintain a reference
+		 * to its current belief
+		 */
+		return this.currentBelief;
+	}
+	
+	@Override
 	public int[] getObsVarIndices() {
 		return this.obsIndices;
+	}
+	
+	@Override
+	public String getType() {
+		return "POMDP";
+	}
+	
+	@Override
+	public String getBeliefString(DD belief) {
+		/*
+		 * Returns current belief as a string
+		 * 
+		 * Mostly useful printing out the beliefs for policy graphs and trees
+		 */
+		return Belief.toStateMap(this, belief).toString();
 	}
 	
 	// -------------------------------------------------------------------------------
