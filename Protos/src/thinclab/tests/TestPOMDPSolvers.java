@@ -9,6 +9,8 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Arrays;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,7 @@ import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.OP;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
@@ -29,8 +32,8 @@ import thinclab.utils.CustomConfigurationFactory;
  */
 class TestPOMDPSolvers {
 
-	public String tigerDom = "/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
-//	public String tigerDom = "/home/adityas/git/repository/Protos/domains/attacker_l0.txt";
+//	public String tigerDom = "/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
+	public String tigerDom = "/home/adityas/git/repository/Protos/domains/attacker_l0.txt";
 	
 	@BeforeEach
 	void setUp() throws Exception {
@@ -42,7 +45,7 @@ class TestPOMDPSolvers {
 	}
 
 	@Test
-	void testPOMDPInitFromParser() {
+	void testPOMDPInitFromParser() throws ZeroProbabilityObsException {
 		System.out.println("Running testPOMDPInitFromParser()");
 		
 		POMDP p1 = new POMDP(this.tigerDom);
@@ -55,7 +58,23 @@ class TestPOMDPSolvers {
 		assertEquals(p1.S.size(), p1.stateVars.length);
 		assertEquals(p1.Omega.size(), p1.obsVars.length);
 		assertEquals(p1.A.size(), p1.actions.length);
-
+		
+		System.out.println(p1.getInitialBeliefs().get(0).toDDTree());
+		System.out.println(Arrays.toString(Belief.factorBelief(p1, p1.getInitialBeliefs().get(0))));
+		System.out.println(OP.multN(Belief.factorBelief(p1, p1.getInitialBeliefs().get(0))));
+		
+		System.out.println("Action is: " + p1.getActions().get(0));
+		System.out.println("Obs: " + p1.getAllPossibleObservations());
+		DD b1 = 
+				Belief.beliefUpdate(
+						p1, 
+						p1.getInitialBeliefs().get(0), 
+						0, p1.getAllPossibleObservations().get(0).toArray(new String[p1.getAllPossibleObservations().get(2).size()]));
+		System.out.println(Belief.toStateMap(p1, b1));
+		
+		System.out.println(b1.toDDTree());
+		System.out.println(Arrays.toString(Belief.factorBelief(p1, b1)));
+		System.out.println(OP.multN(Belief.factorBelief(p1, b1)));
 //		assertTrue(p2.S.size() >= 1);
 //		assertTrue(p2.Omega.size() >= 1);
 //		assertTrue(p2.A.size() >= 1);

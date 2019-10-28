@@ -10,6 +10,7 @@ package thinclab.policy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -73,6 +74,7 @@ public class MJ extends DynamicBeliefTree {
 		
 		/* add new roots as previous child nodes */
 		this.pruneZeroProbabilityLeaves(this.previousMjBeliefs.keySet());
+		this.currentPolicyNodeCounter = Collections.max(this.leafNodes) + 1;
 		
 		logger.debug("Cached previous belief and added non zero nodes "
 				+ this.leafNodes + " to current roots");

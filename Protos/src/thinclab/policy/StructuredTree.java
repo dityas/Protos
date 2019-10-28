@@ -93,7 +93,7 @@ public class StructuredTree implements Serializable {
 								(POMDP) f, 
 								belief, 
 								f.getActions().indexOf(action), 
-								obs.toArray(new String[obs.size()])); 
+								obs.toArray(new String[obs.size()]));
 			}
 			
 			/* add to belief set if nextBelief is unique */
@@ -290,7 +290,9 @@ public class StructuredTree implements Serializable {
 					+ entry.getValue().sBelief
 						.replace("{", "(")
 						.replace("}", ")")
-						.replace("),", "),|")
+						.replace("),", ",||")
+						.replace("=((", "=|")
+						.replace(", (", "|(")
 					+ "}\"];" + endl;
 		}
 		

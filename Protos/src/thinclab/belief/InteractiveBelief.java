@@ -91,7 +91,11 @@ public class InteractiveBelief extends Belief {
 
 		/* Collect f1 = P(S, Mj)  */
 		DD f1 = startBelief;
-
+		System.out.println(f1.toDDTree());
+		System.out.println(OP.addMultVarElim(f1, ArrayUtils.subarray(
+								ipomdp.stateVarIndices, 
+								0, 
+								ipomdp.stateVarIndices.length - 1)));
 		/* Collect f2 = P(Aj | Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
 		DD[] f2 = 
 				ArrayUtils.addAll(
@@ -101,15 +105,20 @@ public class InteractiveBelief extends Belief {
 						restrictedOi);
 		
 		/* Collect f3 = f1 x f2 */
-		DD[] f3 = ArrayUtils.addAll(f2, f1);
+//		DD[] f3 = ArrayUtils.addAll(f2, f1);
 		
 		DD tau = ipomdp.currentTau;
 
+		DD f3 = 
+				OP.addMultVarElim(
+						ArrayUtils.add(f2, tau), 
+						ipomdp.AjIndex);
+		
 		/* Perform the sum out */
 		DD nextBelief = 
 				OP.addMultVarElim(
-						ArrayUtils.add(f3, tau), 
-						ipomdp.stateVarIndices);
+						new DD[] {f3, f1}, 
+						ArrayUtils.subarray(ipomdp.stateVarIndices, 0, ipomdp.S.size() - 1));
 
 		/* Shift indices */
 		nextBelief = OP.primeVars(nextBelief, -(ipomdp.S.size() + ipomdp.Omega.size()));
@@ -127,7 +136,7 @@ public class InteractiveBelief extends Belief {
 			throw new ZeroProbabilityObsException(
 					"Observation " + Arrays.toString(observations) 
 					+ " not possible at belief " + startBelief);
-
+		System.out.println(norm.toDDTree());
 		return OP.div(nextBelief, norm); 
 	}
 	
@@ -150,8 +159,8 @@ public class InteractiveBelief extends Belief {
 								ipomdp.currentAjGivenMj), 
 						ipomdp.currentOi.get(actName));
 		
-		/* Collect f3 = f1 x f2 */
-		DD[] f3 = ArrayUtils.addAll(f2, f1);
+//		/* Collect f3 = f1 x f2 */
+//		DD[] f3 = ArrayUtils.addAll(f2, f1);
 		
 		/* Collect tau = Sumout [Oj'] P(Oj', S', Aj) x P(Mj', Mj, Oj', Aj) */
 //		DD tau = OP.addMultVarElim(
@@ -163,10 +172,14 @@ public class InteractiveBelief extends Belief {
 		DD tau = ipomdp.currentTau;
 		
 		/* Perform the sum out */
+		DD f3 = 
+				OP.addMultVarElim(
+						ArrayUtils.add(f2, tau), 
+						ipomdp.AjIndex);
+		
 		DD nextBelief = 
 				OP.addMultVarElim(
-						ArrayUtils.add(f3, tau), 
-						ipomdp.stateVarIndices);
+						f3, ArrayUtils.subarray(ipomdp.stateVarIndices, 0, ipomdp.S.size() - 1));
 		
 		/*
 		 * Multiply and sum out
@@ -179,7 +192,7 @@ public class InteractiveBelief extends Belief {
 						ArrayUtils.subarray(
 								ipomdp.stateVarPrimeIndices, 
 								0, 
-								ipomdp.stateVarPrimeIndices.length - 1));
+								ipomdp.stateVarPrimeIndices.length));
 		
 		return norm;
 	}
@@ -234,15 +247,30 @@ public class InteractiveBelief extends Belief {
 		DD[] fbs = new DD[ipomdp.stateVarIndices.length - 1];
 		
 		/* For each state var, summout everything else except A_j*/
-		for (int varId = 0; varId < ipomdp.stateVarIndices.length - 1; varId++)
+		for (int varId = 0; varId < ipomdp.stateVarIndices.length - 1; varId++) {
 			fbs[varId] = OP.addMultVarElim(belief,
 					ArrayUtils.remove(
 							ArrayUtils.subarray(
 									ipomdp.stateVarIndices,
 									0,
 									ipomdp.stateVarIndices.length - 1), varId));
-
+		}
+		
 		return fbs;
+	}
+	
+	public static DD unFactorInteractiveBelief(IPOMDP ipomdp, DD[] factoredBelief) {
+		/*
+		 * Factors belief point from joint distribution to individual variables
+		 * 
+		 * Exactly similar to Hoey's implementation for POMDPs
+		 */
+		ipomdp.setGlobals();
+		
+		DD fbs = OP.reorder(OP.multN(factoredBelief));
+		DD norm = OP.addMultVarElim(fbs, ArrayUtils.subarray(ipomdp.stateVarIndices, 0, ipomdp.S.size() - 1));
+
+		return OP.reorder(OP.div(fbs, norm));
 	}
 	
 	public static DD[][] factorInteractiveBeliefRegion(IPOMDP ipomdp, List<DD> iBeliefRegion) {

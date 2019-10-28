@@ -36,6 +36,7 @@ import thinclab.policy.StaticBeliefTree;
 import thinclab.policy.StaticPolicyTree;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineIPBVISolver;
+import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.solvers.OnlineValueIterationSolver;
 import thinclab.utils.CustomConfigurationFactory;
 
@@ -50,7 +51,7 @@ class TestStructures {
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
-		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
+		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/honeypot_exfil_minimal_l1.domain";
 	}
 
 	@AfterEach
@@ -66,13 +67,21 @@ class TestStructures {
 		
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 7, 3);
 		
-		OnlineIPBVISolver solver = 
-				new OnlineIPBVISolver(
+//		OnlineIPBVISolver solver = 
+//				new OnlineIPBVISolver(
+//						tigerL1IPOMDP, 
+//						new FullInteractiveBeliefExpansion(tigerL1IPOMDP), 
+//						1, 100);
+		OnlineInteractiveSymbolicPerseus solver = 
+				new OnlineInteractiveSymbolicPerseus(
 						tigerL1IPOMDP, 
 						new FullInteractiveBeliefExpansion(tigerL1IPOMDP), 
-						1, 100);
+						1, 
+						100);
 //		OnlineValueIterationSolver solver = new OnlineValueIterationSolver(tigerL1IPOMDP);
-		
+//		solver.expansionStrategy.expand();
+//		solver.expansionStrategy.getBeliefPoints().forEach(p -> 
+//			System.out.println(InteractiveBelief.toStateMap((IPOMDP) solver.f, p)));
 		WalkablePolicyTree T = new WalkablePolicyTree(solver, 3);
 		T.buildTree();
 		
@@ -84,7 +93,7 @@ class TestStructures {
 		assertEquals(T.nodeIdToFileNameMap.size(), T.idToNodeMap.size());
 		
 		System.out.println(T.getDotString());
-		System.out.println(T.getJSONString());
+//		System.out.println(T.getJSONString());
 	}
 	
 	@Test

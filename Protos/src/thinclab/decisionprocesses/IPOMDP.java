@@ -349,7 +349,7 @@ public class IPOMDP extends POMDP {
 		this.renameOjDDTrees();
 		
 		/* Set Opponent Model object */
-		this.Mj = new MJ(solver, 3);
+		this.Mj = new MJ(solver, this.mjLookAhead);
 		
 		logger.info("Solved lower frames");
 	}

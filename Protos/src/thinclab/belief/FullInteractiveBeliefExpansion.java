@@ -60,6 +60,10 @@ public class FullInteractiveBeliefExpansion extends FullBeliefExpansion {
 							obs.toArray(
 									new String[obs.size()]));
 			
+			logger.debug(InteractiveBelief.toStateMap(ip, previousBelief) + 
+					" -[" + action + "]-" + obs + "-> " 
+					+ InteractiveBelief.toStateMap(ip, nextBelief));
+			
 			return nextBelief;
 		} 
 		
@@ -71,7 +75,7 @@ public class FullInteractiveBeliefExpansion extends FullBeliefExpansion {
 			System.exit(-1);
 			return null;
 		}
-		
+			
 	}
 
 }

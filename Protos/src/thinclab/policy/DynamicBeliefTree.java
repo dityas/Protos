@@ -91,7 +91,7 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 		List<Integer> prevNodes = new ArrayList<Integer>();
 		prevNodes.addAll(leafNodes);
 		
-		for (int t = 1; t < this.maxT + 1; t++) {
+		for (int t = 1; t < this.maxT; t++) {
 			
 			List<Integer> nextNodes = this.getNextPolicyNodes(prevNodes, t);
 			prevNodes = nextNodes;
@@ -134,6 +134,7 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 		
 		/* prune leaves from the maps */
 		this.pruneNodeAndEdgeMaps();
+		this.idToNodeMap.values().forEach(n -> n.H = 0);
 		
 		logger.debug("After pruning, non zero roots are: " + this.leafNodes);
 	}

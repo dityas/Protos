@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
@@ -43,7 +44,7 @@ class TestOnlineSymbolicPerseus {
 	}
 
 	@Test
-	void testFHLASolverUtiliyComputation() {
+	void testFHLASolverUtiliyComputation() throws ZeroProbabilityObsException {
 //		CustomConfigurationFactory.setLogFileName("test.log");
 		CustomConfigurationFactory.initializeLogging();
 		System.out.println("Running testFHLASolverUtiliyComputation()");
@@ -108,7 +109,7 @@ class TestOnlineSymbolicPerseus {
 //	}
 	
 	@Test
-	void testOnlineIPBVI() {
+	void testOnlineIPBVI() throws ZeroProbabilityObsException {
 		CustomConfigurationFactory.setLogFileName("test.log");
 		CustomConfigurationFactory.initializeLogging();
 		System.out.println("Running testFHLASolverUtiliyComputation()");

@@ -77,7 +77,6 @@ public class WalkablePolicyTree extends StructuredTree {
 				/* load saved state */
 				IPOMDP ipomdp = (IPOMDP) IPOMDP.loadIPOMDP(this.nodeIdToFileNameMap.get(parentId));
 				this.solver.setFramework(ipomdp);
-				this.solver.resetBeliefExpansion();
 				
 				/* try stepping to the next IPOMDP state */
 				try {
