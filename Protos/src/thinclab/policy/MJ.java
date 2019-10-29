@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -19,8 +20,10 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import thinclab.belief.InteractiveBelief;
 import thinclab.ddhelpers.DDMaker;
 import thinclab.ddhelpers.DDTree;
+import thinclab.ddhelpers.DDTreeLeaf;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
@@ -38,14 +41,6 @@ public class MJ extends DynamicBeliefTree {
 	 */
 	
 	private static final long serialVersionUID = -3580584950505049855L;
-
-	/*
-	 * Previous belief over Mj
-	 * 
-	 * When transforming Mj belief to a new belief space, instead of assigning a uniform
-	 * distribution over all nodes, use the probabilities from the previous belief
-	 */
-	public HashMap<String, Float> previousMjBeliefs = new HashMap<String, Float>();
 	
 	/* keep track of root time step */
 	int T = 0;
@@ -65,15 +60,13 @@ public class MJ extends DynamicBeliefTree {
 	
 	// -------------------------------------------------------------------------------------
 	
-	public void step(HashMap<String, Float> previousBelief, int lookAhead) {
+	public void step(DD belief, int lookAhead, HashSet<String> nonZeroMj) {
 		/*
 		 * Moves to the next time step
 		 */
 		
-		this.storePreviousBeliefValues(previousBelief);
-		
 		/* add new roots as previous child nodes */
-		this.pruneZeroProbabilityLeaves(this.previousMjBeliefs.keySet());
+		this.pruneZeroProbabilityLeaves(nonZeroMj);
 		this.currentPolicyNodeCounter = Collections.max(this.leafNodes) + 1;
 		
 		logger.debug("Cached previous belief and added non zero nodes "
@@ -187,23 +180,14 @@ public class MJ extends DynamicBeliefTree {
 		return triples.toArray(new String[triples.size()][]);
 	}
 	
-	public void storePreviousBeliefValues(HashMap<String, Float> previousBelief) {
-		/*
-		 * Store previous non zero beliefs to create initial belief over the transformed
-		 * belief state
-		 */
-		this.previousMjBeliefs.clear();
-		this.previousMjBeliefs.putAll(previousBelief);
-	}
-	
-	public DDTree getMjInitBelief(DDMaker ddMaker) {
+	public DDTree getMjInitBelief(DDMaker ddMaker, DDTree prior) {
 		/*
 		 * Constructs an initial belief DDTree based on the current roots
 		 */
 		logger.debug("Making initial belief for current opponent model traversal");
 		DDTree beliefMj = ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
 		
-		if (this.previousMjBeliefs.size() == 0) {
+		if (prior == null) {
 			
 			List<Integer> roots = 
 					this.idToNodeMap.values().stream()
@@ -219,7 +203,7 @@ public class MJ extends DynamicBeliefTree {
 				} 
 				
 				catch (Exception e) {
-					// TODO Auto-generated catch block
+					logger.error("While making initial Mj: " + e.getMessage());
 					e.printStackTrace();
 				}
 			}
@@ -228,17 +212,19 @@ public class MJ extends DynamicBeliefTree {
 		/* else use previous belief values */
 		else {
 			
-			for (String node : this.previousMjBeliefs.keySet()) {
+			for (Entry<String, DDTree> entry : prior.children.entrySet()) {
 				
-				try {
-					beliefMj.setValueAt(node, this.previousMjBeliefs.get(node).floatValue());
-				} 
+				DDTree child = entry.getValue();
 				
-				catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				/* add all non leaf vars */
+				if (!child.varName.contentEquals("LeafVar"))
+					beliefMj.addChild(entry.getKey(), child);
+				
+				else if (child.varName.contentEquals("LeafVar") 
+						&& ((DDTreeLeaf) child).val != 0.0)
+					beliefMj.addChild(entry.getKey(), child);
 			}
+			
 		}
 		
 		logger.debug("Made initial belief");

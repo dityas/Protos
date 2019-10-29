@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.belief.Belief;
 import thinclab.belief.InteractiveBelief;
 import thinclab.ddhelpers.DDTree;
+import thinclab.ddhelpers.DDTreeLeaf;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ParserException;
@@ -509,7 +511,7 @@ class TestIPOMDP {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 4);
 		
 		DD nextBel = 
 				InteractiveBelief.staticL1BeliefUpdate(
@@ -518,21 +520,33 @@ class TestIPOMDP {
 						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(2).toArray(new String[2]));
 		
 		System.out.println("L1 BU 1: " + InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel));
-		System.out.println("L1 BU 1 DD: " + nextBel.toDDTree());
-		System.out.println("L1 BU 1 DD: " + OP.reorder(nextBel).toDDTree());
-		System.out.println("L1 BU 1 factor X: " 
-				+ OP.reorder(OP.multN(InteractiveBelief.factorInteractiveBelief(tigerL1IPOMDP, nextBel))).toDDTree());
-		System.out.println("L1 BU 1 factor : " 
-				+ Arrays.toString(InteractiveBelief.factorInteractiveBelief(tigerL1IPOMDP, nextBel)));
-		
-		DD[] fbs = InteractiveBelief.factorInteractiveBelief(tigerL1IPOMDP, nextBel);
-		System.out.println("L1 BU 1 unfactor : " 
-				+ InteractiveBelief.unFactorInteractiveBelief(tigerL1IPOMDP, fbs).toDDTree());
-		System.out.println("L1 BU 1 norm : " 
-				+ OP.addMultVarElim(
-						InteractiveBelief.unFactorInteractiveBelief(tigerL1IPOMDP, fbs),
-						ArrayUtils.subarray(tigerL1IPOMDP.stateVarIndices, 0, tigerL1IPOMDP.S.size() - 1)));
-		
+//		System.out.println("L1 BU 1 DD: " + nextBel.toDDTree());
+//		System.out.println("L1 BU 1 DD: " + OP.reorder(nextBel).toDDTree());
+////		System.out.println("L1 BU 1 factor X: " 
+////				+ OP.reorder(OP.multN(InteractiveBelief.factorInteractiveBelief(tigerL1IPOMDP, nextBel))).toDDTree());
+//		System.out.println("L1 BU 1 factor : " 
+//				+ Arrays.toString(InteractiveBelief.factorInteractiveBelief(tigerL1IPOMDP, nextBel)));
+//		DDTree T = nextBel.toDDTree();
+//		
+//		for (Entry<String, DDTree> entry: T.children.entrySet()) {
+//			
+//			DDTree child = entry.getValue();
+//			
+//			if (child.varName.contentEquals("LeafVar") && ((DDTreeLeaf) child).val != 0.0)
+//				System.out.println(entry);
+//			
+//			else if (!child.varName.contentEquals("LeafVar"))
+//				System.out.println(entry);
+//		}
+//		
+//		DD[] fbs = InteractiveBelief.factorInteractiveBelief(tigerL1IPOMDP, nextBel);
+//		System.out.println("L1 BU 1 unfactor : " 
+//				+ InteractiveBelief.unFactorInteractiveBelief(tigerL1IPOMDP, fbs).toDDTree());
+//		System.out.println("L1 BU 1 norm : " 
+//				+ OP.addMultVarElim(
+//						InteractiveBelief.unFactorInteractiveBelief(tigerL1IPOMDP, fbs),
+//						ArrayUtils.subarray(tigerL1IPOMDP.stateVarIndices, 0, tigerL1IPOMDP.S.size() - 1)));
+//		
 		nextBel = 
 				InteractiveBelief.staticL1BeliefUpdate(
 						tigerL1IPOMDP, 
@@ -540,56 +554,57 @@ class TestIPOMDP {
 						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(5).toArray(new String[2]));
 		
 		System.out.println("L1 BU 2: " + InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel));
-		
-		System.out.println(tigerL1IPOMDP.Mj.idToNodeMap);
-		for (String[] triple : tigerL1IPOMDP.Mj.getMjTransitionTriples()) {
-			System.out.println(Arrays.toString(triple));
-		}
-		
-		
-//		nextBel = 
-//				InteractiveBelief.staticL1BeliefUpdate(
-//						tigerL1IPOMDP, 
-//						nextBel, 
-//						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(5).toArray(new String[2]));
 //		
-//		System.out.println("L1 BU 3: " + InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel));
+//		System.out.println(tigerL1IPOMDP.Mj.idToNodeMap);
+//		for (String[] triple : tigerL1IPOMDP.Mj.getMjTransitionTriples()) {
+//			System.out.println(Arrays.toString(triple));
+//		}
+//		
+//		
+		nextBel = 
+				InteractiveBelief.staticL1BeliefUpdate(
+						tigerL1IPOMDP, 
+						nextBel, 
+						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(5).toArray(new String[2]));
 		
+		System.out.println("L1 BU 3: " + InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel));
+//		
 		tigerL1IPOMDP.step(
 				tigerL1IPOMDP.getCurrentBelief(), 
 				"listen", 
 				tigerL1IPOMDP.getAllPossibleObservations().get(2).toArray(new String[2]));
 		
 		System.out.println(InteractiveBelief.toStateMap(tigerL1IPOMDP, tigerL1IPOMDP.getCurrentBelief()));
-		
-		System.out.println(tigerL1IPOMDP.Mj.idToNodeMap);
-		for (String[] triple : tigerL1IPOMDP.Mj.getMjTransitionTriples()) {
-			System.out.println(Arrays.toString(triple));
-		}
-		System.out.println("L1 BU 1 DD: " + tigerL1IPOMDP.getCurrentBelief().toDDTree());
-		System.out.println("L1 BU 1 DD: " + OP.reorder(tigerL1IPOMDP.getCurrentBelief()).toDDTree());
-		
+//		
+//		System.out.println(tigerL1IPOMDP.Mj.idToNodeMap);
+//		for (String[] triple : tigerL1IPOMDP.Mj.getMjTransitionTriples()) {
+//			System.out.println(Arrays.toString(triple));
+//		}
+//		System.out.println("L1 BU 1 DD: " + tigerL1IPOMDP.getCurrentBelief().toDDTree());
+//		System.out.println("L1 BU 1 DD: " + OP.reorder(tigerL1IPOMDP.getCurrentBelief()).toDDTree());
+//		
+		tigerL1IPOMDP.step(
+				tigerL1IPOMDP.getCurrentBelief(), 
+				"listen",
+				tigerL1IPOMDP.getAllPossibleObservations().get(5).toArray(new String[2]));
+
+		System.out.println(InteractiveBelief.toStateMap(tigerL1IPOMDP, tigerL1IPOMDP.getCurrentBelief()));
+////		for (String[] triple : tigerL1IPOMDP.Mj.getMjTransitionTriples()) {
+////			System.out.println(Arrays.toString(triple));
+////		}
+//		
 		tigerL1IPOMDP.step(
 				tigerL1IPOMDP.getCurrentBelief(), 
 				"listen",
 				tigerL1IPOMDP.getAllPossibleObservations().get(5).toArray(new String[2]));
 		
-//		for (String[] triple : tigerL1IPOMDP.Mj.getMjTransitionTriples()) {
-//			System.out.println(Arrays.toString(triple));
-//		}
-		
-//		tigerL1IPOMDP.step(
-//				tigerL1IPOMDP.getCurrentBelief(), 
-//				"listen",
-//				tigerL1IPOMDP.getAllPossibleObservations().get(1).toArray(new String[2]));
-//		
-//		System.out.println(InteractiveBelief.toStateMap(tigerL1IPOMDP, tigerL1IPOMDP.getCurrentBelief()));
-//		
-//		tigerL1IPOMDP.step(
-//				tigerL1IPOMDP.getCurrentBelief(), 
-//				"listen",
-//				tigerL1IPOMDP.getAllPossibleObservations().get(2).toArray(new String[2]));
-//		
-//		System.out.println(InteractiveBelief.toStateMap(tigerL1IPOMDP, tigerL1IPOMDP.getCurrentBelief()));
+		System.out.println(InteractiveBelief.toStateMap(tigerL1IPOMDP, tigerL1IPOMDP.getCurrentBelief()));
+////		
+////		tigerL1IPOMDP.step(
+////				tigerL1IPOMDP.getCurrentBelief(), 
+////				"listen",
+////				tigerL1IPOMDP.getAllPossibleObservations().get(2).toArray(new String[2]));
+////		
+////		System.out.println(InteractiveBelief.toStateMap(tigerL1IPOMDP, tigerL1IPOMDP.getCurrentBelief()));
 	}
 }

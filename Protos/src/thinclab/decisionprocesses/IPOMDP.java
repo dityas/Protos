@@ -14,6 +14,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -96,7 +97,7 @@ public class IPOMDP extends POMDP {
 	public DD currentMjTfn;
 	public DD currentTau;
 	public DD currentAjGivenMj;
-	public List<DD> lookAheadRootInitBeliefs = new ArrayList<DD>();
+	public DD currentBelief = null;
 	
 	public HashMap<String, DD[]> currentOi;
 	public HashMap<String, DD[]> currentTi;
@@ -860,27 +861,19 @@ public class IPOMDP extends POMDP {
 		this.currentMjTfn = this.makeOpponentModelTransitionDD();
 		logger.debug("f(Mj', Aj, Mj, Oj') initialized");
 		
+		if (this.currentBelief == null) {
+			DD mjInit = this.Mj.getMjInitBelief(this.ddMaker, null).toDD();
+			DD initS = this.initBeliefDdTree.toDD();
+			
+			this.currentBelief = OP.reorder(OP.mult(mjInit, initS));
+		}
+		
 		/* compute tau and store */
 		this.currentTau = 
 				OP.addMultVarElim(
 						ArrayUtils.add(this.currentOj, this.currentMjTfn), 
 						this.obsJVarPrimeIndices);
 		logger.debug("TAU contains vars " + Arrays.toString(this.currentTau.getVarSet()));
-		
-		DDTree mjRootBelief = this.Mj.getMjInitBelief(this.ddMaker);
-		
-		this.lookAheadRootInitBeliefs.clear();
-		
-		this.currentStateBeliefs.stream()
-			.forEach(s -> this.lookAheadRootInitBeliefs.add(
-					OP.reorder(
-							OP.multN(
-									new DD[] {
-											s.toDD(), 
-											mjRootBelief.toDD()}))));
-		
-		logger.debug("Current look ahead init beliefs are " 
-				+ InteractiveBelief.toStateMap(this, this.lookAheadRootInitBeliefs.get(0)));
 		
 		this.currentRi = this.makeRi();
 		logger.debug("Ri initialized for current look ahead horizon");
@@ -948,48 +941,21 @@ public class IPOMDP extends POMDP {
 		/*
 		 * Changes the belief space according to the new policy nodes in the current belief 
 		 */
-
-		/* factor the interactive belief to get belief of the physical state */
-		DD[] factoredBelief = InteractiveBelief.factorInteractiveBelief(this, belief);
 		
-		/*
-		 * For the current implementation, there is a single interactive state variable
-		 * representing the opponent model. So the belief over physical states can be extracted
-		 * by factoring the interactive belief and then multiplying the n - 1 beliefs.
-		 * 
-		 * In future implementations with multiple frames, there may be an implementation with
-		 * multiple state variables for opponent models. In such cases, the number of physical
-		 * states will have to be stored explicitly.
-		 * 
-		 * WARNING: the extracted belief over physical states has to be a DDTree object and not a DD
-		 * object. This is because the transformation of Mj space will overwrite the Global variable 
-		 * indices. So the DD object will no longer be valid after the overwrite.
-		 */
-		this.currentStateBeliefs.clear();
+		/* convert current belief to DDTree */
+		DDTree beliefDDTree = belief.toDDTree();
 		
-		this.currentStateBeliefs.add(
-				OP.multN(
-						ArrayUtils.subarray(
-								factoredBelief, 
-								0, 
-								factoredBelief.length - 1)).toDDTree());
-		
-		/* Get mj nodes with non zero probabilities */
-		HashMap<String, Float> mjBelief = InteractiveBelief.toStateMap(this, belief).get("M_j");
-		
-		/*
-		 * add individual node names to mextMj for expand function.
-		 * 
-		 * This is a weird way to call the expand function.
-		 * 
-		 * TODO: fix opponent model expansion API to accommodate previous non zero belief
-		 */
+		HashSet<String> nonZeroMj = 
+				new HashSet<String>(InteractiveBelief.toStateMap(this, belief).get("M_j").keySet());
 		
 		/* Expand from non zero Mj to create new Mj space */
-		this.Mj.step(mjBelief, this.mjLookAhead);
+		this.Mj.step(belief, this.mjLookAhead, nonZeroMj);
 		
 		/* initialize new IS and commit variables */
 		this.updateMjInIS();
+		
+		/* make current belief */
+		this.currentBelief = OP.reorder(this.Mj.getMjInitBelief(this.ddMaker, beliefDDTree).toDD());
 	}
 	
 	private void updateMjInIS() {
@@ -1044,7 +1010,10 @@ public class IPOMDP extends POMDP {
 	
 	@Override
 	public List<DD> getInitialBeliefs() {
-		return this.lookAheadRootInitBeliefs;
+		List<DD> initBelief = new ArrayList<DD>();
+		initBelief.add(this.currentBelief);
+		
+		return initBelief;
 	}
 	
 	@Override
@@ -1082,7 +1051,7 @@ public class IPOMDP extends POMDP {
 		/*
 		 * Returns the current belief of the IPOMDP
 		 */
-		return this.lookAheadRootInitBeliefs.get(0);
+		return this.currentBelief;
 	}
 	
 	@Override

@@ -51,7 +51,7 @@ class TestStructures {
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
-		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/honeypot_exfil_minimal_l1.domain";
+		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 	}
 
 	@AfterEach

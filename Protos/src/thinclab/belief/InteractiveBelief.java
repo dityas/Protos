@@ -91,11 +91,7 @@ public class InteractiveBelief extends Belief {
 
 		/* Collect f1 = P(S, Mj)  */
 		DD f1 = startBelief;
-		System.out.println(f1.toDDTree());
-		System.out.println(OP.addMultVarElim(f1, ArrayUtils.subarray(
-								ipomdp.stateVarIndices, 
-								0, 
-								ipomdp.stateVarIndices.length - 1)));
+
 		/* Collect f2 = P(Aj | Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
 		DD[] f2 = 
 				ArrayUtils.addAll(
@@ -136,7 +132,7 @@ public class InteractiveBelief extends Belief {
 			throw new ZeroProbabilityObsException(
 					"Observation " + Arrays.toString(observations) 
 					+ " not possible at belief " + startBelief);
-		System.out.println(norm.toDDTree());
+		
 		return OP.div(nextBelief, norm); 
 	}
 	
