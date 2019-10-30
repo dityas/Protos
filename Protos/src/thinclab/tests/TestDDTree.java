@@ -11,9 +11,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.ddhelpers.DDMaker;
-import thinclab.ddhelpers.DDTree;
-import thinclab.ddhelpers.DDTreeLeaf;
+import thinclab.ddinterface.DDMaker;
+import thinclab.ddinterface.DDTree;
+import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;

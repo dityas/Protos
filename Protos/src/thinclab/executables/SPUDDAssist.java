@@ -19,8 +19,8 @@ import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-import thinclab.ddhelpers.DDMaker;
-import thinclab.ddhelpers.DDTree;
+import thinclab.ddinterface.DDMaker;
+import thinclab.ddinterface.DDTree;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*

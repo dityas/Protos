@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.ddhelpers;
+package thinclab.ddinterface;
 
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -24,8 +24,8 @@ import org.apache.log4j.Logger;
 
 import thinclab.belief.InteractiveBelief;
 import thinclab.belief.SSGABeliefExpansion;
-import thinclab.ddhelpers.DDMaker;
-import thinclab.ddhelpers.DDTree;
+import thinclab.ddinterface.DDMaker;
+import thinclab.ddinterface.DDTree;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;

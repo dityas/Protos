@@ -21,9 +21,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.InteractiveBelief;
-import thinclab.ddhelpers.DDMaker;
-import thinclab.ddhelpers.DDTree;
-import thinclab.ddhelpers.DDTreeLeaf;
+import thinclab.ddinterface.DDMaker;
+import thinclab.ddinterface.DDTree;
+import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;

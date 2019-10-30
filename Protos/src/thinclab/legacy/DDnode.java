@@ -4,7 +4,7 @@ import java.util.*;
 
 import org.apache.log4j.Logger;
 
-import thinclab.ddhelpers.DDTree;
+import thinclab.ddinterface.DDTree;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 

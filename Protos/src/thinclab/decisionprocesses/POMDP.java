@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.Belief;
-import thinclab.ddhelpers.DDMaker;
-import thinclab.ddhelpers.DDTree;
+import thinclab.ddinterface.DDMaker;
+import thinclab.ddinterface.DDTree;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.legacy.Action;
 import thinclab.legacy.AlphaVector;

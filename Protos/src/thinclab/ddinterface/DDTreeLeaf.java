@@ -6,7 +6,7 @@
  *	email: shinde.aditya386@gmail.com
  */
 
-package thinclab.ddhelpers;
+package thinclab.ddinterface;
 
 import java.util.ArrayList;
 import java.util.List;
