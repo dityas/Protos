@@ -16,7 +16,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import cern.colt.Arrays;
 import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.belief.InteractiveBelief;
 import thinclab.decisionprocesses.IPOMDP;
@@ -24,7 +23,6 @@ import thinclab.legacy.StateVar;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.solvers.OnlineSolver;
-import thinclab.solvers.OnlineValueIterationSolver;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -64,12 +62,12 @@ public class BeliefUpdateViewer {
 		System.out.println("IPOMDP initialized");
 		
 		/* Initialize solver */
-//		this.solver = 
-//				new OnlineInteractiveSymbolicPerseus(
-//						this.ipomdp, 
-//						this.expansionStrat, 
-//						1, 1000);
-		this.solver = new OnlineValueIterationSolver(ipomdp);
+		this.solver = 
+				new OnlineInteractiveSymbolicPerseus(
+						this.ipomdp, 
+						this.expansionStrat, 
+						1, 100);
+		
 		System.out.println("Solver initialized");
 	}
 	
@@ -96,7 +94,7 @@ public class BeliefUpdateViewer {
 		System.out.println(
 				InteractiveBelief.getBeliefNodeLabel(
 						this.ipomdp, 
-						this.ipomdp.lookAheadRootInitBeliefs.get(0)).replace("<br>", "\r\n"));
+						this.ipomdp.getCurrentBelief()).replace("<br>", "\r\n"));
 		
 		/* 
 		 * compute unfactored state space dimensions by multiplying the arity of all 
