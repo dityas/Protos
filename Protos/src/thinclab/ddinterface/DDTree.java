@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
@@ -101,12 +102,21 @@ public class DDTree implements Serializable {
 		}
 	}
 	
-	public boolean equals(DDTree other) {
+	// --------------------------------------------------------------------------------
+	/*
+	 * Overrides for proper hashing
+	 */
+	
+	@Override
+	public boolean equals(Object obj) {
 		/*
 		 * Checks if two DD trees are equal
 		 */
-		if (this.varName != other.varName) return false;
+		if (obj.getClass() != this.getClass()) return false;
 		
+		DDTree other = (DDTree) obj;
+		
+		if (this.varName != other.varName) return false;
 		if (this.children.size() != other.children.size()) return false;
 		
 		for (Entry<String, DDTree> entry: children.entrySet()){
@@ -114,12 +124,32 @@ public class DDTree implements Serializable {
 			DDTree otherSubTree = other.children.get(entry.getKey());
 			
 			if (otherSubTree == null) return false;
-			
 			else if (!entry.getValue().equals(otherSubTree)) return false;
 		}
 		
 		return true;
 	}
+	
+	@Override
+    public int hashCode() {
+		
+		try {
+			int hashCode = 0;
+			
+			for (String child : this.children.keySet()) {
+			    hashCode += this.children.get(child).hashCode();
+			}
+			
+			return hashCode + DecisionProcess.getVarIndex(this.varName);
+		}
+		
+		catch (Exception e) {
+			e.printStackTrace();
+			System.exit(-1);
+			
+			return 0;
+		}
+    }
 	
 	// -----------------------------------------------------------------------------------
 	

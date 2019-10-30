@@ -2952,39 +2952,6 @@ public class POMDP extends DecisionProcess implements Serializable {
 		return this.Oi;
 	}
 	
-	// --------------------------------------------------------------------------------
-	
-	public static int getVarIndex(String varName) throws VariableNotFoundException {
-		/*
-		 * Gets the global varIndex for variable varName
-		 */
-		if (varName.contains("'")) 
-			varName = varName.substring(0, varName.length() - 1) + "_P";
-		
-		int varIndex = Arrays.asList(Global.varNames).indexOf(varName) + 1;
-		
-		if (varIndex == -1)
-			throw new VariableNotFoundException("Var " + varName + " does not exist");
-		
-		return varIndex;
-	}
-	
-	public static String getVarName(int varIndex) throws VariableNotFoundException {
-		/*
-		 * Gets the Global varName for the varIndex
-		 */
-		if (varIndex > Global.varNames.length) 
-			throw new VariableNotFoundException("Can't find var for index " + varIndex);
-		
-		/* sub 1 from index to compensate for Matlab-like indexing in Globals */
-		String varName = Global.varNames[varIndex - 1];
-		
-		if (varName.length() > 2 && varName.substring(varName.length() - 2).contains("_P"))
-			return varName.substring(0, varName.length() - 2) + "'";
-		
-		else return varName;
-	}
-	
 	// ----------------------------------------------------------------------------------
 	
 	private void recursiveObsGen(

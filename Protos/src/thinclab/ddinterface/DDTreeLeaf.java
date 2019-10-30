@@ -10,7 +10,10 @@ package thinclab.ddinterface;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.legacy.Config;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 
@@ -45,6 +48,32 @@ public class DDTreeLeaf extends DDTree {
 		}
 		
 		return true;
+	}
+	
+	// --------------------------------------------------------------------------------
+	/*
+	 * Overrides for proper hashing
+	 */
+	
+	@Override
+	public boolean equals(Object obj) {
+
+		if (obj.getClass() != getClass())
+			return false;
+
+		DDTreeLeaf leaf = (DDTreeLeaf) obj;
+
+		if (this.val == leaf.val)
+			return true;
+
+		else
+			return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		Double valD = new Double(val);
+		return valD.hashCode();
 	}
 	
 	// ----------------------------------------------------------------------------------

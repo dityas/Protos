@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Test;
 import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.belief.InteractiveBelief;
 import thinclab.belief.SSGABeliefExpansion;
+import thinclab.ddinterface.DDTree;
+import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
@@ -33,6 +35,7 @@ import thinclab.policy.DynamicBeliefTree;
 import thinclab.policy.MJ;
 import thinclab.policy.WalkablePolicyTree;
 import thinclab.policy.StaticBeliefTree;
+import thinclab.policy.StaticPolicyGraph;
 import thinclab.policy.StaticPolicyTree;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineIPBVISolver;
@@ -67,21 +70,13 @@ class TestStructures {
 		
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 7, 3);
 		
-//		OnlineIPBVISolver solver = 
-//				new OnlineIPBVISolver(
-//						tigerL1IPOMDP, 
-//						new FullInteractiveBeliefExpansion(tigerL1IPOMDP), 
-//						1, 100);
 		OnlineInteractiveSymbolicPerseus solver = 
 				new OnlineInteractiveSymbolicPerseus(
 						tigerL1IPOMDP, 
 						new FullInteractiveBeliefExpansion(tigerL1IPOMDP), 
 						1, 
 						100);
-//		OnlineValueIterationSolver solver = new OnlineValueIterationSolver(tigerL1IPOMDP);
-//		solver.expansionStrategy.expand();
-//		solver.expansionStrategy.getBeliefPoints().forEach(p -> 
-//			System.out.println(InteractiveBelief.toStateMap((IPOMDP) solver.f, p)));
+
 		WalkablePolicyTree T = new WalkablePolicyTree(solver, 3);
 		T.buildTree();
 		
@@ -89,11 +84,37 @@ class TestStructures {
 		System.out.println(T.idToNodeMap);
 		System.out.println(T.edgeMap);
 		
-//		assertEquals(T.idToNodeMap.size(), 3);
 		assertEquals(T.nodeIdToFileNameMap.size(), T.idToNodeMap.size());
 		
 		System.out.println(T.getDotString());
-//		System.out.println(T.getJSONString());
+	}
+	
+	@Test
+	void testStaticPolicyGraph() {
+		System.out.println("Running testStaticPolicyGraph()");
+		
+		POMDP pomdp = 
+				new POMDP("/home/adityas/git/repository/Protos/domains/attacker_l0.txt");
+		
+		OfflineSymbolicPerseus solver = 
+				OfflineSymbolicPerseus.createSolverWithSSGAExpansion(pomdp, 100, 1, 5, 100);
+		
+		solver.solve();
+		
+//		System.out.println(solver.expansionStrategy.getBeliefPoints().size());
+//		
+//		HashSet<DDTree> set = new HashSet<DDTree>();
+//		set.addAll(
+//				solver.expansionStrategy.getBeliefPoints()
+//					.stream()
+//					.map(b -> b.toDDTree())
+//					.collect(Collectors.toList()));
+//		System.out.println(set.size());
+		StaticPolicyGraph pg = new StaticPolicyGraph(solver);
+		pg.buildTree();
+		
+		System.out.println(pg.getDotString());
+//		System.out.println(pg.getJSONString());
 	}
 	
 	@Test
