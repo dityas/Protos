@@ -17,7 +17,7 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
-import thinclab.policyhelper.PolicyNode;
+import thinclab.policy.PolicyNode;
 
 /*
  * @author adityas

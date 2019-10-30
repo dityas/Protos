@@ -18,7 +18,6 @@ import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.policyhelper.PolicyNode;
 import thinclab.solvers.OnlineSolver;
 
 /*

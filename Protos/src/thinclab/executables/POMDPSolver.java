@@ -14,9 +14,6 @@ import org.apache.commons.cli.Options;
 
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.POMDP;
-import thinclab.policyhelper.PolicyExtractor;
-import thinclab.policyhelper.PolicyGraph;
-import thinclab.policyhelper.PolicyVisualizer;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 

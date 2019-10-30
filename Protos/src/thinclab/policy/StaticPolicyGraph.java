@@ -18,7 +18,6 @@ import thinclab.ddinterface.DDTree;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
-import thinclab.policyhelper.PolicyNode;
 import thinclab.solvers.BaseSolver;
 
 /*

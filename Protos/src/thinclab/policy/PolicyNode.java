@@ -1,4 +1,4 @@
-package thinclab.policyhelper;
+package thinclab.policy;
 
 import java.io.Serializable;
 import java.util.*;

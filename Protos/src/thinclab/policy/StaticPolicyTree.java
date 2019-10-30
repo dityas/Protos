@@ -18,7 +18,6 @@ import thinclab.belief.InteractiveBelief;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
-import thinclab.policyhelper.PolicyNode;
 import thinclab.solvers.BaseSolver;
 
 /*

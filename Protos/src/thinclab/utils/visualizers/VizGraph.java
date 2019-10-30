@@ -13,9 +13,9 @@ import java.util.List;
 import cern.colt.Arrays;
 import edu.uci.ics.jung.graph.DirectedOrderedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import thinclab.policy.PolicyNode;
 import thinclab.policyhelper.PolicyEdge;
 import thinclab.policyhelper.PolicyGraph;
-import thinclab.policyhelper.PolicyNode;
 
 /*
  * @author adityas
