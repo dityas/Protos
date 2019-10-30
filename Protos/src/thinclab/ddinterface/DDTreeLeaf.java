@@ -16,6 +16,8 @@ import thinclab.legacy.DDleaf;
 
 public class DDTreeLeaf extends DDTree {
 	
+	private static final long serialVersionUID = 5543304119075972676L;
+	
 	public double val = 0.0;
 	
 	public DDTreeLeaf(double val) {
