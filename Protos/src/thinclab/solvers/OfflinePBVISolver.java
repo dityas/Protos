@@ -17,7 +17,8 @@ import org.apache.log4j.Logger;
 import thinclab.belief.Belief;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
-import thinclab.frameworks.POMDP;
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
@@ -33,6 +34,8 @@ public class OfflinePBVISolver extends OfflineSolver {
 	 * Offline PBVI solver for POMDPs
 	 */
 	
+	private static final long serialVersionUID = -8890386097993230541L;
+	
 	/* Variables to hold point based values */
 	double[][] currentPointBasedValues;
 	double[][] newPointBasedValues;
@@ -40,7 +43,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 	double worstDecline;
 
 	/* Variables to hold AlphaVectors */
-	DD[] alphaVectors;
+	public DD[] alphaVectors;
 	AlphaVector[] newAlphaVectors;
 	int numNewAlphaVectors;
 
@@ -79,6 +82,9 @@ public class OfflinePBVISolver extends OfflineSolver {
 	}
 	
 	// ----------------------------------------------------------------------------------
+	/*
+	 * super class overrides.
+	 */
 	
 	@Override
 	public void solve() {
@@ -131,22 +137,26 @@ public class OfflinePBVISolver extends OfflineSolver {
 	}
 
 	@Override
-	public String getBestActionAtBelief(DD belief) {
+	public String getActionForBelief(DD belief) {
 		/*
 		 * Return the best action at belief using the offline policy
 		 */
 		
-		int alphaId = 
-				this.p.policyBestAlphaMatch(
-						belief, 
-						this.alphaVectors, 
-						this.policy);
-
-		return this.p.getActions().get(this.policy[alphaId]);
+		return DecisionProcess.getActionFromPolicy(
+				(POMDP) f, belief, this.alphaVectors, this.policy);
+	}
+	
+	@Override
+	public boolean hasSolution() {
+		return (this.alphaVectors != null);
 	}
 	
 	// --------------------------------------------------------------------------------------
+	/*
+	 * Backup and PBVI functions
+	 */
 	
+	@SuppressWarnings("unused")
 	public void PBVI(
 			int maxAlpha, 
 			int firstStep,
@@ -305,6 +315,19 @@ public class OfflinePBVISolver extends OfflineSolver {
 			if (imp < this.worstDecline)
 				this.worstDecline = imp;
 		}
+	}
+	
+	// ----------------------------------------------------------------------------------
+	/*
+	 * Getters for policy variables
+	 */
+	
+	public DD[] getAlphaVectors() {
+		return this.alphaVectors;
+	}
+	
+	public int[] getPolicy() {
+		return this.policy;
 	}
 
 }

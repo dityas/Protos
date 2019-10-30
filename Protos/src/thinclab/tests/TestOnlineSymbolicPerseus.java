@@ -14,9 +14,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.belief.FullInteractiveBeliefExpansion;
-import thinclab.frameworks.IPOMDP;
-import thinclab.frameworks.POMDP;
-import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.POMDP;
+import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.parsers.IPOMDPParser;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.solvers.OnlineSolver;
@@ -43,7 +44,7 @@ class TestOnlineSymbolicPerseus {
 	}
 
 	@Test
-	void testFHLASolverUtiliyComputation() {
+	void testFHLASolverUtiliyComputation() throws ZeroProbabilityObsException {
 //		CustomConfigurationFactory.setLogFileName("test.log");
 		CustomConfigurationFactory.initializeLogging();
 		System.out.println("Running testFHLASolverUtiliyComputation()");
@@ -72,7 +73,7 @@ class TestOnlineSymbolicPerseus {
 		System.out.println(tigerL1IPOMDP.currentStateBeliefs);
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				tigerL1IPOMDP.obsCombinations.get(2));
 		
 //		System.out.println(tigerL1IPOMDP.currentStateBeliefs);
@@ -80,13 +81,13 @@ class TestOnlineSymbolicPerseus {
 		solver.solveCurrentStep();
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				tigerL1IPOMDP.obsCombinations.get(2));
 		
 		solver.solveCurrentStep();
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				tigerL1IPOMDP.obsCombinations.get(2));
 	}
 	
@@ -108,7 +109,7 @@ class TestOnlineSymbolicPerseus {
 //	}
 	
 	@Test
-	void testOnlineIPBVI() {
+	void testOnlineIPBVI() throws ZeroProbabilityObsException {
 		CustomConfigurationFactory.setLogFileName("test.log");
 		CustomConfigurationFactory.initializeLogging();
 		System.out.println("Running testFHLASolverUtiliyComputation()");
@@ -133,19 +134,19 @@ class TestOnlineSymbolicPerseus {
 		solver.solveCurrentStep();
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				tigerL1IPOMDP.obsCombinations.get(2));
 		
 		solver.solveCurrentStep();
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				tigerL1IPOMDP.obsCombinations.get(2));
 		
 		solver.solveCurrentStep();
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				tigerL1IPOMDP.obsCombinations.get(2));
 	}
 

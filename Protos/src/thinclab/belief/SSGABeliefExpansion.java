@@ -13,8 +13,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
@@ -28,6 +28,8 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	/*
 	 * Runs an SSGA belief expansion starting from the initial belief of the given POMDP
 	 */
+	
+	private static final long serialVersionUID = 4990909984057211665L;
 	
 	/* reference to the recent policy of the solver */
 	public DD[] alphaVectors;
@@ -67,10 +69,10 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		
 		/* add initial beliefs from the POMDP */
 		this.initialBeliefs = new ArrayList<DD>();
-		this.initialBeliefs.addAll(this.p.getInitialBeliefsList());
+		this.initialBeliefs.addAll(this.p.getInitialBeliefs());
 		
 		this.exploredBeliefs = new HashSet<DD>();
-		this.exploredBeliefs.addAll(this.p.getInitialBeliefsList());
+		this.exploredBeliefs.addAll(this.p.getInitialBeliefs());
 		
 		logger.debug("SSGA expansion search initialized");
 	}
@@ -116,6 +118,11 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 			this.expandInitial();
 		
 		else {
+			
+			logger.debug("Starting " + this.nIterations 
+					+ " expansions till depth " + this.getHBound() 
+					+ " from " + this.initialBeliefs.size() + " belief points.");
+			
 			/* Create multinomial for sampling actions */
 			double[] explore = new double[2];
 			explore[0] = 0.6;
@@ -191,7 +198,19 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	
 	@Override
 	public void resetToNewInitialBelief() {
+		/*
+		 * Clear currently explored beliefs and populate everything again starting from
+		 * the initial beliefs from the framework
+		 */
 		
+		/* clear all previous beliefs */
+		this.exploredBeliefs.clear();
+		this.initialBeliefs.clear();
+		this.initialExpansionDone = false;
+		
+		/* get new initial beliefs from the framework */
+		this.initialBeliefs.addAll(this.f.getInitialBeliefs());
+		this.exploredBeliefs.addAll(this.initialBeliefs);
 	}
 
 }

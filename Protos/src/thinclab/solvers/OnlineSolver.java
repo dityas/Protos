@@ -12,7 +12,8 @@ import java.util.List;
 import org.apache.commons.collections15.buffer.CircularFifoBuffer;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
-import thinclab.frameworks.Framework;
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.utils.PolicyCache;
 
@@ -20,13 +21,14 @@ import thinclab.utils.PolicyCache;
  * @author adityas
  *
  */
-public abstract class OnlineSolver {
+public abstract class OnlineSolver extends BaseSolver {
 	
 	/*
 	 * Defines the basic skeleton and structure for implementing Online Solvers
 	 */
-	
-	public Framework f;
+
+	private static final long serialVersionUID = -2064622541038073651L;
+
 	public BeliefRegionExpansionStrategy expansionStrategy;
 	
 	PolicyCache pCache = new PolicyCache(5);
@@ -35,7 +37,7 @@ public abstract class OnlineSolver {
 
 	// ------------------------------------------------------------------------------------------
 	
-	public OnlineSolver(Framework f, BeliefRegionExpansionStrategy b) {
+	public OnlineSolver(DecisionProcess f, BeliefRegionExpansionStrategy b) {
 		/*
 		 * Set properties and all that
 		 */
@@ -65,10 +67,11 @@ public abstract class OnlineSolver {
 	public abstract void solveForBeliefs(List<DD> beliefs);
 	
 	/* Find best action for current belief */
-	public abstract String getBestActionAtCurrentBelief();
+	public abstract String getActionAtCurrentBelief();
 	
 	/* Update belief after taking action and observing */
-	public abstract void nextStep(String action, List<String> obs);
+	public abstract void nextStep(String action, List<String> obs) 
+			throws ZeroProbabilityObsException;
 	
 	// -----------------------------------------------------------------------------------------
 	
@@ -79,17 +82,18 @@ public abstract class OnlineSolver {
 		this.expansionStrategy.resetToNewInitialBelief();
 	}
 	
-	public Framework getFramework() {
+	public DecisionProcess getFramework() {
 		/*
 		 * Getter for the framework object
 		 */
 		return this.f;
 	}
 	
-	public void setFramework(Framework f) {
+	public void setFramework(DecisionProcess f) {
 		/*
 		 * Setter for the framework object
 		 */
+		this.f.setGlobals();
 		this.f = f;
 		this.expansionStrategy.setFramework(f);
 	}

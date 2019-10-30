@@ -28,6 +28,10 @@ public class Global {
 
     public static String[] varNames = null;
     public static String[][] valNames = null;
+    
+    /* identify which frame and level has the current context */
+    public static int CONTEXT_LEVEL_ID;
+    public static int CONTEXT_FRAME_ID;
 
     // hash tables
     //public static WeakHashMap leafHashtable = new WeakHashMap();

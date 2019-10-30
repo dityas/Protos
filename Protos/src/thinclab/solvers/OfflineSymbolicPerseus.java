@@ -7,9 +7,7 @@
  */
 package thinclab.solvers;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -17,7 +15,8 @@ import org.apache.log4j.Logger;
 import thinclab.belief.Belief;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
-import thinclab.frameworks.POMDP;
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
@@ -34,6 +33,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 	 * Jesse Hoey's symbolic perseus for POMDPs
 	 */
 	
+	private static final long serialVersionUID = 3643319647660633983L;
 	private static final Logger logger = Logger.getLogger(OfflineSymbolicPerseus.class);
 	
 	// -------------------------------------------------------------------------------------
@@ -267,5 +267,22 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			}
 		}
 
+	}
+	
+	public static OfflineSymbolicPerseus createSolverWithSSGAExpansion(
+			DecisionProcess DP,
+			int searchDepth,
+			int searchIterations,
+			int rounds,
+			int backups) {
+		/*
+		 * Creates a Offline Symbolic Perseus Solver with given params
+		 */
+		
+		return new OfflineSymbolicPerseus(
+				(POMDP) DP, 
+				new SSGABeliefExpansion((POMDP) DP, searchDepth, searchIterations), 
+				rounds, 
+				backups);
 	}
 }

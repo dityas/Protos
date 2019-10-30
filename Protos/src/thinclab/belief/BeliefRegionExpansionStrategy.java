@@ -7,27 +7,30 @@
  */
 package thinclab.belief;
 
+import java.io.Serializable;
 import java.util.List;
 
-import thinclab.frameworks.Framework;
+import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.legacy.DD;
 
 /*
  * @author adityas
  *
  */
-public abstract class BeliefRegionExpansionStrategy {
+public abstract class BeliefRegionExpansionStrategy implements Serializable {
 	
 	/*
 	 * Provides a common API for using different expansion strategies to search the
 	 * belief region
 	 */
 	
+	private static final long serialVersionUID = 8644971870780595982L;
+
 	/* Bound on the depth of the search in the belief space */
 	private int H;
 	
 	/* Store reference to framework */
-	Framework f;
+	DecisionProcess f;
 	
 	// -----------------------------------------------------------------------------------
 	
@@ -60,7 +63,7 @@ public abstract class BeliefRegionExpansionStrategy {
 	
 	// -------------------------------------------------------------------------------------
 	
-	public void setFramework(Framework f) {
+	public void setFramework(DecisionProcess f) {
 		/*
 		 * Setter for the framework member
 		 */

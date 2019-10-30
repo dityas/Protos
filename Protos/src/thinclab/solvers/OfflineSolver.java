@@ -13,14 +13,14 @@ import org.apache.commons.collections15.buffer.CircularFifoBuffer;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
-import thinclab.frameworks.Framework;
+import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.legacy.DD;
 
 /*
  * @author adityas
  *
  */
-public abstract class OfflineSolver {
+public abstract class OfflineSolver extends BaseSolver {
 
 	/*
 	 * Defines the basic skeleton and structure for implementing offline solvers
@@ -31,7 +31,8 @@ public abstract class OfflineSolver {
 	 * in the current context and the next belief can be computed from any belief. 
 	 */
 	
-	public Framework f;
+	private static final long serialVersionUID = 1927693473988528606L;
+
 	public BeliefRegionExpansionStrategy expansionStrategy;
 	
 	CircularFifoBuffer<Float> bErrorVals = new CircularFifoBuffer<Float>(5);
@@ -40,7 +41,7 @@ public abstract class OfflineSolver {
 
 	// ------------------------------------------------------------------------------------------
 	
-	public OfflineSolver(Framework f, BeliefRegionExpansionStrategy b) {
+	public OfflineSolver(DecisionProcess f, BeliefRegionExpansionStrategy b) {
 		/*
 		 * Set properties and all that
 		 */
@@ -56,9 +57,6 @@ public abstract class OfflineSolver {
 	/* Actual solution method */
 	public abstract void solveForBeliefs(List<DD> beliefs);
 	
-	/* Find best action for current belief */
-	public abstract String getBestActionAtBelief(DD belief);
-	
 	// -----------------------------------------------------------------------------------------
 	
 	public void resetBeliefExpansion() {
@@ -69,14 +67,14 @@ public abstract class OfflineSolver {
 				+ " This operation will have no effect");
 	}
 	
-	public Framework getFramework() {
+	public DecisionProcess getFramework() {
 		/*
 		 * Getter for the framework object
 		 */
 		return this.f;
 	}
 	
-	public void setFramework(Framework f) {
+	public void setFramework(DecisionProcess f) {
 		/*
 		 * Setter for the framework object
 		 */

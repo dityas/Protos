@@ -2,18 +2,27 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.ddhelpers.DDMaker;
-import thinclab.ddhelpers.DDTree;
+import thinclab.ddinterface.DDMaker;
+import thinclab.ddinterface.DDTree;
+import thinclab.ddinterface.DDTreeLeaf;
+import thinclab.utils.CustomConfigurationFactory;
 
 class TestDDMaker {
 
 	private DDMaker ddmaker = null;
+	private static Logger LOGGER;
+	
 	@BeforeEach
 	void setUp() throws Exception {
+		
+		CustomConfigurationFactory.initializeLogging();
+		LOGGER = Logger.getLogger(TestDDMaker.class);
+		
 		this.ddmaker = new DDMaker();
 		this.ddmaker.addVariable("SESSION_PRIVS", new String[] {"user", "admin"});
 		this.ddmaker.addVariable("PERSIST_LEVEL", new String[] {"none", "user", "admin"});
@@ -26,17 +35,26 @@ class TestDDMaker {
 
 	@Test
 	void testDDCreationFromOnlySequences() {
-		System.out.println("Running testDDCreationFromOnlySequences()");
+		
+		LOGGER.info("Running testDDCreationFromOnlySequences()");
+		
+		LOGGER.info("Testing DDTree init");
 		DDTree DD = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"SESSION_PRIVS",
 							  "PERSIST_LEVEL",
 							  "PERSIST_LEVEL'"});
-		System.out.println(DD.toSPUDD());
+		assertNotNull(DD);
+		
+		LOGGER.info("Checking var ordering");
+		assertEquals(DD.varName, "SESSION_PRIVS");
+		assertEquals(DD.children.get("user").varName, "PERSIST_LEVEL");
+		
 	}
 	
 	@Test
 	void testDDCreationFromSequencesWithValues() {
-		System.out.println("Running testDDCreationFromSequencesWithValues()");
+		LOGGER.info("Running testDDCreationFromSequencesWithValues()");
+		
 		DDTree DD = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"SESSION_PRIVS",
 							  "PERSIST_LEVEL",
@@ -45,12 +63,40 @@ class TestDDMaker {
 								{"admin", "none", "admin", "1.0"}}
 								);
 		
-		System.out.println(DD.toSPUDD());
+		LOGGER.info("Checking set values");
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("user")
+								.children.get("none")
+								.children.get("user")).val, 
+				1.0);
+		
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("admin")
+								.children.get("none")
+								.children.get("admin")).val, 
+				1.0);
+		
+		LOGGER.info("Checking unset values");
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("user")
+								.children.get("none")
+								.children.get("admin")).val, 
+				0.0);
+		
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("admin")
+								.children.get("none")
+								.children.get("user")).val, 
+				0.0);
+		
+		
 	}
 	
 	@Test
 	void testDDCreationFromSequencesWithStarValues() {
-		System.out.println("Running testDDCreationFromSequencesWithStarValues()");
+		
+		LOGGER.info("Running testDDCreationFromSequencesWithStarValues()");
+		
 		DDTree DD = this.ddmaker.getDDTreeFromSequence(
 				new String[] {"SESSION_PRIVS",
 							  "PERSIST_LEVEL",
@@ -59,13 +105,51 @@ class TestDDMaker {
 								{"admin", "none", "admin", "1.0"}}
 								);
 		
-		System.out.println(DD.toSPUDD());
-	}
-	
-	@Test
-	void testDDAppend() {
-		System.out.println("Running testDDAppend()");
+		LOGGER.info("Checking set values");
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("user")
+								.children.get("none")
+								.children.get("user")).val, 
+				1.0);
 		
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("user")
+								.children.get("user")
+								.children.get("user")).val, 
+				1.0);
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("user")
+								.children.get("admin")
+								.children.get("user")).val, 
+				1.0);
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("admin")
+								.children.get("none")
+								.children.get("admin")).val, 
+				1.0);
+		
+		LOGGER.info("Checking unset values");
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("user")
+								.children.get("none")
+								.children.get("admin")).val, 
+				0.0);
+		
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("user")
+								.children.get("user")
+								.children.get("admin")).val, 
+				0.0);
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("user")
+								.children.get("admin")
+								.children.get("admin")).val, 
+				0.0);
+		assertEquals(
+				((DDTreeLeaf) DD.children.get("admin")
+								.children.get("none")
+								.children.get("none")).val, 
+				0.0);
 	}
 
 }

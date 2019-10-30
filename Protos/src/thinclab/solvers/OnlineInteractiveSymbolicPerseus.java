@@ -16,9 +16,9 @@ import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.InteractiveBelief;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.IPOMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
@@ -35,6 +35,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 	 * 
 	 * 
 	 */
+	
+	private static final long serialVersionUID = 3646574134759239287L;
 	
 	private static final Logger logger = 
 			Logger.getLogger(OnlineInteractiveSymbolicPerseus.class);

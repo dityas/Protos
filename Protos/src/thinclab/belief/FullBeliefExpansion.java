@@ -13,9 +13,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.Framework;
-import thinclab.frameworks.POMDP;
 import thinclab.legacy.DD;
 
 /*
@@ -28,6 +28,8 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	 * Explore the full belief region using a breadth first search
 	 */
 	
+	private static final long serialVersionUID = -2061648460611553584L;
+
 	/* All possible combinations of observations */
 	public List<List<String>> allPossibleObs;
 	
@@ -39,7 +41,7 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	
 	// -------------------------------------------------------------------------------
 	
-	public FullBeliefExpansion(Framework f, int maxDepth) {
+	public FullBeliefExpansion(DecisionProcess f, int maxDepth) {
 		/*
 		 * Set the class properties and call super to set maximum bound on the search
 		 * 
@@ -75,7 +77,7 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	// -----------------------------------------------------------------------------------
 	
 	public DD beliefUpdate(
-			Framework f, 
+			DecisionProcess f, 
 			DD previousBelief, 
 			String action,
 			List<String> obs) {
@@ -91,7 +93,7 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 					Belief.beliefUpdate(
 							p, 
 							previousBelief, 
-							p.findActionByName(action), 
+							p.getActions().indexOf(action), 
 							obs.toArray(
 									new String[obs.size()]));
 			
@@ -103,6 +105,9 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	}
 	
 	// --------------------------------------------------------------------------------------
+	/*
+	 * Overrides from super
+	 */
 	
 	@Override
 	public void expand() {
@@ -177,11 +182,4 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		logger.debug("Belief root reset to " + this.leaves);
 	}
 	
-	public void setFramework(Framework f) {
-		/*
-		 * Setter for the framework member
-		 */
-		this.f = f;
-	}
-
 }

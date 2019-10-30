@@ -15,10 +15,10 @@ import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.InteractiveBelief;
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.Framework;
-import thinclab.frameworks.IPOMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
@@ -33,6 +33,8 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	/*
 	 * Implements interactive point based value iteration for solving IPOMDPs
 	 */
+
+	private static final long serialVersionUID = 4278938278257692053L;
 
 	/* Variables to hold point based values */
 	double[][] currentPointBasedValues;
@@ -82,7 +84,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	// -------------------------------------------------------------------------------------------
 	
 	@Override
-	public void setFramework(Framework ipomdp) {
+	public void setFramework(DecisionProcess ipomdp) {
 		/*
 		 * Replaces the IPOMDP reference with given arg
 		 */
@@ -126,7 +128,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	}
 
 	@Override
-	public void nextStep(String action, List<String> obs) {
+	public void nextStep(String action, List<String> obs) throws ZeroProbabilityObsException {
 
 		try {
 			/*
@@ -141,7 +143,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 			this.expansionStrategy.resetToNewInitialBelief();
 		}
 
-		catch (ZeroProbabilityObsException | VariableNotFoundException e) {
+		catch (VariableNotFoundException e) {
 			logger.error("While taking action " 
 					+ action + " and observing " 
 					+ obs + " got error: " + e.getMessage());
@@ -168,21 +170,31 @@ public class OnlineIPBVISolver extends OnlineSolver {
 				this.worstDecline = imp;
 		}
 	}
+	
+	@Override
+	public boolean hasSolution() {
+		
+		return (this.alphaVectors != null);
+	}
 
 	@Override
-	public String getBestActionAtCurrentBelief() {
+	public String getActionAtCurrentBelief() {
 
-		int alphaId = 
-				this.ipomdp.policyBestAlphaMatch(
-						this.ipomdp.getInitialBeliefs().get(0), 
-						this.alphaVectors, 
-						this.policy);
-
-		return this.ipomdp.Ai.get(this.policy[alphaId]);
+		return this.getActionForBelief(this.ipomdp.getCurrentBelief());
+	}
+	
+	@Override
+	public String getActionForBelief(DD belief) {
+		/*
+		 * Return best action at given belief
+		 */
+		return DecisionProcess.getActionFromPolicy(
+				this.f, belief, this.alphaVectors, this.policy);
 	}
 
 	// --------------------------------------------------------------------------------------------
 
+	@SuppressWarnings("unused")
 	public void IPBVI(int maxAlpha, int firstStep, int nSteps, DD[][] beliefRegion)
 			throws ZeroProbabilityObsException, VariableNotFoundException {
 

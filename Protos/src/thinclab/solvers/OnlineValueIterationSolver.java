@@ -16,10 +16,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.InteractiveBelief;
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.frameworks.Framework;
-import thinclab.frameworks.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.NextBelState;
@@ -37,6 +37,8 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 	 * Note that the policy obtained using this solver is not optimal for infinite horizon.
 	 */
 	
+	private static final long serialVersionUID = -3200021610043094422L;
+
 	/* store IPOMDP reference */
 	private IPOMDP ipomdp;
 	
@@ -81,7 +83,7 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 	}
 
 	@Override
-	public String getBestActionAtCurrentBelief() {
+	public String getActionAtCurrentBelief() {
 		/*
 		 * Return the action with the highest utility value from the current utilities
 		 */
@@ -90,6 +92,19 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 			.get();
 		
 		return entry.getKey();
+	}
+	
+	@Override
+	public String getActionForBelief(DD belief) {
+		/*
+		 * Not applicable for value iteration solver for finite horizon
+		 */
+		return null;
+	}
+	
+	@Override
+	public boolean hasSolution() {
+		return (this.currentUtilities != null);
 	}
 	
 	// ---------------------------------------------------------------------------------
@@ -256,7 +271,7 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 	// ---------------------------------------------------------------------------------
 	
 	@Override
-	public void nextStep(String action, List<String> obs) {
+	public void nextStep(String action, List<String> obs) throws ZeroProbabilityObsException {
 		
 		try {
 			/*
@@ -269,7 +284,7 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 					obs.toArray(new String[obs.size()]));
 		} 
 		
-		catch (ZeroProbabilityObsException | VariableNotFoundException e) {
+		catch (VariableNotFoundException e) {
 			logger.error("While taking action " 
 					+ action + " and observing " + obs 
 					+ " got error: " + e.getMessage());
@@ -285,7 +300,7 @@ public class OnlineValueIterationSolver extends OnlineSolver {
 	}
 	
 	@Override
-	public void setFramework(Framework f) {
+	public void setFramework(DecisionProcess f) {
 		/*
 		 * Setter for the framework object
 		 */

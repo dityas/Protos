@@ -13,8 +13,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.frameworks.IPOMDP;
-import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.parsers.IPOMDPParser;
 import thinclab.solvers.OnlineValueIterationSolver;
 import thinclab.utils.CustomConfigurationFactory;
 
@@ -51,19 +51,19 @@ public String l1DomainFile;
 		solver.solveCurrentStep();
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				ipomdp.obsCombinations.get(2));
 		
 		solver.solveCurrentStep();
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				ipomdp.obsCombinations.get(2));
 		
 		solver.solveCurrentStep();
 		
 		solver.nextStep(
-				solver.getBestActionAtCurrentBelief(), 
+				solver.getActionAtCurrentBelief(), 
 				ipomdp.obsCombinations.get(2));
 	}
 
