@@ -82,6 +82,9 @@ public class OfflinePBVISolver extends OfflineSolver {
 	}
 	
 	// ----------------------------------------------------------------------------------
+	/*
+	 * super class overrides.
+	 */
 	
 	@Override
 	public void solve() {
@@ -149,6 +152,9 @@ public class OfflinePBVISolver extends OfflineSolver {
 	}
 	
 	// --------------------------------------------------------------------------------------
+	/*
+	 * Backup and PBVI functions
+	 */
 	
 	@SuppressWarnings("unused")
 	public void PBVI(
@@ -309,6 +315,19 @@ public class OfflinePBVISolver extends OfflineSolver {
 			if (imp < this.worstDecline)
 				this.worstDecline = imp;
 		}
+	}
+	
+	// ----------------------------------------------------------------------------------
+	/*
+	 * Getters for policy variables
+	 */
+	
+	public DD[] getAlphaVectors() {
+		return this.alphaVectors;
+	}
+	
+	public int[] getPolicy() {
+		return this.policy;
 	}
 
 }

@@ -105,6 +105,9 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	}
 	
 	// --------------------------------------------------------------------------------------
+	/*
+	 * Overrides from super
+	 */
 	
 	@Override
 	public void expand() {
@@ -179,11 +182,4 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		logger.debug("Belief root reset to " + this.leaves);
 	}
 	
-	public void setFramework(DecisionProcess f) {
-		/*
-		 * Setter for the framework member
-		 */
-		this.f = f;
-	}
-
 }

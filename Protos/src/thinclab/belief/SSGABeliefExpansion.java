@@ -118,6 +118,11 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 			this.expandInitial();
 		
 		else {
+			
+			logger.debug("Starting " + this.nIterations 
+					+ " expansions till depth " + this.getHBound() 
+					+ " from " + this.initialBeliefs.size() + " belief points.");
+			
 			/* Create multinomial for sampling actions */
 			double[] explore = new double[2];
 			explore[0] = 0.6;
@@ -193,7 +198,19 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	
 	@Override
 	public void resetToNewInitialBelief() {
+		/*
+		 * Clear currently explored beliefs and populate everything again starting from
+		 * the initial beliefs from the framework
+		 */
 		
+		/* clear all previous beliefs */
+		this.exploredBeliefs.clear();
+		this.initialBeliefs.clear();
+		this.initialExpansionDone = false;
+		
+		/* get new initial beliefs from the framework */
+		this.initialBeliefs.addAll(this.f.getInitialBeliefs());
+		this.exploredBeliefs.addAll(this.initialBeliefs);
 	}
 
 }
