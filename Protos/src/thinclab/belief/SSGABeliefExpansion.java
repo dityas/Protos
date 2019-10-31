@@ -114,78 +114,71 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		 * Run SSGA expansion for nIterations
 		 */
 		
-		if (!initialExpansionDone)
-			this.expandInitial();
+		logger.debug("Starting " + this.nIterations 
+				+ " expansions till depth " + this.getHBound() 
+				+ " from " + this.initialBeliefs.size() + " belief points.");
 		
-		else {
-			
-			logger.debug("Starting " + this.nIterations 
-					+ " expansions till depth " + this.getHBound() 
-					+ " from " + this.initialBeliefs.size() + " belief points.");
-			
-			/* Create multinomial for sampling actions */
-			double[] explore = new double[2];
-			explore[0] = 0.6;
-			explore[1] = 0.4;
-			
-			/* for iterations */
-			for (int n = 0; n < this.nIterations; n++) {
-			
-				/* Start traversal from initial beliefs */
-				for (DD belief : this.initialBeliefs) {
-					
-					for (int i=0; i < this.getHBound(); i++) {
-						
-						/* Initialize linked list to store new beliefs */
-						int usePolicy = OP.sampleMultinomial(explore);
-						
-						/* action sampling */
-						int act;
-						
-						if (usePolicy == 0) 
-							act = 
-								p.getActions().indexOf(
-										POMDP.getActionFromPolicy(
-												p, belief, this.alphaVectors, this.policy));
-						
-						else act = Global.random.nextInt(p.nActions);
+		/* Create multinomial for sampling actions */
+		double[] explore = new double[2];
+		explore[0] = 0.6;
+		explore[1] = 0.4;
 		
-						/* sample obs */
-						DD obsDist = OP.addMultVarElim(POMDP.concatenateArray(belief,
-								p.actions[act].transFn,
-								p.actions[act].obsFn),
-							POMDP.concatenateArray(p.varIndices, 
-								p.primeVarIndices));
+		/* for iterations */
+		for (int n = 0; n < this.nIterations; n++) {
 		
-						int[][] obsConfig = OP.sampleMultinomial(obsDist, p.primeObsIndices);
-						
-						/* Get next belief */
-						try {
-							DD nextBelief = Belief.beliefUpdate(p, belief,
-								act, 
-								obsConfig);
-							
-							/* Add belief point if it doesn't already exist */
-							if (!this.exploredBeliefs.contains(nextBelief))
-								this.exploredBeliefs.add(nextBelief);
-							
-							belief = nextBelief;
-						} 
-						
-						catch (ZeroProbabilityObsException e) {
-							System.err.println(e.getMessage());
-							continue;
-						}
-						
-					} /* for horizon */
-					
-				} /* for leaf */
+			/* Start traversal from initial beliefs */
+			for (DD belief : this.initialBeliefs) {
 				
-			} /* for iterations */
-		
-			logger.debug("Total beliefs explored are " + this.exploredBeliefs.size());
-		}
-
+				for (int i=0; i < this.getHBound(); i++) {
+					
+					/* Initialize linked list to store new beliefs */
+					int usePolicy = OP.sampleMultinomial(explore);
+					
+					/* action sampling */
+					int act;
+					
+					if (usePolicy == 0) 
+						act = 
+							p.getActions().indexOf(
+									POMDP.getActionFromPolicy(
+											p, belief, this.alphaVectors, this.policy));
+					
+					else act = Global.random.nextInt(p.nActions);
+	
+					/* sample obs */
+					DD obsDist = OP.addMultVarElim(POMDP.concatenateArray(belief,
+							p.actions[act].transFn,
+							p.actions[act].obsFn),
+						POMDP.concatenateArray(p.varIndices, 
+							p.primeVarIndices));
+	
+					int[][] obsConfig = OP.sampleMultinomial(obsDist, p.primeObsIndices);
+					
+					/* Get next belief */
+					try {
+						DD nextBelief = Belief.beliefUpdate(p, belief,
+							act, 
+							obsConfig);
+						
+						/* Add belief point if it doesn't already exist */
+						if (!this.exploredBeliefs.contains(nextBelief))
+							this.exploredBeliefs.add(nextBelief);
+						
+						belief = nextBelief;
+					} 
+					
+					catch (ZeroProbabilityObsException e) {
+						System.err.println(e.getMessage());
+						continue;
+					}
+					
+				} /* for horizon */
+				
+			} /* for leaf */
+			
+		} /* for iterations */
+	
+		logger.debug("Total beliefs explored are " + this.exploredBeliefs.size());
 	}
 
 	@Override
