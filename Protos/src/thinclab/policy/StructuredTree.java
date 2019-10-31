@@ -309,45 +309,45 @@ public class StructuredTree implements Serializable {
 		return dotString;
 	}
 	
-	public void writeDotFile(String fileName) {
+	public void writeDotFile(String dirName, String name) {
 		/*
 		 * Creates a graphviz dot file for the specified structure
 		 */
 		
 		try {
 			
-			PrintWriter writer = new PrintWriter(fileName);
+			PrintWriter writer = new PrintWriter(dirName + "/" + name + ".dot");
 			writer.println(this.getDotString());
 			writer.flush();
 			
-			LOGGER.info("dot file " + fileName + " created");
+			LOGGER.info("dot file " + dirName + "/" + name + ".dot" + " created");
 			writer.close();
 		}
 		
 		catch (Exception e) {
-			LOGGER.error("While creating dot file");
+			LOGGER.error("While creating dot file " + dirName + "/" + name + ".dot");
 			e.printStackTrace();
 			System.exit(-1);
 		}
 	}
 	
-	public void writeJSONFile(String fileName) {
+	public void writeJSONFile(String dirName, String name) {
 		/*
 		 * Creates a JSON file for the specified structure
 		 */
 		
 		try {
 			
-			PrintWriter writer = new PrintWriter(fileName);
+			PrintWriter writer = new PrintWriter(dirName + "/" + name + ".json");
 			writer.println(this.getJSONString());
 			writer.flush();
 			
-			LOGGER.info("JSON file " + fileName + " created");
+			LOGGER.info("JSON file " + dirName + "/" + name + ".json" + " created");
 			writer.close();
 		}
 		
 		catch (Exception e) {
-			LOGGER.error("While creating JSON file");
+			LOGGER.error("While creating JSON file " + dirName + "/" + name + ".json");
 			e.printStackTrace();
 			System.exit(-1);
 		}
