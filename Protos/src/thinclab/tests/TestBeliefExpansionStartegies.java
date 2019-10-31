@@ -11,17 +11,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.FullInteractiveBeliefExpansion;
-import thinclab.frameworks.IPOMDP;
-import thinclab.frameworks.POMDP;
-import thinclab.ipomdpsolver.IPOMDPParser;
+import thinclab.belief.SSGABeliefExpansion;
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.parsers.IPOMDPParser;
+import thinclab.solvers.OfflinePBVISolver;
+import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
@@ -32,11 +36,16 @@ class TestBeliefExpansionStartegies {
 	public String tigerDom;
 	public POMDP pomdp;
 	
+	private static Logger LOGGER;
 	
 	@BeforeEach
 	void setUp() throws Exception {
+		
+		CustomConfigurationFactory.initializeLogging();
+		
+		LOGGER = Logger.getLogger(TestBeliefExpansionStartegies.class);
 		this.tigerDom = 
-				"/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
+				"/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
 		
 		this.pomdp = new POMDP(this.tigerDom);
 	}
@@ -47,52 +56,102 @@ class TestBeliefExpansionStartegies {
 
 	@Test
 	void testFullBeliefExpansion() {
-		System.out.println("Running testFullBeliefExpansion()");
+		LOGGER.info("Running testFullBeliefExpansion()");
 		
-		FullBeliefExpansion fb = new FullBeliefExpansion(this.pomdp, 10);
-		assertNotNull(fb);
-		assertTrue(fb.getHBound() == 10);
+		/* initialize POMDP */
+		this.tigerDom = 
+				"/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
+		this.pomdp = new POMDP(this.tigerDom);
 		
-		List<DD> beliefs0 = fb.getBeliefPoints();
+		LOGGER.info("Testing initialization");
+		FullBeliefExpansion fBE = new FullBeliefExpansion(this.pomdp, 10);
+		assertNotNull(fBE);
+
+		LOGGER.info("Testing initial beliefs");
+		List<DD> beliefs0 = fBE.getBeliefPoints();
+		assertTrue(beliefs0.size() == this.pomdp.getInitialBeliefs().size());
 		
-		fb.expand();
+		LOGGER.info("Testing expansion");
+		fBE.expand();
+		assertTrue(fBE.getBeliefPoints().size() > this.pomdp.getInitialBeliefs().size());
+
+		LOGGER.info("Testing reset");
+		fBE.resetToNewInitialBelief();
+		assertTrue(fBE.getBeliefPoints().size() == this.pomdp.getInitialBeliefs().size());
 		
-		List<DD> beliefs1 = fb.getBeliefPoints();
+	}
+	
+	@Test
+	void testSSGABeliefExpansion() {
+		LOGGER.info("Running testSSGABeliefExpansion()");
 		
-		fb.expand();
+		/* initialize POMDP */
+		this.tigerDom = 
+				"/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
+		this.pomdp = new POMDP(this.tigerDom);
 		
-		List<DD> beliefs2 = fb.getBeliefPoints();
+		LOGGER.info("Testing initialization");
+		SSGABeliefExpansion ssgaBE = new SSGABeliefExpansion(this.pomdp, 10, 1);
+		assertNotNull(ssgaBE);
+
+		LOGGER.info("Testing initial beliefs");
+		List<DD> beliefs0 = ssgaBE.getBeliefPoints();
+		assertTrue(beliefs0.size() == this.pomdp.getInitialBeliefs().size());
 		
-		assertTrue(beliefs0.size() <= beliefs1.size());
-		assertTrue(beliefs1.size() <= beliefs2.size());
+		LOGGER.info("Testing initial expansion");
+		ssgaBE.expand();
+		assertTrue(ssgaBE.getBeliefPoints().size() == 3);
+		
+		LOGGER.info("Testing policy based expansion");
+		LOGGER.info("computing policy...");
+		OfflinePBVISolver solver = 
+				new OfflinePBVISolver(
+						this.pomdp, 
+						new FullBeliefExpansion(pomdp, 2), 
+						1, 100);
+		solver.solve();
+		ssgaBE.setRecentPolicy(solver.getAlphaVectors(), solver.getPolicy());
+		ssgaBE.expand();
+		
+		int numExplored = ssgaBE.getBeliefPoints().size(); 
+		assertTrue(numExplored > 3);
+		
+		LOGGER.info("Testing reset");
+		ssgaBE.resetToNewInitialBelief();
+		assertTrue(ssgaBE.getBeliefPoints().size() == this.pomdp.getInitialBeliefs().size());
 	}
 	
 	@Test
 	void testFullInteractiveBeliefExpansion() {
-		System.out.println("Running testFullInteractiveBeliefExpansion()");
+		LOGGER.info("Running testFullInteractiveBeliefExpansion()");
 		
 		Global.clearHashtables();
 		
-		String l1DomainFile = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
+		String l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 		
 		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
 		parser.parseDomain();
 		
 		IPOMDP ipomdp = new IPOMDP(parser, 10, 3);
 		
+		LOGGER.info("Testing initialization");
 		FullInteractiveBeliefExpansion fb = new FullInteractiveBeliefExpansion(ipomdp);
-		
 		assertNotNull(fb);
-		assertTrue(fb.getHBound() == 3);
 		
-		List<DD> beliefs0 = fb.getBeliefPoints();
+		LOGGER.info("Testing expansion bound");
+		assertTrue(fb.getHBound() == ipomdp.mjLookAhead);
 		
+		LOGGER.info("Testing initial beliefs");
+		assertTrue(fb.getBeliefPoints().size() == ipomdp.getInitialBeliefs().size());
+		
+		LOGGER.info("Testing expansion");
 		fb.expand();
+		List<DD> explored = fb.getBeliefPoints();
+		assertTrue(explored.size() >= ipomdp.getInitialBeliefs().size());
 		
-		List<DD> beliefs1 = fb.getBeliefPoints();
-		
-		
-		assertTrue(beliefs0.size() <= beliefs1.size());
+		LOGGER.info("Testing reset");
+		fb.resetToNewInitialBelief();
+		assertTrue(fb.getBeliefPoints().size() == ipomdp.getInitialBeliefs().size());
 	}
 
 }

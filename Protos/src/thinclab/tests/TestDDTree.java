@@ -11,18 +11,20 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.ddhelpers.DDMaker;
-import thinclab.ddhelpers.DDTree;
-import thinclab.ddhelpers.DDTreeLeaf;
-import thinclab.examples.AttackerDomainPOMDP;
-import thinclab.frameworks.POMDP;
+import thinclab.ddinterface.DDMaker;
+import thinclab.ddinterface.DDTree;
+import thinclab.ddinterface.DDTreeLeaf;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
+import thinclab.solvers.OfflineSymbolicPerseus;
+import thinclab.utils.CustomConfigurationFactory;
 
 class TestDDTree {
 
 	@BeforeEach
 	void setUp() throws Exception {
+		CustomConfigurationFactory.initializeLogging();
 	}
 
 	@AfterEach
@@ -103,19 +105,24 @@ class TestDDTree {
 		/*
 		 * Make test POMDP domain and solve it
 		 */
-		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
 		
 		POMDP pomdp = null;
 		
 		try {
-			File domainFile = File.createTempFile("AttackerPOMDP", ".POMDP");
-			attackerPOMDP.makeAll();
-			attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
-			pomdp = new POMDP(domainFile.getAbsolutePath());
-			pomdp.solvePBVI(5, 100);
-		} 
+			
+			pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/attacker_l0.txt");
+			
+			OfflineSymbolicPerseus solver = 
+					OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
+							pomdp, 
+							50, 
+							1, 
+							10, 
+							100);
+			solver.solve();
+		}
 		
-		catch (IOException e) {
+		catch (Exception e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
 		}
@@ -145,24 +152,29 @@ class TestDDTree {
 	void testDDToDDTree() {
 		System.out.println("Running testDDToDDTree()");
 		
-		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
+//		AttackerDomainPOMDP attackerPOMDP = new AttackerDomainPOMDP();
 		
 		POMDP pomdp = null;
-		
+		OfflineSymbolicPerseus solver = null;
 		try {
-			File domainFile = File.createTempFile("AttackerPOMDP", ".POMDP");
-			attackerPOMDP.makeAll();
-			attackerPOMDP.writeToFile(domainFile.getAbsolutePath());
-			pomdp = new POMDP(domainFile.getAbsolutePath());
-			pomdp.solvePBVI(5, 100);
+			pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
+			
+			solver = 
+					OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
+							pomdp, 
+							50, 
+							1, 
+							10, 
+							100);
+			solver.solve();
 		} 
 		
-		catch (IOException e) {
+		catch (Exception e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
 		}
 		
-		assertTrue(pomdp.alphaVectors[0].equals(pomdp.alphaVectors[0].toDDTree().toDD()));
+		assertTrue(solver.alphaVectors[0].equals(solver.alphaVectors[0].toDDTree().toDD()));
 	}
 	
 	@Test

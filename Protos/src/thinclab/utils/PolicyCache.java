@@ -1,15 +1,19 @@
 package thinclab.utils;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeMap;
 
 import thinclab.legacy.DD;
 
-public class PolicyCache {
+public class PolicyCache implements Serializable {
+	
 	/*
 	 * Stores alpha vectors for different bellman error values 
 	 */
+	
+	private static final long serialVersionUID = -7254730964758794169L;
 	
 	public TreeMap<Integer, DD[]> aVecsMap = new TreeMap<Integer, DD[]>();
 	public HashMap<Integer, int[]> policyMap = new HashMap<Integer, int[]>();

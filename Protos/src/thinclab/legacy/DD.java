@@ -2,7 +2,7 @@ package thinclab.legacy;
 
 import java.util.*;
 
-import thinclab.ddhelpers.DDTree;
+import thinclab.ddinterface.DDTree;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

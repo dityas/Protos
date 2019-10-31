@@ -1,0 +1,965 @@
+package thinclab.decisionprocesses;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.apache.log4j.Logger;
+
+import thinclab.belief.Belief;
+import thinclab.ddinterface.DDMaker;
+import thinclab.ddinterface.DDTree;
+import thinclab.legacy.Action;
+import thinclab.legacy.AlphaVector;
+import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
+import thinclab.legacy.Global;
+import thinclab.legacy.MySet;
+import thinclab.legacy.OP;
+import thinclab.legacy.StateVar;
+import thinclab.parsers.ParseSPUDD;
+
+public class POMDP extends DecisionProcess implements Serializable {
+
+	private static final long serialVersionUID = -1805200931586799142L;
+
+	public List<DD[]> beliefRegionList = new ArrayList<DD[]>();
+	
+	/*
+	 * For use as IPOMDP frames at level 0
+	 */
+	public int frameID;
+	public int level = 0;
+	
+	public int nStateVars;
+	public int nObsVars;
+	public int nVars;
+	public int nActions;
+	public int nObservations;
+
+	public int maxAlphaSetSize;
+
+	public boolean debug;
+
+	public boolean ignoremore;
+	public boolean addbeldiff;
+
+	public StateVar[] stateVars;
+	public StateVar[] obsVars;
+	public Action[] actions;
+	public int[] varDomSize;
+	public int[] primeVarIndices;
+	public int[] varIndices;
+	public int[] obsIndices;
+	public int[] primeObsIndices;
+	public int[] obsVarsArity;
+	public String[] varName;
+	public double discFact, tolerance, maxRewVal;
+	public DD initialBelState;
+	public DD ddDiscFact;
+	public String[] adjunctNames;
+	public int nAdjuncts;
+	public DD[] adjuncts; // some additional DDs that can be used
+	public DD[] initialBelState_f;
+	public DD[] qFn;
+	public int[] qPolicy;
+	public DD[][] belRegion;
+	
+	/*
+	 * These three should really be combined into AlphaVector class
+	 */
+	public int[] policy;
+	public boolean[] uniquePolicy;
+	public double[] policyvalue;
+	public DD[] alphaVectors;
+	public DD[] origAlphaVectors;
+
+	public double[][] currentPointBasedValues, newPointBasedValues;
+	public AlphaVector[] newAlphaVectors;
+	public int numNewAlphaVectors;
+	public double bestImprovement, worstDecline;
+	
+	public ParseSPUDD parser;
+	
+	private static final Logger logger = Logger.getLogger(POMDP.class);
+	
+	// ---------------------------------------------------------------------
+	/*
+	 * Storage variables for DDTree representation
+	 * 
+	 * The DDTree representation is being used as an easy intermediate representation
+	 * between the SPUDD format and DD objects. This is because the DD objects rely on
+	 * Global arrays. 
+	 */
+	public List<StateVar> S = new ArrayList<StateVar>();
+    public List<StateVar> Omega = new ArrayList<StateVar>();
+    
+    public List<String> A = new ArrayList<String>();
+    
+    public HashMap<String, HashMap<String, DDTree>> Oi = 
+    		new HashMap<String, HashMap<String, DDTree>>();
+    
+    public HashMap<String, HashMap<String, DDTree>> Ti = 
+			new HashMap<String, HashMap<String, DDTree>>();
+    
+    public List<DDTree> costs = new ArrayList<DDTree>();
+    
+    public DDTree R;
+    public DDTree initBeliefDdTree;
+    
+    public List<DDTree> adjunctBeliefs = new ArrayList<DDTree>();
+    public List<DD> initialBeliefs = new ArrayList<DD>();
+    public DD currentBelief;
+    
+    /*
+     * Keep a DDMaker in case new DDs need to be made
+     */
+    public DDMaker ddMaker = new DDMaker();
+	
+	// ---------------------------------------------------------------------
+	
+	public static DD[] concatenateArray(DD a, DD[] b, DD c) {
+		DD[] d = new DD[b.length + 2];
+		d[0] = a;
+		System.arraycopy(b, 0, d, 1, b.length);
+		d[b.length + 1] = c;
+
+		return d;
+	}
+
+	// assumes they're the same size along the first dimension
+	public static int[][] concatenateArray(int[][] a, int[][] b) {
+		int[][] d = new int[a.length][a[0].length + b[0].length];
+		for (int i = 0; i < a.length; i++)
+			d[i] = concatenateArray(a[i], b[i]);
+		return d;
+	}
+
+	public static int[] concatenateArray(int[] a, int[] b) {
+		int[] d = new int[a.length + b.length];
+		int k = 0;
+		for (int i = 0; i < a.length; i++)
+			d[k++] = a[i];
+		for (int i = 0; i < b.length; i++)
+			d[k++] = b[i];
+		return d;
+	}
+
+	public static DD[] concatenateArray(DD a, DD b) {
+		DD[] d = new DD[2];
+		d[0] = a;
+		d[1] = b;
+		return d;
+	}
+
+	public static DD[] concatenateArray(DD a, DD b, DD c) {
+		DD[] d = new DD[3];
+		d[0] = a;
+		d[1] = b;
+		d[2] = c;
+		return d;
+	}
+
+	public static DD[] concatenateArray(DD[] a, DD[] b) {
+		DD[] d = new DD[b.length + a.length];
+		System.arraycopy(a, 0, d, 0, a.length);
+		System.arraycopy(b, 0, d, a.length, b.length);
+		return d;
+	}
+
+	public static DD[] concatenateArray(DD[] a, DD[] b, DD c) {
+		DD[] d = new DD[b.length + a.length + 1];
+		System.arraycopy(a, 0, d, 0, a.length);
+		System.arraycopy(b, 0, d, a.length, b.length);
+		d[b.length + a.length] = c;
+		return d;
+	}
+
+	public static DD[] concatenateArray(DD a, DD[] b, DD[] c) {
+		DD[] d = new DD[b.length + c.length + 1];
+		d[0] = a;
+		System.arraycopy(b, 0, d, 1, b.length);
+		System.arraycopy(c, 0, d, 1 + b.length, c.length);
+		return d;
+	}
+
+	public static DD[] concatenateArray(DD[] a, DD[] b, DD[] c) {
+		DD[] d = new DD[b.length + a.length + c.length];
+		System.arraycopy(a, 0, d, 0, a.length);
+		System.arraycopy(b, 0, d, a.length, b.length);
+		System.arraycopy(c, 0, d, a.length + b.length, c.length);
+		return d;
+	}
+
+	public static double[] concatenateArray(double[] a, double[] b) {
+		double[] d = new double[b.length + a.length];
+		System.arraycopy(a, 0, d, 0, a.length);
+		System.arraycopy(b, 0, d, a.length, b.length);
+		return d;
+	}
+
+	public static int[][] stackArray(int[] a, int[] b) {
+		int[][] d = new int[2][a.length];
+		System.arraycopy(a, 0, d[0], 0, a.length);
+		System.arraycopy(b, 0, d[1], 0, b.length);
+		return d;
+	}
+
+	public POMDP() {
+		/*
+		 * Empty constructor to allow for manipulation of object construction
+		 * by other objects
+		 */
+	}
+
+	public POMDP(String fileName) {
+		readFromFile(fileName, false);
+	}
+
+	public POMDP(String fileName, boolean debb, boolean ig, boolean abd) {
+		readFromFile(fileName, debb);
+		ignoremore = ig;
+		addbeldiff = abd;
+	}
+
+	public POMDP(String fileName, boolean debb, boolean ig) {
+		readFromFile(fileName, debb);
+		ignoremore = ig;
+	}
+
+	public POMDP(String fileName, boolean debb) {
+		readFromFile(fileName, debb);
+	}
+
+	public void readFromFile(String fileName) {
+		readFromFile(fileName, false);
+	}
+
+	public void setIgnoreMore(boolean ig) {
+		ignoremore = ig;
+	}
+	
+	// -----------------------------------------------------------------------------------------------
+	/*
+	 * Initialization methods
+	 */
+	
+	public void initializeFromParsers(ParseSPUDD parserObj) {
+		/*
+		 * Populates requried fields and attributes of the POMDP from the parser object.
+		 * 
+		 * The orignal POMDP implementation by Hoey does this in the parsePOMDP method. I have split
+		 * it into a separate method so that initialization can be done separately after upper frames
+		 * or lower frames have done required changes if any. 
+		 */
+		
+		logger.info("Begin POMDP initialisation from parser");
+		
+		debug = false;
+		
+		this.parser = parserObj;
+		
+		this.frameID = parserObj.frameID;
+		this.level = parserObj.level;
+		this.initializeFrameFromParser(parserObj);
+		
+		this.initializeSFromParser(parserObj);
+		this.initializeOmegaFromParser(parserObj);
+		
+		this.initializeAFromParser(parserObj);
+		this.initializeTFromParser(parserObj);
+		this.initializeOFromParser(parserObj);
+		this.initializeRFromParser(parserObj);
+		
+		this.initializeDiscountFactorFromParser(parserObj);		
+		this.initializeBeliefsFromParser(parserObj);
+		this.initializeAdjunctsFromParser(parserObj);
+		
+		this.commitVariables();
+		this.setDynamics();
+		this.setBeliefs();
+		
+		logger.info("POMDP initialised");
+		
+		/* Null parser reference after parsing is done */
+		this.parser = null;
+	}
+	
+	public void initializeFrameFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Initializes this as an IPOMDP frame from the parser
+		 */
+		this.frameID = parserObj.frameID;
+		this.level = parserObj.level;
+		
+		logger.debug("frame ID set to " + this.frameID + " at level " + this.level);
+	}
+	
+	public void initializeSFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Stage the parsed variables from the domain file
+		 */
+		
+		this.S.addAll(parserObj.S);
+		
+		logger.debug("S staged to " + this.S);
+	}
+	
+	public void initializeOmegaFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Stage the parsed variables from the domain file
+		 */
+
+		this.Omega.addAll(parserObj.Omega);
+		
+		logger.debug("Omega staged to " + this.Omega);
+	}
+	
+	public void initializeOFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Initializes the observation function
+		 */
+		this.Oi = parserObj.Oi;
+		
+		logger.debug("O initialized to " + this.Oi);
+	}
+	
+	public void initializeTFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Initializes the transition function
+		 */
+		this.Ti = parserObj.Ti;
+		
+		logger.debug("T initialized to " + this.Ti);
+	}
+	
+	public void initializeAFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Initializes the Action space from parser
+		 */
+		this.A.addAll(parserObj.A);
+		this.costs.addAll(parserObj.costs);
+		
+		logger.debug("A initialized to " + this.A);
+		logger.debug("Costs for A: " + this.costs);
+	}
+	
+	public void initializeRFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Initializes the Action space from parser
+		 */
+		this.R = parserObj.R;
+		logger.debug("R initialized to " + this.R);
+	}
+	
+//	public void initializeActionsFromParser(ParseSPUDD parserObj) {
+//		/*
+//		 * Initializes the dynamics of the POMDP
+//		 */
+//		
+//		nActions = parserObj.actTransitions.size();
+//		actions = new Action[nActions];
+//		uniquePolicy = new boolean[nActions];
+//
+//		qFn = new DD[nActions];
+//
+//		for (int a = 0; a < nActions; a++) {
+//			
+//			actions[a] = new Action(parserObj.actNames.get(a));
+//			actions[a].addTransFn(parserObj.actTransitions.get(a));
+//			actions[a].addObsFn(parserObj.actObserve.get(a));
+//			actions[a].rewFn = 
+//					OP.sub(parserObj.reward, parserObj.actCosts.get(a));
+//			actions[a].buildRewTranFn();
+//			actions[a].rewFn = 
+//					OP.addMultVarElim(actions[a].rewTransFn, primeVarIndices);
+//			
+//		}
+//		
+//		/*
+//		 * Max and Min reward
+//		 */
+//		double maxVal = Double.NEGATIVE_INFINITY;
+//		double minVal = Double.POSITIVE_INFINITY;
+//		
+//		for (int a = 0; a < nActions; a++) {
+//			maxVal = Math.max(maxVal, OP.maxAll(OP.addN(actions[a].rewFn)));
+//			minVal = Math.min(minVal, OP.minAll(OP.addN(actions[a].rewFn)));
+//		}
+//		
+//		maxRewVal = maxVal / (1 - discFact);
+//		
+//		/*
+//		 * Set Tolerance
+//		 */
+//		if (parserObj.tolerance == null) {
+//			double maxDiffRew = maxVal - minVal;
+//			double maxDiffVal = maxDiffRew / (1 - Math.min(0.95, discFact));
+//			tolerance = 1e-5 * maxDiffVal;
+//		} 
+//		
+//		else tolerance = parserObj.tolerance.getVal();
+//	}
+	
+	public void initializeDiscountFactorFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Sets the discount value for the POMDP
+		 */
+		
+		discFact = parserObj.discount.getVal();
+
+		/*
+		 *  make a DD version
+		 */
+		ddDiscFact = DDleaf.myNew(discFact);
+	}
+	
+	public void initializeAdjunctsFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Set adjunct beliefs
+		 */
+		
+		this.adjunctBeliefs.addAll(parserObj.adjunctBeliefs);
+		logger.debug("Adjunct beliefs set to " + this.adjunctBeliefs);
+	}
+	
+	public void initializeBeliefsFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Set beliefs
+		 */
+		
+		this.initBeliefDdTree = parserObj.initBeliefDdTree;
+		logger.debug("Initial belief set to " + this.initBeliefDdTree);
+	}
+	
+	public void initializeToleranceFromParser(ParseSPUDD parserObj) {
+		/*
+		 * Set Tolerance
+		 */ 
+		if (parserObj.tolerance != null) this.tolerance = parserObj.tolerance.getVal();
+		
+		logger.debug("Tolerance set to " + this.tolerance);
+	}
+	
+	// -----------------------------------------------------------------------------------------------
+	
+	public void setDynamics() {
+		/*
+		 * Starts building up DDs which define system dynamics based on Ti and Oi
+		 */
+		
+		logger.debug("Setting dynamics");
+		
+		this.nActions = this.A.size();
+		this.actions = new Action[nActions];
+		this.uniquePolicy = new boolean[nActions];
+
+		qFn = new DD[nActions];
+
+		for (int a = 0; a < nActions; a++) {
+			
+			String actName = this.A.get(a);
+			actions[a] = new Action(actName);
+			
+			/* Re order T and O as arrays according to variable sequence */
+			HashMap<String, DDTree> Ti_a = this.Ti.get(actName);
+			List<DD> TiaArray = this.S.stream()
+					.map(s -> Ti_a.get(s.name).toDD())
+					.collect(Collectors.toList());
+			
+			HashMap<String, DDTree> Oi_a = this.Oi.get(actName);
+			List<DD> OiaArray = this.Omega.stream()
+					.map(o -> Oi_a.get(o.name).toDD())
+					.collect(Collectors.toList());
+			
+			actions[a].addTransFn(TiaArray.toArray(new DD[TiaArray.size()]));
+			actions[a].addObsFn(OiaArray.toArray(new DD[OiaArray.size()]));
+			actions[a].rewFn = 
+					OP.sub(this.R.toDD(), this.costs.get(a).toDD());
+			actions[a].buildRewTranFn();
+			actions[a].rewFn = 
+					OP.addMultVarElim(actions[a].rewTransFn, primeVarIndices);
+		}
+		
+		/*
+		 * Max and Min reward
+		 */
+		double maxVal = Double.NEGATIVE_INFINITY;
+		double minVal = Double.POSITIVE_INFINITY;
+		
+		for (int a = 0; a < nActions; a++) {
+			maxVal = Math.max(maxVal, OP.maxAll(OP.addN(actions[a].rewFn)));
+			minVal = Math.min(minVal, OP.minAll(OP.addN(actions[a].rewFn)));
+		}
+		
+		maxRewVal = maxVal / (1 - discFact);
+		
+		/*
+		 * Set Tolerance
+		 */
+		double maxDiffRew = maxVal - minVal;
+		double maxDiffVal = maxDiffRew / (1 - Math.min(0.95, discFact));
+		tolerance = 1e-5 * maxDiffVal;
+	}
+	
+	public void setAdjuncts() {
+		/*
+		 * Populates the adjuncts array from the DDTree list
+		 */
+		nAdjuncts = this.adjunctBeliefs.size();
+		
+		if (nAdjuncts > 0) {
+			
+			adjuncts = new DD[nAdjuncts];
+			adjunctNames = new String[nAdjuncts];
+			
+			for (int a = 0; a < nAdjuncts; a++) {
+				adjuncts[a] = OP.reorder(this.adjunctBeliefs.get(a).toDD());
+//				adjunctNames[a] = this.adjunctBeliefs.get(a);
+				this.initialBeliefs.add(adjuncts[a]);
+			}
+		}
+		
+	}
+	
+	public void setBeliefs() {
+		/*
+		 * Populates the POMDP DD variables which hold the initial and adjunct beliefs
+		 */
+		
+		this.initialBelState = OP.reorder(this.initBeliefDdTree.toDD());
+		this.initialBeliefs.add(initialBelState);
+		
+		/*
+		 * factored initial belief state
+		 */
+		this.initialBelState_f = new DD[nStateVars];
+		
+		for (int varId = 0; varId < this.nStateVars; varId++) {
+			
+			initialBelState_f[varId] = 
+					OP.addMultVarElim(
+							initialBelState, 
+							MySet.remove(varIndices, varId + 1));
+		}
+		
+		this.setAdjuncts();
+	}
+	
+	@Override
+	public void setGlobals() {
+		/*
+		 * Sets the globals statics according to the current frame
+		 * 
+		 * This actually done during initialization. But since the lower frames will overwrite
+		 * the globals during their initialization, this method has to be called manually whenever
+		 * the current frame is being solved for an IPOMDP
+		 */
+		
+		Global.clearHashtables();
+		Global.setVarDomSize(varDomSize);
+		Global.setVarNames(varName);
+
+		for (int i = 0; i < nStateVars; i++) {
+			Global.setValNames(
+					i + 1, 
+					stateVars[i].valNames);
+		}
+		
+		for (int i = 0; i < nObsVars; i++) {
+			Global.setValNames(
+					nStateVars + i + 1, 
+					obsVars[i].valNames);
+		}
+		
+		for (int i = 0; i < nStateVars; i++) {
+			Global.setValNames(
+					nVars + i + 1, 
+					stateVars[i].valNames);
+		}
+		
+		for (int i = 0; i < nObsVars; i++) {
+			Global.setValNames(
+					nVars + nStateVars + i + 1, 
+					obsVars[i].valNames);
+		}
+			
+	}
+	
+	public void commitVariables() {
+		/*
+		 * Move variables from staging area and populate global variables based on them
+		 * 
+		 * Ideally, no changes should be made to the state or obs variables after
+		 * this method is called. 
+		 */
+		this.nStateVars = this.S.size();
+		this.nObsVars = this.Omega.size();
+		
+		/*
+		 * initialize arrays for domain size and other information
+		 */
+		this.nVars = this.nStateVars + this.nObsVars;
+		this.stateVars = new StateVar[this.nStateVars];
+		this.obsVars = new StateVar[this.nObsVars];
+		this.varDomSize = new int[2 * (this.nStateVars + this.nObsVars)];
+		this.varName = new String[2 * (this.nStateVars + this.nObsVars)];
+		this.varIndices = new int[this.nStateVars];
+		this.primeVarIndices = new int[this.nStateVars];
+		this.obsIndices = new int[this.nObsVars];
+		this.primeObsIndices = new int[this.nObsVars];
+		
+		/*
+		 * Make state variables.
+		 */
+		this.stateVars = 
+				this.S.toArray(
+						new StateVar[this.S.size()]);
+		
+		/*
+		 * Legacy code to create matlab like indices
+		 */
+		int k = 0;
+		for (int i = 0; i < nStateVars; i++) {
+
+			this.varIndices[i] = i + 1;
+			this.primeVarIndices[i] = i + nVars + 1;
+			this.varDomSize[k] = stateVars[i].arity;
+			this.varName[k++] = stateVars[i].name;
+		}
+		
+		/*
+		 * Make observation variables
+		 */
+		
+		this.obsVars = 
+				this.Omega.toArray(
+						new StateVar[this.Omega.size()]);
+		
+		/*
+		 * Legacy code to set matlab-like indices
+		 */
+		
+		this.nObservations = 1;
+		this.obsVarsArity = new int[nObsVars];
+		
+		for (int i = 0; i < nObsVars; i++) {
+			
+			this.obsVarsArity[i] = obsVars[i].arity;
+			this.nObservations = nObservations * obsVars[i].arity;
+			this.obsIndices[i] = i + nStateVars + 1;
+			this.primeObsIndices[i] = i + nVars + nStateVars + 1;
+			this.varDomSize[k] = obsVars[i].arity;
+			this.varName[k++] = obsVars[i].name;
+		}
+		
+		/*
+		 * More legacy code to set up primed variables
+		 */
+		
+		for (int i = 0; i < nStateVars; i++) {
+			
+			varDomSize[k] = stateVars[i].arity;
+			varName[k++] = stateVars[i].name + "_P";
+		}
+		
+		for (int i = 0; i < nObsVars; i++) {
+			
+			varDomSize[k] = obsVars[i].arity;
+			varName[k++] = obsVars[i].name + "_P";
+		}
+		
+		setGlobals();
+		
+		/* In the end, add all variables to the DDMaker and prime them */
+		this.ddMaker.clearContext();
+		this.S.stream().forEach(s -> this.ddMaker.addVariable(s.name, s.valNames));
+		this.Omega.stream().forEach(o -> this.ddMaker.addVariable(o.name, o.valNames));
+		this.ddMaker.primeVariables();
+		
+		logger.debug("Context belongs to frame " + this.frameID + " at level " + this.level);
+	}
+	
+	// -----------------------------------------------------------------------------------------------
+
+	public void readFromFile(String fileName, boolean debb) {
+		/*
+		 * Read the POMDP directly from a domain file
+		 */
+		ParseSPUDD rawpomdp = new ParseSPUDD(fileName);
+		rawpomdp.parsePOMDP(false);
+
+		this.initializeFromParsers(rawpomdp);
+	}
+	
+	public int findObservationByName(int ob, String oname) {
+		for (int o = 0; o < obsVars[ob].arity; o++) {
+			if (oname.equalsIgnoreCase(obsVars[ob].valNames[o]))
+				return o;
+		}
+		return -1;
+	}
+
+	public void save(String filename) throws FileNotFoundException, IOException {
+
+		FileOutputStream f_out;
+		// save to disk
+		// Use a FileOutputStream to send data to a file
+		// called myobject.data.
+		f_out = new FileOutputStream(filename);
+
+		// Use an ObjectOutputStream to send object data to the
+		// FileOutputStream for writing to disk.
+		ObjectOutputStream obj_out = new ObjectOutputStream(f_out);
+
+		// Pass our object to the ObjectOutputStream's
+		// writeObject() method to cause it to be written out
+		// to disk.
+		obj_out.writeObject(this);
+		obj_out.flush();
+		obj_out.close();
+	}
+
+	public static POMDP load(String filename) throws FileNotFoundException,
+			IOException, ClassNotFoundException {
+		ObjectInputStream input = new ObjectInputStream(new FileInputStream(
+				filename));
+		POMDP pomdp = (POMDP) input.readObject();
+		input.close();
+		
+		return pomdp;
+	}
+
+	public int[] statedecode(int statenum, int n) {
+		int[] bases = new int[n];
+		for (int i = 0; i < n; i++)
+			bases[i] = 2;
+		return statedecode(statenum, n, bases);
+	}
+
+	public int[] statedecode(int statenum, int n, int[] bases) {
+		int[] statevec = new int[n];
+		for (int i = 0; i < n; i++)
+			statevec[i] = 0;
+
+		if (statenum == 1) {
+			for (int i = 0; i < n; i++)
+				statevec[i] = 1;
+			return statevec;
+		}
+		statenum--;
+		int res = statenum;
+		int remd;
+		for (int i = 0; i < n; i++) {
+			if (res == 1) {
+				statevec[i] = 1;
+				break;
+			}
+			remd = res % bases[i];
+			res = ((int) Math.floor(res / bases[i]));
+			statevec[i] = remd;
+		}
+		for (int i = 0; i < n; i++) {
+			statevec[i]++;
+		}
+		return statevec;
+	}
+	
+	// -------------------------------------------------------------------------------
+	
+	public HashMap<String, HashMap<String, DDTree>> getOi() {
+		/*
+		 * Decouples the observation function DDs from Globals and returns a
+		 * general representation using DDTree
+		 */
+		return this.Oi;
+	}
+	
+	// ----------------------------------------------------------------------------------
+	
+	private void recursiveObsGen(
+			List<List<String>> obsComb, 
+			List<StateVar> obsVars, 
+			List<String> obsVector, 
+			int finalLen, 
+			int varIndex){
+		/* 
+		 *  Recursively generates a list of all possible combinations of values 
+		 *  of the observation variables
+		 */
+		
+		if (varIndex < obsVars.size()) {
+			
+			if (obsVector.size() == finalLen) {
+				obsComb.add(obsVector);
+			}
+			
+			else {
+				
+				List<String> obsVectorCopy = new ArrayList<String>(obsVector);
+				StateVar obs = obsVars.get(varIndex);
+				for (int i=0;i<obs.valNames.length;i++) {
+					List<String> anotherObsVecCopy = new ArrayList<String>(obsVectorCopy);
+					anotherObsVecCopy.add(obs.valNames[i]);
+					recursiveObsGen(obsComb, obsVars, anotherObsVecCopy, finalLen, varIndex + 1);
+				}
+			}
+			
+		}
+		
+		else {
+			obsComb.add(obsVector);
+		}
+	} // private void recursiveObsGen
+	
+	public List<List<String>> recursiveObsCombinations(List<StateVar> obsVars){
+		/*
+		 * Driver program for generating observations recursively
+		 */
+		int finalLen = obsVars.size();
+		List<String> obsVec = new ArrayList<String>();
+		List<List<String>> obsComb = new ArrayList<List<String>>();
+		
+		recursiveObsGen(obsComb, obsVars, obsVec, finalLen, 0);
+		
+		return obsComb;
+	} // private List<List<String>> recursiveObsCombinations
+	
+	@Override
+	public List<List<String>> getAllPossibleObservations() {
+		return recursiveObsCombinations(Arrays.asList(this.obsVars));
+	}
+	
+	// -------------------------------------------------------------------------------------------------
+	
+	public String[] getObsVarsArray() {
+		/*
+		 * Returns an array of observation variable names
+		 */
+		String[] obsVarsArray = new String[this.obsVars.length];
+		
+		for (int i=0; i<this.obsVars.length;i++) {
+			obsVarsArray[i] = this.obsVars[i].name;
+		}
+		
+		return obsVarsArray;
+	}
+	
+	public String[][] getObsValArray() {
+		/*
+		 * Returns array of observation variable values
+		 */
+		String[][] obsValsArray = new String[this.nObsVars][];
+		for (int i=0 ; i < nObsVars ; i++) {
+			obsValsArray[i] = this.obsVars[i].valNames;
+		}
+		
+		return obsValsArray;
+	}
+
+	// -------------------------------------------------------------------------------
+	
+	@Override
+	public List<String> getActions() {
+		return this.A;
+	}
+	
+	@Override
+	public List<String> getStateVarNames() {
+		return this.S.stream().map(s -> s.name).collect(Collectors.toList());
+	}
+	
+	@Override
+	public List<String> getObsVarNames() {
+		return this.Omega.stream().map(o -> o.name).collect(Collectors.toList());
+	}
+	
+	@Override
+	public List<DD> getInitialBeliefs() {
+		return this.initialBeliefs;
+	}
+	
+	@Override
+	public int[] getStateVarIndices() {
+		return this.varIndices;
+	}
+	
+	@Override
+	public DD getCurrentBelief() {
+		/*
+		 * In case of online solvers, the POMDP will have to maintain a reference
+		 * to its current belief
+		 */
+		return this.currentBelief;
+	}
+	
+	@Override
+	public int[] getObsVarIndices() {
+		return this.obsIndices;
+	}
+	
+	@Override
+	public String getType() {
+		return "POMDP";
+	}
+	
+	@Override
+	public String getBeliefString(DD belief) {
+		/*
+		 * Returns current belief as a string
+		 * 
+		 * Mostly useful printing out the beliefs for policy graphs and trees
+		 */
+		
+		List<String> beliefString = new ArrayList<String>();
+		
+		/* get belief hashmap */
+		HashMap<String, HashMap<String, Float>> map = Belief.toStateMap(this, belief);
+		
+		for (StateVar s : this.S)
+			beliefString.add(s.name + ": " + map.get(s.name).toString());
+		
+		return String.join(" | ", beliefString);
+	}
+	
+	// -------------------------------------------------------------------------------
+
+	@Override
+	public String toString() {
+		return "POMDP [frameID=" + frameID + ", level=" + level + 
+				", nStateVars=" + nStateVars + ", nObsVars=" + nObsVars + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + frameID;
+		result = prime * result + level;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		POMDP other = (POMDP) obj;
+		if (frameID != other.frameID)
+			return false;
+		if (level != other.level)
+			return false;
+		return true;
+	}
+	
+	
+}

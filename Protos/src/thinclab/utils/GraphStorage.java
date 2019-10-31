@@ -7,6 +7,7 @@
  */
 package thinclab.utils;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,17 +17,19 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
-import thinclab.policyhelper.PolicyNode;
+import thinclab.representations.PolicyNode;
 
 /*
  * @author adityas
  *
  */
-public class GraphStorage {
+public class GraphStorage implements Serializable {
 	
 	/*
 	 * Data structures for representing the graph
 	 */
+	private static final long serialVersionUID = -3120634348367719313L;
+	
 	private HashMap<Integer, PolicyNode> idToNodeMap = new HashMap<Integer, PolicyNode>();
 	private HashMap<Integer, HashMap<String, Integer>> idToSuccessorsMap =
 			new HashMap<Integer, HashMap<String, Integer>>();
