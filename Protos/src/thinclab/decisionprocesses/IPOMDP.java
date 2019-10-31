@@ -36,7 +36,7 @@ import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.parsers.ParseSPUDD;
-import thinclab.policy.MJ;
+import thinclab.representations.MJ;
 import thinclab.solvers.OfflineSymbolicPerseus;
 
 /*

@@ -14,7 +14,9 @@ import org.apache.commons.cli.Options;
 
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.POMDP;
-import thinclab.policy.ConditionalPlanGraph;
+import thinclab.representations.ConditionalPlanTree;
+import thinclab.representations.PolicyGraph;
+import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
@@ -71,11 +73,27 @@ public class POMDPSolver extends Executable {
 		solver.solve();
 	}
 	
-	public void showPolicyGraph() {
+	public void makeConditionalPlan(String dirName) {
 		/*
 		 * Starts the visualizer and shows the policy graph in JUNG
 		 */
+		ConditionalPlanTree T = new ConditionalPlanTree(this.solver, 10);
+		T.buildTree();
 		
+		T.writeDotFile(dirName, "plan");
+		T.writeJSONFile(dirName, "plan");
+	}
+	
+	public void makePolicyGraph(String dirName) {
+		/*
+		 * Makes the policy graph from the alpha vector policy
+		 */
+		
+		PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
+		pg.makeGraph();
+		
+		pg.writeDotFile(dirName, "policy_graph");
+		pg.writeJSONFile(dirName, "policy_graph");
 	}
 	
 	// -----------------------------------------------------------------------------------------------
@@ -145,7 +163,16 @@ public class POMDPSolver extends Executable {
 			solver = new POMDPSolver(domainFile, rounds, backups, search);
 			solver.solvePOMDP();
 			
+			/* conditional plan and policy graph */
+			if (line.hasOption("p")) {
+				String planDir = line.getOptionValue("p");
+				solver.makeConditionalPlan(planDir);
+			}
 			
+			if (line.hasOption("g")) {
+				String planDir = line.getOptionValue("g");
+				solver.makePolicyGraph(planDir);
+			}
 		} 
 		
 		catch (Exception e) {
