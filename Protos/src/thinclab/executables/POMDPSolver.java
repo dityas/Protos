@@ -14,6 +14,8 @@ import org.apache.commons.cli.Options;
 
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.POMDP;
+import thinclab.policy.ConditionalPlanGraph;
+import thinclab.solvers.OfflineSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 
@@ -34,10 +36,15 @@ public class POMDPSolver extends Executable {
 	/* Solver params */
 	public int perseusRounds;
 	public int numDpBackups;
+	public int searchDepth;
+	
+	/* solver instance */
+	public OfflineSolver solver;
 	
 	// ---------------------------------------------------------------------------------------------
 	
-	public POMDPSolver(String fileName, int rounds, int dpBackups) {
+	public POMDPSolver(String fileName, int rounds, int dpBackups, int searchDepth) {
+		
 		/*
 		 * Set class attributes
 		 */
@@ -45,7 +52,7 @@ public class POMDPSolver extends Executable {
 		this.domainFile = fileName;
 		this.perseusRounds = rounds;
 		this.numDpBackups = dpBackups;
-		
+		this.searchDepth = searchDepth;
 	}
 	
 	public void solvePOMDP() {
@@ -54,12 +61,12 @@ public class POMDPSolver extends Executable {
 		 */
 		this.pomdp = new POMDP(this.domainFile);
 		
-		OfflineSymbolicPerseus solver = 
+		this.solver = 
 				new OfflineSymbolicPerseus(
 						this.pomdp, 
-						new SSGABeliefExpansion(this.pomdp, 100, 1), 
-						10, 
-						100);
+						new SSGABeliefExpansion(this.pomdp, this.searchDepth, 1), 
+						this.perseusRounds, 
+						this.numDpBackups);
 		
 		solver.solve();
 	}
@@ -68,9 +75,7 @@ public class POMDPSolver extends Executable {
 		/*
 		 * Starts the visualizer and shows the policy graph in JUNG
 		 */
-		PolicyExtractor policyExtractor = new PolicyExtractor(this.pomdp);
-		PolicyGraph policyGraph = new PolicyGraph(policyExtractor.policyNodes);
-		PolicyVisualizer viz = new PolicyVisualizer(policyGraph);
+		
 	}
 	
 	// -----------------------------------------------------------------------------------------------
@@ -93,8 +98,23 @@ public class POMDPSolver extends Executable {
 		/* look ahead horizon for agent I */
 		opt.addOption("b", true, "number of backups in each round");
 		
-		/* Visualize? */
-		opt.addOption("z", "viz", false, "show policy graph");
+		/* SSGA Expansion depth */
+		opt.addOption("s", true, "depth of the SSGA belief search");
+		
+		/* Create conditional plan */
+		opt.addOption(
+				"p", 
+				"plan", 
+				true, 
+				"make conditional plan for 10 time steps and "
+				+ "create dot and JSON files in the given dir");
+		
+		/* create policy graph */
+		opt.addOption(
+				"g", 
+				"graph", 
+				true, 
+				"make policy graph and create dot and JSON files in the given dir");
 		
 		CommandLine line = null;
 		POMDPSolver solver = null;
@@ -119,10 +139,13 @@ public class POMDPSolver extends Executable {
 			/* set look ahead */
 			int backups = new Integer(line.getOptionValue("b"));
 			
-			solver = new POMDPSolver(domainFile, rounds, backups);
+			/* set search depth */
+			int search = new Integer(line.getOptionValue("s"));
+			
+			solver = new POMDPSolver(domainFile, rounds, backups, search);
 			solver.solvePOMDP();
 			
-			if (line.hasOption("z")) solver.showPolicyGraph();
+			
 		} 
 		
 		catch (Exception e) {

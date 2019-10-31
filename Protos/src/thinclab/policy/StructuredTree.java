@@ -7,7 +7,7 @@
  */
 package thinclab.policy;
 
-import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +28,6 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.solvers.BaseSolver;
-import thinclab.solvers.OnlineSolver;
 
 /*
  * @author adityas
@@ -49,7 +48,7 @@ public class StructuredTree implements Serializable {
 	
 	public List<List<String>> observations;
 	
-	private static final Logger logger = Logger.getLogger(StructuredTree.class);
+	private static final Logger LOGGER = Logger.getLogger(StructuredTree.class);
 	
 	// ----------------------------------------------------------------------------------------
 	
@@ -141,7 +140,7 @@ public class StructuredTree implements Serializable {
 		}
 		
 		catch (Exception e) {
-			logger.error("While running belief update " + e.getMessage());
+			LOGGER.error("While running belief update " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -220,7 +219,7 @@ public class StructuredTree implements Serializable {
 		}
 		
 		catch (Exception e) {
-			logger.error("While running belief update " + e.getMessage());
+			LOGGER.error("While running belief update " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -289,9 +288,6 @@ public class StructuredTree implements Serializable {
 					+ entry.getValue().sBelief
 						.replace("{", "(")
 						.replace("}", ")")
-						.replace("),", ",||")
-						.replace("=((", "=|")
-						.replace(", (", "|(")
 					+ "}\"];" + endl;
 		}
 		
@@ -311,6 +307,50 @@ public class StructuredTree implements Serializable {
 		dotString += "}" + endl;
 		
 		return dotString;
+	}
+	
+	public void writeDotFile(String fileName) {
+		/*
+		 * Creates a graphviz dot file for the specified structure
+		 */
+		
+		try {
+			
+			PrintWriter writer = new PrintWriter(fileName);
+			writer.println(this.getDotString());
+			writer.flush();
+			
+			LOGGER.info("dot file " + fileName + " created");
+			writer.close();
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While creating dot file");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+	
+	public void writeJSONFile(String fileName) {
+		/*
+		 * Creates a JSON file for the specified structure
+		 */
+		
+		try {
+			
+			PrintWriter writer = new PrintWriter(fileName);
+			writer.println(this.getJSONString());
+			writer.flush();
+			
+			LOGGER.info("JSON file " + fileName + " created");
+			writer.close();
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While creating JSON file");
+			e.printStackTrace();
+			System.exit(-1);
+		}
 	}
 
 }

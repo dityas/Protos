@@ -48,22 +48,7 @@ public abstract class DecisionProcess {
 		 * return the action represented by the max alpha vector 
 		 */
 		
-		double bestVal = Double.NEGATIVE_INFINITY;
-		double val;
-		int bestAlphaId = 0;
-		
-		double[] values = new double[alphaVectors.length];
-		for (int alphaId = 0; alphaId < alphaVectors.length; alphaId++) {
-			
-			val = OP.dotProduct(belief, alphaVectors[alphaId], f.getStateVarIndices());
-			values[alphaId] = val;
-			
-			if (val >= bestVal) {
-				bestVal = val;
-				bestAlphaId = alphaId;
-			}
-		}
-		
+		int bestAlphaId = DecisionProcess.getBestAlphaIndex(f, belief, alphaVectors);
 		String bestAction = f.getActions().get(policy[bestAlphaId]); 
 		
 		return bestAction;
@@ -100,5 +85,30 @@ public abstract class DecisionProcess {
 			return varName.substring(0, varName.length() - 2) + "'";
 		
 		else return varName;
+	}
+	
+	public static int getBestAlphaIndex(DecisionProcess DP, DD belief, DD[] alphaVectors) {
+		
+		/*
+		 * Returns the index of the alpha vector with the max value
+		 */
+		
+		double bestVal = Double.NEGATIVE_INFINITY;
+		double val;
+		int bestAlphaId = 0;
+		
+		double[] values = new double[alphaVectors.length];
+		for (int alphaId = 0; alphaId < alphaVectors.length; alphaId++) {
+			
+			val = OP.dotProduct(belief, alphaVectors[alphaId], DP.getStateVarIndices());
+			values[alphaId] = val;
+			
+			if (val >= bestVal) {
+				bestVal = val;
+				bestAlphaId = alphaId;
+			}
+		}
+		
+		return bestAlphaId;
 	}
 }

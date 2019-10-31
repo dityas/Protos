@@ -3117,7 +3117,16 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 * 
 		 * Mostly useful printing out the beliefs for policy graphs and trees
 		 */
-		return Belief.toStateMap(this, belief).toString();
+		
+		List<String> beliefString = new ArrayList<String>();
+		
+		/* get belief hashmap */
+		HashMap<String, HashMap<String, Float>> map = Belief.toStateMap(this, belief);
+		
+		for (StateVar s : this.S)
+			beliefString.add(s.name + ": " + map.get(s.name).toString());
+		
+		return String.join(" | ", beliefString);
 	}
 	
 	// -------------------------------------------------------------------------------

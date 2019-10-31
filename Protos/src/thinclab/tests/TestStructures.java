@@ -33,10 +33,12 @@ import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.policy.DynamicBeliefTree;
 import thinclab.policy.MJ;
+import thinclab.policy.PolicyGraph;
 import thinclab.policy.WalkablePolicyTree;
 import thinclab.policy.StaticBeliefTree;
-import thinclab.policy.StaticPolicyGraph;
-import thinclab.policy.StaticPolicyTree;
+import thinclab.policy.ConditionalPlanGraph;
+import thinclab.policy.ConditionalPlanTree;
+import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
@@ -93,28 +95,24 @@ class TestStructures {
 	void testStaticPolicyGraph() {
 		System.out.println("Running testStaticPolicyGraph()");
 		
+//		POMDP pomdp = 
+//				new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
+		
 		POMDP pomdp = 
-				new POMDP("/home/adityas/git/repository/Protos/domains/attacker_l0.txt");
+				new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/honeypot_exfil_minimal_l0.domain");
 		
 		OfflineSymbolicPerseus solver = 
 				OfflineSymbolicPerseus.createSolverWithSSGAExpansion(pomdp, 100, 1, 5, 100);
 		
 		solver.solve();
 		
-//		System.out.println(solver.expansionStrategy.getBeliefPoints().size());
-//		
-//		HashSet<DDTree> set = new HashSet<DDTree>();
-//		set.addAll(
-//				solver.expansionStrategy.getBeliefPoints()
-//					.stream()
-//					.map(b -> b.toDDTree())
-//					.collect(Collectors.toList()));
-//		System.out.println(set.size());
-		StaticPolicyGraph pg = new StaticPolicyGraph(solver);
-		pg.buildTree();
+		System.out.println(Arrays.toString(solver.getAlphaVectors()));
+		System.out.println(Arrays.toString(solver.getPolicy()));
+		
+		PolicyGraph pg = new PolicyGraph(solver);
+		pg.makeGraph();
 		
 		System.out.println(pg.getDotString());
-//		System.out.println(pg.getJSONString());
 	}
 	
 	@Test
@@ -158,7 +156,7 @@ class TestStructures {
 		
 		solver.solve();
 		
-		StaticPolicyTree T = new StaticPolicyTree(solver, 5);
+		ConditionalPlanTree T = new ConditionalPlanTree(solver, 5);
 		T.buildTree();
 		
 		System.out.println(T.getDotString());
@@ -177,7 +175,7 @@ class TestStructures {
 
 		isolver.solveCurrentStep();
 //		System.out.println(isolver.expansionStrategy.getBeliefPoints().stream().map(b -> isolver.f.getBeliefString(b)).collect(Collectors.toList()));
-		StaticPolicyTree sT = new StaticPolicyTree(isolver, 3);
+		ConditionalPlanTree sT = new ConditionalPlanTree(isolver, 3);
 		sT.buildTree();
 		
 		System.out.println(sT.getDotString());
