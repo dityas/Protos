@@ -10,6 +10,7 @@ package thinclab.solvers;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -96,6 +97,18 @@ public class OfflinePBVISolver extends OfflineSolver {
 					.collect(Collectors.toList())
 					.toArray(new DD[this.p.actions.length]);
 		
+		/* default policy */
+		this.policy = new int[this.p.getActions().size()];
+		for (int i = 0; i < this.p.actions.length; i++)
+			this.policy[i] = this.p.getActions().indexOf(this.p.actions[i].name);
+		
+		/* set initial policy */
+		if (this.expansionStrategy instanceof SSGABeliefExpansion) {
+			logger.debug("Setting default policy for belief expansion");
+			((SSGABeliefExpansion) this.expansionStrategy).setRecentPolicy(
+					this.alphaVectors, this.policy);
+		}
+				
 		for (int r = 0; r < this.numRounds; r++) {
 			
 			/* Explore belief space */
