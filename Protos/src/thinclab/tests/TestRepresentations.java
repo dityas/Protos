@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,8 @@ import thinclab.ddinterface.DDTree;
 import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
+import thinclab.exceptions.ParserException;
+import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
@@ -49,14 +52,20 @@ import thinclab.utils.CustomConfigurationFactory;
  * @author adityas
  *
  */
-class TestStructures {
+class TestRepresentations {
 
 	public String l1DomainFile;
+	public String multiJDomainFile;
+	
+	private static Logger LOGGER;
 	
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
+		LOGGER = Logger.getLogger(TestRepresentations.class);
+		
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
+		this.multiJDomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 	}
 
 	@AfterEach
@@ -316,6 +325,37 @@ class TestStructures {
 		System.out.println(tigerL1IPOMDP.getBeliefString(nextBel));
 		
 		Mj.step(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel).get("M_j"), 3);
+	}
+	
+	@Test
+	void testMultipleMJInit() throws 
+		ZeroProbabilityObsException, 
+		VariableNotFoundException, 
+		ParserException, SolverException {
+		
+		LOGGER.info("Running testMultipleMJInit()");
+		
+		/* parse multiple frames */
+		String fileName = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple.txt";
+		IPOMDP ipomdp = new IPOMDP();
+		
+		IPOMDPParser parser = new IPOMDPParser(fileName);
+		parser.parseDomain();
+		
+		LOGGER.info("Testing child frame parsing");
+		assertTrue(parser.childFrames.size() > 1);
+		
+		/* check IPOMDP initialization */
+		ipomdp.initializeFromParsers(parser);
+		
+		LOGGER.info("Check multi frame Aj init");
+		assertTrue(ipomdp.Aj.size() == 6);
+		
+		/* set look ahead manually */
+		ipomdp.setMjLookAhead(3);
+		
+		LOGGER.info("Checking Mj solving");
+		ipomdp.solveMj();
 	}
 
 }

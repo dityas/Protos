@@ -56,7 +56,7 @@ public class MJ extends DynamicBeliefTree {
 		/* build first look ahead */
 		this.buildTree();
 	}
-	
+
 	// -------------------------------------------------------------------------------------
 	
 	public void step(DD belief, int lookAhead, HashSet<String> nonZeroMj) {

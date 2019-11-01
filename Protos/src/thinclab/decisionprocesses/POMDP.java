@@ -34,8 +34,6 @@ public class POMDP extends DecisionProcess implements Serializable {
 	/*
 	 * For use as IPOMDP frames at level 0
 	 */
-	public int frameID;
-	public int level = 0;
 	
 	public int nStateVars;
 	public int nObsVars;

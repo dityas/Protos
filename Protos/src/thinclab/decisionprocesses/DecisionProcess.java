@@ -24,6 +24,9 @@ public abstract class DecisionProcess {
 	 * Defines the basic skeleton for a POMDP or IPOMDP object
 	 */
 	
+	public int level;
+	public int frameID;
+	
 	// --------------------------------------------------------------------------------
 	
 	public abstract List<String> getActions();

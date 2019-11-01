@@ -37,6 +37,7 @@ import thinclab.legacy.StateVar;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.parsers.ParseSPUDD;
 import thinclab.representations.MJ;
+import thinclab.representations.MultiFrameMJ;
 import thinclab.solvers.OfflineSymbolicPerseus;
 
 /*
@@ -66,6 +67,7 @@ public class IPOMDP extends POMDP {
 	 * indices and all that
 	 */
 	public MJ Mj;
+	public MultiFrameMJ multiFrameMJ;
 	
 	/*
 	 * We will need to know the varIndex for the opponentModel statevar to replace it after
@@ -227,10 +229,14 @@ public class IPOMDP extends POMDP {
 		this.A.forEach(a -> {	
 			if (!this.Ai.contains(a.split("__")[0]))
 				this.Ai.add(a.split("__")[0]);
-			if (!this.Aj.contains(a.split("__")[1]))
-				this.Aj.add(a.split("__")[1]);
 			});
 		
+		for (DecisionProcess lowerFrame : this.lowerLevelFrames)
+			this.Aj.addAll(
+					lowerFrame.getActions().stream()
+						.map(a -> a + "/" + lowerFrame.frameID)
+						.collect(Collectors.toList()));
+			
 		/* Add Aj as a stateVar */
 		this.S.add(
 				new StateVar(
@@ -306,53 +312,61 @@ public class IPOMDP extends POMDP {
 		 * 
 		 * WARNING: Only work for a single frame
 		 */
-			
+		
+		List<MJ> solvedFrames = new ArrayList<MJ>();
+		
 		/*
 		 * Check if lower frame is POMDP or IPOMDP and call the solve method accordingly
 		 */
-		Global.clearHashtables();
+		for (DecisionProcess mj : this.lowerLevelFrames) {
 		
-		POMDP mj = this.lowerLevelFrames.get(0);
-		OfflineSymbolicPerseus solver = 
-				new OfflineSymbolicPerseus(
-						mj, 
-						new SSGABeliefExpansion(mj, 100, 1), 
-						10, 100);
+			Global.clearHashtables();
+			
+			if (mj.level > 0) ((IPOMDP) mj).solveIPBVI(15, 100);
+			
+			else if (mj.level == 0) {
+				
+				/* For solving the POMDP at lowest level, set the globals */
+				mj.setGlobals();
+				
+				OfflineSymbolicPerseus solver = 
+						new OfflineSymbolicPerseus(
+								(POMDP) mj, 
+								new SSGABeliefExpansion((POMDP) mj, 100, 1), 
+								10, 100);
+				
+				/* modification for new solver API */
+				solver.solve();
+				logger.debug("Solved lower frame " + mj);
+				
+				/*
+				 * NOTE: After this point, extract all the required information
+				 * from the lower level frame. The frame should not be accessed after
+				 * exiting this function because the Global arrays will be changed.
+				 */
+				
+				/* store opponent's Oj */
+				this.OjTheta.add(((POMDP) mj).getOi());
+				logger.debug("Extracted Oj for " + mj);
+				
+				/* Make Opponent Model object */
+				solvedFrames.add(new MJ(solver, this.mjLookAhead));
+			}
+			
+			else 
+				throw new SolverException("Frame " + 
+					this.lowerLevelFrames.indexOf(mj) + 
+					" is not a POMDP or IPOMDP");
 		
-		if (mj.level > 0) ((IPOMDP) mj).solveIPBVI(15, 100);
-		
-		else if (mj.level == 0) {
-			
-			/* For solving the POMDP at lowest level, set the globals */
-			mj.setGlobals();
-			
-			/* modification for new solver API */
-			solver.solve();
-			logger.debug("Solved lower frame " + mj);
-			
-			/*
-			 * NOTE: After this point, extract all the required information
-			 * from the lower level frame. The frame should not be accessed after
-			 * exiting this function because the Global arrays will be changed.
-			 */
-			
-			/* store opponent's Oj */
-			this.OjTheta.add(mj.getOi());
-			logger.debug("Extracted Oj for " + mj);
 		}
-		
-		else 
-			throw new SolverException("Frame " + 
-				this.lowerLevelFrames.indexOf(mj) + 
-				" is not a POMDP or IPOMDP");
 		
 		/* Rename extracted functions */
 		this.renameOjDDTrees();
 		
-		/* Set Opponent Model object */
-		this.Mj = new MJ(solver, this.mjLookAhead);
-		
 		logger.info("Solved lower frames");
+		
+		/* initialize MJ */
+		this.multiFrameMJ = new MultiFrameMJ(solvedFrames);
 	}
 	
 	public void solveIPBVI(int rounds, int numDpBackups) {
