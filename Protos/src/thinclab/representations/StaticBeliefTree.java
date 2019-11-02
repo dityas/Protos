@@ -62,6 +62,10 @@ public class StaticBeliefTree extends StructuredTree {
 		this.solver = solver;
 	}
 	
+	public StaticBeliefTree() {
+		
+	}
+	
 	// -------------------------------------------------------------------------------------
 	
 	public List<Integer> getNextPolicyNodes(List<Integer> previousNodes, int T) {

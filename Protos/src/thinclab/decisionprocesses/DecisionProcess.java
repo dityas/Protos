@@ -8,7 +8,9 @@
 package thinclab.decisionprocesses;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.legacy.DD;
@@ -113,5 +115,53 @@ public abstract class DecisionProcess {
 		}
 		
 		return bestAlphaId;
+	}
+	
+	public static String getCanonicalName(DecisionProcess DP, String varName) {
+		/*
+		 * Appends frame ID to the varName
+		 */
+		
+		/* check for primed vars */
+		if (varName.lastIndexOf("'") != -1)
+			return varName.substring(0, varName.length() - 1) + "/" + DP.frameID + "'";
+		
+		else
+			return varName + "/" + DP.frameID;
+	}
+	
+	public String getCanonicalName(String valName) {
+		/*
+		 * Appends frame ID to the varName
+		 */
+		
+		return DecisionProcess.getCanonicalName(this, valName);
+	}
+	
+	public static List<String> getCanonicalName(
+			DecisionProcess DP, Collection<String> valNames) {
+		/*
+		 * Appends frame ID to the varName
+		 */
+		
+		return valNames.stream()
+					.map(n -> DP.getCanonicalName(n))
+					.collect(Collectors.toList());
+	}
+	
+	public List<String> getCanonicalName(Collection<String> valNames) {
+		/*
+		 * Appends frame ID to the varName
+		 */
+		
+		return DecisionProcess.getCanonicalName(this, valNames);
+	}
+	
+	public static String getLocalName(String valName) {
+		/*
+		 * removes frameID information from the valName
+		 */
+		
+		return valName.split("/")[0];
 	}
 }

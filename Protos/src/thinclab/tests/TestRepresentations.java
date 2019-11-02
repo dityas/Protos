@@ -239,7 +239,7 @@ class TestRepresentations {
 	
 	@Test
 	void testMJ() throws ZeroProbabilityObsException, VariableNotFoundException {
-		System.out.println("Running testMJ()");
+		LOGGER.info("Running testMJ()");
 		
 		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
 	
@@ -253,78 +253,49 @@ class TestRepresentations {
 		
 		MJ Mj = new MJ(solver, 3);
 		
-		System.out.println(Mj.getOpponentModelStateVar(1));
+		LOGGER.debug(Mj.getOpponentModelStateVar(1));
 		
 		/* only true for tiger problem */
-		assertTrue(Mj.getOpponentModelStateVar(1).arity == 16);
-		
-		/* next tests on IPOMDP */
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
-		
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 7, 3);
-		tigerL1IPOMDP.setGlobals();
-		
-		/* manually assemble solver */
-		OfflineSymbolicPerseus Solver = 
-				new OfflineSymbolicPerseus(
-						tigerL1IPOMDP.lowerLevelFrames.get(0), 
-						new SSGABeliefExpansion(pomdp, 20, 1), 
-						5, 100);
-		
-		tigerL1IPOMDP.setGlobals();
-		Solver.solve();
-		
-		MJ mj = new MJ(Solver, 3);
-		System.out.println(mj.getOpponentModelStateVar(tigerL1IPOMDP.oppModelVarIndex));
-		assertTrue(mj.getOpponentModelStateVar(1).arity == 16);
-		
-		/* manually inject Mj in the IPOMDP */
-		System.out.println(tigerL1IPOMDP.S);
-		tigerL1IPOMDP.S.remove(tigerL1IPOMDP.oppModelVarIndex);
-		tigerL1IPOMDP.S.add(
-				tigerL1IPOMDP.oppModelVarIndex, 
-				mj.getOpponentModelStateVar(tigerL1IPOMDP.oppModelVarIndex));
-		tigerL1IPOMDP.commitVariables();
+		assertTrue(Mj.getOpponentModelStateVar(1).arity == 9);
 		
 		/* test PAjMj */
-		DD PAjMj = mj.getAjGivenMj(tigerL1IPOMDP.ddMaker, tigerL1IPOMDP.getActions());
-//		System.out.println(PAjMj);
-		assertTrue(
-				OP.maxAll(
-						OP.abs(
-							OP.sub(
-								DD.one, 
-								OP.addMultVarElim(
-									PAjMj, 3)))) < 1e-8);
-		
-//		System.out.println(mj.idToNodeMap);
-//		System.out.println(mj.edgeMap);
-//		System.out.println(mj.getJSONString());
-		/* test Mj transition */
-		System.out.println(Arrays.deepToString(mj.getMjTransitionTriples()));
-		
-		System.out.println(mj.getMjInitBelief(tigerL1IPOMDP.ddMaker));
-		
-		DD nextBel = 
-				InteractiveBelief.staticL1BeliefUpdate(
-						tigerL1IPOMDP, 
-						mj.getMjInitBelief(tigerL1IPOMDP.ddMaker).toDD(), 
-						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(2).toArray(new String[2]));
-		
-		System.out.println(tigerL1IPOMDP.getBeliefString(nextBel));
-		
-		Mj.step(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel).get("M_j"), 3);
-		
-		nextBel = 
-				InteractiveBelief.staticL1BeliefUpdate(
-						tigerL1IPOMDP, 
-						nextBel, 
-						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(5).toArray(new String[2]));
-		
-		System.out.println(tigerL1IPOMDP.getBeliefString(nextBel));
-		
-		Mj.step(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel).get("M_j"), 3);
+//		DD PAjMj = mj.getAjGivenMj(tigerL1IPOMDP.ddMaker, tigerL1IPOMDP.getActions());
+////		System.out.println(PAjMj);
+//		assertTrue(
+//				OP.maxAll(
+//						OP.abs(
+//							OP.sub(
+//								DD.one, 
+//								OP.addMultVarElim(
+//									PAjMj, 3)))) < 1e-8);
+//		
+////		System.out.println(mj.idToNodeMap);
+////		System.out.println(mj.edgeMap);
+////		System.out.println(mj.getJSONString());
+//		/* test Mj transition */
+//		System.out.println(Arrays.deepToString(mj.getMjTransitionTriples()));
+//		
+//		System.out.println(mj.getMjInitBelief(tigerL1IPOMDP.ddMaker));
+//		
+//		DD nextBel = 
+//				InteractiveBelief.staticL1BeliefUpdate(
+//						tigerL1IPOMDP, 
+//						mj.getMjInitBelief(tigerL1IPOMDP.ddMaker).toDD(), 
+//						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(2).toArray(new String[2]));
+//		
+//		System.out.println(tigerL1IPOMDP.getBeliefString(nextBel));
+//		
+//		Mj.step(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel).get("M_j"), 3);
+//		
+//		nextBel = 
+//				InteractiveBelief.staticL1BeliefUpdate(
+//						tigerL1IPOMDP, 
+//						nextBel, 
+//						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(5).toArray(new String[2]));
+//		
+//		System.out.println(tigerL1IPOMDP.getBeliefString(nextBel));
+//		
+//		Mj.step(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel).get("M_j"), 3);
 	}
 	
 	@Test
@@ -333,29 +304,71 @@ class TestRepresentations {
 		VariableNotFoundException, 
 		ParserException, SolverException {
 		
-		LOGGER.info("Running testMultipleMJInit()");
+		/*
+		 * Single Frame
+		 */
+		LOGGER.info("Running testMultipleMJInit() on single frame");
 		
 		/* parse multiple frames */
-		String fileName = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple.txt";
+		String fileName = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 		IPOMDP ipomdp = new IPOMDP();
 		
 		IPOMDPParser parser = new IPOMDPParser(fileName);
 		parser.parseDomain();
 		
 		LOGGER.info("Testing child frame parsing");
-		assertTrue(parser.childFrames.size() > 1);
+		assertEquals(parser.childFrames.size(), 1);
 		
 		/* check IPOMDP initialization */
 		ipomdp.initializeFromParsers(parser);
 		
 		LOGGER.info("Check multi frame Aj init");
-		assertTrue(ipomdp.Aj.size() == 6);
+		assertEquals(ipomdp.Aj.size(), 3);
 		
 		/* set look ahead manually */
 		ipomdp.setMjLookAhead(3);
 		
 		LOGGER.info("Checking Mj solving");
 		ipomdp.solveMj();
+		
+		LOGGER.info("Checking Mj var arity");
+		assertEquals(ipomdp.multiFrameMJ.getOpponentModelStateVar(ipomdp.oppModelVarIndex).arity, 21);
+	}
+	
+	@Test
+	void testMultipleMJInit2Frames() throws Exception {
+		/*
+		 * 2 Frames
+		 */
+		LOGGER.info("Running testMultipleMJInit() on 2 frames");
+		
+		/* parse multiple frames */
+		String fileName2 = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple.txt";
+		IPOMDP ipomdp2 = new IPOMDP();
+		
+		IPOMDPParser parser2 = new IPOMDPParser(fileName2);
+		parser2.parseDomain();
+		
+		LOGGER.info("Testing child frame parsing");
+		assertTrue(parser2.childFrames.size() > 1);
+		
+		/* check IPOMDP initialization */
+		ipomdp2.initializeFromParsers(parser2);
+		
+		LOGGER.info("Check multi frame Aj init");
+		assertEquals(ipomdp2.Aj.size(), 6);
+		
+		/* set look ahead manually */
+		ipomdp2.setMjLookAhead(3);
+		
+		LOGGER.info("Checking Mj solving");
+		ipomdp2.solveMj();
+		
+		LOGGER.info("Checking Mj var arity");
+		LOGGER.debug(Arrays.toString(ipomdp2.multiFrameMJ.getOpponentModelStateVar(2).valNames));
+		assertEquals(ipomdp2.multiFrameMJ.getOpponentModelStateVar(2).arity, 42);
+		
+		
 	}
 
 }

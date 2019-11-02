@@ -84,8 +84,8 @@ public class IPOMDP extends POMDP {
 	private HashMap<String, DDTree> costMap;
 	
 	/* Staging area for j's observation functions */
-	public List<HashMap<String, HashMap<String, DDTree>>> OjTheta = 
-			new ArrayList<HashMap<String, HashMap<String, DDTree>>>();
+	public HashMap<String, HashMap<String, DDTree>> OjTheta = 
+			new HashMap<String, HashMap<String, DDTree>>();
 		
 	/*
 	 * Variables to decide Opponent Model depth
@@ -346,7 +346,27 @@ public class IPOMDP extends POMDP {
 				 */
 				
 				/* store opponent's Oj */
-				this.OjTheta.add(((POMDP) mj).getOi());
+				HashMap<String, HashMap<String,DDTree>> oj = ((POMDP) mj).getOi();
+				
+				/* append frameID to obsVars */
+				for (String ajName : new ArrayList<String>(oj.keySet())) {
+					
+					/* rename action vars */
+					HashMap<String, DDTree> o = oj.remove(ajName);
+					
+					/* rename objs vars and DDs */
+					for (String oldOj : new ArrayList<String>(o.keySet())) {
+						
+						DDTree dd = o.remove(oldOj);
+						dd.renameVar(oldOj + "'", mj.getCanonicalName(oldOj + "'"));
+						
+						o.put(mj.getCanonicalName(oldOj), dd);
+					}
+					
+					oj.put(mj.getCanonicalName(ajName), o);
+				}
+				
+				this.OjTheta.putAll(oj);
 				logger.debug("Extracted Oj for " + mj);
 				
 				/* Make Opponent Model object */
@@ -409,7 +429,7 @@ public class IPOMDP extends POMDP {
 		
 		for (POMDP frame : this.lowerLevelFrames) {
 			List<StateVar> obsj = Arrays.asList(frame.obsVars);
-			obsj.stream().forEach(o -> o.setName(o.name + "_j"));
+			obsj.stream().forEach(o -> o.setName(frame.getCanonicalName(o.name) + "_j"));
 			this.Omega.addAll(obsj);
 			
 			this.OmegaJNames.addAll(obsj.stream().map(oj -> oj.name).collect(Collectors.toList()));
@@ -523,7 +543,7 @@ public class IPOMDP extends POMDP {
 				
 				/* Make A_j factor */
 				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
-
+				
 				/* 
 				 * Collapse Aj into Mj to create f(Mj, S', O')
 				 */
@@ -532,7 +552,7 @@ public class IPOMDP extends POMDP {
 							childName, 
 							this.Oi.get(
 									Ai + "__" 
-									+ childName).get(o));
+									+ DecisionProcess.getLocalName(childName)).get(o));
 				}
 				
 				int oIndex = O.indexOf(o);
@@ -579,17 +599,18 @@ public class IPOMDP extends POMDP {
 			
 			/* Make DD of all Ajs */
 			DDTree ajDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
-
+			
 			for (String childName : ajDDTree.children.keySet()) {
 				/* 
 				 * Each mj has a single optimal action, so we map the action to mj and
 				 * set the corresponding Oj for that action to the mj.
 				 */
 
-				DDTree ojDDTree = this.OjTheta.get(0)
-										 	  .get(childName)
+				DDTree ojDDTree = this.OjTheta.get(childName)
 										 	  .get(oj);
-
+				
+				if (ojDDTree == null) continue;
+				
 				ajDDTree.addChild(childName, ojDDTree);
 			}
 			
@@ -652,7 +673,7 @@ public class IPOMDP extends POMDP {
 							childName, 
 							this.Ti.get(
 									Ai + "__" 
-									+ childName).get(s));
+									+ DecisionProcess.getLocalName(childName)).get(s));
 				}
 				
 				logger.debug("Made f(S', Aj, S) for S=" + s + " and Ai=" + Ai);
@@ -739,30 +760,26 @@ public class IPOMDP extends POMDP {
 		 */
 		
 		logger.debug("Renaming Oj DDTrees");
-		
-		/* Iterate over all observation functions */
-		for (HashMap<String, HashMap<String, DDTree>> ojDDTree : this.OjTheta) {
+	
+		for (String actName : this.OjTheta.keySet()) {
 			
-			for (String actName : ojDDTree.keySet()) {
+			/* For observation function for a specific action */
+			HashMap<String, DDTree> Oj_a = this.OjTheta.get(actName);
+			HashMap<String, DDTree> renamedOj_a = new HashMap<String, DDTree>();
+			
+			/* Rename the observation vars */
+			for (String o : Oj_a.keySet()) {
 				
-				/* For observation function for a specific action */
-				HashMap<String, DDTree> Oj_a = ojDDTree.get(actName);
-				HashMap<String, DDTree> renamedOj_a = new HashMap<String, DDTree>();
+				DDTree oDDTree = Oj_a.get(o);
 				
-				/* Rename the observation vars */
-				for (String o : Oj_a.keySet()) {
-					
-					DDTree oDDTree = Oj_a.get(o);
-					
-					oDDTree.renameVar(o, o + "_j");
-					oDDTree.renameVar(o + "'", o + "_j'");
-					
-					renamedOj_a.put(o + "_j", oDDTree);
-				}
+				oDDTree.renameVar(o, o + "_j");
+				oDDTree.renameVar(o + "'", o + "_j'");
 				
-				Oj_a = null;
-				ojDDTree.put(actName, renamedOj_a);
+				renamedOj_a.put(o + "_j", oDDTree);
 			}
+			
+			Oj_a = null;
+			this.OjTheta.put(actName, renamedOj_a);
 		}
 		
 		logger.debug("Done renaming Oj");
@@ -981,13 +998,24 @@ public class IPOMDP extends POMDP {
 		 */
 		this.S.set(
 				this.oppModelVarIndex, 
-				this.Mj.getOpponentModelStateVar(
+				this.multiFrameMJ.getOpponentModelStateVar(
 						this.oppModelVarIndex));
 		
 		logger.debug("IS initialized to " + this.S);
 		
 		Global.clearHashtables();
 		commitVariables();
+	}
+	
+	public void callUpdateIS() {
+		/*
+		 * calls updateMJInIS
+		 * 
+		 * WARNING: SHOULD NOT USE OUTSIDE TESTING.
+		 */
+		logger.warn("Calling a testing method. "
+				+ "This shouldn't be happening during actual execution");
+		this.updateMjInIS();
 	}
 	
 	// -----------------------------------------------------------------------------------------

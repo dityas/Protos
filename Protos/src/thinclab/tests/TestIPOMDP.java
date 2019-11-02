@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,9 +45,12 @@ class TestIPOMDP {
 
 	public String l1DomainFile;
 	
+	private static Logger LOGGER;
+	
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
+		LOGGER = Logger.getLogger(TestIPOMDP.class);
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 	}
 
@@ -55,31 +59,108 @@ class TestIPOMDP {
 	}
 
 	@Test
-	void testIPOMDPL1FrameInit() {
+	void testIPOMDPL1Init() throws Exception {
 		/*
 		 * Test POMDP creation from L0Frame
 		 */
-		System.out.println("Running testIPOMDPL1FrameInit()");
+		
+		/* single frame init */
+		LOGGER.info("Running testIPOMDPL1Init()");
 		
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
-		/*
-		 * Initialize IPOMDP
-		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP();
-		try {
-			tigerL1IPOMDP.initializeFromParsers(parser);
-		} 
+		LOGGER.info("Calling empty constructor");
+		IPOMDP ipomdp = new IPOMDP();
 		
-		catch (ParserException e) {
-			System.err.println(e.getMessage());
-			fail();
+		LOGGER.info("Parsing the domain");
+		ipomdp.initializeFromParsers(parser);
+		ipomdp.setMjDepth(3);
+		ipomdp.setMjLookAhead(3);
+		
+		LOGGER.info("Solve MJs");
+		ipomdp.solveMj();
+		ipomdp.callUpdateIS();
+		
+		LOGGER.info("Checking Oi creation");
+		ipomdp.currentOi = ipomdp.makeOi();
+		
+		assertEquals(ipomdp.currentOi.size(), ipomdp.getActions().size());
+		
+		for (String ai : ipomdp.getActions()) {
+			LOGGER.debug(Arrays.toString(ipomdp.currentOi.get(ai)));
+			assertEquals(ipomdp.currentOi.get(ai).length, ipomdp.Omega.size() - ipomdp.OmegaJNames.size());
 		}
 		
-		System.out.println(tigerL1IPOMDP);
+		LOGGER.info("Checking Ti creation");
+		ipomdp.currentTi = ipomdp.makeTi();
 		
-		assertEquals(tigerL1IPOMDP.lowerLevelFrames.size(), parser.childFrames.size());
+		assertEquals(ipomdp.currentTi.size(), ipomdp.getActions().size());
+		
+		for (String ai : ipomdp.getActions()) {
+			LOGGER.debug("For Ai=" + ai + Arrays.toString(ipomdp.currentTi.get(ai)));
+			assertEquals(ipomdp.currentTi.get(ai).length, ipomdp.S.size() - 2);
+		}
+		
+		LOGGER.info("Checking Oj creation");
+		ipomdp.currentOj = ipomdp.makeOj();
+		
+		assertEquals(ipomdp.currentOj.length, ipomdp.OmegaJNames.size());
+		
+//		for (String ai : ipomdp.getActions()) {
+//			LOGGER.debug("For Ai=" + ai + Arrays.toString(ipomdp.currentTi.get(ai)));
+//			assertEquals(ipomdp.currentTi.get(ai).length, ipomdp.S.size() - 2);
+//		}
+		
+	}
+	
+	@Test
+	void testIPOMDPL1Init2Frames() throws Exception {
+		
+		/* 2 frames init */
+		LOGGER.info("Running testIPOMDPL1Init()");
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple.txt");
+		parser.parseDomain();
+		
+		LOGGER.info("Calling empty constructor");
+		IPOMDP ipomdp = new IPOMDP();
+		
+		LOGGER.info("Parsing the domain");
+		ipomdp.initializeFromParsers(parser);
+		ipomdp.setMjDepth(3);
+		ipomdp.setMjLookAhead(3);
+		
+		LOGGER.info("Solve MJs");
+		ipomdp.solveMj();
+		ipomdp.callUpdateIS();
+		
+		LOGGER.info("Checking Oi creation");
+		ipomdp.currentOi = ipomdp.makeOi();
+		
+		assertEquals(ipomdp.currentOi.size(), ipomdp.getActions().size());
+		
+		for (String ai : ipomdp.getActions()) {
+			LOGGER.debug(Arrays.toString(ipomdp.currentOi.get(ai)));
+			assertEquals(ipomdp.currentOi.get(ai).length, ipomdp.Omega.size() - ipomdp.OmegaJNames.size());
+		}
+		
+		LOGGER.info("Checking Ti creation");
+		ipomdp.currentTi = ipomdp.makeTi();
+		
+		assertEquals(ipomdp.currentTi.size(), ipomdp.getActions().size());
+		
+		for (String ai : ipomdp.getActions()) {
+			LOGGER.debug("For Ai=" + ai + Arrays.toString(ipomdp.currentTi.get(ai)));
+			assertEquals(ipomdp.currentTi.get(ai).length, ipomdp.S.size() - 2);
+		}
+		
+		LOGGER.info("Checking Oj creation");
+		ipomdp.currentOj = ipomdp.makeOj();
+		LOGGER.debug(Arrays.toString(ipomdp.currentOj));
+		assertEquals(ipomdp.currentOj.length, ipomdp.OmegaJNames.size());
 	}
 	
 	@Test
@@ -157,23 +238,6 @@ class TestIPOMDP {
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 10, 3);
 		try {
 			
-//			tigerL1IPOMDP.solveOpponentModels();
-//			
-//			tigerL1IPOMDP.S.set(
-//					tigerL1IPOMDP.oppModelVarIndex, 
-//					tigerL1IPOMDP.oppModel.getOpponentModelStateVar(
-//							tigerL1IPOMDP.oppModelVarIndex));
-//			
-//			Global.clearHashtables();
-//			tigerL1IPOMDP.commitVariables();
-//			
-//			tigerL1IPOMDP.currentTi = tigerL1IPOMDP.makeTi();
-
-//			System.out.println(Arrays.toString(tigerL1IPOMDP.makeTi().get("listen")));
-//			System.out.println(Arrays.toString(tigerL1IPOMDP.makeTi().get("open-right")));
-//			System.out.println(Arrays.toString(tigerL1IPOMDP.makeTi().get("open-left")));
-//			System.out.println("State Sequence " + tigerL1IPOMDP.S);
-
 			for (String Ai : tigerL1IPOMDP.currentTi.keySet()) {
 				for (int s = 0; s < tigerL1IPOMDP.S.size() - 2; s++) {
 					System.out.println("For Ai " + Ai + " and s " + tigerL1IPOMDP.S.get(s));

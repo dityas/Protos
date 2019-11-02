@@ -115,7 +115,7 @@ public class MJ extends DynamicBeliefTree {
 				List<String> triple = new ArrayList<String>();
 				
 				/* Add mj */
-				triple.add("m" + node);
+				triple.add(this.makeModelLabelFromNodeId(node));
 				
 				/* Add action */
 				triple.add(aj);
@@ -261,13 +261,13 @@ public class MJ extends DynamicBeliefTree {
 			List<String> triple = new ArrayList<String>();
 			
 			/* add parent node */
-			triple.add("m" + nodeId);
+			triple.add(makeModelLabelFromNodeId(nodeId));
 			
 			/* add edge */
 			triple.addAll(edge.getKey());
 			
 			/* add end node */
-			triple.add("m" + edge.getValue());
+			triple.add(this.makeModelLabelFromNodeId(edge.getValue()));
 			
 			/* add to collection */
 			triples.add(triple.toArray(new String[triple.size()]));
@@ -293,7 +293,7 @@ public class MJ extends DynamicBeliefTree {
 				List<String> triple = new ArrayList<String>();
 				
 				/* add head */
-				triple.add("m" + nodeId);
+				triple.add(this.makeModelLabelFromNodeId(nodeId));
 				
 				/* add action */
 				triple.add(action);
@@ -302,7 +302,7 @@ public class MJ extends DynamicBeliefTree {
 				triple.addAll(obs);
 				
 				/* add tail */
-				triple.add("m" + nodeId);
+				triple.add(makeModelLabelFromNodeId(nodeId));
 				
 				/* add the triple */
 				triples.add(triple.toArray(new String[triple.size()]));
@@ -312,6 +312,13 @@ public class MJ extends DynamicBeliefTree {
 		return triples.toArray(new String[triples.size()][]);
 	}
 	
+	public String getNodeName(int nodeId) {
+		/*
+		 * Appends frame ID to the node name
+		 */
+		return "m/" + this.solver.f.frameID + "_" + nodeId;
+	}
+	
 	// -------------------------------------------------------------------------------------
 	
 	public static List<Integer> getNodeIds(Collection<String> nodes) {
@@ -319,7 +326,7 @@ public class MJ extends DynamicBeliefTree {
 		 * Convert list of nodes to their integer IDs
 		 */
 		return nodes.stream()
-				.map(n -> new Integer(n.substring(1)))
+				.map(n -> new Integer(MJ.getNodeId(n)))
 				.collect(Collectors.toList());
 	}
 	
@@ -327,7 +334,18 @@ public class MJ extends DynamicBeliefTree {
 		/*
 		 * Converts nodes names into integer IDs as used in the database
 		 */
-		return new Integer(node.substring(1));
+		return new Integer(node.split("/")[1].split("_")[0]);
 	}
-
+	
+	public static String makeModelLabelFromNodeId(int nodeId, int frameID) {
+		/*
+		 * Splits the model label to find out frameID
+		 */
+		return "m/" + frameID + "_" + nodeId;
+	}
+	
+	public String makeModelLabelFromNodeId(int nodeId) {
+		
+		return MJ.makeModelLabelFromNodeId(nodeId, this.solver.f.frameID);
+	}
 }
