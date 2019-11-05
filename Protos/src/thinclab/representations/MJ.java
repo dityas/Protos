@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
 import thinclab.ddinterface.DDTreeLeaf;
-import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
@@ -180,6 +180,70 @@ public class MJ extends DynamicBeliefTree {
 		return triples.toArray(new String[triples.size()][]);
 	}
 	
+	public DDTree getPMjPGivenMjOjAj(
+			DDMaker ddMaker, 
+			HashMap<Integer, List<String>> Ajs,
+			HashMap<Integer, List<String>> Ojs,
+			HashMap<Integer, HashSet<Integer>> mjPrimes) {
+		/*
+		 * Construct the factor P(Mj'| Mj, Oj, Aj)
+		 */
+		
+		String[][] triples = this.getMjTransitionTriples();
+		
+		String [] varSequence = new String[] {"M_j'", "M_j"};
+		varSequence = ArrayUtils.add(varSequence, "A_j/" + this.solver.f.frameID);
+		varSequence = 
+				ArrayUtils.addAll(
+						varSequence, 
+						Ojs.get(this.solver.f.frameID).stream().toArray(String[]::new));
+		
+		DDTree tree = ddMaker.getDDTreeFromSequence(varSequence, triples);
+		
+		/* set probs for mjs of other frames */
+		for (String child : tree.children.keySet()) {
+			
+			if (IPOMDP.getFrameIDFromVarName(child) != this.solver.f.frameID)
+				continue;
+			
+			try {
+				DDTree independentsFactor = tree.atChild(child);
+				
+				for (String childT : independentsFactor.children.keySet()) {
+					
+					int f = IPOMDP.getFrameIDFromVarName(childT);
+					
+					if (f == this.solver.f.frameID) continue;
+					
+					else {
+						
+						if (mjPrimes.get(f).contains(MJ.getNodeId(childT))) {
+							
+							independentsFactor.setDDAt(
+									childT, 
+									new DDTreeLeaf(1.0 / mjPrimes.get(f).size()));
+						}
+						
+						else {
+							independentsFactor.setDDAt(
+									childT, 
+									new DDTreeLeaf(0.0));
+						}
+					}
+				}
+			} 
+			
+			catch (Exception e) {
+				logger.error("While visiting value " + child + " M_j" + this.solver.f.frameID);
+				e.printStackTrace();
+				System.exit(-1);
+			}
+				
+		}
+		
+		return tree;
+	}
+	
 	public DDTree getMjInitBelief(DDMaker ddMaker, DDTree prior) {
 		/*
 		 * Constructs an initial belief DDTree based on the current roots
@@ -261,17 +325,16 @@ public class MJ extends DynamicBeliefTree {
 			
 			List<String> triple = new ArrayList<String>();
 			
+			/* add end node */
+			triple.add(this.makeModelLabelFromNodeId(edge.getValue()));
+			
 			/* add parent node */
 			triple.add(makeModelLabelFromNodeId(nodeId));
 			
 			/* add edge */
 			List<String> theEdge = edge.getKey();
-			String action = theEdge.remove(0);
-			theEdge.add(0, DecisionProcess.getCanonicalName(this.solver.f.frameID, action));
+
 			triple.addAll(theEdge);
-			
-			/* add end node */
-			triple.add(this.makeModelLabelFromNodeId(edge.getValue()));
 			
 			/* add to collection */
 			triples.add(triple.toArray(new String[triple.size()]));
@@ -296,17 +359,17 @@ public class MJ extends DynamicBeliefTree {
 			for (String action : this.f.getActions()) {
 				List<String> triple = new ArrayList<String>();
 				
+				/* add tail */
+				triple.add(this.makeModelLabelFromNodeId(nodeId));
+				
 				/* add head */
 				triple.add(this.makeModelLabelFromNodeId(nodeId));
 				
 				/* add action */
-				triple.add(DecisionProcess.getCanonicalName(this.solver.f.frameID, action));
+				triple.add(action);
 				
 				/* add all obs */
 				triple.addAll(obs);
-				
-				/* add tail */
-				triple.add(this.makeModelLabelFromNodeId(nodeId));
 				
 				/* add the triple */
 				triples.add(triple.toArray(new String[triple.size()]));

@@ -8,11 +8,11 @@
 package thinclab.representations;
 
 import java.io.Serializable;
-import java.lang.annotation.Inherited;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -24,6 +24,8 @@ import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
 import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.exceptions.VariableNotFoundException;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
@@ -117,7 +119,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		return new StateVar("M_j", index, nodeNames);
 	}
 
-	public DD[] getAjGivenMj(DDMaker ddMaker, HashMap<String, List<String>> Ajs) {
+	public DD[] getAjGivenMj(DDMaker ddMaker, HashMap<Integer, List<String>> Ajs) {
 		/*
 		 * Returns the factor P(Aj | Mj) as triples of (mj, aj, probability)
 		 * 
@@ -126,7 +128,8 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 
 		/* initialize array to store AjiGivenMj */
 		DD[] PAjGivenMjDDs = new DD[Ajs.size()];
-
+		
+		/* build factors for each frame */
 		for (int frameID : this.idToNodeMap.keySet()) {
 
 			List<String[]> triples = new ArrayList<String[]>();
@@ -136,8 +139,11 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 
 				/* Get optimal action at node */
 				String optimal_action = this.idToNodeMap.get(frameID).get(node).actName;
-
-				for (String aj : Ajs.get("A_j/" + frameID)) {
+				
+				/*
+				 * For aj depending on mj, P(OPT(Aj) at mj | mj) = 1
+				 */
+				for (String aj : Ajs.get(frameID)) {
 
 					List<String> triple = new ArrayList<String>();
 
@@ -165,12 +171,17 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 							triples.stream().toArray(String[][]::new));
 
 			for (String child : PAjGivenMjTree.children.keySet()) {
-				LOGGER.debug(child);
-				if (DecisionProcess.getFrameIDFromVarName(child) != frameID) {
-					LOGGER.debug(child + " != " + frameID);
+				
+				/*
+				 * If aj is independent of mj, P(Aj | Mj) = P(Aj)
+				 */
+				if (IPOMDP.getFrameIDFromVarName(child) != frameID) {
+				
 					try {
-						PAjGivenMjTree.setDDAt(child, new DDTreeLeaf(1.0 / Ajs.get("A_j/" + frameID).size()));
-						LOGGER.debug(PAjGivenMjTree.children.get(child));
+						PAjGivenMjTree.setDDAt(
+								child, 
+								new DDTreeLeaf(1.0 / Ajs.get(frameID).size()));
+				
 					}
 
 					catch (Exception e) {
@@ -179,34 +190,9 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 					}
 				}
 			}
-			LOGGER.debug("for frame " + frameID + PAjGivenMjTree);
+			
 			PAjGivenMjDDs[frameID] = OP.reorder(PAjGivenMjTree.toDD());
 		}
-
-//		DDTree PAjGivenMjDD = ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
-//		
-//		for (DDTree PAjMj : PAjGivenMjDDs) {
-//			
-//			for (String child : PAjGivenMjDD.children.keySet()) {
-//				
-//				int frame = DecisionProcess.getFrameIDFromVarName(child);
-//				
-//				try {
-//					PAjGivenMjDD.setDDAt(child, PAjGivenMjDDs[frame].children.get(child).getCopy());
-//				} 
-//				
-//				catch (Exception e) {
-//					
-//					e.printStackTrace();
-//					System.exit(-1);
-//				}
-//			}
-//		}
-//		
-//		DD f = OP.reorder(PAjGivenMjDD.toDD());
-//		
-//		LOGGER.debug(f.toDDTree());
-//		return f;
 
 		return PAjGivenMjDDs;
 	}
@@ -222,35 +208,67 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		LOGGER.debug("Oj var sequence is " + this.obsJVars);
 	}
 
-	public String[][] getMjTransitionTriples() {
+	public DD getPMjPGivenMjOjPAj(
+			DDMaker ddMaker, 
+			HashMap<Integer, List<String>> Ajs, 
+			HashMap<Integer, List<String>> Ojs) {
 		/*
-		 * Returns policy node transitions as triples of (start, obs, end)
-		 * 
-		 * Useful for making DDTree objects of OpponentModel and eventually making a
-		 * symbolic perseus DD.
+		 * Make P(Mj'| Mj, Oj', Aj)
 		 */
 
-		String[][] triples = null;
+		/* store independently built DDTrees */
+		HashMap<Integer, DDTree> individualMjTrees = new HashMap<Integer, DDTree>();
+		
+		HashMap<Integer, HashSet<Integer>> mjPrimes = new HashMap<Integer, HashSet<Integer>>();
+		for (int frameID : this.idToNodeMap.keySet())
+			mjPrimes.put(
+					frameID, 
+					new HashSet<Integer>(
+							this.MJs.get(frameID).leafNodes));
 
+		/*
+		 * construct the factor from triples of relevant frames
+		 * So for Mj1 transitions, let Mj1 construct parts of the factor which has Mj1 nodes
+		 * and similar for all other frames.
+		 */
 		for (int frameID : this.idToNodeMap.keySet()) {
 
-			String[][] frameTriples = this.MJs.get(frameID).getMjTransitionTriples();
-
-			if (triples == null)
-				triples = frameTriples;
-
-			else
-				triples = ArrayUtils.addAll(triples, frameTriples);
+			DDTree t = 
+					this.MJs.get(frameID).getPMjPGivenMjOjAj(ddMaker, Ajs, Ojs, mjPrimes);
+			
+			individualMjTrees.put(frameID, t);
 		}
-
-		/* convert list to array and return */
-		return triples;
+		
+		/* Assemble the full Mj transition DD */
+		DDTree PMjPGivenMjOjAj = ddMaker.getDDTreeFromSequence(new String[] {"M_j'"});
+		
+		for (String mj : PMjPGivenMjOjAj.children.keySet()) {
+			
+			int f = IPOMDP.getFrameIDFromVarName(mj);
+			
+			try {
+				PMjPGivenMjOjAj.setDDAt(
+						mj, individualMjTrees.get(f).children.get(mj));
+			} 
+			
+			catch (Exception e) {
+				LOGGER.error("While assembling factor P(Mj'| Mj, Oj', Aj)");
+				e.printStackTrace();
+				System.exit(-1);
+			}
+		}
+		
+		return OP.reorder(PMjPGivenMjOjAj.toDD());
 	}
 
 	// --------------------------------------------------------------------------------------
 
-	private void recursiveObsGen(List<List<String>> obsComb, List<StateVar> obsVars, List<String> obsVector,
-			int finalLen, int varIndex) {
+	private void recursiveObsGen(
+			List<List<String>> obsComb, 
+			List<StateVar> obsVars, 
+			List<String> obsVector,
+			int finalLen, 
+			int varIndex) {
 		/*
 		 * Recursively generates a list of all possible combinations of values of the
 		 * observation variables

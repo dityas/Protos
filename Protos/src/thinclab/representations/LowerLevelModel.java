@@ -29,6 +29,10 @@ public interface LowerLevelModel {
 	public StateVar getOpponentModelStateVar(int index);
 	
 	/* make the factors P(Aj1|Mj), P(Aj2|Mj), ... P(Ajn|Mj) */
-	public DD[] getAjGivenMj(DDMaker ddMaker, HashMap<String, List<String>> Ajs);
+	public DD[] getAjGivenMj(DDMaker ddMaker, HashMap<Integer, List<String>> Ajs);
+	
+	/* get transition triples for Mj i.e. P(Mj'| Mj, Oj1', Oj2', ... Ojn', Aj1, Aj2, ... Aj3) */
+	public DD getPMjPGivenMjOjPAj(
+			DDMaker ddMaker, HashMap<Integer, List<String>> Ajs, HashMap<Integer, List<String>> Ojs);
 
 }

@@ -199,6 +199,19 @@ class TestIPOMDP {
 										IPOMDP.getVarIndex(
 												"A_j/" + i))))));
 		}
+		
+		LOGGER.info("Check P(Mj'| Mj, Oj', Aj) transition creation");
+		DD PMjPGivenMjOjPAj = ipomdp.makeOpponentModelTransitionDD();
+		
+		assertTrue(
+				OP.maxAll(
+						OP.abs(
+							OP.sub(
+								DD.one, 
+								OP.addMultVarElim(
+									PMjPGivenMjOjPAj,
+									IPOMDP.getVarIndex("M_j'"))))) < 1e-8);
+		
 	}
 	
 	@Test
@@ -328,10 +341,8 @@ class TestIPOMDP {
 		ipomdp.currentAjGivenMj = ipomdp.multiFrameMJ.getAjGivenMj(ipomdp.ddMaker, ipomdp.Ajs);
 		
 		for (int i = 0; i < ipomdp.currentAjGivenMj.length; i++) {
-			
-			LOGGER.debug(ipomdp.currentAjGivenMj[i].toDDTree());
-			
-			LOGGER.debug(
+
+			assertTrue(
 					OP.maxAll(
 							OP.abs(
 								OP.sub(
@@ -339,22 +350,21 @@ class TestIPOMDP {
 									OP.addMultVarElim(
 										ipomdp.currentAjGivenMj[i],
 										IPOMDP.getVarIndex(
-												"A_j/" + i))))));
+												"A_j/" + i))))) < 1e-8);
+			
 		}
 		
-//		LOGGER.debug(
-//				OP.maxAll(
-//						OP.abs(
-//							OP.sub(
-//								DD.one, 
-//								OP.addMultVarElim(
-//									lol,
-//									new int[] {3,4})))));
+		LOGGER.info("Check P(Mj'| Mj, Oj', Aj) transition creation");
+		DD PMjPGivenMjOjPAj = ipomdp.makeOpponentModelTransitionDD();
 		
-//		LOGGER.info("Check Mj transition creation");
-//		String[][] triples = ipomdp.multiFrameMJ.getMjTransitionTriples();
-//		for (String[] triple : triples)
-//			LOGGER.debug(Arrays.toString(triple));
+		assertTrue(
+				OP.maxAll(
+						OP.abs(
+							OP.sub(
+								DD.one, 
+								OP.addMultVarElim(
+									PMjPGivenMjOjPAj,
+									IPOMDP.getVarIndex("M_j'"))))) < 1e-8);
 		
 	}
 	

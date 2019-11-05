@@ -54,7 +54,7 @@ public class IPOMDP extends POMDP {
 	 */
 	public IPOMDPParser parser;
 	public List<String> Ai = new ArrayList<String>();
-	public HashMap<String, List<String>> Ajs = new HashMap<String, List<String>>();
+	public HashMap<Integer, List<String>> Ajs = new HashMap<Integer, List<String>>();
 	public List<String> OmegaJNames = new ArrayList<String>();
 	public HashMap<Integer, List<String>> OmegaJs = new HashMap<Integer, List<String>>(); 
 	
@@ -240,7 +240,7 @@ public class IPOMDP extends POMDP {
 			List<String> AjForCurrentFrame = new ArrayList<String>();
 			
 			AjForCurrentFrame.addAll(lowerFrame.getActions());
-			this.Ajs.put("A_j/" + lowerFrame.frameID, AjForCurrentFrame);
+			this.Ajs.put(lowerFrame.frameID, AjForCurrentFrame);
 			
 			/* Add Aj as a stateVar */
 			this.S.add(
@@ -543,60 +543,13 @@ public class IPOMDP extends POMDP {
 		
 		logger.debug("Making M_j transition DD");
 		
-		/* Make DDMaker */
-		DDMaker ddMaker = new DDMaker();
+		DD PMjPGivenOjPAj = 
+				this.multiFrameMJ.getPMjPGivenMjOjPAj(this.ddMaker, this.Ajs, this.OmegaJs);
 		
-		StateVar MjVar = this.S.get(this.oppModelVarIndex);
-		ddMaker.addVariable(
-				MjVar.name, 
-				MjVar.valNames);
+		logger.debug("f(Mj', Mj, Oj', Aj) contains variables " 
+				+ Arrays.toString(PMjPGivenOjPAj.getVarSet()));
 		
-		ddMaker.addVariable(
-				"A_j", 
-				this.Aj.toArray(new String[this.Aj.size()]));
-		
-		/*
-		 * Add obsVars.
-		 * 
-		 * NOTE: This assumes that the observation space and variables sequence is the 
-		 * same for all frames. So we will just get the obsVars from the first lower frame.
-		 * If the assumption is not true, this method will break. 
-		 * 
-		 * TODO: Implement a more general Mj transition DD for frames with different observation
-		 * spaces.
-		 */
-
-		List<StateVar> obsSeq = 
-				this.Omega.stream()
-					.filter(o -> o.name.substring(o.name.length()-2).contains("_j"))
-					.collect(Collectors.toList());
-		
-		obsSeq.stream().forEach(v -> ddMaker.addVariable(v.name, v.valNames));
-		
-		ddMaker.primeVariables();
-		
-		/* Make variables sequence for DDMaker */
-		List<String> varSequence = new ArrayList<String>();
-		varSequence.add("M_j");
-		varSequence.add("A_j");
-		varSequence.addAll(
-				obsSeq.stream()
-					.map(o -> o.name + "'").collect(Collectors.toList()));
-		varSequence.add("M_j'");
-		
-		/* Get triples */
-		String[][] triples = this.Mj.getMjTransitionTriples();
-		
-		/* Get the DDTree from the DDMaker */
-		DDTree MjDD = ddMaker.getDDTreeFromSequence(
-				varSequence.toArray(new String[varSequence.size()]), 
-				triples);
-		
-		DD MjTFn = OP.reorder(MjDD.toDD());
-		
-		logger.debug("f(Mj', Mj, Oj', Aj) contains variables " + Arrays.toString(MjTFn.getVarSet()));
-		
-		return MjTFn;
+		return PMjPGivenOjPAj;
 	}
 	
 	public HashMap<String, DD[]> makeOi() {
@@ -709,15 +662,15 @@ public class IPOMDP extends POMDP {
 			int frameID = IPOMDP.getFrameIDFromVarName(oj);
 			
 			String Aj = 
-					this.Ajs.keySet().stream()
-						.filter(i -> IPOMDP.getFrameIDFromVarName(i) == frameID)
+					"A_j/" + this.Ajs.keySet().stream()
+						.filter(i -> i == frameID)
 						.collect(Collectors.toList()).get(0);
 				
 			/* Make DD of all Aj */
 			DDTree ajDDTree = 
 					this.ddMaker.getDDTreeFromSequence(new String[] {Aj});
 			
-			for (String aj : this.Ajs.get(Aj)) {
+			for (String aj : this.Ajs.get(DecisionProcess.getFrameIDFromVarName(Aj))) {
 				
 				DDTree ojGivenaj = this.OjTheta.get(Aj).get(aj).get(oj);
 				
