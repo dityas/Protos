@@ -177,4 +177,9 @@ public abstract class DecisionProcess {
 		
 		return valName.split("/")[0];
 	}
+	
+	public static int getFrameIDFromVarName(String varName) {
+		
+		return Integer.parseInt(varName.split("/")[1].split("_")[0]);
+	}
 }
