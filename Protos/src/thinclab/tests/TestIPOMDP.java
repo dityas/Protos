@@ -155,25 +155,50 @@ class TestIPOMDP {
 		LOGGER.info("Checking Oj creation");
 		LOGGER.debug("OjTheta is " + ipomdp.OjTheta);
 		ipomdp.currentOj = ipomdp.makeOj();
-		LOGGER.debug(Arrays.toString(ipomdp.currentOj));
-		assertEquals(ipomdp.currentOj.length, ipomdp.OmegaJNames.size());
+		
+		int totalOjs = 0;
+		for (int i=0; i < ipomdp.lowerLevelFrames.size(); i++) {
+			LOGGER.debug(Arrays.toString(ipomdp.currentOj.get(i)));
+			totalOjs += 1;
+		}
+		
+		assertEquals(totalOjs, ipomdp.OmegaJNames.size());
 		
 		LOGGER.info("Checking Oj DD factor");
-		for (int s = 0; s < ipomdp.OmegaJNames.size(); s++) {
-			LOGGER.debug("For and OmegaJ " + ipomdp.OmegaJNames.get(s));
-			assertTrue(
+		
+		for (int frameID : ipomdp.currentOj.keySet()) {
+			for (int s = 0; s < ipomdp.currentOj.get(frameID).length; s++) {
+				LOGGER.debug("For and OmegaJ " + ipomdp.OmegaJs.get(frameID).get(s));
+			
+				assertTrue(
+						OP.maxAll(
+								OP.abs(
+									OP.sub(
+										DD.one, 
+										OP.addMultVarElim(
+											ipomdp.currentOj.get(frameID)[s],
+											IPOMDP.getVarIndex(
+													ipomdp.OmegaJs.get(frameID).get(s) + "'"))))) < 1e-8);
+			}
+		}
+		
+		LOGGER.info("Check P(Aj|Mj) creation");
+		ipomdp.currentAjGivenMj = ipomdp.multiFrameMJ.getAjGivenMj(ipomdp.ddMaker, ipomdp.Ajs);
+		
+		for (int i = 0; i < ipomdp.currentAjGivenMj.length; i++) {
+			
+			LOGGER.debug(ipomdp.currentAjGivenMj[i].toDDTree());
+			
+			LOGGER.debug(
 					OP.maxAll(
 							OP.abs(
 								OP.sub(
 									DD.one, 
 									OP.addMultVarElim(
-										ipomdp.currentOj[s],
+										ipomdp.currentAjGivenMj[i],
 										IPOMDP.getVarIndex(
-												ipomdp.OmegaJNames.get(s) + "'"))))) < 1e-8);
+												"A_j/" + i))))));
 		}
-		
-//		LOGGER.info("Check P(Aj|Mj) creation");
-//		ipomdp.currentAjGivenMj = ipomdp.multiFrameMJ.getAjGivenMj(ipomdp.ddMaker, ipomdp.Aj);
 	}
 	
 	@Test
@@ -272,27 +297,60 @@ class TestIPOMDP {
 		
 		LOGGER.info("Checking Oj creation");
 		ipomdp.currentOj = ipomdp.makeOj();
-		LOGGER.debug(Arrays.toString(ipomdp.currentOj));
-		assertEquals(ipomdp.currentOj.length, ipomdp.OmegaJNames.size());
+		
+		int totalOjs = 0;
+		for (int i=0; i < ipomdp.lowerLevelFrames.size(); i++) {
+			LOGGER.debug(Arrays.toString(ipomdp.currentOj.get(i)));
+			totalOjs += 1;
+		}
+		
+		assertEquals(totalOjs, ipomdp.OmegaJNames.size());
 		
 		LOGGER.info("Checking Oj DD factor");
-		for (int s = 0; s < ipomdp.OmegaJNames.size(); s++) {
-			LOGGER.debug("For and OmegaJ " + ipomdp.OmegaJNames.get(s));
-			assertTrue(
+		
+		for (int frameID : ipomdp.currentOj.keySet()) {
+			for (int s = 0; s < ipomdp.currentOj.get(frameID).length; s++) {
+				LOGGER.debug("For and OmegaJ " + ipomdp.OmegaJs.get(frameID).get(s));
+			
+				assertTrue(
+						OP.maxAll(
+								OP.abs(
+									OP.sub(
+										DD.one, 
+										OP.addMultVarElim(
+											ipomdp.currentOj.get(frameID)[s],
+											IPOMDP.getVarIndex(
+													ipomdp.OmegaJs.get(frameID).get(s) + "'"))))) < 1e-8);
+			}
+		}
+		
+		LOGGER.info("Check P(Aj|Mj) creation");
+		ipomdp.currentAjGivenMj = ipomdp.multiFrameMJ.getAjGivenMj(ipomdp.ddMaker, ipomdp.Ajs);
+		
+		for (int i = 0; i < ipomdp.currentAjGivenMj.length; i++) {
+			
+			LOGGER.debug(ipomdp.currentAjGivenMj[i].toDDTree());
+			
+			LOGGER.debug(
 					OP.maxAll(
 							OP.abs(
 								OP.sub(
 									DD.one, 
 									OP.addMultVarElim(
-										ipomdp.currentOj[s],
+										ipomdp.currentAjGivenMj[i],
 										IPOMDP.getVarIndex(
-												ipomdp.OmegaJNames.get(s) + "'"))))) < 1e-8);
+												"A_j/" + i))))));
 		}
 		
-//		LOGGER.info("Check P(Aj|Mj) creation");
-//		ipomdp.currentAjGivenMj = ipomdp.multiFrameMJ.getAjGivenMj(ipomdp.ddMaker, ipomdp.Aj);
-//		LOGGER.debug(ipomdp.currentAjGivenMj.toDDTree());
-//		
+//		LOGGER.debug(
+//				OP.maxAll(
+//						OP.abs(
+//							OP.sub(
+//								DD.one, 
+//								OP.addMultVarElim(
+//									lol,
+//									new int[] {3,4})))));
+		
 //		LOGGER.info("Check Mj transition creation");
 //		String[][] triples = ipomdp.multiFrameMJ.getMjTransitionTriples();
 //		for (String[] triple : triples)

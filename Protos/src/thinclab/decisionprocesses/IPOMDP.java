@@ -56,6 +56,7 @@ public class IPOMDP extends POMDP {
 	public List<String> Ai = new ArrayList<String>();
 	public HashMap<String, List<String>> Ajs = new HashMap<String, List<String>>();
 	public List<String> OmegaJNames = new ArrayList<String>();
+	public HashMap<Integer, List<String>> OmegaJs = new HashMap<Integer, List<String>>(); 
 	
 	/*
 	 * Store lower level frames
@@ -99,13 +100,13 @@ public class IPOMDP extends POMDP {
 	 */
 	public DD currentMjTfn;
 	public DD currentTau;
-	public DD currentAjGivenMj;
+	public DD[] currentAjGivenMj;
 	public DD currentBelief = null;
 	
 	public HashMap<String, DD[]> currentOi;
 	public HashMap<String, DD[]> currentTi;
 	public HashMap<String, DD> currentRi;
-	public DD[] currentOj;
+	public HashMap<Integer, DD[]> currentOj;
 	
 	public List<DDTree> currentStateBeliefs = new ArrayList<DDTree>();
 	
@@ -514,6 +515,12 @@ public class IPOMDP extends POMDP {
 			this.Omega.addAll(obsj);
 			
 			this.OmegaJNames.addAll(obsj.stream().map(oj -> oj.name).collect(Collectors.toList()));
+			
+			if (this.OmegaJs.get(frame.frameID) == null)
+				this.OmegaJs.put(frame.frameID, new ArrayList<String>());
+			
+			this.OmegaJs.get(frame.frameID).addAll(
+					obsj.stream().map(oj -> oj.name).collect(Collectors.toList()));
 		}
 			
 		/* Offset obsVarIndices */
@@ -669,7 +676,7 @@ public class IPOMDP extends POMDP {
 		return Oi;
 	}
 	
-	public DD[] makeOj() {
+	public HashMap<Integer, DD[]> makeOj() {
 		/*
 		 * Makes DDs for Oj, renames the vars, and conditions them on Mj.
 		 * 
@@ -693,7 +700,8 @@ public class IPOMDP extends POMDP {
 						  .map(f -> f.name)
 						  .collect(Collectors.toList());
 		
-		DD[] Oj = new DD[omegaJList.size()]; 
+//		DD[] Oj = new DD[omegaJList.size()];
+		HashMap<Integer, DD[]> Oj = new HashMap<Integer, DD[]>();
 		
 		for (String oj : omegaJList) {
 			
@@ -725,11 +733,14 @@ public class IPOMDP extends POMDP {
 				
 			}
 			
-			int ojIndex = omegaJList.indexOf(oj); 
+			if (Oj.get(frameID) == null) 
+				Oj.put(frameID, new DD[] {OP.reorder(ajDDTree.toDD())});
 			
-			Oj[ojIndex] = OP.reorder(ajDDTree.toDD());
+			else 
+				Oj.put(frameID, ArrayUtils.add(Oj.get(frameID), OP.reorder(ajDDTree.toDD())));
+			
 			logger.debug("For oj=" + oj + " OjDD contains vars " 
-					+ Arrays.toString(Oj[ojIndex].getVarSet()));
+					+ Arrays.toString(Oj.get(frameID)));
 		}
 		
 		logger.debug("Oj initialized");
@@ -1020,8 +1031,8 @@ public class IPOMDP extends POMDP {
 		logger.debug("Reinitializing Mj dependents according to new Mj");
 		
 		/* rebuild  P(Aj | Mj) */
-		this.currentAjGivenMj = this.Mj.getAjGivenMj(this.ddMaker, this.Aj);
-		logger.debug("f(Aj, Mj) for current look ahead horizon initialized");
+		this.currentAjGivenMj = this.multiFrameMJ.getAjGivenMj(this.ddMaker, this.Ajs);
+		logger.debug("f(Aj, Mj) for all Ajs for current look ahead horizon initialized");
 		
 		/* rebuild  P(Mj' | Mj, Aj, Oj') */
 		this.currentMjTfn = this.makeOpponentModelTransitionDD();
