@@ -323,8 +323,8 @@ class TestRepresentations {
 		ipomdp.initializeFromParsers(parser);
 		
 		LOGGER.info("Check multi frame Aj init");
-		assertEquals(ipomdp.Aj.size(), 1);
-		LOGGER.debug(ipomdp.Aj);
+		assertEquals(ipomdp.Ajs.size(), 1);
+		LOGGER.debug(ipomdp.Ajs);
 		LOGGER.debug(ipomdp.S);
 		
 		/* set look ahead manually */

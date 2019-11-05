@@ -55,6 +55,10 @@ class TestIPOMDPParser {
 		
 		IPOMDP ipomdp = new IPOMDP();
 		ipomdp.initializeFromParsers(parser);
+		
+		LOGGER.debug(ipomdp.Ti);
+		LOGGER.debug(ipomdp.Oi);
+//		LOGGER.debug(ipomdp.costMap);
 	}
 	
 	

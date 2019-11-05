@@ -54,7 +54,7 @@ public class IPOMDP extends POMDP {
 	 */
 	public IPOMDPParser parser;
 	public List<String> Ai = new ArrayList<String>();
-	public List<List<String>> Aj = new ArrayList<List<String>>();
+	public HashMap<String, List<String>> Ajs = new HashMap<String, List<String>>();
 	public List<String> OmegaJNames = new ArrayList<String>();
 	
 	/*
@@ -75,6 +75,7 @@ public class IPOMDP extends POMDP {
 	 */
 	public int oppModelVarIndex;
 	public int AjStartIndex = -1;
+	public int AjVarStartPosition;
 	public int AjSize = 0;
 	
 	/* Mj's transition DD */
@@ -110,9 +111,11 @@ public class IPOMDP extends POMDP {
 	
 	/*
 	 * generate a list of all possible observations and store it to avoid
-	 * computing it repeatedly during belief tree expansions
+	 * computing it repeatedly during belief tree expansions.
+	 * Same for J's actions
 	 */
 	public List<List<String>> obsCombinations;
+	public List<List<String>> actionCombinations;
 	
 	/*
 	 * Arrays to record current IS var indices
@@ -236,7 +239,7 @@ public class IPOMDP extends POMDP {
 			List<String> AjForCurrentFrame = new ArrayList<String>();
 			
 			AjForCurrentFrame.addAll(lowerFrame.getActions());
-			this.Aj.add(AjForCurrentFrame);
+			this.Ajs.put("A_j/" + lowerFrame.frameID, AjForCurrentFrame);
 			
 			/* Add Aj as a stateVar */
 			this.S.add(
@@ -246,12 +249,13 @@ public class IPOMDP extends POMDP {
 							AjForCurrentFrame.toArray(
 									new String[AjForCurrentFrame.size()])));
 			
-			if (this.AjStartIndex == -1) this.AjStartIndex = this.S.size();
-			this.AjSize += 1;
+			if (this.AjStartIndex == -1) {
+				this.AjStartIndex = this.S.size();
+				this.AjVarStartPosition = this.S.size() - 1;
+			}
 			
+			this.AjSize += 1;
 		}
-		
-		this.unRollWildCards();
 		
 		this.uniquePolicy = new boolean[this.Ai.size()]; 
 		this.initializeTFromParser(this.parser);
@@ -267,8 +271,14 @@ public class IPOMDP extends POMDP {
 		this.obsCombinations = 
 				super.recursiveObsCombinations(
 						this.Omega.subList(0, this.Omega.size() - this.OmegaJNames.size()));
+		this.actionCombinations =
+				super.recursiveObsCombinations(
+						this.S.subList(AjVarStartPosition + 1, AjVarStartPosition + AjSize));
 		
 		this.costMap = this.parser.costMap;
+		
+		/* unroll all actions defined through wildcards */
+		this.unRollWildCards();
 		
 		/* Null parser reference after parsing is done */
 		this.parser = null;
@@ -321,6 +331,44 @@ public class IPOMDP extends POMDP {
 			String[] actionDefs = ADef.split("__");
 			
 			if (actionDefs[actionDefs.length - 1].contentEquals("ALL")) {
+				
+				/* create a list of actions to be unrolled */
+				List<StateVar> actions = 
+						this.S.subList(
+								AjVarStartPosition + actionDefs.length - 2, 
+								AjVarStartPosition + this.AjSize);
+				
+				logger.debug("Found wildcard actionDef " + ADef 
+						+ " actions to be unrolled are " + actions);
+				
+				/*
+				 * get all action value combinations and apply the DD associated with actionDef to
+				 * all of them.
+				 * 
+				 * Reusing the same function used to make observation combinations for creating 
+				 * joint action combinations.
+				 */
+				List<List<String>> allActions = this.recursiveObsCombinations(actions);
+				
+				for (List<String> actionCombination : allActions) {
+					
+					String[] actionPath = 
+							ArrayUtils.addAll(
+									ArrayUtils.subarray(
+											actionDefs, 
+											0, actionDefs.length - 1), 
+									actionCombination.toArray(
+											new String[actionCombination.size()]));
+					
+					if (this.A.contains(String.join("__", actionPath))) continue;
+					
+					logger.debug("Applying DDTree for " + ADef + " to " 
+							+ Arrays.toString(actionPath));
+					
+					this.Ti.put(String.join("__", actionPath), this.Ti.get(ADef));
+					this.Oi.put(String.join("__", actionPath), this.Oi.get(ADef));
+					this.costMap.put(String.join("__", actionPath), this.costMap.get(ADef));
+				}
 				
 			}
 		}
@@ -572,31 +620,34 @@ public class IPOMDP extends POMDP {
 			
 			for (String o : O) {
 				
-				List<DD> OiList = new ArrayList<DD>();
+				DDTree ajDDTree = 
+						this.ddMaker.getDDTreeFromSequence(
+								this.S.subList(
+										this.AjStartIndex + 1, 
+										this.AjStartIndex + this.AjSize).stream()
+											.toArray(String[]::new),
+								this.actionCombinations.stream()
+									.map(l -> l.stream().toArray(String[]::new))
+									.toArray(String[][]::new));
 				
-				for (int i = this.AjStartIndex - 1; i < (this.AjStartIndex - 1 + this.AjSize); i ++) {
+				/* for all combinations of J's actions */
+				for (List<String> actionCombination : this.actionCombinations) {
 					
-					/* Make A_j factor */
-					DDTree mjDDTree = 
-							this.ddMaker.getDDTreeFromSequence(new String[] {this.S.get(i).name});
+					String ajPath = String.join("__", actionCombination);
 					
-					/* 
-					 * Collapse Aj into Mj to create f(Mj, S', O')
-					 */
-					for (String childName : mjDDTree.children.keySet()) {
-						mjDDTree.addChild(
-								childName, 
-								this.Oi.get(
-										Ai + "__" 
-										+ childName).get(o));
+					DDTree oiGivenaj = this.Oi.get(Ai + "__" + ajPath).get(o);
+					DDTree ajDDTreeRef = ajDDTree;
+					
+					for (String aj : actionCombination) {
+						ajDDTreeRef = ajDDTreeRef.atChild(aj);
 					}
 					
-					OiList.add(OP.reorder(mjDDTree.toDD()));
+					ajDDTreeRef.
 				}
 				
 				int oIndex = O.indexOf(o);
 				
-				ddTrees[oIndex] = OP.reorder(OP.multN(OiList));
+				ddTrees[oIndex] = OP.reorder();
 				logger.debug("Made f(O', " 
 						+ this.S.stream()
 							.filter(s -> s.name.contains("A_j"))

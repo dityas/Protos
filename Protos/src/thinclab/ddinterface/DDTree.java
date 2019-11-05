@@ -188,6 +188,18 @@ public class DDTree implements Serializable {
 		else throw new Exception(varName + " does not contain child " + childName);
 	}
 	
+	public void setDDAt(List<String> childNames, DDTree ddToAppend) throws Exception {
+		/*
+		 * Recursively traverses childNames and sets ddToAppend at the last child
+		 */
+		
+		String child = childNames.remove(0);
+		
+		if (childNames.size() == 0) this.setDDAt(child, ddToAppend);
+		
+		else this.children.get(child).setDDAt(childNames, ddToAppend);
+	}
+	
 	// ---------------------------------------------------------------------------------
 	
 	public DD toDD() {
