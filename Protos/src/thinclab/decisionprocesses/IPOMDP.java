@@ -54,7 +54,7 @@ public class IPOMDP extends POMDP {
 	 */
 	public IPOMDPParser parser;
 	public List<String> Ai = new ArrayList<String>();
-	public List<String> Aj = new ArrayList<String>();
+	public List<List<String>> Aj = new ArrayList<List<String>>();
 	public List<String> OmegaJNames = new ArrayList<String>();
 	
 	/*
@@ -74,8 +74,8 @@ public class IPOMDP extends POMDP {
 	 * every belief update
 	 */
 	public int oppModelVarIndex;
-	public int AjIndex;
-	
+	public int AjStartIndex = -1;
+	public int AjSize = 0;
 	
 	/* Mj's transition DD */
 	public DD MjTFn;
@@ -231,20 +231,27 @@ public class IPOMDP extends POMDP {
 				this.Ai.add(a.split("__")[0]);
 			});
 		
-		for (DecisionProcess lowerFrame : this.lowerLevelFrames)
-			this.Aj.addAll(
-					lowerFrame.getActions().stream()
-						.map(a -> a + "/" + lowerFrame.frameID)
-						.collect(Collectors.toList()));
+		for (DecisionProcess lowerFrame : this.lowerLevelFrames) {
 			
-		/* Add Aj as a stateVar */
-		this.S.add(
-				new StateVar(
-						"A_j", 
-						this.S.size(), 
-						this.Aj.toArray(new String[this.Aj.size()])));
+			List<String> AjForCurrentFrame = new ArrayList<String>();
+			
+			AjForCurrentFrame.addAll(lowerFrame.getActions());
+			this.Aj.add(AjForCurrentFrame);
+			
+			/* Add Aj as a stateVar */
+			this.S.add(
+					new StateVar(
+							"A_j/" + lowerFrame.frameID, 
+							this.S.size(),
+							AjForCurrentFrame.toArray(
+									new String[AjForCurrentFrame.size()])));
+			
+			if (this.AjStartIndex == -1) this.AjStartIndex = this.S.size();
+			this.AjSize += 1;
+			
+		}
 		
-		this.AjIndex = this.S.size();
+		this.unRollWildCards();
 		
 		this.uniquePolicy = new boolean[this.Ai.size()]; 
 		this.initializeTFromParser(this.parser);
@@ -282,12 +289,12 @@ public class IPOMDP extends POMDP {
 		this.Ai = actionNames;
 	}
 	
-	public void setAj(List<String> actionNames) {
-		/*
-		 * Sets the names for agent j's actions
-		 */
-		this.Aj = actionNames;
-	}
+//	public void setAj(List<String> actionNames) {
+//		/*
+//		 * Sets the names for agent j's actions
+//		 */
+//		this.Aj = actionNames;
+//	}
 	
 	public void setMjDepth(int depth) {
 		/*
@@ -301,6 +308,22 @@ public class IPOMDP extends POMDP {
 		 * Sets the horizon for OpponentModel look ahead. 
 		 */
 		this.mjLookAhead = horizon;
+	}
+	
+	private void unRollWildCards() {
+		/*
+		 * The domain file can have wild cards to specify multiple transitions in a single action
+		 * def using wild cards. This methods expands and unrolls them
+		 */
+		
+		for (String ADef : this.A) {
+			
+			String[] actionDefs = ADef.split("__");
+			
+			if (actionDefs[actionDefs.length - 1].contentEquals("ALL")) {
+				
+			}
+		}
 	}
 	
 	// ------------------------------------------------------------------------------------------
@@ -387,6 +410,14 @@ public class IPOMDP extends POMDP {
 		
 		/* initialize MJ */
 		this.multiFrameMJ = new MultiFrameMJ(solvedFrames);
+		
+		/* make all obs J combinations */
+		List<StateVar> obsJVars = 
+				this.Omega.stream()
+					.filter(i -> this.OmegaJNames.contains(i.name))
+					.collect(Collectors.toList());
+		
+		this.multiFrameMJ.makeAllObsCombinations(obsJVars);
 	}
 	
 	public void solveIPBVI(int rounds, int numDpBackups) {
@@ -541,24 +572,37 @@ public class IPOMDP extends POMDP {
 			
 			for (String o : O) {
 				
-				/* Make A_j factor */
-				DDTree mjDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
+				List<DD> OiList = new ArrayList<DD>();
 				
-				/* 
-				 * Collapse Aj into Mj to create f(Mj, S', O')
-				 */
-				for (String childName : mjDDTree.children.keySet()) {
-					mjDDTree.addChild(
-							childName, 
-							this.Oi.get(
-									Ai + "__" 
-									+ DecisionProcess.getLocalName(childName)).get(o));
+				for (int i = this.AjStartIndex - 1; i < (this.AjStartIndex - 1 + this.AjSize); i ++) {
+					
+					/* Make A_j factor */
+					DDTree mjDDTree = 
+							this.ddMaker.getDDTreeFromSequence(new String[] {this.S.get(i).name});
+					
+					/* 
+					 * Collapse Aj into Mj to create f(Mj, S', O')
+					 */
+					for (String childName : mjDDTree.children.keySet()) {
+						mjDDTree.addChild(
+								childName, 
+								this.Oi.get(
+										Ai + "__" 
+										+ childName).get(o));
+					}
+					
+					OiList.add(OP.reorder(mjDDTree.toDD()));
 				}
 				
 				int oIndex = O.indexOf(o);
 				
-				ddTrees[oIndex] = OP.reorder(mjDDTree.toDD());
-				logger.debug("Made f(O', Aj, S') for O=" + o + " and Ai=" 
+				ddTrees[oIndex] = OP.reorder(OP.multN(OiList));
+				logger.debug("Made f(O', " 
+						+ this.S.stream()
+							.filter(s -> s.name.contains("A_j"))
+							.map(i -> i.name)
+							.collect(Collectors.toList())
+						+ ", S') for O=" + o + " and Ai=" 
 						+ Ai + " with vars " + Arrays.toString(ddTrees[oIndex].getVarSet()));
 			}
 			
@@ -592,7 +636,7 @@ public class IPOMDP extends POMDP {
 						  .filter(o -> o.name.substring(o.name.length() - 2).contains("_j"))
 						  .map(f -> f.name)
 						  .collect(Collectors.toList());
-
+		logger.error(omegaJList);
 		DD[] Oj = new DD[omegaJList.size()]; 
 		
 		for (String oj : omegaJList) {
@@ -658,26 +702,54 @@ public class IPOMDP extends POMDP {
 		/* For each action */
 		for (String Ai : this.Ai) {
 
-			DD[] ddTrees = new DD[this.S.size() - 2];
+			DD[] ddTrees = new DD[this.S.size() - this.AjSize - 1];
 			
 			for (String s : S) {
 				
-				/* Make A_j factor */
-				DDTree ajDDTree = this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
+				List<DD> TiList = new ArrayList<DD>();
 				
-				/* 
-				 * Create f(A_j, S, S')
-				 */
-				for (String childName : ajDDTree.children.keySet()) {
-					ajDDTree.addChild(
-							childName, 
-							this.Ti.get(
-									Ai + "__" 
-									+ DecisionProcess.getLocalName(childName)).get(s));
+				for (int i = this.AjStartIndex - 1; i < (this.AjStartIndex - 1 + this.AjSize); i ++) {
+				
+					/* Make A_j factor */
+					DDTree ajDDTree = 
+							this.ddMaker.getDDTreeFromSequence(new String[] {this.S.get(i).name});
+					
+					/* 
+					 * Create f(A_j, S, S')
+					 */
+					for (String childName : ajDDTree.children.keySet()) {
+						ajDDTree.addChild(
+								childName, 
+								this.Ti.get(
+										Ai + "__" 
+										+ childName).get(s));
+					}
+					
+					TiList.add(OP.reorder(ajDDTree.toDD()));
 				}
 				
-				logger.debug("Made f(S', Aj, S) for S=" + s + " and Ai=" + Ai);
-				ddTrees[S.indexOf(s)] = OP.reorder(ajDDTree.toDD());
+				
+				logger.debug("Made f(S', "
+						+ this.S.stream()
+							.filter(v -> v.name.contains("A_j"))
+							.map(i -> i.name)
+							.collect(Collectors.toList())
+						+ ", S) for S=" + s + " and Ai=" + Ai);
+				
+				DD TiForS = OP.reorder(OP.multN(TiList));
+				
+				try {
+					TiForS = 
+							OP.div(
+									TiForS, 
+									OP.addMultVarElim(
+											TiForS, 
+											IPOMDP.getVarIndex(s + "'")));
+				}
+				
+				catch (Exception e) {}
+				
+				ddTrees[S.indexOf(s)] = TiForS;
 			}
 			
 			Ti.put(Ai, ddTrees);

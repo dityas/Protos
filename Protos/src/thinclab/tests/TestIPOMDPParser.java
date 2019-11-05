@@ -9,11 +9,15 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.exceptions.ParserException;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
@@ -21,10 +25,17 @@ import thinclab.parsers.IPOMDPParser;
  */
 class TestIPOMDPParser {
 
-	public String testFileName;	
+	public String testFileName;
+	
+	private static Logger LOGGER;
+	
 	@BeforeEach
 	void setUp() throws Exception {
-		this.testFileName = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.L1.txt";
+		
+		CustomConfigurationFactory.initializeLogging();
+		LOGGER = Logger.getLogger(TestIPOMDPParser.class);
+		
+		this.testFileName = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
 	}
 
 	@AfterEach
@@ -32,14 +43,18 @@ class TestIPOMDPParser {
 	}
 
 	@Test
-	void testParserInit() {
-		System.out.println("Running testParserInit()");
+	void testParserInit() throws Exception {
+		LOGGER.info("Running testParserInit()");
 		IPOMDPParser parser = new IPOMDPParser(this.testFileName);
 		parser.parseDomain();
 		assertNotNull(parser);
-		assertTrue(parser.childFrames.size() == 2);
-		assertEquals(0, parser.childFrames.get(0).level);
-		assertEquals(0, parser.childFrames.get(1).level);
+		
+//		assertTrue(parser.childFrames.size() == 2);
+//		assertEquals(0, parser.childFrames.get(0).level);
+//		assertEquals(0, parser.childFrames.get(1).level);
+		
+		IPOMDP ipomdp = new IPOMDP();
+		ipomdp.initializeFromParsers(parser);
 	}
 	
 	

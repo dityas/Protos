@@ -138,6 +138,19 @@ public abstract class DecisionProcess {
 		return DecisionProcess.getCanonicalName(this, valName);
 	}
 	
+	public static String getCanonicalName(int frameID, String varName) {
+		/*
+		 * Appends frame ID to the varName
+		 */
+		
+		/* check for primed vars */
+		if (varName.lastIndexOf("'") != -1)
+			return varName.substring(0, varName.length() - 1) + "/" + frameID + "'";
+		
+		else
+			return varName + "/" + frameID;
+	}
+	
 	public static List<String> getCanonicalName(
 			DecisionProcess DP, Collection<String> valNames) {
 		/*

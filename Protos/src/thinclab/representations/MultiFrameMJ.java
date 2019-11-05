@@ -7,21 +7,30 @@
  */
 package thinclab.representations;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import thinclab.ddinterface.DDMaker;
+import thinclab.ddinterface.DDTree;
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.legacy.DD;
+import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
 
 /*
  * @author adityas
  *
  */
-public class MultiFrameMJ {
+public class MultiFrameMJ implements Serializable {
 	
 	/*
 	 * Mj abstraction for IPOMDPs with multiple lower level frames
@@ -34,10 +43,17 @@ public class MultiFrameMJ {
 
 	/* store a list of all Mjs */
 	public HashMap<Integer, MJ> MJs = new HashMap<Integer, MJ>();
+	
+	/* store nodeMaps and edge Maps of all frames */
 	public HashMap<Integer, HashMap<Integer, PolicyNode>> idToNodeMap = 
 			new HashMap<Integer, HashMap<Integer, PolicyNode>>();
+	
 	public HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>> edgeMap = 
 			new HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>>();
+	
+	/* compute all possible obs combinations at once and store them */
+	public List<List<String>> obsCombinations;
+	public List<StateVar> obsJVars;
 	
 	/* keep track of current time step */
 	public int T = 0;
@@ -69,7 +85,7 @@ public class MultiFrameMJ {
 		 */
 		
 		for (Integer frameID : this.MJs.keySet()) {
-			
+
 			/* build each tree */
 			this.MJs.get(frameID).buildTree();
 			
@@ -80,6 +96,8 @@ public class MultiFrameMJ {
 			this.edgeMap.put(frameID, this.MJs.get(frameID).edgeMap);
 		}
 	}
+	
+	// -------------------------------------------------------------------------------------
 	
 	public StateVar getOpponentModelStateVar(int index) {
 		/*
@@ -100,6 +118,148 @@ public class MultiFrameMJ {
 		
 		return new StateVar("M_j", index, nodeNames);
 	}
+	
+	public DD getAjGivenMj(DDMaker ddMaker, List<String> Aj) {
+		/*
+		 * Returns the factor P(Aj | Mj) as triples of (mj, aj, probability)
+		 * 
+		 * This will be used to make the P(Aj | Mj) DD
+		 */
+		List<String[]> triples = new ArrayList<String[]>();
+
+		for (int frameID : this.idToNodeMap.keySet()) {
+			
+			/* Create triples for optimal actions given node */
+			for (int node : this.idToNodeMap.get(frameID).keySet()) {
+				
+				/* Get optimal action at node */
+				String optimal_action = 
+						DecisionProcess.getCanonicalName(
+								frameID,
+								this.idToNodeMap.get(frameID).get(node).actName);
+				
+				for (String aj : Aj) {
+					
+					List<String> triple = new ArrayList<String>();
+					
+					/* Add mj */
+					triple.add(MJ.makeModelLabelFromNodeId(node, frameID));
+					
+					/* Add action */
+					triple.add(aj);
+					
+					/* Give 99% prob for performing optimal action */
+					if (optimal_action.contentEquals(aj)) triple.add("1.0");
+					
+					/* small but finite probability for non optimal behavior */
+					else triple.add("0.0"); /* 0 probability for non optimal actions */
+					
+					triples.add(triple.toArray(new String[triple.size()]));
+				}
+			} /* for currentNodes */
+		}
+		
+		/* Get default DDTree for P(Aj | Mj) */
+		DDTree PAjMj = 
+				ddMaker.getDDTreeFromSequence(
+						new String[] {"M_j", "A_j"},
+						triples.toArray(new String[triples.size()][]));
+		
+		DD PAjMjDD = OP.reorder(PAjMj.toDD());
+		
+		LOGGER.debug("P(Aj | Mj) DD contains variables " 
+				+ Arrays.toString(PAjMjDD.getVarSet()));
+		
+		return PAjMjDD;
+	}
+	
+	public void makeAllObsCombinations(List<StateVar> obsJVars) {
+		/*
+		 * Makes all possible combinations of observation values
+		 */
+		this.obsCombinations = this.recursiveObsCombinations(obsJVars);
+		LOGGER.debug("All possible Oj are " + this.obsCombinations);
+		
+		this.obsJVars = obsJVars;
+		LOGGER.debug("Oj var sequence is " + this.obsJVars);
+	}
+	
+	public String[][] getMjTransitionTriples() {
+		/*
+		 * Returns policy node transitions as triples of (start, obs, end)
+		 * 
+		 * Useful for making DDTree objects of OpponentModel and eventually making a
+		 * symbolic perseus DD.
+		 */
+		
+		String[][] triples = null;
+		
+		for (int frameID : this.idToNodeMap.keySet()) {
+			
+			String[][] frameTriples = this.MJs.get(frameID).getMjTransitionTriples();
+			
+			if (triples == null)
+				triples = frameTriples;
+			
+			else
+				triples = ArrayUtils.addAll(triples, frameTriples);
+		}
+		
+		/* convert list to array and return */
+		return triples;
+	}
+	
+	// --------------------------------------------------------------------------------------
+	
+	private void recursiveObsGen(
+			List<List<String>> obsComb, 
+			List<StateVar> obsVars, 
+			List<String> obsVector, 
+			int finalLen, 
+			int varIndex){
+		/* 
+		 *  Recursively generates a list of all possible combinations of values 
+		 *  of the observation variables
+		 */
+		
+		if (varIndex < obsVars.size()) {
+			
+			if (obsVector.size() == finalLen) {
+				obsComb.add(obsVector);
+			}
+			
+			else {
+				
+				List<String> obsVectorCopy = new ArrayList<String>(obsVector);
+				StateVar obs = obsVars.get(varIndex);
+				for (int i=0;i<obs.valNames.length;i++) {
+					List<String> anotherObsVecCopy = new ArrayList<String>(obsVectorCopy);
+					anotherObsVecCopy.add(obs.valNames[i]);
+					this.recursiveObsGen(obsComb, obsVars, anotherObsVecCopy, finalLen, varIndex + 1);
+				}
+			}
+			
+		}
+		
+		else {
+			obsComb.add(obsVector);
+		}
+	} // private void recursiveObsGen
+	
+	public List<List<String>> recursiveObsCombinations(List<StateVar> obsVars){
+		/*
+		 * Driver program for generating observations recursively
+		 */
+		int finalLen = obsVars.size();
+		List<String> obsVec = new ArrayList<String>();
+		List<List<String>> obsComb = new ArrayList<List<String>>();
+		
+		recursiveObsGen(obsComb, obsVars, obsVec, finalLen, 0);
+		
+		return obsComb;
+	}
+	
+	// ---------------------------------------------------------------------------------------
 	
 	public static int getFrameIDFromModel(String modelLabel) {
 		/*

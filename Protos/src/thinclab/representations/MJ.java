@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
 import thinclab.ddinterface.DDTreeLeaf;
+import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
@@ -264,7 +265,10 @@ public class MJ extends DynamicBeliefTree {
 			triple.add(makeModelLabelFromNodeId(nodeId));
 			
 			/* add edge */
-			triple.addAll(edge.getKey());
+			List<String> theEdge = edge.getKey();
+			String action = theEdge.remove(0);
+			theEdge.add(0, DecisionProcess.getCanonicalName(this.solver.f.frameID, action));
+			triple.addAll(theEdge);
 			
 			/* add end node */
 			triple.add(this.makeModelLabelFromNodeId(edge.getValue()));
@@ -296,13 +300,13 @@ public class MJ extends DynamicBeliefTree {
 				triple.add(this.makeModelLabelFromNodeId(nodeId));
 				
 				/* add action */
-				triple.add(action);
+				triple.add(DecisionProcess.getCanonicalName(this.solver.f.frameID, action));
 				
 				/* add all obs */
 				triple.addAll(obs);
 				
 				/* add tail */
-				triple.add(makeModelLabelFromNodeId(nodeId));
+				triple.add(this.makeModelLabelFromNodeId(nodeId));
 				
 				/* add the triple */
 				triples.add(triple.toArray(new String[triple.size()]));

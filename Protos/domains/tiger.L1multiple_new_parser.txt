@@ -21,7 +21,7 @@ enddd
 
 // listen actions
 
-action listen__listen
+action listen__listen__listen
     tiger-location (SAMEtiger-location)
     observe
         growl (tigerLocObs)
@@ -43,7 +43,7 @@ action listen__listen
 endaction
 
 
-action listen__open-left
+action listen__ALL
     tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
     observe
 //        growl (tigerLocObs)
@@ -89,34 +89,9 @@ action listen__open-left
     cost (1)
 endaction
 
-action listen__open-right
-    tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
-    observe
-//        growl (tigerLocObs)
-
-		growl (growl' (growl-left	(0.5))	(growl-right	(0.5)))
-		
-		creak (creak'
-				(silence
-					(0.05)
-				)
-				
-				(creak-left
-					(0.05)
-				)
-				
-				(creak-right
-					(0.9)
-				)
-			)
-			
-    endobserve
-    cost (1)
-endaction
-
 // open-left actions
 
-action open-left__listen
+action open-left__ALL
     tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
     observe
         growl (growl' (growl-left	(0.5))	(growl-right	(0.5)))
@@ -134,53 +109,6 @@ action open-left__listen
 					(0.34)
 				)
 			)
-    endobserve
-    cost (tiger-location (tiger-left  (100))
-			 (tiger-right (-10)))
-endaction
-
-action open-left__open-left
-    tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
-    observe
-        growl (growl' (growl-left	(0.5))	(growl-right	(0.5)))
-		      
-		creak (creak'
-				(silence
-					(0.33)
-				)
-				
-				(creak-left
-					(0.33)
-				)
-				
-				(creak-right
-					(0.34)
-				)
-			)
-    endobserve
-    cost (tiger-location (tiger-left  (100))
-			 (tiger-right (-10)))
-endaction
-
-action open-left__open-right
-    tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
-    observe
-        growl (growl' (growl-left	(0.5))	(growl-right	(0.5)))
-		
-		creak (creak'
-				(silence
-					(0.33)
-				)
-				
-				(creak-left
-					(0.33)
-				)
-				
-				(creak-right
-					(0.34)
-				)
-			)
-			
     endobserve
     cost (tiger-location (tiger-left  (100))
 			 (tiger-right (-10)))
@@ -188,7 +116,7 @@ endaction
 
 // open-right actions
 
-action open-right__listen
+action open-right__ALL
     tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
     observe
         growl (growl' (growl-left	(0.5))	(growl-right	(0.5)))
@@ -211,54 +139,6 @@ action open-right__listen
     cost (tiger-location (tiger-left  (-10))
 			 (tiger-right (100)))
 endaction
-
-action open-right__open-left
-    tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
-    observe
-        growl (growl' (growl-left	(0.5))	(growl-right	(0.5)))
-		      
-		creak (creak'
-				(silence
-					(0.33)
-				)
-				
-				(creak-left
-					(0.33)
-				)
-				
-				(creak-right
-					(0.34)
-				)
-			)
-    endobserve
-    cost (tiger-location (tiger-left  (-10))
-			 (tiger-right (100)))
-endaction
-
-action open-right__open-right
-    tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
-    observe
-        growl (growl' (growl-left	(0.5))	(growl-right	(0.5)))
-		
-		creak (creak'
-				(silence
-					(0.33)
-				)
-				
-				(creak-left
-					(0.33)
-				)
-				
-				(creak-right
-					(0.34)
-				)
-			)
-			
-    endobserve
-    cost (tiger-location (tiger-left  (-10))
-			 (tiger-right (100)))
-endaction
-
 
 // discount factor
 discount  0.9
