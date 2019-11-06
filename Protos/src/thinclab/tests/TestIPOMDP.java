@@ -212,6 +212,22 @@ class TestIPOMDP {
 									PMjPGivenMjOjPAj,
 									IPOMDP.getVarIndex("M_j'"))))) < 1e-8);
 		
+		LOGGER.info("Check initial belief");
+		DD mjInit = ipomdp.multiFrameMJ.getMjInitBelief(ipomdp.ddMaker, null).toDD();
+		DD initS = ipomdp.initBeliefDdTree.toDD();
+		ipomdp.currentBelief = OP.reorder(OP.mult(mjInit, initS));
+		LOGGER.debug(ipomdp.currentBelief);
+		assertTrue(
+				OP.maxAll(
+						OP.abs(
+							OP.sub(
+								DD.one, 
+								OP.addMultVarElim(
+									ipomdp.currentBelief,
+									ArrayUtils.subarray(
+											ipomdp.stateVarIndices, 
+											0, ipomdp.AjVarStartPosition))))) < 1e-8);
+		
 	}
 	
 	@Test
@@ -355,7 +371,7 @@ class TestIPOMDP {
 		}
 		
 		LOGGER.info("Check P(Mj'| Mj, Oj', Aj) transition creation");
-		DD PMjPGivenMjOjPAj = ipomdp.makeOpponentModelTransitionDD();
+		ipomdp.currentPMjPGivenMjOjPAj = ipomdp.makeOpponentModelTransitionDD();
 		
 		assertTrue(
 				OP.maxAll(
@@ -363,8 +379,30 @@ class TestIPOMDP {
 							OP.sub(
 								DD.one, 
 								OP.addMultVarElim(
-									PMjPGivenMjOjPAj,
+									ipomdp.currentPMjPGivenMjOjPAj,
 									IPOMDP.getVarIndex("M_j'"))))) < 1e-8);
+		
+		LOGGER.info("Check initial belief");
+		DD mjInit = ipomdp.multiFrameMJ.getMjInitBelief(ipomdp.ddMaker, null).toDD();
+		DD initS = ipomdp.initBeliefDdTree.toDD();
+		ipomdp.currentBelief = OP.reorder(OP.mult(mjInit, initS));
+		LOGGER.debug(ipomdp.currentBelief);
+		assertTrue(
+				OP.maxAll(
+						OP.abs(
+							OP.sub(
+								DD.one, 
+								OP.addMultVarElim(
+									ipomdp.currentBelief,
+									ArrayUtils.subarray(
+											ipomdp.stateVarIndices, 
+											0, ipomdp.AjVarStartPosition))))) < 1e-8);
+		
+		LOGGER.info("Checking Ri");
+		ipomdp.currentRi = ipomdp.makeRi();
+		
+		for (String ai : ipomdp.Ai)
+			LOGGER.debug("Ri for Ai=" + ai + " is " + ipomdp.currentRi.get(ai));
 		
 	}
 	

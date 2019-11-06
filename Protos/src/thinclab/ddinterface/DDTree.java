@@ -193,11 +193,12 @@ public class DDTree implements Serializable {
 		 * Recursively traverses childNames and sets ddToAppend at the last child
 		 */
 		
-		String child = childNames.remove(0);
+		List<String> childNamesList = new ArrayList<String>(childNames);
+		String child = childNamesList.remove(0);
 		
-		if (childNames.size() == 0) this.setDDAt(child, ddToAppend);
+		if (childNamesList.size() == 0) this.setDDAt(child, ddToAppend);
 		
-		else this.children.get(child).setDDAt(childNames, ddToAppend);
+		else this.children.get(child).setDDAt(childNamesList, ddToAppend);
 	}
 	
 	// ---------------------------------------------------------------------------------

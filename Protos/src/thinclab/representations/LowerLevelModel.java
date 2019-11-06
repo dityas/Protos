@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import thinclab.ddinterface.DDMaker;
+import thinclab.ddinterface.DDTree;
 import thinclab.legacy.DD;
 import thinclab.legacy.StateVar;
 
@@ -34,5 +35,8 @@ public interface LowerLevelModel {
 	/* get transition triples for Mj i.e. P(Mj'| Mj, Oj1', Oj2', ... Ojn', Aj1, Aj2, ... Aj3) */
 	public DD getPMjPGivenMjOjPAj(
 			DDMaker ddMaker, HashMap<Integer, List<String>> Ajs, HashMap<Integer, List<String>> Ojs);
+	
+	/* initial belief factor */
+	public DDTree getMjInitBelief(DDMaker ddMaker, DDTree prior);
 
 }

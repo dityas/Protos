@@ -197,17 +197,6 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		return PAjGivenMjDDs;
 	}
 
-	public void makeAllObsCombinations(List<StateVar> obsJVars) {
-		/*
-		 * Makes all possible combinations of observation values
-		 */
-		this.obsCombinations = this.recursiveObsCombinations(obsJVars);
-		LOGGER.debug("All possible Oj are " + this.obsCombinations);
-
-		this.obsJVars = obsJVars;
-		LOGGER.debug("Oj var sequence is " + this.obsJVars);
-	}
-
 	public DD getPMjPGivenMjOjPAj(
 			DDMaker ddMaker, 
 			HashMap<Integer, List<String>> Ajs, 
@@ -260,9 +249,85 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		
 		return OP.reorder(PMjPGivenMjOjAj.toDD());
 	}
+	
+	public DDTree getMjInitBelief(DDMaker ddMaker, DDTree prior) {
+		/*
+		 * Constructs an initial belief DDTree based on the current roots
+		 */
+		LOGGER.debug("Making initial belief for current opponent model traversal");
+		DDTree beliefMj = ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
+		
+		if (prior == null) {
+			
+			int mjCount = 0;
+			for (int frame : this.idToNodeMap.keySet())
+				mjCount +=
+					this.idToNodeMap.get(frame).values().stream()
+						.filter(n -> (n.H == 0))
+						.map(i -> i.id)
+						.collect(Collectors.toList()).size();
+			
+			for (int frameID : this.idToNodeMap.keySet()) {
+				
+				List<Integer> roots = 
+						this.idToNodeMap.get(frameID).values().stream()
+							.filter(n -> (n.H == 0))
+							.map(i -> i.id)
+							.collect(Collectors.toList());
+				
+				/* Uniform distribution over all current roots */
+				for (int node : roots) {
+					
+					try {
+						beliefMj.setValueAt(
+								MJ.makeModelLabelFromNodeId(node, frameID), 
+								(1.0 / mjCount));
+					} 
+					
+					catch (Exception e) {
+						LOGGER.error("While making initial Mj: " + e.getMessage());
+						e.printStackTrace();
+					}
+				}
+			
+			}
+		}
+		
+		/* else use previous belief values */
+		else {
+			
+			for (Entry<String, DDTree> entry : prior.children.entrySet()) {
+				
+				DDTree child = entry.getValue();
+				
+				/* add all non leaf vars */
+				if (!child.varName.contentEquals("LeafVar"))
+					beliefMj.addChild(entry.getKey(), child);
+				
+				else if (child.varName.contentEquals("LeafVar") 
+						&& ((DDTreeLeaf) child).val != 0.0)
+					beliefMj.addChild(entry.getKey(), child);
+			}
+			
+		}
+		
+		LOGGER.debug("Made initial belief");
+		return beliefMj;
+	}
 
 	// --------------------------------------------------------------------------------------
 
+	public void makeAllObsCombinations(List<StateVar> obsJVars) {
+		/*
+		 * Makes all possible combinations of observation values
+		 */
+		this.obsCombinations = this.recursiveObsCombinations(obsJVars);
+		LOGGER.debug("All possible Oj are " + this.obsCombinations);
+
+		this.obsJVars = obsJVars;
+		LOGGER.debug("Oj var sequence is " + this.obsJVars);
+	}
+	
 	private void recursiveObsGen(
 			List<List<String>> obsComb, 
 			List<StateVar> obsVars, 
