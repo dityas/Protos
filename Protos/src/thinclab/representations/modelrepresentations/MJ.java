@@ -197,7 +197,8 @@ public class MJ extends DynamicBeliefTree {
 		varSequence = 
 				ArrayUtils.addAll(
 						varSequence, 
-						Ojs.get(this.solver.f.frameID).stream().toArray(String[]::new));
+						Ojs.get(this.solver.f.frameID).stream()
+							.map(oj -> oj + "'").toArray(String[]::new));
 		
 		DDTree tree = ddMaker.getDDTreeFromSequence(varSequence, triples);
 		

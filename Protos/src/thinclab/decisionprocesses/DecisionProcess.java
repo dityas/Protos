@@ -209,7 +209,7 @@ public abstract class DecisionProcess {
 			DD previousBelief, String action, String[] observations) 
 					throws ZeroProbabilityObsException {
 		
-		return this.bOPs.norm(previousBelief, action, observations);
+		return this.bOPs.norm(previousBelief, action);
 	}
 	
 	public HashMap<String, HashMap<String, Float>> toMap(DD belief) {

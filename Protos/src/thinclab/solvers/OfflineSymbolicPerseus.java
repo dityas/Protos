@@ -62,7 +62,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 		logger.debug("Solving for " + beliefs.size() + " belief points.");
 
-		DD[][] factoredBeliefRegion = BeliefOps.factorBeliefRegion(this.p, beliefs);
+		DD[][] factoredBeliefRegion = this.p.factorBeliefRegion(beliefs);
 
 		/* try running IPBVI */
 		try {

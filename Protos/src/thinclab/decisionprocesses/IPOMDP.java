@@ -22,7 +22,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
-import thinclab.belief.InteractiveBelief;
+import thinclab.belief.IBeliefOps;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
@@ -293,6 +293,9 @@ public class IPOMDP extends POMDP {
 		 */
 		this.frameID = 0;
 		this.level = 1;
+		
+		/* set belief operations handler */
+		this.bOPs = new IBeliefOps(this);
 	}
 	
 	public void setAi(List<String> actionNames) {
@@ -321,7 +324,7 @@ public class IPOMDP extends POMDP {
 		 * The domain file can have wild cards to specify multiple transitions in a single action
 		 * def using wild cards. This methods expands and unrolls them
 		 */
-		
+
 		for (String ADef : this.A) {
 			
 			String[] actionDefs = ADef.split("__");
@@ -995,7 +998,7 @@ public class IPOMDP extends POMDP {
 		logger.debug("f(Mj', Aj, Mj, Oj') initialized");
 		
 		if (this.currentBelief == null) {
-			DD mjInit = this.Mj.getMjInitBelief(this.ddMaker, null).toDD();
+			DD mjInit = this.multiFrameMJ.getMjInitBelief(this.ddMaker, null).toDD();
 			DD initS = this.initBeliefDdTree.toDD();
 			
 			this.currentBelief = OP.reorder(OP.mult(mjInit, initS));

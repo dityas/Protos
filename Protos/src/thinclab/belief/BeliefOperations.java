@@ -37,7 +37,7 @@ public abstract class BeliefOperations {
 	
 	/* compute norm of next belief given previous belief */
 	public abstract DD norm(
-			DD previousBelief, String action, String[] observations) 
+			DD previousBelief, String action) 
 					throws ZeroProbabilityObsException;
 	
 	/* get a hashmap representation of the belief */

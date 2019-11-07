@@ -14,7 +14,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.decisionprocesses.POMDP;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 
@@ -74,6 +74,13 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		super(maxDepth);
 	}
 	
+	public FullBeliefExpansion(IPOMDP ipomdp) {
+		/*
+		 * Constructor for use with IPOMDPs.
+		 */
+		this(ipomdp, ipomdp.mjLookAhead);
+	}
+	
 	// -----------------------------------------------------------------------------------
 	
 	public DD beliefUpdate(
@@ -86,18 +93,12 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		 * Split the belief update into a separate function to enable
 		 * reuse with interactive belief expanion
 		 */
-		POMDP p = (POMDP) f;
+		
 		try {
 			
 			DD nextBelief = 
-					p.beliefUpdate(previousBelief, action, obs.stream().toArray(String[]::new));
-//					BeliefOps.beliefUpdate(
-//							p, 
-//							previousBelief, 
-//							p.getActions().indexOf(action), 
-//							obs.toArray(
-//									new String[obs.size()]));
-			
+					f.beliefUpdate(previousBelief, action, obs.stream().toArray(String[]::new));
+	
 			return nextBelief;
 		} 
 		

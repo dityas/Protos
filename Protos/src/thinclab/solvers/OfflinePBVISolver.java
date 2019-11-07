@@ -134,8 +134,8 @@ public class OfflinePBVISolver extends OfflineSolver {
 
 		logger.debug("Solving for " + beliefs.size() + " belief points.");
 
-		DD[][] factoredBeliefRegion = BeliefOps.factorBeliefRegion(this.p, beliefs);
-
+		DD[][] factoredBeliefRegion = this.p.factorBeliefRegion(beliefs);
+		
 		/* try running IPBVI */
 		try {
 			this.PBVI(100, 0, this.numDpBackups, factoredBeliefRegion);

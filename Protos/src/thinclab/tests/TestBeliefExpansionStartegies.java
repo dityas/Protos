@@ -97,11 +97,7 @@ class TestBeliefExpansionStartegies {
 		LOGGER.info("Testing initial beliefs");
 		List<DD> beliefs0 = ssgaBE.getBeliefPoints();
 		assertTrue(beliefs0.size() == this.pomdp.getInitialBeliefs().size());
-		
-		LOGGER.info("Testing initial expansion");
-		ssgaBE.expand();
-		assertTrue(ssgaBE.getBeliefPoints().size() == 3);
-		
+
 		LOGGER.info("Testing policy based expansion");
 		LOGGER.info("computing policy...");
 		OfflinePBVISolver solver = 
@@ -135,7 +131,7 @@ class TestBeliefExpansionStartegies {
 		IPOMDP ipomdp = new IPOMDP(parser, 10, 3);
 		
 		LOGGER.info("Testing initialization");
-		FullInteractiveBeliefExpansion fb = new FullInteractiveBeliefExpansion(ipomdp);
+		FullBeliefExpansion fb = new FullBeliefExpansion(ipomdp);
 		assertNotNull(fb);
 		
 		LOGGER.info("Testing expansion bound");

@@ -112,7 +112,7 @@ class TestDDOps {
 	void testDDFactorAndUnFactor() {
 		System.out.println("Running testDDFactorAndUnFactor()");
 		
-		DD[] initBeliefF = BeliefOps.factorBelief(this.pomdp, initBelief);
+		DD[] initBeliefF = this.pomdp.factorBelief(initBelief);
 		Global.clearHashtables();
 		
 		DD initBeliefUf = OP.multN(initBeliefF);
@@ -127,22 +127,11 @@ class TestDDOps {
 		
 		ddHashSet.add(this.initBelief);
 		
-		System.out.println(BeliefOps.toStateMap(pomdp, this.initBelief));
-		System.out.println(BeliefOps.toStateMap(pomdp, this.bNOPNoneFromInit));
-		System.out.println(BeliefOps.toStateMap(pomdp, this.bPRIVFromInit));
+		System.out.println(pomdp.toMap(this.initBelief));
+		System.out.println(pomdp.toMap(this.bNOPNoneFromInit));
+		System.out.println(pomdp.toMap(this.bPRIVFromInit));
 		assertTrue(ddHashSet.contains(this.bNOPNoneFromInit));
 		assertFalse(ddHashSet.contains(this.bPRIVFromInit));
-	}
-	
-	@Test
-	void testDDArrayHashSets() {
-		System.out.println("Running testDDArrayHashSets()");
-		
-		HashSet<List<DD>> ddHashSet = new HashSet<List<DD>>();
-		
-		ddHashSet.add(BeliefOps.factorBeliefPointAsList(this.pomdp, this.initBelief));
-		assertTrue(ddHashSet.contains(BeliefOps.factorBeliefPointAsList(this.pomdp, this.bNOPNoneFromInit)));
-		assertFalse(ddHashSet.contains(BeliefOps.factorBeliefPointAsList(this.pomdp, this.bPRIVFromInit)));
 	}
 	
 	@Test
@@ -155,7 +144,7 @@ class TestDDOps {
 		System.out.println(norm);
 		DD normed = OP.div(this.bNOPNoneFromInit, norm);
 		System.out.println(normed);
-		System.out.println(Arrays.asList(BeliefOps.factorBelief(this.pomdp, normed)));
+		System.out.println(Arrays.asList(this.pomdp.factorBelief(normed)));
 	}
 	
 	@Test

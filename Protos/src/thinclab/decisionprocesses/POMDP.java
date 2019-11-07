@@ -220,20 +220,20 @@ public class POMDP extends DecisionProcess implements Serializable {
 		readFromFile(fileName, false);
 	}
 
-	public POMDP(String fileName, boolean debb, boolean ig, boolean abd) {
-		readFromFile(fileName, debb);
-		ignoremore = ig;
-		addbeldiff = abd;
-	}
-
-	public POMDP(String fileName, boolean debb, boolean ig) {
-		readFromFile(fileName, debb);
-		ignoremore = ig;
-	}
-
-	public POMDP(String fileName, boolean debb) {
-		readFromFile(fileName, debb);
-	}
+//	public POMDP(String fileName, boolean debb, boolean ig, boolean abd) {
+//		readFromFile(fileName, debb);
+//		ignoremore = ig;
+//		addbeldiff = abd;
+//	}
+//
+//	public POMDP(String fileName, boolean debb, boolean ig) {
+//		readFromFile(fileName, debb);
+//		ignoremore = ig;
+//	}
+//
+//	public POMDP(String fileName, boolean debb) {
+//		readFromFile(fileName, debb);
+//	}
 
 	public void readFromFile(String fileName) {
 		readFromFile(fileName, false);
@@ -287,6 +287,9 @@ public class POMDP extends DecisionProcess implements Serializable {
 		
 		/* Null parser reference after parsing is done */
 		this.parser = null;
+		
+		/* set belief operations handler */
+		this.bOPs = new BeliefOps(this);
 	}
 	
 	public void initializeFrameFromParser(ParseSPUDD parserObj) {
@@ -920,7 +923,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		List<String> beliefString = new ArrayList<String>();
 		
 		/* get belief hashmap */
-		HashMap<String, HashMap<String, Float>> map = BeliefOps.toStateMap(this, belief);
+		HashMap<String, HashMap<String, Float>> map = this.toMap(belief);
 		
 		for (StateVar s : this.S)
 			beliefString.add(s.name + ": " + map.get(s.name).toString());
