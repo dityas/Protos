@@ -14,10 +14,11 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import thinclab.belief.Belief;
-import thinclab.belief.InteractiveBelief;
+import thinclab.belief.BeliefOps;
+//import thinclab.belief.InteractiveBelief;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
+import thinclab.representations.modelrepresentations.MJ;
 import thinclab.solvers.BaseSolver;
 
 /*
@@ -56,15 +57,15 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 			node.belief = this.f.getInitialBeliefs().get(i);
 			node.H = 0;
 			
-			if (this.f instanceof IPOMDP)
-				node.sBelief = 
-					InteractiveBelief.toStateMap(
-							(IPOMDP) this.f, 
-							node.belief).toString();
+			if (this.f instanceof IPOMDP) continue;
+//				node.sBelief = 
+//					InteractiveBelief.toStateMap(
+//							(IPOMDP) this.f, 
+//							node.belief).toString();
 			
 			else 
 				node.sBelief =
-					Belief.toStateMap((POMDP) this.f, node.belief).toString();
+					BeliefOps.toStateMap((POMDP) this.f, node.belief).toString();
 			
 			if (this.solver != null)
 				node.actName = this.solver.getActionForBelief(node.belief);

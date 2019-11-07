@@ -13,11 +13,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import thinclab.belief.Belief;
-import thinclab.belief.InteractiveBelief;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
-import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 import thinclab.solvers.BaseSolver;
 
@@ -34,8 +31,8 @@ public class StaticBeliefTree extends StructuredTree {
 	private static final long serialVersionUID = 359334337512902886L;
 	
 	/* reference for the framework and solver */
-	DecisionProcess f;
-	BaseSolver solver = null;
+	public DecisionProcess f;
+	public BaseSolver solver = null;
 	
 	private static final Logger logger = Logger.getLogger(StaticBeliefTree.class);
 	
@@ -110,16 +107,7 @@ public class StaticBeliefTree extends StructuredTree {
 			node.id = i;
 			node.belief = this.f.getInitialBeliefs().get(i);
 			node.H = 0;
-			
-			if (this.f instanceof IPOMDP)
-				node.sBelief = 
-					InteractiveBelief.toStateMap(
-							(IPOMDP) this.f, 
-							node.belief).toString();
-			
-			else 
-				node.sBelief =
-					Belief.toStateMap((POMDP) this.f, node.belief).toString();
+			node.sBelief = this.f.toMap(node.belief).toString();
 			
 			if (this.solver != null)
 				node.actName = this.solver.getActionForBelief(node.belief);

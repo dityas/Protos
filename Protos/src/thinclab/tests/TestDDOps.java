@@ -21,7 +21,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.belief.Belief;
+import thinclab.belief.BeliefOps;
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
 import thinclab.decisionprocesses.POMDP;
@@ -112,7 +112,7 @@ class TestDDOps {
 	void testDDFactorAndUnFactor() {
 		System.out.println("Running testDDFactorAndUnFactor()");
 		
-		DD[] initBeliefF = Belief.factorBelief(this.pomdp, initBelief);
+		DD[] initBeliefF = BeliefOps.factorBelief(this.pomdp, initBelief);
 		Global.clearHashtables();
 		
 		DD initBeliefUf = OP.multN(initBeliefF);
@@ -127,9 +127,9 @@ class TestDDOps {
 		
 		ddHashSet.add(this.initBelief);
 		
-		System.out.println(Belief.toStateMap(pomdp, this.initBelief));
-		System.out.println(Belief.toStateMap(pomdp, this.bNOPNoneFromInit));
-		System.out.println(Belief.toStateMap(pomdp, this.bPRIVFromInit));
+		System.out.println(BeliefOps.toStateMap(pomdp, this.initBelief));
+		System.out.println(BeliefOps.toStateMap(pomdp, this.bNOPNoneFromInit));
+		System.out.println(BeliefOps.toStateMap(pomdp, this.bPRIVFromInit));
 		assertTrue(ddHashSet.contains(this.bNOPNoneFromInit));
 		assertFalse(ddHashSet.contains(this.bPRIVFromInit));
 	}
@@ -140,9 +140,9 @@ class TestDDOps {
 		
 		HashSet<List<DD>> ddHashSet = new HashSet<List<DD>>();
 		
-		ddHashSet.add(Belief.factorBeliefPointAsList(this.pomdp, this.initBelief));
-		assertTrue(ddHashSet.contains(Belief.factorBeliefPointAsList(this.pomdp, this.bNOPNoneFromInit)));
-		assertFalse(ddHashSet.contains(Belief.factorBeliefPointAsList(this.pomdp, this.bPRIVFromInit)));
+		ddHashSet.add(BeliefOps.factorBeliefPointAsList(this.pomdp, this.initBelief));
+		assertTrue(ddHashSet.contains(BeliefOps.factorBeliefPointAsList(this.pomdp, this.bNOPNoneFromInit)));
+		assertFalse(ddHashSet.contains(BeliefOps.factorBeliefPointAsList(this.pomdp, this.bPRIVFromInit)));
 	}
 	
 	@Test
@@ -155,7 +155,7 @@ class TestDDOps {
 		System.out.println(norm);
 		DD normed = OP.div(this.bNOPNoneFromInit, norm);
 		System.out.println(normed);
-		System.out.println(Arrays.asList(Belief.factorBelief(this.pomdp, normed)));
+		System.out.println(Arrays.asList(BeliefOps.factorBelief(this.pomdp, normed)));
 	}
 	
 	@Test

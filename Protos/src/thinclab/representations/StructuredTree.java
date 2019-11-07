@@ -20,11 +20,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
-import thinclab.belief.Belief;
-import thinclab.belief.InteractiveBelief;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
-import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.solvers.BaseSolver;
@@ -70,27 +67,26 @@ public class StructuredTree implements Serializable {
 		
 		try {
 			
-			DD nextBelief;
+			DD nextBelief = null;
 			
 			/*
 			 * If the process is an IPOMDP, do an IPOMDP belief update
 			 * else POMDP belief update
 			 */
 			if (f.getType().contentEquals("IPOMDP")) {
-				nextBelief = 
-						InteractiveBelief.staticL1BeliefUpdate(
-								(IPOMDP) f, 
-								belief, 
-								action, 
-								obs.toArray(new String[obs.size()]));
+//				nextBelief = 
+//						InteractiveBelief.staticL1BeliefUpdate(
+//								(IPOMDP) f, 
+//								belief, 
+//								action, 
+//								obs.toArray(new String[obs.size()]));
 			}
 			
 			else {
 				nextBelief = 
-						Belief.beliefUpdate(
-								(POMDP) f, 
+						f.beliefUpdate( 
 								belief, 
-								f.getActions().indexOf(action), 
+								action, 
 								obs.toArray(new String[obs.size()]));
 			}
 			
@@ -161,27 +157,26 @@ public class StructuredTree implements Serializable {
 		 */
 		try {
 			
-			DD nextBelief;
+			DD nextBelief = null;
 			
 			/*
 			 * If the process is an IPOMDP, do an IPOMDP belief update
 			 * else POMDP belief update
 			 */
 			if (solver.f.getType().contentEquals("IPOMDP")) {
-				nextBelief = 
-						InteractiveBelief.staticL1BeliefUpdate(
-								(IPOMDP) solver.f, 
-								parentNodeBelief, 
-								action, 
-								obs.toArray(new String[obs.size()]));
+//				nextBelief = 
+//						InteractiveBelief.staticL1BeliefUpdate(
+//								(IPOMDP) solver.f, 
+//								parentNodeBelief, 
+//								action, 
+//								obs.toArray(new String[obs.size()]));
 			}
 			
 			else {
 				nextBelief = 
-						Belief.beliefUpdate(
-								(POMDP) solver.f, 
+						solver.f.beliefUpdate( 
 								parentNodeBelief, 
-								solver.f.getActions().indexOf(action), 
+								action, 
 								obs.toArray(new String[obs.size()])); 
 			}
 			

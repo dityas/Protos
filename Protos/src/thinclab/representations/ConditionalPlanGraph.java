@@ -13,9 +13,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import thinclab.belief.Belief;
 import thinclab.ddinterface.DDTree;
-import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.solvers.BaseSolver;
@@ -150,10 +148,9 @@ public class ConditionalPlanGraph extends ConditionalPlanTree {
 			
 			else {
 				nextBelief = 
-						Belief.beliefUpdate(
-								(POMDP) solver.f, 
+						solver.f.beliefUpdate( 
 								parentNodeBelief, 
-								solver.f.getActions().indexOf(action), 
+								action, 
 								obs.toArray(new String[obs.size()])); 
 			}
 			

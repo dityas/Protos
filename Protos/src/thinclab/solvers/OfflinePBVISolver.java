@@ -10,12 +10,11 @@ package thinclab.solvers;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
-import thinclab.belief.Belief;
+import thinclab.belief.BeliefOps;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
@@ -135,7 +134,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 
 		logger.debug("Solving for " + beliefs.size() + " belief points.");
 
-		DD[][] factoredBeliefRegion = Belief.factorBeliefRegion(this.p, beliefs);
+		DD[][] factoredBeliefRegion = BeliefOps.factorBeliefRegion(this.p, beliefs);
 
 		/* try running IPBVI */
 		try {

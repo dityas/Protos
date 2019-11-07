@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
-import thinclab.belief.Belief;
+import thinclab.belief.BeliefOps;
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
 import thinclab.legacy.Action;
@@ -694,6 +694,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 		rawpomdp.parsePOMDP(false);
 
 		this.initializeFromParsers(rawpomdp);
+		
+		this.bOPs = new BeliefOps(this);
 	}
 	
 	public int findObservationByName(int ob, String oname) {
@@ -918,7 +920,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		List<String> beliefString = new ArrayList<String>();
 		
 		/* get belief hashmap */
-		HashMap<String, HashMap<String, Float>> map = Belief.toStateMap(this, belief);
+		HashMap<String, HashMap<String, Float>> map = BeliefOps.toStateMap(this, belief);
 		
 		for (StateVar s : this.S)
 			beliefString.add(s.name + ": " + map.get(s.name).toString());

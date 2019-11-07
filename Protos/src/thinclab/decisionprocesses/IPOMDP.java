@@ -36,8 +36,8 @@ import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.parsers.ParseSPUDD;
-import thinclab.representations.MJ;
-import thinclab.representations.MultiFrameMJ;
+import thinclab.representations.modelrepresentations.MJ;
+import thinclab.representations.modelrepresentations.MultiFrameMJ;
 import thinclab.solvers.OfflineSymbolicPerseus;
 
 /*
@@ -301,13 +301,6 @@ public class IPOMDP extends POMDP {
 		 */
 		this.Ai = actionNames;
 	}
-	
-//	public void setAj(List<String> actionNames) {
-//		/*
-//		 * Sets the names for agent j's actions
-//		 */
-//		this.Aj = actionNames;
-//	}
 	
 	public void setMjDepth(int depth) {
 		/*

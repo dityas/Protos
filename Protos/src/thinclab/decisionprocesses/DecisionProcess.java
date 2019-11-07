@@ -9,10 +9,13 @@ package thinclab.decisionprocesses;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import thinclab.belief.BeliefOperations;
 import thinclab.exceptions.VariableNotFoundException;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
@@ -28,6 +31,8 @@ public abstract class DecisionProcess {
 	
 	public int level;
 	public int frameID;
+	
+	public BeliefOperations bOPs;
 	
 	// --------------------------------------------------------------------------------
 	
@@ -181,5 +186,39 @@ public abstract class DecisionProcess {
 	public static int getFrameIDFromVarName(String varName) {
 		
 		return Integer.parseInt(varName.split("/")[1].split("_")[0]);
+	}
+	
+	// ---------------------------------------------------------------------------------
+	/*
+	 * Expose belief operations
+	 */
+	
+	public DD beliefUpdate(
+			DD previousBelief, String action, String[] observations) 
+					throws ZeroProbabilityObsException {
+		
+		return this.bOPs.beliefUpdate(previousBelief, action, observations);
+	}
+	
+	public DD[] factorBelief(DD belief) {
+		
+		return this.bOPs.factorBelief(belief);
+	}
+	
+	public DD norm(
+			DD previousBelief, String action, String[] observations) 
+					throws ZeroProbabilityObsException {
+		
+		return this.bOPs.norm(previousBelief, action, observations);
+	}
+	
+	public HashMap<String, HashMap<String, Float>> toMap(DD belief) {
+		
+		return this.bOPs.toMap(belief);
+	}
+	
+	public DD[][] factorBeliefRegion(Collection<DD> beliefRegion) {
+		
+		return this.bOPs.factorBeliefRegion(beliefRegion);
 	}
 }

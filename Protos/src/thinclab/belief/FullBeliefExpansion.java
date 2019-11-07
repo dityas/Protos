@@ -90,12 +90,13 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		try {
 			
 			DD nextBelief = 
-					Belief.beliefUpdate(
-							p, 
-							previousBelief, 
-							p.getActions().indexOf(action), 
-							obs.toArray(
-									new String[obs.size()]));
+					p.beliefUpdate(previousBelief, action, obs.stream().toArray(String[]::new));
+//					BeliefOps.beliefUpdate(
+//							p, 
+//							previousBelief, 
+//							p.getActions().indexOf(action), 
+//							obs.toArray(
+//									new String[obs.size()]));
 			
 			return nextBelief;
 		} 

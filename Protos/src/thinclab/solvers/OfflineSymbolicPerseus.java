@@ -12,7 +12,7 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
-import thinclab.belief.Belief;
+import thinclab.belief.BeliefOps;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
@@ -62,7 +62,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 		logger.debug("Solving for " + beliefs.size() + " belief points.");
 
-		DD[][] factoredBeliefRegion = Belief.factorBeliefRegion(this.p, beliefs);
+		DD[][] factoredBeliefRegion = BeliefOps.factorBeliefRegion(this.p, beliefs);
 
 		/* try running IPBVI */
 		try {

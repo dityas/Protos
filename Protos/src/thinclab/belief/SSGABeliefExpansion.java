@@ -156,8 +156,8 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 					
 					/* Get next belief */
 					try {
-						DD nextBelief = Belief.beliefUpdate(p, belief,
-							act, 
+						DD nextBelief = ((BeliefOps) p.bOPs).beliefUpdate(belief,
+							p.getActions().get(act), 
 							obsConfig);
 						
 						/* Add belief point if it doesn't already exist */

@@ -21,7 +21,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.belief.Belief;
+import thinclab.belief.BeliefOps;
 import thinclab.belief.InteractiveBelief;
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
@@ -36,7 +36,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
-import thinclab.representations.MJ;
+import thinclab.representations.modelrepresentations.MJ;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -227,6 +227,12 @@ class TestIPOMDP {
 									ArrayUtils.subarray(
 											ipomdp.stateVarIndices, 
 											0, ipomdp.AjVarStartPosition))))) < 1e-8);
+		
+		LOGGER.info("Checking Ri");
+		ipomdp.currentRi = ipomdp.makeRi();
+		
+		for (String ai : ipomdp.Ai)
+			LOGGER.debug("Ri for Ai=" + ai + " is " + ipomdp.currentRi.get(ai));
 		
 	}
 	

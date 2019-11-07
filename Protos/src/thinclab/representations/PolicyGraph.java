@@ -14,9 +14,7 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
-import thinclab.belief.Belief;
 import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.solvers.OfflinePBVISolver;
@@ -96,11 +94,10 @@ public class PolicyGraph extends StructuredTree {
 				try {
 					
 					DD nextBel = 
-							Belief.beliefUpdate(
-									(POMDP) DP, 
+							DP.beliefUpdate( 
 									node.belief, 
-									DP.getActions().indexOf(node.actName), 
-									theObs.toArray(new String[0]));
+									node.actName, 
+									theObs.stream().toArray(String[]::new));
 					
 					/* get best next node */
 					int alphaId = 
