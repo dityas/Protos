@@ -27,7 +27,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
-import thinclab.representations.DynamicBeliefTree;
+import thinclab.representations.belieftreerepresentations.DynamicBeliefTree;
 import thinclab.solvers.BaseSolver;
 
 /*

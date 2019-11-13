@@ -27,7 +27,7 @@ import thinclab.exceptions.VariableNotFoundException;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
-import thinclab.representations.PolicyNode;
+import thinclab.representations.policyrepresentations.PolicyNode;
 
 /*
  * @author adityas

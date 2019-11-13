@@ -1,4 +1,4 @@
-package thinclab.representations;
+package thinclab.representations.policyrepresentations;
 
 import java.io.Serializable;
 import java.util.*;

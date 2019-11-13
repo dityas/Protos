@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.representations;
+package thinclab.representations.belieftreerepresentations;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +15,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import thinclab.representations.modelrepresentations.MJ;
+import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
 
 /*

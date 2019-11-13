@@ -14,8 +14,8 @@ import org.apache.commons.cli.Options;
 
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.POMDP;
-import thinclab.representations.ConditionalPlanTree;
-import thinclab.representations.PolicyGraph;
+import thinclab.representations.conditionalplans.ConditionalPlanTree;
+import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;

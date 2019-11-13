@@ -24,6 +24,7 @@ import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
 
 /*
