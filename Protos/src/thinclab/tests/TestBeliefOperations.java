@@ -117,9 +117,10 @@ class TestBeliefOperations {
 		
 		LOGGER.info("Checking DD to hashmap conversion for beliefs");
 		LOGGER.debug("Checking for consistency in number of states");
+		LOGGER.debug("Current belief: " + this.ipomdp.toMap(this.ipomdp.getCurrentBelief()));
 		assertEquals(
 				this.ipomdp.toMap(this.ipomdp.getCurrentBelief()).size(),
-				this.ipomdp.S.subList(0, this.ipomdp.AjVarStartPosition).size());
+				this.ipomdp.S.subList(0, this.ipomdp.thetaVarPosition).size());
 		
 		/* start from initial belief */
 		LOGGER.info("Starting from initial belief");
@@ -130,18 +131,18 @@ class TestBeliefOperations {
 		start = this.ipomdp.getCurrentBelief();
 		LOGGER.debug("Starting from " + this.ipomdp.toMap(start));
 		DD nextBel = this.ipomdp.beliefUpdate(start, "listen", new String[] {"growl-left", "silence"});
-		LOGGER.debug("Next belief is " + nextBel);
+		LOGGER.debug("Next belief is " + this.ipomdp.toMap(nextBel));
 		
-//		HashMap<String, HashMap<String, Float>> map = this.ipomdp.toMap(nextBel);
-//		LOGGER.info("Verifying if state transitions make sense");
-//		assertEquals((float) 0.85, map.get("tiger-location").get("tiger-left"));
-//		
-//		LOGGER.info("Taking action listen and observing growl-right, silence");
-//		start = nextBel;
-//		LOGGER.debug("Starting from " + this.ipomdp.toMap(start));
-//		nextBel = 
-//				this.ipomdp.beliefUpdate(start, "listen", new String[] {"growl-right", "silence"});
-//		LOGGER.debug("Next belief is " + this.ipomdp.toMap(nextBel));
+		HashMap<String, HashMap<String, Float>> map = this.ipomdp.toMap(nextBel);
+		LOGGER.info("Verifying if state transitions make sense");
+		assertEquals((float) 0.85, map.get("tiger-location").get("tiger-left"));
+		
+		LOGGER.info("Taking action listen and observing growl-right, silence");
+		start = nextBel;
+		LOGGER.debug("Starting from " + this.ipomdp.toMap(start));
+		nextBel = 
+				this.ipomdp.beliefUpdate(start, "listen", new String[] {"growl-right", "silence"});
+		LOGGER.debug("Next belief is " + this.ipomdp.toMap(nextBel));
 //		
 //		map = this.ipomdp.toMap(nextBel);
 //		LOGGER.info("Verifying if state transitions make sense");

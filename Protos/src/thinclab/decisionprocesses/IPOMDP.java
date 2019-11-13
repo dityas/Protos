@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -26,6 +27,7 @@ import thinclab.belief.IBeliefOps;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
+import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
@@ -54,9 +56,9 @@ public class IPOMDP extends POMDP {
 	 */
 	public IPOMDPParser parser;
 	public List<String> Ai = new ArrayList<String>();
-	public HashMap<Integer, List<String>> Ajs = new HashMap<Integer, List<String>>();
+	public List<String> Aj = new ArrayList<String>();
+	public List<String> ThetaJ = new ArrayList<String>();
 	public List<String> OmegaJNames = new ArrayList<String>();
-	public HashMap<Integer, List<String>> OmegaJs = new HashMap<Integer, List<String>>(); 
 	
 	/*
 	 * Store lower level frames
@@ -74,10 +76,12 @@ public class IPOMDP extends POMDP {
 	 * We will need to know the varIndex for the opponentModel statevar to replace it after
 	 * every belief update
 	 */
-	public int oppModelVarIndex;
+	public int MjVarPosition;
+	public int MjVarIndex;
 	public int AjStartIndex = -1;
 	public int AjVarStartPosition;
-	public int AjSize = 0;
+	
+	public int thetaVarPosition = -1;
 	
 	/* Mj's transition DD */
 	public DD MjTFn;
@@ -86,6 +90,9 @@ public class IPOMDP extends POMDP {
 	private HashMap<String, DDTree> costMap;
 	
 	/* Staging area for j's observation functions */
+	/*
+	 * format should be theta -> Aj -> S -> Oj
+	 */
 	public HashMap<String, HashMap<String, HashMap<String, DDTree>>> OjTheta = 
 			new HashMap<String, HashMap<String, HashMap<String, DDTree>>>();
 		
@@ -98,15 +105,16 @@ public class IPOMDP extends POMDP {
 	/*
 	 * Variables for current look ahead horizon
 	 */
-	public DD currentPMjPGivenMjOjPAj;
+	public DD currentMjPGivenMjOjPAj;
+	public DD currentThetajGivenMj;
 	public DD currentTau;
-	public DD[] currentAjGivenMj;
+	public DD currentAjGivenMj;
 	public DD currentBelief = null;
 	
 	public HashMap<String, DD[]> currentOi;
 	public HashMap<String, DD[]> currentTi;
 	public HashMap<String, DD> currentRi;
-	public HashMap<Integer, DD[]> currentOj;
+	public DD[] currentOj;
 	
 	public List<DDTree> currentStateBeliefs = new ArrayList<DDTree>();
 	
@@ -116,7 +124,6 @@ public class IPOMDP extends POMDP {
 	 * Same for J's actions
 	 */
 	public List<List<String>> obsCombinations;
-	public List<List<String>> actionCombinations;
 	
 	/*
 	 * Arrays to record current IS var indices
@@ -219,10 +226,23 @@ public class IPOMDP extends POMDP {
 		this.initializeSFromParser(this.parser);
 		
 		/* Find the index of M_j */
-		this.oppModelVarIndex = this.S.size();
+		this.MjVarPosition = this.S.size();
+		this.MjVarIndex = this.MjVarPosition + 1;
 		
 		/* Put a dummy state var for M_j */
-		this.S.add(new StateVar(1, "M_j", this.oppModelVarIndex));
+		this.S.add(new StateVar(1, "M_j", this.MjVarIndex));
+		
+		/* Make a var for ThetaJ */
+		this.thetaVarPosition = this.S.size();
+		
+		this.S.add(
+				new StateVar(
+						"Theta_j", 
+						this.S.size(), 
+						this.lowerLevelFrames.stream()
+							.map(f -> "theta/" + f.frameID)
+							.toArray(String[]::new)));
+		this.ThetaJ.addAll(Arrays.asList(this.S.get(this.thetaVarPosition).valNames));
 		
 		this.initializeOmegaFromParser(this.parser);
 		this.setUpOmegaJ();
@@ -235,28 +255,22 @@ public class IPOMDP extends POMDP {
 				this.Ai.add(a.split("__")[0]);
 			});
 		
-		for (DecisionProcess lowerFrame : this.lowerLevelFrames) {
-			
-			List<String> AjForCurrentFrame = new ArrayList<String>();
-			
-			AjForCurrentFrame.addAll(lowerFrame.getActions());
-			this.Ajs.put(lowerFrame.frameID, AjForCurrentFrame);
-			
-			/* Add Aj as a stateVar */
-			this.S.add(
-					new StateVar(
-							"A_j/" + lowerFrame.frameID, 
-							this.S.size(),
-							AjForCurrentFrame.toArray(
-									new String[AjForCurrentFrame.size()])));
-			
-			if (this.AjStartIndex == -1) {
-				this.AjStartIndex = this.S.size();
-				this.AjVarStartPosition = this.S.size() - 1;
-			}
-			
-			this.AjSize += 1;
-		}
+		/* Aj set */
+		HashSet<String> Ajs = new HashSet<String>();
+		for (DecisionProcess lowerFrame : this.lowerLevelFrames)
+			Ajs.addAll(lowerFrame.getActions());
+		
+		this.Aj.addAll(Ajs);
+		
+		/* Add Aj as a stateVar */
+		this.S.add(
+				new StateVar(
+						"A_j", 
+						this.S.size(),
+						this.Aj.stream().toArray(String[]::new)));
+
+		this.AjStartIndex = this.S.size();
+		this.AjVarStartPosition = this.S.size() - 1;
 		
 		this.uniquePolicy = new boolean[this.Ai.size()]; 
 		this.initializeTFromParser(this.parser);
@@ -272,11 +286,6 @@ public class IPOMDP extends POMDP {
 		this.obsCombinations = 
 				super.recursiveObsCombinations(
 						this.Omega.subList(0, this.Omega.size() - this.OmegaJNames.size()));
-		this.actionCombinations =
-				super.recursiveObsCombinations(
-						this.S.subList(
-								this.AjVarStartPosition, 
-								this.AjVarStartPosition + this.AjSize));
 		
 		this.costMap = this.parser.costMap;
 		
@@ -329,44 +338,31 @@ public class IPOMDP extends POMDP {
 			
 			String[] actionDefs = ADef.split("__");
 			
-			if (actionDefs[actionDefs.length - 1].contentEquals("ALL")) {
+			if (actionDefs[1].contentEquals("ALL")) {
 				
 				/* create a list of actions to be unrolled */
-				List<StateVar> actions = 
-						this.S.subList(
-								AjVarStartPosition + actionDefs.length - 2, 
-								AjVarStartPosition + this.AjSize);
+				List<String> actions = new ArrayList<String>(this.Aj);
 				
 				logger.debug("Found wildcard actionDef " + ADef 
 						+ " actions to be unrolled are " + actions);
 				
 				/*
-				 * get all action value combinations and apply the DD associated with actionDef to
-				 * all of them.
-				 * 
-				 * Reusing the same function used to make observation combinations for creating 
-				 * joint action combinations.
+				 * unroll wildcard by appending aj to each Ai for which wildcard is used
 				 */
-				List<List<String>> allActions = this.recursiveObsCombinations(actions);
+				List<String> allActions = 
+						actions.stream().map(a -> (actionDefs[0] + "__" + IPOMDP.getLocalName(a)))
+										.collect(Collectors.toList());
 				
-				for (List<String> actionCombination : allActions) {
+				for (String jointAction : allActions) {
 					
-					String[] actionPath = 
-							ArrayUtils.addAll(
-									ArrayUtils.subarray(
-											actionDefs, 
-											0, actionDefs.length - 1), 
-									actionCombination.toArray(
-											new String[actionCombination.size()]));
-					
-					if (this.A.contains(String.join("__", actionPath))) continue;
+					if (this.A.contains(jointAction)) continue;
 					
 					logger.debug("Applying DDTree for " + ADef + " to " 
-							+ Arrays.toString(actionPath));
+							+ jointAction);
 					
-					this.Ti.put(String.join("__", actionPath), this.Ti.get(ADef));
-					this.Oi.put(String.join("__", actionPath), this.Oi.get(ADef));
-					this.costMap.put(String.join("__", actionPath), this.costMap.get(ADef));
+					this.Ti.put(jointAction, this.Ti.get(ADef));
+					this.Oi.put(jointAction, this.Oi.get(ADef));
+					this.costMap.put(jointAction, this.costMap.get(ADef));
 				}
 				
 			}
@@ -415,30 +411,24 @@ public class IPOMDP extends POMDP {
 				 * exiting this function because the Global arrays will be changed.
 				 */
 				
+				String frameName = IPOMDP.getCanonicalName(mj.frameID, "theta");
+				
 				/* store opponent's Oj */
 				HashMap<String, HashMap<String,DDTree>> oj = ((POMDP) mj).getOi();
 				
-				/* append frameID to obsVars */
-				for (String ajName : new ArrayList<String>(oj.keySet())) {
+				for (String aj : oj.keySet()) {
 					
-					/* rename action vars */
-					HashMap<String, DDTree> o = oj.remove(ajName);
-					
-					/* rename objs vars and DDs */
-					for (String oldOj : new ArrayList<String>(o.keySet())) {
+					if (!this.OjTheta.containsKey(frameName))
+						this.OjTheta.put(
+								frameName, 
+								new HashMap<String, HashMap<String, DDTree>>());
 						
-						DDTree dd = o.remove(oldOj);
-						dd.renameVar(oldOj + "'", mj.getCanonicalName(oldOj + "'"));
-						
-						o.put(mj.getCanonicalName(oldOj), dd);
-					}
+					this.OjTheta.get(frameName).put(aj, oj.get(aj));
 					
-					oj.put(ajName, o);
 				}
 				
-				this.OjTheta.put("A_j/" + mj.frameID, oj);
 				logger.debug("Extracted Oj for " + mj);
-				
+
 				/* Make Opponent Model object */
 				solvedFrames.add(new MJ(solver, this.mjLookAhead));
 			}
@@ -493,10 +483,10 @@ public class IPOMDP extends POMDP {
 		 */
 		
 		/* Finally, add the oppModel state var to the staging list */
-		this.S.add(this.Mj.getOpponentModelStateVar(this.oppModelVarIndex));
+		this.S.add(this.Mj.getOpponentModelStateVar(this.MjVarPosition));
 	}
 	
-	public void setUpOmegaJ() {
+	public void setUpOmegaJ() throws ParserException {
 		/*
 		 * Adds observation for agent j
 		 * 
@@ -505,20 +495,39 @@ public class IPOMDP extends POMDP {
 		
 		logger.debug("Staging obs vars for j");
 		
+		List<List<StateVar>> obsJ = new ArrayList<List<StateVar>>();
+		
 		for (POMDP frame : this.lowerLevelFrames) {
 			List<StateVar> obsj = Arrays.asList(frame.obsVars);
-			obsj.stream().forEach(o -> o.setName(frame.getCanonicalName(o.name) + "_j"));
-			this.Omega.addAll(obsj);
-			
-			this.OmegaJNames.addAll(obsj.stream().map(oj -> oj.name).collect(Collectors.toList()));
-			
-			if (this.OmegaJs.get(frame.frameID) == null)
-				this.OmegaJs.put(frame.frameID, new ArrayList<String>());
-			
-			this.OmegaJs.get(frame.frameID).addAll(
-					obsj.stream().map(oj -> oj.name).collect(Collectors.toList()));
+			obsj.stream().forEach(o -> o.setName(o.name + "_j"));
+			obsJ.add(obsj);
 		}
+		
+		/* check if obsJ vars are same across all frames */
+		for (int i = 0; i < obsJ.size(); i++) {
 			
+			List<StateVar> obsJcurrentFrame = obsJ.get(i);
+			
+			if (obsJcurrentFrame.size() != obsJ.get(0).size())
+				throw new ParserException("Observation vars for all frames should be same");
+			
+			for (int j = 0; j < obsJcurrentFrame.size(); j++) {
+				
+				if ((!obsJcurrentFrame.get(j).name.contentEquals(obsJ.get(0).get(j).name)) || 
+						(obsJcurrentFrame.get(j).arity != obsJ.get(0).get(j).arity)) {
+					throw new ParserException("Observation vars for all frames should be same:"
+							+ " " + obsJcurrentFrame.get(j)  + " != " + obsJ.get(0).get(j));
+				}
+			}
+		}
+		
+		/* if they are same, populate this.Omega and this.OmegaJ */
+		this.Omega.addAll(obsJ.get(0));
+		this.OmegaJNames.addAll(
+				obsJ.get(0).stream()
+					.map(oj -> oj.name)
+					.collect(Collectors.toList()));
+		
 		/* Offset obsVarIndices */
 		int nStateVars = this.S.size();
 		
@@ -540,7 +549,7 @@ public class IPOMDP extends POMDP {
 		logger.debug("Making M_j transition DD");
 		
 		DD PMjPGivenOjPAj = 
-				this.multiFrameMJ.getPMjPGivenMjOjPAj(this.ddMaker, this.Ajs, this.OmegaJs);
+				this.multiFrameMJ.getPMjPGivenMjOjPAj(this.ddMaker, this.Aj, this.OmegaJNames);
 		
 		logger.debug("f(Mj', Mj, Oj', Aj) contains variables " 
 				+ Arrays.toString(PMjPGivenOjPAj.getVarSet()));
@@ -579,23 +588,18 @@ public class IPOMDP extends POMDP {
 			for (String o : O) {
 				
 				DDTree ajDDTree = 
-						this.ddMaker.getDDTreeFromSequence(
-								this.S.subList(
-										this.AjVarStartPosition, 
-										this.AjVarStartPosition + this.AjSize).stream()
-											.map(s -> s.name)
-											.toArray(String[]::new));
+						this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
 				
-				/* for all combinations of J's actions */
-				for (List<String> actionCombination : this.actionCombinations) {
+				/* for all of J's actions */
+				for (String aj : this.Aj) {
 					
-					String ajPath = String.join("__", actionCombination);
+					String ajPath = Ai + "__" + aj;
 					
-					DDTree oiGivenaj = this.Oi.get(Ai + "__" + ajPath).get(o);
+					DDTree oiGivenaj = this.Oi.get(IPOMDP.getLocalName(ajPath)).get(o);
 					
 					try {
 						/* avoid passing the original actionCombination because it is mutable */
-						ajDDTree.setDDAt(new ArrayList<String>(actionCombination), oiGivenaj);
+						ajDDTree.setDDAt(aj, oiGivenaj);
 					}
 					
 					catch (Exception e) {
@@ -625,7 +629,7 @@ public class IPOMDP extends POMDP {
 		return Oi;
 	}
 	
-	public HashMap<Integer, DD[]> makeOj() {
+	public DD[] makeOj() {
 		/*
 		 * Makes DDs for Oj, renames the vars, and conditions them on Mj.
 		 * 
@@ -636,6 +640,8 @@ public class IPOMDP extends POMDP {
 		 * 		[S'] -----------------/	
 		 * 
 		 * WARNING: Will only work for level 0 for now.
+		 * 
+		 * Returns Oj in the format Thetaj -> Oj[]
 		 * 
 		 * TODO: Generalize Oj creation for joint actions
 		 */
@@ -649,50 +655,55 @@ public class IPOMDP extends POMDP {
 						  .map(f -> f.name)
 						  .collect(Collectors.toList());
 		
-//		DD[] Oj = new DD[omegaJList.size()];
-		HashMap<Integer, DD[]> Oj = new HashMap<Integer, DD[]>();
-		
+		DD[] Oj = new DD[omegaJList.size()];
+			
 		for (String oj : omegaJList) {
 			
-			/* find which frame Oj belongs to */
-			int frameID = IPOMDP.getFrameIDFromVarName(oj);
-			
-			String Aj = 
-					"A_j/" + this.Ajs.keySet().stream()
-						.filter(i -> i == frameID)
-						.collect(Collectors.toList()).get(0);
-				
 			/* Make DD of all Aj */
 			DDTree ajDDTree = 
-					this.ddMaker.getDDTreeFromSequence(new String[] {Aj});
+					this.ddMaker.getDDTreeFromSequence(new String[] {"Theta_j", "A_j"});
 			
-			for (String aj : this.Ajs.get(DecisionProcess.getFrameIDFromVarName(Aj))) {
-				
-				DDTree ojGivenaj = this.OjTheta.get(Aj).get(aj).get(oj);
-				
-				try {
-					ajDDTree.setDDAt(aj, ojGivenaj);
-				} 
-				
-				catch (Exception e) {
-					logger.error("While setting Oj");
-					e.printStackTrace();
-					System.exit(-1);
+			for (String thetaj : this.ThetaJ) {
+			
+				for (String aj : this.Aj) {
+					
+					if (this.lowerLevelFrames.get(
+							IPOMDP.getFrameIDFromVarName(thetaj))
+								.getActions()
+								.contains(aj)) {
+						DDTree ojGivenaj = this.OjTheta.get(thetaj).get(aj).get(oj);
+						
+						try {
+							ajDDTree.setDDAt(
+									Arrays.asList(new String[] {thetaj, aj}), 
+									ojGivenaj);
+						} 
+						
+						catch (Exception e) {
+							logger.error("While setting Oj");
+							e.printStackTrace();
+							System.exit(-1);
+						}
+					}
+					
+					else {
+						
+						logger.error("All frames need to have the same actions");
+						System.exit(-1);
+					}
 				}
-				
+			
 			}
 			
-			if (Oj.get(frameID) == null) 
-				Oj.put(frameID, new DD[] {OP.reorder(ajDDTree.toDD())});
-			
-			else 
-				Oj.put(frameID, ArrayUtils.add(Oj.get(frameID), OP.reorder(ajDDTree.toDD())));
+			int ojIndex = OmegaJNames.indexOf(oj);
+			Oj[ojIndex] = OP.reorder(ajDDTree.toDD());
 			
 			logger.debug("For oj=" + oj + " OjDD contains vars " 
-					+ Arrays.toString(Oj.get(frameID)));
+					+ Arrays.toString(Oj[ojIndex].getVarSet()));
 		}
-		
+
 		logger.debug("Oj initialized");
+		
 		return Oj;
 	}
 	
@@ -713,7 +724,7 @@ public class IPOMDP extends POMDP {
 		 * The parsed Ti is in the form of a joint action transition function of the form -
 		 * (Ai - Aj) -> S -> f(S', S)
 		 * 
-		 * We need to map that to the form Ai -> f(S', Mj, S)
+		 * We need to map that to the form Ai -> f(S', Aj, S)
 		 */
 		logger.debug("Making Ti");
 		
@@ -721,36 +732,30 @@ public class IPOMDP extends POMDP {
 				new HashMap<String, DD[]>();
 		
 		List<String> S = 
-				this.S.stream()
-					.filter(s -> (!s.name.contains("M_j") && !s.name.contains("A_j")))
+				this.S.subList(0, this.MjVarPosition).stream()
 					.map(f -> f.name)
 					.collect(Collectors.toList());
 
 		/* For each action */
 		for (String Ai : this.Ai) {
 
-			DD[] ddTrees = new DD[this.S.size() - this.AjSize - 1];
+			DD[] ddTrees = new DD[this.MjVarPosition];
 			
 			for (String s : S) {
 				
 				DDTree ajDDTree = 
-						this.ddMaker.getDDTreeFromSequence(
-								this.S.subList(
-										this.AjVarStartPosition, 
-										this.AjVarStartPosition + this.AjSize).stream()
-											.map(i -> i.name)
-											.toArray(String[]::new));
+						this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
 				
-				/* for all combinations of J's actions */
-				for (List<String> actionCombination : this.actionCombinations) {
+				/* for all of J's actions */
+				for (String aj : this.Aj) {
 					
-					String ajPath = String.join("__", actionCombination);
+					String ajPath = Ai + "__" + aj;
 					
-					DDTree tiGivenaj = this.Ti.get(Ai + "__" + ajPath).get(s);
+					DDTree tiGivenaj = this.Ti.get(ajPath).get(s);
 					
 					try {
 						/* avoid passing the original actionCombination because it is mutable */
-						ajDDTree.setDDAt(new ArrayList<String>(actionCombination), tiGivenaj);
+						ajDDTree.setDDAt(aj, tiGivenaj);
 					}
 					
 					catch (Exception e) {
@@ -793,26 +798,19 @@ public class IPOMDP extends POMDP {
 		for (String Ai : this.Ai) {
 			
 			DDTree ajDDTree = 
-					this.ddMaker.getDDTreeFromSequence(
-							this.S.subList(
-									this.AjVarStartPosition, 
-									this.AjVarStartPosition + this.AjSize).stream()
-										.map(i -> i.name)
-										.toArray(String[]::new));
+					this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
 			
-			for (List<String> actionCombination : this.actionCombinations) {
-				
-				String ajPath = String.join("__", actionCombination);
+			for (String action : ajDDTree.children.keySet()) {
 				
 				try {
 					
 					ajDDTree.setDDAt(
-							actionCombination, 
+							action, 
 							OP.sub(
 									OP.reorder(this.R.toDD()), 
 									OP.reorder(this.costMap.get(
 											Ai + "__" 
-											+ ajPath)
+											+ action)
 												.toDD())).toDDTree());
 				} 
 				
@@ -839,11 +837,8 @@ public class IPOMDP extends POMDP {
 			
 			DD RSMj = 
 					OP.addMultVarElim( 
-							ArrayUtils.add(this.currentAjGivenMj, actionCosts.get(Ai)),
-							ArrayUtils.subarray(
-									this.stateVarIndices, 
-									this.AjVarStartPosition, 
-									this.AjVarStartPosition + this.AjSize));
+							new DD[] {this.currentAjGivenMj, actionCosts.get(Ai)},
+							this.AjStartIndex);
 			
 			logger.debug("For Ai=" + Ai + " R(S,Mj) has vars " 
 					+ Arrays.toString(RSMj.getVarSet()));
@@ -863,12 +858,14 @@ public class IPOMDP extends POMDP {
 		
 		logger.debug("Renaming Oj DDTrees");
 	
-		for (String aj : this.OjTheta.keySet()) {
+		for (String f : this.OjTheta.keySet()) {
 			
-			for (String actName : this.OjTheta.get(aj).keySet()) {
-				
+			HashMap<String, HashMap<String, DDTree>> ojThetaPerF = this.OjTheta.get(f);
+			
+			for (String aj : ojThetaPerF.keySet()) {
+					
 				/* For observation function for a specific action */
-				HashMap<String, DDTree> Oj_a = this.OjTheta.get(aj).get(actName);
+				HashMap<String, DDTree> Oj_a = ojThetaPerF.get(aj);
 				HashMap<String, DDTree> renamedOj_a = new HashMap<String, DDTree>();
 				
 				/* Rename the observation vars */
@@ -883,10 +880,10 @@ public class IPOMDP extends POMDP {
 				}
 				
 				Oj_a = null;
-				this.OjTheta.get(aj).put(actName, renamedOj_a);
+				ojThetaPerF.put(aj, renamedOj_a);
 			}
 		}
-		
+			
 		logger.debug("Done renaming Oj");
 	}
 	
@@ -990,11 +987,15 @@ public class IPOMDP extends POMDP {
 		logger.debug("Reinitializing Mj dependents according to new Mj");
 		
 		/* rebuild  P(Aj | Mj) */
-		this.currentAjGivenMj = this.multiFrameMJ.getAjGivenMj(this.ddMaker, this.Ajs);
+		this.currentAjGivenMj = this.multiFrameMJ.getAjGivenMj(this.ddMaker, this.Aj);
 		logger.debug("f(Aj, Mj) for all Ajs for current look ahead horizon initialized");
 		
+		/* rebuild  P(Thetaj | Mj) */
+		this.currentThetajGivenMj = this.multiFrameMJ.getThetajGivenMj(this.ddMaker, this.ThetaJ);
+		logger.debug("f(Thetaj, Mj) for all Thetajs for current look ahead horizon initialized");
+		
 		/* rebuild  P(Mj' | Mj, Aj, Oj') */
-		this.currentPMjPGivenMjOjPAj = this.makeOpponentModelTransitionDD();
+		this.currentMjPGivenMjOjPAj = this.makeOpponentModelTransitionDD();
 		logger.debug("f(Mj', Aj, Mj, Oj') initialized");
 		
 		if (this.currentBelief == null) {
@@ -1003,17 +1004,15 @@ public class IPOMDP extends POMDP {
 			
 			this.currentBelief = OP.reorder(OP.mult(mjInit, initS));
 		}
+		logger.debug("Current belief set to: \r\n" + this.currentBelief.toDDTree());
 		
 		/* compute tau and store */
-		
-		DD[] Ojs = new DD[] {};
-		for (int f : this.currentOj.keySet())
-			Ojs = ArrayUtils.addAll(Ojs, this.currentOj.get(f));
 			
 		this.currentTau = 
 				OP.addMultVarElim(
-						ArrayUtils.add(Ojs, this.currentPMjPGivenMjOjPAj), 
+						ArrayUtils.add(this.currentOj, this.currentMjPGivenMjOjPAj), 
 						this.obsJVarPrimeIndices);
+		
 		logger.debug("TAU contains vars " + Arrays.toString(this.currentTau.getVarSet()));
 		
 		this.currentRi = this.makeRi();
@@ -1107,9 +1106,9 @@ public class IPOMDP extends POMDP {
 		 * time steps
 		 */
 		this.S.set(
-				this.oppModelVarIndex, 
+				this.MjVarPosition, 
 				this.multiFrameMJ.getOpponentModelStateVar(
-						this.oppModelVarIndex));
+						this.MjVarPosition));
 		
 		logger.debug("IS initialized to " + this.S);
 		

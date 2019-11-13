@@ -22,6 +22,7 @@ import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
 import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.decisionprocesses.IPOMDP;
+import thinclab.exceptions.VariableNotFoundException;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
@@ -116,21 +117,18 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		return new StateVar("M_j", index, nodeNames);
 	}
 
-	public DD[] getAjGivenMj(DDMaker ddMaker, HashMap<Integer, List<String>> Ajs) {
+	public DD getAjGivenMj(DDMaker ddMaker, List<String> Aj) {
 		/*
 		 * Returns the factor P(Aj | Mj) as triples of (mj, aj, probability)
 		 * 
 		 * This will be used to make the P(Aj | Mj) DD
 		 */
-
-		/* initialize array to store AjiGivenMj */
-		DD[] PAjGivenMjDDs = new DD[Ajs.size()];
+		
+		List<String[]> triples = new ArrayList<String[]>();
 		
 		/* build factors for each frame */
 		for (int frameID : this.idToNodeMap.keySet()) {
-
-			List<String[]> triples = new ArrayList<String[]>();
-
+			
 			/* Create triples for optimal actions given node */
 			for (int node : this.idToNodeMap.get(frameID).keySet()) {
 
@@ -140,7 +138,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 				/*
 				 * For aj depending on mj, P(OPT(Aj) at mj | mj) = 1
 				 */
-				for (String aj : Ajs.get(frameID)) {
+				for (String aj : Aj) {
 
 					List<String> triple = new ArrayList<String>();
 
@@ -161,56 +159,77 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 					triples.add(triple.toArray(new String[triple.size()]));
 				}
 			} /* for currentNodes */
-
-			DDTree PAjGivenMjTree = 
-					ddMaker.getDDTreeFromSequence(
-							new String[] { "M_j", "A_j/" + frameID }, 
-							triples.stream().toArray(String[][]::new));
-
-			for (String child : PAjGivenMjTree.children.keySet()) {
-				
-				/*
-				 * If aj is independent of mj, P(Aj | Mj) = P(Aj)
-				 */
-				if (IPOMDP.getFrameIDFromVarName(child) != frameID) {
-				
-					try {
-						PAjGivenMjTree.setDDAt(
-								child, 
-								new DDTreeLeaf(1.0 / Ajs.get(frameID).size()));
-				
-					}
-
-					catch (Exception e) {
-						e.printStackTrace();
-						System.exit(-1);
-					}
-				}
-			}
 			
-			PAjGivenMjDDs[frameID] = OP.reorder(PAjGivenMjTree.toDD());
 		}
+		
+		DDTree PAjGivenMjTree = 
+				ddMaker.getDDTreeFromSequence(
+						new String[] { "M_j", "A_j"}, 
+						triples.stream().toArray(String[][]::new));
 
-		return PAjGivenMjDDs;
+		return OP.reorder(PAjGivenMjTree.toDD());
+	}
+	
+	public DD getThetajGivenMj(DDMaker ddMaker, List<String> Thetaj) {
+		/*
+		 * Returns the factor P(Aj | Mj) as triples of (mj, aj, probability)
+		 * 
+		 * This will be used to make the P(Aj | Mj) DD
+		 */
+		
+		List<String[]> triples = new ArrayList<String[]>();
+		
+		/* build factors for each frame */
+		for (int frameID : this.idToNodeMap.keySet()) {
+			
+			/* Create triples for optimal actions given node */
+			for (int node : this.idToNodeMap.get(frameID).keySet()) {
+
+				/*
+				 * For aj depending on mj, P(OPT(Aj) at mj | mj) = 1
+				 */
+				for (String thetaj : Thetaj) {
+
+					List<String> triple = new ArrayList<String>();
+
+					/* Add mj */
+					triple.add(MJ.makeModelLabelFromNodeId(node, frameID));
+
+					/* Add action */
+					triple.add(thetaj);
+
+					/* Give 99% prob for performing optimal action */
+					if (IPOMDP.getFrameIDFromVarName(thetaj) == frameID)
+						triple.add("1.0");
+
+					/* small but finite probability for non optimal behavior */
+					else
+						triple.add("0.0"); /* 0 probability for non optimal actions */
+
+					triples.add(triple.toArray(new String[triple.size()]));
+				}
+			} /* for currentNodes */
+			
+		}
+		
+		DDTree PThetajGivenMjTree = 
+				ddMaker.getDDTreeFromSequence(
+						new String[] { "M_j", "Theta_j"},
+						triples.stream().toArray(String[][]::new));
+
+		return OP.reorder(PThetajGivenMjTree.toDD());
 	}
 
 	public DD getPMjPGivenMjOjPAj(
 			DDMaker ddMaker, 
-			HashMap<Integer, List<String>> Ajs, 
-			HashMap<Integer, List<String>> Ojs) {
+			List<String> Aj, 
+			List<String> OjNames) {
 		/*
 		 * Make P(Mj'| Mj, Oj', Aj)
 		 */
 
 		/* store independently built DDTrees */
 		HashMap<Integer, DDTree> individualMjTrees = new HashMap<Integer, DDTree>();
-		
-		HashMap<Integer, HashSet<Integer>> mjPrimes = new HashMap<Integer, HashSet<Integer>>();
-		for (int frameID : this.idToNodeMap.keySet())
-			mjPrimes.put(
-					frameID, 
-					new HashSet<Integer>(
-							this.MJs.get(frameID).leafNodes));
 
 		/*
 		 * construct the factor from triples of relevant frames
@@ -220,8 +239,8 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		for (int frameID : this.idToNodeMap.keySet()) {
 
 			DDTree t = 
-					this.MJs.get(frameID).getPMjPGivenMjOjAj(ddMaker, Ajs, Ojs, mjPrimes);
-			
+					this.MJs.get(frameID).getPMjPGivenMjOjAj(ddMaker, Aj, OjNames);
+
 			individualMjTrees.put(frameID, t);
 		}
 		

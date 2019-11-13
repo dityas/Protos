@@ -183,21 +183,20 @@ public class MJ extends DynamicBeliefTree {
 	
 	public DDTree getPMjPGivenMjOjAj(
 			DDMaker ddMaker, 
-			HashMap<Integer, List<String>> Ajs,
-			HashMap<Integer, List<String>> Ojs,
-			HashMap<Integer, HashSet<Integer>> mjPrimes) {
+			List<String> Ajs,
+			List<String> Ojs) {
 		/*
 		 * Construct the factor P(Mj'| Mj, Oj, Aj)
 		 */
 		
 		String[][] triples = this.getMjTransitionTriples();
 		
-		String [] varSequence = new String[] {"M_j'", "M_j"};
-		varSequence = ArrayUtils.add(varSequence, "A_j/" + this.solver.f.frameID);
+		String[] varSequence = new String[] {"M_j'", "M_j"};
+		varSequence = ArrayUtils.add(varSequence, "A_j");
 		varSequence = 
 				ArrayUtils.addAll(
 						varSequence, 
-						Ojs.get(this.solver.f.frameID).stream()
+						Ojs.stream()
 							.map(oj -> oj + "'").toArray(String[]::new));
 		
 		DDTree tree = ddMaker.getDDTreeFromSequence(varSequence, triples);
@@ -205,8 +204,18 @@ public class MJ extends DynamicBeliefTree {
 		/* set probs for mjs of other frames */
 		for (String child : tree.children.keySet()) {
 			
-			if (IPOMDP.getFrameIDFromVarName(child) != this.solver.f.frameID)
-				continue;
+			if (IPOMDP.getFrameIDFromVarName(child) != this.solver.f.frameID) {
+				
+				try {
+					tree.setDDAt(child, new DDTreeLeaf(0.0));
+				} 
+				
+				catch (Exception e) {
+					logger.error("While assigning 0 prob to " + child);
+					e.printStackTrace();
+					System.exit(-1);
+				}
+			}
 			
 			try {
 				DDTree independentsFactor = tree.atChild(child);
@@ -219,18 +228,9 @@ public class MJ extends DynamicBeliefTree {
 					
 					else {
 						
-						if (mjPrimes.get(f).contains(MJ.getNodeId(childT))) {
-							
-							independentsFactor.setDDAt(
-									childT, 
-									new DDTreeLeaf(1.0 / mjPrimes.get(f).size()));
-						}
-						
-						else {
-							independentsFactor.setDDAt(
-									childT, 
-									new DDTreeLeaf(0.0));
-						}
+						independentsFactor.setDDAt(
+								childT, 
+								new DDTreeLeaf(0.0));
 					}
 				}
 			} 
@@ -335,7 +335,7 @@ public class MJ extends DynamicBeliefTree {
 			
 			/* add edge */
 			List<String> theEdge = edge.getKey();
-
+			
 			triple.addAll(theEdge);
 			
 			/* add to collection */

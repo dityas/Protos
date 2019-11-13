@@ -22,7 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.belief.BeliefOps;
-import thinclab.belief.InteractiveBelief;
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
 import thinclab.ddinterface.DDTreeLeaf;
@@ -96,12 +95,14 @@ class TestIPOMDP {
 		for (String ai : ipomdp.getActions()) {
 			
 			for (DD oi : ipomdp.currentOi.get(ai))
-				LOGGER.debug(oi.toDDTree());
+				LOGGER.debug("for Ai = " + ai + " Oi is \r\n" + oi.toDDTree());
 			
-			assertEquals(ipomdp.currentOi.get(ai).length, ipomdp.Omega.size() - ipomdp.OmegaJNames.size());
+			assertEquals(
+					ipomdp.currentOi.get(ai).length, 
+					ipomdp.Omega.size() - ipomdp.OmegaJNames.size());
 		}
 		
-		LOGGER.info("Checking Oi DD factor");
+		LOGGER.info("Checking Oi DD CPD");
 		for (String Ai : ipomdp.currentOi.keySet()) {
 			for (int s = 0; s < ipomdp.Omega.size() - ipomdp.OmegaJNames.size(); s++) {
 				LOGGER.debug("For Ai " + Ai + " and o " + ipomdp.Omega.get(s));
@@ -127,190 +128,15 @@ class TestIPOMDP {
 			for (DD ti : ipomdp.currentTi.get(ai))
 				LOGGER.debug("For Ai=" + ai + " Ti=" + ti.toDDTree());
 			
-			assertEquals(ipomdp.currentTi.get(ai).length, ipomdp.S.size() - ipomdp.Ajs.size() - 1);
+			assertEquals(
+					ipomdp.currentTi.get(ai).length, 
+					ipomdp.MjVarPosition);
 		}
 		
-		LOGGER.info("Checking Ti DD factor normalization");
+		LOGGER.info("Checking Ti DD factor CPD");
 		
 		for (String Ai : ipomdp.currentTi.keySet()) {
-			for (int s = 0; s < ipomdp.S.size() - ipomdp.Ajs.size() - 1; s++) {
-				LOGGER.debug("Checking for Ai " + Ai + " and s " + ipomdp.S.get(s));
-				
-				LOGGER.debug(OP.addMultVarElim(
-											ipomdp.currentTi.get(Ai)[s],
-											IPOMDP.getVarIndex(
-													ipomdp.S.get(s).name + "'")));
-				assertTrue(
-						OP.maxAll(
-								OP.abs(
-									OP.sub(
-										DD.one, 
-										OP.addMultVarElim(
-											ipomdp.currentTi.get(Ai)[s],
-											IPOMDP.getVarIndex(
-													ipomdp.S.get(s).name + "'"))))) < 1e-8);
-			}
-		}
-		
-		LOGGER.info("Checking Oj creation");
-		LOGGER.debug("OjTheta is " + ipomdp.OjTheta);
-		ipomdp.currentOj = ipomdp.makeOj();
-		
-		int totalOjs = 0;
-		for (int i=0; i < ipomdp.lowerLevelFrames.size(); i++) {
-			LOGGER.debug(Arrays.toString(ipomdp.currentOj.get(i)));
-			totalOjs += 1;
-		}
-		
-		assertEquals(totalOjs, ipomdp.OmegaJNames.size());
-		
-		LOGGER.info("Checking Oj DD factor");
-		
-		for (int frameID : ipomdp.currentOj.keySet()) {
-			for (int s = 0; s < ipomdp.currentOj.get(frameID).length; s++) {
-				LOGGER.debug("For and OmegaJ " + ipomdp.OmegaJs.get(frameID).get(s));
-			
-				assertTrue(
-						OP.maxAll(
-								OP.abs(
-									OP.sub(
-										DD.one, 
-										OP.addMultVarElim(
-											ipomdp.currentOj.get(frameID)[s],
-											IPOMDP.getVarIndex(
-													ipomdp.OmegaJs.get(frameID).get(s) + "'"))))) < 1e-8);
-			}
-		}
-		
-		LOGGER.info("Check P(Aj|Mj) creation");
-		ipomdp.currentAjGivenMj = ipomdp.multiFrameMJ.getAjGivenMj(ipomdp.ddMaker, ipomdp.Ajs);
-		
-		for (int i = 0; i < ipomdp.currentAjGivenMj.length; i++) {
-			
-			LOGGER.debug(ipomdp.currentAjGivenMj[i].toDDTree());
-			
-			LOGGER.debug(
-					OP.maxAll(
-							OP.abs(
-								OP.sub(
-									DD.one, 
-									OP.addMultVarElim(
-										ipomdp.currentAjGivenMj[i],
-										IPOMDP.getVarIndex(
-												"A_j/" + i))))));
-		}
-		
-		LOGGER.info("Check P(Mj'| Mj, Oj', Aj) transition creation");
-		DD PMjPGivenMjOjPAj = ipomdp.makeOpponentModelTransitionDD();
-		
-		assertTrue(
-				OP.maxAll(
-						OP.abs(
-							OP.sub(
-								DD.one, 
-								OP.addMultVarElim(
-									PMjPGivenMjOjPAj,
-									IPOMDP.getVarIndex("M_j'"))))) < 1e-8);
-		
-		LOGGER.info("Check initial belief");
-		DD mjInit = ipomdp.multiFrameMJ.getMjInitBelief(ipomdp.ddMaker, null).toDD();
-		DD initS = ipomdp.initBeliefDdTree.toDD();
-		ipomdp.currentBelief = OP.reorder(OP.mult(mjInit, initS));
-		LOGGER.debug(ipomdp.currentBelief);
-		assertTrue(
-				OP.maxAll(
-						OP.abs(
-							OP.sub(
-								DD.one, 
-								OP.addMultVarElim(
-									ipomdp.currentBelief,
-									ArrayUtils.subarray(
-											ipomdp.stateVarIndices, 
-											0, ipomdp.AjVarStartPosition))))) < 1e-8);
-		
-		LOGGER.info("Checking Ri");
-		ipomdp.currentRi = ipomdp.makeRi();
-		
-		for (String ai : ipomdp.Ai)
-			LOGGER.debug("Ri for Ai=" + ai + " is " + ipomdp.currentRi.get(ai));
-		
-	}
-	
-	@Test
-	void testIPOMDPL1Init2Frames() throws Exception {
-		
-		/* 2 frames init */
-		LOGGER.info("Running testIPOMDPL1Init()");
-		
-		IPOMDPParser parser = 
-				new IPOMDPParser(
-						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
-		parser.parseDomain();
-		
-		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP();
-		
-		LOGGER.info("Parsing the domain");
-		ipomdp.initializeFromParsers(parser);
-		ipomdp.setMjDepth(3);
-		ipomdp.setMjLookAhead(3);
-		
-		LOGGER.info("Solve MJs");
-		ipomdp.solveMj();
-		ipomdp.callUpdateIS();
-		
-		LOGGER.info("Check ObsJ combinations");
-		LOGGER.debug(ipomdp.multiFrameMJ.obsCombinations);
-		assertEquals(ipomdp.multiFrameMJ.obsCombinations.size(), 4);
-		
-		LOGGER.debug("JActions are " + ipomdp.actionCombinations);
-		
-		LOGGER.info("Checking Oi creation");
-		ipomdp.currentOi = ipomdp.makeOi();
-		
-		assertEquals(ipomdp.currentOi.size(), ipomdp.getActions().size());
-		
-		for (String ai : ipomdp.getActions()) {
-			
-			for (DD oi : ipomdp.currentOi.get(ai))
-				LOGGER.debug(oi.toDDTree());
-			
-			assertEquals(ipomdp.currentOi.get(ai).length, ipomdp.Omega.size() - ipomdp.OmegaJNames.size());
-		}
-		
-		LOGGER.info("Checking Oi DD factor");
-		for (String Ai : ipomdp.currentOi.keySet()) {
-			for (int s = 0; s < ipomdp.Omega.size() - ipomdp.OmegaJNames.size(); s++) {
-				LOGGER.debug("For Ai " + Ai + " and o " + ipomdp.Omega.get(s));
-				assertTrue(
-						OP.maxAll(
-								OP.abs(
-									OP.sub(
-										DD.one, 
-										OP.addMultVarElim(
-											ipomdp.currentOi.get(Ai)[s],
-											IPOMDP.getVarIndex(
-													ipomdp.Omega.get(s).name + "'"))))) < 1e-8);
-			}
-		}
-		
-		LOGGER.info("Checking Ti creation");
-		ipomdp.currentTi = ipomdp.makeTi();
-		
-		assertEquals(ipomdp.currentTi.size(), ipomdp.getActions().size());
-		
-		for (String ai : ipomdp.getActions()) {
-			LOGGER.warn(Arrays.toString(ipomdp.currentTi.get(ai)));
-			for (DD ti : ipomdp.currentTi.get(ai))
-				LOGGER.debug("For Ai=" + ai + " Ti=" + ti.toDDTree());
-			
-			assertEquals(ipomdp.currentTi.get(ai).length, ipomdp.S.size() - ipomdp.Ajs.size() - 1);
-		}
-		
-		LOGGER.info("Checking Ti DD factor normalization");
-		
-		for (String Ai : ipomdp.currentTi.keySet()) {
-			for (int s = 0; s < ipomdp.S.size() - ipomdp.Ajs.size() - 1; s++) {
+			for (int s = 0; s < ipomdp.MjVarPosition; s++) {
 				LOGGER.debug("Checking for Ai " + Ai + " and s " + ipomdp.S.get(s));
 				
 				LOGGER.debug(OP.addMultVarElim(
@@ -333,51 +159,31 @@ class TestIPOMDP {
 		LOGGER.info("Checking Oj creation");
 		ipomdp.currentOj = ipomdp.makeOj();
 		
-		int totalOjs = 0;
-		for (int i=0; i < ipomdp.lowerLevelFrames.size(); i++) {
-			LOGGER.debug(Arrays.toString(ipomdp.currentOj.get(i)));
-			totalOjs += 1;
-		}
+		for (int i = 0; i < ipomdp.currentOj.length; i++)
+			LOGGER.debug("Oj for oj= " 
+					+ ipomdp.OmegaJNames.get(i) + " is \r\n" 
+					+ ipomdp.currentOj[i].toDDTree());
 		
-		assertEquals(totalOjs, ipomdp.OmegaJNames.size());
+		LOGGER.info("Checking Oj DD CPD");
 		
-		LOGGER.info("Checking Oj DD factor");
+		for (int s = 0; s < ipomdp.currentOj.length; s++) {
+			LOGGER.debug("For and OmegaJ " + ipomdp.OmegaJNames.get(s));
 		
-		for (int frameID : ipomdp.currentOj.keySet()) {
-			for (int s = 0; s < ipomdp.currentOj.get(frameID).length; s++) {
-				LOGGER.debug("For and OmegaJ " + ipomdp.OmegaJs.get(frameID).get(s));
-			
-				assertTrue(
-						OP.maxAll(
-								OP.abs(
-									OP.sub(
-										DD.one, 
-										OP.addMultVarElim(
-											ipomdp.currentOj.get(frameID)[s],
-											IPOMDP.getVarIndex(
-													ipomdp.OmegaJs.get(frameID).get(s) + "'"))))) < 1e-8);
-			}
-		}
-		
-		LOGGER.info("Check P(Aj|Mj) creation");
-		ipomdp.currentAjGivenMj = ipomdp.multiFrameMJ.getAjGivenMj(ipomdp.ddMaker, ipomdp.Ajs);
-		
-		for (int i = 0; i < ipomdp.currentAjGivenMj.length; i++) {
-
 			assertTrue(
 					OP.maxAll(
 							OP.abs(
 								OP.sub(
 									DD.one, 
 									OP.addMultVarElim(
-										ipomdp.currentAjGivenMj[i],
+										ipomdp.currentOj[s],
 										IPOMDP.getVarIndex(
-												"A_j/" + i))))) < 1e-8);
-			
+												ipomdp.OmegaJNames.get(s) + "'"))))) < 1e-8);
 		}
-		
-		LOGGER.info("Check P(Mj'| Mj, Oj', Aj) transition creation");
-		ipomdp.currentPMjPGivenMjOjPAj = ipomdp.makeOpponentModelTransitionDD();
+			
+		LOGGER.info("Check P(Aj| Mj) creation");
+		ipomdp.currentAjGivenMj = ipomdp.multiFrameMJ.getAjGivenMj(ipomdp.ddMaker, ipomdp.Aj);
+		LOGGER.debug("P(Aj| Mj) is \r\n" + ipomdp.currentAjGivenMj.toDDTree());
+		LOGGER.debug(OP.addMultVarElim(ipomdp.currentAjGivenMj, IPOMDP.getVarIndex("A_j")));
 		
 		assertTrue(
 				OP.maxAll(
@@ -385,8 +191,47 @@ class TestIPOMDP {
 							OP.sub(
 								DD.one, 
 								OP.addMultVarElim(
-									ipomdp.currentPMjPGivenMjOjPAj,
+									ipomdp.currentAjGivenMj,
+									IPOMDP.getVarIndex(
+											"A_j"))))) < 1e-8);
+
+		LOGGER.info("Check P(Thetaj| Mj) creation");
+		ipomdp.currentThetajGivenMj = 
+				ipomdp.multiFrameMJ.getThetajGivenMj(ipomdp.ddMaker, ipomdp.ThetaJ);
+		LOGGER.debug("P(Thetaj| Mj) is \r\n" + ipomdp.currentThetajGivenMj.toDDTree());
+		LOGGER.debug(
+				OP.addMultVarElim(
+						ipomdp.currentThetajGivenMj, IPOMDP.getVarIndex("Theta_j")));
+		
+		assertTrue(
+				OP.maxAll(
+						OP.abs(
+							OP.sub(
+								DD.one, 
+								OP.addMultVarElim(
+									ipomdp.currentThetajGivenMj,
+									IPOMDP.getVarIndex(
+											"Theta_j"))))) < 1e-8);
+		
+		LOGGER.info("Check P(Mj'| Mj, Oj', Aj) transition creation");
+		ipomdp.currentMjPGivenMjOjPAj = ipomdp.makeOpponentModelTransitionDD();
+		
+		LOGGER.debug(
+				OP.addMultVarElim(ipomdp.currentMjPGivenMjOjPAj, IPOMDP.getVarIndex("M_j'")));
+		
+		assertTrue(
+				OP.maxAll(
+						OP.abs(
+							OP.sub(
+								DD.one, 
+								OP.addMultVarElim(
+									ipomdp.currentMjPGivenMjOjPAj,
 									IPOMDP.getVarIndex("M_j'"))))) < 1e-8);
+		
+		LOGGER.debug(ipomdp.currentMjPGivenMjOjPAj.toDDTree());
+		
+		for (List<String> row : ipomdp.currentMjPGivenMjOjPAj.toDDTree().getCPT())
+			LOGGER.debug(row);
 		
 		LOGGER.info("Check initial belief");
 		DD mjInit = ipomdp.multiFrameMJ.getMjInitBelief(ipomdp.ddMaker, null).toDD();
@@ -402,7 +247,203 @@ class TestIPOMDP {
 									ipomdp.currentBelief,
 									ArrayUtils.subarray(
 											ipomdp.stateVarIndices, 
-											0, ipomdp.AjVarStartPosition))))) < 1e-8);
+											0, ipomdp.thetaVarPosition))))) < 1e-8);
+		
+		LOGGER.info("Checking Ri");
+		ipomdp.currentRi = ipomdp.makeRi();
+		
+		for (String ai : ipomdp.Ai)
+			LOGGER.debug("Ri for Ai=" + ai + " is " + ipomdp.currentRi.get(ai));
+
+	}
+	
+	@Test
+	void testIPOMDPL1Init2Frames() throws Exception {
+		
+		/* 2 frames init */
+		LOGGER.info("Running testIPOMDPL1Init()");
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		parser.parseDomain();
+		
+		LOGGER.info("Calling empty constructor");
+		IPOMDP ipomdp = new IPOMDP();
+		
+		LOGGER.info("Parsing the domain");
+		ipomdp.initializeFromParsers(parser);
+		ipomdp.setMjDepth(3);
+		ipomdp.setMjLookAhead(2);
+		
+		LOGGER.info("Solve MJs");
+		ipomdp.solveMj();
+		ipomdp.callUpdateIS();
+		
+		LOGGER.info("Check ObsJ combinations");
+		LOGGER.debug("Oj is " + ipomdp.OjTheta);
+		
+		LOGGER.info("Checking Oi creation");
+		ipomdp.currentOi = ipomdp.makeOi();
+		
+		assertEquals(ipomdp.currentOi.size(), ipomdp.getActions().size());
+		
+		for (String ai : ipomdp.getActions()) {
+			
+			for (DD oi : ipomdp.currentOi.get(ai))
+				LOGGER.debug("for Ai = " + ai + " Oi is \r\n" + oi.toDDTree());
+			
+			assertEquals(
+					ipomdp.currentOi.get(ai).length, 
+					ipomdp.Omega.size() - ipomdp.OmegaJNames.size());
+		}
+		
+		LOGGER.info("Checking Oi DD CPD");
+		for (String Ai : ipomdp.currentOi.keySet()) {
+			for (int s = 0; s < ipomdp.Omega.size() - ipomdp.OmegaJNames.size(); s++) {
+				LOGGER.debug("For Ai " + Ai + " and o " + ipomdp.Omega.get(s));
+				assertTrue(
+						OP.maxAll(
+								OP.abs(
+									OP.sub(
+										DD.one, 
+										OP.addMultVarElim(
+											ipomdp.currentOi.get(Ai)[s],
+											IPOMDP.getVarIndex(
+													ipomdp.Omega.get(s).name + "'"))))) < 1e-8);
+			}
+		}
+		
+		LOGGER.info("Checking Ti creation");
+		ipomdp.currentTi = ipomdp.makeTi();
+		
+		assertEquals(ipomdp.currentTi.size(), ipomdp.getActions().size());
+		
+		for (String ai : ipomdp.getActions()) {
+			
+			for (DD ti : ipomdp.currentTi.get(ai))
+				LOGGER.debug("For Ai=" + ai + " Ti=" + ti.toDDTree());
+			
+			assertEquals(
+					ipomdp.currentTi.get(ai).length, 
+					ipomdp.MjVarPosition);
+		}
+		
+		LOGGER.info("Checking Ti DD factor CPD");
+		
+		for (String Ai : ipomdp.currentTi.keySet()) {
+			for (int s = 0; s < ipomdp.MjVarPosition; s++) {
+				LOGGER.debug("Checking for Ai " + Ai + " and s " + ipomdp.S.get(s));
+				
+				LOGGER.debug(OP.addMultVarElim(
+						ipomdp.currentTi.get(Ai)[s],
+						IPOMDP.getVarIndex(
+								ipomdp.S.get(s).name + "'")));
+
+				assertTrue(
+						OP.maxAll(
+								OP.abs(
+									OP.sub(
+										DD.one, 
+										OP.addMultVarElim(
+											ipomdp.currentTi.get(Ai)[s],
+											IPOMDP.getVarIndex(
+													ipomdp.S.get(s).name + "'"))))) < 1e-8);
+			}
+		}
+		
+		LOGGER.info("Checking Oj creation");
+		ipomdp.currentOj = ipomdp.makeOj();
+		
+		for (int i = 0; i < ipomdp.currentOj.length; i++)
+			LOGGER.debug("Oj for oj= " 
+					+ ipomdp.OmegaJNames.get(i) + " is \r\n" 
+					+ ipomdp.currentOj[i].toDDTree());
+		
+		LOGGER.info("Checking Oj DD CPD");
+		
+		for (int s = 0; s < ipomdp.currentOj.length; s++) {
+			LOGGER.debug("For and OmegaJ " + ipomdp.OmegaJNames.get(s));
+		
+			assertTrue(
+					OP.maxAll(
+							OP.abs(
+								OP.sub(
+									DD.one, 
+									OP.addMultVarElim(
+										ipomdp.currentOj[s],
+										IPOMDP.getVarIndex(
+												ipomdp.OmegaJNames.get(s) + "'"))))) < 1e-8);
+		}
+			
+		LOGGER.info("Check P(Aj| Mj) creation");
+		ipomdp.currentAjGivenMj = ipomdp.multiFrameMJ.getAjGivenMj(ipomdp.ddMaker, ipomdp.Aj);
+		LOGGER.debug("P(Aj| Mj) is \r\n" + ipomdp.currentAjGivenMj.toDDTree());
+		LOGGER.debug(OP.addMultVarElim(ipomdp.currentAjGivenMj, IPOMDP.getVarIndex("A_j")));
+		
+		assertTrue(
+				OP.maxAll(
+						OP.abs(
+							OP.sub(
+								DD.one, 
+								OP.addMultVarElim(
+									ipomdp.currentAjGivenMj,
+									IPOMDP.getVarIndex(
+											"A_j"))))) < 1e-8);
+
+		LOGGER.info("Check P(Thetaj| Mj) creation");
+		ipomdp.currentThetajGivenMj = 
+				ipomdp.multiFrameMJ.getThetajGivenMj(ipomdp.ddMaker, ipomdp.ThetaJ);
+		LOGGER.debug("P(Thetaj| Mj) is \r\n" + ipomdp.currentThetajGivenMj.toDDTree());
+		LOGGER.debug(
+				OP.addMultVarElim(
+						ipomdp.currentThetajGivenMj, IPOMDP.getVarIndex("Theta_j")));
+		
+		assertTrue(
+				OP.maxAll(
+						OP.abs(
+							OP.sub(
+								DD.one, 
+								OP.addMultVarElim(
+									ipomdp.currentThetajGivenMj,
+									IPOMDP.getVarIndex(
+											"Theta_j"))))) < 1e-8);
+		
+		LOGGER.info("Check P(Mj'| Mj, Oj', Aj) transition creation");
+		ipomdp.currentMjPGivenMjOjPAj = ipomdp.makeOpponentModelTransitionDD();
+		
+		LOGGER.debug(
+				OP.addMultVarElim(ipomdp.currentMjPGivenMjOjPAj, IPOMDP.getVarIndex("M_j'")));
+		
+		assertTrue(
+				OP.maxAll(
+						OP.abs(
+							OP.sub(
+								DD.one, 
+								OP.addMultVarElim(
+									ipomdp.currentMjPGivenMjOjPAj,
+									IPOMDP.getVarIndex("M_j'"))))) < 1e-8);
+		
+		LOGGER.debug(ipomdp.currentMjPGivenMjOjPAj.toDDTree());
+		
+		for (List<String> row : ipomdp.currentMjPGivenMjOjPAj.toDDTree().getCPT())
+			LOGGER.debug(row);
+		
+		LOGGER.info("Check initial belief");
+		DD mjInit = ipomdp.multiFrameMJ.getMjInitBelief(ipomdp.ddMaker, null).toDD();
+		DD initS = ipomdp.initBeliefDdTree.toDD();
+		ipomdp.currentBelief = OP.reorder(OP.mult(mjInit, initS));
+		LOGGER.debug(ipomdp.currentBelief);
+		assertTrue(
+				OP.maxAll(
+						OP.abs(
+							OP.sub(
+								DD.one, 
+								OP.addMultVarElim(
+									ipomdp.currentBelief,
+									ArrayUtils.subarray(
+											ipomdp.stateVarIndices, 
+											0, ipomdp.thetaVarPosition))))) < 1e-8);
 		
 		LOGGER.info("Checking Ri");
 		ipomdp.currentRi = ipomdp.makeRi();

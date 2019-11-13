@@ -55,12 +55,11 @@ public class IBeliefOps extends BeliefOperations {
 		 * Level 1 belief update
 		 * 
 		 * P(S, Mj| Oi'=o) = 
-		 * 		norm x Sumout[S, Mj, Aj1, Aj2, ... Ajn] 
-		 * 					f(S, Mj) x f(Aj1, Mj) x f(Aj2, Mj) x ... x f(Ajn, Mj) 
-		 * 					x f(S', S, Aj1, Aj2, ... Ajn) x f(Oi'=o, S', Aj1, Aj2, ... Ajn)
-		 * 			 x Sumout[Oj1', Oj2', ... Ojn'] 
-		 * 					f(Oj1', Aj1, S') x f(Oj2', Aj2, S') x ... x f(Ojn', Ajn, S')
-		 * 					x f(Mj', Mj, Aj1, Aj2, ... Ajn, Oj1', Oj2', ... Ojn') 
+		 * 		norm x Sumout[S, Mj, Thetaj, Aj] 
+		 * 					f(S, Mj) x f(Thetaj, Mj) x f(Aj, Mj)  
+		 * 					x f(S', S, Aj) x f(Oi'=o, S', Aj)
+		 * 			 x Sumout[Oj'] 
+		 * 					f(Oj', Aj, Thetaj, S') x f(Mj', Mj, Aj, Oj') 
 		 */
 		
 		/* set globals and clear caches */
@@ -90,19 +89,16 @@ public class IBeliefOps extends BeliefOperations {
 						DPRef.currentOi.get(action), 
 						IPOMDP.stackArray(
 								DPRef.obsIVarPrimeIndices, obsVals));
-		LOGGER.debug("restricted Oi is ");
-		for (DD oi : restrictedOi)
-			LOGGER.debug(oi.toDDTree());
 		
 		/* Collect f1 = P(S, Mj)  */
 		DD f1 = belief;
 
-		/* Collect f2 = P(Aj | Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
+		/* Collect f2 = P(Aj | Mj) x P(Thetaj| Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
 		DD[] f2 = 
 				ArrayUtils.addAll(
 						ArrayUtils.addAll(
 								DPRef.currentTi.get(action), 
-								DPRef.currentAjGivenMj), 
+								new DD[] {DPRef.currentAjGivenMj, DPRef.currentThetajGivenMj}), 
 						restrictedOi);
 		
 		/* Get TAU */
@@ -115,7 +111,7 @@ public class IBeliefOps extends BeliefOperations {
 								ArrayUtils.addAll(f2, f1), 
 								tau), 
 						DPRef.stateVarIndices);
-
+		
 		/* Shift indices */
 		nextBelief = OP.primeVars(nextBelief, -(DPRef.S.size() + DPRef.Omega.size()));
 		
@@ -126,8 +122,8 @@ public class IBeliefOps extends BeliefOperations {
 						ArrayUtils.subarray(
 								DPRef.stateVarIndices, 
 								0, 
-								DPRef.AjVarStartPosition));
-		LOGGER.debug(norm);
+								DPRef.thetaVarPosition));
+		
 		if (norm.getVal() < 1e-8) 
 			throw new ZeroProbabilityObsException(
 					"Observation " + Arrays.toString(observations) 
@@ -262,7 +258,7 @@ public class IBeliefOps extends BeliefOperations {
 				new HashMap<String, HashMap<String, Float>>();
 		
 		/* Factor the belief state into individual variables */
-		DD[] fbs = new DD[DPRef.AjVarStartPosition];
+		DD[] fbs = new DD[DPRef.thetaVarPosition];
 		for (int varId = 0; varId < fbs.length; varId++) {
 			
 			fbs[varId] = OP.addMultVarElim(belief,
@@ -270,7 +266,7 @@ public class IBeliefOps extends BeliefOperations {
 							ArrayUtils.subarray(
 									DPRef.stateVarIndices, 
 									0, 
-									DPRef.AjVarStartPosition), varId));
+									DPRef.thetaVarPosition), varId));
 			
 			/* Make state variable name */
 			String name = DPRef.S.get(varId).name;
