@@ -47,6 +47,45 @@ public class IBeliefOps extends BeliefOperations {
 		return (IPOMDP) this.DP;
 	}
 	
+	public HashMap<String, Float> getThetaBelief(
+			HashMap<String, HashMap<String, Float>> beliefMap) {
+		/*
+		 * Computes Thetaj probabilities from the given beliefMap
+		 */
+		
+		HashMap<String, Float> ThetajBelief = new HashMap<String, Float>();
+		for (String frame : ((IPOMDP) this.DP).ThetaJ)
+			ThetajBelief.put(frame, (float) 0.0);
+		
+		/* get Mj belief */
+		HashMap<String, Float> MjBelief = beliefMap.get("M_j");
+		
+		/*
+		 * Each Mj node maps to one Thetaj, so belief over Thetaj is sum of beliefs of Mj
+		 * belonging to that Thetaj
+		 */
+		for (String model : MjBelief.keySet()) {
+			
+			int frameID = IPOMDP.getFrameIDFromVarName(model);
+			String frameName = IPOMDP.getCanonicalName(frameID, "theta");
+			
+			float val = ThetajBelief.get(frameName);
+			ThetajBelief.put(frameName, val + MjBelief.get(model));
+		}
+			
+		return ThetajBelief;
+	}
+	
+	public HashMap<String, HashMap<String, Float>> toMapWithTheta(DD belief) {
+		/*
+		 * Converts to beliefMap and adds belief over theta
+		 */
+		HashMap<String, HashMap<String, Float>> beliefMap = this.toMap(belief);
+		beliefMap.put("Theta_j", this.getThetaBelief(beliefMap));
+		
+		return beliefMap;
+	}
+	
 	@Override
 	public DD beliefUpdate(
 			DD belief, String action, String[] observations) throws ZeroProbabilityObsException {

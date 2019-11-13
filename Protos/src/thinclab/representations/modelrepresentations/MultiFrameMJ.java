@@ -10,6 +10,7 @@ package thinclab.representations.modelrepresentations;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -331,6 +332,22 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		return beliefMj;
 	}
 
+	// --------------------------------------------------------------------------------------
+	
+	public void step(DD belief, int lookAhead, HashSet<String> nonZeroMj) {
+		/*
+		 * Moves to the next time step
+		 */
+		
+		for (int frameID : this.MJs.keySet())
+			this.MJs.get(frameID).step(belief, lookAhead, nonZeroMj);
+		
+		this.T += 1;
+		LOGGER.info("Mj currently tracking time step " + this.T);
+		
+		this.buildTree();
+	}
+	
 	// --------------------------------------------------------------------------------------
 
 	public void makeAllObsCombinations(List<StateVar> obsJVars) {

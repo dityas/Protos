@@ -998,6 +998,20 @@ public class IPOMDP extends POMDP {
 		this.currentMjPGivenMjOjPAj = this.makeOpponentModelTransitionDD();
 		logger.debug("f(Mj', Aj, Mj, Oj') initialized");
 		
+		/* check if P(Mj' | Mj, Aj, Oj') CPD is valid */
+		DD cpdSum = 
+				OP.addMultVarElim(
+						this.currentMjPGivenMjOjPAj, 
+						this.MjVarIndex + (this.S.size() + this.Omega.size()));
+		
+		if (OP.maxAll(OP.abs(OP.sub(DD.one, cpdSum))) < 1e-8)
+			logger.debug("f(Mj', Aj, Mj, Oj') distribution verified");
+		
+		else {
+			logger.error("f(Mj', Aj, Mj, Oj') sums out to " + cpdSum);
+			System.exit(-1);
+		}
+		
 		if (this.currentBelief == null) {
 			DD mjInit = this.multiFrameMJ.getMjInitBelief(this.ddMaker, null).toDD();
 			DD initS = this.initBeliefDdTree.toDD();
@@ -1055,18 +1069,17 @@ public class IPOMDP extends POMDP {
 		 */
 		
 		logger.info("Taking action " + action + "\r\n"
-				+ " at belief " + InteractiveBelief.toStateMap(this, belief) + "\r\n"
+				+ " at belief " + this.toMapWithTheta(belief) + "\r\n"
 				+ " with observation " + Arrays.toString(obs));
 		
 		/* perform belief update */
 		DD nextBelief = 
-				InteractiveBelief.staticL1BeliefUpdate(
-						this, 
+				this.beliefUpdate( 
 						belief, 
 						action, 
 						obs);
 		
-		logger.debug("Next belief is " + InteractiveBelief.toStateMap(this, nextBelief));
+		logger.debug("Next belief is " + this.toMapWithTheta(nextBelief));
 		
 		/* transform Mj space to include new models in the next belief with non zero probabilities */
 		this.transformMjSpace(nextBelief);
@@ -1086,16 +1099,19 @@ public class IPOMDP extends POMDP {
 		DDTree beliefDDTree = belief.toDDTree();
 		
 		HashSet<String> nonZeroMj = 
-				new HashSet<String>(InteractiveBelief.toStateMap(this, belief).get("M_j").keySet());
+				new HashSet<String>(this.toMap(belief).get("M_j").keySet());
 		
 		/* Expand from non zero Mj to create new Mj space */
-		this.Mj.step(belief, this.mjLookAhead, nonZeroMj);
+		this.multiFrameMJ.step(belief, this.mjLookAhead, nonZeroMj);
 		
 		/* initialize new IS and commit variables */
 		this.updateMjInIS();
 		
 		/* make current belief */
-		this.currentBelief = OP.reorder(this.Mj.getMjInitBelief(this.ddMaker, beliefDDTree).toDD());
+		this.currentBelief = 
+				OP.reorder(
+						this.multiFrameMJ.getMjInitBelief(
+								this.ddMaker, beliefDDTree).toDD());
 	}
 	
 	private void updateMjInIS() {
@@ -1197,6 +1213,13 @@ public class IPOMDP extends POMDP {
 		return this.Mj.getOptimalActionAtNode(mjNode);
 	}
 	
+	public HashMap<String, HashMap<String, Float>> toMapWithTheta(DD belief) {
+		/*
+		 * Access to IBeliefOps method
+		 */
+		return ((IBeliefOps) this.bOPs).toMapWithTheta(belief);
+	}
+	
 	@Override
 	public DD getCurrentBelief() {
 		/*
@@ -1208,7 +1231,7 @@ public class IPOMDP extends POMDP {
 	@Override
 	public String getBeliefString(DD belief) {
 		
-		HashMap<String, HashMap<String, Float>> map = InteractiveBelief.toStateMap(this, belief);
+		HashMap<String, HashMap<String, Float>> map = this.toMapWithTheta(belief);
 		
 		HashMap<String, Float> lowerBeliefs = new HashMap<String, Float>();
 		

@@ -54,9 +54,6 @@ public class MJ extends DynamicBeliefTree {
 		
 		super(solver, lookAhead);
 		logger.debug("Building MJ for look ahead of " + this.maxT);
-		
-		/* build first look ahead */
-		this.buildTree();
 	}
 
 	// -------------------------------------------------------------------------------------
@@ -75,8 +72,7 @@ public class MJ extends DynamicBeliefTree {
 		
 		this.T += 1;
 		logger.info("Opponent Model currently tracking time step " + this.T);
-		
-		this.buildTree();
+
 	}
 	
 	public StateVar getOpponentModelStateVar(int index) {
@@ -403,7 +399,7 @@ public class MJ extends DynamicBeliefTree {
 		/*
 		 * Converts nodes names into integer IDs as used in the database
 		 */
-		return new Integer(node.split("/")[1].split("_")[0]);
+		return new Integer(node.split("/")[1].split("_")[1]);
 	}
 	
 	public static String makeModelLabelFromNodeId(int nodeId, int frameID) {

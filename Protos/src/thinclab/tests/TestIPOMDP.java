@@ -771,56 +771,70 @@ class TestIPOMDP {
 	}
 	
 	@Test
-	void testIPOMDPstepping() {
-		System.out.println("Running testIPOMDPstepping()");
+	void testIPOMDPsteppingSingleFrame() throws Exception {
+		LOGGER.info("Running testIPOMDPsteppingSingleFrame()");
 		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		IPOMDPParser parser = 
+				new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
 		/*
 		 * Initialize IPOMDP
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
-		try {
-
-			List<String> beliefNodes = 
-					tigerL1IPOMDP.Mj.idToNodeMap.keySet().stream()
-						.map(i -> "m" + i)
-						.collect(Collectors.toList());
-			System.out.println(beliefNodes);
 			
-			System.out.println(
-					InteractiveBelief.toStateMap(
-							tigerL1IPOMDP, 
-							tigerL1IPOMDP.lookAheadRootInitBeliefs.get(0)));
-			
-			tigerL1IPOMDP.step(
-					tigerL1IPOMDP.lookAheadRootInitBeliefs.get(0), 
-					"listen", 
-					new String[] {"growl-right", "silence"});
-			
-			tigerL1IPOMDP.step(
-					tigerL1IPOMDP.lookAheadRootInitBeliefs.get(0), 
-					"listen", 
-					new String[] {"growl-right", "silence"});
-			
-			List<String> beliefNodesNow = 
-					tigerL1IPOMDP.Mj.idToNodeMap.keySet().stream()
-						.map(i -> "m" + i)
-						.collect(Collectors.toList());
-			
-			System.out.println(beliefNodesNow);
-			System.out.println(
-					InteractiveBelief.toStateMap(
-							tigerL1IPOMDP, 
-							tigerL1IPOMDP.lookAheadRootInitBeliefs.get(0)));
-		} 
+		/* start from current belief */
+		DD start = tigerL1IPOMDP.getCurrentBelief();
+		LOGGER.debug("Current belief is " + tigerL1IPOMDP.toMapWithTheta(start));
 		
-		catch (Exception e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			fail();
-		}
+		String action1 = "listen";
+		String[] obs1 = new String[] {"growl-right", "silence"};
+		LOGGER.debug("Taking action " + action1 + " and observing " + Arrays.toString(obs1));
+		
+		DD nextBelief1 = tigerL1IPOMDP.beliefUpdate(start, action1, obs1);
+		LOGGER.debug("next belief from beliefUpdate is " 
+				+ tigerL1IPOMDP.toMapWithTheta(nextBelief1));
+		
+		tigerL1IPOMDP.step(start, action1, obs1);
+		LOGGER.debug("next belief from step is " 
+				+ tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief()));
+		
+	}
+	
+	@Test
+	void testIPOMDPstepping2Frames() throws Exception {
+		LOGGER.info("Running testIPOMDPstepping2Frames()");
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/git/repository/Protos/"
+						+ "domains/tiger.L1multiple_new_parser.txt");
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+			
+		/* start from current belief */
+		DD start = tigerL1IPOMDP.getCurrentBelief();
+		LOGGER.debug("Current belief is " + tigerL1IPOMDP.toMapWithTheta(start));
+		
+		String action1 = "listen";
+		String[] obs1 = new String[] {"growl-right", "silence"};
+		LOGGER.debug("Taking action " + action1 + " and observing " + Arrays.toString(obs1));
+		
+		DD nextBelief1 = tigerL1IPOMDP.beliefUpdate(start, action1, obs1);
+		LOGGER.debug("next belief from beliefUpdate is " 
+				+ tigerL1IPOMDP.toMapWithTheta(nextBelief1));
+		
+		tigerL1IPOMDP.step(start, action1, obs1);
+		LOGGER.debug("next belief from step is " 
+				+ tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief()));
+		
+		LOGGER.debug("Assert equality between beliefUpdate and steps");
+		
+		for (String varName : )
 		
 	}
 	
