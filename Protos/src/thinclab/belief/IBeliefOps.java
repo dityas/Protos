@@ -322,7 +322,6 @@ public class IBeliefOps extends BeliefOperations {
 			
 			else {
 				for (int i=0; i < DPRef.stateVars[varId].arity; i++) {
-					
 					if (varChildren[i].getVal() == 0.0)
 						continue;
 					

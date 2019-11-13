@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -792,12 +793,89 @@ class TestIPOMDP {
 		LOGGER.debug("Taking action " + action1 + " and observing " + Arrays.toString(obs1));
 		
 		DD nextBelief1 = tigerL1IPOMDP.beliefUpdate(start, action1, obs1);
+		HashMap<String, HashMap<String, Float>> beliefMapFromUpdate = 
+				tigerL1IPOMDP.toMapWithTheta(nextBelief1);
 		LOGGER.debug("next belief from beliefUpdate is " 
 				+ tigerL1IPOMDP.toMapWithTheta(nextBelief1));
 		
 		tigerL1IPOMDP.step(start, action1, obs1);
 		LOGGER.debug("next belief from step is " 
 				+ tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief()));
+		
+		LOGGER.debug("Assert equality between beliefUpdate and steps");
+		HashMap<String, HashMap<String, Float>> beliefMapFromStep = 
+				tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief());
+		
+		for (String varName : beliefMapFromUpdate.keySet()) {
+			for (String child : beliefMapFromUpdate.get(varName).keySet()) {
+				LOGGER.debug("Checking var=" + varName + " value=" + child);
+				assertEquals(
+						beliefMapFromUpdate.get(varName).get(child), 
+						beliefMapFromStep.get(varName).get(child));
+			}
+		}
+		
+		/* next step */
+		start = tigerL1IPOMDP.getCurrentBelief();
+		LOGGER.debug("Current belief is " + tigerL1IPOMDP.toMapWithTheta(start));
+		
+		String action2 = "listen";
+		String[] obs2 = new String[] {"growl-right", "silence"};
+		LOGGER.debug("Taking action " + action2 + " and observing " + Arrays.toString(obs2));
+		
+		DD nextBelief2 = tigerL1IPOMDP.beliefUpdate(start, action2, obs2);
+		HashMap<String, HashMap<String, Float>> beliefMapFromUpdate2 = 
+				tigerL1IPOMDP.toMapWithTheta(nextBelief2);
+		LOGGER.debug("next belief from beliefUpdate is " 
+				+ tigerL1IPOMDP.toMapWithTheta(nextBelief2));
+		
+		tigerL1IPOMDP.step(start, action2, obs2);
+		LOGGER.debug("next belief from step is " 
+				+ tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief()));
+		
+		LOGGER.debug("Assert equality between beliefUpdate and steps");
+		HashMap<String, HashMap<String, Float>> beliefMapFromStep2 = 
+				tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief());
+		
+		for (String varName : beliefMapFromUpdate2.keySet()) {
+			for (String child : beliefMapFromUpdate2.get(varName).keySet()) {
+				LOGGER.debug("Checking var=" + varName + " value=" + child);
+				assertEquals(
+						beliefMapFromUpdate2.get(varName).get(child), 
+						beliefMapFromStep2.get(varName).get(child));
+			}
+		}
+		
+		/* next step */
+		start = tigerL1IPOMDP.getCurrentBelief();
+		LOGGER.debug("Current belief is " + tigerL1IPOMDP.toMapWithTheta(start));
+		
+		String action3 = "listen";
+		String[] obs3 = new String[] {"growl-right", "creak-left"};
+		LOGGER.debug("Taking action " + action3 + " and observing " + Arrays.toString(obs3));
+		
+		DD nextBelief3 = tigerL1IPOMDP.beliefUpdate(start, action3, obs3);
+		HashMap<String, HashMap<String, Float>> beliefMapFromUpdate3 = 
+				tigerL1IPOMDP.toMapWithTheta(nextBelief3);
+		LOGGER.debug("next belief from beliefUpdate is " 
+				+ tigerL1IPOMDP.toMapWithTheta(nextBelief3));
+		
+		tigerL1IPOMDP.step(start, action3, obs3);
+		LOGGER.debug("next belief from step is " 
+				+ tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief()));
+		
+		LOGGER.debug("Assert equality between beliefUpdate and steps");
+		HashMap<String, HashMap<String, Float>> beliefMapFromStep3 = 
+				tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief());
+		
+		for (String varName : beliefMapFromUpdate3.keySet()) {
+			for (String child : beliefMapFromUpdate3.get(varName).keySet()) {
+				LOGGER.debug("Checking var=" + varName + " value=" + child);
+				assertEquals(
+						beliefMapFromUpdate3.get(varName).get(child), 
+						beliefMapFromStep3.get(varName).get(child));
+			}
+		}
 		
 	}
 	
@@ -825,6 +903,8 @@ class TestIPOMDP {
 		LOGGER.debug("Taking action " + action1 + " and observing " + Arrays.toString(obs1));
 		
 		DD nextBelief1 = tigerL1IPOMDP.beliefUpdate(start, action1, obs1);
+		HashMap<String, HashMap<String, Float>> beliefMapFromUpdate = 
+				tigerL1IPOMDP.toMapWithTheta(nextBelief1);
 		LOGGER.debug("next belief from beliefUpdate is " 
 				+ tigerL1IPOMDP.toMapWithTheta(nextBelief1));
 		
@@ -833,8 +913,79 @@ class TestIPOMDP {
 				+ tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief()));
 		
 		LOGGER.debug("Assert equality between beliefUpdate and steps");
+		HashMap<String, HashMap<String, Float>> beliefMapFromStep = 
+				tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief());
 		
-		for (String varName : )
+		for (String varName : beliefMapFromUpdate.keySet()) {
+			for (String child : beliefMapFromUpdate.get(varName).keySet()) {
+				LOGGER.debug("Checking var=" + varName + " value=" + child);
+				assertEquals(
+						beliefMapFromUpdate.get(varName).get(child), 
+						beliefMapFromStep.get(varName).get(child));
+			}
+		}
+		
+		/* next step */
+		start = tigerL1IPOMDP.getCurrentBelief();
+		LOGGER.debug("Current belief is " + tigerL1IPOMDP.toMapWithTheta(start));
+		
+		String action2 = "listen";
+		String[] obs2 = new String[] {"growl-right", "silence"};
+		LOGGER.debug("Taking action " + action2 + " and observing " + Arrays.toString(obs2));
+		
+		DD nextBelief2 = tigerL1IPOMDP.beliefUpdate(start, action2, obs2);
+		HashMap<String, HashMap<String, Float>> beliefMapFromUpdate2 = 
+				tigerL1IPOMDP.toMapWithTheta(nextBelief2);
+		LOGGER.debug("next belief from beliefUpdate is " 
+				+ tigerL1IPOMDP.toMapWithTheta(nextBelief2));
+		
+		tigerL1IPOMDP.step(start, action2, obs2);
+		LOGGER.debug("next belief from step is " 
+				+ tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief()));
+		
+		LOGGER.debug("Assert equality between beliefUpdate and steps");
+		HashMap<String, HashMap<String, Float>> beliefMapFromStep2 = 
+				tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief());
+		
+		for (String varName : beliefMapFromUpdate2.keySet()) {
+			for (String child : beliefMapFromUpdate2.get(varName).keySet()) {
+				LOGGER.debug("Checking var=" + varName + " value=" + child);
+				assertEquals(
+						beliefMapFromUpdate2.get(varName).get(child), 
+						beliefMapFromStep2.get(varName).get(child));
+			}
+		}
+		
+		/* next step */
+		start = tigerL1IPOMDP.getCurrentBelief();
+		LOGGER.debug("Current belief is " + tigerL1IPOMDP.toMapWithTheta(start));
+		
+		String action3 = "listen";
+		String[] obs3 = new String[] {"growl-right", "creak-left"};
+		LOGGER.debug("Taking action " + action3 + " and observing " + Arrays.toString(obs3));
+		
+		DD nextBelief3 = tigerL1IPOMDP.beliefUpdate(start, action3, obs3);
+		HashMap<String, HashMap<String, Float>> beliefMapFromUpdate3 = 
+				tigerL1IPOMDP.toMapWithTheta(nextBelief3);
+		LOGGER.debug("next belief from beliefUpdate is " 
+				+ tigerL1IPOMDP.toMapWithTheta(nextBelief3));
+		
+		tigerL1IPOMDP.step(start, action3, obs3);
+		LOGGER.debug("next belief from step is " 
+				+ tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief()));
+		
+		LOGGER.debug("Assert equality between beliefUpdate and steps");
+		HashMap<String, HashMap<String, Float>> beliefMapFromStep3 = 
+				tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief());
+		
+		for (String varName : beliefMapFromUpdate3.keySet()) {
+			for (String child : beliefMapFromUpdate3.get(varName).keySet()) {
+				LOGGER.debug("Checking var=" + varName + " value=" + child);
+				assertEquals(
+						beliefMapFromUpdate3.get(varName).get(child), 
+						beliefMapFromStep3.get(varName).get(child));
+			}
+		}
 		
 	}
 	
