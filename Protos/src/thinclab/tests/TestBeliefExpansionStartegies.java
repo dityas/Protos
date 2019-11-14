@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.belief.FullBeliefExpansion;
-import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;

@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -25,9 +24,7 @@ import org.apache.log4j.Logger;
 
 import thinclab.belief.IBeliefOps;
 import thinclab.belief.SSGABeliefExpansion;
-import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
-import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;

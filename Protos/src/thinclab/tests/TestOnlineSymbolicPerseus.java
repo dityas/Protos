@@ -13,6 +13,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.FullInteractiveBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
@@ -30,13 +31,15 @@ import thinclab.utils.CustomConfigurationFactory;
 class TestOnlineSymbolicPerseus {
 
 	public String l1DomainFile;
+	public String l1multiple;
 	public String tigerDom;
 	
 	@BeforeEach
 	void setUp() throws Exception {
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
-//		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
+		this.l1multiple = 
+				"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
 	}
 
 	@AfterEach
@@ -110,11 +113,11 @@ class TestOnlineSymbolicPerseus {
 	
 	@Test
 	void testOnlineIPBVI() throws ZeroProbabilityObsException {
-		CustomConfigurationFactory.setLogFileName("test.log");
+//		CustomConfigurationFactory.setLogFileName("test.log");
 		CustomConfigurationFactory.initializeLogging();
 		System.out.println("Running testFHLASolverUtiliyComputation()");
 		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		IPOMDPParser parser = new IPOMDPParser(this.l1multiple);
 		parser.parseDomain();
 		
 		/*
@@ -122,8 +125,8 @@ class TestOnlineSymbolicPerseus {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		
-		FullInteractiveBeliefExpansion fb = 
-				new FullInteractiveBeliefExpansion(
+		FullBeliefExpansion fb = 
+				new FullBeliefExpansion(
 						tigerL1IPOMDP);
 		
 		OnlineIPBVISolver solver = 

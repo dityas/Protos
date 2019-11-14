@@ -7,7 +7,6 @@
  */
 package thinclab.representations.modelrepresentations;
 
-import java.util.HashMap;
 import java.util.List;
 
 import thinclab.ddinterface.DDMaker;

@@ -206,7 +206,7 @@ public abstract class DecisionProcess {
 	}
 	
 	public DD norm(
-			DD previousBelief, String action, String[] observations) 
+			DD previousBelief, String action) 
 					throws ZeroProbabilityObsException {
 		
 		return this.bOPs.norm(previousBelief, action);

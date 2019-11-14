@@ -8,11 +8,11 @@
 package thinclab.solvers;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
-import thinclab.belief.BeliefOps;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
@@ -249,7 +249,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			float errorVar = this.getErrorVariance((float) bellmanErr);
 			
 			logger.info("STEP: " + stepId 
-					+ " \tBELLMAN ERROR: " + bellmanErr
+					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr)
 					+ " \tUSED/BELIEF POINTS: " + numUsed + "/" + belRegion.length
 					+ " \tA VECTORS: " + alphaVectors.length);
 			

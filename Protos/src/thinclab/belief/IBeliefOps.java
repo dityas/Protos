@@ -185,12 +185,12 @@ public class IBeliefOps extends BeliefOperations {
 		/* Collect f1 = P(S, Mj)  */
 		DD f1 = belief;
 
-		/* Collect f2 = P(Aj | Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
+		/* Collect f2 = P(Aj | Mj) x P(Thetaj| Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
 		DD[] f2 = 
 				ArrayUtils.addAll(
 						ArrayUtils.addAll(
 								DPRef.currentTi.get(action), 
-								DPRef.currentAjGivenMj), 
+								new DD[] {DPRef.currentAjGivenMj, DPRef.currentThetajGivenMj}), 
 						DPRef.currentOi.get(action));
 		
 		/* Get TAU */
@@ -204,57 +204,58 @@ public class IBeliefOps extends BeliefOperations {
 								tau), 
 						DPRef.stateVarIndices);
 
-		/* Shift indices */
-		nextBelief = OP.primeVars(nextBelief, -(DPRef.S.size() + DPRef.Omega.size()));
-
 		/* compute normalization factor */
 		DD norm = 
 				OP.addMultVarElim(
 						nextBelief, 
 						ArrayUtils.subarray(
-								DPRef.stateVarIndices, 
+								DPRef.stateVarPrimeIndices, 
 								0, 
-								DPRef.AjVarStartPosition));
-		
+								DPRef.thetaVarPosition));
+
 		return norm;
 	}
 	
-//	public static DD[] getCpts(
-//			IPOMDP ipomdp,
-//			DD[] startBelief, 
-//			String actName) throws ZeroProbabilityObsException, VariableNotFoundException {
-//		/*
-//		 * Because the dpBackUp implementation by Hoey needs it.
-//		 * 
-//		 * Returns all CPTs for marginalization inside Hoey's symbolic perseus.
-//		 */
-//		
-////		/* f(S, Mj) does not depend on Aj */
-////		DD[] f1 = startBelief;
-////		
-//		/* [f(S', Aj, S), f(Aj, Mj)] */
-//		DD[] f2 = ArrayUtils.add(ipomdp.currentTi.get(actName), ipomdp.currentAjGivenMj);
-//		
-//		/* [f(S', Aj, S), f(Aj, Mj), f(Oi', Aj, S)] */
-//		f2 = ArrayUtils.addAll(f2, ipomdp.currentOi.get(actName));
-//		
-////		/* tau */
-////		DD[] f3 = ArrayUtils.add(ipomdp.currentOj, ipomdp.currentMjTfn);
-//		
-//		/* Compute tau */
-////		DD tau = OP.addMultVarElim(f3, ipomdp.obsJVarPrimeIndices);
-//		
-//		DD[] f4 = ArrayUtils.add(f2, ipomdp.currentTau);
-//		
-//		DD addOutAj = OP.addMultVarElim(f4, ipomdp.AjIndex);
-//		
-////		DD[] cpts = new DD[f4.length];
-////		
-////		for (int i = 0; i < f4.length; i++)
-////			cpts[i] = OP.addout(f4[i], ipomdp.AjIndex);
-//		
-//		return ArrayUtils.addAll(startBelief, addOutAj);
-//	}
+	public DD[] getCpts(
+			DD belief, 
+			String actName) throws ZeroProbabilityObsException {
+		/*
+		 * Because the dpBackUp implementation by Hoey needs it.
+		 * 
+		 * Returns all CPTs for marginalization inside Hoey's symbolic perseus.
+		 */
+		/* set globals and clear caches */
+		this.DP.setGlobals();
+		
+		IPOMDP DPRef = this.getIPOMDP();
+
+		/* Collect f1 = P(S, Mj)  */
+		DD f1 = belief;
+
+		/* Collect f2 = P(Aj | Mj) x P(Thetaj| Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
+		DD[] f2 = 
+				ArrayUtils.addAll(
+						ArrayUtils.addAll(
+								DPRef.currentTi.get(actName), 
+								new DD[] {DPRef.currentAjGivenMj, DPRef.currentThetajGivenMj}), 
+						DPRef.currentOi.get(actName));
+		
+		/* Get TAU */
+		DD tau = DPRef.currentTau;
+		
+		/* assemble all factors in a single array */
+		DD[] f3 = ArrayUtils.add(f2, tau);
+		f3 = ArrayUtils.add(f3, DPRef.currentThetajGivenMj);
+		
+		DD addOutThetajAj = 
+				OP.addMultVarElim(
+						f3, 
+						new int[] {
+								DPRef.thetaVarPosition + 1, 
+								DPRef.AjVarStartPosition + 1});
+		
+		return new DD[] {addOutThetajAj, f1};
+	}
 	
 	@Override
 	public DD[] factorBelief(DD belief) {

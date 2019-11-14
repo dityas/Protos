@@ -10,7 +10,6 @@ package thinclab.representations.modelrepresentations;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,7 +22,6 @@ import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
 import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.decisionprocesses.IPOMDP;
-import thinclab.exceptions.VariableNotFoundException;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
@@ -38,8 +36,6 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 	/*
 	 * Mj abstraction for IPOMDPs with multiple lower level frames
 	 * 
-	 * TODO: don't try to subclass MJ now. Finish API first and then later try to
-	 * write a common interface which both can implement.
 	 */
 
 	private static final long serialVersionUID = -4213555463993538751L;
