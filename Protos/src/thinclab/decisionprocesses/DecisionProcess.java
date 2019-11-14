@@ -7,6 +7,7 @@
  */
 package thinclab.decisionprocesses;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,10 +25,12 @@ import thinclab.legacy.OP;
  * @author adityas
  *
  */
-public abstract class DecisionProcess {
+public abstract class DecisionProcess implements Serializable {
 	/*
 	 * Defines the basic skeleton for a POMDP or IPOMDP object
 	 */
+	
+	private static final long serialVersionUID = 6510842405416915682L;
 	
 	public int level;
 	public int frameID;

@@ -134,7 +134,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 			 * observing obs.
 			 */
 			this.ipomdp.step(
-					this.ipomdp.getInitialBeliefs().get(0), 
+					this.ipomdp.getCurrentBelief(), 
 					action, obs.toArray(new String[obs.size()]));
 
 			/* Reset the search to new initial beliefs */

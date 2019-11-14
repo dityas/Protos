@@ -20,8 +20,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.belief.FullInteractiveBeliefExpansion;
-import thinclab.belief.InteractiveBelief;
+import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.ddinterface.DDTree;
 import thinclab.ddinterface.DDTreeLeaf;
@@ -84,7 +83,7 @@ class TestRepresentations {
 		OnlineInteractiveSymbolicPerseus solver = 
 				new OnlineInteractiveSymbolicPerseus(
 						tigerL1IPOMDP, 
-						new FullInteractiveBeliefExpansion(tigerL1IPOMDP), 
+						new FullBeliefExpansion(tigerL1IPOMDP), 
 						1, 
 						100);
 

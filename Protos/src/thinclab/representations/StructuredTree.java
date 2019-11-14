@@ -74,22 +74,12 @@ public class StructuredTree implements Serializable {
 			 * If the process is an IPOMDP, do an IPOMDP belief update
 			 * else POMDP belief update
 			 */
-			if (f.getType().contentEquals("IPOMDP")) {
-//				nextBelief = 
-//						InteractiveBelief.staticL1BeliefUpdate(
-//								(IPOMDP) f, 
-//								belief, 
-//								action, 
-//								obs.toArray(new String[obs.size()]));
-			}
 			
-			else {
-				nextBelief = 
-						f.beliefUpdate( 
-								belief, 
-								action, 
-								obs.toArray(new String[obs.size()]));
-			}
+			nextBelief = 
+					f.beliefUpdate( 
+							belief, 
+							action, 
+							obs.toArray(new String[obs.size()]));
 			
 			/* add to belief set if nextBelief is unique */
 			if (!currentLevelBeliefSet.containsKey(nextBelief)) {
@@ -164,22 +154,12 @@ public class StructuredTree implements Serializable {
 			 * If the process is an IPOMDP, do an IPOMDP belief update
 			 * else POMDP belief update
 			 */
-			if (solver.f.getType().contentEquals("IPOMDP")) {
-//				nextBelief = 
-//						InteractiveBelief.staticL1BeliefUpdate(
-//								(IPOMDP) solver.f, 
-//								parentNodeBelief, 
-//								action, 
-//								obs.toArray(new String[obs.size()]));
-			}
-			
-			else {
-				nextBelief = 
-						solver.f.beliefUpdate( 
-								parentNodeBelief, 
-								action, 
-								obs.toArray(new String[obs.size()])); 
-			}
+
+			nextBelief = 
+					solver.f.beliefUpdate( 
+							parentNodeBelief, 
+							action, 
+							obs.toArray(new String[obs.size()])); 
 			
 			String nextBeliefString = solver.f.getBeliefString(nextBelief);
 			
@@ -283,7 +263,7 @@ public class StructuredTree implements Serializable {
 					+ "Ai=" + entry.getValue().actName + " | "
 					+ entry.getValue().sBelief
 						.replace("{", "(")
-						.replace("}", ")")
+						.replace("}", ")").replace("^", "|")
 					+ "}\"];" + endl;
 		}
 		

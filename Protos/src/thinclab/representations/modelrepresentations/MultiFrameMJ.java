@@ -345,7 +345,31 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 	}
 	
 	// --------------------------------------------------------------------------------------
-
+	
+	public String getOptimalActionAtNode(String node) {
+		/*
+		 * Returns j's optimal action at the belief point at node
+		 */
+		int frame = IPOMDP.getFrameIDFromVarName(node);
+		
+		return this.idToNodeMap.get(frame).get(MJ.getNodeId(node)).actName;
+	}
+	
+	public String getBeliefTextAtNode(String node) {
+		/*
+		 * Returns j's beliefs at node
+		 * 
+		 * Note that this method only returns the string representation and not the actual
+		 * usable belief
+		 */
+		
+		int frame = IPOMDP.getFrameIDFromVarName(node);
+		
+		return this.idToNodeMap.get(frame).get(MJ.getNodeId(node)).sBelief;
+	}
+	
+	// --------------------------------------------------------------------------------------
+	
 	public void makeAllObsCombinations(List<StateVar> obsJVars) {
 		/*
 		 * Makes all possible combinations of observation values

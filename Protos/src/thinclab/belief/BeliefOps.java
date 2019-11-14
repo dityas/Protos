@@ -23,11 +23,13 @@ import thinclab.legacy.OP;
  * @author adityas
  *
  */
-public class BeliefOps extends BeliefOperations{
+public class BeliefOps extends BeliefOperations {
 	
 	/*
 	 * POMDP belief operations
 	 */
+	
+	private static final long serialVersionUID = 8420140973547035341L;
 	
 	private static final Logger LOGGER = Logger.getLogger(BeliefOps.class);
 	

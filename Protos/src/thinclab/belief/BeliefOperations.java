@@ -7,6 +7,7 @@
  */
 package thinclab.belief;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -18,11 +19,13 @@ import thinclab.legacy.DD;
  * @author adityas
  *
  */
-public abstract class BeliefOperations {
+public abstract class BeliefOperations  implements Serializable {
 	
 	/*
 	 * All operations related to POMDP beliefs or IPOMDP beliefs
 	 */
+	
+	private static final long serialVersionUID = -1748928413815709851L;
 	
 	/* store a reference to the DecisionProcess */
 	public DecisionProcess DP;

@@ -30,7 +30,8 @@ public class IBeliefOps extends BeliefOperations {
 	/*
 	 * Operations on IPOMDP beliefs
 	 */
-	
+
+	private static final long serialVersionUID = -2262326916798060288L;
 	private static final Logger LOGGER = Logger.getLogger(IBeliefOps.class);
 	
 	public IBeliefOps(IPOMDP ipomdp) {
