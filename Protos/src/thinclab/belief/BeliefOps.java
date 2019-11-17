@@ -10,6 +10,7 @@ package thinclab.belief;
 import java.util.Collection;
 import java.util.HashMap;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.POMDP;
@@ -163,9 +164,24 @@ public class BeliefOps extends BeliefOperations {
 	}
 
 	@Override
-	public DD norm(DD previousBelief, String action) throws ZeroProbabilityObsException {
-		// TODO Auto-generated method stub
-		return null;
+	public DD norm(DD previousBelief, String action) {
+		/*
+		 * Gets the observation distribution
+		 */
+		
+		/* set globals and all that */
+		this.DP.setGlobals();
+		POMDP POMDPRef = this.getPOMDP();
+		
+		int actId = POMDPRef.getActions().indexOf(action);
+		
+		DD obsDist = OP.addMultVarElim(
+				POMDP.concatenateArray(previousBelief, 
+						POMDPRef.actions[actId].transFn,
+						POMDPRef.actions[actId].obsFn), 
+				ArrayUtils.addAll(POMDPRef.varIndices, POMDPRef.primeVarIndices));
+		
+		return obsDist;
 	}
 
 	@Override

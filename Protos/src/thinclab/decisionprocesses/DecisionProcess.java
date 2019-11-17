@@ -50,6 +50,8 @@ public abstract class DecisionProcess implements Serializable {
 	public abstract void setGlobals();
 	public abstract String getType();
 	public abstract String getBeliefString(DD belief);
+	public abstract DD getRewardFunctionForAction(String action);
+	public abstract void step(DD belief, String action, String[] obs) throws Exception;
 	
 	// ---------------------------------------------------------------------------------
 	
@@ -209,8 +211,7 @@ public abstract class DecisionProcess implements Serializable {
 	}
 	
 	public DD norm(
-			DD previousBelief, String action) 
-					throws ZeroProbabilityObsException {
+			DD previousBelief, String action) {
 		
 		return this.bOPs.norm(previousBelief, action);
 	}

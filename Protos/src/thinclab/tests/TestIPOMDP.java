@@ -9,13 +9,10 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -23,22 +20,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.belief.BeliefOps;
-import thinclab.ddinterface.DDMaker;
-import thinclab.ddinterface.DDTree;
-import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.decisionprocesses.IPOMDP;
-import thinclab.decisionprocesses.POMDP;
-import thinclab.exceptions.ParserException;
-import thinclab.exceptions.SolverException;
-import thinclab.exceptions.VariableNotFoundException;
-import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.legacy.Config;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
-import thinclab.representations.modelrepresentations.MJ;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*

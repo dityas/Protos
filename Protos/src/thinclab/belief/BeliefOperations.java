@@ -40,8 +40,7 @@ public abstract class BeliefOperations  implements Serializable {
 	
 	/* compute norm of next belief given previous belief */
 	public abstract DD norm(
-			DD previousBelief, String action) 
-					throws ZeroProbabilityObsException;
+			DD previousBelief, String action);
 	
 	/* get a hashmap representation of the belief */
 	public abstract HashMap<String, HashMap<String, Float>> toMap(DD belief);

@@ -1051,6 +1051,7 @@ public class IPOMDP extends POMDP {
 	
 	//------------------------------------------------------------------------------------------
 	
+	@Override
 	public void step(
 			DD belief, 
 			String action, 
@@ -1193,6 +1194,15 @@ public class IPOMDP extends POMDP {
 	@Override
 	public String getType() {
 		return "IPOMDP";
+	}
+	
+	@Override
+	public DD getRewardFunctionForAction(String action) {
+		/*
+		 * Returns the reward function for the particular action
+		 */
+		
+		return this.currentRi.get(action);
 	}
 	
 	public String getLowerLevelBeliefLabel(String valName) {

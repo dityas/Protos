@@ -19,6 +19,7 @@ import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
@@ -204,5 +205,20 @@ class TestPOMDPSolvers {
 		
 		assertTrue(
 				solver.getActionForBelief(nextBelief).contentEquals("listen"));
+	}
+	
+	@Test
+	void testSim() {
+		LOGGER.info("Testing Stochastic sim");
+		
+		POMDP p1 = new POMDP(this.tigerDom);
+		FullBeliefExpansion fb = new FullBeliefExpansion(p1, 2);
+		OfflineSymbolicPerseus solver = new OfflineSymbolicPerseus(p1, fb, 4, 100);
+		solver.solve();
+		
+		StochasticSimulation ss = new StochasticSimulation(solver, 10);
+		ss.runSimulation();
+		
+		LOGGER.debug(ss.getDotString());
 	}
 }
