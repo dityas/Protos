@@ -44,9 +44,11 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 	public HashMap<Integer, MJ> MJs = new HashMap<Integer, MJ>();
 
 	/* store nodeMaps and edge Maps of all frames */
-	public HashMap<Integer, HashMap<Integer, PolicyNode>> idToNodeMap = new HashMap<Integer, HashMap<Integer, PolicyNode>>();
+	public HashMap<Integer, HashMap<Integer, PolicyNode>> idToNodeMap = 
+			new HashMap<Integer, HashMap<Integer, PolicyNode>>();
 
-	public HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>> edgeMap = new HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>>();
+	public HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>> edgeMap = 
+			new HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>>();
 
 	/* compute all possible obs combinations at once and store them */
 	public List<List<String>> obsCombinations;

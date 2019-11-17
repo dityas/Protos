@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
@@ -96,7 +98,10 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 	
 	public void pruneZeroProbabilityLeaves(Collection<String> nonZeroLeaves) {
 		
-		List<Integer> nonZeroIds = MJ.getNodeIds(nonZeroLeaves);
+		List<Integer> nonZeroIds = 
+				MJ.getNodeIds(nonZeroLeaves.stream()
+								.filter(n -> IPOMDP.getFrameIDFromVarName(n) == this.f.frameID)
+								.collect(Collectors.toList()));
 		this.pruneZeroProbabilityLeaves(nonZeroIds);
 	}
 	

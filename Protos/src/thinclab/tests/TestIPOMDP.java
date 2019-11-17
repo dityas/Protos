@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -32,6 +33,7 @@ import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.legacy.Config;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
@@ -560,6 +562,32 @@ class TestIPOMDP {
 			}
 		}
 		
+		LOGGER.info("Running random steps");
+		
+		parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 3);
+		
+		Random rand = new Random();
+		
+		/* run for 100 iters */
+		for (int i = 0; i < 100; i++) {
+			
+			List<String> actions = ipomdp.getActions();
+			String action = actions.get(rand.nextInt(actions.size()));
+			
+			DD obsdist = ipomdp.norm(ipomdp.getCurrentBelief(), action);
+			
+			int[][] obsConfig = OP.sampleMultinomial(obsdist, ipomdp.obsIVarPrimeIndices);
+			String[] obs = new String[obsConfig[0].length];
+			
+			for (int varI = 0; varI < obsConfig[0].length; varI ++) {
+				obs[varI] = Global.valNames[obsConfig[0][varI] - 1][obsConfig[1][varI] - 1];
+			}
+			
+			ipomdp.step(ipomdp.getCurrentBelief(), action, obs);
+		}
 	}
 	
 	@Test
@@ -668,6 +696,35 @@ class TestIPOMDP {
 						beliefMapFromUpdate3.get(varName).get(child), 
 						beliefMapFromStep3.get(varName).get(child));
 			}
+		}
+		
+		LOGGER.info("Running random steps");
+		
+		parser = new IPOMDPParser(
+						"/home/adityas/git/repository/Protos/"
+						+ "domains/tiger.L1multiple_new_parser.txt");
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 3);
+		
+		Random rand = new Random();
+		
+		/* run for 100 iters */
+		for (int i = 0; i < 100; i++) {
+			
+			List<String> actions = ipomdp.getActions();
+			String action = actions.get(rand.nextInt(actions.size()));
+			
+			DD obsdist = ipomdp.norm(ipomdp.getCurrentBelief(), action);
+			
+			int[][] obsConfig = OP.sampleMultinomial(obsdist, ipomdp.obsIVarPrimeIndices);
+			String[] obs = new String[obsConfig[0].length];
+			
+			for (int varI = 0; varI < obsConfig[0].length; varI ++) {
+				obs[varI] = Global.valNames[obsConfig[0][varI] - 1][obsConfig[1][varI] - 1];
+			}
+			
+			ipomdp.step(ipomdp.getCurrentBelief(), action, obs);
 		}
 		
 	}
