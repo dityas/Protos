@@ -63,6 +63,8 @@ public class StochasticSimulation extends Simulation {
 			int nextNode = this.step(this.solver, previousNode);
 			previousNode = nextNode;
 		}
+		
+		this.logResults();
 	}
 
 }

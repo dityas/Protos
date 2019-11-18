@@ -16,6 +16,7 @@ import thinclab.belief.FullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.conditionalplans.WalkablePolicyTree;
+import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineSolver;
 import thinclab.utils.CustomConfigurationFactory;
@@ -38,7 +39,6 @@ public class IPOMDPSolver extends Executable {
 	public int perseusRounds;
 	public int numDpBackups;
 	public int lookAhead;
-	public int planDepth;
 	
 	/* conditional plan instance */
 	public WalkablePolicyTree plan;
@@ -48,7 +48,7 @@ public class IPOMDPSolver extends Executable {
 	
 	// ---------------------------------------------------------------------------------------------
 	
-	public IPOMDPSolver(String fileName, int rounds, int dpBackups, int lookAhead, int planDepth) {
+	public IPOMDPSolver(String fileName, int rounds, int dpBackups, int lookAhead) {
 		
 		/*
 		 * Set class attributes
@@ -58,12 +58,11 @@ public class IPOMDPSolver extends Executable {
 		this.perseusRounds = rounds;
 		this.numDpBackups = dpBackups;
 		this.lookAhead = lookAhead;
-		this.planDepth = planDepth;
 	}
 	
-	public void buildPlan() {
+	public void initializeIPOMDP() {
 		/*
-		 * Starts the solver and waits for convergence or max rounds
+		 * Parses domain and solves lower level frames
 		 */
 		IPOMDPParser parser = new IPOMDPParser(this.domainFile);
 		parser.parseDomain();
@@ -75,9 +74,22 @@ public class IPOMDPSolver extends Executable {
 						this.ipomdp, 
 						new FullBeliefExpansion(this.ipomdp), 
 						1, this.numDpBackups);
-		
-		this.plan = new WalkablePolicyTree(solver, this.planDepth);
+	}
+	
+	public void buildPlan(int depth) {
+		/*
+		 * Starts the solver and waits for convergence or max rounds
+		 */
+		this.plan = new WalkablePolicyTree(solver, depth);
 		this.plan.buildTree();
+	}
+	
+	public void runSim(int nIters) {
+		/*
+		 * Run stochastic simulator for given iterations
+		 */
+		StochasticSimulation ss = new StochasticSimulation(this.solver, nIters);
+		ss.runSimulation();
 	}
 	
 	public void makeConditionalPlan(String dirName) {
@@ -119,6 +131,13 @@ public class IPOMDPSolver extends Executable {
 				"make conditional plan for 10 time steps and "
 				+ "create dot and JSON files in the given dir");
 		
+		/* simulation switch */
+		opt.addOption(
+				"t",
+				"sim",
+				true,
+				"run stochastic simulation for given iterations");
+		
 		CommandLine line = null;
 		IPOMDPSolver solver = null;
 
@@ -139,19 +158,26 @@ public class IPOMDPSolver extends Executable {
 			/* set look ahead */
 			int backups = new Integer(line.getOptionValue("b"));
 			
-			/* set search depth */
-			int search = new Integer(line.getOptionValue("s"));
-			
 			/* set look ahead */
 			int lookAhead = new Integer(line.getOptionValue("h"));
 			
-			solver = new IPOMDPSolver(domainFile, 1, backups, lookAhead, search);
-			solver.buildPlan();
+			solver = new IPOMDPSolver(domainFile, 1, backups, lookAhead);
+			solver.initializeIPOMDP();
 			
 			/* conditional plan and policy graph */
 			if (line.hasOption("p")) {
 				String planDir = line.getOptionValue("p");
+				
+				/* set plan depth */
+				int depth = new Integer(line.getOptionValue("s"));
+				solver.buildPlan(depth);
 				solver.makeConditionalPlan(planDir);
+			}
+			
+			/* conditional plan and policy graph */
+			if (line.hasOption("t")) {
+				int simIters = Integer.parseInt(line.getOptionValue("t"));
+				solver.runSim(simIters);
 			}
 			
 		} 

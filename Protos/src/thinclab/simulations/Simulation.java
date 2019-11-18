@@ -160,5 +160,22 @@ public class Simulation extends StructuredTree {
 		
 		return obs;
 	}
+	
+	public void logResults() {
+		/*
+		 * Writes all results to the logger
+		 */
+		
+		LOGGER.info("Sim results:");
+		LOGGER.info("belief, action, obs, immediate R, cumulative R");
+		
+		for (int i = 0; i < this.beliefSequence.size(); i++) {
+			LOGGER.info(this.beliefSequence.get(i).replace(",", " ") + ", "
+					+ this.actionSequence.get(i) + ", "
+					+ this.obsSequence.get(i).replace(", ", " ") + ", "
+					+ this.immediateRewardSequence.get(i) + ", "
+					+ this.cumulativeRewardSequence.get(i));
+		}
+	}
 
 }
