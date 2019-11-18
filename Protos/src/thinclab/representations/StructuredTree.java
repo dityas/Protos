@@ -262,8 +262,7 @@ public class StructuredTree implements Serializable {
 			dotString += " " + entry.getKey() + " [shape=record, label=\"{"
 					+ "Ai=" + entry.getValue().actName + " | "
 					+ entry.getValue().sBelief
-						.replace("{", "(")
-						.replace("}", ")").replace("^", "|")
+						.replace("^", "|")
 					+ "}\"];" + endl;
 		}
 		

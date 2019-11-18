@@ -9,6 +9,7 @@ package thinclab.simulations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -21,6 +22,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.representations.StructuredTree;
+import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
 import thinclab.solvers.OnlineSolver;
 
@@ -56,14 +58,18 @@ public class Simulation extends StructuredTree {
 	
 	// ------------------------------------------------------------------------------------------
 	
-	public void step(BaseSolver solver) {
+	public int step(BaseSolver solver, int currentNode) {
 		
 		try {
 			
-			DD currentBelief = solver.f.getCurrentBelief();
+			DD currentBelief = this.idToNodeMap.get(currentNode).belief;
+			
+			if (solver instanceof OnlineSolver)
+				((OnlineSolver) solver).solveCurrentStep();
 			
 			/* optimal action */
 			String action = solver.getActionForBelief(currentBelief);
+			this.idToNodeMap.get(currentNode).actName = action;
 			
 			String[] obs = this.sampleObservation(solver.f, currentBelief, action);
 			
@@ -104,16 +110,31 @@ public class Simulation extends StructuredTree {
 			
 			else
 				solver.f.step(currentBelief, action, obs);
+			
+			/* make policy node for next belief */
+			PolicyNode nextNode = new PolicyNode();
+			nextNode.belief = solver.f.getCurrentBelief();
+			nextNode.sBelief = solver.f.getBeliefString(solver.f.getCurrentBelief());
+			nextNode.id = this.currentPolicyNodeCounter++;
+			this.idToNodeMap.put(nextNode.id, nextNode);
+			
+			/* make path */
+			this.edgeMap.put(currentNode, new HashMap<List<String>, Integer>());
+			this.edgeMap.get(currentNode).put(Arrays.asList(obs), nextNode.id);
+			
+			return nextNode.id;
 		}
 		
 		catch (ZeroProbabilityObsException o) {
-			
+			return -1;
 		}
 		
 		catch (Exception e) {
 			LOGGER.error("While running belief update " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
+			
+			return -1;
 		}
 	}
 	

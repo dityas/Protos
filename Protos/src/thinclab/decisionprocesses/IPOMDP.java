@@ -1224,7 +1224,6 @@ public class IPOMDP extends POMDP {
 		/*
 		 * Access to IBeliefOps method
 		 */
-		logger.debug(this.bOPs);
 		return ((IBeliefOps) this.bOPs).toMapWithTheta(belief);
 	}
 	
@@ -1242,9 +1241,20 @@ public class IPOMDP extends POMDP {
 		HashMap<String, HashMap<String, Float>> map = this.toMapWithTheta(belief);
 		
 		HashMap<String, Float> lowerBeliefs = new HashMap<String, Float>();
+		HashMap<String, String> optimalActions = new HashMap<String, String>();
 		
-		for (String node : map.get("M_j").keySet())
-			lowerBeliefs.put(this.getLowerLevelBeliefLabel(node), map.get("M_j").get(node));
+		for (String node : map.get("M_j").keySet()) {
+			lowerBeliefs.put(
+					this.getLowerLevelBeliefLabel(node)
+						.replace(",", " ").replace("}", ")").replace("{", "(")
+						+ " theta/" + IPOMDP.getFrameIDFromVarName(node), 
+					map.get("M_j").get(node));
+			optimalActions.put(
+					this.getLowerLevelBeliefLabel(node) 
+						.replace(",", " ").replace("}", ")").replace("{", "(")
+						+ " theta/" + IPOMDP.getFrameIDFromVarName(node), 
+					this.multiFrameMJ.getOptimalActionAtNode(node));
+		}
 		
 		map.replace("M_j", lowerBeliefs);
 		
@@ -1265,7 +1275,9 @@ public class IPOMDP extends POMDP {
 		beliefString += " " + seperator + " ";
 		beliefString += "M_j" + seperator;
 		for (String mj : map.get("M_j").keySet()) {
-			beliefString += mj + ": " + map.get("M_j").get(mj) + " " + seperator;
+			beliefString += "{" +
+					mj + ": " + map.get("M_j").get(mj).toString()
+					+ seperator + "Aj= " + optimalActions.get(mj) + "} " + seperator;
 		}
 		
 		
