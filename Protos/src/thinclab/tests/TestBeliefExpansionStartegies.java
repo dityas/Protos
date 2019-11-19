@@ -127,7 +127,7 @@ class TestBeliefExpansionStartegies {
 		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 10, 3);
+		IPOMDP ipomdp = new IPOMDP(parser, 3);
 		
 		LOGGER.info("Testing initialization");
 		FullBeliefExpansion fb = new FullBeliefExpansion(ipomdp);

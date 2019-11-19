@@ -143,7 +143,7 @@ public class IPOMDP extends POMDP {
 	
 	// ----------------------------------------------------------------------------------------
 	
-	public IPOMDP(IPOMDPParser parsedFrame, int mjMaxDepth, int mjlookAhead) {
+	public IPOMDP(IPOMDPParser parsedFrame, int mjlookAhead) {
 		/*
 		 * Initialize from a IPOMDPParser object
 		 */
@@ -153,7 +153,6 @@ public class IPOMDP extends POMDP {
 			logger.info("Initializing IPOMDP from parser.");
 			
 			this.initializeFromParsers(parsedFrame);
-			this.setMjDepth(mjMaxDepth);
 			this.setMjLookAhead(mjlookAhead);
 			
 			logger.info("IPOMDP initialized");
@@ -1239,55 +1238,6 @@ public class IPOMDP extends POMDP {
 		return this.currentBelief;
 	}
 	
-//	@Override
-//	public String getBeliefString(DD belief) {
-//		
-//		HashMap<String, HashMap<String, Float>> map = this.toMapWithTheta(belief);
-//		
-//		HashMap<String, Float> lowerBeliefs = new HashMap<String, Float>();
-//		HashMap<String, String> optimalActions = new HashMap<String, String>();
-//		
-//		for (String node : map.get("M_j").keySet()) {
-//			lowerBeliefs.put(
-//					this.getLowerLevelBeliefLabel(node)
-//						.replace(",", " ").replace("}", ")").replace("{", "(")
-//						+ " theta/" + IPOMDP.getFrameIDFromVarName(node), 
-//					map.get("M_j").get(node));
-//			optimalActions.put(
-//					this.getLowerLevelBeliefLabel(node) 
-//						.replace(",", " ").replace("}", ")").replace("{", "(")
-//						+ " theta/" + IPOMDP.getFrameIDFromVarName(node), 
-//					this.multiFrameMJ.getOptimalActionAtNode(node));
-//		}
-//		
-//		map.replace("M_j", lowerBeliefs);
-//		
-//		String beliefString = "";
-//		String seperator = "^";
-//		
-//		for (String key : map.keySet()) {
-//			
-//			if (key.contentEquals("M_j")) continue;
-//			
-//			beliefString += key + " " + seperator;
-//			
-//			for (String state : map.get(key).keySet()) {
-//				beliefString += state + ": " + map.get(key).get(state) + " " + seperator;
-//			}
-//		}
-//		
-//		beliefString += " " + seperator + " ";
-//		beliefString += "M_j" + seperator;
-//		for (String mj : map.get("M_j").keySet()) {
-//			beliefString += "{" +
-//					mj + ": " + map.get("M_j").get(mj).toString()
-//					+ seperator + "Aj= " + optimalActions.get(mj) + "} " + seperator;
-//		}
-//		
-//		
-//		return beliefString;
-//	}
-	
 	@Override
 	public String getBeliefString(DD belief) {
 		/*
@@ -1301,7 +1251,6 @@ public class IPOMDP extends POMDP {
 		Gson gsonHandler = 
 				new GsonBuilder()
 					.disableHtmlEscaping()
-					.setPrettyPrinting()
 					.create();
 		
 		/* make lower level beliefs */

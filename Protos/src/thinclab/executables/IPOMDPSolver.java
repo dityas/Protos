@@ -67,7 +67,7 @@ public class IPOMDPSolver extends Executable {
 		IPOMDPParser parser = new IPOMDPParser(this.domainFile);
 		parser.parseDomain();
 		
-		this.ipomdp = new IPOMDP(parser, this.lookAhead, this.lookAhead);
+		this.ipomdp = new IPOMDP(parser, this.lookAhead);
 		
 		this.solver = 
 				new OnlineIPBVISolver(

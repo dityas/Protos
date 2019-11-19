@@ -9,22 +9,16 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.ddinterface.DDTree;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
-import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
-import thinclab.legacy.Global;
-import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.utils.CustomConfigurationFactory;
 
@@ -66,7 +60,7 @@ class TestBeliefOperations {
 		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
 		parser.parseDomain();
 		
-		this.ipomdp = new IPOMDP(parser, 10, 3);
+		this.ipomdp = new IPOMDP(parser, 3);
 		LOGGER.info("IPOMDP initialized");
 		
 		LOGGER.info("Checking DD to hashmap conversion for beliefs");
@@ -112,7 +106,7 @@ class TestBeliefOperations {
 		IPOMDPParser parser = new IPOMDPParser(l1DomainMultipleFrames);
 		parser.parseDomain();
 		
-		this.ipomdp = new IPOMDP(parser, 10, 3);
+		this.ipomdp = new IPOMDP(parser, 3);
 		LOGGER.info("IPOMDP initialized");
 		
 		LOGGER.info("Checking DD to hashmap conversion for beliefs");

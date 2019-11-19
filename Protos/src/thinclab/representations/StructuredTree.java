@@ -313,7 +313,6 @@ public class StructuredTree implements Serializable {
 		/* Make nodes */
 		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
 			dotString += " " + entry.getKey() + " [shape=record, label=\""
-//					+ "Ai=" + entry.getValue().actName + " | "
 					+ StructuredTree.jsonBeliefStringToDotNode(
 							entry.getValue().sBelief,
 							entry.getValue().actName)

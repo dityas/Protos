@@ -13,9 +13,13 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.log4j.Logger;
 
+import thinclab.belief.FullBeliefExpansion;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
+import thinclab.parsers.IPOMDPParser;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OfflineSymbolicPerseus;
+import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -111,7 +115,7 @@ public class RunSimulations extends Executable {
 			
 			/* conditional plan and policy graph */
 			if (line.hasOption("p")) {
-				LOGGER.info("Solving POMDP...");
+				LOGGER.info("Simulating POMDP...");
 				
 				int rounds = new Integer(line.getOptionValue("r"));
 				int simRounds = new Integer(line.getOptionValue("y"));
@@ -138,9 +142,35 @@ public class RunSimulations extends Executable {
 			}
 			
 			/* for IPOMDPs */
-			if (line.hasOption("i")) {
-				int simIters = Integer.parseInt(line.getOptionValue("t"));
-				solver.runSim(simIters);
+			else if (line.hasOption("i")) {
+				
+				LOGGER.info("Simulating IPOMDP...");
+				
+				int simRounds = new Integer(line.getOptionValue("y"));
+				int simLength = new Integer(line.getOptionValue("x"));
+				
+				/* run simulation for simRounds */
+				for (int i = 0; i < simRounds; i++) {
+					
+					LOGGER.info("Starting simulation round " + i);
+					
+					/* initialize IPOMDP */
+					IPOMDPParser parser = new IPOMDPParser(domainFile);
+					parser.parseDomain();
+					
+					IPOMDP ipomdp = new IPOMDP(parser, lookAhead);
+					
+					OnlineInteractiveSymbolicPerseus solver = 
+							new OnlineInteractiveSymbolicPerseus(
+									ipomdp, 
+									new FullBeliefExpansion(ipomdp), 1, backups);
+					
+					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
+					ss.runSimulation();
+					
+					ss.logToFile(storageDir + "/" + "sim" + i + ".csv");
+					ss.writeDotFile(storageDir, "sim" + i);
+				}
 			}
 			
 		} 

@@ -457,7 +457,7 @@ class TestIPOMDP {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3);
 			
 		/* start from current belief */
 		DD start = tigerL1IPOMDP.getCurrentBelief();
@@ -557,12 +557,12 @@ class TestIPOMDP {
 		parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 3);
+		IPOMDP ipomdp = new IPOMDP(parser, 3);
 		
 		Random rand = new Random();
 		
 		/* run for 100 iters */
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 10; i++) {
 			
 			List<String> actions = ipomdp.getActions();
 			String action = actions.get(rand.nextInt(actions.size()));
@@ -593,7 +593,7 @@ class TestIPOMDP {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3);
 			
 		/* start from current belief */
 		DD start = tigerL1IPOMDP.getCurrentBelief();
@@ -695,12 +695,12 @@ class TestIPOMDP {
 						+ "domains/tiger.L1multiple_new_parser.txt");
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 3);
+		IPOMDP ipomdp = new IPOMDP(parser, 3);
 		
 		Random rand = new Random();
 		
 		/* run for 100 iters */
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 10; i++) {
 			
 			List<String> actions = ipomdp.getActions();
 			String action = actions.get(rand.nextInt(actions.size()));
@@ -728,7 +728,7 @@ class TestIPOMDP {
 		parser.parseDomain();
 		
 		/* Initialize IPOMDP */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3);
 		
 		tigerL1IPOMDP.step(
 				tigerL1IPOMDP.getInitialBeliefs().get(0), 
@@ -754,7 +754,7 @@ class TestIPOMDP {
 		parser.parseDomain();
 		
 		/* Initialize IPOMDP */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3);
 		
 		LOGGER.debug(tigerL1IPOMDP.getBeliefString(tigerL1IPOMDP.getCurrentBelief()));
 		LOGGER.debug(
@@ -771,7 +771,7 @@ class TestIPOMDP {
 		parser.parseDomain();
 		
 		/* Initialize IPOMDP */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3);
 		
 		OnlineInteractiveSymbolicPerseus sp = 
 				new OnlineInteractiveSymbolicPerseus(
