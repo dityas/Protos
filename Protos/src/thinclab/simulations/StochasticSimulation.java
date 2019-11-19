@@ -24,9 +24,6 @@ public class StochasticSimulation extends Simulation {
 	 * Does not really maintain an explicit state of the system
 	 */
 	
-	public BaseSolver solver;
-	public int nIterations;
-	
 	private static final long serialVersionUID = 6158849903755845368L;
 	private static final Logger LOGGER = Logger.getLogger(StochasticSimulation.class);
 	
@@ -35,8 +32,7 @@ public class StochasticSimulation extends Simulation {
 		 * Initialize properties and attributes
 		 */
 		
-		this.solver = solver;
-		this.nIterations = iterations;
+		super(solver, iterations);
 		
 		/* make start policy node from initial belief */
 		PolicyNode node = new PolicyNode();
@@ -55,11 +51,11 @@ public class StochasticSimulation extends Simulation {
 		 * Runs the simulation for the given number of iterations
 		 */
 		
-		LOGGER.info("Running simulation for " + this.nIterations + " iterations...");
+		LOGGER.info("Running simulation for " + this.iterations + " iterations...");
 		
 		int previousNode = 0;
 		
-		for (int i = 0; i < this.nIterations; i++) {
+		for (int i = 0; i < this.iterations; i++) {
 			int nextNode = this.step(this.solver, previousNode);
 			previousNode = nextNode;
 		}

@@ -9,9 +9,11 @@ package thinclab.representations;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
@@ -19,6 +21,7 @@ import org.apache.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
@@ -248,6 +251,57 @@ public class StructuredTree implements Serializable {
 		return gsonHandler.toJson(jsonContainer);
 	}
 	
+	public static String jsonBeliefStringToDotNode(String beliefString, String action) {
+		/*
+		 * Converts a JSON formatted belief string to dot format node
+		 */
+		
+		Gson gsonHandler = 
+				new GsonBuilder()
+					.disableHtmlEscaping()
+					.setPrettyPrinting()
+					.create();
+		
+		Type hashMapType = new TypeToken<HashMap<String, HashMap<String, String>>>(){}.getType();
+		HashMap<String, HashMap<String, String>> map = 
+				gsonHandler.fromJson(
+						beliefString, 
+						hashMapType);
+		
+		String dotString = "";
+		String seperator = "|";
+		
+		dotString += "{";
+		
+		/* make Mj belief */
+		dotString += "M_j ";
+		for (String mj: map.get("M_j").keySet()) {
+			dotString += 
+					seperator + "{" + mj.replace("{", "(").replace("}", ")") 
+						+ seperator + map.get("M_j").get(mj) + "}";
+		}
+		
+		dotString += seperator;
+		
+		/* make other beliefs */
+		for (String var: map.keySet()) {
+			
+			if (var.contentEquals("M_j")) continue;
+			
+			dotString += var;
+			for (String val: map.get(var).keySet()) {
+				dotString += seperator + "{" + val + seperator + map.get(var).get(val) + "}";
+			}
+			
+			dotString += seperator;
+		}
+		
+		dotString += "Ai = " + action;
+		dotString += "}";
+		
+		return dotString;
+	}
+	
 	public String getDotString() {
 		/*
 		 * Converts to graphviz compatible dot string
@@ -259,11 +313,12 @@ public class StructuredTree implements Serializable {
 		
 		/* Make nodes */
 		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
-			dotString += " " + entry.getKey() + " [shape=record, label=\"{"
-					+ "Ai=" + entry.getValue().actName + " | "
-					+ entry.getValue().sBelief
-						.replace("^", "|")
-					+ "}\"];" + endl;
+			dotString += " " + entry.getKey() + " [shape=record, label=\""
+//					+ "Ai=" + entry.getValue().actName + " | "
+					+ StructuredTree.jsonBeliefStringToDotNode(
+							entry.getValue().sBelief,
+							entry.getValue().actName)
+					+ "\"];" + endl;
 		}
 		
 		dotString += endl;

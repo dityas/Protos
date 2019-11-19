@@ -7,6 +7,8 @@
  */
 package thinclab.simulations;
 
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -53,8 +55,22 @@ public class Simulation extends StructuredTree {
 	List<Double> immediateRewardSequence = new ArrayList<Double>();
 	List<Double> cumulativeRewardSequence = new ArrayList<Double>();
 	
+	/* simulation attribs */
+	public BaseSolver solver;
+	public int iterations;
+	
 	private static final long serialVersionUID = 4431341545771143166L;
 	private static final Logger LOGGER = Logger.getLogger(Simulation.class);
+	
+	// ------------------------------------------------------------------------------------------
+	
+	public Simulation(BaseSolver solver, int iterations) {
+		/*
+		 * Set solver instance and simulation iterations
+		 */
+		this.solver = solver;
+		this.iterations = iterations;
+	}
 	
 	// ------------------------------------------------------------------------------------------
 	
@@ -175,6 +191,36 @@ public class Simulation extends StructuredTree {
 					+ this.obsSequence.get(i).replace(", ", " ") + ", "
 					+ this.immediateRewardSequence.get(i) + ", "
 					+ this.cumulativeRewardSequence.get(i));
+		}
+	}
+	
+	public void logToFile(String fileName) {
+		/*
+		 * Writes simulation results to csv file
+		 */
+		
+		try {
+			PrintWriter writer = new PrintWriter(new FileOutputStream(fileName));
+			LOGGER.debug("Writing sim results to file " + fileName);
+			
+			writer.println("belief, action, obs, immediate R, cumulative R");
+			
+			for (int i = 0; i < this.beliefSequence.size(); i++) {
+				writer.println(this.beliefSequence.get(i).replace(",", " ") + ", "
+						+ this.actionSequence.get(i) + ", "
+						+ this.obsSequence.get(i).replace(", ", " ") + ", "
+						+ this.immediateRewardSequence.get(i) + ", "
+						+ this.cumulativeRewardSequence.get(i));
+			}
+			
+			writer.close();
+			
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While writing results to csv file: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
 		}
 	}
 

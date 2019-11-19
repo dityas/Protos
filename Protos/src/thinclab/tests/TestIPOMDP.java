@@ -20,11 +20,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.belief.FullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.representations.StructuredTree;
+import thinclab.simulations.StochasticSimulation;
+import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -723,9 +727,7 @@ class TestIPOMDP {
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
-		/*
-		 * Initialize IPOMDP
-		 */
+		/* Initialize IPOMDP */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
 		
 		tigerL1IPOMDP.step(
@@ -742,5 +744,46 @@ class TestIPOMDP {
 				"listen", 
 				new String[] {"growl-left", "silence"});
 	}
+	
+	@Test
+	void testBeliefToJSON() {
+		
+		LOGGER.info("Testing testBeliefToJSON()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/* Initialize IPOMDP */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		
+		LOGGER.debug(tigerL1IPOMDP.getBeliefString(tigerL1IPOMDP.getCurrentBelief()));
+		LOGGER.debug(
+				StructuredTree.jsonBeliefStringToDotNode(
+						tigerL1IPOMDP.getBeliefString(tigerL1IPOMDP.getCurrentBelief())));
+	}
+	
+	@Test
+	void testIPOMDPSS() {
+		
+		LOGGER.info("Testing IPOMDP stochastic sim");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/* Initialize IPOMDP */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		
+		OnlineInteractiveSymbolicPerseus sp = 
+				new OnlineInteractiveSymbolicPerseus(
+						tigerL1IPOMDP, 
+						new FullBeliefExpansion(tigerL1IPOMDP), 
+						1, 100);
+		
+		StochasticSimulation ss = new StochasticSimulation(sp, 2);
+		ss.runSimulation();
+		LOGGER.info("\r\n" + ss.getDotString());
+	}
+	
+	
 	
 }

@@ -22,6 +22,10 @@ import java.util.stream.IntStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
 import thinclab.belief.IBeliefOps;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.ddinterface.DDTree;
@@ -1235,53 +1239,108 @@ public class IPOMDP extends POMDP {
 		return this.currentBelief;
 	}
 	
+//	@Override
+//	public String getBeliefString(DD belief) {
+//		
+//		HashMap<String, HashMap<String, Float>> map = this.toMapWithTheta(belief);
+//		
+//		HashMap<String, Float> lowerBeliefs = new HashMap<String, Float>();
+//		HashMap<String, String> optimalActions = new HashMap<String, String>();
+//		
+//		for (String node : map.get("M_j").keySet()) {
+//			lowerBeliefs.put(
+//					this.getLowerLevelBeliefLabel(node)
+//						.replace(",", " ").replace("}", ")").replace("{", "(")
+//						+ " theta/" + IPOMDP.getFrameIDFromVarName(node), 
+//					map.get("M_j").get(node));
+//			optimalActions.put(
+//					this.getLowerLevelBeliefLabel(node) 
+//						.replace(",", " ").replace("}", ")").replace("{", "(")
+//						+ " theta/" + IPOMDP.getFrameIDFromVarName(node), 
+//					this.multiFrameMJ.getOptimalActionAtNode(node));
+//		}
+//		
+//		map.replace("M_j", lowerBeliefs);
+//		
+//		String beliefString = "";
+//		String seperator = "^";
+//		
+//		for (String key : map.keySet()) {
+//			
+//			if (key.contentEquals("M_j")) continue;
+//			
+//			beliefString += key + " " + seperator;
+//			
+//			for (String state : map.get(key).keySet()) {
+//				beliefString += state + ": " + map.get(key).get(state) + " " + seperator;
+//			}
+//		}
+//		
+//		beliefString += " " + seperator + " ";
+//		beliefString += "M_j" + seperator;
+//		for (String mj : map.get("M_j").keySet()) {
+//			beliefString += "{" +
+//					mj + ": " + map.get("M_j").get(mj).toString()
+//					+ seperator + "Aj= " + optimalActions.get(mj) + "} " + seperator;
+//		}
+//		
+//		
+//		return beliefString;
+//	}
+	
 	@Override
 	public String getBeliefString(DD belief) {
+		/*
+		 * Return the beliefs as a JSON string
+		 */
 		
+		/* convert belief to map */
 		HashMap<String, HashMap<String, Float>> map = this.toMapWithTheta(belief);
 		
-		HashMap<String, Float> lowerBeliefs = new HashMap<String, Float>();
-		HashMap<String, String> optimalActions = new HashMap<String, String>();
+		/* initialize JSON handler */
+		Gson gsonHandler = 
+				new GsonBuilder()
+					.disableHtmlEscaping()
+					.setPrettyPrinting()
+					.create();
+		
+		/* make lower level beliefs */
+		HashMap<HashMap<String, String>, String> lowerLevelBeliefMap = 
+				new HashMap<HashMap<String, String>, String>();
 		
 		for (String node : map.get("M_j").keySet()) {
-			lowerBeliefs.put(
-					this.getLowerLevelBeliefLabel(node)
-						.replace(",", " ").replace("}", ")").replace("{", "(")
-						+ " theta/" + IPOMDP.getFrameIDFromVarName(node), 
-					map.get("M_j").get(node));
-			optimalActions.put(
-					this.getLowerLevelBeliefLabel(node) 
-						.replace(",", " ").replace("}", ")").replace("{", "(")
-						+ " theta/" + IPOMDP.getFrameIDFromVarName(node), 
-					this.multiFrameMJ.getOptimalActionAtNode(node));
+			
+			HashMap<String, String> beliefMap = new HashMap<String, String>();
+			
+			beliefMap.put("belief_j", this.getLowerLevelBeliefLabel(node));
+			beliefMap.put("A_j", this.multiFrameMJ.getOptimalActionAtNode(node));
+			beliefMap.put("Theta_j", "theta/" + IPOMDP.getFrameIDFromVarName(node));
+			
+			lowerLevelBeliefMap.put(beliefMap, map.get("M_j").get(node).toString());
 		}
 		
-		map.replace("M_j", lowerBeliefs);
+		JsonObject jsonObject = new JsonObject();
+		jsonObject.add("M_j", gsonHandler.toJsonTree(lowerLevelBeliefMap));
 		
-		String beliefString = "";
-		String seperator = "^";
-		
+		/* add rest of the states */
 		for (String key : map.keySet()) {
 			
 			if (key.contentEquals("M_j")) continue;
 			
-			beliefString += key + " " + seperator;
-			
-			for (String state : map.get(key).keySet()) {
-				beliefString += state + ": " + map.get(key).get(state) + " " + seperator;
-			}
+			jsonObject.add(key, gsonHandler.toJsonTree(map.get(key)));
 		}
 		
-		beliefString += " " + seperator + " ";
-		beliefString += "M_j" + seperator;
-		for (String mj : map.get("M_j").keySet()) {
-			beliefString += "{" +
-					mj + ": " + map.get("M_j").get(mj).toString()
-					+ seperator + "Aj= " + optimalActions.get(mj) + "} " + seperator;
-		}
-		
-		
-		return beliefString;
+		return gsonHandler.toJson(jsonObject);
+	}
+	
+	// -----------------------------------------------------------------------------
+	
+	@Override
+	public String toString() {
+		return "IPOMDP [frameID=" + this.frameID + ", level=" + this.level
+				+ ", nFrames=" + this.lowerLevelFrames.size()
+				+ ", S=" + this.S
+				+ ", Omega=" + this.Omega;
 	}
 	
 	// -----------------------------------------------------------------------------
