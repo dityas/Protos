@@ -759,7 +759,7 @@ class TestIPOMDP {
 		LOGGER.debug(tigerL1IPOMDP.getBeliefString(tigerL1IPOMDP.getCurrentBelief()));
 		LOGGER.debug(
 				StructuredTree.jsonBeliefStringToDotNode(
-						tigerL1IPOMDP.getBeliefString(tigerL1IPOMDP.getCurrentBelief())));
+						tigerL1IPOMDP.getBeliefString(tigerL1IPOMDP.getCurrentBelief()), ""));
 	}
 	
 	@Test
