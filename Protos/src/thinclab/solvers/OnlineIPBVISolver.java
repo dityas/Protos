@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
-import thinclab.belief.InteractiveBelief;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
@@ -100,8 +99,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 
 		logger.debug("Solving for " + beliefs.size() + " belief points.");
 
-		DD[][] factoredBeliefRegion = 
-				InteractiveBelief.factorInteractiveBeliefRegion((IPOMDP) this.f, beliefs);
+		DD[][] factoredBeliefRegion = this.f.factorBeliefRegion(beliefs);
 
 		/* Make a default alphaVectors as rewards to start with */
 		this.alphaVectors = 
@@ -115,7 +113,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 
 			for (int r = 0; r < this.maxRounds; r++) {
 
-				this.IPBVI(100, r * this.dpBackups, this.dpBackups, factoredBeliefRegion);
+				this.IPBVI(100, r * this.dpBackups, this.dpBackups, factoredBeliefRegion, beliefs);
 
 			}
 		}
@@ -136,7 +134,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 			 * observing obs.
 			 */
 			this.ipomdp.step(
-					this.ipomdp.getInitialBeliefs().get(0), 
+					this.ipomdp.getCurrentBelief(), 
 					action, obs.toArray(new String[obs.size()]));
 
 			/* Reset the search to new initial beliefs */
@@ -195,7 +193,8 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	// --------------------------------------------------------------------------------------------
 
 	@SuppressWarnings("unused")
-	public void IPBVI(int maxAlpha, int firstStep, int nSteps, DD[][] beliefRegion)
+	public void IPBVI(
+			int maxAlpha, int firstStep, int nSteps, DD[][] beliefRegion, List<DD> beliefs)
 			throws ZeroProbabilityObsException, VariableNotFoundException {
 
 		double bellmanErr;
@@ -255,7 +254,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 				Global.newHashtables();
 
 				/* dpBackup */
-				newVector = AlphaVector.dpBackup(this.ipomdp, beliefRegion[i], primedV, maxAbsVal,
+				newVector = AlphaVector.dpBackup(this.ipomdp, beliefs.get(i), primedV, maxAbsVal,
 						this.alphaVectors.length);
 
 				newVector.alphaVector = OP.approximate(newVector.alphaVector,

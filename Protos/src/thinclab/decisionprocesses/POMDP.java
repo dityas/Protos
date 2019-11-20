@@ -12,9 +12,11 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
-import thinclab.belief.Belief;
+import thinclab.belief.BeliefOps;
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
+import thinclab.exceptions.VariableNotFoundException;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.Action;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
@@ -34,8 +36,6 @@ public class POMDP extends DecisionProcess implements Serializable {
 	/*
 	 * For use as IPOMDP frames at level 0
 	 */
-	public int frameID;
-	public int level = 0;
 	
 	public int nStateVars;
 	public int nObsVars;
@@ -222,20 +222,20 @@ public class POMDP extends DecisionProcess implements Serializable {
 		readFromFile(fileName, false);
 	}
 
-	public POMDP(String fileName, boolean debb, boolean ig, boolean abd) {
-		readFromFile(fileName, debb);
-		ignoremore = ig;
-		addbeldiff = abd;
-	}
-
-	public POMDP(String fileName, boolean debb, boolean ig) {
-		readFromFile(fileName, debb);
-		ignoremore = ig;
-	}
-
-	public POMDP(String fileName, boolean debb) {
-		readFromFile(fileName, debb);
-	}
+//	public POMDP(String fileName, boolean debb, boolean ig, boolean abd) {
+//		readFromFile(fileName, debb);
+//		ignoremore = ig;
+//		addbeldiff = abd;
+//	}
+//
+//	public POMDP(String fileName, boolean debb, boolean ig) {
+//		readFromFile(fileName, debb);
+//		ignoremore = ig;
+//	}
+//
+//	public POMDP(String fileName, boolean debb) {
+//		readFromFile(fileName, debb);
+//	}
 
 	public void readFromFile(String fileName) {
 		readFromFile(fileName, false);
@@ -289,6 +289,9 @@ public class POMDP extends DecisionProcess implements Serializable {
 		
 		/* Null parser reference after parsing is done */
 		this.parser = null;
+		
+		/* set belief operations handler */
+		this.bOPs = new BeliefOps(this);
 	}
 	
 	public void initializeFrameFromParser(ParseSPUDD parserObj) {
@@ -536,6 +539,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 		this.initialBelState = OP.reorder(this.initBeliefDdTree.toDD());
 		this.initialBeliefs.add(initialBelState);
 		
+		this.currentBelief = this.initialBelState;
+		
 		/*
 		 * factored initial belief state
 		 */
@@ -696,6 +701,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 		rawpomdp.parsePOMDP(false);
 
 		this.initializeFromParsers(rawpomdp);
+		
+		this.bOPs = new BeliefOps(this);
 	}
 	
 	public int findObservationByName(int ob, String oname) {
@@ -779,6 +786,37 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 * general representation using DDTree
 		 */
 		return this.Oi;
+	}
+	
+	@Override
+	public void step(
+			DD belief, 
+			String action, 
+			String[] obs) throws 
+	
+	ZeroProbabilityObsException, 
+	VariableNotFoundException {
+		
+		/*
+		 * Performs a static belief update from current belief by taking action and observing obs
+		 * 
+		 * The belief space is transformed according to the next belief. 
+		 */
+		
+		logger.info("Taking action " + action + "\r\n"
+				+ " at belief " + this.toMap(belief) + "\r\n"
+				+ " with observation " + Arrays.toString(obs));
+		
+		/* perform belief update */
+		DD nextBelief = 
+				this.beliefUpdate( 
+						belief, 
+						action, 
+						obs);
+		
+		logger.debug("Next belief is " + this.toMap(nextBelief));
+		
+		this.currentBelief = nextBelief;
 	}
 	
 	// ----------------------------------------------------------------------------------
@@ -920,12 +958,24 @@ public class POMDP extends DecisionProcess implements Serializable {
 		List<String> beliefString = new ArrayList<String>();
 		
 		/* get belief hashmap */
-		HashMap<String, HashMap<String, Float>> map = Belief.toStateMap(this, belief);
+		HashMap<String, HashMap<String, Float>> map = this.toMap(belief);
 		
 		for (StateVar s : this.S)
 			beliefString.add(s.name + ": " + map.get(s.name).toString());
 		
-		return String.join(" | ", beliefString);
+		return String.join(" ^ ", beliefString);
+	}
+	
+	@Override
+	public DD getRewardFunctionForAction(String action) {
+		/*
+		 * Returns the reward function for the given action
+		 */
+		
+		int actId = this.getActions().indexOf(action);
+		
+		return this.actions[actId].rewFn;
+		
 	}
 	
 	// -------------------------------------------------------------------------------

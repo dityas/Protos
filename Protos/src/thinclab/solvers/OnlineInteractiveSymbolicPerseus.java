@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
-import thinclab.belief.InteractiveBelief;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -65,10 +64,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		
 		logger.debug("Solving for " + beliefs.size() + " belief points.");
 		
-		DD[][] factoredBeliefRegion = 
-				InteractiveBelief.factorInteractiveBeliefRegion(
-						(IPOMDP) this.f, 
-						beliefs);
+		DD[][] factoredBeliefRegion = this.f.factorBeliefRegion(beliefs); 
 		
 		/* Make a default alphaVectors as rewards to start with */
 		this.alphaVectors = 
@@ -87,6 +83,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 						r * this.dpBackups, 
 						this.dpBackups, 
 						factoredBeliefRegion,
+						beliefs,
 						false);
 				
 			}
@@ -104,6 +101,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			int firstStep,
 			int nSteps,
 			DD[][] beliefRegion,
+			List<DD> unfactoredBeliefRegion,
 			boolean debug) throws ZeroProbabilityObsException, VariableNotFoundException {
 		
 		double bellmanErr;
@@ -124,8 +122,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			
 			for (int i = 0; i < beliefRegion.length; i++) {
 				logger.debug("Belief:" + i+ " " 
-						+ InteractiveBelief.toStateMap(
-								this.ipomdp, OP.reorder(OP.multN(beliefRegion[i]))));
+						+ this.ipomdp.toMap(unfactoredBeliefRegion.get(i)));
 			}
 			logger.debug("Ri : " + this.ipomdp.currentRi);
 		}
@@ -244,8 +241,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					newVector = 
 							AlphaVector.dpBackup(
 									this.ipomdp,
-									beliefRegion[i], 
-									primedV, 
+									unfactoredBeliefRegion.get(i), 
+									primedV,
 									maxAbsVal,
 									this.alphaVectors.length);
 

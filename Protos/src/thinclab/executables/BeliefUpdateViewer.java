@@ -17,7 +17,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import thinclab.belief.FullInteractiveBeliefExpansion;
-import thinclab.belief.InteractiveBelief;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.StateVar;
 import thinclab.parsers.IPOMDPParser;

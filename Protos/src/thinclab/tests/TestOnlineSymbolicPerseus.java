@@ -9,15 +9,17 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.belief.FullInteractiveBeliefExpansion;
+import thinclab.belief.FullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.solvers.OnlineSolver;
@@ -30,13 +32,20 @@ import thinclab.utils.CustomConfigurationFactory;
 class TestOnlineSymbolicPerseus {
 
 	public String l1DomainFile;
+	public String l1multiple;
 	public String tigerDom;
+	
+	private static Logger LOGGER;
 	
 	@BeforeEach
 	void setUp() throws Exception {
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
-//		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
+		this.l1multiple = 
+				"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
+		
+		CustomConfigurationFactory.initializeLogging();
+		LOGGER = Logger.getLogger(TestOnlineSymbolicPerseus.class);
 	}
 
 	@AfterEach
@@ -44,21 +53,21 @@ class TestOnlineSymbolicPerseus {
 	}
 
 	@Test
-	void testFHLASolverUtiliyComputation() throws ZeroProbabilityObsException {
-//		CustomConfigurationFactory.setLogFileName("test.log");
-		CustomConfigurationFactory.initializeLogging();
-		System.out.println("Running testFHLASolverUtiliyComputation()");
+	void testIPOMDPSymbolicPerseus() throws ZeroProbabilityObsException {
+
 		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		LOGGER.info("Running testOnlineSymbolicPerseus()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1multiple);
 		parser.parseDomain();
 		
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3);
 		
-		FullInteractiveBeliefExpansion fb = 
-				new FullInteractiveBeliefExpansion(
+		FullBeliefExpansion fb = 
+				new FullBeliefExpansion(
 						tigerL1IPOMDP);
 		
 		OnlineInteractiveSymbolicPerseus solver = 
@@ -68,27 +77,10 @@ class TestOnlineSymbolicPerseus {
 						1, 
 						100);
 		
-		solver.solveCurrentStep();
+		StochasticSimulation ss = new StochasticSimulation(solver, 2);
+		ss.runSimulation();
 		
-		System.out.println(tigerL1IPOMDP.currentStateBeliefs);
-		
-		solver.nextStep(
-				solver.getActionAtCurrentBelief(), 
-				tigerL1IPOMDP.obsCombinations.get(2));
-		
-//		System.out.println(tigerL1IPOMDP.currentStateBeliefs);
-		
-		solver.solveCurrentStep();
-		
-		solver.nextStep(
-				solver.getActionAtCurrentBelief(), 
-				tigerL1IPOMDP.obsCombinations.get(2));
-		
-		solver.solveCurrentStep();
-		
-		solver.nextStep(
-				solver.getActionAtCurrentBelief(), 
-				tigerL1IPOMDP.obsCombinations.get(2));
+		LOGGER.debug(ss.getDotString());
 	}
 	
 //	@Test
@@ -110,20 +102,20 @@ class TestOnlineSymbolicPerseus {
 	
 	@Test
 	void testOnlineIPBVI() throws ZeroProbabilityObsException {
-		CustomConfigurationFactory.setLogFileName("test.log");
+//		CustomConfigurationFactory.setLogFileName("test.log");
 		CustomConfigurationFactory.initializeLogging();
 		System.out.println("Running testFHLASolverUtiliyComputation()");
 		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		IPOMDPParser parser = new IPOMDPParser(this.l1multiple);
 		parser.parseDomain();
 		
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 15, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3);
 		
-		FullInteractiveBeliefExpansion fb = 
-				new FullInteractiveBeliefExpansion(
+		FullBeliefExpansion fb = 
+				new FullBeliefExpansion(
 						tigerL1IPOMDP);
 		
 		OnlineIPBVISolver solver = 

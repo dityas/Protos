@@ -13,7 +13,7 @@ import java.util.HashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
-import thinclab.belief.InteractiveBelief;
+import thinclab.belief.IBeliefOps;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
@@ -35,7 +35,7 @@ public class NextBelState {
 	public IPOMDP ipomdp;
 	public POMDP pomdp;
 	
-	private static final Logger logger = Logger.getLogger(NextBelState.class);
+	private static final Logger LOGGER = Logger.getLogger(NextBelState.class);
 	
 	public NextBelState(POMDP p, double[] obsProbs, double smallestProb) {
 		/*
@@ -194,7 +194,7 @@ public class NextBelState {
 				
 			
 			else {
-				obsProb = nextBelStates[obsPtr][this.ipomdp.nStateVars - 1].getVal();
+				obsProb = nextBelStates[obsPtr][this.ipomdp.thetaVarPosition].getVal();
 //				logger.debug("NextBelStates[obsPtr] = " + (nextBelStates[obsPtr][this.ipomdp.nStateVars - 1]));
 			}
 			
@@ -222,7 +222,7 @@ public class NextBelState {
 	
 	public static HashMap<String, NextBelState> oneStepNZPrimeBelStates(
 			IPOMDP ipomdp,
-			DD[] belState,
+			DD belState,
 			boolean normalize, 
 			double smallestProb) throws ZeroProbabilityObsException, VariableNotFoundException {
 		/*
@@ -253,11 +253,8 @@ public class NextBelState {
 		for (String Ai: ipomdp.getActions()) {
 		
 			/* Assuming factored belief was normalized */
-			dd_obsProbs = 
-					InteractiveBelief.getL1BeliefUpdateNorm(
-							ipomdp, 
-							OP.reorder(OP.multN(belState)), Ai);
-
+			dd_obsProbs = ipomdp.norm(belState, Ai); 
+			
 			obsProbs = OP.convert2array(dd_obsProbs, ipomdp.obsIVarPrimeIndices);
 			nextBelStates.put(Ai, new NextBelState(ipomdp, obsProbs, smallestProb));
 //			logger.debug("Obs Probs are " + Arrays.toString(obsProbs));
@@ -270,18 +267,17 @@ public class NextBelState {
 				if (!nextBelStates.get(Ai).isempty()) {
 					marginals = 
 							OP.marginals(
-									InteractiveBelief.getCpts(
-											ipomdp, 
+									((IBeliefOps) ipomdp.bOPs).getCpts( 
 											belState, 
 											Ai), 
 									ArrayUtils.subarray(
 											ipomdp.stateVarPrimeIndices, 
 											0, 
-											ipomdp.stateVarIndices.length - 1),
+											ipomdp.thetaVarPosition),
 									ArrayUtils.subarray(
 											ipomdp.stateVarIndices, 
 											0, 
-											ipomdp.stateVarIndices.length - 1));
+											ipomdp.thetaVarPosition));
 					
 //					logger.debug("Marginals are " + Arrays.toString(marginals));
 					nextBelStates.get(Ai).restrictN(marginals, obsConfig);
