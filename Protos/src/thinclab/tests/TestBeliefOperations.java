@@ -9,16 +9,21 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.belief.FullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
+import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.utils.CustomConfigurationFactory;
 
@@ -174,6 +179,57 @@ class TestBeliefOperations {
 		map = this.ipomdp.toMap(nextBel);
 		LOGGER.info("Verifying if state transitions make sense");
 		assertTrue((float) 0.5 > map.get("tiger-location").get("tiger-left"));
+	}
+	
+	@Test
+	void testFactoredExpectationComputation() {
+		LOGGER.info("Testing FactoredExpectation Computation");
+		
+		IPOMDPParser parser = new IPOMDPParser(l1DomainMultipleFrames);
+		parser.parseDomain();
+		
+		this.ipomdp = new IPOMDP(parser, 5);
+		
+		FullBeliefExpansion fb = new FullBeliefExpansion(this.ipomdp);
+		fb.expand();
+		
+		DD[][] factoredBeliefs = 
+				this.ipomdp.factorBeliefRegion(new ArrayList<DD>(fb.getBeliefPoints()));
+		
+		DD[] alphaVectors = 
+				this.ipomdp.currentRi.values().stream()
+					.map(a -> OP.reorder(a))
+					.collect(Collectors.toList())
+					.toArray(new DD[this.ipomdp.currentRi.size()]);
+		
+		
+		Global.clearHashtables();
+		LOGGER.debug("Running OP.FactoredExpectationSparseParallel");
+		
+		long then1 = System.nanoTime();
+		double[][] PBVs1 = OP.factoredExpectationSparseParallel(factoredBeliefs, alphaVectors);
+		long now1 = System.nanoTime();
+		
+		LOGGER.debug("That took " + (now1 - then1)/1000 + " us");
+		
+		Global.clearHashtables();
+		LOGGER.debug("Running OP.FactoredExpectationSparseParallel2");
+		
+		long then2 = System.nanoTime();
+		double[][] PBVs2 = OP.factoredExpectationSparseParallel2(factoredBeliefs, alphaVectors);
+		long now2 = System.nanoTime();
+		
+		LOGGER.debug("That took " + (now2 - then2)/1000 + " us");
+		
+		Global.clearHashtables();
+		LOGGER.debug("Running OP.FactoredExpectationSparse");
+		
+		long then = System.nanoTime();
+		double[][] PBVs = OP.factoredExpectationSparseNoMem(factoredBeliefs, alphaVectors);
+		long now = System.nanoTime();
+		
+		LOGGER.debug("That took " + (now - then)/1000 + " us");
+		
 	}
 	
 }
