@@ -164,7 +164,7 @@ public class BeliefOps extends BeliefOperations {
 	}
 
 	@Override
-	public DD norm(DD previousBelief, String action) {
+	public DD getObsDist(DD previousBelief, String action) {
 		/*
 		 * Gets the observation distribution
 		 */

@@ -160,7 +160,7 @@ public class Simulation extends StructuredTree {
 		 */
 		
 		/* sample observation */
-		DD obsDist = DP.norm(belief, action);
+		DD obsDist = DP.getObsDist(belief, action);
 		int[] obsIndices = null;
 		
 		if (DP.getType().contentEquals("IPOMDP"))

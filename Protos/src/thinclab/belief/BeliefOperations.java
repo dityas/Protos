@@ -38,8 +38,8 @@ public abstract class BeliefOperations  implements Serializable {
 	/* factorize joint distributions */
 	public abstract DD[] factorBelief(DD belief);
 	
-	/* compute norm of next belief given previous belief */
-	public abstract DD norm(
+	/* compute observation distribution given previous belief */
+	public abstract DD getObsDist(
 			DD previousBelief, String action);
 	
 	/* get a hashmap representation of the belief */

@@ -176,12 +176,12 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		 * POMDP or IPOMDP transitions to next step
 		 */
 		this.leaves.clear();
-		this.leaves.addAll(this.f.getInitialBeliefs());
+		this.leaves.add(this.f.getCurrentBelief());
 		
 		this.exploredBeliefs.clear();
 		this.exploredBeliefs.addAll(this.leaves);
 		
-		logger.debug("Belief root reset to " + this.leaves);
+		logger.debug("Belief root reset to framework's initial belief");
 	}
 	
 }

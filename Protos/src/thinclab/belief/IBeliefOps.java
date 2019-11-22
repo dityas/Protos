@@ -173,7 +173,7 @@ public class IBeliefOps extends BeliefOperations {
 	}
 	
 	@Override
-	public DD norm(DD belief, String action) {
+	public DD getObsDist(DD belief, String action) {
 		/*
 		 * Because the dpBackUp implementation by Hoey needs it.
 		 */

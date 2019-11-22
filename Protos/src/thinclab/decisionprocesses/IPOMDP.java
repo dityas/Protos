@@ -1128,6 +1128,7 @@ public class IPOMDP extends POMDP {
 						this.MjVarPosition));
 		
 		logger.debug("IS initialized to " + this.S);
+		logger.debug("Mj is tracking " + this.S.get(this.MjVarPosition).arity + " models");
 		
 		Global.clearHashtables();
 		commitVariables();

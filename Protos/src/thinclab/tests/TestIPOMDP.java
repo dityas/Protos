@@ -567,7 +567,7 @@ class TestIPOMDP {
 			List<String> actions = ipomdp.getActions();
 			String action = actions.get(rand.nextInt(actions.size()));
 			
-			DD obsdist = ipomdp.norm(ipomdp.getCurrentBelief(), action);
+			DD obsdist = ipomdp.getObsDist(ipomdp.getCurrentBelief(), action);
 			
 			int[][] obsConfig = OP.sampleMultinomial(obsdist, ipomdp.obsIVarPrimeIndices);
 			String[] obs = new String[obsConfig[0].length];
@@ -705,7 +705,7 @@ class TestIPOMDP {
 			List<String> actions = ipomdp.getActions();
 			String action = actions.get(rand.nextInt(actions.size()));
 			
-			DD obsdist = ipomdp.norm(ipomdp.getCurrentBelief(), action);
+			DD obsdist = ipomdp.getObsDist(ipomdp.getCurrentBelief(), action);
 			
 			int[][] obsConfig = OP.sampleMultinomial(obsdist, ipomdp.obsIVarPrimeIndices);
 			String[] obs = new String[obsConfig[0].length];

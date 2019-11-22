@@ -210,10 +210,10 @@ public abstract class DecisionProcess implements Serializable {
 		return this.bOPs.factorBelief(belief);
 	}
 	
-	public DD norm(
+	public DD getObsDist(
 			DD previousBelief, String action) {
 		
-		return this.bOPs.norm(previousBelief, action);
+		return this.bOPs.getObsDist(previousBelief, action);
 	}
 	
 	public HashMap<String, HashMap<String, Float>> toMap(DD belief) {

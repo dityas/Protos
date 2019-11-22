@@ -253,7 +253,7 @@ public class NextBelState {
 		for (String Ai: ipomdp.getActions()) {
 		
 			/* Assuming factored belief was normalized */
-			dd_obsProbs = ipomdp.norm(belState, Ai); 
+			dd_obsProbs = ipomdp.getObsDist(belState, Ai); 
 			
 			obsProbs = OP.convert2array(dd_obsProbs, ipomdp.obsIVarPrimeIndices);
 			nextBelStates.put(Ai, new NextBelState(ipomdp, obsProbs, smallestProb));
