@@ -324,7 +324,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 					+ "/" + beliefRegion.length 
 					+ "\tA VECTORS: " + this.alphaVectors.length);
 
-			if (stepId % 100 < 5)
+			if (stepId % 100 < 1)
 				continue;
 
 			if (bellmanErr < 0.01) {

@@ -330,7 +330,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					+ " \tUSED/TOTAL BELIEFS: " + numIter + "/" + beliefRegion.length
 					+ " \tA VECTORS: " + this.alphaVectors.length);
 			
-			if (stepId % 100 < 5)
+			if (stepId % 100 < 1)
 				continue;
 			
 			if (bellmanErr < 0.01) {

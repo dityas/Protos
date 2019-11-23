@@ -253,7 +253,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 					+ " \tUSED/BELIEF POINTS: " + numUsed + "/" + belRegion.length
 					+ " \tA VECTORS: " + alphaVectors.length);
 			
-			if (stepId % 100 < 5) continue;
+			if (stepId % 100 < 1) continue;
 			
 			if (bellmanErr < 0.01) {
 				logger.warn("BELLMAN ERROR LESS THAN 0.01. PROBABLY CONVERGED.");
