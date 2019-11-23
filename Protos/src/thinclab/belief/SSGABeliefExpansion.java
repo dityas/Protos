@@ -183,4 +183,13 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		this.exploredBeliefs.addAll(this.initialBeliefs);
 	}
 
+	@Override
+	public void clearMem() {
+		/*
+		 * Clear all beliefs
+		 */
+		this.exploredBeliefs.clear();
+		this.initialBeliefs.clear();
+	}
+
 }

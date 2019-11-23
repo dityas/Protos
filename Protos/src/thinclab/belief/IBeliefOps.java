@@ -350,11 +350,18 @@ public class IBeliefOps extends BeliefOperations {
 		DD[][] iBelRegion = 
 				new DD[beliefRegion.size()][DPRef.S.subList(0, DPRef.AjVarStartPosition).size()];
 		
-		/* Convert to array because accessing known elements is faster in arrays */
-		DD[] iBeliefRegionArray = beliefRegion.toArray(new DD[beliefRegion.size()]);
+		/* Use parallelization if Mj arity is huge */
+		if (DPRef.S.get(DPRef.MjVarPosition).arity > 200)
+			iBelRegion = 
+				beliefRegion.parallelStream()
+					.map(this::factorBelief)
+					.toArray(DD[][]::new);
 		
-		for (int i = 0; i < beliefRegion.size(); i++)
-			iBelRegion[i] = DPRef.factorBelief(iBeliefRegionArray[i]);
+		else
+			iBelRegion = 
+				beliefRegion.stream()
+					.map(this::factorBelief)
+					.toArray(DD[][]::new);
 				
 		return iBelRegion;
 	}

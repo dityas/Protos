@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -229,6 +230,31 @@ class TestBeliefOperations {
 		long now = System.nanoTime();
 		
 		LOGGER.debug("That took " + (now - then)/1000 + " us");
+		
+	}
+	
+	@Test
+	void testBeliefRegionFactoring() {
+		LOGGER.info("Testing parallelization on belief region factoring");
+		
+		/* Initialize IPOMDP */
+		LOGGER.info("Initializing IPOMDP");
+		IPOMDPParser parser = new IPOMDPParser(l1DomainMultipleFrames);
+		parser.parseDomain();
+		
+		this.ipomdp = new IPOMDP(parser, 6);
+		LOGGER.info("IPOMDP initialized");
+		
+		FullBeliefExpansion fb = new FullBeliefExpansion(this.ipomdp);
+		fb.expand();
+		
+		List<DD> beliefs = fb.getBeliefPoints();
+		LOGGER.info("Testing non parallel stream");
+		Global.clearHashtables();
+		long then = System.nanoTime();
+		DD[][] factoredBeliefsNonParallel = ipomdp.factorBeliefRegion(beliefs);
+		long now = System.nanoTime();
+		LOGGER.debug("That took " + (now - then)/1000000 + " ms");
 		
 	}
 	

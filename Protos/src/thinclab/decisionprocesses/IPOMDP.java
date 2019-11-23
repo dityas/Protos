@@ -84,9 +84,6 @@ public class IPOMDP extends POMDP {
 	
 	public int thetaVarPosition = -1;
 	
-	/* Mj's transition DD */
-	public DD MjTFn;
-	
 	/* actions costs stored locally to avoid storing the full parser object */
 	private HashMap<String, DDTree> costMap;
 	
@@ -404,6 +401,7 @@ public class IPOMDP extends POMDP {
 				/* modification for new solver API */
 				solver.solve();
 				logger.debug("Solved lower frame " + mj);
+				solver.expansionStrategy.clearMem();
 				
 				/*
 				 * NOTE: After this point, extract all the required information
@@ -703,6 +701,8 @@ public class IPOMDP extends POMDP {
 		}
 
 		logger.debug("Oj initialized");
+		logger.debug("Clearing parsed OmegaJ to save memory");
+		this.OjTheta.clear();
 		
 		return Oj;
 	}
@@ -781,6 +781,9 @@ public class IPOMDP extends POMDP {
 		}
 		
 		logger.debug("Finished making Ti");
+		logger.debug("Clearning parsed T to save memory");
+		this.Ti.clear();
+		
 		return Ti;
 	}
 	
@@ -1026,6 +1029,9 @@ public class IPOMDP extends POMDP {
 				OP.addMultVarElim(
 						ArrayUtils.add(this.currentOj, this.currentMjPGivenMjOjPAj), 
 						this.obsJVarPrimeIndices);
+		
+		/* null this.currentMjPGivenMjOjPAj to save memory */
+		this.currentMjPGivenMjOjPAj = null;
 		
 		logger.debug("TAU contains vars " + Arrays.toString(this.currentTau.getVarSet()));
 		

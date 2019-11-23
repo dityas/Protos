@@ -183,5 +183,14 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		
 		logger.debug("Belief root reset to framework's initial belief");
 	}
+
+	@Override
+	public void clearMem() {
+		/*
+		 * Remove all stored beliefs
+		 */
+		this.exploredBeliefs.clear();
+		this.leaves.clear();
+	}
 	
 }
