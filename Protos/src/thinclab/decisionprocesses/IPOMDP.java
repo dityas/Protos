@@ -453,6 +453,10 @@ public class IPOMDP extends POMDP {
 					.collect(Collectors.toList());
 		
 		this.multiFrameMJ.makeAllObsCombinations(obsJVars);
+		
+		/* Call GC to free up memory used by lower frame solvers and belief searches */
+		logger.debug("Calling GC after solving lower frames");
+		System.gc();
 	}
 	
 	public void solveIPBVI(int rounds, int numDpBackups) {
@@ -1095,6 +1099,10 @@ public class IPOMDP extends POMDP {
 		/* re initialize IS */
 		this.reinitializeOnlineFunctions();
 		logger.debug("IS reinitialized");
+		
+		/* Call GC here in hopes that it will free some memory */
+		logger.debug("Calling GC");
+		System.gc();
 	}
 	
 	public void transformMjSpace(DD belief) {
