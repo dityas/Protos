@@ -87,6 +87,9 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 						false);
 				
 			}
+			
+			this.currentPointBasedValues = null;
+			this.newPointBasedValues = null;
 		}
 		
 		catch (Exception e) {
@@ -115,6 +118,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		this.currentPointBasedValues = 
 				OP.factoredExpectationSparseNoMem(
 						beliefRegion, this.alphaVectors);
+		
+		logger.debug("Computed PBVs");
 		
 		if (debug) {
 			
@@ -241,7 +246,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					newVector = 
 							AlphaVector.dpBackup(
 									this.ipomdp,
-									unfactoredBeliefRegion.get(i), 
+									unfactoredBeliefRegion.get(i),
+									beliefRegion[i],
 									primedV,
 									maxAbsVal,
 									this.alphaVectors.length);

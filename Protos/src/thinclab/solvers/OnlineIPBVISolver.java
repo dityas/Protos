@@ -116,6 +116,9 @@ public class OnlineIPBVISolver extends OnlineSolver {
 				this.IPBVI(100, r * this.dpBackups, this.dpBackups, factoredBeliefRegion, beliefs);
 
 			}
+			
+			this.currentPointBasedValues = null;
+			this.newPointBasedValues = null;
 		}
 
 		catch (Exception e) {
@@ -254,8 +257,14 @@ public class OnlineIPBVISolver extends OnlineSolver {
 				Global.newHashtables();
 
 				/* dpBackup */
-				newVector = AlphaVector.dpBackup(this.ipomdp, beliefs.get(i), primedV, maxAbsVal,
-						this.alphaVectors.length);
+				newVector = 
+						AlphaVector.dpBackup(
+								this.ipomdp, 
+								beliefs.get(i), 
+								beliefRegion[i],
+								primedV, 
+								maxAbsVal, 
+								this.alphaVectors.length);
 
 				newVector.alphaVector = OP.approximate(newVector.alphaVector,
 						bellmanErr * (1 - this.ipomdp.discFact) / 2.0, onezero);

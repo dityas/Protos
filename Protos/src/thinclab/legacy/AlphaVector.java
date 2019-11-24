@@ -45,7 +45,8 @@ public class AlphaVector implements Serializable {
 	
 	public static AlphaVector dpBackup(
 			IPOMDP ipomdp,
-			DD belState, 
+			DD belState,
+			DD[] factoredBelState,
 			DD[] primedV, 
 			double maxAbsVal,
 			int numAlpha) throws ZeroProbabilityObsException, VariableNotFoundException {
@@ -81,7 +82,7 @@ public class AlphaVector implements Serializable {
 			/* compute immediate rewards */
 			actValue = 
 					actValue + OP.factoredExpectationSparseNoMem(
-							ipomdp.factorBelief(belState), 
+							factoredBelState, 
 							ipomdp.currentRi.get(Ai));
 
 			/* compute observation strategy */
@@ -182,7 +183,7 @@ public class AlphaVector implements Serializable {
 								newAlpha, 
 								ipomdp.currentRi.get(bestAction)));
 		
-		bestValue = OP.factoredExpectationSparse(ipomdp.factorBelief(belState), newAlpha);
+		bestValue = OP.factoredExpectationSparse(factoredBelState, newAlpha);
 
 		/* package up to return */
 		AlphaVector returnAlpha = 
