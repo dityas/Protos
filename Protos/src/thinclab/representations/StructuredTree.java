@@ -300,7 +300,7 @@ public class StructuredTree implements Serializable {
 		dotString += "Ai = " + action;
 		dotString += "}";
 		
-		return dotString;
+		return dotString.replace("\"", "");
 	}
 	
 	public String getDotString() {
