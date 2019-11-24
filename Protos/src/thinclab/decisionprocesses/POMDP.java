@@ -12,6 +12,10 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
 import thinclab.belief.BeliefOps;
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
@@ -955,15 +959,24 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 * Mostly useful printing out the beliefs for policy graphs and trees
 		 */
 		
-		List<String> beliefString = new ArrayList<String>();
+		/* initialize JSON handler */
+		Gson gsonHandler = 
+				new GsonBuilder()
+					.disableHtmlEscaping()
+					.create();
 		
 		/* get belief hashmap */
 		HashMap<String, HashMap<String, Float>> map = this.toMap(belief);
 		
-		for (StateVar s : this.S)
-			beliefString.add(s.name + ": " + map.get(s.name).toString());
+		/* create JSON container */
+		JsonObject jsonObject = new JsonObject();
 		
-		return String.join(" ^ ", beliefString);
+		/* add the states */
+		for (String key : map.keySet()) {
+			jsonObject.add(key, gsonHandler.toJsonTree(map.get(key)));
+		}
+		
+		return gsonHandler.toJson(jsonObject);
 	}
 	
 	@Override
