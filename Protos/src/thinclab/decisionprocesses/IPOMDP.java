@@ -41,6 +41,7 @@ import thinclab.parsers.IPOMDPParser;
 import thinclab.parsers.ParseSPUDD;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.modelrepresentations.MultiFrameMJ;
+import thinclab.solvers.BaseSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 
 /*
@@ -65,6 +66,7 @@ public class IPOMDP extends POMDP {
 	 * Store lower level frames
 	 */
 	public List<POMDP> lowerLevelFrames = new ArrayList<POMDP>();
+	public List<BaseSolver> lowerLevelSolvers = new ArrayList<BaseSolver>();
 	
 	/*
 	 * Store a local reference to OpponentModel object to get easier access to node
@@ -99,6 +101,7 @@ public class IPOMDP extends POMDP {
 	 */
 	public int mjDepth;
 	public int mjLookAhead;
+	public int mjSearchDepth;
 	
 	/*
 	 * Variables for current look ahead horizon
@@ -140,7 +143,7 @@ public class IPOMDP extends POMDP {
 	
 	// ----------------------------------------------------------------------------------------
 	
-	public IPOMDP(IPOMDPParser parsedFrame, int mjlookAhead) {
+	public IPOMDP(IPOMDPParser parsedFrame, int mjlookAhead, int mjSearchDepth) {
 		/*
 		 * Initialize from a IPOMDPParser object
 		 */
@@ -151,6 +154,8 @@ public class IPOMDP extends POMDP {
 			
 			this.initializeFromParsers(parsedFrame);
 			this.setMjLookAhead(mjlookAhead);
+			
+			this.mjSearchDepth = mjSearchDepth;
 			
 			logger.info("IPOMDP initialized");
 			
@@ -325,6 +330,15 @@ public class IPOMDP extends POMDP {
 		this.mjLookAhead = horizon;
 	}
 	
+	public void clearSolverRefs() {
+		/*
+		 * Deletes all references to lower level solvers to save memory
+		 */
+		logger.debug("Deleting all references to lower level solvers");
+		this.lowerLevelSolvers.clear();
+		this.lowerLevelSolvers = null;
+	}
+	
 	private void unRollWildCards() {
 		/*
 		 * The domain file can have wild cards to specify multiple transitions in a single action
@@ -395,13 +409,14 @@ public class IPOMDP extends POMDP {
 				OfflineSymbolicPerseus solver = 
 						new OfflineSymbolicPerseus(
 								(POMDP) mj, 
-								new SSGABeliefExpansion((POMDP) mj, 100, 5), 
+								new SSGABeliefExpansion((POMDP) mj, this.mjSearchDepth, 5), 
 								10, 100);
 				
 				/* modification for new solver API */
 				solver.solve();
 				logger.debug("Solved lower frame " + mj);
 				solver.expansionStrategy.clearMem();
+				this.lowerLevelSolvers.add(solver);
 				
 				/*
 				 * NOTE: After this point, extract all the required information

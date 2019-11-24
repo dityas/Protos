@@ -64,7 +64,7 @@ class TestOnlineSymbolicPerseus {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
 		
 		FullBeliefExpansion fb = 
 				new FullBeliefExpansion(
@@ -112,7 +112,7 @@ class TestOnlineSymbolicPerseus {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
 		
 		FullBeliefExpansion fb = 
 				new FullBeliefExpansion(

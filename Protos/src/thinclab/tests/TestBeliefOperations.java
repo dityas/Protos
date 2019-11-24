@@ -66,7 +66,7 @@ class TestBeliefOperations {
 		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
 		parser.parseDomain();
 		
-		this.ipomdp = new IPOMDP(parser, 3);
+		this.ipomdp = new IPOMDP(parser, 3, 20);
 		LOGGER.info("IPOMDP initialized");
 		
 		LOGGER.info("Checking DD to hashmap conversion for beliefs");
@@ -112,7 +112,7 @@ class TestBeliefOperations {
 		IPOMDPParser parser = new IPOMDPParser(l1DomainMultipleFrames);
 		parser.parseDomain();
 		
-		this.ipomdp = new IPOMDP(parser, 3);
+		this.ipomdp = new IPOMDP(parser, 3, 20);
 		LOGGER.info("IPOMDP initialized");
 		
 		LOGGER.info("Checking DD to hashmap conversion for beliefs");
@@ -189,7 +189,7 @@ class TestBeliefOperations {
 		IPOMDPParser parser = new IPOMDPParser(l1DomainMultipleFrames);
 		parser.parseDomain();
 		
-		this.ipomdp = new IPOMDP(parser, 5);
+		this.ipomdp = new IPOMDP(parser, 5, 20);
 		
 		FullBeliefExpansion fb = new FullBeliefExpansion(this.ipomdp);
 		fb.expand();
@@ -242,7 +242,7 @@ class TestBeliefOperations {
 		IPOMDPParser parser = new IPOMDPParser(l1DomainMultipleFrames);
 		parser.parseDomain();
 		
-		this.ipomdp = new IPOMDP(parser, 6);
+		this.ipomdp = new IPOMDP(parser, 6, 20);
 		LOGGER.info("IPOMDP initialized");
 		
 		FullBeliefExpansion fb = new FullBeliefExpansion(this.ipomdp);

@@ -60,14 +60,14 @@ public class IPOMDPSolver extends Executable {
 		this.lookAhead = lookAhead;
 	}
 	
-	public void initializeIPOMDP() {
+	public void initializeIPOMDP(int searchDepth) {
 		/*
 		 * Parses domain and solves lower level frames
 		 */
 		IPOMDPParser parser = new IPOMDPParser(this.domainFile);
 		parser.parseDomain();
 		
-		this.ipomdp = new IPOMDP(parser, this.lookAhead);
+		this.ipomdp = new IPOMDP(parser, this.lookAhead, searchDepth);
 		
 		this.solver = 
 				new OnlineIPBVISolver(
@@ -162,7 +162,6 @@ public class IPOMDPSolver extends Executable {
 			int lookAhead = new Integer(line.getOptionValue("h"));
 			
 			solver = new IPOMDPSolver(domainFile, 1, backups, lookAhead);
-			solver.initializeIPOMDP();
 			
 			/* conditional plan and policy graph */
 			if (line.hasOption("p")) {
@@ -170,6 +169,7 @@ public class IPOMDPSolver extends Executable {
 				
 				/* set plan depth */
 				int depth = new Integer(line.getOptionValue("s"));
+				solver.initializeIPOMDP(depth * 2);
 				solver.buildPlan(depth);
 				solver.makeConditionalPlan(planDir);
 			}
@@ -177,6 +177,7 @@ public class IPOMDPSolver extends Executable {
 			/* conditional plan and policy graph */
 			if (line.hasOption("t")) {
 				int simIters = Integer.parseInt(line.getOptionValue("t"));
+				solver.initializeIPOMDP(simIters * 2);
 				solver.runSim(simIters);
 			}
 			
