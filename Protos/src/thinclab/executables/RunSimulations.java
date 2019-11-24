@@ -19,8 +19,6 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.simulations.StochasticSimulation;
-import thinclab.solvers.BaseSolver;
-import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
@@ -163,23 +161,19 @@ public class RunSimulations extends Executable {
 					
 					IPOMDP ipomdp = new IPOMDP(parser, lookAhead, simLength * 2);
 					
-					for (BaseSolver solver : ipomdp.lowerLevelSolvers) {
-						
-						/* make policy graph */
-						PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
-						pg.makeGraph();
+					for (PolicyGraph pg : ipomdp.lowerLevelSolutions) {
 						
 						/* store policy graph solution */
 						pg.writeDotFile(
 								storageDir, 
-								"policy_graph_frame_" + solver.f.frameID + "_" + i + ".dot");
+								"policy_graph_frame_" + pg.solver.f.frameID + "_" + i + ".dot");
 						
 						pg.writeJSONFile(
 								storageDir, 
-								"policy_graph_frame_" + solver.f.frameID + "_" + i + ".json");
+								"policy_graph_frame_" + pg.solver.f.frameID + "_" + i + ".json");
 					}
 					
-					ipomdp.clearSolverRefs();
+					ipomdp.clearLowerLevelSolutions();
 					
 					OnlineInteractiveSymbolicPerseus solver = 
 							new OnlineInteractiveSymbolicPerseus(

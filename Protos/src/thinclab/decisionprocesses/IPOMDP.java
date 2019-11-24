@@ -41,7 +41,7 @@ import thinclab.parsers.IPOMDPParser;
 import thinclab.parsers.ParseSPUDD;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.modelrepresentations.MultiFrameMJ;
-import thinclab.solvers.BaseSolver;
+import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.solvers.OfflineSymbolicPerseus;
 
 /*
@@ -66,7 +66,7 @@ public class IPOMDP extends POMDP {
 	 * Store lower level frames
 	 */
 	public List<POMDP> lowerLevelFrames = new ArrayList<POMDP>();
-	public List<BaseSolver> lowerLevelSolvers = new ArrayList<BaseSolver>();
+	public List<PolicyGraph> lowerLevelSolutions = new ArrayList<PolicyGraph>();
 	
 	/*
 	 * Store a local reference to OpponentModel object to get easier access to node
@@ -330,13 +330,13 @@ public class IPOMDP extends POMDP {
 		this.mjLookAhead = horizon;
 	}
 	
-	public void clearSolverRefs() {
+	public void clearLowerLevelSolutions() {
 		/*
 		 * Deletes all references to lower level solvers to save memory
 		 */
-		logger.debug("Deleting all references to lower level solvers");
-		this.lowerLevelSolvers.clear();
-		this.lowerLevelSolvers = null;
+		logger.debug("Deleting all lower level policy graphs");
+		this.lowerLevelSolutions.clear();
+		this.lowerLevelSolutions = null;
 	}
 	
 	private void unRollWildCards() {
@@ -416,7 +416,12 @@ public class IPOMDP extends POMDP {
 				solver.solve();
 				logger.debug("Solved lower frame " + mj);
 				solver.expansionStrategy.clearMem();
-				this.lowerLevelSolvers.add(solver);
+				
+				/* make policy graph */
+				PolicyGraph pg = new PolicyGraph(solver);
+				pg.makeGraph();
+				
+				this.lowerLevelSolutions.add(pg);
 				
 				/*
 				 * NOTE: After this point, extract all the required information
@@ -1208,6 +1213,7 @@ public class IPOMDP extends POMDP {
 	
 	@Override
 	public List<DD> getInitialBeliefs() {
+		
 		List<DD> initBelief = new ArrayList<DD>();
 		initBelief.add(this.currentBelief);
 		

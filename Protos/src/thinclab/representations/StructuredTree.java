@@ -272,12 +272,14 @@ public class StructuredTree implements Serializable {
 		
 		dotString += "{";
 		
-		/* make Mj belief */
-		dotString += "M_j ";
-		for (String mj: map.get("M_j").keySet()) {
-			dotString += 
-					seperator + "{" + mj.replace("{", "(").replace("}", ")") 
-						+ seperator + map.get("M_j").get(mj) + "}";
+		if (map.containsKey("M_j")) {
+			/* make Mj belief */
+			dotString += "M_j ";
+			for (String mj: map.get("M_j").keySet()) {
+				dotString += 
+						seperator + "{" + mj.replace("{", "(").replace("}", ")") 
+							+ seperator + map.get("M_j").get(mj) + "}";
+			}
 		}
 		
 		dotString += seperator;
