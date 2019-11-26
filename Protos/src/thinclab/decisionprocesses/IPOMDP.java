@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import thinclab.belief.IBeliefOps;
 import thinclab.belief.SSGABeliefExpansion;
@@ -1290,22 +1291,32 @@ public class IPOMDP extends POMDP {
 					.create();
 		
 		/* make lower level beliefs */
-		HashMap<HashMap<String, String>, String> lowerLevelBeliefMap = 
-				new HashMap<HashMap<String, String>, String>();
+		List<JsonObject> lowerLevelBeliefsJSONList = new ArrayList<JsonObject>();
 		
 		for (String node : map.get("M_j").keySet()) {
 			
-			HashMap<String, String> beliefMap = new HashMap<String, String>();
+			/* make a key value set of belief, optimal action, and frame */
+			JsonObject currentBeliefJSON = new JsonObject();
 			
-			beliefMap.put("belief_j", this.getLowerLevelBeliefLabel(node));
-			beliefMap.put("A_j", this.multiFrameMJ.getOptimalActionAtNode(node));
-			beliefMap.put("Theta_j", "theta/" + IPOMDP.getFrameIDFromVarName(node));
+			currentBeliefJSON.add("belief_j", 
+					gsonHandler.fromJson(this.getLowerLevelBeliefLabel(node), JsonObject.class));
+			currentBeliefJSON.add("A_j", 
+					new JsonPrimitive(multiFrameMJ.getOptimalActionAtNode(node)));
+			currentBeliefJSON.add("Theta_j", 
+					new JsonPrimitive("theta/" + IPOMDP.getFrameIDFromVarName(node)));
 			
-			lowerLevelBeliefMap.put(beliefMap, map.get("M_j").get(node).toString());
+			/* make key val pair for probability of mj */
+			JsonObject beliefValueJSON = new JsonObject();
+			
+			beliefValueJSON.add("model", currentBeliefJSON);
+			beliefValueJSON.add("prob", new JsonPrimitive(map.get("M_j").get(node)));
+			
+			lowerLevelBeliefsJSONList.add(beliefValueJSON);
 		}
 		
+		/* add mj belief*/
 		JsonObject jsonObject = new JsonObject();
-		jsonObject.add("M_j", gsonHandler.toJsonTree(lowerLevelBeliefMap));
+		jsonObject.add("M_j", gsonHandler.toJsonTree(lowerLevelBeliefsJSONList));
 		
 		/* add rest of the states */
 		for (String key : map.keySet()) {

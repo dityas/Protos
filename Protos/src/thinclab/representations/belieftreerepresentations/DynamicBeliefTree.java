@@ -56,7 +56,7 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 			node.belief = this.f.getInitialBeliefs().get(i);
 			node.H = 0;
 			
-			node.sBelief = this.f.toMap(node.belief).toString();
+			node.sBelief = this.f.getBeliefString(node.belief);
 			
 			if (this.solver != null)
 				node.actName = this.solver.getActionForBelief(node.belief);

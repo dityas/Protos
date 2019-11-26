@@ -85,6 +85,8 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 
 		for (Integer frameID : this.MJs.keySet()) {
 
+			LOGGER.debug("Building look ahead tree for frame " + frameID);
+			
 			/* build each tree */
 			this.MJs.get(frameID).buildTree();
 

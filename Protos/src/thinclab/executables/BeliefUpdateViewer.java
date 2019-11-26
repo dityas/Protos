@@ -16,7 +16,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import thinclab.belief.FullInteractiveBeliefExpansion;
+import thinclab.belief.FullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.StateVar;
 import thinclab.parsers.IPOMDPParser;
@@ -28,7 +28,7 @@ import thinclab.utils.CustomConfigurationFactory;
  * @author adityas
  *
  */
-public class BeliefUpdateViewer {
+public class BeliefUpdateViewer extends Executable {
 	/*
 	 * Just a console based helper to step through the belief update
 	 */
@@ -40,7 +40,7 @@ public class BeliefUpdateViewer {
 	public boolean bt = false;
 	
 	public IPOMDP ipomdp;
-	public FullInteractiveBeliefExpansion expansionStrat;
+	public FullBeliefExpansion expansionStrat;
 	public OnlineSolver solver;
 	
 	public void initialize() {
@@ -53,11 +53,11 @@ public class BeliefUpdateViewer {
 		parser.parseDomain();
 		
 		/* Initialize IPOMDP */
-		this.ipomdp = new IPOMDP(parser, this.mjDepth, this.mjLookAhead);
+		this.ipomdp = new IPOMDP(parser, this.mjLookAhead, this.mjDepth);
 		System.out.println("IPOMDP initialized");
 		
 		/* Initialize expansion strategy */
-		this.expansionStrat = new FullInteractiveBeliefExpansion(this.ipomdp);
+		this.expansionStrat = new FullBeliefExpansion(this.ipomdp);
 		System.out.println("IPOMDP initialized");
 		
 		/* Initialize solver */
@@ -90,10 +90,7 @@ public class BeliefUpdateViewer {
 		/* Print the current belief state with info about j's beliefs */
 		System.out.println("Time Step: " + stepNumber);
 		System.out.println("Current belief: ");
-		System.out.println(
-				InteractiveBelief.getBeliefNodeLabel(
-						this.ipomdp, 
-						this.ipomdp.getCurrentBelief()).replace("<br>", "\r\n"));
+		System.out.println(this.ipomdp.getBeliefString(this.ipomdp.getCurrentBelief()));
 		
 		/* 
 		 * compute unfactored state space dimensions by multiplying the arity of all 
@@ -176,7 +173,7 @@ public class BeliefUpdateViewer {
 			buViewer.mjLookAhead = new Integer(line.getOptionValue("m"));
 		} 
 		
-		catch (ParseException e) {
+		catch (Exception e) {
 			System.out.println("While parsing args: " + e.getMessage());
 			Executable.printHelp(opt);
 			e.printStackTrace();
