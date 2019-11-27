@@ -186,7 +186,7 @@ public class Simulation extends StructuredTree {
 		LOGGER.info("belief, action, obs, immediate R, cumulative R");
 		
 		for (int i = 0; i < this.beliefSequence.size(); i++) {
-			LOGGER.info(this.beliefSequence.get(i).replace(",", " ") + ", "
+			LOGGER.info(this.beliefSequence.get(i) + ", "
 					+ this.actionSequence.get(i) + ", "
 					+ this.obsSequence.get(i).replace(", ", " ") + ", "
 					+ this.immediateRewardSequence.get(i) + ", "
@@ -206,7 +206,7 @@ public class Simulation extends StructuredTree {
 			writer.println("belief, action, obs, immediate R, cumulative R");
 			
 			for (int i = 0; i < this.beliefSequence.size(); i++) {
-				writer.println(this.beliefSequence.get(i).replace(",", " ").replace("\"", "") + ", "
+				writer.println(this.beliefSequence.get(i) + ", "
 						+ this.actionSequence.get(i) + ", "
 						+ this.obsSequence.get(i).replace(", ", " ") + ", "
 						+ this.immediateRewardSequence.get(i) + ", "

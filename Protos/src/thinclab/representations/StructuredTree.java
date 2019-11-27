@@ -19,7 +19,11 @@ import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonStreamParser;
 import com.google.gson.reflect.TypeToken;
 
 import thinclab.decisionprocesses.DecisionProcess;
@@ -255,48 +259,70 @@ public class StructuredTree implements Serializable {
 		 * Converts a JSON formatted belief string to dot format node
 		 */
 		
+		/* JSON Tree object */
+		JsonElement JSONTree = JsonParser.parseString(beliefString);
+		
 		Gson gsonHandler = 
 				new GsonBuilder()
 					.disableHtmlEscaping()
-					.setPrettyPrinting()
 					.create();
 		
-		Type hashMapType = new TypeToken<HashMap<String, HashMap<String, String>>>(){}.getType();
-		HashMap<String, HashMap<String, String>> map = 
-				gsonHandler.fromJson(
-						beliefString, 
-						hashMapType);
+//		Type hashMapType = new TypeToken<HashMap<String, JsonObject>>(){}.getType();
+//		HashMap<String, JsonObject> map = 
+//				gsonHandler.fromJson(
+//						beliefString, 
+//						hashMapType);
+		
+		JsonArray mjArray = JSONTree.getAsJsonObject().get("M_j").getAsJsonArray();
 		
 		String dotString = "";
 		String seperator = "|";
 		
 		dotString += "{";
 		
-		if (map.containsKey("M_j")) {
-			/* make Mj belief */
-			dotString += "M_j ";
-			for (String mj: map.get("M_j").keySet()) {
-				dotString += 
-						seperator + "{" + mj.replace("{", "(").replace("}", ")") 
-							+ seperator + map.get("M_j").get(mj) + "}";
-			}
+		/* make Mj belief */
+		dotString += "M_j ";
+		
+		/* deserialize the list of mj beliefs */
+		for (JsonElement mj: mjArray) {
+			
+			/* convert to JSON object */
+			JsonObject mjJSON = mj.getAsJsonObject(); 
+			
+			dotString += 
+					seperator + "{" + 
+						"{" + gsonHandler.toJson(
+								mjJSON.get("model").getAsJsonObject().get("belief_j"))
+							.replace("{", "(")
+							.replace("}", ")") 
+							
+							+ seperator + gsonHandler.toJson(
+									mjJSON.get("model").getAsJsonObject().get("A_j"))
+							+ seperator + gsonHandler.toJson(
+									mjJSON.get("model").getAsJsonObject().get("Theta_j"))
+						+ "}"
+						+ seperator + gsonHandler.toJson(mjJSON.get("prob")) + "}";
 		}
 		
 		dotString += seperator;
 		
 		/* make other beliefs */
-		for (String var: map.keySet()) {
+		for (String var: JSONTree.getAsJsonObject().keySet()) {
 			
 			if (var.contentEquals("M_j")) continue;
 			
-			dotString += var;
-			for (String val: map.get(var).keySet()) {
-				dotString += seperator + "{" + val + seperator + map.get(var).get(val) + "}";
-			}
-			
 			dotString += seperator;
+			
+			dotString += var;
+//			for (String val: map.get(var).keySet()) {
+//				dotString += seperator + "{" + val + seperator + map.get(var).get(val) + "}";
+//			}
+			
+			dotString += seperator + gsonHandler.toJson(JSONTree.getAsJsonObject().get(var)) + seperator; 
+//			
 		}
 		
+		dotString += seperator;
 		dotString += "Ai = " + action;
 		dotString += "}";
 		
