@@ -9,7 +9,6 @@ package thinclab.representations;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,8 +22,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonStreamParser;
-import com.google.gson.reflect.TypeToken;
 
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
@@ -151,6 +148,12 @@ public class StructuredTree implements Serializable {
 		/* 
 		 * Make the next node after taking action at parentNodeBelief and observing the
 		 * specified observation
+		 * 
+		 * 
+		 * WARNING: This method uses belief strings to maintain unique beliefs. After the recent
+		 * commits, belief strings are built from JSON objects and hashmaps which do not guarantee
+		 * the ordering of keys. So same beliefs can be stored as unique beliefs just because of key
+		 * ordering is different. Do not use this function will be removed soon
 		 */
 		try {
 			
@@ -267,12 +270,6 @@ public class StructuredTree implements Serializable {
 					.disableHtmlEscaping()
 					.create();
 		
-//		Type hashMapType = new TypeToken<HashMap<String, JsonObject>>(){}.getType();
-//		HashMap<String, JsonObject> map = 
-//				gsonHandler.fromJson(
-//						beliefString, 
-//						hashMapType);
-		
 		JsonArray mjArray = JSONTree.getAsJsonObject().get("M_j").getAsJsonArray();
 		
 		String dotString = "";
@@ -312,21 +309,16 @@ public class StructuredTree implements Serializable {
 			if (var.contentEquals("M_j")) continue;
 			
 			dotString += seperator;
-			
 			dotString += var;
-//			for (String val: map.get(var).keySet()) {
-//				dotString += seperator + "{" + val + seperator + map.get(var).get(val) + "}";
-//			}
-			
-			dotString += seperator + gsonHandler.toJson(JSONTree.getAsJsonObject().get(var)) + seperator; 
-//			
+			dotString += seperator + gsonHandler.toJson(JSONTree.getAsJsonObject().get(var)) 
+				+ seperator; 
 		}
 		
 		dotString += seperator;
 		dotString += "Ai = " + action;
 		dotString += "}";
 		
-		return dotString.replace("\"", "");
+		return dotString.replace("\"", " ");
 	}
 	
 	public String getDotString() {

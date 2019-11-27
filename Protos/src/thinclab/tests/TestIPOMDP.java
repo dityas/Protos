@@ -782,6 +782,8 @@ class TestIPOMDP {
 		StochasticSimulation ss = new StochasticSimulation(sp, 2);
 		ss.runSimulation();
 		LOGGER.info("\r\n" + ss.getDotString());
+		
+		ss.logResults();
 	}
 	
 	
