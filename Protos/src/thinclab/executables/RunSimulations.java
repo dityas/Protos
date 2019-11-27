@@ -47,7 +47,7 @@ public class RunSimulations extends Executable {
 		opt.addOption("d", true, "path to the domain file");
 		
 		/* log file */
-		opt.addOption("l", true, "log file path");
+		opt.addOption("l", false, "log to file in results dir?");
 		
 		/* backup iterations */
 		opt.addOption("b", true, "number of backups in each round");
@@ -95,18 +95,18 @@ public class RunSimulations extends Executable {
 			
 			/* set CLI args */
 			
+			/* output directory */
+			String storageDir = line.getOptionValue("s");
+			
 			/* if log file is given, initialize logging accordingly */
 			if (line.hasOption("l"))
-				CustomConfigurationFactory.setLogFileName(line.getOptionValue("l"));
+				CustomConfigurationFactory.setLogFileName(storageDir + "/solver.log");
 			
 			CustomConfigurationFactory.initializeLogging();
 			LOGGER = Logger.getLogger(RunSimulations.class);
 			
 			/* set domain file */
 			String domainFile = line.getOptionValue("d");
-			
-			/* output directory */
-			String storageDir = line.getOptionValue("s");
 			
 			/* set look ahead */
 			int backups = new Integer(line.getOptionValue("b"));
