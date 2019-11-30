@@ -206,9 +206,9 @@ public class Simulation extends StructuredTree {
 			writer.println("belief, action, obs, immediate R, cumulative R");
 			
 			for (int i = 0; i < this.beliefSequence.size(); i++) {
-				writer.println(this.beliefSequence.get(i) + ", "
+				writer.println("\"" + this.beliefSequence.get(i).replace("\"", "\\\"") + "\"" + ", "
 						+ this.actionSequence.get(i) + ", "
-						+ this.obsSequence.get(i) + ", "
+						+ "\"" + this.obsSequence.get(i) + "\"" + ", "
 						+ this.immediateRewardSequence.get(i) + ", "
 						+ this.cumulativeRewardSequence.get(i));
 			}
