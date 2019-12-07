@@ -23,6 +23,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.legacy.RandomPermutation;
+import thinclab.utils.Diagnostics;
 
 /*
  * @author adityas
@@ -206,7 +207,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					}
 				}
 
-				Global.newHashtables();
+//				Global.newHashtables();
 				count = count + 1;
 				
 				if (this.numNewAlphaVectors == 0)
@@ -242,6 +243,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 						|| (OP.max(this.newPointBasedValues[i], this.numNewAlphaVectors)
 								- OP.max(this.currentPointBasedValues[i]) < steptolerance)) {
 					
+					long beforeBackup = System.nanoTime();
+					
 					/* dpBackup */
 					newVector = 
 							AlphaVector.dpBackup(
@@ -251,6 +254,11 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 									primedV,
 									maxAbsVal,
 									this.alphaVectors.length);
+					
+					long afterBackup = System.nanoTime();
+				
+					/* record backup computation time */
+					Diagnostics.BACKUP_TIME.add((afterBackup - beforeBackup));
 
 					newVector.alphaVector = OP.approximate(
 							newVector.alphaVector, bellmanErr * (1 - ipomdp.discFact)
@@ -328,13 +336,18 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 						this.numNewAlphaVectors);
 			}
 
-			bellmanErr = Math.min(10, Math.max(this.bestImprovement, -this.worstDecline));
+//			bellmanErr = Math.min(10, Math.max(this.bestImprovement, -this.worstDecline));
+			
+			bellmanErr = Math.max(this.bestImprovement, -this.worstDecline);
 			float errorVar = this.getErrorVariance((float) bellmanErr);
 			
 			logger.info("I: " + stepId 
 					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
 					+ " \tUSED/TOTAL BELIEFS: " + numIter + "/" + beliefRegion.length
 					+ " \tA VECTORS: " + this.alphaVectors.length);
+			
+			/* report diagnostics on exec times */
+			Diagnostics.reportDiagnostics();
 			
 			if (stepId % 100 < 1)
 				continue;

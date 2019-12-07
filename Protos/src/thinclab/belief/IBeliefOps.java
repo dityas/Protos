@@ -179,7 +179,7 @@ public class IBeliefOps extends BeliefOperations {
 		 */
 		
 		/* set globals and clear caches */
-		this.DP.setGlobals();
+//		this.DP.setGlobals();
 		
 		IPOMDP DPRef = this.getIPOMDP();
 
@@ -226,7 +226,7 @@ public class IBeliefOps extends BeliefOperations {
 		 * Returns all CPTs for marginalization inside Hoey's symbolic perseus.
 		 */
 		/* set globals and clear caches */
-		this.DP.setGlobals();
+//		this.DP.setGlobals();
 		
 		IPOMDP DPRef = this.getIPOMDP();
 

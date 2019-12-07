@@ -246,7 +246,7 @@ public class NextBelState {
 								0, 
 								ipomdp.obsIVarIndices.length));
 		
-		Global.newHashtables();
+//		Global.newHashtables();
 		
 		HashMap<String, NextBelState> nextBelStates = new HashMap<String, NextBelState>();
 		

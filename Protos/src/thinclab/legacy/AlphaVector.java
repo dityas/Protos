@@ -9,6 +9,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.utils.Diagnostics;
 
 public class AlphaVector implements Serializable {
 	/**
@@ -56,6 +57,9 @@ public class AlphaVector implements Serializable {
 		/* get next unnormalised belief states */
 		double smallestProb;
 		
+		/* measure time constructing for NZ primes */
+		long beforeNZPrimes = System.nanoTime();
+		
 		smallestProb = ipomdp.tolerance / maxAbsVal;
 		nextBelStates = 
 				NextBelState.oneStepNZPrimeBelStates(
@@ -66,6 +70,9 @@ public class AlphaVector implements Serializable {
 
 		/* precompute obsVals */
 		nextBelStates.values().forEach(n -> n.getObsVals(primedV));
+		
+		long afterNZPrimes = System.nanoTime();
+		Diagnostics.NZ_PRIME_TIME.add((afterNZPrimes - beforeNZPrimes));
 
 		double bestValue = Double.NEGATIVE_INFINITY;
 		double actValue;
@@ -74,6 +81,9 @@ public class AlphaVector implements Serializable {
 		int nObservations = ipomdp.obsCombinations.size();
 		
 		int[] bestObsStrat = new int[nObservations];
+		
+		/* measure time for Immediate R */
+		long beforeR = System.nanoTime();
 
 		for (String Ai : ipomdp.getActions()) {
 			
@@ -97,6 +107,12 @@ public class AlphaVector implements Serializable {
 				bestObsStrat = nextBelStates.get(Ai).obsStrat;
 			}
 		}
+		
+		long afterR = System.nanoTime();
+		Diagnostics.IMMEDIATE_R_TIME.add((afterR - beforeR));
+		
+		/* measure time for constructing A Vec */
+		long beforeAVec = System.nanoTime();
 		
 		/* construct corresponding alpha vector */
 		DD newAlpha = DD.zero;
@@ -182,6 +198,9 @@ public class AlphaVector implements Serializable {
 						IPOMDP.concatenateArray(
 								newAlpha, 
 								ipomdp.currentRi.get(bestAction)));
+		
+		long afterAVec = System.nanoTime();
+		Diagnostics.AVEC_TIME.add((afterAVec - beforeAVec));
 		
 		bestValue = OP.factoredExpectationSparse(factoredBelState, newAlpha);
 

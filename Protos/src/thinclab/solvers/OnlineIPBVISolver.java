@@ -7,6 +7,7 @@
  */
 package thinclab.solvers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -213,6 +214,9 @@ public class OnlineIPBVISolver extends OnlineSolver {
 
 		DD[] primedV;
 		double maxAbsVal = 0;
+		
+		/* For computation stats */
+		List<Long> backupTimes = new ArrayList<Long>();
 
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 
@@ -256,6 +260,8 @@ public class OnlineIPBVISolver extends OnlineSolver {
 			for (int i = 0; i < beliefRegion.length; i++) {
 				Global.newHashtables();
 
+				long beforeBackup = System.nanoTime();
+					
 				/* dpBackup */
 				newVector = 
 						AlphaVector.dpBackup(
@@ -265,6 +271,11 @@ public class OnlineIPBVISolver extends OnlineSolver {
 								primedV, 
 								maxAbsVal, 
 								this.alphaVectors.length);
+				
+				long afterBackup = System.nanoTime();
+				
+				/* record backup computation time */
+				backupTimes.add((afterBackup - beforeBackup));
 
 				newVector.alphaVector = OP.approximate(newVector.alphaVector,
 						bellmanErr * (1 - this.ipomdp.discFact) / 2.0, onezero);
@@ -324,14 +335,26 @@ public class OnlineIPBVISolver extends OnlineSolver {
 						0, this.numNewAlphaVectors);
 			}
 
-			bellmanErr = Math.min(10, Math.max(this.bestImprovement, -this.worstDecline));
+//			bellmanErr = Math.min(10, Math.max(this.bestImprovement, -this.worstDecline));
+			bellmanErr = Math.max(this.bestImprovement, -this.worstDecline);
 			float errorVar = this.getErrorVariance((float) bellmanErr);
 			
+			/* compute average backup time */
+			double avgTime = 
+					backupTimes.stream()
+						.map(i -> (double) i)
+						.mapToDouble(Double::valueOf)
+						.average()
+						.orElse(Double.NaN);
+			
+			backupTimes.clear();
+			
 			logger.info("I: " + stepId 
-					+ "\tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
-					+ "\tUSED/TOTAL BELIEFS: " + nDpBackups 
+					+ "  B ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
+					+ "\t USED/TOTAL BELIEFS: " + nDpBackups 
 					+ "/" + beliefRegion.length 
-					+ "\tA VECTORS: " + this.alphaVectors.length);
+					+ "  A VECTORS: " + this.alphaVectors.length
+					+ "  Avg. backup: " + (avgTime / 1000000) + " msec");
 
 			if (stepId % 100 < 1)
 				continue;

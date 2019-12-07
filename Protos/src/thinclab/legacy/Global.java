@@ -1,6 +1,9 @@
 package thinclab.legacy;
 
 import java.util.*;
+
+import org.apache.log4j.Logger;
+
 import java.lang.ref.*;
 
 //class CacheMap extends LinkedHashMap {
@@ -49,6 +52,8 @@ public class Global {
 
     // random number generator
     public static Random random = new Random();
+    
+    private static final Logger LOGGER = Logger.getLogger(Global.class);
 
     public static void main(String args[]) {
 
@@ -249,35 +254,41 @@ public class Global {
     }
 
     public static void clearHashtables() {
-	Global.leafHashtable.clear();
-	Global.nodeHashtable.clear();
-	Global.addHashtable.clear();
-	Global.multHashtable.clear();
-	Global.maxHashtable.clear();
-	Global.minHashtable.clear();
-	Global.dotProductHashtable.clear();
-	Global.nEdgesHashtable.clear();
-	Global.nLeavesHashtable.clear();
-	Global.nNodesHashtable.clear();
-	Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
-	Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
+    	
+    	LOGGER.warn("Clearning caches. This will reduce performance");
+    	
+		Global.leafHashtable.clear();
+		Global.nodeHashtable.clear();
+		Global.addHashtable.clear();
+		Global.multHashtable.clear();
+		Global.maxHashtable.clear();
+		Global.minHashtable.clear();
+		Global.dotProductHashtable.clear();
+		Global.nEdgesHashtable.clear();
+		Global.nLeavesHashtable.clear();
+		Global.nNodesHashtable.clear();
+		Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
+		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
     }
 
     public static void newHashtables() {
 	//Global.leafHashtable = new WeakHashMap();
 	//Global.nodeHashtable = new WeakHashMap();
-	Global.leafHashtable = new CacheMap();
-	Global.nodeHashtable = new CacheMap();
-	Global.addHashtable = new CacheMap();
-	Global.multHashtable = new CacheMap();
-	Global.maxHashtable = new CacheMap();
-	Global.minHashtable = new CacheMap();
-	Global.dotProductHashtable = new CacheMap();
-	Global.nEdgesHashtable = new CacheMap();
-	Global.nLeavesHashtable = new CacheMap();
-	Global.nNodesHashtable = new CacheMap();
-	Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
-	Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
+    	
+    	LOGGER.warn("Clearning caches. This will reduce performance");
+    	
+		Global.leafHashtable = new CacheMap();
+		Global.nodeHashtable = new CacheMap();
+		Global.addHashtable = new CacheMap();
+		Global.multHashtable = new CacheMap();
+		Global.maxHashtable = new CacheMap();
+		Global.minHashtable = new CacheMap();
+		Global.dotProductHashtable = new CacheMap();
+		Global.nEdgesHashtable = new CacheMap();
+		Global.nLeavesHashtable = new CacheMap();
+		Global.nNodesHashtable = new CacheMap();
+		Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
+		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
     }
 
     public static int[] getKeyHashCodeSet(HashMap hashMap) {
