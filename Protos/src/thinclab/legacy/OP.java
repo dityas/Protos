@@ -1256,78 +1256,79 @@ public class OP {
     //////////////////////////////////////////////////////
     public static DD addMultVarElim(DD[] dds, int[] vars) {
 
-	// check if any of the dds are zero
-	for (int i=0; i<dds.length; i++) {
-	    if (dds[i].getVar() == 0 && dds[i].getVal() == 0) return DD.zero;
-	}
-
-	// eliminate variables one by one
-	while (vars != null && vars.length > 0) {
-  
-	    // eliminate deterministic variables
-	    boolean deterministic = true;
-	    while (deterministic && vars.length > 0) {
-		deterministic = false;
-		for (int ddId=0; ddId<dds.length; ddId++) {
-		    int[] varIds = dds[ddId].getVarSet();
-		    if (varIds.length == 1 && MySet.find(vars,varIds[0]) >= 0) {
-			DD[] children = dds[ddId].getChildren();
-			int valId = -1;
-			for (int childId = 0; childId<children.length; childId++) {
-			    double value = children[childId].getVal();
-			    if (value == 1 && !deterministic) {
-				deterministic = true;
-				valId = childId+1;
+		// check if any of the dds are zero
+		for (int i=0; i<dds.length; i++) {
+		    if (dds[i].getVar() == 0 && dds[i].getVal() == 0) return DD.zero;
+		}
+	
+		// eliminate variables one by one
+		while (vars != null && vars.length > 0) {
+	  
+		    // eliminate deterministic variables
+		    boolean deterministic = true;
+		    while (deterministic && vars.length > 0) {
+			deterministic = false;
+			for (int ddId=0; ddId<dds.length; ddId++) {
+			    int[] varIds = dds[ddId].getVarSet();
+			    if (varIds.length == 1 && MySet.find(vars,varIds[0]) >= 0) {
+				DD[] children = dds[ddId].getChildren();
+				int valId = -1;
+				for (int childId = 0; childId<children.length; childId++) {
+				    double value = children[childId].getVal();
+				    if (value == 1 && !deterministic) {
+					deterministic = true;
+					valId = childId+1;
+				    }
+				    else if ((value != 0 && value != 1) || (value == 1 && deterministic)) {
+					deterministic = false;
+					break;
+				    }
+				}
+				if (deterministic) {
+				    vars = MySet.remove(vars,varIds[0]);
+				    int[][] config = new int[2][1];
+				    config[0][0] = varIds[0];
+				    config[1][0] = valId;
+				    dds = DDcollection.removeIth(dds,ddId);
+				    for (int i=0; i<dds.length; i++) {
+					if (MySet.find(dds[i].getVarSet(),varIds[0]) >= 0)
+					    dds[i] = OP.restrictOrdered(dds[i],config);
+				    }
+				    break;
+				}
 			    }
-			    else if ((value != 0 && value != 1) || (value == 1 && deterministic)) {
-				deterministic = false;
-				break;
-			    }
-			}
-			if (deterministic) {
-			    vars = MySet.remove(vars,varIds[0]);
-			    int[][] config = new int[2][1];
-			    config[0][0] = varIds[0];
-			    config[1][0] = valId;
-			    dds = DDcollection.removeIth(dds,ddId);
-			    for (int i=0; i<dds.length; i++) {
-				if (MySet.find(dds[i].getVarSet(),varIds[0]) >= 0)
-				    dds[i] = OP.restrictOrdered(dds[i],config);
-			    }
-			    break;
 			}
 		    }
-		}
-	    }
-	    if (vars.length <= 0) break;
-                    
-	    // greedily choose var to eliminate
-	    int bestVar = OP.selectVarGreedily(dds, vars);
-
-	    // multiply together trees that depend on var
-	    DD newDd = DD.one;
-	    for (int ddId=0; ddId<dds.length; ddId++) {
-		if (MySet.find(dds[ddId].getVarSet(),bestVar) >= 0) {
-		    newDd = OP.mult(newDd,dds[ddId]);
-		    dds = DDcollection.removeIth(dds,ddId);
-		    ddId--;
-		}
-	    }
-
-	    // sumout bestVar from newDd
-	    newDd = OP.addout(newDd, bestVar);
-	    if (newDd.getVar() == 0 && newDd.getVal() == 0) return DD.zero;
-
-	    // add new tree to dds
-	    dds = DDcollection.add(dds,newDd);
-
-	    // remove bestVar from vars
-	    vars = MySet.remove(vars,bestVar);
-	}				
-
-	// multiply remaining trees and the newly added one; the resulting tree
-	// is now free of any variable that appeared in vars
-	return OP.multN(dds);
+		    if (vars.length <= 0) break;
+	                    
+		    // greedily choose var to eliminate
+		    int bestVar = OP.selectVarGreedily(dds, vars);
+	
+		    // multiply together trees that depend on var
+		    DD newDd = DD.one;
+		    for (int ddId=0; ddId<dds.length; ddId++) {
+			if (MySet.find(dds[ddId].getVarSet(),bestVar) >= 0) {
+			    newDd = OP.mult(newDd,dds[ddId]);
+			    dds = DDcollection.removeIth(dds,ddId);
+			    ddId--;
+			}
+		    }
+	
+		    // sumout bestVar from newDd
+		    newDd = OP.addout(newDd, bestVar);
+		    if (newDd.getVar() == 0 && newDd.getVal() == 0) return DD.zero;
+	
+		    // add new tree to dds
+		    dds = DDcollection.add(dds,newDd);
+	
+		    // remove bestVar from vars
+		    vars = MySet.remove(vars,bestVar);
+		}				
+	
+		// multiply remaining trees and the newly added one; the resulting tree
+		// is now free of any variable that appeared in vars
+		
+		return OP.multN(dds);
     }
 
     public static DD addMultVarElim(DD dd, int[] vars) {
