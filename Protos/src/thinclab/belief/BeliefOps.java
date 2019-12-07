@@ -65,10 +65,6 @@ public class BeliefOps extends BeliefOperations {
 		/* get POMDP ref */
 		POMDP DPRef = this.getPOMDP();
 		
-		/* set Globals and clear caches */
-		this.DP.setGlobals();
-		Global.clearHashtables();
-		
 		int actId = DPRef.getActions().indexOf(action);
 		
 		if (obsnames.length != DPRef.nObsVars) return null;
@@ -116,7 +112,7 @@ public class BeliefOps extends BeliefOperations {
 		
 		/* Set globals and all that */
 		POMDP DPRef = this.getPOMDP();
-		DPRef.setGlobals();
+//		DPRef.setGlobals();
 		int actId = DPRef.getActions().indexOf(action);
 		
 		DD[] restrictedObsFn = OP.restrictN(DPRef.actions[actId].obsFn, obsVals);
@@ -150,8 +146,8 @@ public class BeliefOps extends BeliefOperations {
 		
 		/* set globals, clear caches and get POMDP ref */
 		POMDP DPRef = this.getPOMDP();
-		DPRef.setGlobals();
-		Global.clearHashtables();
+//		DPRef.setGlobals();
+//		Global.clearHashtables();
 		
 		DD[] fbs = new DD[DPRef.nStateVars];
 		
@@ -170,7 +166,7 @@ public class BeliefOps extends BeliefOperations {
 		 */
 		
 		/* set globals and all that */
-		this.DP.setGlobals();
+//		this.DP.setGlobals();
 		POMDP POMDPRef = this.getPOMDP();
 		
 		int actId = POMDPRef.getActions().indexOf(action);
@@ -191,7 +187,7 @@ public class BeliefOps extends BeliefOperations {
 		 */
 		
 		POMDP DPRef = this.getPOMDP();
-		DPRef.setGlobals();
+//		DPRef.setGlobals();
 		
 		HashMap<String, HashMap<String, Float>> beliefs = 
 				new HashMap<String, HashMap<String, Float>>();
@@ -235,7 +231,7 @@ public class BeliefOps extends BeliefOperations {
 		 */
 		
 		/* set globals and clear caches */
-		this.DP.setGlobals();
+//		this.DP.setGlobals();
 		POMDP DPRef = this.getPOMDP();
 		
 		DD[][] belRegion = 

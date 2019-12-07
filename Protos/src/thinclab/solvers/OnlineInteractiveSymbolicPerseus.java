@@ -348,6 +348,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			
 			/* report diagnostics on exec times */
 			Diagnostics.reportDiagnostics();
+			Diagnostics.reportCacheSizes();
 			
 			if (stepId % 100 < 1)
 				continue;

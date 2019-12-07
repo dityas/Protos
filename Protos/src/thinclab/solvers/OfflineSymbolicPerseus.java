@@ -91,7 +91,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		bellmanErr = 20 * this.p.tolerance;
 
 		/* compute point based values using current alpha vectors */
-		currentPointBasedValues = OP.factoredExpectationSparseNoMem(belRegion,
+		currentPointBasedValues = OP.factoredExpectationSparse(belRegion,
 				alphaVectors);
 		
 		DD[] primedV;
@@ -149,7 +149,6 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 						break;
 				}
 				
-				Global.newHashtables();
 				count = count + 1;
 
 				if (numNewAlphaVectors == 0) {
@@ -179,8 +178,6 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 						|| (OP.max(newPointBasedValues[i], numNewAlphaVectors)
 								- OP.max(currentPointBasedValues[i]) < steptolerance)) {
 				
-					Global.newHashtables();
-	
 					/* perform the backup operation */
 					newVector = 
 							AlphaVector.dpBackup(

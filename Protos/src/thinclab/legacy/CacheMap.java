@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("rawtypes")
-class CacheMap extends ConcurrentHashMap {
+public class CacheMap extends ConcurrentHashMap {
     /**
 	 * 
 	 */

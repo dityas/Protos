@@ -151,7 +151,7 @@ public class NextBelState {
 		
 		if (!isempty()) {
 			obsVals = new double[numValidObs][primedV.length];
-			obsVals = OP.factoredExpectationSparseNoMem(nextBelStates,
+			obsVals = OP.factoredExpectationSparse(nextBelStates,
 					primedV);
 		}
 	}
@@ -306,7 +306,6 @@ public class NextBelState {
 		for (int obsId = 0; obsId < pomdp.nObservations; obsId++)
 			obsConfig[obsId] = pomdp.statedecode(obsId + 1, pomdp.nObsVars, pomdp.obsVarsArity);
 
-		Global.newHashtables();
 		NextBelState[] nextBelStates = new NextBelState[pomdp.nActions];
 		
 		for (int actId = 0; actId < pomdp.nActions; actId++) {

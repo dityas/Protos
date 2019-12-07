@@ -41,8 +41,8 @@ public class Global {
     //public static WeakHashMap nodeHashtable = new WeakHashMap();
     public static CacheMap leafHashtable = new CacheMap();
     public static CacheMap nodeHashtable = new CacheMap();
-    public static CacheMap addHashtable = new CacheMap();
-    public static CacheMap multHashtable = new CacheMap();
+    public static TypedCacheMap<Pair, DD> addHashtable = new TypedCacheMap<Pair, DD>();
+    public static TypedCacheMap<Pair, DD> multHashtable = new TypedCacheMap<Pair, DD>();
     public static CacheMap maxHashtable = new CacheMap();
     public static CacheMap minHashtable = new CacheMap();
     public static CacheMap dotProductHashtable = new CacheMap();
@@ -275,12 +275,12 @@ public class Global {
 	//Global.leafHashtable = new WeakHashMap();
 	//Global.nodeHashtable = new WeakHashMap();
     	
-    	LOGGER.warn("Clearning caches. This will reduce performance");
+    	LOGGER.warn("Clearing caches. This will reduce performance");
     	
 		Global.leafHashtable = new CacheMap();
 		Global.nodeHashtable = new CacheMap();
-		Global.addHashtable = new CacheMap();
-		Global.multHashtable = new CacheMap();
+		Global.addHashtable = new TypedCacheMap<Pair, DD>();
+		Global.multHashtable = new TypedCacheMap<Pair, DD>();
 		Global.maxHashtable = new CacheMap();
 		Global.minHashtable = new CacheMap();
 		Global.dotProductHashtable = new CacheMap();

@@ -102,8 +102,6 @@ public class IBeliefOps extends BeliefOperations {
 		 * 					f(Oj', Aj, Thetaj, S') x f(Mj', Mj, Aj, Oj') 
 		 */
 		
-		/* set globals and clear caches */
-		this.DP.setGlobals();
 		IPOMDP DPRef = this.getIPOMDP();
 		
 		/* First reduce Oi based on observations */
@@ -178,9 +176,6 @@ public class IBeliefOps extends BeliefOperations {
 		 * Because the dpBackUp implementation by Hoey needs it.
 		 */
 		
-		/* set globals and clear caches */
-//		this.DP.setGlobals();
-		
 		IPOMDP DPRef = this.getIPOMDP();
 
 		/* Collect f1 = P(S, Mj)  */
@@ -225,9 +220,6 @@ public class IBeliefOps extends BeliefOperations {
 		 * 
 		 * Returns all CPTs for marginalization inside Hoey's symbolic perseus.
 		 */
-		/* set globals and clear caches */
-//		this.DP.setGlobals();
-		
 		IPOMDP DPRef = this.getIPOMDP();
 
 		/* Collect f1 = P(S, Mj)  */
@@ -265,9 +257,6 @@ public class IBeliefOps extends BeliefOperations {
 		 * 
 		 * Exactly similar to Hoey's implementation for POMDPs
 		 */
-		
-		/* set globals and clear caches */
-		this.DP.setGlobals();
 		IPOMDP DPRef = this.getIPOMDP();
 		
 		DD[] fbs = new DD[DPRef.S.subList(0, DPRef.AjVarStartPosition).size()];
@@ -290,9 +279,6 @@ public class IBeliefOps extends BeliefOperations {
 		/*
 		 * Makes a hashmap of belief state and values and returns it
 		 */
-		
-		/* set globals and clear caches */
-		this.DP.setGlobals();
 		IPOMDP DPRef = this.getIPOMDP();
 		
 		HashMap<String, HashMap<String, Float>> beliefs = 
@@ -343,8 +329,6 @@ public class IBeliefOps extends BeliefOperations {
 		 * Factors the full belief region represented as a list
 		 */
 		
-		/* set globals and clear caches */
-		this.DP.setGlobals();
 		IPOMDP DPRef = this.getIPOMDP();
 		
 		DD[][] iBelRegion = 

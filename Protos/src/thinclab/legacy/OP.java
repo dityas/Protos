@@ -97,14 +97,18 @@ public class OP {
 	return dd;
     }
 
-    public static DD addN(Collection dds) {
-	DD ddSum = DD.zero;
-	Iterator ddIterator = dds.iterator();
-	while (ddIterator.hasNext()) {
-	    DD dd = (DD)ddIterator.next();
-	    ddSum = OP.add(ddSum,dd);
-	}
-	return ddSum;
+    public static DD addN(Collection<DD> dds) {
+    	
+		DD ddSum = DD.zero;
+		Iterator<DD> ddIterator = dds.iterator();
+		
+		while (ddIterator.hasNext()) {
+		    
+			DD dd = (DD) ddIterator.next();
+		    ddSum = OP.add(ddSum,dd);
+		}
+		
+		return ddSum;
     }
 
     //////////////////////////////////////////////////////

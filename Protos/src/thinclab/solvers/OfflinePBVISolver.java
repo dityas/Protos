@@ -184,7 +184,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 		bellmanErr = 20 * this.p.tolerance;
 
 		/* compute point based values using current alpha vectors */
-		currentPointBasedValues = OP.factoredExpectationSparseNoMem(belRegion,
+		currentPointBasedValues = OP.factoredExpectationSparse(belRegion,
 				alphaVectors);
 		
 		DD[] primedV;
@@ -223,8 +223,6 @@ public class OfflinePBVISolver extends OfflineSolver {
 			 */
 			int numUsed = 0;
 			for (int i = 0; i < belRegion.length; i++) {
-				
-				Global.newHashtables();
 
 				/* perform the backup operation */
 				newVector = 

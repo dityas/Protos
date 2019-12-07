@@ -247,7 +247,7 @@ public class AlphaVector implements Serializable {
 			/* compute immediate rewards */
 			actValue = 
 					actValue 
-						+ OP.factoredExpectationSparseNoMem(
+						+ OP.factoredExpectationSparse(
 								belState, 
 								pomdp.actions[actId].rewFn);
 

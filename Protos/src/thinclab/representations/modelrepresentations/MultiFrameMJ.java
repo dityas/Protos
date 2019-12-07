@@ -23,6 +23,7 @@ import thinclab.ddinterface.DDTree;
 import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
 import thinclab.representations.policyrepresentations.PolicyNode;
@@ -86,6 +87,8 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		for (Integer frameID : this.MJs.keySet()) {
 
 			LOGGER.debug("Building look ahead tree for frame " + frameID);
+			
+			Global.clearHashtables();
 			
 			/* build each tree */
 			this.MJs.get(frameID).buildTree();

@@ -13,6 +13,8 @@ import java.util.Locale;
 
 import org.apache.log4j.Logger;
 
+import thinclab.legacy.Global;
+
 /*
  * @author adityas
  *
@@ -96,5 +98,18 @@ public class Diagnostics {
 					+ " msec"
 				+ " A VEC CONST.: " + String.format(Locale.US, "%.03f", (avgAVecTime / 1000000)) 
 					+ " msec");
+	}
+	
+	public static void reportCacheSizes() {
+		/*
+		 * Logs the sizes of all global caches
+		 */
+		
+		LOGGER.debug("Cache sizes: "
+				+ " LEAF: " + Global.leafHashtable.size()
+				+ " NODE: " + Global.nodeHashtable.size()
+				+ " ADD: " + Global.addHashtable.size()
+				+ " DOT: " + Global.dotProductHashtable.size()
+				+ " MULT: " + Global.multHashtable.size());
 	}
 }
