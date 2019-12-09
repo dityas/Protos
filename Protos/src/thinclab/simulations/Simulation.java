@@ -16,6 +16,12 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
@@ -203,22 +209,50 @@ public class Simulation extends StructuredTree {
 			PrintWriter writer = new PrintWriter(new FileOutputStream(fileName));
 			LOGGER.debug("Writing sim results to file " + fileName);
 			
-			writer.println("belief, action, obs, immediate R, cumulative R");
+			/* initialize JSON handler */
+			Gson gsonHandler = 
+					new GsonBuilder()
+						.setPrettyPrinting()
+						.disableHtmlEscaping()
+						.create();
+			
+			JsonArray recordsArray = new JsonArray();
 			
 			for (int i = 0; i < this.beliefSequence.size(); i++) {
-				writer.println("\"" + this.beliefSequence.get(i).replace("\"", "\\\"") + "\"" + ", "
-						+ this.actionSequence.get(i) + ", "
-						+ "\"" + this.obsSequence.get(i) + "\"" + ", "
-						+ this.immediateRewardSequence.get(i) + ", "
-						+ this.cumulativeRewardSequence.get(i));
+				
+				/* init a new record */
+				JsonObject record = new JsonObject();
+				
+				/* write belief */
+				record.add(
+						"belief", 
+						gsonHandler.fromJson(
+								this.beliefSequence.get(i), 
+								JsonObject.class));
+				
+				/* write action */
+				record.add("action", new JsonPrimitive(this.actionSequence.get(i)));
+				
+				/* write observations */
+				record.add("obs", new JsonPrimitive(this.obsSequence.get(i)));
+				
+				/* write rewards */
+				record.add("immediate R", 
+						new JsonPrimitive(this.immediateRewardSequence.get(i)));				
+				record.add("cumulative R", 
+						new JsonPrimitive(this.cumulativeRewardSequence.get(i)));
+				
+				recordsArray.add(record);
 			}
 			
+			writer.println(gsonHandler.toJson(recordsArray));
+			writer.flush();
 			writer.close();
 			
 		}
 		
 		catch (Exception e) {
-			LOGGER.error("While writing results to csv file: " + e.getMessage());
+			LOGGER.error("While writing results to JSON file: " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}
