@@ -61,6 +61,9 @@ public abstract class BeliefRegionExpansionStrategy implements Serializable {
 	/* Reset search to new roots if the framework transitions to a different belief */
 	public abstract void resetToNewInitialBelief();
 	
+	/* Clear all beliefs to save memory */
+	public abstract void clearMem();
+	
 	// -------------------------------------------------------------------------------------
 	
 	public void setFramework(DecisionProcess f) {

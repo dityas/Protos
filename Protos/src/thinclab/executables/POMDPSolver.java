@@ -14,8 +14,9 @@ import org.apache.commons.cli.Options;
 
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.POMDP;
-import thinclab.representations.ConditionalPlanTree;
-import thinclab.representations.PolicyGraph;
+import thinclab.representations.conditionalplans.ConditionalPlanTree;
+import thinclab.representations.policyrepresentations.PolicyGraph;
+import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
@@ -66,7 +67,7 @@ public class POMDPSolver extends Executable {
 		this.solver = 
 				new OfflineSymbolicPerseus(
 						this.pomdp, 
-						new SSGABeliefExpansion(this.pomdp, this.searchDepth, 1), 
+						new SSGABeliefExpansion(this.pomdp, this.searchDepth, 10), 
 						this.perseusRounds, 
 						this.numDpBackups);
 		
@@ -94,6 +95,14 @@ public class POMDPSolver extends Executable {
 		
 		pg.writeDotFile(dirName, "policy_graph");
 		pg.writeJSONFile(dirName, "policy_graph");
+	}
+	
+	public void runSimulation(int iterations) {
+		/*
+		 * Runs the simulation for given iterations
+		 */
+		StochasticSimulation ss = new StochasticSimulation(this.solver, iterations);
+		ss.runSimulation();
 	}
 	
 	// -----------------------------------------------------------------------------------------------
@@ -134,6 +143,13 @@ public class POMDPSolver extends Executable {
 				true, 
 				"make policy graph and create dot and JSON files in the given dir");
 		
+		/* simulation switch */
+		opt.addOption(
+				"t",
+				"sim",
+				true,
+				"run stochastic simulation for given iterations");
+		
 		CommandLine line = null;
 		POMDPSolver solver = null;
 
@@ -172,6 +188,11 @@ public class POMDPSolver extends Executable {
 			if (line.hasOption("g")) {
 				String planDir = line.getOptionValue("g");
 				solver.makePolicyGraph(planDir);
+			}
+			
+			if (line.hasOption("t")) {
+				int iters = Integer.parseInt(line.getOptionValue("t"));
+				solver.runSimulation(iters);
 			}
 		} 
 		

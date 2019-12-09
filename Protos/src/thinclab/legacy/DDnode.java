@@ -2,6 +2,7 @@ package thinclab.legacy;
 
 import java.util.*;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
 
 import thinclab.ddinterface.DDTree;
@@ -19,36 +20,56 @@ public class DDnode extends DD {
     private DD children[];
     private double sum;
     
+    private int hash;
+    
     private static final Logger logger = Logger.getLogger(DDnode.class);
 		
     private DDnode(int var, DD children[]) {
-	this.var = var;
-	this.children = children;
-	this.varSet = null;  // lazy temporary value
-	this.numLeaves = 0; // lazy temporary value
-	this.sum = Double.NaN; // lazy temporary value
+		this.var = var;
+		this.children = children;
+		this.varSet = null;  // lazy temporary value
+		this.numLeaves = 0; // lazy temporary value
+		this.sum = Double.NaN; // lazy temporary value
+		
+		this.precomputeHash();
     }
+    
+    private void precomputeHash() {
+		/*
+		 * Precomputes the hash code to avoid repeated computations and save time.
+		 * 
+		 * This could be dangerous if the object attributes are changed in between 
+		 */
+		
+		HashCodeBuilder builder = new HashCodeBuilder();
+		builder.append(this.var);
+
+		for (int i=0; i<children.length; i++)
+			builder.append(this.children[i].hashCode());
+		
+		this.hash = builder.toHashCode();
+	}
 
     public static DD myNew(int var, DD[] children) {
 
-	// try to aggregate children
-	boolean aggregate = true;
-	for (int i=1; i<children.length; i++) {
-	    if (children[0] != children[i]) {
-		aggregate = false;
-		break;
-	    }
-	}
-	if (aggregate) return children[0];
-
-	// try look up node in nodeHashtable
-	DDnode node = new DDnode(var,children);
-	WeakReference storedNode = (WeakReference)Global.nodeHashtable.get(node);
-	if (storedNode != null) return (DDnode)storedNode.get();
-
-	// store node in nodeHashtable
-	Global.nodeHashtable.put(node,new WeakReference<DD>(node));
-	return node;
+		// try to aggregate children
+		boolean aggregate = true;
+		for (int i=1; i<children.length; i++) {
+		    if (children[0] != children[i]) {
+			aggregate = false;
+			break;
+		    }
+		}
+		if (aggregate) return children[0];
+	
+		// try look up node in nodeHashtable
+		DDnode node = new DDnode(var,children);
+		WeakReference storedNode = (WeakReference)Global.nodeHashtable.get(node);
+		if (storedNode != null) return (DDnode)storedNode.get();
+	
+		// store node in nodeHashtable
+		Global.nodeHashtable.put(node,new WeakReference<DD>(node));
+		return node;
     }
 
     @Override
@@ -69,11 +90,13 @@ public class DDnode extends DD {
 
     @Override
     public int hashCode() {
-		int hashCode = 0;
-		for (int i=0; i<children.length; i++) {
-		    hashCode += children[i].hashCode();
-		}
-		return hashCode + var;
+//		int hashCode = 0;
+//		for (int i=0; i<children.length; i++) {
+//		    hashCode += children[i].hashCode();
+//		}
+//		return hashCode + var;
+    	
+    	return this.hash;
     }
 
     public DD store() {

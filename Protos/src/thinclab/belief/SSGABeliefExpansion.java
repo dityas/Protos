@@ -48,8 +48,6 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	/* number of iterations of SSGA during each expansion */
 	private int nIterations;
 	
-	private boolean initialExpansionDone = false;
-	
 	private static final Logger logger = Logger.getLogger(SSGABeliefExpansion.class);
 	
 	// ----------------------------------------------------------------------------------------
@@ -85,27 +83,6 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		 */
 		this.alphaVectors = aVectors;
 		this.policy = policy;
-	}
-	
-	public void expandInitial() {
-		/*
-		 * Returns a full belief expansion for 2 time steps to start off SSGA expansion
-		 * 
-		 * Use this only as a driver to start the expansion
-		 */
-		
-		logger.debug("Running initial expansion");
-		
-		/* Run a short expansion */
-		FullBeliefExpansion be = new FullBeliefExpansion(this.p, 2);
-		be.expand();
-		
-		/* add explored beliefs */
-		this.exploredBeliefs.addAll(be.getBeliefPoints());
-		this.initialBeliefs.addAll(be.getBeliefPoints());
-		
-		/* turn off initial expansion flag */
-		this.initialExpansionDone = true;
 	}
 	
 	@Override
@@ -156,8 +133,9 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 					
 					/* Get next belief */
 					try {
-						DD nextBelief = Belief.beliefUpdate(p, belief,
-							act, 
+
+						DD nextBelief = ((BeliefOps) p.bOPs).beliefUpdate(belief,
+							p.getActions().get(act), 
 							obsConfig);
 						
 						/* Add belief point if it doesn't already exist */
@@ -168,7 +146,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 					} 
 					
 					catch (ZeroProbabilityObsException e) {
-						System.err.println(e.getMessage());
+					
 						continue;
 					}
 					
@@ -199,11 +177,19 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		/* clear all previous beliefs */
 		this.exploredBeliefs.clear();
 		this.initialBeliefs.clear();
-		this.initialExpansionDone = false;
 		
 		/* get new initial beliefs from the framework */
 		this.initialBeliefs.addAll(this.f.getInitialBeliefs());
 		this.exploredBeliefs.addAll(this.initialBeliefs);
+	}
+
+	@Override
+	public void clearMem() {
+		/*
+		 * Clear all beliefs
+		 */
+		this.exploredBeliefs.clear();
+		this.initialBeliefs.clear();
 	}
 
 }

@@ -336,18 +336,82 @@ public class ParseSPUDD implements Serializable {
 	
 		// create SAMEvariable dds
 		for (int varId=0; varId<Global.varNames.length/2; varId++) {
+			
 			logger.debug("Creating SAME DD for " + Global.varNames[varId]);
-		    String ddName = new String("SAME") + Global.varNames[varId];
+		    
+			String ddName = new String("SAME") + Global.varNames[varId];
 		    DD[] children = new DD[Global.varDomSize[varId]];
+		    
 		    for (int i=0; i<Global.varDomSize[varId]; i++) {
-			DD[] grandChildren = new DD[Global.varDomSize[varId]];
-			for (int j=0; j<Global.varDomSize[varId]; j++) {
-			    if (i==j) grandChildren[j] = DD.one;
-			    else grandChildren[j] = DD.zero;
-			}
-			logger.debug("Making child " + Global.valNames[varId][i]);
-			children[i] = DDnode.myNew(varId+1,grandChildren);
+				
+		    	DD[] grandChildren = new DD[Global.varDomSize[varId]];
+				
+		    	for (int j=0; j<Global.varDomSize[varId]; j++) {
+				    
+		    		if (i==j) grandChildren[j] = DD.one;
+				    else grandChildren[j] = DD.zero;
+				}
+		    	
+				logger.debug("Making child " + Global.valNames[varId][i]);
+				children[i] = DDnode.myNew(varId+1,grandChildren);
+		    
 		    }
+		    
+		    DD dd = DDnode.myNew(varId+1+Global.varNames.length/2, children);
+		    existingDds.put(ddName,dd);
+		}
+		
+		// create NOISYvariable dds
+		for (int varId=0; varId<Global.varNames.length/2; varId++) {
+			
+			logger.debug("Creating 5% noisy transition DD for " + Global.varNames[varId]);
+		    
+			String ddName = new String("NOISE5") + Global.varNames[varId];
+		    DD[] children = new DD[Global.varDomSize[varId]];
+		    
+		    for (int i=0; i<Global.varDomSize[varId]; i++) {
+				
+		    	DD[] grandChildren = new DD[Global.varDomSize[varId]];
+				
+		    	for (int j=0; j<Global.varDomSize[varId]; j++) {
+				    
+		    		if (i==j) grandChildren[j] = DDleaf.myNew(0.95);
+				    else grandChildren[j] = DDleaf.myNew(0.05 / (Global.varDomSize[varId] - 1));
+				}
+		    	
+				logger.debug("Making child " + Global.valNames[varId][i]);
+				children[i] = DDnode.myNew(varId+1,grandChildren);
+		    
+		    }
+		    
+		    DD dd = DDnode.myNew(varId+1+Global.varNames.length/2, children);
+		    existingDds.put(ddName,dd);
+		}
+		
+		// create NOISYvariable dds
+		for (int varId=0; varId<Global.varNames.length/2; varId++) {
+			
+			logger.debug("Creating 1% noisy transition DD for " + Global.varNames[varId]);
+		    
+			String ddName = new String("NOISE1") + Global.varNames[varId];
+		    DD[] children = new DD[Global.varDomSize[varId]];
+		    
+		    for (int i=0; i<Global.varDomSize[varId]; i++) {
+				
+		    	DD[] grandChildren = new DD[Global.varDomSize[varId]];
+				
+		    	for (int j=0; j<Global.varDomSize[varId]; j++) {
+				    
+		    		if (i==j) grandChildren[j] = DDleaf.myNew(0.99);
+				    else grandChildren[j] = 
+				    		DDleaf.myNew(0.01 / (Global.varDomSize[varId] - 1));
+				}
+		    	
+				logger.debug("Making child " + Global.valNames[varId][i]);
+				children[i] = DDnode.myNew(varId+1,grandChildren);
+		    
+		    }
+		    
 		    DD dd = DDnode.myNew(varId+1+Global.varNames.length/2, children);
 		    existingDds.put(ddName,dd);
 		}

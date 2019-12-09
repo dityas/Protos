@@ -14,7 +14,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.decisionprocesses.POMDP;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 
@@ -74,6 +74,13 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		super(maxDepth);
 	}
 	
+	public FullBeliefExpansion(IPOMDP ipomdp) {
+		/*
+		 * Constructor for use with IPOMDPs.
+		 */
+		this(ipomdp, ipomdp.mjLookAhead);
+	}
+	
 	// -----------------------------------------------------------------------------------
 	
 	public DD beliefUpdate(
@@ -86,17 +93,12 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		 * Split the belief update into a separate function to enable
 		 * reuse with interactive belief expanion
 		 */
-		POMDP p = (POMDP) f;
+		
 		try {
 			
 			DD nextBelief = 
-					Belief.beliefUpdate(
-							p, 
-							previousBelief, 
-							p.getActions().indexOf(action), 
-							obs.toArray(
-									new String[obs.size()]));
-			
+					f.beliefUpdate(previousBelief, action, obs.stream().toArray(String[]::new));
+	
 			return nextBelief;
 		} 
 		
@@ -174,12 +176,21 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		 * POMDP or IPOMDP transitions to next step
 		 */
 		this.leaves.clear();
-		this.leaves.addAll(this.f.getInitialBeliefs());
+		this.leaves.add(this.f.getCurrentBelief());
 		
 		this.exploredBeliefs.clear();
 		this.exploredBeliefs.addAll(this.leaves);
 		
-		logger.debug("Belief root reset to " + this.leaves);
+		logger.debug("Belief root reset to framework's initial belief");
+	}
+
+	@Override
+	public void clearMem() {
+		/*
+		 * Remove all stored beliefs
+		 */
+		this.exploredBeliefs.clear();
+		this.leaves.clear();
 	}
 	
 }

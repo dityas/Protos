@@ -10,10 +10,7 @@ package thinclab.ddinterface;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
-import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.legacy.Config;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 

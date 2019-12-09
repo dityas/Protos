@@ -9,6 +9,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.utils.Diagnostics;
 
 public class AlphaVector implements Serializable {
 	/**
@@ -45,7 +46,8 @@ public class AlphaVector implements Serializable {
 	
 	public static AlphaVector dpBackup(
 			IPOMDP ipomdp,
-			DD[] belState, 
+			DD belState,
+			DD[] factoredBelState,
 			DD[] primedV, 
 			double maxAbsVal,
 			int numAlpha) throws ZeroProbabilityObsException, VariableNotFoundException {
@@ -54,6 +56,9 @@ public class AlphaVector implements Serializable {
 		
 		/* get next unnormalised belief states */
 		double smallestProb;
+		
+		/* measure time constructing for NZ primes */
+		long beforeNZPrimes = System.nanoTime();
 		
 		smallestProb = ipomdp.tolerance / maxAbsVal;
 		nextBelStates = 
@@ -65,6 +70,9 @@ public class AlphaVector implements Serializable {
 
 		/* precompute obsVals */
 		nextBelStates.values().forEach(n -> n.getObsVals(primedV));
+		
+		long afterNZPrimes = System.nanoTime();
+		Diagnostics.NZ_PRIME_TIME.add((afterNZPrimes - beforeNZPrimes));
 
 		double bestValue = Double.NEGATIVE_INFINITY;
 		double actValue;
@@ -73,6 +81,9 @@ public class AlphaVector implements Serializable {
 		int nObservations = ipomdp.obsCombinations.size();
 		
 		int[] bestObsStrat = new int[nObservations];
+		
+		/* measure time for Immediate R */
+		long beforeR = System.nanoTime();
 
 		for (String Ai : ipomdp.getActions()) {
 			
@@ -81,7 +92,7 @@ public class AlphaVector implements Serializable {
 			/* compute immediate rewards */
 			actValue = 
 					actValue + OP.factoredExpectationSparseNoMem(
-							belState, 
+							factoredBelState, 
 							ipomdp.currentRi.get(Ai));
 
 			/* compute observation strategy */
@@ -96,6 +107,12 @@ public class AlphaVector implements Serializable {
 				bestObsStrat = nextBelStates.get(Ai).obsStrat;
 			}
 		}
+		
+		long afterR = System.nanoTime();
+		Diagnostics.IMMEDIATE_R_TIME.add((afterR - beforeR));
+		
+		/* measure time for constructing A Vec */
+		long beforeAVec = System.nanoTime();
 		
 		/* construct corresponding alpha vector */
 		DD newAlpha = DD.zero;
@@ -153,6 +170,8 @@ public class AlphaVector implements Serializable {
 						ipomdp.currentTi.get(bestAction), 
 						ipomdp.currentAjGivenMj);
 		
+		Ti = ArrayUtils.add(Ti, ipomdp.currentThetajGivenMj);
+		
 		DD[] valFnArray = 
 				ArrayUtils.addAll(
 						ArrayUtils.addAll(
@@ -163,7 +182,7 @@ public class AlphaVector implements Serializable {
 		DD V = 
 				OP.addMultVarElim(
 						valFnArray, 
-						ipomdp.AjIndex);
+						new int[] {ipomdp.thetaVarPosition + 1, ipomdp.AjVarStartPosition + 1});
 
 		newAlpha = 
 				OP.addMultVarElim(
@@ -171,7 +190,7 @@ public class AlphaVector implements Serializable {
 						ArrayUtils.addAll(
 								ArrayUtils.subarray(
 										ipomdp.stateVarPrimeIndices,
-										0, ipomdp.stateVarPrimeIndices.length - 1),
+										0, ipomdp.thetaVarPosition),
 								ipomdp.obsIVarPrimeIndices));
 
 		newAlpha = 
@@ -180,7 +199,10 @@ public class AlphaVector implements Serializable {
 								newAlpha, 
 								ipomdp.currentRi.get(bestAction)));
 		
-		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
+		long afterAVec = System.nanoTime();
+		Diagnostics.AVEC_TIME.add((afterAVec - beforeAVec));
+		
+		bestValue = OP.factoredExpectationSparse(factoredBelState, newAlpha);
 
 		/* package up to return */
 		AlphaVector returnAlpha = 
@@ -225,7 +247,7 @@ public class AlphaVector implements Serializable {
 			/* compute immediate rewards */
 			actValue = 
 					actValue 
-						+ OP.factoredExpectationSparseNoMem(
+						+ OP.factoredExpectationSparse(
 								belState, 
 								pomdp.actions[actId].rewFn);
 

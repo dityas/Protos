@@ -8,11 +8,11 @@
 package thinclab.solvers;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
-import thinclab.belief.Belief;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
@@ -62,7 +62,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 		logger.debug("Solving for " + beliefs.size() + " belief points.");
 
-		DD[][] factoredBeliefRegion = Belief.factorBeliefRegion(this.p, beliefs);
+		DD[][] factoredBeliefRegion = this.p.factorBeliefRegion(beliefs);
 
 		/* try running IPBVI */
 		try {
@@ -91,7 +91,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		bellmanErr = 20 * this.p.tolerance;
 
 		/* compute point based values using current alpha vectors */
-		currentPointBasedValues = OP.factoredExpectationSparseNoMem(belRegion,
+		currentPointBasedValues = OP.factoredExpectationSparse(belRegion,
 				alphaVectors);
 		
 		DD[] primedV;
@@ -149,7 +149,6 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 						break;
 				}
 				
-				Global.newHashtables();
 				count = count + 1;
 
 				if (numNewAlphaVectors == 0) {
@@ -179,8 +178,6 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 						|| (OP.max(newPointBasedValues[i], numNewAlphaVectors)
 								- OP.max(currentPointBasedValues[i]) < steptolerance)) {
 				
-					Global.newHashtables();
-	
 					/* perform the backup operation */
 					newVector = 
 							AlphaVector.dpBackup(
@@ -249,18 +246,18 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			float errorVar = this.getErrorVariance((float) bellmanErr);
 			
 			logger.info("STEP: " + stepId 
-					+ " \tBELLMAN ERROR: " + bellmanErr
+					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr)
 					+ " \tUSED/BELIEF POINTS: " + numUsed + "/" + belRegion.length
 					+ " \tA VECTORS: " + alphaVectors.length);
 			
-			if (stepId % 100 < 5) continue;
+			if (stepId % 100 < 1) continue;
 			
 			if (bellmanErr < 0.01) {
 				logger.warn("BELLMAN ERROR LESS THAN 0.01. PROBABLY CONVERGED.");
 				break;
 			}
 			
-			if (stepId > 15 && errorVar < 0.0000001) {
+			if (stepId > 20 && errorVar < 0.0001) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;

@@ -1,5 +1,7 @@
 package thinclab.legacy;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 public class Config {
 
     public static int[][] empty = new int[2][0];
@@ -11,11 +13,19 @@ public class Config {
 
 	if (config == null) return 0;
 
-	int hashCode = 0;
+//	int hashCode = 0;
+//	for (int i=0; i<config[0].length; i++) {
+//	    hashCode += config[0][i] + config[1][i];
+//	}
+	
+	HashCodeBuilder builder = new HashCodeBuilder();
+	
 	for (int i=0; i<config[0].length; i++) {
-	    hashCode += config[0][i] + config[1][i];
+	    builder.append(config[0][i]);
+	    builder.append(config[1][i]);
 	}
-	return hashCode;
+	
+	return builder.toHashCode();
     }
 
     /////////////////////////////////////////////////////////

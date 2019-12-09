@@ -7,6 +7,7 @@
  */
 package thinclab.solvers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -14,7 +15,6 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
-import thinclab.belief.InteractiveBelief;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
@@ -100,8 +100,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 
 		logger.debug("Solving for " + beliefs.size() + " belief points.");
 
-		DD[][] factoredBeliefRegion = 
-				InteractiveBelief.factorInteractiveBeliefRegion((IPOMDP) this.f, beliefs);
+		DD[][] factoredBeliefRegion = this.f.factorBeliefRegion(beliefs);
 
 		/* Make a default alphaVectors as rewards to start with */
 		this.alphaVectors = 
@@ -115,9 +114,12 @@ public class OnlineIPBVISolver extends OnlineSolver {
 
 			for (int r = 0; r < this.maxRounds; r++) {
 
-				this.IPBVI(100, r * this.dpBackups, this.dpBackups, factoredBeliefRegion);
+				this.IPBVI(100, r * this.dpBackups, this.dpBackups, factoredBeliefRegion, beliefs);
 
 			}
+			
+			this.currentPointBasedValues = null;
+			this.newPointBasedValues = null;
 		}
 
 		catch (Exception e) {
@@ -136,7 +138,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 			 * observing obs.
 			 */
 			this.ipomdp.step(
-					this.ipomdp.getInitialBeliefs().get(0), 
+					this.ipomdp.getCurrentBelief(), 
 					action, obs.toArray(new String[obs.size()]));
 
 			/* Reset the search to new initial beliefs */
@@ -195,7 +197,8 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	// --------------------------------------------------------------------------------------------
 
 	@SuppressWarnings("unused")
-	public void IPBVI(int maxAlpha, int firstStep, int nSteps, DD[][] beliefRegion)
+	public void IPBVI(
+			int maxAlpha, int firstStep, int nSteps, DD[][] beliefRegion, List<DD> beliefs)
 			throws ZeroProbabilityObsException, VariableNotFoundException {
 
 		double bellmanErr;
@@ -211,6 +214,9 @@ public class OnlineIPBVISolver extends OnlineSolver {
 
 		DD[] primedV;
 		double maxAbsVal = 0;
+		
+		/* For computation stats */
+		List<Long> backupTimes = new ArrayList<Long>();
 
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 
@@ -254,9 +260,22 @@ public class OnlineIPBVISolver extends OnlineSolver {
 			for (int i = 0; i < beliefRegion.length; i++) {
 				Global.newHashtables();
 
+				long beforeBackup = System.nanoTime();
+					
 				/* dpBackup */
-				newVector = AlphaVector.dpBackup(this.ipomdp, beliefRegion[i], primedV, maxAbsVal,
-						this.alphaVectors.length);
+				newVector = 
+						AlphaVector.dpBackup(
+								this.ipomdp, 
+								beliefs.get(i), 
+								beliefRegion[i],
+								primedV, 
+								maxAbsVal, 
+								this.alphaVectors.length);
+				
+				long afterBackup = System.nanoTime();
+				
+				/* record backup computation time */
+				backupTimes.add((afterBackup - beforeBackup));
 
 				newVector.alphaVector = OP.approximate(newVector.alphaVector,
 						bellmanErr * (1 - this.ipomdp.discFact) / 2.0, onezero);
@@ -316,16 +335,28 @@ public class OnlineIPBVISolver extends OnlineSolver {
 						0, this.numNewAlphaVectors);
 			}
 
-			bellmanErr = Math.min(10, Math.max(this.bestImprovement, -this.worstDecline));
+//			bellmanErr = Math.min(10, Math.max(this.bestImprovement, -this.worstDecline));
+			bellmanErr = Math.max(this.bestImprovement, -this.worstDecline);
 			float errorVar = this.getErrorVariance((float) bellmanErr);
 			
+			/* compute average backup time */
+			double avgTime = 
+					backupTimes.stream()
+						.map(i -> (double) i)
+						.mapToDouble(Double::valueOf)
+						.average()
+						.orElse(Double.NaN);
+			
+			backupTimes.clear();
+			
 			logger.info("I: " + stepId 
-					+ "\tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
-					+ "\tUSED/TOTAL BELIEFS: " + nDpBackups 
+					+ "  B ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
+					+ "\t USED/TOTAL BELIEFS: " + nDpBackups 
 					+ "/" + beliefRegion.length 
-					+ "\tA VECTORS: " + this.alphaVectors.length);
+					+ "  A VECTORS: " + this.alphaVectors.length
+					+ "  Avg. backup: " + (avgTime / 1000000) + " msec");
 
-			if (stepId % 100 < 5)
+			if (stepId % 100 < 1)
 				continue;
 
 			if (bellmanErr < 0.01) {
@@ -334,7 +365,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 				break;
 			}
 
-			if (stepId > 75 && errorVar < 0.0000001) {
+			if (stepId > 20 && errorVar < 0.0001) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;

@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
-import thinclab.belief.InteractiveBelief;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -24,6 +23,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.legacy.RandomPermutation;
+import thinclab.utils.Diagnostics;
 
 /*
  * @author adityas
@@ -65,10 +65,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		
 		logger.debug("Solving for " + beliefs.size() + " belief points.");
 		
-		DD[][] factoredBeliefRegion = 
-				InteractiveBelief.factorInteractiveBeliefRegion(
-						(IPOMDP) this.f, 
-						beliefs);
+		DD[][] factoredBeliefRegion = this.f.factorBeliefRegion(beliefs); 
 		
 		/* Make a default alphaVectors as rewards to start with */
 		this.alphaVectors = 
@@ -87,9 +84,13 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 						r * this.dpBackups, 
 						this.dpBackups, 
 						factoredBeliefRegion,
+						beliefs,
 						false);
 				
 			}
+			
+			this.currentPointBasedValues = null;
+			this.newPointBasedValues = null;
 		}
 		
 		catch (Exception e) {
@@ -104,6 +105,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			int firstStep,
 			int nSteps,
 			DD[][] beliefRegion,
+			List<DD> unfactoredBeliefRegion,
 			boolean debug) throws ZeroProbabilityObsException, VariableNotFoundException {
 		
 		double bellmanErr;
@@ -118,14 +120,15 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				OP.factoredExpectationSparseNoMem(
 						beliefRegion, this.alphaVectors);
 		
+		logger.debug("Computed PBVs");
+		
 		if (debug) {
 			
 			logger.debug("printing belief region");
 			
 			for (int i = 0; i < beliefRegion.length; i++) {
 				logger.debug("Belief:" + i+ " " 
-						+ InteractiveBelief.toStateMap(
-								this.ipomdp, OP.reorder(OP.multN(beliefRegion[i]))));
+						+ this.ipomdp.toMap(unfactoredBeliefRegion.get(i)));
 			}
 			logger.debug("Ri : " + this.ipomdp.currentRi);
 		}
@@ -204,7 +207,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					}
 				}
 
-				Global.newHashtables();
+//				Global.newHashtables();
 				count = count + 1;
 				
 				if (this.numNewAlphaVectors == 0)
@@ -240,14 +243,22 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 						|| (OP.max(this.newPointBasedValues[i], this.numNewAlphaVectors)
 								- OP.max(this.currentPointBasedValues[i]) < steptolerance)) {
 					
+					long beforeBackup = System.nanoTime();
+					
 					/* dpBackup */
 					newVector = 
 							AlphaVector.dpBackup(
 									this.ipomdp,
-									beliefRegion[i], 
-									primedV, 
+									unfactoredBeliefRegion.get(i),
+									beliefRegion[i],
+									primedV,
 									maxAbsVal,
 									this.alphaVectors.length);
+					
+					long afterBackup = System.nanoTime();
+				
+					/* record backup computation time */
+					Diagnostics.BACKUP_TIME.add((afterBackup - beforeBackup));
 
 					newVector.alphaVector = OP.approximate(
 							newVector.alphaVector, bellmanErr * (1 - ipomdp.discFact)
@@ -325,7 +336,9 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 						this.numNewAlphaVectors);
 			}
 
-			bellmanErr = Math.min(10, Math.max(this.bestImprovement, -this.worstDecline));
+//			bellmanErr = Math.min(10, Math.max(this.bestImprovement, -this.worstDecline));
+			
+			bellmanErr = Math.max(this.bestImprovement, -this.worstDecline);
 			float errorVar = this.getErrorVariance((float) bellmanErr);
 			
 			logger.info("I: " + stepId 
@@ -333,7 +346,11 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					+ " \tUSED/TOTAL BELIEFS: " + numIter + "/" + beliefRegion.length
 					+ " \tA VECTORS: " + this.alphaVectors.length);
 			
-			if (stepId % 100 < 5)
+			/* report diagnostics on exec times */
+			Diagnostics.reportDiagnostics();
+			Diagnostics.reportCacheSizes();
+			
+			if (stepId % 100 < 1)
 				continue;
 			
 			if (bellmanErr < 0.01) {
@@ -344,7 +361,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-			if (stepId > 75 && errorVar < 0.0000001) {
+			if (stepId > 20 && errorVar < 0.0001) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;

@@ -18,15 +18,16 @@ import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
-import thinclab.belief.Belief;
-import thinclab.belief.InteractiveBelief;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
-import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
 
 /*
@@ -70,29 +71,18 @@ public class StructuredTree implements Serializable {
 		
 		try {
 			
-			DD nextBelief;
+			DD nextBelief = null;
 			
 			/*
 			 * If the process is an IPOMDP, do an IPOMDP belief update
 			 * else POMDP belief update
 			 */
-			if (f.getType().contentEquals("IPOMDP")) {
-				nextBelief = 
-						InteractiveBelief.staticL1BeliefUpdate(
-								(IPOMDP) f, 
-								belief, 
-								action, 
-								obs.toArray(new String[obs.size()]));
-			}
 			
-			else {
-				nextBelief = 
-						Belief.beliefUpdate(
-								(POMDP) f, 
-								belief, 
-								f.getActions().indexOf(action), 
-								obs.toArray(new String[obs.size()]));
-			}
+			nextBelief = 
+					f.beliefUpdate( 
+							belief, 
+							action, 
+							obs.toArray(new String[obs.size()]));
 			
 			/* add to belief set if nextBelief is unique */
 			if (!currentLevelBeliefSet.containsKey(nextBelief)) {
@@ -158,32 +148,27 @@ public class StructuredTree implements Serializable {
 		/* 
 		 * Make the next node after taking action at parentNodeBelief and observing the
 		 * specified observation
+		 * 
+		 * 
+		 * WARNING: This method uses belief strings to maintain unique beliefs. After the recent
+		 * commits, belief strings are built from JSON objects and hashmaps which do not guarantee
+		 * the ordering of keys. So same beliefs can be stored as unique beliefs just because of key
+		 * ordering is different. Do not use this function will be removed soon
 		 */
 		try {
 			
-			DD nextBelief;
+			DD nextBelief = null;
 			
 			/*
 			 * If the process is an IPOMDP, do an IPOMDP belief update
 			 * else POMDP belief update
 			 */
-			if (solver.f.getType().contentEquals("IPOMDP")) {
-				nextBelief = 
-						InteractiveBelief.staticL1BeliefUpdate(
-								(IPOMDP) solver.f, 
-								parentNodeBelief, 
-								action, 
-								obs.toArray(new String[obs.size()]));
-			}
-			
-			else {
-				nextBelief = 
-						Belief.beliefUpdate(
-								(POMDP) solver.f, 
-								parentNodeBelief, 
-								solver.f.getActions().indexOf(action), 
-								obs.toArray(new String[obs.size()])); 
-			}
+
+			nextBelief = 
+					solver.f.beliefUpdate( 
+							parentNodeBelief, 
+							action, 
+							obs.toArray(new String[obs.size()])); 
 			
 			String nextBeliefString = solver.f.getBeliefString(nextBelief);
 			
@@ -272,6 +257,70 @@ public class StructuredTree implements Serializable {
 		return gsonHandler.toJson(jsonContainer);
 	}
 	
+	public static String jsonBeliefStringToDotNode(String beliefString, String action) {
+		/*
+		 * Converts a JSON formatted belief string to dot format node
+		 */
+		
+		/* JSON Tree object */
+		JsonElement JSONTree = JsonParser.parseString(beliefString);
+		
+		Gson gsonHandler = 
+				new GsonBuilder()
+					.disableHtmlEscaping()
+					.create();
+		
+		JsonArray mjArray = JSONTree.getAsJsonObject().get("M_j").getAsJsonArray();
+		
+		String dotString = "";
+		String seperator = "|";
+		
+		dotString += "{";
+		
+		/* make Mj belief */
+		dotString += "M_j ";
+		
+		/* deserialize the list of mj beliefs */
+		for (JsonElement mj: mjArray) {
+			
+			/* convert to JSON object */
+			JsonObject mjJSON = mj.getAsJsonObject(); 
+			
+			dotString += 
+					seperator + "{" + 
+						"{" + gsonHandler.toJson(
+								mjJSON.get("model").getAsJsonObject().get("belief_j"))
+							.replace("{", "(")
+							.replace("}", ")") 
+							
+							+ seperator + gsonHandler.toJson(
+									mjJSON.get("model").getAsJsonObject().get("A_j"))
+							+ seperator + gsonHandler.toJson(
+									mjJSON.get("model").getAsJsonObject().get("Theta_j"))
+						+ "}"
+						+ seperator + gsonHandler.toJson(mjJSON.get("prob")) + "}";
+		}
+		
+		dotString += seperator;
+		
+		/* make other beliefs */
+		for (String var: JSONTree.getAsJsonObject().keySet()) {
+			
+			if (var.contentEquals("M_j")) continue;
+			
+			dotString += seperator;
+			dotString += var;
+			dotString += seperator + gsonHandler.toJson(JSONTree.getAsJsonObject().get(var)) 
+				+ seperator; 
+		}
+		
+		dotString += seperator;
+		dotString += "Ai = " + action;
+		dotString += "}";
+		
+		return dotString.replace("\"", " ");
+	}
+	
 	public String getDotString() {
 		/*
 		 * Converts to graphviz compatible dot string
@@ -283,12 +332,16 @@ public class StructuredTree implements Serializable {
 		
 		/* Make nodes */
 		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
-			dotString += " " + entry.getKey() + " [shape=record, label=\"{"
-					+ "Ai=" + entry.getValue().actName + " | "
-					+ entry.getValue().sBelief
-						.replace("{", "(")
-						.replace("}", ")")
-					+ "}\"];" + endl;
+			
+			if (entry.getValue().startNode)
+				dotString += " " + entry.getKey() + " [shape=Mrecord, label=\"";
+			else
+				dotString += " " + entry.getKey() + " [shape=record, label=\"";
+			
+			dotString += StructuredTree.jsonBeliefStringToDotNode(
+							entry.getValue().sBelief,
+							entry.getValue().actName)
+					+ "\"];" + endl;
 		}
 		
 		dotString += endl;

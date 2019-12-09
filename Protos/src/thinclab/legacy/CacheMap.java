@@ -1,8 +1,11 @@
 package thinclab.legacy;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-class CacheMap extends LinkedHashMap {
+@SuppressWarnings("rawtypes")
+public class CacheMap extends ConcurrentHashMap {
     /**
 	 * 
 	 */
@@ -20,7 +23,7 @@ class CacheMap extends LinkedHashMap {
 	this.maxCapacity = maxCapacity;
     }
 
-    @SuppressWarnings("rawtypes")
+//    @SuppressWarnings("rawtypes")
 	protected boolean removeEldestEntry(Map.Entry eldest) {
         return size() > maxCapacity;
     }
