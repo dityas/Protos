@@ -102,31 +102,64 @@ class TestOnlineSymbolicPerseus {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 2, 20);
 		
-		HashMap<String, NextBelState> nextStates = 
-				NextBelState.oneStepNZPrimeBelStates(
-						tigerL1IPOMDP, 
-						tigerL1IPOMDP.getCurrentBelief(), 
-						true, 0.00000001);
+		for (int t = 0; t < 10; t++) {
 		
-		LOGGER.debug("Starting belief is " + tigerL1IPOMDP.getCurrentBelief().toDDTree());
-		LOGGER.debug("All possible combinations are " 
-				+ tigerL1IPOMDP.getAllPossibleObservations());
-		
-		DD obsDist = tigerL1IPOMDP.getObsDist(tigerL1IPOMDP.getCurrentBelief(), "listen");
-		
-		LOGGER.debug("Obs dist is " + obsDist);
-		LOGGER.debug(Arrays.toString(OP.convert2array(obsDist, tigerL1IPOMDP.obsIVarPrimeIndices)));
-		LOGGER.debug(Arrays.toString(Global.varDomSize));
-		
-		for (String action : tigerL1IPOMDP.getActions()) {
+			HashMap<String, NextBelState> nextStates = 
+					NextBelState.oneStepNZPrimeBelStates(
+							tigerL1IPOMDP, 
+							tigerL1IPOMDP.getCurrentBelief(), 
+							false, 0.00000001);
 			
-			NextBelState nextStateForAi = nextStates.get(action);
+			LOGGER.debug("Starting belief is " + tigerL1IPOMDP.getCurrentBelief().toDDTree());
+			LOGGER.debug("All possible combinations are " 
+					+ tigerL1IPOMDP.getAllPossibleObservations());
 			
-			for (int s = 0; s < nextStateForAi.nextBelStates.length; s++) {
-				LOGGER.debug("For Ai=" + action + " and o=" 
-						+ tigerL1IPOMDP.getAllPossibleObservations().get(s) 
-						+ " belief is " + Arrays.toString(nextStateForAi.nextBelStates[s]));
+			DD obsDist = tigerL1IPOMDP.getObsDist(tigerL1IPOMDP.getCurrentBelief(), "listen");
+			
+			LOGGER.debug("Obs dist is " + obsDist);
+			LOGGER.debug(Arrays.toString(OP.convert2array(obsDist, tigerL1IPOMDP.obsIVarPrimeIndices)));
+			LOGGER.debug(Arrays.toString(Global.varDomSize));
+			
+			for (String action : tigerL1IPOMDP.getActions()) {
+				
+				NextBelState nextStateForAi = nextStates.get(action);
+				
+				for (int s = 0; s < nextStateForAi.nextBelStates.length; s++) {
+					LOGGER.debug("For Ai=" + action + " and o=" 
+							+ tigerL1IPOMDP.getAllPossibleObservations().get(s) 
+							+ " belief is " + Arrays.toString(nextStateForAi.nextBelStates[s]));
+					
+					DD nextBelief = 
+							tigerL1IPOMDP.beliefUpdate(
+									tigerL1IPOMDP.getCurrentBelief(), 
+									action, 
+									tigerL1IPOMDP.obsCombinations.get(s).stream().toArray(String[]::new));
+					
+					LOGGER.debug("Factored belief is " 
+							+ Arrays.toString(tigerL1IPOMDP.factorBelief(nextBelief)));
+					
+					for (int b = 0; b < nextStateForAi.nextBelStates[s].length - 1; b++) {
+						
+						DD marginal = nextStateForAi.nextBelStates[s][b];
+						DD primedFactor = 
+								OP.primeVars(tigerL1IPOMDP.factorBelief(nextBelief)[b], 
+										tigerL1IPOMDP.S.size() + tigerL1IPOMDP.Omega.size());
+										
+						LOGGER.debug("Marginal is: " + marginal);
+						LOGGER.debug("Primed factor is: " + primedFactor);
+						
+						assertTrue(OP.abs(OP.sub(primedFactor, marginal)).getVal() < 1e-8);
+					}
+				}
 			}
+			
+			int[][] obsConfig = OP.sampleMultinomial(obsDist, tigerL1IPOMDP.obsIVarPrimeIndices);
+			String[] obs = new String[obsConfig[0].length];
+			for (int varI = 0; varI < obsConfig[0].length; varI ++) {
+				obs[varI] = Global.valNames[obsConfig[0][varI] - 1][obsConfig[1][varI] - 1];
+			}
+			
+			tigerL1IPOMDP.step(tigerL1IPOMDP.getCurrentBelief(), "listen", obs);
 		}
 	}
 	
