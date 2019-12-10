@@ -74,6 +74,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 	public DD[] qFn;
 	public int[] qPolicy;
 	public DD[][] belRegion;
+	public List<List<String>> obsCombinations = new ArrayList<List<String>>();
+	public int[][] obsCombinationsIndices;
 	
 	/*
 	 * These three should really be combined into AlphaVector class
@@ -91,7 +93,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 	
 	public ParseSPUDD parser;
 	
-	private static final Logger logger = Logger.getLogger(POMDP.class);
+	private static final Logger LOGGER = Logger.getLogger(POMDP.class);
 	
 	// ---------------------------------------------------------------------
 	/*
@@ -263,7 +265,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 * or lower frames have done required changes if any. 
 		 */
 		
-		logger.info("Begin POMDP initialisation from parser");
+		LOGGER.info("Begin POMDP initialisation from parser");
 		
 		debug = false;
 		
@@ -289,13 +291,16 @@ public class POMDP extends DecisionProcess implements Serializable {
 		this.setDynamics();
 		this.setBeliefs();
 		
-		logger.info("POMDP initialised");
+		LOGGER.info("POMDP initialised");
 		
 		/* Null parser reference after parsing is done */
 		this.parser = null;
 		
 		/* set belief operations handler */
 		this.bOPs = new BeliefOps(this);
+		
+		/* compute obscombinations to avoid computing it repeatedly later */
+		this.computeAllPossibleObsCombinations();
 	}
 	
 	public void initializeFrameFromParser(ParseSPUDD parserObj) {
@@ -305,7 +310,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		this.frameID = parserObj.frameID;
 		this.level = parserObj.level;
 		
-		logger.debug("frame ID set to " + this.frameID + " at level " + this.level);
+		LOGGER.debug("frame ID set to " + this.frameID + " at level " + this.level);
 	}
 	
 	public void initializeSFromParser(ParseSPUDD parserObj) {
@@ -315,7 +320,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		
 		this.S.addAll(parserObj.S);
 		
-		logger.debug("S staged to " + this.S);
+		LOGGER.debug("S staged to " + this.S);
 	}
 	
 	public void initializeOmegaFromParser(ParseSPUDD parserObj) {
@@ -325,7 +330,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 
 		this.Omega.addAll(parserObj.Omega);
 		
-		logger.debug("Omega staged to " + this.Omega);
+		LOGGER.debug("Omega staged to " + this.Omega);
 	}
 	
 	public void initializeOFromParser(ParseSPUDD parserObj) {
@@ -334,7 +339,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 */
 		this.Oi = parserObj.Oi;
 		
-		logger.debug("O initialized to " + this.Oi);
+		LOGGER.debug("O initialized to " + this.Oi);
 	}
 	
 	public void initializeTFromParser(ParseSPUDD parserObj) {
@@ -343,7 +348,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 */
 		this.Ti = parserObj.Ti;
 		
-		logger.debug("T initialized to " + this.Ti);
+		LOGGER.debug("T initialized to " + this.Ti);
 	}
 	
 	public void initializeAFromParser(ParseSPUDD parserObj) {
@@ -353,8 +358,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 		this.A.addAll(parserObj.A);
 		this.costs.addAll(parserObj.costs);
 		
-		logger.debug("A initialized to " + this.A);
-		logger.debug("Costs for A: " + this.costs);
+		LOGGER.debug("A initialized to " + this.A);
+		LOGGER.debug("Costs for A: " + this.costs);
 	}
 	
 	public void initializeRFromParser(ParseSPUDD parserObj) {
@@ -362,7 +367,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 * Initializes the Action space from parser
 		 */
 		this.R = parserObj.R;
-		logger.debug("R initialized to " + this.R);
+		LOGGER.debug("R initialized to " + this.R);
 	}
 	
 //	public void initializeActionsFromParser(ParseSPUDD parserObj) {
@@ -433,7 +438,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 */
 		
 		this.adjunctBeliefs.addAll(parserObj.adjunctBeliefs);
-		logger.debug("Adjunct beliefs set to " + this.adjunctBeliefs);
+		LOGGER.debug("Adjunct beliefs set to " + this.adjunctBeliefs);
 	}
 	
 	public void initializeBeliefsFromParser(ParseSPUDD parserObj) {
@@ -442,7 +447,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 */
 		
 		this.initBeliefDdTree = parserObj.initBeliefDdTree;
-		logger.debug("Initial belief set to " + this.initBeliefDdTree);
+		LOGGER.debug("Initial belief set to " + this.initBeliefDdTree);
 	}
 	
 	public void initializeToleranceFromParser(ParseSPUDD parserObj) {
@@ -451,7 +456,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 */ 
 		if (parserObj.tolerance != null) this.tolerance = parserObj.tolerance.getVal();
 		
-		logger.debug("Tolerance set to " + this.tolerance);
+		LOGGER.debug("Tolerance set to " + this.tolerance);
 	}
 	
 	// -----------------------------------------------------------------------------------------------
@@ -461,7 +466,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 * Starts building up DDs which define system dynamics based on Ti and Oi
 		 */
 		
-		logger.debug("Setting dynamics");
+		LOGGER.debug("Setting dynamics");
 		
 		this.nActions = this.A.size();
 		this.actions = new Action[nActions];
@@ -692,7 +697,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		this.Omega.stream().forEach(o -> this.ddMaker.addVariable(o.name, o.valNames));
 		this.ddMaker.primeVariables();
 		
-		logger.debug("Context belongs to frame " + this.frameID + " at level " + this.level);
+		LOGGER.debug("Context belongs to frame " + this.frameID + " at level " + this.level);
 	}
 	
 	// -----------------------------------------------------------------------------------------------
@@ -747,14 +752,14 @@ public class POMDP extends DecisionProcess implements Serializable {
 		return pomdp;
 	}
 
-	public int[] statedecode(int statenum, int n) {
+	public static int[] statedecode(int statenum, int n) {
 		int[] bases = new int[n];
 		for (int i = 0; i < n; i++)
 			bases[i] = 2;
 		return statedecode(statenum, n, bases);
 	}
 
-	public int[] statedecode(int statenum, int n, int[] bases) {
+	public static int[] statedecode(int statenum, int n, int[] bases) {
 		int[] statevec = new int[n];
 		for (int i = 0; i < n; i++)
 			statevec[i] = 0;
@@ -807,7 +812,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 * The belief space is transformed according to the next belief. 
 		 */
 		
-		logger.info("Taking action " + action + "\r\n"
+		LOGGER.info("Taking action " + action + "\r\n"
 				+ " at belief " + this.toMap(belief) + "\r\n"
 				+ " with observation " + Arrays.toString(obs));
 		
@@ -818,7 +823,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 						action, 
 						obs);
 		
-		logger.debug("Next belief is " + this.toMap(nextBelief));
+		LOGGER.debug("Next belief is " + this.toMap(nextBelief));
 		
 		this.currentBelief = nextBelief;
 	}
@@ -873,9 +878,40 @@ public class POMDP extends DecisionProcess implements Serializable {
 		return obsComb;
 	} // private List<List<String>> recursiveObsCombinations
 	
+	public void computeAllPossibleObsCombinations() {
+		/*
+		 * Populates the obsCombinations and obsCombinationsIndices properties of
+		 * the POMDP
+		 */
+		
+		this.obsCombinationsIndices = new int[nObservations][nObsVars];
+		
+		/* first populate the indices */
+		for (int i = 0; i < nObservations; i++) {
+			this.obsCombinationsIndices[i] = 
+					POMDP.statedecode(i + 1, this.nObsVars, this.obsVarsArity);
+		}
+		
+		LOGGER.debug("Obs Combination Indices: " 
+				+ Arrays.deepToString(this.obsCombinationsIndices));
+		
+		for (int o = 0; o < this.obsCombinationsIndices.length; o++) {
+			
+			List<String> obs = new ArrayList<String>();
+			
+			for (int oVar = 0; oVar < this.obsCombinationsIndices[o].length; oVar++) {
+				obs.add(this.obsVars[oVar].valNames[this.obsCombinationsIndices[o][oVar] - 1]);
+			}
+			
+			this.obsCombinations.add(obs);
+		}
+		
+		LOGGER.debug("Obs Combinations: " + this.obsCombinations);
+	}
+	
 	@Override
 	public List<List<String>> getAllPossibleObservations() {
-		return recursiveObsCombinations(Arrays.asList(this.obsVars));
+		return this.obsCombinations;
 	}
 	
 	// -------------------------------------------------------------------------------------------------

@@ -9,15 +9,22 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.HashMap;
+
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import cern.colt.Arrays;
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.legacy.DD;
+import thinclab.legacy.Global;
+import thinclab.legacy.NextBelState;
+import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineIPBVISolver;
@@ -83,22 +90,45 @@ class TestOnlineSymbolicPerseus {
 		LOGGER.debug(ss.getDotString());
 	}
 	
-//	@Test
-//	void testPOMDPSolvePBVI() {
-//		System.out.println("Running testPOMDPSolvePBVI()");
-//		
-//		POMDP p1 = new POMDP(this.tigerDom);
-////		POMDP p2 = new POMDP(this.attDom);
-//		
-//		assertNull(p1.alphaVectors);
-////		assertNull(p2.alphaVectors);
-//		
-//		p1.solvePBVI(1, 6);
-////		p2.solvePBVI(15, 100);
-//		
-//		assertNotNull(p1.alphaVectors);
-////		assertNotNull(p2.alphaVectors);
-//	}
+	@Test
+	void testIPOMDPNextBelStates() throws Exception {
+		LOGGER.info("Testing IPOMDP next belstates");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1multiple);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 2, 20);
+		
+		HashMap<String, NextBelState> nextStates = 
+				NextBelState.oneStepNZPrimeBelStates(
+						tigerL1IPOMDP, 
+						tigerL1IPOMDP.getCurrentBelief(), 
+						true, 0.00000001);
+		
+		LOGGER.debug("Starting belief is " + tigerL1IPOMDP.getCurrentBelief().toDDTree());
+		LOGGER.debug("All possible combinations are " 
+				+ tigerL1IPOMDP.getAllPossibleObservations());
+		
+		DD obsDist = tigerL1IPOMDP.getObsDist(tigerL1IPOMDP.getCurrentBelief(), "listen");
+		
+		LOGGER.debug("Obs dist is " + obsDist);
+		LOGGER.debug(Arrays.toString(OP.convert2array(obsDist, tigerL1IPOMDP.obsIVarPrimeIndices)));
+		LOGGER.debug(Arrays.toString(Global.varDomSize));
+		
+		for (String action : tigerL1IPOMDP.getActions()) {
+			
+			NextBelState nextStateForAi = nextStates.get(action);
+			
+			for (int s = 0; s < nextStateForAi.nextBelStates.length; s++) {
+				LOGGER.debug("For Ai=" + action + " and o=" 
+						+ tigerL1IPOMDP.getAllPossibleObservations().get(s) 
+						+ " belief is " + Arrays.toString(nextStateForAi.nextBelStates[s]));
+			}
+		}
+	}
 	
 	@Test
 	void testOnlineIPBVI() throws ZeroProbabilityObsException {
