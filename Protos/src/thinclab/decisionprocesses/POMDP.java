@@ -1027,6 +1027,16 @@ public class POMDP extends DecisionProcess implements Serializable {
 		
 	}
 	
+	@Override
+	public void setTi(String action, DD[] Ti) {
+		/*
+		 * Sets the given Ti as the transition function for the action
+		 */
+		
+		int actId = this.getActions().indexOf(action);
+		this.actions[actId].addTransFn(Ti);
+	}
+	
 	// -------------------------------------------------------------------------------
 
 	@Override

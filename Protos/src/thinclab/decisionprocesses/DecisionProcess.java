@@ -52,6 +52,7 @@ public abstract class DecisionProcess implements Serializable {
 	public abstract String getBeliefString(DD belief);
 	public abstract DD getRewardFunctionForAction(String action);
 	public abstract void step(DD belief, String action, String[] obs) throws Exception;
+	public abstract void setTi(String action, DD[] Ti);
 	
 	// ---------------------------------------------------------------------------------
 	

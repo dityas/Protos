@@ -35,6 +35,7 @@ import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
@@ -158,6 +159,7 @@ public class IPOMDP extends POMDP {
 			
 			/* initialize all DDs */
 			this.updateMjInIS();
+			
 			this.initializeOfflineFunctions();
 			this.reinitializeOnlineFunctions();
 			
@@ -453,6 +455,9 @@ public class IPOMDP extends POMDP {
 			
 			else if (mj.level == 0) {
 				
+				/* make joint action transition function here */
+				this.convertToJointActionTi();
+				
 				/* For solving the POMDP at lowest level, set the globals */
 				mj.setGlobals();
 				
@@ -515,18 +520,107 @@ public class IPOMDP extends POMDP {
 		
 		/* initialize MJ */
 		this.multiFrameMJ = new MultiFrameMJ(solvedFrames);
-		
-		/* make all obs J combinations */
-		List<StateVar> obsJVars = 
-				this.Omega.stream()
-					.filter(i -> this.OmegaJNames.contains(i.name))
-					.collect(Collectors.toList());
-		
-		this.multiFrameMJ.makeAllObsCombinations(obsJVars);
-		
+
 		/* Call GC to free up memory used by lower frame solvers and belief searches */
 		LOGGER.debug("Calling GC after solving lower frames");
 		System.gc();
+	}
+	
+	public void convertToJointActionTi() {
+		/*
+		 * Takes the Ti from the given lower level frame and sums out Ai to create
+		 * a joint action Ti which models other agent as noise
+		 */
+		
+		/* make Ai var */
+		int AiVarPosition = this.S.size();
+		this.S.add(
+				new StateVar(
+						"A_i", 
+						AiVarPosition, 
+						this.getActions().stream().toArray(String[]::new)));
+		
+		this.commitVariables();
+		
+		/* for each frame for j */
+		for (DecisionProcess mj : this.lowerLevelFrames) {
+			
+			HashMap<String, DD[]> Ti = 
+					new HashMap<String, DD[]>();
+			
+			List<String> S = 
+					this.S.subList(0, this.MjVarPosition).stream()
+						.map(f -> f.name)
+						.collect(Collectors.toList());
+
+			/* For each of J's action */
+			for (String Aj : this.Aj) {
+				
+				this.setGlobals();
+
+				DD[] ddTrees = new DD[this.MjVarPosition];
+				
+				for (String s : S) {
+					
+					DDTree aiDDTree = 
+							this.ddMaker.getDDTreeFromSequence(new String[] {"A_i"});
+					
+					/* for all of i's actions */
+					for (String ai : this.Ai) {
+						
+						String jA = ai + "__" + Aj;
+						
+						DDTree tiGivenai = this.Ti.get(jA).get(s);
+						
+						try {
+							/* avoid passing the original actionCombination because it is mutable */
+							aiDDTree.setDDAt(ai, tiGivenai);
+						}
+						
+						catch (Exception e) {
+							LOGGER.error("While setting " + tiGivenai + " at " + aiDDTree);
+							e.printStackTrace();
+							System.exit(-1);
+						}
+					}
+					
+					LOGGER.debug("Made f(S', "
+							+ this.S.stream()
+								.filter(v -> v.name.contains("A_j"))
+								.map(i -> i.name)
+								.collect(Collectors.toList())
+							+ ", S) for S=" + s + " and Ai=" + Ai);
+					
+					DD TiForS = OP.reorder(aiDDTree.toDD());
+					
+					ddTrees[S.indexOf(s)] = TiForS;
+				}
+				
+				DD[] jointTi = new DD[ddTrees.length];
+				for (int i = 0; i < jointTi.length; i++) {
+					
+					this.setGlobals();
+					
+					DDTree jTi = 
+							OP.mult(
+									DDleaf.myNew(1.0 / this.getActions().size()), 
+									OP.addMultVarElim(ddTrees[i], AiVarPosition + 1)).toDDTree();
+					
+					LOGGER.debug("For Aj = " + Aj + " Original Tj was " + ddTrees[i].toDDTree());
+					
+					mj.setGlobals();
+					jointTi[i] = OP.reorder(jTi.toDD());
+					
+					LOGGER.debug("For Aj = " + Aj + " Joint action Tj is " + jointTi[i].toDDTree());
+				}
+				
+				Ti.put(Aj, ddTrees);
+				mj.setTi(Aj, jointTi);
+			}
+		}
+		
+		this.S.remove(AiVarPosition);
+		this.commitVariables();
 	}
 	
 	public void solveIPBVI(int rounds, int numDpBackups) {
