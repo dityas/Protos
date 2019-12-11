@@ -444,19 +444,18 @@ public class IPOMDP extends POMDP {
 		
 		List<MJ> solvedFrames = new ArrayList<MJ>();
 		
+		Global.clearHashtables();
+		/* make joint action transition function here */
+		this.convertToJointActionTi();
+		
 		/*
 		 * Check if lower frame is POMDP or IPOMDP and call the solve method accordingly
 		 */
 		for (DecisionProcess mj : this.lowerLevelFrames) {
-		
-			Global.clearHashtables();
 			
 			if (mj.level > 0) ((IPOMDP) mj).solveIPBVI(15, 100);
 			
 			else if (mj.level == 0) {
-				
-				/* make joint action transition function here */
-				this.convertToJointActionTi();
 				
 				/* For solving the POMDP at lowest level, set the globals */
 				mj.setGlobals();
@@ -545,9 +544,6 @@ public class IPOMDP extends POMDP {
 		/* for each frame for j */
 		for (DecisionProcess mj : this.lowerLevelFrames) {
 			
-			HashMap<String, DD[]> Ti = 
-					new HashMap<String, DD[]>();
-			
 			List<String> S = 
 					this.S.subList(0, this.MjVarPosition).stream()
 						.map(f -> f.name)
@@ -566,11 +562,11 @@ public class IPOMDP extends POMDP {
 							this.ddMaker.getDDTreeFromSequence(new String[] {"A_i"});
 					
 					/* for all of i's actions */
-					for (String ai : this.Ai) {
+					for (String ai : aiDDTree.children.keySet()) {
 						
 						String jA = ai + "__" + Aj;
 						
-						DDTree tiGivenai = this.Ti.get(jA).get(s);
+						DDTree tiGivenai = this.Ti.get(jA).get(s).getCopy();
 						
 						try {
 							/* avoid passing the original actionCombination because it is mutable */
@@ -584,15 +580,7 @@ public class IPOMDP extends POMDP {
 						}
 					}
 					
-					LOGGER.debug("Made f(S', "
-							+ this.S.stream()
-								.filter(v -> v.name.contains("A_j"))
-								.map(i -> i.name)
-								.collect(Collectors.toList())
-							+ ", S) for S=" + s + " and Ai=" + Ai);
-					
 					DD TiForS = OP.reorder(aiDDTree.toDD());
-					
 					ddTrees[S.indexOf(s)] = TiForS;
 				}
 				
@@ -614,7 +602,6 @@ public class IPOMDP extends POMDP {
 					LOGGER.debug("For Aj = " + Aj + " Joint action Tj is " + jointTi[i].toDDTree());
 				}
 				
-				Ti.put(Aj, ddTrees);
 				mj.setTi(Aj, jointTi);
 			}
 		}
@@ -1366,7 +1353,7 @@ public class IPOMDP extends POMDP {
 	
 	@Override
 	public int[] getStateVarIndices() {
-		return ArrayUtils.subarray(this.stateVarIndices, 0, this.stateVarIndices.length - 1);
+		return ArrayUtils.subarray(this.stateVarIndices, 0, this.thetaVarPosition);
 	}
 	
 	@Override

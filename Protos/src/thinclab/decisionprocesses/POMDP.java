@@ -1034,7 +1034,13 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 */
 		
 		int actId = this.getActions().indexOf(action);
+		
 		this.actions[actId].addTransFn(Ti);
+		this.actions[actId].buildRewTranFn();
+		this.actions[actId].rewFn = 
+				OP.addMultVarElim(
+						actions[actId].rewTransFn, 
+						primeVarIndices);
 	}
 	
 	// -------------------------------------------------------------------------------
