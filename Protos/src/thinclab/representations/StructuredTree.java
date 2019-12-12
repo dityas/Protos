@@ -270,38 +270,43 @@ public class StructuredTree implements Serializable {
 					.disableHtmlEscaping()
 					.create();
 		
-		JsonArray mjArray = JSONTree.getAsJsonObject().get("M_j").getAsJsonArray();
-		
 		String dotString = "";
 		String seperator = "|";
 		
 		dotString += "{";
 		
-		/* make Mj belief */
-		dotString += "M_j ";
+		JsonElement mjElement = JSONTree.getAsJsonObject().get("M_j");
 		
-		/* deserialize the list of mj beliefs */
-		for (JsonElement mj: mjArray) {
+		if (mjElement != null) {
+			JsonArray mjArray = mjElement.getAsJsonArray();
 			
-			/* convert to JSON object */
-			JsonObject mjJSON = mj.getAsJsonObject(); 
+			/* make Mj belief */
+			dotString += "M_j ";
 			
-			dotString += 
-					seperator + "{" + 
-						"{" + gsonHandler.toJson(
-								mjJSON.get("model").getAsJsonObject().get("belief_j"))
-							.replace("{", "(")
-							.replace("}", ")") 
-							
-							+ seperator + gsonHandler.toJson(
-									mjJSON.get("model").getAsJsonObject().get("A_j"))
-							+ seperator + gsonHandler.toJson(
-									mjJSON.get("model").getAsJsonObject().get("Theta_j"))
-						+ "}"
-						+ seperator + gsonHandler.toJson(mjJSON.get("prob")) + "}";
+			/* deserialize the list of mj beliefs */
+			for (JsonElement mj: mjArray) {
+				
+				/* convert to JSON object */
+				JsonObject mjJSON = mj.getAsJsonObject(); 
+				
+				dotString += 
+						seperator + "{" + 
+							"{" + gsonHandler.toJson(
+									mjJSON.get("model").getAsJsonObject().get("belief_j"))
+								.replace("{", "(")
+								.replace("}", ")") 
+								
+								+ seperator + gsonHandler.toJson(
+										mjJSON.get("model").getAsJsonObject().get("A_j"))
+								+ seperator + gsonHandler.toJson(
+										mjJSON.get("model").getAsJsonObject().get("Theta_j"))
+							+ "}"
+							+ seperator + gsonHandler.toJson(mjJSON.get("prob")) + "}";
+			}
+			
+			dotString += seperator;
+			
 		}
-		
-		dotString += seperator;
 		
 		/* make other beliefs */
 		for (String var: JSONTree.getAsJsonObject().keySet()) {
