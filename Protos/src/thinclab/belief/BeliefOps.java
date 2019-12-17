@@ -112,7 +112,7 @@ public class BeliefOps extends BeliefOperations {
 		
 		/* Set globals and all that */
 		POMDP DPRef = this.getPOMDP();
-//		DPRef.setGlobals();
+
 		int actId = DPRef.getActions().indexOf(action);
 		
 		DD[] restrictedObsFn = OP.restrictN(DPRef.actions[actId].obsFn, obsVals);

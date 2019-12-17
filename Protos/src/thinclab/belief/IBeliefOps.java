@@ -259,7 +259,7 @@ public class IBeliefOps extends BeliefOperations {
 		 */
 		IPOMDP DPRef = this.getIPOMDP();
 		
-		DD[] fbs = new DD[DPRef.S.subList(0, DPRef.AjVarStartPosition).size()];
+		DD[] fbs = new DD[DPRef.S.subList(0, DPRef.thetaVarPosition).size()];
 		
 		/* For each state var, summout everything else except A_j*/
 		for (int varId = 0; varId < fbs.length; varId++) {
@@ -268,7 +268,7 @@ public class IBeliefOps extends BeliefOperations {
 							ArrayUtils.subarray(
 									DPRef.stateVarIndices,
 									0,
-									DPRef.AjVarStartPosition), varId));
+									DPRef.thetaVarPosition), varId));
 		}
 		
 		return fbs;

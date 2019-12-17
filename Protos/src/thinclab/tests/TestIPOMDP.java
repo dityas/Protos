@@ -786,6 +786,19 @@ class TestIPOMDP {
 		ss.logResults();
 	}
 	
-	
+	@Test
+	void testJointActionTi() {
+		
+		LOGGER.info("Testing joint action Ti creation");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/* Initialize IPOMDP */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
+		
+//		tigerL1IPOMDP.convertToJointActionTi();
+		
+	}
 	
 }

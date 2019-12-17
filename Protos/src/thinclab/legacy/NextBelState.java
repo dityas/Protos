@@ -229,25 +229,13 @@ public class NextBelState {
 		 * Computes the next belief states and the observation probabilities that lead to them
 		 */
 		
-		int[][] obsConfig = 
-				new int[ipomdp.obsCombinations.size()][ipomdp.obsIVarIndices.length];
+		/* get the precomputed possible observation value indices from the IPOMDP */
+		int[][] obsConfig = ipomdp.obsCombinationsIndices;
 		
 		double[] obsProbs;
 		DD[] marginals = new DD[ipomdp.stateVarIndices.length + 1];
 		DD dd_obsProbs;
-		
-		for (int obsId = 0; obsId < ipomdp.obsCombinations.size(); obsId++)
-			obsConfig[obsId] = 
-				ipomdp.statedecode(
-						obsId + 1,
-						ipomdp.obsIVarIndices.length, 
-						ArrayUtils.subarray(
-								ipomdp.obsVarsArity, 
-								0, 
-								ipomdp.obsIVarIndices.length));
-		
-//		Global.newHashtables();
-		
+
 		HashMap<String, NextBelState> nextBelStates = new HashMap<String, NextBelState>();
 		
 		for (String Ai: ipomdp.getActions()) {
@@ -257,12 +245,9 @@ public class NextBelState {
 			
 			obsProbs = OP.convert2array(dd_obsProbs, ipomdp.obsIVarPrimeIndices);
 			nextBelStates.put(Ai, new NextBelState(ipomdp, obsProbs, smallestProb));
-//			logger.debug("Obs Probs are " + Arrays.toString(obsProbs));
-//			logger.debug("Obs Config is " + Arrays.deepToString(obsConfig));
+
 			
-			/*
-			 * Compute marginals
-			 */
+			/* Compute marginals */
 			try {
 				if (!nextBelStates.get(Ai).isempty()) {
 					marginals = 
@@ -304,7 +289,7 @@ public class NextBelState {
 		DD dd_obsProbs;
 		
 		for (int obsId = 0; obsId < pomdp.nObservations; obsId++)
-			obsConfig[obsId] = pomdp.statedecode(obsId + 1, pomdp.nObsVars, pomdp.obsVarsArity);
+			obsConfig[obsId] = POMDP.statedecode(obsId + 1, pomdp.nObsVars, pomdp.obsVarsArity);
 
 		NextBelState[] nextBelStates = new NextBelState[pomdp.nActions];
 		
