@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import cern.colt.Arrays;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
@@ -120,15 +121,10 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 									POMDP.getActionFromPolicy(
 											p, belief, this.alphaVectors, this.policy));
 					
-					else act = Global.random.nextInt(p.nActions);
-	
-					/* sample obs */
-					DD obsDist = OP.addMultVarElim(POMDP.concatenateArray(belief,
-							p.actions[act].transFn,
-							p.actions[act].obsFn),
-						POMDP.concatenateArray(p.varIndices, 
-							p.primeVarIndices));
-	
+					else act = Global.random.nextInt(this.f.getActions().size());
+						
+					DD obsDist = this.f.getObsDist(belief, this.f.getActions().get(act));
+
 					int[][] obsConfig = OP.sampleMultinomial(obsDist, p.primeObsIndices);
 					
 					/* Get next belief */
