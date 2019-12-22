@@ -13,7 +13,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import cern.colt.Arrays;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;

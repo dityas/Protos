@@ -39,6 +39,7 @@ public class IPOMDPParser extends ParseSPUDD {
 	
 	public int level;
 	public int frameID;
+	public String mostProbableAi = null;
 	public List<ParseSPUDD> childFrames = new ArrayList<ParseSPUDD>();
 	
 	/* Separate container for costs */
@@ -176,6 +177,11 @@ public class IPOMDPParser extends ParseSPUDD {
 							break;
 					    }
 						
+					    else if (stream.sval.compareTo("most_probable_ai") == 0) {
+					    	this.mostProbableAi = this.parseMostProbableAi();
+					    	break;
+					    }
+						
 					    error("Expected \"unnormalized\" or \"dd\" or \"action\" or \"reward\"");
 					    
 					case StreamTokenizer.TT_EOF:
@@ -270,6 +276,22 @@ public class IPOMDPParser extends ParseSPUDD {
 			else throw new ParserException(
 					"Expected frame definition got " + this.stream + " instead");
 			
+		}
+	}
+	
+	public String parseMostProbableAi() throws Exception {
+		/*
+		 * For L0, joint action Ti needs a distribution of possible Ai probabilities.
+		 * In case a particular action is given more weight, that action is parsed here.
+		 */
+		this.stream.nextToken();
+		
+		if (this.stream.ttype == StreamTokenizer.TT_WORD)
+			return this.stream.sval;
+		
+		else {
+			logger.error("While parsing most_probable_ai");
+			throw new ParserException("Action not specified");
 		}
 	}
 	
