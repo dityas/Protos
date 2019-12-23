@@ -43,7 +43,7 @@ import thinclab.parsers.IPOMDPParser;
 import thinclab.parsers.ParseSPUDD;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.modelrepresentations.MultiFrameMJ;
-import thinclab.representations.policyrepresentations.PolicyGraph;
+import thinclab.solvers.BaseSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 
 /*
@@ -68,7 +68,7 @@ public class IPOMDP extends POMDP {
 	 * Store lower level frames
 	 */
 	public List<POMDP> lowerLevelFrames = new ArrayList<POMDP>();
-	public List<PolicyGraph> lowerLevelSolutions = new ArrayList<PolicyGraph>();
+	public List<BaseSolver> lowerLevelSolutions = new ArrayList<BaseSolver>();
 	public String lowerLevelGuessForAi = null;
 	
 	/*
@@ -483,11 +483,8 @@ public class IPOMDP extends POMDP {
 				LOGGER.debug("Solved lower frame " + mj);
 				solver.expansionStrategy.clearMem();
 				
-				/* make policy graph */
-				PolicyGraph pg = new PolicyGraph(solver);
-				pg.makeGraph();
-				
-				this.lowerLevelSolutions.add(pg);
+				/* Store solution */
+				this.lowerLevelSolutions.add(solver);
 				
 				/*
 				 * NOTE: After this point, extract all the required information
@@ -605,10 +602,10 @@ public class IPOMDP extends POMDP {
 							
 							/* 0.9 probability for guessed action */
 							if (this.lowerLevelGuessForAi.contentEquals(PAi)) {
-								aiDist.setValueAt(PAi, 0.9);
+								aiDist.setValueAt(PAi, 0.99);
 							}
 							
-							else aiDist.setValueAt(PAi, 0.1 / (this.getActions().size() - 1));
+							else aiDist.setValueAt(PAi, 0.01 / (this.getActions().size() - 1));
 						}
 						
 						AiDist = OP.reorder(aiDist.toDD());
