@@ -43,7 +43,7 @@ import thinclab.parsers.IPOMDPParser;
 import thinclab.parsers.ParseSPUDD;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.modelrepresentations.MultiFrameMJ;
-import thinclab.representations.policyrepresentations.PolicyGraph;
+import thinclab.solvers.BaseSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 
 /*
@@ -68,7 +68,8 @@ public class IPOMDP extends POMDP {
 	 * Store lower level frames
 	 */
 	public List<POMDP> lowerLevelFrames = new ArrayList<POMDP>();
-	public List<PolicyGraph> lowerLevelSolutions = new ArrayList<PolicyGraph>();
+	public List<BaseSolver> lowerLevelSolutions = new ArrayList<BaseSolver>();
+	public String lowerLevelGuessForAi = null;
 	
 	/*
 	 * Store a local reference to OpponentModel object to get easier access to node
@@ -260,6 +261,9 @@ public class IPOMDP extends POMDP {
 		
 		this.Aj.addAll(Ajs);
 		
+		/* add J's guess for I's actions */
+		this.lowerLevelGuessForAi = this.parser.mostProbableAi;
+		
 		/* Add Aj as a stateVar */
 		this.S.add(
 				new StateVar(
@@ -444,9 +448,17 @@ public class IPOMDP extends POMDP {
 		
 		List<MJ> solvedFrames = new ArrayList<MJ>();
 		
-		Global.clearHashtables();
-		/* make joint action transition function here */
-		this.convertToJointActionTi();
+		try {
+			Global.clearHashtables();
+			/* make joint action transition function here */
+			this.convertToJointActionTi();
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While making joint action transitions: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
 		
 		/*
 		 * Check if lower frame is POMDP or IPOMDP and call the solve method accordingly
@@ -471,11 +483,8 @@ public class IPOMDP extends POMDP {
 				LOGGER.debug("Solved lower frame " + mj);
 				solver.expansionStrategy.clearMem();
 				
-				/* make policy graph */
-				PolicyGraph pg = new PolicyGraph(solver);
-				pg.makeGraph();
-				
-				this.lowerLevelSolutions.add(pg);
+				/* Store solution */
+				this.lowerLevelSolutions.add(solver);
 				
 				/*
 				 * NOTE: After this point, extract all the required information
@@ -525,7 +534,7 @@ public class IPOMDP extends POMDP {
 		System.gc();
 	}
 	
-	public void convertToJointActionTi() {
+	public void convertToJointActionTi() throws Exception {
 		/*
 		 * Takes the Ti from the given lower level frame and sums out Ai to create
 		 * a joint action Ti which models other agent as noise
@@ -567,17 +576,7 @@ public class IPOMDP extends POMDP {
 						String jA = ai + "__" + Aj;
 						
 						DDTree tiGivenai = this.Ti.get(jA).get(s).getCopy();
-						
-						try {
-							/* avoid passing the original actionCombination because it is mutable */
-							aiDDTree.setDDAt(ai, tiGivenai);
-						}
-						
-						catch (Exception e) {
-							LOGGER.error("While setting " + tiGivenai + " at " + aiDDTree);
-							e.printStackTrace();
-							System.exit(-1);
-						}
+						aiDDTree.setDDAt(ai, tiGivenai);
 					}
 					
 					DD TiForS = OP.reorder(aiDDTree.toDD());
@@ -589,10 +588,32 @@ public class IPOMDP extends POMDP {
 					
 					this.setGlobals();
 					
-					DDTree jTi = 
-							OP.mult(
-									DDleaf.myNew(1.0 / this.getActions().size()), 
-									OP.addMultVarElim(ddTrees[i], AiVarPosition + 1)).toDDTree();
+					/* create Ai distribution */
+					DD AiDist = null;
+					
+					if (this.lowerLevelGuessForAi == null)
+						AiDist = DDleaf.myNew(1.0 / this.getActions().size());
+					
+					else {
+						DDTree aiDist = 
+								this.ddMaker.getDDTreeFromSequence(new String[] {"A_i"});
+						
+						for (String PAi : aiDist.children.keySet()) {
+							
+							/* 0.9 probability for guessed action */
+							if (this.lowerLevelGuessForAi.contentEquals(PAi)) {
+								aiDist.setValueAt(PAi, 0.99);
+							}
+							
+							else aiDist.setValueAt(PAi, 0.01 / (this.getActions().size() - 1));
+						}
+						
+						AiDist = OP.reorder(aiDist.toDD());
+					}
+					
+					DDTree jTi = OP.addMultVarElim(
+											OP.mult(AiDist, ddTrees[i]) , 
+											AiVarPosition + 1).toDDTree();
 					
 					LOGGER.debug("For Aj = " + Aj + " Original Tj was " + ddTrees[i].toDDTree());
 					

@@ -17,8 +17,11 @@ import thinclab.belief.FullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.representations.conditionalplans.ConditionalPlanTree;
 import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.simulations.StochasticSimulation;
+import thinclab.solvers.BaseSolver;
+import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
@@ -161,19 +164,42 @@ public class RunSimulations extends Executable {
 					
 					IPOMDP ipomdp = new IPOMDP(parser, lookAhead, simLength * 2);
 					
-					for (PolicyGraph pg : ipomdp.lowerLevelSolutions) {
+					for (BaseSolver solver : ipomdp.lowerLevelSolutions) {
+						
+						/* set context */
+						solver.f.setGlobals();
+						
+						/* make policy graph */
+						PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
+						pg.makeGraph();
 						
 						/* store policy graph solution */
 						pg.writeDotFile(
 								storageDir, 
-								"policy_graph_frame_" + pg.solver.f.frameID + "_" + i + ".dot");
+								"policy_graph_frame_" + pg.solver.f.frameID + "_" + i);
 						
 						pg.writeJSONFile(
 								storageDir, 
-								"policy_graph_frame_" + pg.solver.f.frameID + "_" + i + ".json");
+								"policy_graph_frame_" + pg.solver.f.frameID + "_" + i);
+						
+						/* make conditional plan */
+						ConditionalPlanTree T = new ConditionalPlanTree(solver, simLength);
+						T.buildTree();
+						
+						/* Store conditional Plan */
+						T.writeDotFile(
+								storageDir, 
+								"plan_frame_" + T.f.frameID + "_" + i);
+						
+						T.writeJSONFile(
+								storageDir, 
+								"plan_frame_" + T.f.frameID + "_" + i);
 					}
 					
 					ipomdp.clearLowerLevelSolutions();
+					
+					/* set context back to IPOMDP */
+					ipomdp.setGlobals();
 					
 					OnlineInteractiveSymbolicPerseus solver = 
 							new OnlineInteractiveSymbolicPerseus(

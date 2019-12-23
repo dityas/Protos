@@ -92,6 +92,7 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 				this.leafNodes.addAll(prevNodes);
 			}
 		}
+		
 	}
 	
 	// ----------------------------------------------------------------------------------------

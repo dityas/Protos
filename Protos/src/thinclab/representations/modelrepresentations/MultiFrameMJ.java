@@ -89,6 +89,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 			LOGGER.debug("Building look ahead tree for frame " + frameID);
 			
 			Global.clearHashtables();
+			this.MJs.get(frameID).f.setGlobals();
 			
 			/* build each tree */
 			this.MJs.get(frameID).buildTree();
@@ -342,8 +343,12 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		 * Moves to the next time step
 		 */
 		
-		for (int frameID : this.MJs.keySet())
+		for (int frameID : this.MJs.keySet()) {
+			
+			/* Set the selected frame's context */
+			this.MJs.get(frameID).f.setGlobals();
 			this.MJs.get(frameID).step(belief, lookAhead, nonZeroMj);
+		}
 		
 		this.T += 1;
 		LOGGER.info("Mj currently tracking time step " + this.T);
