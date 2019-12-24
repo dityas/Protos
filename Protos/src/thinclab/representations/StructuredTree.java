@@ -287,15 +287,29 @@ public class StructuredTree implements Serializable {
 			for (JsonElement mj: mjArray) {
 				
 				/* convert to JSON object */
-				JsonObject mjJSON = mj.getAsJsonObject(); 
+				JsonObject mjJSON = mj.getAsJsonObject();
+				
+				JsonObject mjBeliefMap = 
+								mjJSON.get("model")
+									.getAsJsonObject()
+									.get("belief_j")
+									.getAsJsonObject();
+				
+				/* Print each belief on a new line for Mj */
+				String mjString = "";
+				
+				for (String state : mjBeliefMap.keySet())
+					mjString += 
+						state 
+						+ seperator 
+						+ gsonHandler.toJson(mjBeliefMap.get(state))
+							.replace("{", "(")
+							.replace("}", ")")
+						+ seperator;
 				
 				dotString += 
 						seperator + "{" + 
-							"{" + gsonHandler.toJson(
-									mjJSON.get("model").getAsJsonObject().get("belief_j"))
-								.replace("{", "(")
-								.replace("}", ")") 
-								
+							"{" + mjString
 								+ seperator + gsonHandler.toJson(
 										mjJSON.get("model").getAsJsonObject().get("A_j"))
 								+ seperator + gsonHandler.toJson(

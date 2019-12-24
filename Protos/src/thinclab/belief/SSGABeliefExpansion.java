@@ -65,12 +65,20 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		this.allPossibleObs = this.p.getAllPossibleObservations();
 		this.nIterations = iterations;
 		
-		/* add initial beliefs from the POMDP */
+		/* 
+		 * Run a full belief expansion for 3 time steps to facilitate proper exploration
+		 */
+		
+		FullBeliefExpansion fb = new FullBeliefExpansion(this.p, 3);
+		fb.expand();
+		
 		this.initialBeliefs = new ArrayList<DD>();
 		this.initialBeliefs.addAll(this.p.getInitialBeliefs());
 		
 		this.exploredBeliefs = new HashSet<DD>();
-		this.exploredBeliefs.addAll(this.p.getInitialBeliefs());
+		this.exploredBeliefs.addAll(fb.getBeliefPoints());
+		
+		fb = null;
 		
 		logger.debug("SSGA expansion search initialized");
 	}

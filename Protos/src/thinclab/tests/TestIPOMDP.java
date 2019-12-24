@@ -562,7 +562,7 @@ class TestIPOMDP {
 		Random rand = new Random();
 		
 		/* run for 100 iters */
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 5; i++) {
 			
 			List<String> actions = ipomdp.getActions();
 			String action = actions.get(rand.nextInt(actions.size()));
@@ -700,7 +700,7 @@ class TestIPOMDP {
 		Random rand = new Random();
 		
 		/* run for 100 iters */
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 5; i++) {
 			
 			List<String> actions = ipomdp.getActions();
 			String action = actions.get(rand.nextInt(actions.size()));
