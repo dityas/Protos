@@ -95,7 +95,7 @@ class TestBeliefExpansionStartegies {
 
 		LOGGER.info("Testing initial beliefs");
 		List<DD> beliefs0 = ssgaBE.getBeliefPoints();
-		assertTrue(beliefs0.size() == this.pomdp.getInitialBeliefs().size());
+		assertTrue(beliefs0.size() >= this.pomdp.getInitialBeliefs().size());
 
 		LOGGER.info("Testing policy based expansion");
 		LOGGER.info("computing policy...");
