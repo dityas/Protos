@@ -44,8 +44,14 @@ public class DDnode extends DD {
 		HashCodeBuilder builder = new HashCodeBuilder();
 		builder.append(this.var);
 
-		for (int i=0; i<children.length; i++)
-			builder.append(this.children[i].hashCode());
+		for (int i=0; i<children.length; i++) {
+			
+			/* check for null children, if this happens, something is wrong */
+			if (this.children[i] != null)
+				builder.append(this.children[i].hashCode());
+			
+			else logger.error("Null child at " + i + " something might be seriously wrong.");
+		}
 		
 		this.hash = builder.toHashCode();
 	}
