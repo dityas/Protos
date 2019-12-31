@@ -50,7 +50,10 @@ public class DDnode extends DD {
 			if (this.children[i] != null)
 				builder.append(this.children[i].hashCode());
 			
-			else logger.error("Null child at " + i + " something might be seriously wrong.");
+			else {
+				logger.error("Null child at " + i + " something might be seriously wrong.");
+				logger.error("Error causing DD is " + this.toDDTree());
+			}
 		}
 		
 		this.hash = builder.toHashCode();
