@@ -67,7 +67,7 @@ public class POMDPSolver extends Executable {
 		this.solver = 
 				new OfflineSymbolicPerseus(
 						this.pomdp, 
-						new SSGABeliefExpansion(this.pomdp, this.searchDepth, 5), 
+						new SSGABeliefExpansion(this.pomdp, this.searchDepth, 10), 
 						this.perseusRounds, 
 						this.numDpBackups);
 		
@@ -78,7 +78,7 @@ public class POMDPSolver extends Executable {
 		/*
 		 * Starts the visualizer and shows the policy graph in JUNG
 		 */
-		ConditionalPlanTree T = new ConditionalPlanTree(this.solver, 10);
+		ConditionalPlanTree T = new ConditionalPlanTree(this.solver, 5);
 		T.buildTree();
 		
 		T.writeDotFile(dirName, "plan");
