@@ -102,7 +102,7 @@ class TestOnlineSymbolicPerseus {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 2, 20);
 		
-		for (int t = 0; t < 10; t++) {
+		for (int t = 0; t < 5; t++) {
 		
 			HashMap<String, NextBelState> nextStates = 
 					NextBelState.oneStepNZPrimeBelStates(
