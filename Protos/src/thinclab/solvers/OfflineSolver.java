@@ -37,6 +37,11 @@ public abstract class OfflineSolver extends BaseSolver {
 	
 	CircularFifoBuffer<Float> bErrorVals = new CircularFifoBuffer<Float>(5);
 	
+	/* for checking used beliefs and num alpha vectors */
+	int numSimilar = 0;
+	int numAlphas = -1;
+	int numBeliefs = -1;
+	
 	private static final Logger logger = Logger.getLogger(OfflineSolver.class);
 
 	// ------------------------------------------------------------------------------------------
@@ -103,6 +108,63 @@ public abstract class OfflineSolver extends BaseSolver {
 		
 		return variance;
 					
+	}
+	
+	public boolean isNumAlphaConstant(int numAlphas) {
+		/*
+		 * Checks if the number of alpha vectors hasn't changed in the last 5 iterations
+		 */
+		
+		if (this.numAlphas != numAlphas) {
+			 this.numAlphas = numAlphas;
+			 return false;
+		}
+		
+		else return true;
+	}
+	
+	public boolean isNumUsedBeliefsConstant(int numUsedBeliefs, int numBeliefs) {
+		/*
+		 * Checks if number of used beliefs is same as number of total beliefs
+		 * for the last 5 iterations. This could mean convergence 
+		 */
+		
+		if (numUsedBeliefs == numBeliefs) {
+			
+			if (this.numBeliefs != numUsedBeliefs) {
+				this.numBeliefs = numUsedBeliefs;
+				return false;
+			}
+			
+			else {
+				return true;
+			}
+		}
+		
+		else return false;
+	}
+	
+	public boolean declareApproxConvergenceForAlphaVectors(
+			int numAlphas, int numUsedBeliefs, int numBeliefs) {
+		/*
+		 * Checks if the number of alpha vectors and the number of used beliefs is the
+		 * same for the last few iterations.
+		 */
+		
+		if (this.isNumAlphaConstant(numAlphas) && 
+				this.isNumUsedBeliefsConstant(numUsedBeliefs, numBeliefs)) {
+			
+			this.numSimilar += 1;
+			
+			if (this.numSimilar >= 5) {
+				this.numSimilar = 0;
+				return true;
+			}
+			
+			else return false;
+		}
+		
+		return false;
 	}
 
 }
