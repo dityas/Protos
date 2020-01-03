@@ -334,18 +334,18 @@ public class IBeliefOps extends BeliefOperations {
 		DD[][] iBelRegion = 
 				new DD[beliefRegion.size()][DPRef.S.subList(0, DPRef.AjVarStartPosition).size()];
 		
-		/* Use parallelization if Mj arity is huge */
-		if (DPRef.S.get(DPRef.MjVarPosition).arity > 200)
-			iBelRegion = 
-				beliefRegion.parallelStream()
-					.map(this::factorBelief)
-					.toArray(DD[][]::new);
+//		/* Use parallelization if Mj arity is huge */
+//		if (DPRef.S.get(DPRef.MjVarPosition).arity > 200)
+//			iBelRegion = 
+//				beliefRegion.parallelStream()
+//					.map(this::factorBelief)
+//					.toArray(DD[][]::new);
 		
-		else
-			iBelRegion = 
-				beliefRegion.stream()
-					.map(this::factorBelief)
-					.toArray(DD[][]::new);
+//		else
+		iBelRegion = 
+			beliefRegion.stream()
+				.map(this::factorBelief)
+				.toArray(DD[][]::new);
 				
 		return iBelRegion;
 	}
