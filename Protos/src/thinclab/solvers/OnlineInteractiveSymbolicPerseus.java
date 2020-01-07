@@ -344,7 +344,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			logger.info("I: " + stepId 
 					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
 					+ " \tUSED/TOTAL BELIEFS: " + numIter + "/" + beliefRegion.length
-					+ " \tA VECTORS: " + this.alphaVectors.length);
+					+ " \tA VECTORS: " + this.alphaVectors.length
+					+ " \tAPPROX. CONV PATIENCE: " + this.numSimilar);
 			
 			/* report diagnostics on exec times */
 			Diagnostics.reportDiagnostics();
@@ -361,7 +362,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-			if (stepId > 20 && errorVar < 0.0001) {
+			if (stepId > 20 && errorVar < 0.00001) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;
