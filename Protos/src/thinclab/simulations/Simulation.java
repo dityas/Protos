@@ -93,7 +93,7 @@ public class Simulation extends StructuredTree {
 			String action = solver.getActionForBelief(currentBelief);
 			this.idToNodeMap.get(currentNode).actName = action;
 			
-			String[] obs = this.sampleObservation(solver.f, currentBelief, action);
+			String[] obs = this.act(solver.f, currentBelief, action);
 			
 			/* record the step */
 			this.beliefSequence.add(solver.f.getBeliefString(currentBelief));
@@ -160,7 +160,7 @@ public class Simulation extends StructuredTree {
 		}
 	}
 	
-	public String[] sampleObservation(DecisionProcess DP, DD belief, String action) {
+	public String[] act(DecisionProcess DP, DD belief, String action) {
 		/*
 		 * Sample observation based on observation probabilities
 		 */

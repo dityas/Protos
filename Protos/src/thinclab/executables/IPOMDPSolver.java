@@ -174,7 +174,7 @@ public class IPOMDPSolver extends Executable {
 				solver.makeConditionalPlan(planDir);
 			}
 			
-			/* conditional plan and policy graph */
+			/* sim */
 			if (line.hasOption("t")) {
 				int simIters = Integer.parseInt(line.getOptionValue("t"));
 				solver.initializeIPOMDP(simIters * 2);

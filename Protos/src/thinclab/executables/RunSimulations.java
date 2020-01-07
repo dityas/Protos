@@ -209,7 +209,7 @@ public class RunSimulations extends Executable {
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
 					
-					ss.logToFile(storageDir + "/" + "sim" + i + ".csv");
+					ss.logToFile(storageDir + "/" + "sim" + i + ".json");
 					ss.writeDotFile(storageDir, "sim" + i);
 				}
 			}
