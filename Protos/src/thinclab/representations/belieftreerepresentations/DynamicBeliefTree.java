@@ -82,17 +82,27 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 		List<Integer> prevNodes = new ArrayList<Integer>();
 		prevNodes.addAll(leafNodes);
 		
-		for (int t = 1; t < this.maxT; t++) {
-			
-			List<Integer> nextNodes = this.getNextPolicyNodes(prevNodes, t);
-			prevNodes = nextNodes;
-			
-			if (t == 1) {
-				this.leafNodes.clear();
-				this.leafNodes.addAll(prevNodes);
-			}
+		/*
+		 * if one step look ahead, don't add the next leaves to models
+		 * but store them for computing the next step
+		 */
+		if (this.maxT == 1) {
+			this.leafNodes.clear();
+			this.leafNodes.addAll(this.getNextPolicyNodes(prevNodes, 1));
 		}
 		
+		else {
+			for (int t = 1; t < this.maxT; t++) {
+				
+				List<Integer> nextNodes = this.getNextPolicyNodes(prevNodes, t);
+				prevNodes = nextNodes;
+				
+				if (t == 1) {
+					this.leafNodes.clear();
+					this.leafNodes.addAll(prevNodes);
+				}
+			}
+		}
 	}
 	
 	// ----------------------------------------------------------------------------------------
