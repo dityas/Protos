@@ -43,6 +43,27 @@ public class CyberDeceptionSimulation extends StochasticSimulation {
 	}
 	
 	@Override
+	public void runSimulation() {
+		/*
+		 * Runs the simulation for the given number of iterations
+		 */
+		
+		LOGGER.info("Running simulation for " + this.iterations + " iterations...");
+		this.envConnector.establishSync();
+		
+		int previousNode = 0;
+		
+		for (int i = 0; i < this.iterations; i++) {
+			int nextNode = this.step(this.solver, previousNode);
+			previousNode = nextNode;
+		}
+		
+		this.envConnector.closeConnection();
+		
+		this.logResults();
+	}
+	
+	@Override
 	public String[] act(DecisionProcess DP, DD belief, String action) {
 		/*
 		 * Override to send actions to an actual agent and get observations

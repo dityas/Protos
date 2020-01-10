@@ -107,5 +107,21 @@ public class CyberDeceptionEnvironmentConnector extends NetworkedEnvironmentConn
 	public String[] handleObservation(String obs) {
 		return obs.split(";");
 	}
+	
+	@Override
+	public String[] step(String action) {
+		/*
+		 * Override this because sync is being established only once to connect to
+		 * Omid's server. And the same socket is used throughout.
+		 */
+		
+		/* send action */
+		this.sendAction(action);
+		
+		/* get observation */
+		String[] observation = this.getObservation();
+		
+		return observation;
+	}
 
 }
