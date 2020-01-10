@@ -164,14 +164,20 @@ abstract public class NetworkedEnvironmentConnector implements ExternalEnvironme
 		String[] observation = this.getObservation();
 		
 		/* close the connection */
-		try { envConnectorSocket.close(); }
+		this.closeConnection();
+		
+		return observation;
+	}
+	
+	public void closeConnection() {
+		
+		try { this.envConnectorSocket.close(); }
 		catch (Exception e) {
 			LOGGER.error("While closing the socket: " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}
 		
-		return observation;
 	}
 
 }

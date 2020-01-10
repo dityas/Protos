@@ -58,6 +58,9 @@ public abstract class OnlineSolver extends BaseSolver {
 		 * Solves for the look ahead starting from current belief
 		 */
 		
+		/* reset approx convergence patience counter */
+		this.numSimilar = 0;
+		
 		/* Expand the belief space */
 		this.expansionStrategy.expand();
 		List<DD> exploredBeliefs = this.expansionStrategy.getBeliefPoints();
