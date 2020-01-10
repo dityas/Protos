@@ -36,7 +36,9 @@ public abstract class OnlineSolver extends BaseSolver {
 	CircularFifoBuffer<Float> bErrorVals = new CircularFifoBuffer<Float>(5);
 	
 	/* for checking used beliefs and num alpha vectors */
+	float minError = Float.POSITIVE_INFINITY;
 	int numSimilar = 0;
+	int errorPatience = 0;
 	int numAlphas = -1;
 	int numBeliefs = -1;
 
@@ -60,6 +62,8 @@ public abstract class OnlineSolver extends BaseSolver {
 		
 		/* reset approx convergence patience counter */
 		this.numSimilar = 0;
+		this.minError = Float.POSITIVE_INFINITY;
+		this.errorPatience = 0;
 		
 		/* Expand the belief space */
 		this.expansionStrategy.expand();
@@ -193,6 +197,37 @@ public abstract class OnlineSolver extends BaseSolver {
 			this.numSimilar = 0;
 			return false;
 		}
+	}
+	
+	public boolean isErrorNonDecreasing(float bError) {
+		/*
+		 * To declare approximate convergence if bellman error is non decreasing after
+		 * many iterations
+		 */
+		
+		/* error is decreasing, reset patience */
+		if (bError < this.minError) {
+			this.errorPatience = 0;
+			this.minError = bError;
+			
+			return false;
+		}
+		
+		else {
+			
+			if (this.errorPatience >= 9) {
+				this.errorPatience = 0;
+				this.minError = Float.POSITIVE_INFINITY;
+				
+				return true;
+			}
+			
+			else {
+				this.errorPatience += 1;
+				return false;
+			}
+		}
+		
 	}
 
 }
