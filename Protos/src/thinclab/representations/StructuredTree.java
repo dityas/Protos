@@ -236,6 +236,10 @@ public class StructuredTree implements Serializable {
 			nodeJSONMap.put(entry.getKey(), new HashMap<String, String>());
 			nodeJSONMap.get(entry.getKey()).put("action", entry.getValue().actName);
 			nodeJSONMap.get(entry.getKey()).put("belief", entry.getValue().sBelief);
+			
+			/* mark start node */
+			if (entry.getValue().startNode)
+				nodeJSONMap.get(entry.getKey()).put("start", "true");
 		}
 		
 		/* populate edges */

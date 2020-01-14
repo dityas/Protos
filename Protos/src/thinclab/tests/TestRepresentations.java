@@ -147,6 +147,7 @@ class TestRepresentations {
 		t.buildTree();
 		
 		System.out.println(t.getDotString());
+		System.out.println(t.getJSONString());
 	
 	}
 	
