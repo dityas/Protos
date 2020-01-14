@@ -363,7 +363,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-			if (stepId > 20 && errorVar < 0.00001) {
+			if (stepId > 20 && errorVar < 0.0001) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;
