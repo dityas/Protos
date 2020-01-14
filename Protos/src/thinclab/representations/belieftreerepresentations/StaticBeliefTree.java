@@ -111,6 +111,9 @@ public class StaticBeliefTree extends StructuredTree {
 			node.H = 0;
 			node.sBelief = this.f.toMap(node.belief).toString();
 			
+			/* record start node */
+			node.startNode = true;
+			
 			if (this.solver != null)
 				node.actName = this.solver.getActionForBelief(node.belief);
 			

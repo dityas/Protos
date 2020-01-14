@@ -369,7 +369,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-			if (stepId > 20 && this.isErrorNonDecreasing((float) bellmanErr)) {
+			if (stepId > 10 && this.isErrorNonDecreasing((float) bellmanErr)) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF NON DECREASING ERROR");
 				break;
