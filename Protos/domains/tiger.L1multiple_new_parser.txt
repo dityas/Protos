@@ -7,7 +7,7 @@
  	(creak creak-left creak-right silence)
 )
 
-most_probable_ai listen
+most_probable_ai listen 0.9
 
 unnormalized
 

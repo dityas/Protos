@@ -59,6 +59,7 @@ class TestIPOMDPParser {
 		LOGGER.debug(ipomdp.Ti);
 		LOGGER.debug(ipomdp.Oi);
 		LOGGER.debug(ipomdp.lowerLevelGuessForAi);
+		LOGGER.debug(ipomdp.lowerLevelAiProb);
 //		LOGGER.debug(ipomdp.costMap);
 	}
 	

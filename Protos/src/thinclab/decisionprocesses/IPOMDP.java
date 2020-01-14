@@ -70,6 +70,7 @@ public class IPOMDP extends POMDP {
 	public List<POMDP> lowerLevelFrames = new ArrayList<POMDP>();
 	public List<BaseSolver> lowerLevelSolutions = new ArrayList<BaseSolver>();
 	public String lowerLevelGuessForAi = null;
+	public double lowerLevelAiProb = 0.0;
 	
 	/*
 	 * Store a local reference to OpponentModel object to get easier access to node
@@ -263,6 +264,7 @@ public class IPOMDP extends POMDP {
 		
 		/* add J's guess for I's actions */
 		this.lowerLevelGuessForAi = this.parser.mostProbableAi;
+		this.lowerLevelAiProb = this.parser.mpAiProb;
 		
 		/* Add Aj as a stateVar */
 		this.S.add(
@@ -602,10 +604,10 @@ public class IPOMDP extends POMDP {
 							
 							/* 0.9 probability for guessed action */
 							if (this.lowerLevelGuessForAi.contentEquals(PAi)) {
-								aiDist.setValueAt(PAi, 0.99);
+								aiDist.setValueAt(PAi, this.lowerLevelAiProb);
 							}
 							
-							else aiDist.setValueAt(PAi, 0.01 / (this.getActions().size() - 1));
+							else aiDist.setValueAt(PAi, (1.0 - this.lowerLevelAiProb) / (this.getActions().size() - 1));
 						}
 						
 						AiDist = OP.reorder(aiDist.toDD());
