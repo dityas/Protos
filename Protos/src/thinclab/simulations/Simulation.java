@@ -32,6 +32,7 @@ import thinclab.legacy.OP;
 import thinclab.representations.StructuredTree;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
+import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineSolver;
 
 /*
@@ -98,6 +99,21 @@ public class Simulation extends StructuredTree {
 			/* record the step */
 			this.beliefSequence.add(solver.f.getBeliefString(currentBelief));
 			LOGGER.info("At belief " + this.beliefSequence.get(this.beliefSequence.size() - 1));
+			
+			if (this.solver instanceof OnlineIPBVISolver) {
+				DD[] aVecs = ((OnlineIPBVISolver) this.solver).alphaVectors;
+				int[] policy = ((OnlineIPBVISolver) this.solver).policy;
+				
+				for (int v = 0; v < aVecs.length; v++) {
+					LOGGER.info("For A vec. " + v + " representing action " 
+							+ this.solver.f.getActions().get(policy[v]));
+					LOGGER.info("Reward is: " + 
+							OP.dotProduct(
+									currentBelief, 
+									aVecs[v], this.solver.f.getStateVarIndices()));
+				}
+			}
+			
 			
 			this.actionSequence.add(action);
 			LOGGER.info("Agent took action " 

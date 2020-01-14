@@ -43,12 +43,12 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	double worstDecline;
 
 	/* Variables to hold AlphaVectors */
-	DD[] alphaVectors;
-	AlphaVector[] newAlphaVectors;
+	public DD[] alphaVectors;
+	public AlphaVector[] newAlphaVectors;
 	int numNewAlphaVectors;
 
 	/* policy holders */
-	int[] policy;
+	public int[] policy;
 	double[] policyvalue;
 	boolean[] uniquePolicy;
 
