@@ -266,7 +266,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 					this.alphaVectors.length, 
 					this.alphaVectors, this.policy);
 			
-			if (this.pCache.isOscillating((float) bellmanErr)) {
+			if (this.pCache.isOscillating(String.format(Locale.US, "%.05f", bellmanErr))) {
 				logger.warn("BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
 				break;
 			}
