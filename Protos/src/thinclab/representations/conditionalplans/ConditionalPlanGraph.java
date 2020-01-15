@@ -37,10 +37,10 @@ public class ConditionalPlanGraph extends ConditionalPlanTree {
 
 	// ---------------------------------------------------------------------------
 	
-	public ConditionalPlanGraph(BaseSolver solver) {
+	public ConditionalPlanGraph(BaseSolver solver, int maxH) {
 		
 		/* initialize super */
-		super(solver, 10);
+		super(solver, maxH);
 		LOGGER.info("Initialized Static Policy Graph");
 	}
 	

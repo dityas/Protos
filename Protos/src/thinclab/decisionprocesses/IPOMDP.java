@@ -30,6 +30,7 @@ import com.google.gson.JsonPrimitive;
 import thinclab.belief.IBeliefOps;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.ddinterface.DDTree;
+import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.exceptions.ParserException;
 import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
@@ -1284,6 +1285,9 @@ public class IPOMDP extends POMDP {
 		 * Changes the belief space according to the new policy nodes in the current belief 
 		 */
 		
+		/* prune out low prob nodes */
+		belief = this.pruneLowProbMjs(belief);
+		
 		/* convert current belief to DDTree */
 		DDTree beliefDDTree = belief.toDDTree();
 		
@@ -1301,6 +1305,46 @@ public class IPOMDP extends POMDP {
 				OP.reorder(
 						this.multiFrameMJ.getMjInitBelief(
 								this.ddMaker, beliefDDTree).toDD());
+	}
+	
+	public DD pruneLowProbMjs(DD belief) {
+		/*
+		 * If prob Mj < 0.01, make it 0
+		 */
+		
+		HashMap<String, Float> mjProbs = this.toMap(belief).get("M_j");
+		
+		DDTree beliefTree = belief.toDDTree();
+		
+		for (String mjNode: mjProbs.keySet()) {
+			
+			if (mjProbs.get(mjNode) < 0.01) {
+				
+				try {
+					LOGGER.debug("Pruning node " + mjNode + " with prob. " + mjProbs.get(mjNode));
+					beliefTree.setDDAt(mjNode, new DDTreeLeaf(0.0));
+				}
+				
+				catch (Exception e) {
+					LOGGER.error("While pruning low probability nodes: " + e.getMessage());
+					e.printStackTrace();
+					System.exit(-1);
+				}
+			}
+		}
+		
+		DD tree = OP.reorder(beliefTree.toDD());
+		
+		tree = 
+				OP.div(
+						tree, 
+						OP.addMultVarElim(
+								tree, 
+								ArrayUtils.subarray(
+										this.stateVarIndices, 
+										0, this.thetaVarPosition)));
+		LOGGER.debug(this.toMap(tree));
+		return tree;
 	}
 	
 	private void updateMjInIS() {

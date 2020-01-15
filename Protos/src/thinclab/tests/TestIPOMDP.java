@@ -546,9 +546,17 @@ class TestIPOMDP {
 		for (String varName : beliefMapFromUpdate3.keySet()) {
 			for (String child : beliefMapFromUpdate3.get(varName).keySet()) {
 				LOGGER.debug("Checking var=" + varName + " value=" + child);
-				assertEquals(
-						beliefMapFromUpdate3.get(varName).get(child), 
-						beliefMapFromStep3.get(varName).get(child));
+				
+				float bel;
+				
+				if (beliefMapFromStep3.get(varName).containsKey(child)) 
+					bel = beliefMapFromStep3.get(varName).get(child);
+				else
+					bel = 0;
+				
+				assertTrue(
+						(beliefMapFromUpdate3.get(varName).get(child) - 
+						bel) < 0.01);
 			}
 		}
 		
