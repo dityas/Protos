@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.commons.collections15.buffer.CircularFifoBuffer;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
+import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
@@ -41,6 +42,7 @@ public abstract class OnlineSolver extends BaseSolver {
 	int errorPatience = 0;
 	int numAlphas = -1;
 	int numBeliefs = -1;
+	int maxRounds = 1;
 
 	// ------------------------------------------------------------------------------------------
 	
@@ -60,17 +62,30 @@ public abstract class OnlineSolver extends BaseSolver {
 		 * Solves for the look ahead starting from current belief
 		 */
 		
-		/* reset approx convergence patience counter */
-		this.numSimilar = 0;
-		this.minError = Float.POSITIVE_INFINITY;
-		this.errorPatience = 0;
+		for (int r = 0; r < this.maxRounds; r++) {
 		
-		/* Expand the belief space */
-		this.expansionStrategy.expand();
-		List<DD> exploredBeliefs = this.expansionStrategy.getBeliefPoints();
-		
-		/* solve for explored beliefs */
-		this.solveForBeliefs(exploredBeliefs);
+			/* reset approx convergence patience counter */
+			this.numSimilar = 0;
+			this.minError = Float.POSITIVE_INFINITY;
+			this.errorPatience = 0;
+			
+			/* if SSGA with IPBVI, set expansion policy */
+			/* update belief strategy policy */
+			if (this.expansionStrategy instanceof SSGABeliefExpansion && 
+					this instanceof OnlineIPBVISolver) {
+
+				((SSGABeliefExpansion) this.expansionStrategy).setRecentPolicy(
+						((OnlineIPBVISolver) this).alphaVectors, 
+						((OnlineIPBVISolver) this).policy);
+			}
+			
+			/* Expand the belief space */
+			this.expansionStrategy.expand();
+			List<DD> exploredBeliefs = this.expansionStrategy.getBeliefPoints();
+			
+			/* solve for explored beliefs */
+			this.solveForBeliefs(exploredBeliefs);
+		}
 	}
 	
 	// ------------------------------------------------------------------------------------------

@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
@@ -83,6 +84,25 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		logger.debug("SSGA expansion search initialized");
 	}
 	
+	public SSGABeliefExpansion(IPOMDP ip, int iterations) {
+		/*
+		 * Constructor for IPOMDPs
+		 */
+		super(ip.mjLookAhead);
+		
+		this.setFramework(ip);
+		
+		this.nIterations = iterations;
+		this.allPossibleObs = this.f.getAllPossibleObservations();
+		
+		/* initialize with initial belief of IPOMDP */
+		this.initialBeliefs = new ArrayList<DD>();
+		this.initialBeliefs.addAll(this.f.getInitialBeliefs());
+		
+		this.exploredBeliefs = new HashSet<DD>();
+		this.exploredBeliefs.addAll(this.initialBeliefs);
+	}
+	
 	// ----------------------------------------------------------------------------------------
 	
 	public void setRecentPolicy(DD[] aVectors, int[] policy) {
@@ -122,24 +142,42 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 					/* action sampling */
 					int act;
 					
-					if (usePolicy == 0) 
+					if (usePolicy == 0) {
 						act = 
-							p.getActions().indexOf(
+							this.f.getActions().indexOf(
 									POMDP.getActionFromPolicy(
-											p, belief, this.alphaVectors, this.policy));
+											this.f, belief, this.alphaVectors, this.policy));
+					}
 					
 					else act = Global.random.nextInt(this.f.getActions().size());
 						
 					DD obsDist = this.f.getObsDist(belief, this.f.getActions().get(act));
 
-					int[][] obsConfig = OP.sampleMultinomial(obsDist, p.primeObsIndices);
+					int[][] obsConfig = null;
 					
+					if (this.f.getType().contentEquals("POMDP"))
+						obsConfig = OP.sampleMultinomial(obsDist, p.primeObsIndices);
+					
+					else
+						obsConfig = 
+							OP.sampleMultinomial(obsDist, ((IPOMDP) this.f).obsIVarPrimeIndices);
+						
 					/* Get next belief */
 					try {
-
-						DD nextBelief = ((BeliefOps) p.bOPs).beliefUpdate(belief,
-							p.getActions().get(act), 
-							obsConfig);
+						
+						DD nextBelief = null;
+						
+						if (this.f.getType().contentEquals("POMDP")) {
+							nextBelief = ((BeliefOps) this.f.bOPs).beliefUpdate(belief,
+								p.getActions().get(act), 
+								obsConfig);
+						}
+						
+						else {
+							nextBelief = ((IBeliefOps) this.f.bOPs).beliefUpdate(belief,
+									this.f.getActions().get(act), 
+									obsConfig);
+						}
 						
 						/* Add belief point if it doesn't already exist */
 						if (!this.exploredBeliefs.contains(nextBelief))

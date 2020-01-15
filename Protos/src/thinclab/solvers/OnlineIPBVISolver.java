@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
+import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
@@ -56,7 +57,6 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	IPOMDP ipomdp;
 
 	/* IPBVI hyper params */
-	int maxRounds;
 	int dpBackups;
 
 	private static final Logger logger = Logger.getLogger(OnlineIPBVISolver.class);
@@ -79,9 +79,38 @@ public class OnlineIPBVISolver extends OnlineSolver {
 
 		/* initialize unique policy */
 		this.uniquePolicy = new boolean[this.ipomdp.getActions().size()];
+		
+		/* set initial policy */
+		this.setInitPolicy();
 	}
 
 	// -------------------------------------------------------------------------------------------
+	
+	public void setInitPolicy() {
+		/*
+		 * Sets initial policy and alpha vectors
+		 */
+		
+		/* Make a default alphaVectors as rewards to start with */
+		this.alphaVectors = 
+				this.ipomdp.currentRi.values().stream()
+					.map(a -> OP.reorder(a))
+					.collect(Collectors.toList())
+					.toArray(new DD[this.ipomdp.currentRi.size()]);
+		
+		/* default policy */
+		this.policy = new int[this.f.getActions().size()];
+		for (int i = 0; i < this.f.getActions().size(); i++)
+			this.policy[i] = this.f.getActions().indexOf(this.f.getActions().get(i));
+		
+		/* update belief strategy policy */
+		if (this.expansionStrategy instanceof SSGABeliefExpansion) {
+			logger.debug("Updating expansion policy");
+			((SSGABeliefExpansion) this.expansionStrategy).setRecentPolicy(
+					this.alphaVectors, this.policy);
+		}
+		
+	}
 	
 	@Override
 	public void setFramework(DecisionProcess ipomdp) {
@@ -102,22 +131,11 @@ public class OnlineIPBVISolver extends OnlineSolver {
 
 		DD[][] factoredBeliefRegion = this.f.factorBeliefRegion(beliefs);
 
-		/* Make a default alphaVectors as rewards to start with */
-		this.alphaVectors = 
-				this.ipomdp.currentRi.values().stream()
-					.map(a -> OP.reorder(a))
-					.collect(Collectors.toList())
-					.toArray(new DD[this.ipomdp.currentRi.size()]);
-
 		/* try running IPBVI */
 		try {
 
-			for (int r = 0; r < this.maxRounds; r++) {
+			this.IPBVI(100, this.dpBackups, this.dpBackups, factoredBeliefRegion, beliefs);
 
-				this.IPBVI(100, r * this.dpBackups, this.dpBackups, factoredBeliefRegion, beliefs);
-
-			}
-			
 			this.currentPointBasedValues = null;
 			this.newPointBasedValues = null;
 		}
@@ -143,6 +161,8 @@ public class OnlineIPBVISolver extends OnlineSolver {
 
 			/* Reset the search to new initial beliefs */
 			this.expansionStrategy.resetToNewInitialBelief();
+			
+			this.setInitPolicy();
 		}
 
 		catch (VariableNotFoundException e) {
@@ -258,7 +278,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 			 */
 
 			for (int i = 0; i < beliefRegion.length; i++) {
-				Global.newHashtables();
+//				Global.newHashtables();
 
 				long beforeBackup = System.nanoTime();
 					
