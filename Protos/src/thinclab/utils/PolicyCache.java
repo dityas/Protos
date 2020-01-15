@@ -51,6 +51,8 @@ public class PolicyCache implements Serializable {
 	
 	public void resetOscillationTracking() {
 		this.errorVals = new HashSet<Float>();
+		this.aVecsMap.clear();
+		this.policyMap.clear();
 		this.numOscillations = 0;
 	} // public void resetOscillationTracking
 	

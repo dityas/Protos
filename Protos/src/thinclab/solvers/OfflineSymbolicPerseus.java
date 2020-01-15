@@ -22,6 +22,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.legacy.RandomPermutation;
+import thinclab.utils.PolicyCache;
 
 /*
  * @author adityas
@@ -35,6 +36,8 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 	
 	private static final long serialVersionUID = 3643319647660633983L;
 	private static final Logger logger = Logger.getLogger(OfflineSymbolicPerseus.class);
+	
+	private PolicyCache pCache;
 	
 	// -------------------------------------------------------------------------------------
 	
@@ -62,10 +65,14 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 		logger.debug("Solving for " + beliefs.size() + " belief points.");
 
+		
+		this.pCache = new PolicyCache(5);
+		
 		DD[][] factoredBeliefRegion = this.p.factorBeliefRegion(beliefs);
 
 		/* try running IPBVI */
 		try {
+			this.pCache.resetOscillationTracking();
 			this.SymbolicPerseus(100, 0, this.numDpBackups, factoredBeliefRegion);
 		}
 
@@ -74,6 +81,9 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+		
+		/* save memory */
+		this.pCache = null;
 	}
 	
 	public void SymbolicPerseus(
@@ -251,6 +261,15 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 					+ " \tA VECTORS: " + alphaVectors.length);
 			
 			if (stepId % 100 < 1) continue;
+			
+			this.pCache.cachePolicy(
+					this.alphaVectors.length, 
+					this.alphaVectors, this.policy);
+			
+			if (this.pCache.isOscillating((float) bellmanErr)) {
+				logger.warn("BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
+				break;
+			}
 			
 			if (bellmanErr < 0.01) {
 				logger.warn("BELLMAN ERROR LESS THAN 0.01. PROBABLY CONVERGED.");
