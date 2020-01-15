@@ -363,7 +363,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-			if (stepId > 20 && errorVar < 0.00001) {
+			if (stepId > 20 && errorVar < 0.0001) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;
@@ -375,7 +375,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-			if (stepId > 10 && this.declareApproxConvergenceForAlphaVectors(
+			if (stepId > 3 && this.declareApproxConvergenceForAlphaVectors(
 					this.alphaVectors.length, numIter, beliefRegion.length)) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE ALL BELIEFS ARE BEING USED AND NUM ALPHAS IS CONSTANT");

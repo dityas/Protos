@@ -17,7 +17,13 @@ public class PolicyCache implements Serializable {
 	
 	public TreeMap<Integer, DD[]> aVecsMap = new TreeMap<Integer, DD[]>();
 	public HashMap<Integer, int[]> policyMap = new HashMap<Integer, int[]>();
-	public HashSet<Float> errorVals = new HashSet<Float>();
+	
+	/*
+	 * Using string here because I don't know how to round off a double. I am sure there
+	 * is a more efficient way to check for oscillations. But I really want to graduate.
+	 * So dirty code it is...
+	 */
+	public HashSet<String> errorVals = new HashSet<String>();
 	
 	private int oscPatience;
 	private int numOscillations = 0;
@@ -31,7 +37,7 @@ public class PolicyCache implements Serializable {
 		this.policyMap.put(numAlphaVectors, policy);
 	} // public void recordAlphaVectors
 	
-	public boolean isOscillating(float errorVal) {
+	public boolean isOscillating(String errorVal) {
 		if (this.errorVals.contains(errorVal)) {
 			if (this.numOscillations >= this.oscPatience) {
 				return true;
@@ -50,7 +56,9 @@ public class PolicyCache implements Serializable {
 	} // public boolean isOscillating
 	
 	public void resetOscillationTracking() {
-		this.errorVals = new HashSet<Float>();
+		this.errorVals = new HashSet<String>();
+		this.aVecsMap.clear();
+		this.policyMap.clear();
 		this.numOscillations = 0;
 	} // public void resetOscillationTracking
 	

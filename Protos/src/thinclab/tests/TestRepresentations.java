@@ -127,13 +127,17 @@ class TestRepresentations {
 	void testStaticBeliefTree() {
 		System.out.println("Running testStaticBeliefTree()");
 		
-		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
+//		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
+		
+		POMDP pomdp = 
+				new POMDP(
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/exfil.5S.L0.domain");
 		
 		StaticBeliefTree T = new StaticBeliefTree(pomdp, 2);
 		T.buildTree();
 		
 		System.out.println(T.getDotString());
-		assertTrue(T.idToNodeMap.size() == 9);
+//		assertTrue(T.idToNodeMap.size() == 9);
 		
 		OfflineSymbolicPerseus sp = 
 				new OfflineSymbolicPerseus(
@@ -143,11 +147,17 @@ class TestRepresentations {
 		
 		sp.solve();
 		
-		StaticBeliefTree t = new StaticBeliefTree(sp, 3);
+		ConditionalPlanTree t = new ConditionalPlanTree(sp, 5);
 		t.buildTree();
 		
+		ConditionalPlanGraph pg = new ConditionalPlanGraph(sp, 5);
+		pg.buildTree();
+		
 		System.out.println(t.getDotString());
-		System.out.println(t.getJSONString());
+//		System.out.println(t.getJSONString());
+		
+//		System.out.println(pg.getJSONString());
+		System.out.println(pg.getDotString());
 	
 	}
 	
@@ -311,30 +321,20 @@ class TestRepresentations {
 		
 		/* parse multiple frames */
 		String fileName = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
-		IPOMDP ipomdp = new IPOMDP();
 		
 		IPOMDPParser parser = new IPOMDPParser(fileName);
 		parser.parseDomain();
 		
-		LOGGER.info("Testing child frame parsing");
-		assertEquals(parser.childFrames.size(), 1);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
 		
-		/* check IPOMDP initialization */
-		ipomdp.initializeFromParsers(parser);
+		System.out.println(ipomdp.multiFrameMJ.idToNodeMap);
 		
-		LOGGER.info("Check multi frame Aj init");
-		assertEquals(ipomdp.Ajs.size(), 1);
-		LOGGER.debug(ipomdp.Ajs);
-		LOGGER.debug(ipomdp.S);
-		
-		/* set look ahead manually */
-		ipomdp.setMjLookAhead(3);
-		
-		LOGGER.info("Checking Mj solving");
-		ipomdp.solveMj();
-		
-		LOGGER.info("Checking Mj var arity");
-		assertEquals(ipomdp.multiFrameMJ.getOpponentModelStateVar(ipomdp.oppModelVarIndex).arity, 21);
+		FullBeliefExpansion fb = new FullBeliefExpansion(ipomdp);
+		fb.expand();
+		for (DD bel : fb.getBeliefPoints()) {
+			System.out.println(ipomdp.toMap(bel));
+//			System.out.println(bel.toDDTree());
+		}
 	}
 	
 	@Test

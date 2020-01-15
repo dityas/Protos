@@ -105,8 +105,8 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		
 		/* Create multinomial for sampling actions */
 		double[] explore = new double[2];
-		explore[0] = 0.6;
-		explore[1] = 0.4;
+		explore[0] = 0.8;
+		explore[1] = 0.2;
 		
 		/* for iterations */
 		for (int n = 0; n < this.nIterations; n++) {
