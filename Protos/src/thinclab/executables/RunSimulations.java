@@ -92,6 +92,9 @@ public class RunSimulations extends Executable {
 				false,
 				"set if the domain is a IPOMDP domain");
 		
+		/* merge threshold */
+		opt.addOption("m", "merge", true, "For MJ merge threshold");
+		
 		CommandLine line = null;
 
 		try {
@@ -153,6 +156,10 @@ public class RunSimulations extends Executable {
 				
 				int simRounds = new Integer(line.getOptionValue("y"));
 				int simLength = new Integer(line.getOptionValue("x"));
+				double mergeThreshold = 0.0;
+				
+				if (line.hasOption("m"))
+					mergeThreshold = new Double(line.getOptionValue("m"));
 				
 				/* run simulation for simRounds */
 				for (int i = 0; i < simRounds; i++) {
@@ -163,7 +170,12 @@ public class RunSimulations extends Executable {
 					IPOMDPParser parser = new IPOMDPParser(domainFile);
 					parser.parseDomain();
 					
-					IPOMDP ipomdp = new IPOMDP(parser, lookAhead, simLength * 2);
+					IPOMDP ipomdp;
+					
+					if (mergeThreshold > 0.0)
+						ipomdp = new IPOMDP(parser, lookAhead, simLength * 2, mergeThreshold);
+					
+					else ipomdp = new IPOMDP(parser, lookAhead, simLength * 2);
 					
 					for (BaseSolver solver : ipomdp.lowerLevelSolutions) {
 						
@@ -202,15 +214,15 @@ public class RunSimulations extends Executable {
 					/* set context back to IPOMDP */
 					ipomdp.setGlobals();
 					
-//					OnlineInteractiveSymbolicPerseus solver = 
-//							new OnlineInteractiveSymbolicPerseus(
-//									ipomdp, 
-//									new FullBeliefExpansion(ipomdp), 1, backups);
-					
 					OnlineInteractiveSymbolicPerseus solver = 
 							new OnlineInteractiveSymbolicPerseus(
 									ipomdp, 
-									new SSGABeliefExpansion(ipomdp, 5), 5, backups);
+									new FullBeliefExpansion(ipomdp), 1, backups);
+					
+//					OnlineInteractiveSymbolicPerseus solver = 
+//							new OnlineInteractiveSymbolicPerseus(
+//									ipomdp, 
+//									new SSGABeliefExpansion(ipomdp, 5), 5, backups);
 					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
