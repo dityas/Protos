@@ -214,15 +214,15 @@ public class RunSimulations extends Executable {
 					/* set context back to IPOMDP */
 					ipomdp.setGlobals();
 					
-					OnlineInteractiveSymbolicPerseus solver = 
-							new OnlineInteractiveSymbolicPerseus(
-									ipomdp, 
-									new FullBeliefExpansion(ipomdp), 1, backups);
-					
 //					OnlineInteractiveSymbolicPerseus solver = 
 //							new OnlineInteractiveSymbolicPerseus(
 //									ipomdp, 
-//									new SSGABeliefExpansion(ipomdp, 5), 5, backups);
+//									new FullBeliefExpansion(ipomdp), 1, backups);
+					
+					OnlineInteractiveSymbolicPerseus solver = 
+							new OnlineInteractiveSymbolicPerseus(
+									ipomdp, 
+									new SSGABeliefExpansion(ipomdp, 5), 5, backups);
 					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
