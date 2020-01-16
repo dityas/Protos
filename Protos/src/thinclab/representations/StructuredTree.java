@@ -265,6 +265,19 @@ public class StructuredTree implements Serializable {
 				LOGGER.debug("is within merge threshold of " + solver.f.toMap(closestBelief));
 				LOGGER.debug("And both have same optimal actions: " + act1 + " and " + act2);
 				
+				DD midPoint = OP.div(OP.add(closestBelief, belief), DDleaf.myNew(2.0));
+				LOGGER.debug("Replacing with: " + solver.f.toMap(midPoint));
+				LOGGER.debug("With optimal action: " + solver.getActionForBelief(midPoint));
+				
+				if (this.idToNodeMap.containsKey(closestBeliefId)) {
+					this.idToNodeMap.get(closestBeliefId).belief = midPoint;
+					this.idToNodeMap.get(closestBeliefId).actName = 
+							solver.getActionForBelief(midPoint);
+				}
+				
+				beliefSet.remove(closestBelief);
+				beliefSet.put(midPoint, closestBeliefId);
+				
 				return closestBeliefId;
 			}
 			
