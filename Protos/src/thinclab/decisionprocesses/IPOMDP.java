@@ -1072,6 +1072,7 @@ public class IPOMDP extends POMDP {
 			
 			LOGGER.debug("For Ai=" + Ai + " R(S,Mj) has vars " 
 					+ Arrays.toString(RSMj.getVarSet()));
+			LOGGER.debug("Ri is: " + RSMj.toDDTree());
 			
 			Ri.put(Ai, RSMj);
 		}
