@@ -51,6 +51,19 @@ class TestIPOMDP {
 	@AfterEach
 	void tearDown() throws Exception {
 	}
+	
+	@Test
+	void testMJCompression() throws Exception {
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		parser.parseDomain();
+		
+		LOGGER.info("Calling empty constructor");
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+	}
 
 	@Test
 	void testIPOMDPL1Init() throws Exception {

@@ -51,8 +51,8 @@ class TestOnlineSymbolicPerseus {
 		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
 		this.l1multiple = 
 				"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
-		this.l1multiple = 
-				"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain";
+//		this.l1multiple = 
+//				"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain";
 		
 		CustomConfigurationFactory.initializeLogging();
 		LOGGER = Logger.getLogger(TestOnlineSymbolicPerseus.class);
@@ -74,7 +74,7 @@ class TestOnlineSymbolicPerseus {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 2, 20);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 10);
 		
 		FullBeliefExpansion fb = 
 				new FullBeliefExpansion(
@@ -87,10 +87,41 @@ class TestOnlineSymbolicPerseus {
 						1, 
 						100);
 		
-		StochasticSimulation ss = new StochasticSimulation(solver, 2);
+		StochasticSimulation ss = new StochasticSimulation(solver, 3);
 		ss.runSimulation();
 		
-		LOGGER.debug(ss.getDotString());
+//		LOGGER.debug(ss.getDotString());
+	}
+	
+	@Test
+	void testIPOMDPSymbolicPerseusWithMjCompression() throws ZeroProbabilityObsException {
+
+		
+		LOGGER.info("Running testOnlineSymbolicPerseus()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1multiple);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 10, 0.1);
+		
+		FullBeliefExpansion fb = 
+				new FullBeliefExpansion(
+						tigerL1IPOMDP);
+		
+		OnlineInteractiveSymbolicPerseus solver = 
+				new OnlineInteractiveSymbolicPerseus(
+						tigerL1IPOMDP, 
+						fb, 
+						1, 
+						100);
+		
+		StochasticSimulation ss = new StochasticSimulation(solver, 3);
+		ss.runSimulation();
+		
+//		LOGGER.debug(ss.getDotString());
 	}
 	
 	@Test
