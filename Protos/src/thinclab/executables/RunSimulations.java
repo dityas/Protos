@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
+import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
@@ -214,15 +215,15 @@ public class RunSimulations extends Executable {
 					/* set context back to IPOMDP */
 					ipomdp.setGlobals();
 					
-					OnlineInteractiveSymbolicPerseus solver = 
-							new OnlineInteractiveSymbolicPerseus(
-									ipomdp, 
-									new FullBeliefExpansion(ipomdp), 1, backups);
-					
 //					OnlineInteractiveSymbolicPerseus solver = 
 //							new OnlineInteractiveSymbolicPerseus(
 //									ipomdp, 
-//									new SSGABeliefExpansion(ipomdp, 5), 5, backups);
+//									new FullBeliefExpansion(ipomdp), 1, backups);
+					
+					OnlineInteractiveSymbolicPerseus solver = 
+							new OnlineInteractiveSymbolicPerseus(
+									ipomdp, 
+									new SparseFullBeliefExpansion(ipomdp, 30), 1, backups);
 					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
