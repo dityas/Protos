@@ -263,7 +263,7 @@ public class StructuredTree implements Serializable {
 				
 				LOGGER.debug("Belief: " + solver.f.toMap(belief));
 				LOGGER.debug("is within merge threshold of " + solver.f.toMap(closestBelief));
-				LOGGER.debug("And both have same optimal action");
+				LOGGER.debug("And both have same optimal actions: " + act1 + " and " + act2);
 				
 				return closestBeliefId;
 			}
