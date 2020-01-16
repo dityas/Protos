@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
+import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
@@ -78,6 +79,30 @@ class TestBeliefExpansionStartegies {
 		LOGGER.info("Testing reset");
 		fBE.resetToNewInitialBelief();
 		assertTrue(fBE.getBeliefPoints().size() == this.pomdp.getInitialBeliefs().size());
+		
+	}
+	
+	@Test
+	void testSparseBeliefExpansion() {
+		LOGGER.info("Testing sparse belief expansion");
+		
+		String l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
+		
+		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 5, 10);
+		
+		LOGGER.info("Testing initialization");
+		FullBeliefExpansion fb = new FullBeliefExpansion(ipomdp);
+		fb.expand();
+		
+		
+		SparseFullBeliefExpansion sb = new SparseFullBeliefExpansion(ipomdp, 30);
+		sb.expand();
+		
+		LOGGER.debug("FullBeliefExpansion has " + fb.getBeliefPoints().size() + " beliefs.");
+		LOGGER.debug("SparseFullBeliefExpansion has " + sb.getBeliefPoints().size() + " beliefs.");
 		
 	}
 	
