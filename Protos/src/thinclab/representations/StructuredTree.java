@@ -103,6 +103,8 @@ public class StructuredTree implements Serializable {
 				int nextNodeId = currentLevelBeliefSet.get(nextBelief);
 				PolicyNode nextNode = new PolicyNode();
 				
+				if (newNodes != null) newNodes.add(nextNodeId);
+				
 				nextNode.id = nextNodeId;
 				nextNode.belief = nextBelief;
 				nextNode.H = level;

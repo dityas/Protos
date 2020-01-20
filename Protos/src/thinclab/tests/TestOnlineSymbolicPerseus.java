@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import cern.colt.Arrays;
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
+import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -51,8 +52,8 @@ class TestOnlineSymbolicPerseus {
 		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
 		this.l1multiple = 
 				"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
-//		this.l1multiple = 
-//				"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain";
+		this.l1multiple = 
+				"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain";
 		
 		CustomConfigurationFactory.initializeLogging();
 		LOGGER = Logger.getLogger(TestOnlineSymbolicPerseus.class);
@@ -107,9 +108,9 @@ class TestOnlineSymbolicPerseus {
 		 */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 10, 0.1);
 		
-		FullBeliefExpansion fb = 
-				new FullBeliefExpansion(
-						tigerL1IPOMDP);
+		SparseFullBeliefExpansion fb = 
+				new SparseFullBeliefExpansion(
+						tigerL1IPOMDP, 2);
 		
 		OnlineInteractiveSymbolicPerseus solver = 
 				new OnlineInteractiveSymbolicPerseus(

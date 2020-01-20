@@ -27,6 +27,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
+import thinclab.representations.belieftreerepresentations.DynamicBeliefGraph;
 import thinclab.representations.belieftreerepresentations.DynamicBeliefTree;
 import thinclab.solvers.BaseSolver;
 
@@ -34,7 +35,7 @@ import thinclab.solvers.BaseSolver;
  * @author adityas
  *
  */
-public class MJ extends DynamicBeliefTree {
+public class MJ extends DynamicBeliefGraph {
 	
 	/*
 	 * Contains the opponent's model and functions which enable IPOMDP objects
