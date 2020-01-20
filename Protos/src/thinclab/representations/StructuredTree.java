@@ -65,6 +65,7 @@ public class StructuredTree implements Serializable {
 			BaseSolver solver,
 			List<String> obs,
 			HashMap<DD, Integer> currentLevelBeliefSet,
+			List<Integer> newNodes,
 			int level) {
 		
 		/* 
