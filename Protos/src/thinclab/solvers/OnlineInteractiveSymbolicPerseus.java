@@ -76,19 +76,15 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		
 		/* try running interactive symbolic perseus */
 		try {
-			
-			for (int r = 0; r < this.maxRounds; r++) {
 				
-				boundedPerseusStartFromCurrent(
-						1000, 
-						r * this.dpBackups, 
-						this.dpBackups, 
-						factoredBeliefRegion,
-						beliefs,
-						false);
-				
-			}
-			
+			boundedPerseusStartFromCurrent(
+					1000, 
+					this.dpBackups, 
+					this.dpBackups, 
+					factoredBeliefRegion,
+					beliefs,
+					false);
+
 			this.currentPointBasedValues = null;
 			this.newPointBasedValues = null;
 		}

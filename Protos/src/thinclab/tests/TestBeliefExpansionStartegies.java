@@ -18,12 +18,14 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
+import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.solvers.OfflinePBVISolver;
+import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -77,6 +79,30 @@ class TestBeliefExpansionStartegies {
 		LOGGER.info("Testing reset");
 		fBE.resetToNewInitialBelief();
 		assertTrue(fBE.getBeliefPoints().size() == this.pomdp.getInitialBeliefs().size());
+		
+	}
+	
+	@Test
+	void testSparseBeliefExpansion() {
+		LOGGER.info("Testing sparse belief expansion");
+		
+		String l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
+		
+		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 5, 10);
+		
+		LOGGER.info("Testing initialization");
+		FullBeliefExpansion fb = new FullBeliefExpansion(ipomdp);
+		fb.expand();
+		
+		
+		SparseFullBeliefExpansion sb = new SparseFullBeliefExpansion(ipomdp, 30);
+		sb.expand();
+		
+		LOGGER.debug("FullBeliefExpansion has " + fb.getBeliefPoints().size() + " beliefs.");
+		LOGGER.debug("SparseFullBeliefExpansion has " + sb.getBeliefPoints().size() + " beliefs.");
 		
 	}
 	
@@ -147,6 +173,53 @@ class TestBeliefExpansionStartegies {
 		LOGGER.info("Testing reset");
 		fb.resetToNewInitialBelief();
 		assertTrue(fb.getBeliefPoints().size() == ipomdp.getInitialBeliefs().size());
+	}
+	
+	@Test
+	void testInteractiveSSGABeliefExpansion() {
+		LOGGER.info("Running testInteractiveSSGABeliefExpansion()");
+		
+		Global.clearHashtables();
+		
+//		String l1DomainFile = 
+//				"/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
+		
+		String l1DomainFile = 
+				"/home/adityas/UGA/THINCLab/DomainFiles/tiger.L1.F3.agnostic.domain";
+		
+		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 4, 10);
+		
+		LOGGER.info("Testing initialization");
+		FullBeliefExpansion fb = new FullBeliefExpansion(ipomdp);
+		assertNotNull(fb);
+		
+		SSGABeliefExpansion ssgaB = new SSGABeliefExpansion(ipomdp, 5);
+		
+		OnlineIPBVISolver solv = new OnlineIPBVISolver(ipomdp, ssgaB, 1, 100);
+		ssgaB.setRecentPolicy(solv.alphaVectors, solv.policy);
+		
+		LOGGER.info("Testing expansion bound");
+		assertTrue(fb.getHBound() == ipomdp.mjLookAhead);
+		assertTrue(ssgaB.getHBound() == ipomdp.mjLookAhead);
+		
+		
+		LOGGER.info("Testing expansion");
+		fb.expand();
+		List<DD> explored = fb.getBeliefPoints();
+		LOGGER.debug("Full expansion has beliefs: " + explored.size());
+		
+		ssgaB.expand();
+		List<DD> SSGAexplored = ssgaB.getBeliefPoints();
+		LOGGER.debug("SSGA expansion has beliefs: " + SSGAexplored.size());
+		
+		LOGGER.info("Testing reset");
+		fb.resetToNewInitialBelief();
+		assertTrue(fb.getBeliefPoints().size() == ipomdp.getInitialBeliefs().size());
+		ssgaB.resetToNewInitialBelief();
+		assertTrue(ssgaB.getBeliefPoints().size() == ipomdp.getInitialBeliefs().size());
 	}
 
 }

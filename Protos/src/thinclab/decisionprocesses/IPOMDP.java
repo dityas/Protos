@@ -79,6 +79,7 @@ public class IPOMDP extends POMDP {
 	 */
 	public MJ Mj;
 	public MultiFrameMJ multiFrameMJ;
+	public double mjMergeThreshold = 0;
 	
 	/*
 	 * We will need to know the varIndex for the opponentModel statevar to replace it after
@@ -173,6 +174,44 @@ public class IPOMDP extends POMDP {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+	}
+	
+	public IPOMDP(
+			IPOMDPParser parsedFrame, 
+			int mjlookAhead, 
+			int mjSearchDepth, 
+			double threshold) {
+		
+		try {
+			
+			LOGGER.info("Initializing IPOMDP from parser.");
+			
+			this.mjMergeThreshold = threshold;
+			
+			this.initializeFromParsers(parsedFrame);
+			this.setMjLookAhead(mjlookAhead);
+			
+			this.mjSearchDepth = mjSearchDepth;
+			
+			LOGGER.info("IPOMDP initialized");
+			
+			/* Solve opponent model and create internal representation */
+			this.solveMj();
+			
+			/* initialize all DDs */
+			this.updateMjInIS();
+			
+			this.initializeOfflineFunctions();
+			this.reinitializeOnlineFunctions();
+			
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While parsing " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		
 	}
 
 	public IPOMDP(String fileName) {
@@ -316,6 +355,14 @@ public class IPOMDP extends POMDP {
 		 * Sets the names for agent i's actions
 		 */
 		this.Ai = actionNames;
+	}
+	
+	public void setMjMergeThreshold(double threshold) {
+		
+		LOGGER.debug("MJ similarity threshold set to " + threshold);
+		LOGGER.warn("Higher thresholds will lead to worse approximations");
+		
+		this.mjMergeThreshold = threshold;
 	}
 	
 	public void setMjDepth(int depth) {
@@ -530,6 +577,7 @@ public class IPOMDP extends POMDP {
 		LOGGER.info("Solved lower frames");
 		
 		/* initialize MJ */
+		solvedFrames.forEach(mj -> mj.setMergeThreshold(this.mjMergeThreshold));
 		this.multiFrameMJ = new MultiFrameMJ(solvedFrames);
 
 		/* Call GC to free up memory used by lower frame solvers and belief searches */
@@ -1024,6 +1072,7 @@ public class IPOMDP extends POMDP {
 			
 			LOGGER.debug("For Ai=" + Ai + " R(S,Mj) has vars " 
 					+ Arrays.toString(RSMj.getVarSet()));
+			LOGGER.debug("Ri is: " + RSMj.toDDTree());
 			
 			Ri.put(Ai, RSMj);
 		}
@@ -1312,17 +1361,30 @@ public class IPOMDP extends POMDP {
 		 * If prob Mj < 0.01, make it 0
 		 */
 		
-		HashMap<String, Float> mjProbs = this.toMap(belief).get("M_j");
+		while (true) {
 		
-		DDTree beliefTree = belief.toDDTree();
-		
-		for (String mjNode: mjProbs.keySet()) {
+			HashMap<String, Float> mjProbs = this.toMap(belief).get("M_j");
 			
-			if (mjProbs.get(mjNode) < 0.01) {
+			DDTree beliefTree = belief.toDDTree();
+			double minProb = 1.0;
+			String minNode = null;
+			
+			for (String mjNode: mjProbs.keySet()) {
+				
+				if (mjProbs.get(mjNode) < minProb) {
+					
+					minProb = mjProbs.get(mjNode);
+					minNode = mjNode;
+				}
+			}
+			
+			LOGGER.debug("Min prob. is " + minProb + " for model " + minNode);
+			
+			if (minProb < 0.01 && minNode != null) {
 				
 				try {
-					LOGGER.debug("Pruning node " + mjNode + " with prob. " + mjProbs.get(mjNode));
-					beliefTree.setDDAt(mjNode, new DDTreeLeaf(0.0));
+					LOGGER.debug("Pruning node " + minNode + " with prob. " + minProb);
+					beliefTree.setDDAt(minNode, new DDTreeLeaf(0.0));
 				}
 				
 				catch (Exception e) {
@@ -1330,21 +1392,27 @@ public class IPOMDP extends POMDP {
 					e.printStackTrace();
 					System.exit(-1);
 				}
-			}
-		}
-		
-		DD tree = OP.reorder(beliefTree.toDD());
-		
-		tree = 
-				OP.div(
-						tree, 
-						OP.addMultVarElim(
+				
+				DD tree = OP.reorder(beliefTree.toDD());
+				
+				tree = 
+						OP.div(
 								tree, 
-								ArrayUtils.subarray(
-										this.stateVarIndices, 
-										0, this.thetaVarPosition)));
-		LOGGER.debug(this.toMap(tree));
-		return tree;
+								OP.addMultVarElim(
+										tree, 
+										ArrayUtils.subarray(
+												this.stateVarIndices, 
+												0, this.thetaVarPosition)));
+				
+				LOGGER.debug("Belief approximated to: " + this.toMapWithTheta(tree));
+			
+				belief = tree;
+			}
+			
+			else break;
+		}
+			
+		return belief;
 	}
 	
 	private void updateMjInIS() {
