@@ -131,6 +131,12 @@ public class DynamicBeliefGraph extends StaticBeliefGraph {
 			logger.error("Mj and IPOMDP sync lost: current non zero belief " + nonZeroLeafIds
 				+ " not in leafs tracked by belief tree " + this.leafNodes);
 			
+			for (int nodeId: this.leafNodes)
+				if (nonZeroLeafIds.contains(nodeId))
+					nonZeroLeafIds.remove(Integer.valueOf(nodeId));
+			
+			logger.error("Unknown leaf IDs: " + nonZeroLeafIds);
+			
 			System.exit(-1);
 		}
 		

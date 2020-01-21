@@ -103,7 +103,7 @@ public class StructuredTree implements Serializable {
 				int nextNodeId = currentLevelBeliefSet.get(nextBelief);
 				PolicyNode nextNode = new PolicyNode();
 				
-				if (newNodes != null) newNodes.add(nextNodeId);
+//				if (newNodes != null) newNodes.add(nextNodeId);
 				
 				nextNode.id = nextNodeId;
 				nextNode.belief = nextBelief;
@@ -130,6 +130,9 @@ public class StructuredTree implements Serializable {
 				nextNodeId = currentLevelBeliefSet.get(nextBelief);
 			
 			else nextNodeId = closestBel;
+			
+			if (newNodes != null && !newNodes.contains(nextNodeId))
+				newNodes.add(nextNodeId);
 			
 			if (!this.edgeMap.containsKey(parentNodeId))
 				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());

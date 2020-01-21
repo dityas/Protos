@@ -66,7 +66,11 @@ public class MJ extends DynamicBeliefGraph {
 		
 		/* add new roots as previous child nodes */
 		this.pruneZeroProbabilityLeaves(nonZeroMj);
-		this.currentPolicyNodeCounter = Collections.max(this.leafNodes) + 1;
+		
+		if (this.leafNodes.size() > 0)
+			this.currentPolicyNodeCounter = Collections.max(this.leafNodes) + 1;
+		
+		else logger.info("No models from frame " + this.solver.f.frameID);
 		
 		logger.debug("Cached previous belief and added non zero nodes "
 				+ this.leafNodes + " to current roots");
