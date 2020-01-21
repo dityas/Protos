@@ -65,6 +65,7 @@ public class StructuredTree implements Serializable {
 			BaseSolver solver,
 			List<String> obs,
 			HashMap<DD, Integer> currentLevelBeliefSet,
+			List<Integer> newNodes,
 			int level) {
 		
 		/* 
@@ -101,6 +102,8 @@ public class StructuredTree implements Serializable {
 				
 				int nextNodeId = currentLevelBeliefSet.get(nextBelief);
 				PolicyNode nextNode = new PolicyNode();
+				
+				if (newNodes != null) newNodes.add(nextNodeId);
 				
 				nextNode.id = nextNodeId;
 				nextNode.belief = nextBelief;

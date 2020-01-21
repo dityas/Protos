@@ -11,12 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
-import thinclab.representations.StructuredTree;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
 
@@ -24,55 +20,37 @@ import thinclab.solvers.BaseSolver;
  * @author adityas
  *
  */
-public class StaticBeliefTree extends StructuredTree {
-	
+public class StaticBeliefGraph extends StaticBeliefTree {
+
 	/*
-	 * Holds a static belief tree which is expanded to max H at once. 
+	 * Represents beliefs as a graph instead of a tree
+	 * 
+	 * Note: you can no longer track T once you use graphs
 	 */
 	
-	private static final long serialVersionUID = 359334337512902886L;
+	public HashMap<DD, Integer> nodeToIdMap = new HashMap<DD, Integer>();
 	
-	/* reference for the framework and solver */
-	public DecisionProcess f;
-	public BaseSolver solver = null;
+	private static final long serialVersionUID = 5529948904505648028L;
 	
-	private static final Logger logger = Logger.getLogger(StaticBeliefTree.class);
+	// --------------------------------------------------------------------------
 	
-	// ------------------------------------------------------------------------------------
-	
-	public StaticBeliefTree(DecisionProcess f, int maxH) {
-		
-		/* set attributes */
-		this.f = f;
-		
-		if (f instanceof IPOMDP)
-			this.maxT = ((IPOMDP) this.f).mjLookAhead;
-		
-		else this.maxT = maxH;
-		
-		this.observations = this.f.getAllPossibleObservations();
-		
-		logger.debug("Initializing StaticBeliefTree for maxT " + this.maxT);
+	public StaticBeliefGraph(DecisionProcess f, int maxH) {
+		super(f, maxH);
 	}
 	
-	public StaticBeliefTree(BaseSolver solver, int maxH) {
-		
-		this(solver.f, maxH);
-		this.solver = solver;
+	public StaticBeliefGraph(BaseSolver solver, int maxH) {
+		super(solver, maxH);
 	}
 	
-	public StaticBeliefTree() {
-		
-	}
+	// --------------------------------------------------------------------------
 	
-	// -------------------------------------------------------------------------------------
-	
+	@Override
 	public List<Integer> getNextPolicyNodes(List<Integer> previousNodes, int T) {
 		/*
 		 * Compute the next PolicyNode from the list of previous PolicyNodes
 		 */
 		
-		HashMap<DD, Integer> nodeMap = new HashMap<DD, Integer>();
+		List<Integer> newNodes = new ArrayList<Integer>();
 		
 		/* For each previous Node */
 		for (int parentId : previousNodes) {
@@ -86,15 +64,16 @@ public class StaticBeliefTree extends StructuredTree {
 					
 					this.makeNextBeliefNode(
 							parentId, 
-							belief, f, action, this.solver, obs, nodeMap, null, T);
+							belief, f, action, this.solver, obs, this.nodeToIdMap, newNodes, T);
 			
 				} /* for all actions */
 			} /* for all observations */
 		} /* for all parents */
 		
-		return new ArrayList<Integer>(nodeMap.values());
+		return newNodes;
 	}
 	
+	@Override
 	public void buildTree() {
 		/*
 		 * Builds the full OnlinePolicyTree upto maxT
@@ -121,6 +100,7 @@ public class StaticBeliefTree extends StructuredTree {
 				node.actName = "";
 				
 			this.idToNodeMap.put(i, node);
+			this.nodeToIdMap.put(node.belief, node.id);
 			
 			this.currentPolicyNodeCounter += 1;
 		}
