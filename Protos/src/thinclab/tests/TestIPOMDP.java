@@ -826,7 +826,7 @@ class TestIPOMDP {
 						new FullBeliefExpansion(tigerL1IPOMDP), 
 						1, 100);
 		
-		StochasticSimulation ss = new StochasticSimulation(sp, 5);
+		StochasticSimulation ss = new StochasticSimulation(sp, 10);
 		ss.runSimulation();
 		LOGGER.info("\r\n" + ss.getDotString());
 		
