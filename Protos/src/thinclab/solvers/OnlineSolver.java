@@ -195,7 +195,7 @@ public abstract class OnlineSolver extends BaseSolver {
 			this.numSimilar += 1;
 			
 			/* set all trackers to initial values if declaring convergence */
-			if (this.numSimilar >= 3) {
+			if (this.numSimilar >= 5) {
 				
 				this.numAlphas = -1;
 				this.numBeliefs = -1;

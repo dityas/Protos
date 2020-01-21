@@ -216,7 +216,7 @@ public class RunSimulations extends Executable {
 					OnlineInteractiveSymbolicPerseus solver = 
 							new OnlineInteractiveSymbolicPerseus(
 									ipomdp, 
-									new SparseFullBeliefExpansion(ipomdp, 30), 1, backups);
+									new SparseFullBeliefExpansion(ipomdp, 10), 1, backups);
 					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
