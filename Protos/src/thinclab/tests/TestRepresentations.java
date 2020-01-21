@@ -100,6 +100,34 @@ class TestRepresentations {
 	}
 	
 	@Test
+	void testMjMergingEffects() {
+		
+		LOGGER.info("Testing effects of merging MJs");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 5, 10);
+		
+		LOGGER.info("Without merging");
+		for (MJ mj: ipomdp.multiFrameMJ.MJs.values()) {
+			LOGGER.debug("Printing MJ");
+			System.out.println(mj.getDotString());
+		}
+		
+		parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP newIpomdp = new IPOMDP(parser, 5, 10, 0.01);
+		
+		LOGGER.info("With merging");
+		for (MJ mj: newIpomdp.multiFrameMJ.MJs.values()) {
+			LOGGER.debug("Printing MJ");
+			System.out.println(mj.getDotString());
+		}
+	}
+	
+	@Test
 	void testStaticPolicyGraph() {
 		System.out.println("Running testStaticPolicyGraph()");
 		

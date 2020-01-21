@@ -27,6 +27,8 @@ import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
+import thinclab.legacy.OP;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
 
@@ -49,6 +51,8 @@ public class StructuredTree implements Serializable {
 	
 	public List<List<String>> observations;
 	
+	private double mergeThreshold = 0;
+	
 	private static final Logger LOGGER = Logger.getLogger(StructuredTree.class);
 	
 	// ----------------------------------------------------------------------------------------
@@ -61,6 +65,7 @@ public class StructuredTree implements Serializable {
 			BaseSolver solver,
 			List<String> obs,
 			HashMap<DD, Integer> currentLevelBeliefSet,
+			List<Integer> newNodes,
 			int level) {
 		
 		/* 
@@ -84,13 +89,21 @@ public class StructuredTree implements Serializable {
 							action, 
 							obs.toArray(new String[obs.size()]));
 			
-			/* add to belief set if nextBelief is unique */
-			if (!currentLevelBeliefSet.containsKey(nextBelief)) {
+			/*
+			 * add to belief set if nextBelief is unique or farther than merge threshold 
+			 */
+			
+			int closestBel = this.findSimilarity(solver, nextBelief, currentLevelBeliefSet);
+			
+//			if (!currentLevelBeliefSet.containsKey(nextBelief)) {
+			if (closestBel == -1) {
 				currentLevelBeliefSet.put(nextBelief, this.currentPolicyNodeCounter);
 				this.currentPolicyNodeCounter += 1;
 				
 				int nextNodeId = currentLevelBeliefSet.get(nextBelief);
 				PolicyNode nextNode = new PolicyNode();
+				
+//				if (newNodes != null) newNodes.add(nextNodeId);
 				
 				nextNode.id = nextNodeId;
 				nextNode.belief = nextBelief;
@@ -111,7 +124,15 @@ public class StructuredTree implements Serializable {
 				this.idToNodeMap.put(nextNodeId, nextNode);
 			}
 			
-			int nextNodeId = currentLevelBeliefSet.get(nextBelief);
+			int nextNodeId;
+			
+			if (closestBel == -1)
+				nextNodeId = currentLevelBeliefSet.get(nextBelief);
+			
+			else nextNodeId = closestBel;
+			
+			if (newNodes != null && !newNodes.contains(nextNodeId))
+				newNodes.add(nextNodeId);
 			
 			if (!this.edgeMap.containsKey(parentNodeId))
 				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
@@ -208,6 +229,68 @@ public class StructuredTree implements Serializable {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+	}
+	
+	// ----------------------------------------------------------------------------------------
+	
+	public void setMergeThreshold(double threshold) {
+		
+		this.mergeThreshold = threshold;
+		LOGGER.debug("Belief merging activated. Threshold distance is: " + this.mergeThreshold);
+		LOGGER.debug("Larger thresholds will lead to less accuracte approximates of agent J");
+	}
+	
+	public int findSimilarity(BaseSolver solver, DD belief, HashMap<DD, Integer> beliefSet) {
+		
+		if (beliefSet.containsKey(belief))
+			return beliefSet.get(belief);
+		
+		int closestBeliefId = -1;
+		double minDist = Double.POSITIVE_INFINITY;
+		DD closestBelief = null;
+		
+		for (DD other : beliefSet.keySet()) {
+			
+			double dist = OP.maxAll(OP.abs(OP.sub(belief, other)));
+			
+			if (dist < minDist) {
+				closestBeliefId = beliefSet.get(other);
+				minDist = dist;
+				closestBelief = other;
+			}
+		}
+		
+		if (minDist < this.mergeThreshold) {
+			
+			String act1 = solver.getActionForBelief(belief);
+			String act2 = solver.getActionForBelief(closestBelief);
+			
+			if (act1.contentEquals(act2)) {
+				
+				LOGGER.debug("Belief: " + solver.f.toMap(belief));
+				LOGGER.debug("is within merge threshold of " + solver.f.toMap(closestBelief));
+				LOGGER.debug("And both have same optimal actions: " + act1 + " and " + act2);
+				
+				DD midPoint = OP.div(OP.add(closestBelief, belief), DDleaf.myNew(2.0));
+				LOGGER.debug("Replacing with: " + solver.f.toMap(midPoint));
+				LOGGER.debug("With optimal action: " + solver.getActionForBelief(midPoint));
+				
+				if (this.idToNodeMap.containsKey(closestBeliefId)) {
+					this.idToNodeMap.get(closestBeliefId).belief = midPoint;
+					this.idToNodeMap.get(closestBeliefId).actName = 
+							solver.getActionForBelief(midPoint);
+				}
+				
+				beliefSet.remove(closestBelief);
+				beliefSet.put(midPoint, closestBeliefId);
+				
+				return closestBeliefId;
+			}
+			
+			return -1;
+		}
+		
+		else return -1;
 	}
 	
 	// ----------------------------------------------------------------------------------------

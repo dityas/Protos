@@ -27,6 +27,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
+import thinclab.representations.belieftreerepresentations.DynamicBeliefGraph;
 import thinclab.representations.belieftreerepresentations.DynamicBeliefTree;
 import thinclab.solvers.BaseSolver;
 
@@ -34,7 +35,7 @@ import thinclab.solvers.BaseSolver;
  * @author adityas
  *
  */
-public class MJ extends DynamicBeliefTree {
+public class MJ extends DynamicBeliefGraph {
 	
 	/*
 	 * Contains the opponent's model and functions which enable IPOMDP objects
@@ -65,7 +66,11 @@ public class MJ extends DynamicBeliefTree {
 		
 		/* add new roots as previous child nodes */
 		this.pruneZeroProbabilityLeaves(nonZeroMj);
-		this.currentPolicyNodeCounter = Collections.max(this.leafNodes) + 1;
+		
+		if (this.leafNodes.size() > 0)
+			this.currentPolicyNodeCounter = Collections.max(this.leafNodes) + 1;
+		
+		else logger.info("No models from frame " + this.solver.f.frameID);
 		
 		logger.debug("Cached previous belief and added non zero nodes "
 				+ this.leafNodes + " to current roots");

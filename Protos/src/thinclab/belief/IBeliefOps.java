@@ -170,6 +170,74 @@ public class IBeliefOps extends BeliefOperations {
 		return OP.div(nextBelief, norm); 
 	}
 	
+	
+	public DD beliefUpdate(
+			DD belief, String action, int[][] obsVals) throws ZeroProbabilityObsException {
+		
+		/*
+		 * For use with sampling API that returns int[][] obsVals instead of
+		 * String array of observations
+		 * 
+		 * Level 1 belief update
+		 * 
+		 * P(S, Mj| Oi'=o) = 
+		 * 		norm x Sumout[S, Mj, Thetaj, Aj] 
+		 * 					f(S, Mj) x f(Thetaj, Mj) x f(Aj, Mj)  
+		 * 					x f(S', S, Aj) x f(Oi'=o, S', Aj)
+		 * 			 x Sumout[Oj'] 
+		 * 					f(Oj', Aj, Thetaj, S') x f(Mj', Mj, Aj, Oj') 
+		 */
+		
+		IPOMDP DPRef = this.getIPOMDP();
+		
+		/* Restrict Oi */
+		DD[] restrictedOi = 
+				OP.restrictN(
+						DPRef.currentOi.get(action), 
+						obsVals);
+		
+		/* Collect f1 = P(S, Mj)  */
+		DD f1 = belief;
+
+		/* Collect f2 = P(Aj | Mj) x P(Thetaj| Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
+		DD[] f2 = 
+				ArrayUtils.addAll(
+						ArrayUtils.addAll(
+								DPRef.currentTi.get(action), 
+								new DD[] {DPRef.currentAjGivenMj, DPRef.currentThetajGivenMj}), 
+						restrictedOi);
+		
+		/* Get TAU */
+		DD tau = DPRef.currentTau;
+		
+		/* Perform the sum out */
+		DD nextBelief = 
+				OP.addMultVarElim(
+						ArrayUtils.add(
+								ArrayUtils.addAll(f2, f1), 
+								tau), 
+						DPRef.stateVarIndices);
+		
+		/* Shift indices */
+		nextBelief = OP.primeVars(nextBelief, -(DPRef.S.size() + DPRef.Omega.size()));
+		
+		/* compute normalization factor */
+		DD norm = 
+				OP.addMultVarElim(
+						nextBelief, 
+						ArrayUtils.subarray(
+								DPRef.stateVarIndices, 
+								0, 
+								DPRef.thetaVarPosition));
+		
+		if (norm.getVal() < 1e-8) 
+			throw new ZeroProbabilityObsException(
+					"Observation " + Arrays.deepToString(obsVals) 
+					+ " not possible at belief " + belief);
+		
+		return OP.div(nextBelief, norm); 
+	}
+	
 	@Override
 	public DD getObsDist(DD belief, String action) {
 		/*

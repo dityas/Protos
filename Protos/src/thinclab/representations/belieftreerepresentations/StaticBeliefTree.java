@@ -86,7 +86,7 @@ public class StaticBeliefTree extends StructuredTree {
 					
 					this.makeNextBeliefNode(
 							parentId, 
-							belief, f, action, this.solver, obs, nodeMap, T);
+							belief, f, action, this.solver, obs, nodeMap, null, T);
 			
 				} /* for all actions */
 			} /* for all observations */

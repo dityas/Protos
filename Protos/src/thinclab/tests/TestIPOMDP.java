@@ -51,6 +51,44 @@ class TestIPOMDP {
 	@AfterEach
 	void tearDown() throws Exception {
 	}
+	
+	@Test
+	void testMJCompression() throws Exception {
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		parser.parseDomain();
+		
+		LOGGER.info("Calling empty constructor");
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotString());
+		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(1).getDotString());
+		
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+	}
 
 	@Test
 	void testIPOMDPL1Init() throws Exception {
@@ -775,7 +813,8 @@ class TestIPOMDP {
 		
 		LOGGER.info("Testing IPOMDP stochastic sim");
 		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		IPOMDPParser parser = 
+				new IPOMDPParser("/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		parser.parseDomain();
 		
 		/* Initialize IPOMDP */
@@ -787,7 +826,7 @@ class TestIPOMDP {
 						new FullBeliefExpansion(tigerL1IPOMDP), 
 						1, 100);
 		
-		StochasticSimulation ss = new StochasticSimulation(sp, 2);
+		StochasticSimulation ss = new StochasticSimulation(sp, 10);
 		ss.runSimulation();
 		LOGGER.info("\r\n" + ss.getDotString());
 		

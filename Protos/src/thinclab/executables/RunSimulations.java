@@ -13,7 +13,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.log4j.Logger;
 
-import thinclab.belief.FullBeliefExpansion;
+import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
@@ -91,6 +91,9 @@ public class RunSimulations extends Executable {
 				false,
 				"set if the domain is a IPOMDP domain");
 		
+		/* merge threshold */
+		opt.addOption("m", "merge", true, "For MJ merge threshold");
+		
 		CommandLine line = null;
 
 		try {
@@ -152,6 +155,10 @@ public class RunSimulations extends Executable {
 				
 				int simRounds = new Integer(line.getOptionValue("y"));
 				int simLength = new Integer(line.getOptionValue("x"));
+				double mergeThreshold = 0.0;
+				
+				if (line.hasOption("m"))
+					mergeThreshold = new Double(line.getOptionValue("m"));
 				
 				/* run simulation for simRounds */
 				for (int i = 0; i < simRounds; i++) {
@@ -162,7 +169,12 @@ public class RunSimulations extends Executable {
 					IPOMDPParser parser = new IPOMDPParser(domainFile);
 					parser.parseDomain();
 					
-					IPOMDP ipomdp = new IPOMDP(parser, lookAhead, simLength * 2);
+					IPOMDP ipomdp;
+					
+					if (mergeThreshold > 0.0)
+						ipomdp = new IPOMDP(parser, lookAhead, simLength * 2, mergeThreshold);
+					
+					else ipomdp = new IPOMDP(parser, lookAhead, simLength * 2);
 					
 					for (BaseSolver solver : ipomdp.lowerLevelSolutions) {
 						
@@ -204,7 +216,7 @@ public class RunSimulations extends Executable {
 					OnlineInteractiveSymbolicPerseus solver = 
 							new OnlineInteractiveSymbolicPerseus(
 									ipomdp, 
-									new FullBeliefExpansion(ipomdp), 1, backups);
+									new SparseFullBeliefExpansion(ipomdp, 10), 1, backups);
 					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();

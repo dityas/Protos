@@ -76,19 +76,15 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		
 		/* try running interactive symbolic perseus */
 		try {
-			
-			for (int r = 0; r < this.maxRounds; r++) {
 				
-				boundedPerseusStartFromCurrent(
-						1000, 
-						r * this.dpBackups, 
-						this.dpBackups, 
-						factoredBeliefRegion,
-						beliefs,
-						false);
-				
-			}
-			
+			boundedPerseusStartFromCurrent(
+					1000, 
+					this.dpBackups, 
+					this.dpBackups, 
+					factoredBeliefRegion,
+					beliefs,
+					false);
+
 			this.currentPointBasedValues = null;
 			this.newPointBasedValues = null;
 		}
@@ -375,7 +371,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-			if (stepId > 3 && this.declareApproxConvergenceForAlphaVectors(
+			if (stepId > 5 && this.declareApproxConvergenceForAlphaVectors(
 					this.alphaVectors.length, numIter, beliefRegion.length)) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE ALL BELIEFS ARE BEING USED AND NUM ALPHAS IS CONSTANT");
