@@ -30,6 +30,7 @@ import thinclab.representations.StructuredTree;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.Diagnostics;
 
 /*
  * @author adityas
@@ -834,7 +835,7 @@ class TestIPOMDP {
 	}
 	
 	@Test
-	void testNZPrimesTime() {
+	void testNZPrimesTime() throws Exception {
 		
 		LOGGER.info("Testing IPOMDP NZ prime computation time");
 		
@@ -843,10 +844,12 @@ class TestIPOMDP {
 		parser.parseDomain();
 		
 		/* Initialize IPOMDP */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 5, 20);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
 		
 		FullBeliefExpansion fb = new FullBeliefExpansion(tigerL1IPOMDP);
 		fb.setCaching();
+		
+		Global.USE_NEXT_BELSTATE_CACHES = true;
 		
 		OnlineInteractiveSymbolicPerseus sp = 
 				new OnlineInteractiveSymbolicPerseus(
@@ -854,11 +857,39 @@ class TestIPOMDP {
 						fb, 
 						1, 100);
 		
-		StochasticSimulation ss = new StochasticSimulation(sp, 1);
-		ss.runSimulation();
-		LOGGER.info("\r\n" + ss.getDotString());
+		sp.solveCurrentStep();
+		sp.nextStep(
+				sp.getActionAtCurrentBelief(), 
+				Arrays.asList(new String[] {"growl-left", "silence"}));
 		
-		ss.logResults();
+		sp.solveCurrentStep();
+		sp.nextStep(
+				sp.getActionAtCurrentBelief(), 
+				Arrays.asList(new String[] {"growl-left", "silence"}));
+		
+		sp.solveCurrentStep();
+		
+		sp.nextStep(
+				sp.getActionAtCurrentBelief(), 
+				Arrays.asList(new String[] {"growl-left", "silence"}));
+		
+		sp.solveCurrentStep();
+		
+		sp.nextStep(
+				sp.getActionAtCurrentBelief(), 
+				Arrays.asList(new String[] {"growl-left", "silence"}));
+		
+		sp.solveCurrentStep();
+//		sp.nextStep(
+//				sp.getActionAtCurrentBelief(), 
+//				Arrays.asList(new String[] {"growl-left", "silence"}));
+		
+//		StochasticSimulation ss = new StochasticSimulation(sp, 5);
+//		ss.runSimulation();
+//		LOGGER.info("\r\n" + ss.getDotString());
+//		
+//		ss.logResults();
+		
 	}
 	
 	@Test

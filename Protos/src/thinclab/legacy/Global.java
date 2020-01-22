@@ -50,10 +50,16 @@ public class Global {
     public static CacheMap nLeavesHashtable = new CacheMap();
     public static CacheMap nNodesHashtable = new CacheMap();
     
-    /* cache NextBelStates */
+    /* Caches for optimizing NZ prime computations */
+    public static boolean USE_NEXT_BELSTATE_CACHES = false;
+    
     public static HashMap<DD, HashMap<String, DD[][]>> NEXT_BELSTATES_CACHE = 
     		new HashMap<DD, HashMap<String, DD[][]>>();
+    
+    public static HashMap<DD, HashMap<String, double[]>> OBS_PROB_CACHE = 
+    		new HashMap<DD, HashMap<String, double[]>>();
 
+    
     // random number generator
     public static Random random = new Random();
     

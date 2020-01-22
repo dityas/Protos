@@ -12,13 +12,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import org.apache.commons.collections15.map.HashedMap;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 
@@ -41,8 +42,9 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	public List<DD> leaves;
 	public HashSet<DD> exploredBeliefs;
 	
-	/* single step cache */
+	/* single step cache for storing NZ prime computations */
 	HashMap<String, DD[][]> singleStepCache = new HashMap<String, DD[][]>();
+	HashMap<String, double[]> obsProbCache = new HashMap<String, double[]>();
 	private boolean cacheComputations = false;
 	
 	private static final Logger logger = Logger.getLogger(FullBeliefExpansion.class);
@@ -126,6 +128,10 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	@Override
 	public void expand() {
 		
+		/* clear caches before starting new expansions */
+		Global.NEXT_BELSTATES_CACHE.clear();
+		Global.OBS_PROB_CACHE.clear();
+		
 		/* H - 1 expansions to let the Solver reach H during solving */
 		for (int i = 0; i < this.getHBound() - 1; i++)
 			this.expandSingleStep();
@@ -161,11 +167,14 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 									action, 
 									observation);
 					
-					if (this.f.getType().contentEquals("IPOMDP"))
+					/* compute obs probs and next bel states for IPOMDP */
+					if (this.f.getType().contentEquals("IPOMDP")) {
+						
 						factoredNextBels.add(
 								OP.primeVarsN(
 										this.f.factorBelief(nextBelief), 
 										((IPOMDP) this.f).S.size() + ((IPOMDP) this.f).Omega.size()));
+					}
 					
 					/* continue if observation probability was 0 */
 					if (nextBelief == null) continue;
@@ -177,20 +186,45 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 				} /* obsIterator */
 				
 				/* cache next bel states for this action */
-				if (this.f.getType().contentEquals("IPOMDP"))
+				if (this.f.getType().contentEquals("IPOMDP")) {
+					
+					/* compute obs probs */
+					DD dd_obsProbs = this.f.getObsDist(leaf, action); 
+					double[] obsProbs = 
+							OP.convert2array(
+									dd_obsProbs, 
+									((IPOMDP) this.f).obsIVarPrimeIndices);
+					
+					for (int s = 0; s < factoredNextBels.size(); s++) {
+						DD[] bel = factoredNextBels.get(s);
+						bel = ArrayUtils.add(bel, DDleaf.myNew(obsProbs[s]));
+						factoredNextBels.remove(s);
+						factoredNextBels.add(s, bel);
+					}
+					
 					this.singleStepCache.put(
 							action, 
 							factoredNextBels.stream().toArray(DD[][]::new));
-				
+					
+					this.obsProbCache.put(action, obsProbs);
+				}
 			} /* for nActions */
 			
 			if (this.cacheComputations) {
+				
+				/* store next bel state computations */
 				HashMap<String, DD[][]> tempCache = new HashMap<String, DD[][]>();
 				tempCache.putAll(singleStepCache);
 				Global.NEXT_BELSTATES_CACHE.put(leaf, tempCache);
+				
+				/* store obs prob computations */
+				HashMap<String, double[]> tempProbs = new HashMap<String, double[]>();
+				tempProbs.putAll(obsProbCache);
+				Global.OBS_PROB_CACHE.put(leaf, tempProbs);
 			}
 
 			singleStepCache.clear();
+			obsProbCache.clear();
 		} /* while leafIterator */
 		
 		logger.debug("Found " + newLeaves.size() + " more beliefs in the expansion phase.");
