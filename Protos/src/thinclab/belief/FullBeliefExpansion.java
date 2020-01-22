@@ -17,6 +17,7 @@ import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.OP;
 
 /*
  * @author adityas
@@ -138,6 +139,8 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 				 * Recursively get all possible values and combinations of
 				 * all observation variables
 				 */
+				List<DD[]> factoredNextBels = new ArrayList<DD[]>();
+				
 				for (List<String> observation : this.allPossibleObs) {
 					
 					DD nextBelief = 
@@ -147,6 +150,15 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 									action, 
 									observation);
 					
+					/* compute obs probs and next bel states for IPOMDP */
+					if (this.f.getType().contentEquals("IPOMDP")) {
+						
+						factoredNextBels.add(
+								OP.primeVarsN(
+										this.f.factorBelief(nextBelief), 
+										((IPOMDP) this.f).S.size() + ((IPOMDP) this.f).Omega.size()));
+					}
+					
 					/* continue if observation probability was 0 */
 					if (nextBelief == null) continue;
 					
@@ -155,7 +167,9 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 						newLeaves.add(nextBelief);
 					}
 				} /* obsIterator */
+				
 			} /* for nActions */
+
 		} /* while leafIterator */
 		
 		logger.debug("Found " + newLeaves.size() + " more beliefs in the expansion phase.");

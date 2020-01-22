@@ -7,8 +7,10 @@
  */
 package thinclab.legacy;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -18,6 +20,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -101,6 +104,14 @@ public class NextBelState {
 		if (a.ipomdp == null) this.pomdp = a.pomdp;
 		
 		else this.ipomdp = a.ipomdp;
+	}
+	
+	public void populateNextBelStates(DD[][] knownBeliefs) {
+		nextBelStates = new DD[knownBeliefs.length][knownBeliefs[0].length];
+		for (int i = 0; i < knownBeliefs.length; i++) {
+			for (int j = 0; j < knownBeliefs[i].length; j++)
+				nextBelStates[i][j] = knownBeliefs[i][j];
+		}
 	}
 	
 	@Override
@@ -229,6 +240,10 @@ public class NextBelState {
 		 * Computes the next belief states and the observation probabilities that lead to them
 		 */
 		
+		if (NextBelStateCache.cachingAllowed() 
+				&& NextBelStateCache.NEXT_BELSTATE_CACHE.containsKey(belState)) 
+			return NextBelStateCache.NEXT_BELSTATE_CACHE.get(belState);
+		
 		/* get the precomputed possible observation value indices from the IPOMDP */
 		int[][] obsConfig = ipomdp.obsCombinationsIndices;
 		
@@ -239,7 +254,7 @@ public class NextBelState {
 		HashMap<String, NextBelState> nextBelStates = new HashMap<String, NextBelState>();
 		
 		for (String Ai: ipomdp.getActions()) {
-		
+			
 			/* Assuming factored belief was normalized */
 			dd_obsProbs = ipomdp.getObsDist(belState, Ai); 
 			
@@ -267,7 +282,50 @@ public class NextBelState {
 //					logger.debug("Marginals are " + Arrays.toString(marginals));
 					nextBelStates.get(Ai).restrictN(marginals, obsConfig);
 //					logger.debug("After computing marginals " + nextBelStates[actId]);
+					
+//					if (!cacheHit && Global.USE_NEXT_BELSTATE_CACHES) {
+////						LOGGER.debug("Building cache for action " + Ai + " at belief"
+////								+ ipomdp.toMapWithTheta(belState));
+//						nextBelStateCache.put(Ai, nextBelStates.get(Ai).nextBelStates);
+//					}
+//					
+//					else {
+//						
+//						/* verify cache */
+////						LOGGER.debug("Verifying cache Hit");
+////						LOGGER.debug("For action " + Ai);
+////						LOGGER.debug("Computed bel states are " + nextBelStates.get(Ai).nextBelStates.length);
+////						LOGGER.debug("cached bel states are " + Global.NEXT_BELSTATES_CACHE.get(belState).get(Ai).length);
+//						for (int i = 0; i < obsConfig.length; i++) {
+//							
+//							DD[] computedNextBelStates = nextBelStates.get(Ai).nextBelStates[i];
+//							DD[] cachedNextBelStates = 
+//									Global.NEXT_BELSTATES_CACHE.get(belState).get(Ai)[i]; 
+//							
+//							for (int s = 0; s < computedNextBelStates.length; s++) {
+////								LOGGER.debug("Original " + computedNextBelStates[s].toDDTree());
+////								LOGGER.debug("Cached" + cachedNextBelStates[s].toDDTree());
+//								
+//								double val = 
+//										OP.maxAll(OP.abs(OP.sub(
+//												computedNextBelStates[s], 
+//												cachedNextBelStates[s])));
+//								
+//								if (val > 0.001) {
+//									LOGGER.error("Holy shit!");
+//									LOGGER.error(val);
+//								}
+//							}
+//						}
+//					}
 				}
+				
+//				if (!cacheHit && Global.USE_NEXT_BELSTATE_CACHES) {
+////					LOGGER.debug("Storing in global cache");
+//					HashMap<String, DD[][]> tempCache = new HashMap<String, DD[][]>();
+//					tempCache.putAll(nextBelStateCache);
+//					Global.NEXT_BELSTATES_CACHE.put(belState, tempCache);
+//				}
 			}
 			
 			catch (Exception e) {

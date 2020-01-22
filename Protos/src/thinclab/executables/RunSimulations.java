@@ -25,6 +25,7 @@ import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -150,6 +151,9 @@ public class RunSimulations extends Executable {
 			
 			/* for IPOMDPs */
 			else if (line.hasOption("i")) {
+				
+				/* set NextBelState Caching */
+				NextBelStateCache.useCache();
 				
 				LOGGER.info("Simulating IPOMDP...");
 				
