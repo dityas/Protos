@@ -90,9 +90,9 @@ public abstract class OnlineSolver extends BaseSolver {
 			
 			/* solve for explored beliefs */
 			this.solveForBeliefs(exploredBeliefs);
-			
-			NextBelStateCache.clearCache();
 		}
+		
+		NextBelStateCache.clearCache();
 	}
 	
 	// ------------------------------------------------------------------------------------------

@@ -45,6 +45,10 @@ public class NextBelStateCache {
 		for (DD belief: exploredBeliefs) {
 			
 			try {
+				
+				if (NextBelStateCache.NEXT_BELSTATE_CACHE.containsKey(belief)) 
+					continue;
+				
 				HashMap<String, NextBelState> computedState = 
 						NextBelState.oneStepNZPrimeBelStates(
 								ipomdp, belief, true, 1e-8);
