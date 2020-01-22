@@ -250,34 +250,6 @@ public class NextBelState {
 		
 		for (String Ai: ipomdp.getActions()) {
 			
-			boolean cacheHit = false;
-			
-			if (Global.NEXT_BELSTATES_CACHE.containsKey(belState) && Global.USE_NEXT_BELSTATE_CACHES) {
-//				LOGGER.debug("Cache contains belief");
-//				LOGGER.debug("actions are " + Global.NEXT_BELSTATES_CACHE.get(belState).keySet());
-//				LOGGER.debug("Possible obs are " + Global.NEXT_BELSTATES_CACHE.get(belState).get(Ai).length);
-				if (Global.NEXT_BELSTATES_CACHE.get(belState).containsKey(Ai)) {
-//					LOGGER.debug("Possible Cache Hit");
-					cacheHit = true;
-					
-					double[] obsProb = Global.OBS_PROB_CACHE.get(belState).get(Ai);
-					DD[][] cachedNextBelStates = Global.NEXT_BELSTATES_CACHE.get(belState).get(Ai);
-					
-					/* take from cache */
-					NextBelState wrapper = new NextBelState(ipomdp, obsProb, smallestProb);
-					wrapper.populateNextBelStates(cachedNextBelStates);
-					
-					nextBelStates.put(Ai, wrapper);
-					
-					continue;
-				}
-			}
-			
-			if (cacheHit) return nextBelStates;
-			
-			HashMap<String, DD[][]> nextBelStateCache = 
-					new HashMap<String, DD[][]>();
-		
 			/* Assuming factored belief was normalized */
 			dd_obsProbs = ipomdp.getObsDist(belState, Ai); 
 			
@@ -287,7 +259,7 @@ public class NextBelState {
 			
 			/* Compute marginals */
 			try {
-				if (!nextBelStates.get(Ai).isempty() && !cacheHit) {
+				if (!nextBelStates.get(Ai).isempty()) {
 					marginals = 
 							OP.marginals(
 									((IBeliefOps) ipomdp.bOPs).getCpts( 
@@ -306,11 +278,11 @@ public class NextBelState {
 					nextBelStates.get(Ai).restrictN(marginals, obsConfig);
 //					logger.debug("After computing marginals " + nextBelStates[actId]);
 					
-					if (!cacheHit && Global.USE_NEXT_BELSTATE_CACHES) {
-//						LOGGER.debug("Building cache for action " + Ai + " at belief"
-//								+ ipomdp.toMapWithTheta(belState));
-						nextBelStateCache.put(Ai, nextBelStates.get(Ai).nextBelStates);
-					}
+//					if (!cacheHit && Global.USE_NEXT_BELSTATE_CACHES) {
+////						LOGGER.debug("Building cache for action " + Ai + " at belief"
+////								+ ipomdp.toMapWithTheta(belState));
+//						nextBelStateCache.put(Ai, nextBelStates.get(Ai).nextBelStates);
+//					}
 //					
 //					else {
 //						
@@ -343,12 +315,12 @@ public class NextBelState {
 //					}
 				}
 				
-				if (!cacheHit && Global.USE_NEXT_BELSTATE_CACHES) {
-//					LOGGER.debug("Storing in global cache");
-					HashMap<String, DD[][]> tempCache = new HashMap<String, DD[][]>();
-					tempCache.putAll(nextBelStateCache);
-					Global.NEXT_BELSTATES_CACHE.put(belState, tempCache);
-				}
+//				if (!cacheHit && Global.USE_NEXT_BELSTATE_CACHES) {
+////					LOGGER.debug("Storing in global cache");
+//					HashMap<String, DD[][]> tempCache = new HashMap<String, DD[][]>();
+//					tempCache.putAll(nextBelStateCache);
+//					Global.NEXT_BELSTATES_CACHE.put(belState, tempCache);
+//				}
 			}
 			
 			catch (Exception e) {

@@ -847,9 +847,6 @@ class TestIPOMDP {
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
 		
 		FullBeliefExpansion fb = new FullBeliefExpansion(tigerL1IPOMDP);
-		fb.setCaching();
-		
-		Global.USE_NEXT_BELSTATE_CACHES = true;
 		
 		OnlineInteractiveSymbolicPerseus sp = 
 				new OnlineInteractiveSymbolicPerseus(
