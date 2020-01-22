@@ -7,6 +7,7 @@
  */
 package thinclab.utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class NextBelStateCache {
 	 */
 	
 	private static boolean USE_CACHE = false;
+	private static int CACHE_LIMIT = 50;
 	
 	public static HashMap<DD, HashMap<String, NextBelState>> NEXT_BELSTATE_CACHE =
 			new HashMap<DD, HashMap<String, NextBelState>>();
@@ -53,6 +55,14 @@ public class NextBelStateCache {
 						NextBelState.oneStepNZPrimeBelStates(
 								ipomdp, belief, true, 1e-8);
 				
+				if (NextBelStateCache.NEXT_BELSTATE_CACHE.size() >= NextBelStateCache.CACHE_LIMIT) {
+					DD toRemove = 
+							new ArrayList<DD>(
+									NextBelStateCache.NEXT_BELSTATE_CACHE.keySet()).get(0);
+					
+					NextBelStateCache.NEXT_BELSTATE_CACHE.remove(toRemove);
+				}
+					
 				NextBelStateCache.NEXT_BELSTATE_CACHE.put(belief, computedState);
 				
 				if (NextBelStateCache.NEXT_BELSTATE_CACHE.size() % 5 == 0)
