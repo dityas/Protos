@@ -10,6 +10,7 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.utils.Diagnostics;
+import thinclab.utils.NextBelStateCache;
 
 public class AlphaVector implements Serializable {
 	/**
@@ -51,6 +52,13 @@ public class AlphaVector implements Serializable {
 			DD[] primedV, 
 			double maxAbsVal,
 			int numAlpha) throws ZeroProbabilityObsException, VariableNotFoundException {
+		
+		/*
+		 * In case of NEXT_BELSTATE_CACHING, those caches take precedence over
+		 * operation caches. So clear caches here to save memory
+		 */
+		if (NextBelStateCache.cachingAllowed())
+			Global.clearHashtables();
 		
 		HashMap<String, NextBelState> nextBelStates;
 		
