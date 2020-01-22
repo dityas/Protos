@@ -49,6 +49,10 @@ public class Global {
     public static CacheMap nEdgesHashtable = new CacheMap();
     public static CacheMap nLeavesHashtable = new CacheMap();
     public static CacheMap nNodesHashtable = new CacheMap();
+    
+    /* cache NextBelStates */
+    public static HashMap<DD, HashMap<String, DD[][]>> NEXT_BELSTATES_CACHE = 
+    		new HashMap<DD, HashMap<String, DD[][]>>();
 
     // random number generator
     public static Random random = new Random();

@@ -843,12 +843,15 @@ class TestIPOMDP {
 		parser.parseDomain();
 		
 		/* Initialize IPOMDP */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 20);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 5, 20);
+		
+		FullBeliefExpansion fb = new FullBeliefExpansion(tigerL1IPOMDP);
+		fb.setCaching();
 		
 		OnlineInteractiveSymbolicPerseus sp = 
 				new OnlineInteractiveSymbolicPerseus(
 						tigerL1IPOMDP, 
-						new FullBeliefExpansion(tigerL1IPOMDP), 
+						fb, 
 						1, 100);
 		
 		StochasticSimulation ss = new StochasticSimulation(sp, 1);

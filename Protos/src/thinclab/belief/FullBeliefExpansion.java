@@ -8,15 +8,19 @@
 package thinclab.belief;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.commons.collections15.map.HashedMap;
 import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
+import thinclab.legacy.OP;
 
 /*
  * @author adityas
@@ -36,6 +40,10 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	/* Currently explored beliefs and leaves for expansion */
 	public List<DD> leaves;
 	public HashSet<DD> exploredBeliefs;
+	
+	/* single step cache */
+	HashMap<String, DD[][]> singleStepCache = new HashMap<String, DD[][]>();
+	private boolean cacheComputations = false;
 	
 	private static final Logger logger = Logger.getLogger(FullBeliefExpansion.class);
 	
@@ -82,6 +90,10 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	}
 	
 	// -----------------------------------------------------------------------------------
+	
+	public void setCaching() {
+		this.cacheComputations = true;
+	}
 	
 	public DD beliefUpdate(
 			DecisionProcess f, 
@@ -138,6 +150,8 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 				 * Recursively get all possible values and combinations of
 				 * all observation variables
 				 */
+				List<DD[]> factoredNextBels = new ArrayList<DD[]>();
+				
 				for (List<String> observation : this.allPossibleObs) {
 					
 					DD nextBelief = 
@@ -147,6 +161,12 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 									action, 
 									observation);
 					
+					if (this.f.getType().contentEquals("IPOMDP"))
+						factoredNextBels.add(
+								OP.primeVarsN(
+										this.f.factorBelief(nextBelief), 
+										((IPOMDP) this.f).S.size() + ((IPOMDP) this.f).Omega.size()));
+					
 					/* continue if observation probability was 0 */
 					if (nextBelief == null) continue;
 					
@@ -155,7 +175,22 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 						newLeaves.add(nextBelief);
 					}
 				} /* obsIterator */
+				
+				/* cache next bel states for this action */
+				if (this.f.getType().contentEquals("IPOMDP"))
+					this.singleStepCache.put(
+							action, 
+							factoredNextBels.stream().toArray(DD[][]::new));
+				
 			} /* for nActions */
+			
+			if (this.cacheComputations) {
+				HashMap<String, DD[][]> tempCache = new HashMap<String, DD[][]>();
+				tempCache.putAll(singleStepCache);
+				Global.NEXT_BELSTATES_CACHE.put(leaf, tempCache);
+			}
+
+			singleStepCache.clear();
 		} /* while leafIterator */
 		
 		logger.debug("Found " + newLeaves.size() + " more beliefs in the expansion phase.");
