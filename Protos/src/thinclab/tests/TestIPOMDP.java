@@ -30,6 +30,8 @@ import thinclab.representations.StructuredTree;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.Diagnostics;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -834,7 +836,7 @@ class TestIPOMDP {
 	}
 	
 	@Test
-	void testNZPrimesTime() {
+	void testNZPrimesTime() throws Exception {
 		
 		LOGGER.info("Testing IPOMDP NZ prime computation time");
 		
@@ -842,20 +844,54 @@ class TestIPOMDP {
 				new IPOMDPParser("/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		parser.parseDomain();
 		
+		NextBelStateCache.useCache();
+		
 		/* Initialize IPOMDP */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 20);
+		
+		FullBeliefExpansion fb = new FullBeliefExpansion(tigerL1IPOMDP);
+//		fb.expand();
+//		
+//		NextBelStateCache.populateCache(tigerL1IPOMDP, fb.getBeliefPoints());
+//		LOGGER.debug(NextBelStateCache.NEXT_BELSTATE_CACHE);
 		
 		OnlineInteractiveSymbolicPerseus sp = 
 				new OnlineInteractiveSymbolicPerseus(
 						tigerL1IPOMDP, 
-						new FullBeliefExpansion(tigerL1IPOMDP), 
+						fb, 
 						1, 100);
 		
-		StochasticSimulation ss = new StochasticSimulation(sp, 1);
-		ss.runSimulation();
-		LOGGER.info("\r\n" + ss.getDotString());
+		sp.solveCurrentStep();
+		sp.nextStep(
+				sp.getActionAtCurrentBelief(), 
+				Arrays.asList(new String[] {"growl-left", "silence"}));
 		
-		ss.logResults();
+		sp.solveCurrentStep();
+		sp.nextStep(
+				sp.getActionAtCurrentBelief(), 
+				Arrays.asList(new String[] {"growl-left", "silence"}));
+		
+		sp.solveCurrentStep();
+		
+		sp.nextStep(
+				sp.getActionAtCurrentBelief(), 
+				Arrays.asList(new String[] {"growl-left", "silence"}));
+		
+		sp.solveCurrentStep();
+		
+		sp.nextStep(
+				sp.getActionAtCurrentBelief(), 
+				Arrays.asList(new String[] {"growl-left", "silence"}));
+		
+		sp.solveCurrentStep();
+
+		
+//		StochasticSimulation ss = new StochasticSimulation(sp, 5);
+//		ss.runSimulation();
+//		LOGGER.info("\r\n" + ss.getDotString());
+//		
+//		ss.logResults();
+		
 	}
 	
 	@Test
