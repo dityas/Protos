@@ -279,6 +279,8 @@ public class Global {
 		Global.nNodesHashtable.clear();
 		Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
 		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
+		
+		System.gc();
     }
 
     public static void newHashtables() {

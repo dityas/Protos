@@ -60,7 +60,13 @@ public class NextBelStateCache {
 							new ArrayList<DD>(
 									NextBelStateCache.NEXT_BELSTATE_CACHE.keySet()).get(0);
 					
-					NextBelStateCache.NEXT_BELSTATE_CACHE.remove(toRemove);
+					HashMap<String, NextBelState>  a = 
+							NextBelStateCache.NEXT_BELSTATE_CACHE.remove(toRemove);
+					
+					a.clear();
+					a = null;
+					
+					System.gc();
 				}
 					
 				NextBelStateCache.NEXT_BELSTATE_CACHE.put(belief, computedState);

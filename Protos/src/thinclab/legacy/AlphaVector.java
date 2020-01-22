@@ -53,13 +53,6 @@ public class AlphaVector implements Serializable {
 			double maxAbsVal,
 			int numAlpha) throws ZeroProbabilityObsException, VariableNotFoundException {
 		
-		/*
-		 * In case of NEXT_BELSTATE_CACHING, those caches take precedence over
-		 * operation caches. So clear caches here to save memory
-		 */
-		if (NextBelStateCache.cachingAllowed())
-			Global.clearHashtables();
-		
 		HashMap<String, NextBelState> nextBelStates;
 		
 		/* get next unnormalised belief states */
