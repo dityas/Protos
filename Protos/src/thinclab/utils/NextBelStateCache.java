@@ -50,6 +50,10 @@ public class NextBelStateCache {
 								ipomdp, belief, true, 1e-8);
 				
 				NextBelStateCache.NEXT_BELSTATE_CACHE.put(belief, computedState);
+				
+				if (NextBelStateCache.NEXT_BELSTATE_CACHE.size() % 5 == 0)
+					LOGGER.debug("Computed NextBelStates for " + 
+							NextBelStateCache.NEXT_BELSTATE_CACHE.size() + " beliefs");
 			} 
 			
 			catch (Exception e) {

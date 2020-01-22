@@ -13,6 +13,8 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.log4j.Logger;
 
+import thinclab.belief.BeliefRegionExpansionStrategy;
+import thinclab.belief.SSGABeliefExpansion;
 import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
@@ -64,6 +66,13 @@ public class RunSimulations extends Executable {
 		
 		/* simulation rounds */
 		opt.addOption("y", true, "number of simulation rounds");
+		
+		/* Use SSGA? */
+		opt.addOption(
+				"e", 
+				"ssga", 
+				false, 
+				"use SSGA expansion? (5 perseus rounds and 10 iterations of exploration)");
 		
 		/* simulation switch */
 		opt.addOption(
@@ -217,10 +226,23 @@ public class RunSimulations extends Executable {
 					/* set context back to IPOMDP */
 					ipomdp.setGlobals();
 					
+					BeliefRegionExpansionStrategy BE;
+					int numRounds = 1;
+					
+					if (line.hasOption("e")) {
+						BE = new SSGABeliefExpansion(ipomdp, 10);
+						numRounds = 5;
+					}
+					
+					else {
+						BE = new SparseFullBeliefExpansion(ipomdp, 10);
+						numRounds = 1;
+					}
+					
 					OnlineInteractiveSymbolicPerseus solver = 
 							new OnlineInteractiveSymbolicPerseus(
 									ipomdp, 
-									new SparseFullBeliefExpansion(ipomdp, 10), 1, backups);
+									BE, numRounds, backups);
 					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
