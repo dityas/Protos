@@ -20,6 +20,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -238,6 +239,10 @@ public class NextBelState {
 		/*
 		 * Computes the next belief states and the observation probabilities that lead to them
 		 */
+		
+		if (NextBelStateCache.cachingAllowed() 
+				&& NextBelStateCache.NEXT_BELSTATE_CACHE.containsKey(belState)) 
+			return NextBelStateCache.NEXT_BELSTATE_CACHE.get(belState);
 		
 		/* get the precomputed possible observation value indices from the IPOMDP */
 		int[][] obsConfig = ipomdp.obsCombinationsIndices;

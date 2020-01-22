@@ -14,8 +14,10 @@ import org.apache.commons.collections15.buffer.CircularFifoBuffer;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.utils.NextBelStateCache;
 import thinclab.utils.PolicyCache;
 
 /*
@@ -83,8 +85,13 @@ public abstract class OnlineSolver extends BaseSolver {
 			this.expansionStrategy.expand();
 			List<DD> exploredBeliefs = this.expansionStrategy.getBeliefPoints();
 			
+			if (NextBelStateCache.cachingAllowed())
+				NextBelStateCache.populateCache((IPOMDP) this.f, exploredBeliefs);
+			
 			/* solve for explored beliefs */
 			this.solveForBeliefs(exploredBeliefs);
+			
+			NextBelStateCache.clearCache();
 		}
 	}
 	

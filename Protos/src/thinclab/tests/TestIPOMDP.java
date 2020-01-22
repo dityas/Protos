@@ -31,6 +31,7 @@ import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.Diagnostics;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -843,10 +844,16 @@ class TestIPOMDP {
 				new IPOMDPParser("/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		parser.parseDomain();
 		
+		NextBelStateCache.useCache();
+		
 		/* Initialize IPOMDP */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
 		
 		FullBeliefExpansion fb = new FullBeliefExpansion(tigerL1IPOMDP);
+//		fb.expand();
+//		
+//		NextBelStateCache.populateCache(tigerL1IPOMDP, fb.getBeliefPoints());
+//		LOGGER.debug(NextBelStateCache.NEXT_BELSTATE_CACHE);
 		
 		OnlineInteractiveSymbolicPerseus sp = 
 				new OnlineInteractiveSymbolicPerseus(
@@ -877,9 +884,7 @@ class TestIPOMDP {
 				Arrays.asList(new String[] {"growl-left", "silence"}));
 		
 		sp.solveCurrentStep();
-//		sp.nextStep(
-//				sp.getActionAtCurrentBelief(), 
-//				Arrays.asList(new String[] {"growl-left", "silence"}));
+
 		
 //		StochasticSimulation ss = new StochasticSimulation(sp, 5);
 //		ss.runSimulation();
