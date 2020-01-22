@@ -834,6 +834,31 @@ class TestIPOMDP {
 	}
 	
 	@Test
+	void testNZPrimesTime() {
+		
+		LOGGER.info("Testing IPOMDP NZ prime computation time");
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser("/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		parser.parseDomain();
+		
+		/* Initialize IPOMDP */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 20);
+		
+		OnlineInteractiveSymbolicPerseus sp = 
+				new OnlineInteractiveSymbolicPerseus(
+						tigerL1IPOMDP, 
+						new FullBeliefExpansion(tigerL1IPOMDP), 
+						1, 100);
+		
+		StochasticSimulation ss = new StochasticSimulation(sp, 1);
+		ss.runSimulation();
+		LOGGER.info("\r\n" + ss.getDotString());
+		
+		ss.logResults();
+	}
+	
+	@Test
 	void testJointActionTi() {
 		
 		LOGGER.info("Testing joint action Ti creation");
