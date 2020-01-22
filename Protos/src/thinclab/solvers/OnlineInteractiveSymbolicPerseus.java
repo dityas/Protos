@@ -347,7 +347,6 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			/* report diagnostics on exec times */
 			Diagnostics.reportDiagnostics();
 			Diagnostics.reportCacheSizes();
-			logger.info("Next bel Cache has " + Global.NEXT_BELSTATES_CACHE.size() + " beliefs");
 			
 			if (stepId % 100 < 1)
 				continue;

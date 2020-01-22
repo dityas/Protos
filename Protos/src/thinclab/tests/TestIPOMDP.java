@@ -847,7 +847,7 @@ class TestIPOMDP {
 		NextBelStateCache.useCache();
 		
 		/* Initialize IPOMDP */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 20);
 		
 		FullBeliefExpansion fb = new FullBeliefExpansion(tigerL1IPOMDP);
 //		fb.expand();
