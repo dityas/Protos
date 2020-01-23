@@ -13,9 +13,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.naming.spi.DirStateFactory.Result;
 
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
@@ -25,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.NextBelState;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.utils.CacheDB;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -186,6 +190,53 @@ class TestBenchmarkNZPrimeStorage {
 			long now = System.nanoTime();
 			
 			times.add((double) (now - then) / 1000000);
+			
+			for (String act: o.keySet())
+				LOGGER.debug(act + " " + o.get(act));
+		}
+		
+		LOGGER.debug("That took " + times.stream().mapToDouble(b -> b).average().getAsDouble() 
+				+ " msec");
+	}
+	
+	@Test
+	void testNZPrimeCacheDBStorage() throws Exception {
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+		
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+//		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+//		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+//		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		
+		HashMap<String, NextBelState> a = 
+				NextBelState.oneStepNZPrimeBelStates(
+						ipomdp, 
+						ipomdp.getCurrentBelief(), false, 1e-8);
+		
+		CacheDB db = new CacheDB();
+		db.insertNewNZPrime(1, a);
+		
+		List<Double> times = new ArrayList<Double>();
+		
+		for (int i = 0; i < 10; i ++) {
+			long then = System.nanoTime();
+			
+			HashMap<String, NextBelState> b = db.getNZPrime(1);
+			
+			long now = System.nanoTime();
+			
+			times.add((double) (now - then) / 1000000);
+			
 		}
 		
 		LOGGER.debug("That took " + times.stream().mapToDouble(b -> b).average().getAsDouble() 
