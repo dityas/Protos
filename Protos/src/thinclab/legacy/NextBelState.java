@@ -7,6 +7,7 @@
  */
 package thinclab.legacy;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,7 +27,9 @@ import thinclab.utils.NextBelStateCache;
  * @author adityas
  *
  */
-public class NextBelState {
+public class NextBelState implements Serializable {
+	
+	private static final long serialVersionUID = 8843718772195892772L;
 	
 	public DD[][] nextBelStates;
 	public int[] nzObsIds;
