@@ -237,6 +237,17 @@ class TestBenchmarkNZPrimeStorage {
 			
 			times.add((double) (now - then) / 1000000);
 			
+			for (String act: b.keySet()) {
+				NextBelState an = a.get(act);
+				NextBelState bn = b.get(act);
+				
+				for (int t = 0; t < an.nextBelStates.length; t++) {
+					for (int s = 0; s < an.nextBelStates[0].length; s++) {
+						assertTrue(an.nextBelStates[t][s].equals(bn.nextBelStates[t][s]));
+					}
+				}
+			}
+			
 		}
 		
 		LOGGER.debug("That took " + times.stream().mapToDouble(b -> b).average().getAsDouble() 
