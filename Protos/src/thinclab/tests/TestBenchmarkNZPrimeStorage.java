@@ -25,11 +25,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.belief.FullBeliefExpansion;
+import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
+import thinclab.legacy.DD;
 import thinclab.legacy.NextBelState;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.utils.CacheDB;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -223,7 +227,7 @@ class TestBenchmarkNZPrimeStorage {
 						ipomdp, 
 						ipomdp.getCurrentBelief(), false, 1e-8);
 		
-		CacheDB db = new CacheDB();
+		CacheDB db = new CacheDB("/tmp/nz_cache.db");
 		db.insertNewNZPrime(1, a);
 		
 		List<Double> times = new ArrayList<Double>();
@@ -252,6 +256,104 @@ class TestBenchmarkNZPrimeStorage {
 		
 		LOGGER.debug("That took " + times.stream().mapToDouble(b -> b).average().getAsDouble() 
 				+ " msec");
+	}
+	
+	@Test
+	void testNZPrimeCacheDBClear() throws Exception {
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+		
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+//		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+//		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+//		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		
+		HashMap<String, NextBelState> a = 
+				NextBelState.oneStepNZPrimeBelStates(
+						ipomdp, 
+						ipomdp.getCurrentBelief(), false, 1e-8);
+		
+		CacheDB db = new CacheDB("/tmp/nz_cache.db");
+		db.insertNewNZPrime(1, a);
+		db.insertNewNZPrime(2, a);
+		db.insertNewNZPrime(3, a);
+		
+		LOGGER.debug("Added 3 entries");
+		
+		ResultSet res = db.getTable();
+		
+		while(res.next()) {
+			LOGGER.debug("id: " + res.getInt("belief_id") + " data: " + res.getBytes("nz_prime"));
+		}
+		
+		db.clearDB();
+		
+		LOGGER.debug("Deleted entries");
+		
+		res = db.getTable();
+		
+		while(res.next()) {
+			LOGGER.debug("id: " + res.getInt("belief_id") + " data: " + res.getBytes("nz_prime"));
+		}
+		
+	}
+	
+	
+	@Test
+	void testNZPrimeCacheDBStorageForExploredBeliefs() throws Exception {
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+		
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		NextBelStateCache.useCache();
+		NextBelStateCache.setDB("/tmp/nz_cache.db");
+		
+		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 1);
+		BE.expand();
+		
+		List<DD> beliefs = BE.getBeliefPoints();
+		
+		NextBelStateCache.populateCache(ipomdp, beliefs);
+		NextBelStateCache.showTable();
+		
+		for (DD bel: beliefs) {
+			
+			LOGGER.debug("Checking " + ipomdp.toMapWithTheta(bel));
+			
+			HashMap<String, NextBelState> a = 
+					NextBelState.oneStepNZPrimeBelStates(
+							ipomdp, 
+							bel, false, 1e-8);
+			
+			HashMap<String, NextBelState> b = NextBelStateCache.getCachedEntry(bel);
+			
+			for (String act: a.keySet()) {
+				
+				NextBelState aNZ = a.get(act);
+				NextBelState bNZ = b.get(act);
+				
+				for (int n = 0; n < aNZ.nextBelStates.length; n++) {
+					for (int s = 0; s < aNZ.nextBelStates[n].length; s++) {
+						assertTrue(aNZ.nextBelStates[n][s].equals(bNZ.nextBelStates[n][s]));
+					}
+				}
+			}
+		}
 	}
 
 }

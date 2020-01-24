@@ -41,14 +41,17 @@ public class CacheDB {
 	/* DB connection object */
 	public Connection storageConn;
 	
+	private String dbDir = null;
+	
 	private static final Logger logger = Logger.getLogger(CacheDB.class);
 	
 	// ----------------------------------------------------------------------------------------
 	
-	public CacheDB() {
+	public CacheDB(String fileName) {
 		
 		/* initialize tables */
 		logger.debug("Initializing local storage for belief tree");
+		this.dbDir = fileName;
 		this.initializeLocalStorage();
 	}
 	
@@ -62,7 +65,7 @@ public class CacheDB {
 		
 		try {
 //			this.storageConn = DriverManager.getConnection("jdbc:sqlite::memory:");
-			this.storageConn = DriverManager.getConnection("jdbc:sqlite:/tmp/nz_cache.db");
+			this.storageConn = DriverManager.getConnection("jdbc:sqlite:" + this.dbDir);
 			
 			/* Create table for storing opponent Model */
 			
@@ -180,6 +183,28 @@ public class CacheDB {
 		}
 		
 		return deserializedObj;
+	}
+	
+	public void clearDB() {
+		/*
+		 * Delete all entries in the table 
+		 */
+		
+		try {
+			String deleteEntriesQ = "DELETE FROM nz_cache";
+			
+			/* select all */
+			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+			stmt.executeUpdate();
+			
+			logger.debug("Deleted all entries from nz_prime CacheDB");
+		}
+		
+		catch (Exception e) {
+			logger.error("While printing beliefs table " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
 	}
 	
 }
