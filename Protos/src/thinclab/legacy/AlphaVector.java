@@ -63,7 +63,7 @@ public class AlphaVector implements Serializable {
 		
 		smallestProb = ipomdp.tolerance / maxAbsVal;
 		nextBelStates = 
-				NextBelState.oneStepNZPrimeBelStates(
+				NextBelState.oneStepNZPrimeBelStatesCached(
 						ipomdp, 
 						belState, 
 						true, 

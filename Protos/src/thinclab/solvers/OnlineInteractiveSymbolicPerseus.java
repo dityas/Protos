@@ -118,6 +118,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		
 		logger.debug("Computed PBVs");
 		
+		/* if caches are huge, clear them, unless you get your hands on 128 GB RAM */
+		if (Global.multHashtable.size() > 10000000)
+			Global.clearHashtables();
+		
 		if (debug) {
 			
 			logger.debug("printing belief region");
