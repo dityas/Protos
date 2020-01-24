@@ -134,6 +134,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 			
+			/* if caches are huge, clear them, unless you get your hands on 128 GB RAM */
+			if (Global.multHashtable.size() > 10000000)
+				Global.clearHashtables();
+			
 			if (debug) {
 				logger.debug("STEP:=====================================================================");
 				logger.debug("A vecs are: " + Arrays.toString(this.alphaVectors));
@@ -347,6 +351,20 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			/* report diagnostics on exec times */
 			Diagnostics.reportDiagnostics();
 			Diagnostics.reportCacheSizes();
+			
+			/* report num leaves in alpha vectors */
+			int[] numLeaves = 
+					Arrays.stream(this.alphaVectors)
+						.map(d -> d.getNumLeaves())
+						.mapToInt(x -> x)
+						.toArray();
+			
+			logger.info("Num Leaves in Alpha vectors are: " + Arrays.toString(numLeaves));
+			
+			/* check memory consumption */
+			long free = Runtime.getRuntime().freeMemory();
+			long total = Runtime.getRuntime().totalMemory();
+			logger.debug("JVM reported mem consumption is: " + (total - free) / 1000000 + "MB");
 			
 			if (stepId % 100 < 1)
 				continue;

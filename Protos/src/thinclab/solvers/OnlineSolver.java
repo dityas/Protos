@@ -87,8 +87,8 @@ public abstract class OnlineSolver extends BaseSolver {
 			this.expansionStrategy.expand();
 			List<DD> exploredBeliefs = this.expansionStrategy.getBeliefPoints();
 			
-			if (NextBelStateCache.cachingAllowed())
-				NextBelStateCache.populateCache((IPOMDP) this.f, exploredBeliefs);
+//			if (NextBelStateCache.cachingAllowed())
+//				NextBelStateCache.populateCache((IPOMDP) this.f, exploredBeliefs);
 			
 			Global.clearHashtables();
 			

@@ -112,4 +112,12 @@ public class Diagnostics {
 				+ " DOT: " + Global.dotProductHashtable.size()
 				+ " MULT: " + Global.multHashtable.size());
 	}
+	
+	public static void logMemConsumption(String mileStone) {
+		
+		long free = Runtime.getRuntime().freeMemory();
+		long total = Runtime.getRuntime().totalMemory();
+		
+		LOGGER.debug(mileStone + " Mem used: " + (total - free) / 1000000 + " MB");
+	}
 }
