@@ -352,6 +352,15 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			Diagnostics.reportDiagnostics();
 			Diagnostics.reportCacheSizes();
 			
+			/* report num leaves in alpha vectors */
+			int[] numLeaves = 
+					Arrays.stream(this.alphaVectors)
+						.map(d -> d.getNumLeaves())
+						.mapToInt(x -> x)
+						.toArray();
+			
+			logger.info("Num Leaves in Alpha vectors are: " + Arrays.toString(numLeaves));
+			
 			if (stepId % 100 < 1)
 				continue;
 			
