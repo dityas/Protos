@@ -361,6 +361,11 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			
 			logger.info("Num Leaves in Alpha vectors are: " + Arrays.toString(numLeaves));
 			
+			/* check memory consumption */
+			long free = Runtime.getRuntime().freeMemory();
+			long total = Runtime.getRuntime().totalMemory();
+			logger.debug("JVM reported mem consumption is: " + (total - free) / 1000000 + "MB");
+			
 			if (stepId % 100 < 1)
 				continue;
 			
