@@ -43,6 +43,19 @@ public class NextBelStateCache {
 	
 	// -------------------------------------------------------------------------------------
 	
+	public static void cacheNZPrime(DD belief, HashMap<String, NextBelState> nzPrime) {
+		
+		if (!NextBelStateCache.BELIEF_ID_MAP.containsKey(belief)) {
+			NextBelStateCache.BELIEF_ID_MAP.put(
+					belief, 
+					NextBelStateCache.BELIEF_ID_MAP.size());
+		}
+		
+		int belief_id = NextBelStateCache.BELIEF_ID_MAP.get(belief);
+		NextBelStateCache.DB.insertNewNZPrime(belief_id, nzPrime);
+		
+	}
+	
 	public static void populateCache(IPOMDP ipomdp, List<DD> exploredBeliefs) {
 		/*
 		 * Computes and caches NextBelState objects for all given objects
@@ -60,24 +73,17 @@ public class NextBelStateCache {
 				/* if using external storage */
 				if (NextBelStateCache.DB != null) {
 					
-					if (!NextBelStateCache.BELIEF_ID_MAP.containsKey(belief)) {
-						NextBelStateCache.BELIEF_ID_MAP.put(
-								belief, 
-								NextBelStateCache.BELIEF_ID_MAP.size());
-						
-						int belief_id = NextBelStateCache.BELIEF_ID_MAP.get(belief);
-						
-						/* compute NextBelState */
-						HashMap<String, NextBelState> computedState = 
-								NextBelState.oneStepNZPrimeBelStates(
-										ipomdp, belief, true, 1e-8);
-						
-						NextBelStateCache.DB.insertNewNZPrime(belief_id, computedState);
-						
-						if (NextBelStateCache.BELIEF_ID_MAP.size() % 5 == 0)
-							LOGGER.debug("Cached " + NextBelStateCache.BELIEF_ID_MAP.size() +
-									" NZ primes in DB");
-					}
+					/* compute NextBelState */
+					HashMap<String, NextBelState> computedState = 
+							NextBelState.oneStepNZPrimeBelStates(
+									ipomdp, belief, true, 1e-8);
+					
+					NextBelStateCache.cacheNZPrime(belief, computedState);
+					
+					if (NextBelStateCache.BELIEF_ID_MAP.size() % 5 == 0)
+						LOGGER.debug("Cached " + NextBelStateCache.BELIEF_ID_MAP.size() +
+								" NZ primes in DB");
+			
 					
 				}
 				
@@ -151,6 +157,9 @@ public class NextBelStateCache {
 	public static HashMap<String, NextBelState> getCachedEntry(DD belief) {
 		
 		if (NextBelStateCache.DB != null) {
+			
+			if (!NextBelStateCache.BELIEF_ID_MAP.containsKey(belief))
+				return null;
 			
 			int belief_id = NextBelStateCache.BELIEF_ID_MAP.get(belief);
 			

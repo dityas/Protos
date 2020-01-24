@@ -355,5 +355,93 @@ class TestBenchmarkNZPrimeStorage {
 			}
 		}
 	}
+	
+	@Test
+	void testCachedStepping() throws Exception {
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 1);
+		BE.expand();
+		
+		List<DD> beliefs = BE.getBeliefPoints();
+		
+		NextBelStateCache.useCache();
+		NextBelStateCache.setDB("/tmp/nz_cache.db");
+		
+		for (DD bel: beliefs) {
+			
+			LOGGER.debug("Checking " + ipomdp.toMapWithTheta(bel));
+			long free = Runtime.getRuntime().freeMemory();
+			long total = Runtime.getRuntime().totalMemory();
+			LOGGER.debug("Mem is: " + (total - free) / 1000000 + "MB");
+			
+			long thenC = System.nanoTime();
+			
+			HashMap<String, NextBelState> a = 
+					NextBelState.oneStepNZPrimeBelStatesCached(
+							ipomdp, 
+							bel, false, 1e-8);
+			
+			long nowC = System.nanoTime();
+			
+			LOGGER.debug("Computing took " + (nowC - thenC) / 1000000 + " msecs");
+			
+			long thenR = System.nanoTime();
+			HashMap<String, NextBelState> b = 
+					NextBelState.oneStepNZPrimeBelStatesCached(
+							ipomdp, 
+							bel, false, 1e-8);
+			
+			long nowR = System.nanoTime();
+			LOGGER.debug("Cache fetching took " + (nowR - thenR) / 1000000 + " msecs");
+			
+			LOGGER.debug("Checking for correctness");
+			
+			for (String act: a.keySet()) {
+				
+				NextBelState aNZ = a.get(act);
+				NextBelState bNZ = b.get(act);
+				
+				for (int n = 0; n < aNZ.nextBelStates.length; n++) {
+					for (int s = 0; s < aNZ.nextBelStates[n].length; s++) {
+						assertTrue(aNZ.nextBelStates[n][s].equals(bNZ.nextBelStates[n][s]));
+					}
+				}
+			}
+			
+			LOGGER.debug("Correct!");
+			
+			LOGGER.debug("Checking with older result");
+			
+			HashMap<String, NextBelState> c = 
+					NextBelState.oneStepNZPrimeBelStates(
+							ipomdp, 
+							bel, false, 1e-8);
+			
+			for (String act: c.keySet()) {
+				
+				NextBelState cNZ = c.get(act);
+				NextBelState bNZ = b.get(act);
+				
+				for (int n = 0; n < cNZ.nextBelStates.length; n++) {
+					for (int s = 0; s < cNZ.nextBelStates[n].length; s++) {
+						assertTrue(cNZ.nextBelStates[n][s].equals(bNZ.nextBelStates[n][s]));
+					}
+				}
+			}
+			
+			LOGGER.debug("Correct!");
+		}
+		
+		NextBelStateCache.clearCache();
+	}
 
 }

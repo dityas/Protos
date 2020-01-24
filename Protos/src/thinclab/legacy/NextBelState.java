@@ -234,6 +234,30 @@ public class NextBelState implements Serializable {
 	 * Functions to get single step NextBelStates 
 	 */
 	
+	public static HashMap<String, NextBelState> oneStepNZPrimeBelStatesCached(
+			IPOMDP ipomdp,
+			DD belState,
+			boolean normalize, 
+			double smallestProb) throws ZeroProbabilityObsException, VariableNotFoundException {
+		
+		if (NextBelStateCache.cachingAllowed()) {
+			HashMap<String, NextBelState> cachedEntry = 
+					NextBelStateCache.getCachedEntry(belState);
+			
+			if (cachedEntry != null) return cachedEntry;
+		}
+		
+		HashMap<String, NextBelState> nzPrimes = 
+				oneStepNZPrimeBelStates(ipomdp, belState, normalize, smallestProb);
+		
+		if (NextBelStateCache.cachingAllowed()) {
+			NextBelStateCache.cacheNZPrime(belState, nzPrimes);
+		}
+		
+		return nzPrimes;
+		
+	}
+	
 	public static HashMap<String, NextBelState> oneStepNZPrimeBelStates(
 			IPOMDP ipomdp,
 			DD belState,
@@ -243,14 +267,6 @@ public class NextBelState implements Serializable {
 		 * Computes the next belief states and the observation probabilities that lead to them
 		 */
 		
-//		if (NextBelStateCache.cachingAllowed()) {
-//			HashMap<String, NextBelState> cachedEntry = 
-//					NextBelStateCache.getCachedEntry(belState);
-//			
-//			if (cachedEntry != null) return cachedEntry;
-//		}
-		
-		/* get the precomputed possible observation value indices from the IPOMDP */
 		int[][] obsConfig = ipomdp.obsCombinationsIndices;
 		
 		double[] obsProbs;
@@ -289,49 +305,8 @@ public class NextBelState implements Serializable {
 					nextBelStates.get(Ai).restrictN(marginals, obsConfig);
 //					logger.debug("After computing marginals " + nextBelStates[actId]);
 					
-//					if (!cacheHit && Global.USE_NEXT_BELSTATE_CACHES) {
-////						LOGGER.debug("Building cache for action " + Ai + " at belief"
-////								+ ipomdp.toMapWithTheta(belState));
-//						nextBelStateCache.put(Ai, nextBelStates.get(Ai).nextBelStates);
-//					}
-//					
-//					else {
-//						
-//						/* verify cache */
-////						LOGGER.debug("Verifying cache Hit");
-////						LOGGER.debug("For action " + Ai);
-////						LOGGER.debug("Computed bel states are " + nextBelStates.get(Ai).nextBelStates.length);
-////						LOGGER.debug("cached bel states are " + Global.NEXT_BELSTATES_CACHE.get(belState).get(Ai).length);
-//						for (int i = 0; i < obsConfig.length; i++) {
-//							
-//							DD[] computedNextBelStates = nextBelStates.get(Ai).nextBelStates[i];
-//							DD[] cachedNextBelStates = 
-//									Global.NEXT_BELSTATES_CACHE.get(belState).get(Ai)[i]; 
-//							
-//							for (int s = 0; s < computedNextBelStates.length; s++) {
-////								LOGGER.debug("Original " + computedNextBelStates[s].toDDTree());
-////								LOGGER.debug("Cached" + cachedNextBelStates[s].toDDTree());
-//								
-//								double val = 
-//										OP.maxAll(OP.abs(OP.sub(
-//												computedNextBelStates[s], 
-//												cachedNextBelStates[s])));
-//								
-//								if (val > 0.001) {
-//									LOGGER.error("Holy shit!");
-//									LOGGER.error(val);
-//								}
-//							}
-//						}
-//					}
 				}
 				
-//				if (!cacheHit && Global.USE_NEXT_BELSTATE_CACHES) {
-////					LOGGER.debug("Storing in global cache");
-//					HashMap<String, DD[][]> tempCache = new HashMap<String, DD[][]>();
-//					tempCache.putAll(nextBelStateCache);
-//					Global.NEXT_BELSTATES_CACHE.put(belState, tempCache);
-//				}
 			}
 			
 			catch (Exception e) {
