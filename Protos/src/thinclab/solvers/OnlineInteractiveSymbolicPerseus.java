@@ -135,7 +135,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 			
 			/* if caches are huge, clear them, unless you get your hands on 128 GB RAM */
-			if (Global.multHashtable.size() > 10000000)
+			if (Global.multHashtable.size() > 5000000)
 				Global.clearHashtables();
 			
 			if (debug) {
