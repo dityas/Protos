@@ -180,8 +180,20 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 						}
 						
 						/* Add belief point if it doesn't already exist */
-						if (!this.exploredBeliefs.contains(nextBelief))
-							this.exploredBeliefs.add(nextBelief);
+						if (!this.exploredBeliefs.contains(nextBelief)) {
+							
+							double minDist = Double.MAX_VALUE;
+							for (DD bel : this.exploredBeliefs) {
+								
+								double dist = OP.maxAll(OP.abs(OP.sub(bel, nextBelief)));
+								
+								if (dist < minDist) minDist = dist;
+								
+							}
+							
+							if (minDist > 0.01)
+								this.exploredBeliefs.add(nextBelief);
+						}
 						
 						belief = nextBelief;
 					} 

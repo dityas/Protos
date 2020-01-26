@@ -17,6 +17,7 @@ import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 import thinclab.utils.NextBelStateCache;
 import thinclab.utils.PolicyCache;
 
@@ -79,20 +80,23 @@ public abstract class OnlineSolver extends BaseSolver {
 				((SSGABeliefExpansion) this.expansionStrategy).setRecentPolicy(
 						((OnlineIPBVISolver) this).alphaVectors, 
 						((OnlineIPBVISolver) this).policy);
+				
 			}
 			
 			/* Expand the belief space */
 			this.expansionStrategy.expand();
 			List<DD> exploredBeliefs = this.expansionStrategy.getBeliefPoints();
 			
-			if (NextBelStateCache.cachingAllowed())
-				NextBelStateCache.populateCache((IPOMDP) this.f, exploredBeliefs);
+//			if (NextBelStateCache.cachingAllowed())
+//				NextBelStateCache.populateCache((IPOMDP) this.f, exploredBeliefs);
+			
+			Global.clearHashtables();
 			
 			/* solve for explored beliefs */
 			this.solveForBeliefs(exploredBeliefs);
-			
-			NextBelStateCache.clearCache();
 		}
+		
+		NextBelStateCache.clearCache();
 	}
 	
 	// ------------------------------------------------------------------------------------------

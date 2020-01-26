@@ -10,6 +10,7 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.utils.Diagnostics;
+import thinclab.utils.NextBelStateCache;
 
 public class AlphaVector implements Serializable {
 	/**
@@ -62,7 +63,7 @@ public class AlphaVector implements Serializable {
 		
 		smallestProb = ipomdp.tolerance / maxAbsVal;
 		nextBelStates = 
-				NextBelState.oneStepNZPrimeBelStates(
+				NextBelState.oneStepNZPrimeBelStatesCached(
 						ipomdp, 
 						belState, 
 						true, 
