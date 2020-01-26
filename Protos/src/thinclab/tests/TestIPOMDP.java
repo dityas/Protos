@@ -9,6 +9,7 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -21,9 +22,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.belief.FullBeliefExpansion;
+import thinclab.belief.IBeliefOps;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.StructuredTree;
@@ -53,6 +56,128 @@ class TestIPOMDP {
 	@AfterEach
 	void tearDown() throws Exception {
 	}
+	
+	@Test
+	void testBenchMarkBeliefUpdate() throws Exception {
+		
+		LOGGER.info("Running belief update benchmarks");
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+		parser.parseDomain();
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		LOGGER.debug("IPOMDP Tau size is " + ipomdp.currentTau.getNumLeaves());
+		
+		DD afterBelief = OP.mult(ipomdp.getCurrentBelief(), ipomdp.currentTau);
+		
+		LOGGER.debug("After multiplying with belief, size is " + afterBelief.getNumLeaves());
+		
+		DD afterActions = OP.mult(ipomdp.currentAjGivenMj, ipomdp.currentTau);
+		
+		LOGGER.debug("After multiplying with P(Aj | Mj), size is " + afterActions.getNumLeaves());
+		
+		DD afterActionsAfterBelief = OP.mult(afterActions, ipomdp.getCurrentBelief());
+		
+		LOGGER.debug("After multiplying with P(Aj | Mj) and belief, size is " 
+				+ afterActionsAfterBelief.getNumLeaves());
+		
+		LOGGER.debug("Checking normal belief update");
+		List<Double> times = new ArrayList<Double>();
+		
+		for (int i = 0; i < 10; i ++) {
+			Global.clearHashtables();
+			
+			long then = System.nanoTime();
+			
+			DD notImportant = 
+					ipomdp.beliefUpdate(
+							ipomdp.getCurrentBelief(), 
+							ipomdp.getActions().get(0), 
+							ipomdp.getAllPossibleObservations().get(0).stream().toArray(String[]::new));
+			
+			long now = System.nanoTime();
+			
+			times.add((double) (now - then) / 1000000);
+		}
+		
+		LOGGER.debug("That took " + times.stream().mapToDouble(a -> a).average().getAsDouble() 
+				+ " msec");
+		
+//		ipomdp.step(ipomdp.getCurrentBelief(), 
+//					ipomdp.getActions().get(0), 
+//					ipomdp.getAllPossibleObservations().get(0).stream().toArray(String[]::new));
+//		
+//		LOGGER.debug("IPOMDP Tau size is " + ipomdp.currentTau.getNumLeaves());
+//		
+//		times.clear();
+//		
+//		for (int i = 0; i < 10; i ++) {
+//			Global.clearHashtables();
+//			
+//			long then = System.nanoTime();
+//			
+//			DD notImportant = 
+//					ipomdp.beliefUpdate(
+//							ipomdp.getCurrentBelief(), 
+//							ipomdp.getActions().get(0), 
+//							ipomdp.getAllPossibleObservations().get(0).stream().toArray(String[]::new));
+//			
+//			long now = System.nanoTime();
+//			
+//			times.add((double) (now - then) / 1000000);
+//		}
+//		
+//		LOGGER.debug("That took " + times.stream().mapToDouble(a -> a).average().getAsDouble() 
+//				+ " msec");
+		
+		
+		
+		
+	}
+	
+	@Test
+	void testBenchMarkPreMultipliedBeliefUpdate() throws Exception {
+		
+		LOGGER.info("Running pre multiplied belief update benchmarks");
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+		parser.parseDomain();
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		LOGGER.debug("Checking after pre multiplying belief with Tau");
+		List<Double> differentTimes = new ArrayList<Double>();
+		
+		IBeliefOps op = (IBeliefOps) ipomdp.bOPs;
+		
+		for (int i = 0; i < 10; i ++) {
+			Global.clearHashtables();
+			
+			long then = System.nanoTime();
+			
+			DD notImportant = 
+					op.differentBeliefUpdate(
+							ipomdp.getCurrentBelief(), 
+							ipomdp.getActions().get(0), 
+							ipomdp.getAllPossibleObservations().get(0).stream().toArray(String[]::new));
+			
+			long now = System.nanoTime();
+			
+			differentTimes.add((double) (now - then) / 1000000);
+		}
+		
+		LOGGER.debug("That took " 
+				+ differentTimes.stream().mapToDouble(a -> a).average().getAsDouble() 
+				+ " msec");
+	}
+	
+	
+	
 	
 	@Test
 	void testMJCompression() throws Exception {
