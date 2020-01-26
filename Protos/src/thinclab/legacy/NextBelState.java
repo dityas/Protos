@@ -240,6 +240,7 @@ public class NextBelState implements Serializable {
 			boolean normalize, 
 			double smallestProb) throws ZeroProbabilityObsException, VariableNotFoundException {
 		
+		/* if already computed, recover from cache */
 		if (NextBelStateCache.cachingAllowed()) {
 			HashMap<String, NextBelState> cachedEntry = 
 					NextBelStateCache.getCachedEntry(belState);
@@ -247,6 +248,7 @@ public class NextBelState implements Serializable {
 			if (cachedEntry != null) return cachedEntry;
 		}
 		
+		/* else compute and cache */
 		HashMap<String, NextBelState> nzPrimes = 
 				oneStepNZPrimeBelStates(ipomdp, belState, normalize, smallestProb);
 		
@@ -256,6 +258,57 @@ public class NextBelState implements Serializable {
 		
 		return nzPrimes;
 		
+	}
+	
+	public static HashMap<String, NextBelState> oneStepNZPrimeBelStates2(
+			IPOMDP ipomdp,
+			DD belState,
+			boolean normalize, 
+			double smallestProb) throws ZeroProbabilityObsException, VariableNotFoundException {
+		
+		/*
+		 * Computes NextBelStates according to the IBeliefOps methods instead of
+		 * the original implementation
+		 */
+		
+		HashMap<String, NextBelState> nextBelStates = new HashMap<String, NextBelState>();
+		
+		for (String act: ipomdp.getActions()) {
+			
+			List<DD[]> nextBelStatesForAct = new ArrayList<DD[]>();
+			
+			List<List<String>> allObs = ipomdp.getAllPossibleObservations();
+			DD obsDist = ipomdp.getObsDist(ipomdp.getCurrentBelief(), act);
+			double[] obsProbs = OP.convert2array(obsDist, ipomdp.obsIVarPrimeIndices);
+			
+			for (int o = 0; o < allObs.size(); o++) {
+				
+				DD nextBelief = 
+						ipomdp.beliefUpdate(
+								ipomdp.getCurrentBelief(), 
+								act, 
+								allObs.get(o).stream().toArray(String[]::new));
+				
+				DD[] factoredNextBel = ipomdp.factorBelief(nextBelief);
+				factoredNextBel = 
+						OP.primeVarsN(factoredNextBel, ipomdp.S.size() + ipomdp.Omega.size());
+				
+				factoredNextBel = 
+						ArrayUtils.add(
+								factoredNextBel, 
+								DDleaf.myNew(obsProbs[o]));
+				
+				nextBelStatesForAct.add(factoredNextBel);
+			}
+			
+			DD[][] nextBelStatesFactors = nextBelStatesForAct.stream().toArray(DD[][]::new);
+			
+			NextBelState nbState = new NextBelState(ipomdp, obsProbs, 1e-8);
+			nbState.nextBelStates = nextBelStatesFactors;
+			nextBelStates.put(act, nbState);
+		}
+		
+		return nextBelStates;
 	}
 	
 	public static HashMap<String, NextBelState> oneStepNZPrimeBelStates(

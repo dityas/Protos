@@ -100,6 +100,63 @@ class TestBenchmarkNZPrimeStorage {
 	}
 	
 	@Test
+	void testoneStepNextBelStates2() throws Exception {
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+		
+		parser.parseDomain();
+		
+		LOGGER.info("Checking nextBelStates2 computation");
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		long then1 = System.nanoTime();
+		/* compute real NextBelStates */
+		HashMap<String, NextBelState> a = 
+				NextBelState.oneStepNZPrimeBelStates(
+						ipomdp, 
+						ipomdp.getCurrentBelief(), false, 1e-8);
+		long now1 = System.nanoTime();
+		LOGGER.debug("Original implementation took " + (now1 - then1) / 1000000 + " msecs.");
+		
+		long then2 = System.nanoTime();
+		/* compute efficiently */
+		HashMap<String, NextBelState> b = 
+				NextBelState.oneStepNZPrimeBelStates2(
+						ipomdp, 
+						ipomdp.getCurrentBelief(), false, 1e-8);
+		long now2 = System.nanoTime();
+		LOGGER.debug("New implementation took " + (now2 - then2) / 1000000 + " msecs.");
+		
+		/* check results */
+		LOGGER.debug("Checking for correctness");
+		
+		for (String act: a.keySet()) {
+			
+			NextBelState aNZ = a.get(act);
+			NextBelState bNZ = b.get(act);
+			
+			for (int n = 0; n < aNZ.nextBelStates.length; n++) {
+				for (int s = 0; s < aNZ.nextBelStates[n].length; s++) {
+					
+					double diff = 
+							OP.maxAll(
+									OP.abs(
+											OP.sub(
+													aNZ.nextBelStates[n][s], 
+													bNZ.nextBelStates[n][s])));
+
+					LOGGER.debug("Diff is: " + diff);
+					assertTrue(diff < 1e-4);
+				}
+			}
+		}
+		
+	}
+	
+	@Test
 	void testManualNZPrimeComputation() throws Exception {
 		
 //		IPOMDPParser parser = 
@@ -187,8 +244,6 @@ class TestBenchmarkNZPrimeStorage {
 				}
 			}
 		}
-		
-		
 	}
 	
 	@Test
