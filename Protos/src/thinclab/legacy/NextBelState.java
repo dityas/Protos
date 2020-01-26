@@ -250,7 +250,7 @@ public class NextBelState implements Serializable {
 		
 		/* else compute and cache */
 		HashMap<String, NextBelState> nzPrimes = 
-				oneStepNZPrimeBelStates(ipomdp, belState, normalize, smallestProb);
+				oneStepNZPrimeBelStates2(ipomdp, belState, normalize, smallestProb);
 		
 		if (NextBelStateCache.cachingAllowed()) {
 			NextBelStateCache.cacheNZPrime(belState, nzPrimes);

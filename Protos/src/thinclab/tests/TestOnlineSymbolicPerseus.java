@@ -88,7 +88,7 @@ class TestOnlineSymbolicPerseus {
 						1, 
 						100);
 		
-		StochasticSimulation ss = new StochasticSimulation(solver, 3);
+		StochasticSimulation ss = new StochasticSimulation(solver, 5);
 		ss.runSimulation();
 		
 //		LOGGER.debug(ss.getDotString());
