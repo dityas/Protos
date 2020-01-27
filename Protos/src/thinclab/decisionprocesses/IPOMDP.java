@@ -387,6 +387,10 @@ public class IPOMDP extends POMDP {
 		LOGGER.debug("Deleting all lower level policy graphs");
 		this.lowerLevelSolutions.clear();
 		this.lowerLevelSolutions = null;
+		this.lowerLevelFrames.clear();
+		this.lowerLevelFrames = null;
+		
+		System.gc();
 	}
 	
 	private void unRollWildCards() {
@@ -1277,11 +1281,13 @@ public class IPOMDP extends POMDP {
 		
 		/* null this.currentMjPGivenMjOjPAj to save memory */
 		this.currentMjPGivenMjOjPAj = null;
-//		this.currentTau = null;
-//		this.currentThetajGivenMj = null;
+		this.currentTau = null;
+		this.currentThetajGivenMj = null;
 		
 		this.currentRi = this.makeRi();
 		LOGGER.debug("Ri initialized for current look ahead horizon");
+		
+		Global.clearHashtables();
 	}
 	
 	public void initializeOfflineFunctions() {
