@@ -474,7 +474,7 @@ public class AlphaVector implements Serializable {
 					
 					if (bestObsStrat[obsId] == alphaId) {
 						obsConfig = 
-								pomdp.statedecode(
+								POMDP.statedecode(
 										obsId + 1, 
 										pomdp.nObsVars, 
 										pomdp.obsVarsArity);

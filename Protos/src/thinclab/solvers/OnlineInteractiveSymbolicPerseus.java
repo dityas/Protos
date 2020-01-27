@@ -138,6 +138,15 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			if (Global.multHashtable.size() > 5000000)
 				Global.clearHashtables();
 			
+			long totalMem = Runtime.getRuntime().totalMemory();
+			long freeMem = Runtime.getRuntime().freeMemory();
+			
+			if (((totalMem - freeMem) / 1000000000) > 40) {
+				logger.debug("JVM consuming more than 40 GB. Clearing caches");
+				Global.clearHashtables();
+				System.gc();
+			}
+			
 			if (debug) {
 				logger.debug("STEP:=====================================================================");
 				logger.debug("A vecs are: " + Arrays.toString(this.alphaVectors));
@@ -260,9 +269,12 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					/* record backup computation time */
 					Diagnostics.BACKUP_TIME.add((afterBackup - beforeBackup));
 
-					newVector.alphaVector = OP.approximate(
-							newVector.alphaVector, bellmanErr * (1 - ipomdp.discFact)
-									/ 2.0, onezero);
+//					newVector.alphaVector = OP.approximate(
+//							newVector.alphaVector, bellmanErr * (1 - ipomdp.discFact)
+//									/ 2.0, onezero);
+					
+					newVector.alphaVector = OP.approximate(newVector.alphaVector, 0.001);
+					
 					newVector.setWitness(i);
 
 					nDpBackups = nDpBackups + 1;
@@ -389,7 +401,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-			if (stepId > 5 && this.declareApproxConvergenceForAlphaVectors(
+			if (stepId > 10 && this.declareApproxConvergenceForAlphaVectors(
 					this.alphaVectors.length, numIter, beliefRegion.length)) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE ALL BELIEFS ARE BEING USED AND NUM ALPHAS IS CONSTANT");
