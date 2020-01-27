@@ -90,16 +90,6 @@ public class Diagnostics {
 					.orElse(Double.NaN);
 		
 		Diagnostics.AVEC_TIME.clear();
-		
-		
-		/* for NEXT_VAL_FN construction time */
-		double avgNextValFnTime = 
-				Diagnostics.NEXT_VAL_FN_TIME.stream()
-					.map(i -> (double) i)
-					.mapToDouble(Double::valueOf)
-					.average()
-					.orElse(Double.NaN);
-		
 		Diagnostics.NEXT_VAL_FN_TIME.clear();
 		
 		LOGGER.debug("EXEC TIMES: "
@@ -110,8 +100,6 @@ public class Diagnostics {
 				+ " NZ_PRIMES: " + String.format(Locale.US, "%.03f", (avgNZPrimeTime / 1000000)) 
 					+ " msec"
 				+ " A VEC CONST.: " + String.format(Locale.US, "%.03f", (avgAVecTime / 1000000)) 
-					+ " msec"
-				+ " NEXT_VAL_FN: " + String.format(Locale.US, "%.03f", (avgNextValFnTime / 1000000)) 
 					+ " msec");
 	}
 	
