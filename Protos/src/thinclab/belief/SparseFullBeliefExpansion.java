@@ -16,6 +16,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 
 /*
@@ -66,7 +67,11 @@ public class SparseFullBeliefExpansion extends FullBeliefExpansion {
 		 * Runs one step of expansion from leaves and adds to exploredBeliefs
 		 */
 		
-		LOGGER.debug("Beginning expansion from " + this.leaves.size() + " beliefs.");
+		long totalMem = Runtime.getRuntime().totalMemory();
+		long freeMem = Runtime.getRuntime().freeMemory();
+		
+		if (((totalMem - freeMem) / 1000000000) > 40)
+			Global.clearHashtables();
 		
 		HashSet<DD> newLeaves = new HashSet<DD>();
 		
@@ -120,8 +125,8 @@ public class SparseFullBeliefExpansion extends FullBeliefExpansion {
 			} /* for nActions */
 		} /* while leafIterator */
 		
-		LOGGER.debug("Found " + newLeaves.size() + " more beliefs in the expansion phase.");
 		LOGGER.debug(this.exploredBeliefs.size() + " points explored in the belief space.");
 		this.leaves = new ArrayList<DD>(newLeaves);
+		newLeaves.clear();
 	}
 }

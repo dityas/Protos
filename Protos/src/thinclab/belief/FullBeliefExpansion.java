@@ -17,6 +17,7 @@ import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 
 /*
@@ -125,6 +126,12 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 		 * Runs one step of expansion from leaves and adds to exploredBeliefs
 		 */
 		
+		long totalMem = Runtime.getRuntime().totalMemory();
+		long freeMem = Runtime.getRuntime().freeMemory();
+		
+		if (((totalMem - freeMem) / 1000000000) > 40)
+			Global.clearHashtables();
+		
 		logger.debug("Beginning expansion from " + this.leaves.size() + " beliefs.");
 		
 		HashSet<DD> newLeaves = new HashSet<DD>();
@@ -180,7 +187,10 @@ public class FullBeliefExpansion extends BeliefRegionExpansionStrategy {
 	@Override
 	public List<DD> getBeliefPoints() {
 		
-		return new ArrayList<DD>(this.exploredBeliefs);
+		List<DD> beliefs = new ArrayList<DD>(this.exploredBeliefs);
+		this.exploredBeliefs.clear();
+		
+		return beliefs;
 	}
 	
 	@Override
