@@ -192,6 +192,9 @@ public class AlphaVector implements Serializable {
 										ipomdp.stateVarPrimeIndices,
 										0, ipomdp.thetaVarPosition),
 								ipomdp.obsIVarPrimeIndices));
+		
+//		newAlpha = 
+//				OP.addMultVarElim(newAlpha, new int[] {ipomdp.thetaVarPosition + 1, ipomdp.AjVarStartPosition + 1});
 
 		newAlpha = 
 				OP.addN(
@@ -337,28 +340,52 @@ public class AlphaVector implements Serializable {
 		long afterNextValFn = System.nanoTime();
 		Diagnostics.NEXT_VAL_FN_TIME.add((afterNextValFn - beforeNextValFn));
 		
-		DD[] Ti = 
-				ArrayUtils.add(
-						ipomdp.currentTi.get(bestAction), 
-						ipomdp.currentTauXPAjGivenMjXPThetajGivenMj);
+		int[] sumoutIndices = new int[] {ipomdp.thetaVarPosition + 1, ipomdp.AjVarStartPosition + 1};
+		
+		int[] allVarIndices = 
+				ArrayUtils.addAll(
+						ArrayUtils.subarray(
+								ipomdp.stateVarPrimeIndices, 
+								0, 
+								ipomdp.thetaVarPosition), 
+						ipomdp.obsIVarPrimeIndices);
+		
+		sumoutIndices = ArrayUtils.addAll(sumoutIndices, allVarIndices);
+		
+//		DD valFnArray = 
+//				OP.multN(
+//						ArrayUtils.addAll(
+//								ipomdp.currentOi.get(bestAction), 
+//								ipomdp.currentTi.get(bestAction)));
+//		
+//		valFnArray = 
+//				OP.mult(ipomdp.currentTauXPAjGivenMjXPThetajGivenMj, 
+//						valFnArray);
+//		
+//		valFnArray = OP.mult(valFnArray, nextValFn);
+//		System.out.println("valFnArray has " + valFnArray.getNumLeaves() + " DD nodes");
 		
 		DD[] valFnArray = 
 				ArrayUtils.addAll(
-						ArrayUtils.addAll(
-								ipomdp.currentOi.get(bestAction),
-								Ti),  nextValFn);
-
+						ipomdp.currentTi.get(bestAction), 
+						ipomdp.currentOi.get(bestAction));
+		
+		valFnArray = 
+				ArrayUtils.addAll(
+						valFnArray, 
+						new DD[] {
+								ipomdp.currentTauXPAjGivenMjXPThetajGivenMj, 
+								nextValFn});
+		
 		newAlpha = 
 				OP.addMultVarElim(
 						valFnArray, 
-						ArrayUtils.addAll(
-								ipomdp.stateVarPrimeIndices,
-								ipomdp.obsIVarPrimeIndices));
+						sumoutIndices);
 
 		newAlpha = 
 				OP.addN(
 						IPOMDP.concatenateArray(
-								newAlpha,
+								newAlpha, 
 								ipomdp.currentRi.get(bestAction)));
 		
 		long afterAVec = System.nanoTime();

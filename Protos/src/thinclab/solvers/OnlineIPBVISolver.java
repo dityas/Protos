@@ -284,7 +284,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 					
 				/* dpBackup */
 				newVector = 
-						AlphaVector.dpBackup(
+						AlphaVector.dpBackup2(
 								this.ipomdp, 
 								beliefs.get(i), 
 								beliefRegion[i],
