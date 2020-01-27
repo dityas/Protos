@@ -30,6 +30,7 @@ import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.Diagnostics;
 
 /*
  * @author adityas
@@ -117,7 +118,7 @@ class TestBenchmarkDPBackups {
 			long then = System.nanoTime();
 			
 			AlphaVector vec = 
-					AlphaVector.dpBackup(
+					AlphaVector.dpBackup2(
 							ipomdp, 
 							exploredBeliefs.get(i), 
 							factoredBeliefs[i], primedV, maxAbsVal, 
@@ -130,6 +131,7 @@ class TestBenchmarkDPBackups {
 		LOGGER.debug("DP backup took " + times.stream().mapToDouble(a -> a).average().getAsDouble() 
 				+ " msec");
 		
+		Diagnostics.reportDiagnostics();
 	}
 	
 	@Test

@@ -1259,6 +1259,9 @@ public class IPOMDP extends POMDP {
 						ArrayUtils.add(this.currentOj, this.currentMjPGivenMjOjPAj), 
 						this.obsJVarPrimeIndices);
 		
+		LOGGER.debug("TAU contains vars " + Arrays.toString(this.currentTau.getVarSet()));
+		LOGGER.debug("TAU contains " + this.currentTau.getNumLeaves() + " DD nodes");
+		
 		this.currentTauXPAjGivenMjXPThetajGivenMj = 
 				OP.multN(
 						new DD[] {
@@ -1266,10 +1269,15 @@ public class IPOMDP extends POMDP {
 								this.currentAjGivenMj, 
 								this.currentThetajGivenMj});
 		
+		LOGGER.debug("Pre computed factor TAU x P(Aj | Mj) x P(Thetaj | Mj) "
+				+ "contains " + this.currentTauXPAjGivenMjXPThetajGivenMj.getNumLeaves()
+				+ " DD nodes");
+		
 		/* null this.currentMjPGivenMjOjPAj to save memory */
 		this.currentMjPGivenMjOjPAj = null;
-		
-		LOGGER.debug("TAU contains vars " + Arrays.toString(this.currentTau.getVarSet()));
+//		this.currentTau = null;
+//		this.currentAjGivenMj = null;
+//		this.currentThetajGivenMj = null;
 		
 		this.currentRi = this.makeRi();
 		LOGGER.debug("Ri initialized for current look ahead horizon");

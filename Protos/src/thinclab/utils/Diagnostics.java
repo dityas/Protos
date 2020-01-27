@@ -39,6 +39,8 @@ public class Diagnostics {
 	/* for constructing alpha vector */
 	public static List<Long> AVEC_TIME = new ArrayList<Long>();
 	
+	/* for computing next value function */
+	public static List<Long> NEXT_VAL_FN_TIME = new ArrayList<Long>();
 	
 	private static final Logger LOGGER = Logger.getLogger(Diagnostics.class);
 	
@@ -89,6 +91,17 @@ public class Diagnostics {
 		
 		Diagnostics.AVEC_TIME.clear();
 		
+		
+		/* for NEXT_VAL_FN construction time */
+		double avgNextValFnTime = 
+				Diagnostics.NEXT_VAL_FN_TIME.stream()
+					.map(i -> (double) i)
+					.mapToDouble(Double::valueOf)
+					.average()
+					.orElse(Double.NaN);
+		
+		Diagnostics.NEXT_VAL_FN_TIME.clear();
+		
 		LOGGER.debug("EXEC TIMES: "
 				+ " BACKUP: " + String.format(Locale.US, "%.03f", (avgBackupTime / 1000000)) 
 					+ " msec"
@@ -97,6 +110,8 @@ public class Diagnostics {
 				+ " NZ_PRIMES: " + String.format(Locale.US, "%.03f", (avgNZPrimeTime / 1000000)) 
 					+ " msec"
 				+ " A VEC CONST.: " + String.format(Locale.US, "%.03f", (avgAVecTime / 1000000)) 
+					+ " msec"
+				+ " NEXT_VAL_FN: " + String.format(Locale.US, "%.03f", (avgNextValFnTime / 1000000)) 
 					+ " msec");
 	}
 	
