@@ -212,18 +212,13 @@ public class IBeliefOps extends BeliefOperations {
 								DPRef.obsIVarPrimeIndices, obsVals));
 		
 		/* Collect f1 = P(S, Mj)  */
-		DD f1 = OP.mult(belief, DPRef.currentTau);
+		DD f1 = OP.mult(belief, DPRef.currentTauXPAjGivenMjXPThetajGivenMj);
 
 		/* Collect f2 = P(Aj | Mj) x P(Thetaj| Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
 		DD[] f2 = 
-				ArrayUtils.addAll(
-						ArrayUtils.addAll(
-								DPRef.currentTi.get(action), 
-								new DD[] {DPRef.currentAjGivenMj, DPRef.currentThetajGivenMj}), 
+				ArrayUtils.addAll(		
+						DPRef.currentTi.get(action),  
 						restrictedOi);
-		
-//		/* Get TAU */
-//		DD tau = DPRef.currentTau;
 		
 		/* Perform the sum out */
 		DD nextBelief = 

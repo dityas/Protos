@@ -12,16 +12,19 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.belief.IBeliefOps;
 import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
@@ -62,7 +65,16 @@ class TestBenchmarkDPBackups {
 		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
 		
 		LOGGER.debug("TAU contains " + ipomdp.currentTau.getNumLeaves() + " DD nodes");
-
+		
+		DD currentTauxPAjGivenMj = OP.mult(ipomdp.currentTau, ipomdp.currentAjGivenMj);
+		LOGGER.debug("TAU x P(Aj | Mj) contains " 
+				+ currentTauxPAjGivenMj.getNumLeaves() + " DD nodes");
+		
+		DD TauXPAjGivenMjXThetajGivenMj = 
+				OP.mult(currentTauxPAjGivenMj, ipomdp.currentThetajGivenMj);
+		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj)contains " 
+				+ TauXPAjGivenMjXThetajGivenMj.getNumLeaves() + " DD nodes");
+		
 		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
 		BE.expand();
 		List<DD> exploredBeliefs = BE.getBeliefPoints();
@@ -117,6 +129,58 @@ class TestBenchmarkDPBackups {
 		
 		LOGGER.debug("DP backup took " + times.stream().mapToDouble(a -> a).average().getAsDouble() 
 				+ " msec");
+		
+	}
+	
+	@Test
+	void testPreMultFactors() throws Exception {
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+		
+		parser.parseDomain();
+		
+		LOGGER.info("Calling empty constructor");
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		LOGGER.debug("TAU contains " + ipomdp.currentTau.getNumLeaves() + " DD nodes");
+		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj) contains " 
+				+ ipomdp.currentTauXPAjGivenMjXPThetajGivenMj.getNumLeaves() + " DD nodes");
+		
+		List<Double> times = new ArrayList<Double>();
+		
+		IBeliefOps belOps = (IBeliefOps) ipomdp.bOPs;
+		
+		Global.clearHashtables();
+		
+		/* do all those iterations of DP backup and check computation time */
+		for (int i = 0; i < 100; i++) {
+			
+			Random rand = new Random(100);
+			
+			int a = rand.nextInt(ipomdp.getActions().size());
+			int o = rand.nextInt(ipomdp.getAllPossibleObservations().size());
+			
+			long then = System.nanoTime();
+			
+			DD nextBel = 
+					belOps.differentBeliefUpdate(
+							ipomdp.getCurrentBelief(), 
+							ipomdp.getActions().get(a), 
+							ipomdp.getAllPossibleObservations().get(o)
+								.stream()
+								.toArray(String[]::new));
+			
+			long now = System.nanoTime();
+			times.add((double) (now - then) / 1000000);
+		}
+		
+		LOGGER.debug("Legacy belief updates took " 
+				+ times.stream().mapToDouble(a -> a).average().getAsDouble() 
+				+ " msec");
+		
 		
 	}
 

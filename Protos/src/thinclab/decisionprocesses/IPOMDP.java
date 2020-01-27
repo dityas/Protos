@@ -115,6 +115,7 @@ public class IPOMDP extends POMDP {
 	public DD currentMjPGivenMjOjPAj;
 	public DD currentThetajGivenMj;
 	public DD currentTau;
+	public DD currentTauXPAjGivenMjXPThetajGivenMj;
 	public DD currentAjGivenMj;
 	public DD currentBelief = null;
 	
@@ -1257,6 +1258,13 @@ public class IPOMDP extends POMDP {
 				OP.addMultVarElim(
 						ArrayUtils.add(this.currentOj, this.currentMjPGivenMjOjPAj), 
 						this.obsJVarPrimeIndices);
+		
+		this.currentTauXPAjGivenMjXPThetajGivenMj = 
+				OP.multN(
+						new DD[] {
+								this.currentTau, 
+								this.currentAjGivenMj, 
+								this.currentThetajGivenMj});
 		
 		/* null this.currentMjPGivenMjOjPAj to save memory */
 		this.currentMjPGivenMjOjPAj = null;
