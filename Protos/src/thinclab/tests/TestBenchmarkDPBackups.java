@@ -166,7 +166,7 @@ class TestBenchmarkDPBackups {
 			long then = System.nanoTime();
 			
 			DD nextBel = 
-					belOps.differentBeliefUpdate(
+					belOps.beliefUpdate(
 							ipomdp.getCurrentBelief(), 
 							ipomdp.getActions().get(a), 
 							ipomdp.getAllPossibleObservations().get(o)
@@ -181,6 +181,101 @@ class TestBenchmarkDPBackups {
 				+ times.stream().mapToDouble(a -> a).average().getAsDouble() 
 				+ " msec");
 		
+		
+	}
+	
+	@Test
+	void testObsDist() throws Exception {
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+		parser.parseDomain();
+		
+		LOGGER.info("Calling empty constructor");
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		LOGGER.debug("TAU contains " + ipomdp.currentTau.getNumLeaves() + " DD nodes");
+		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj) contains " 
+				+ ipomdp.currentTauXPAjGivenMjXPThetajGivenMj.getNumLeaves() + " DD nodes");
+		
+		List<Double> times = new ArrayList<Double>();
+		
+		IBeliefOps belOps = (IBeliefOps) ipomdp.bOPs;
+		
+		Global.clearHashtables();
+		
+		/* do all those iterations of DP backup and check computation time */
+		for (int i = 0; i < 100; i++) {
+			
+			Random rand = new Random(100);
+			
+			int a = rand.nextInt(ipomdp.getActions().size());
+			
+			long then = System.nanoTime();
+			
+			DD obsDist = 
+					belOps.getObsDist2(
+							ipomdp.getCurrentBelief(), 
+							ipomdp.getActions().get(a));
+			
+			long now = System.nanoTime();
+			times.add((double) (now - then) / 1000000);
+		}
+		
+		LOGGER.debug("Legacy obs dist computation took " 
+				+ times.stream().mapToDouble(a -> a).average().getAsDouble() 
+				+ " msec");
+		
+		
+	}
+	
+	@Test
+	void testObsDistCorrectness() throws Exception {
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+		parser.parseDomain();
+		
+		LOGGER.info("Calling empty constructor");
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		LOGGER.debug("TAU contains " + ipomdp.currentTau.getNumLeaves() + " DD nodes");
+		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj) contains " 
+				+ ipomdp.currentTauXPAjGivenMjXPThetajGivenMj.getNumLeaves() + " DD nodes");
+		
+		List<Double> times = new ArrayList<Double>();
+		
+		IBeliefOps belOps = (IBeliefOps) ipomdp.bOPs;
+		
+		Global.clearHashtables();
+		
+		/* do all those iterations of DP backup and check computation time */
+		for (int i = 0; i < 100; i++) {
+			
+			Random rand = new Random(100);
+			
+			int a = rand.nextInt(ipomdp.getActions().size());
+			
+			DD obsDist2 = 
+					belOps.getObsDist2(
+							ipomdp.getCurrentBelief(), 
+							ipomdp.getActions().get(a));
+			
+			DD obsDist = 
+					belOps.getObsDist(
+							ipomdp.getCurrentBelief(), 
+							ipomdp.getActions().get(a));
+			
+			double diff = OP.maxAll(OP.abs(OP.sub(obsDist, obsDist2)));
+			LOGGER.debug("Diff is: " + diff);
+			assertTrue(diff < 1e-8);
+		}
 		
 	}
 	
@@ -222,7 +317,7 @@ class TestBenchmarkDPBackups {
 								.toArray(String[]::new));
 			
 			DD nextBel2 = 
-					belOps.differentBeliefUpdate(
+					belOps.beliefUpdate(
 							ipomdp.getCurrentBelief(), 
 							ipomdp.getActions().get(a), 
 							ipomdp.getAllPossibleObservations().get(o)

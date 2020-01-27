@@ -161,7 +161,7 @@ class TestIPOMDP {
 			long then = System.nanoTime();
 			
 			DD notImportant = 
-					op.differentBeliefUpdate(
+					op.beliefUpdate(
 							ipomdp.getCurrentBelief(), 
 							ipomdp.getActions().get(0), 
 							ipomdp.getAllPossibleObservations().get(0).stream().toArray(String[]::new));
