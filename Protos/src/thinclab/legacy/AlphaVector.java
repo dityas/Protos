@@ -226,6 +226,12 @@ public class AlphaVector implements Serializable {
 			double maxAbsVal,
 			int numAlpha) throws ZeroProbabilityObsException, VariableNotFoundException {
 		
+		/*
+		 * A more efficient version of the backup
+		 * 
+		 * The efficiency comes from performing operations on smaller factors
+		 */
+		
 		HashMap<String, NextBelState> nextBelStates;
 		
 		/* get next unnormalised belief states */
