@@ -1229,6 +1229,8 @@ public class IPOMDP extends POMDP {
 		/* rebuild  P(Mj' | Mj, Aj, Oj') */
 		this.currentMjPGivenMjOjPAj = this.makeOpponentModelTransitionDD();
 		LOGGER.debug("f(Mj', Aj, Mj, Oj') initialized");
+		LOGGER.debug("f(Mj', Aj, Mj, Oj') has " 
+				+ this.currentMjPGivenMjOjPAj.getNumLeaves() + " DD nodes");
 		
 		/* check if P(Mj' | Mj, Aj, Oj') CPD is valid */
 		DD cpdSum = 
@@ -1275,9 +1277,8 @@ public class IPOMDP extends POMDP {
 		
 		/* null this.currentMjPGivenMjOjPAj to save memory */
 		this.currentMjPGivenMjOjPAj = null;
-//		this.currentTau = null;
-//		this.currentAjGivenMj = null;
-//		this.currentThetajGivenMj = null;
+		this.currentTau = null;
+		this.currentThetajGivenMj = null;
 		
 		this.currentRi = this.makeRi();
 		LOGGER.debug("Ri initialized for current look ahead horizon");
