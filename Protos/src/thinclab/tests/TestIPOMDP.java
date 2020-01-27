@@ -161,7 +161,7 @@ class TestIPOMDP {
 			long then = System.nanoTime();
 			
 			DD notImportant = 
-					op.differentBeliefUpdate(
+					op.beliefUpdate(
 							ipomdp.getCurrentBelief(), 
 							ipomdp.getActions().get(0), 
 							ipomdp.getAllPossibleObservations().get(0).stream().toArray(String[]::new));
@@ -1024,7 +1024,12 @@ class TestIPOMDP {
 		
 		LOGGER.info("Testing joint action Ti creation");
 		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+//		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
 		/* Initialize IPOMDP */

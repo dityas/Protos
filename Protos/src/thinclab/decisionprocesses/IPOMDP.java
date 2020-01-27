@@ -115,6 +115,7 @@ public class IPOMDP extends POMDP {
 	public DD currentMjPGivenMjOjPAj;
 	public DD currentThetajGivenMj;
 	public DD currentTau;
+	public DD currentTauXPAjGivenMjXPThetajGivenMj;
 	public DD currentAjGivenMj;
 	public DD currentBelief = null;
 	
@@ -1228,6 +1229,8 @@ public class IPOMDP extends POMDP {
 		/* rebuild  P(Mj' | Mj, Aj, Oj') */
 		this.currentMjPGivenMjOjPAj = this.makeOpponentModelTransitionDD();
 		LOGGER.debug("f(Mj', Aj, Mj, Oj') initialized");
+		LOGGER.debug("f(Mj', Aj, Mj, Oj') has " 
+				+ this.currentMjPGivenMjOjPAj.getNumLeaves() + " DD nodes");
 		
 		/* check if P(Mj' | Mj, Aj, Oj') CPD is valid */
 		DD cpdSum = 
@@ -1258,10 +1261,24 @@ public class IPOMDP extends POMDP {
 						ArrayUtils.add(this.currentOj, this.currentMjPGivenMjOjPAj), 
 						this.obsJVarPrimeIndices);
 		
+		LOGGER.debug("TAU contains vars " + Arrays.toString(this.currentTau.getVarSet()));
+		LOGGER.debug("TAU contains " + this.currentTau.getNumLeaves() + " DD nodes");
+		
+		this.currentTauXPAjGivenMjXPThetajGivenMj = 
+				OP.multN(
+						new DD[] {
+								this.currentTau, 
+								this.currentAjGivenMj, 
+								this.currentThetajGivenMj});
+		
+		LOGGER.debug("Pre computed factor TAU x P(Aj | Mj) x P(Thetaj | Mj) "
+				+ "contains " + this.currentTauXPAjGivenMjXPThetajGivenMj.getNumLeaves()
+				+ " DD nodes");
+		
 		/* null this.currentMjPGivenMjOjPAj to save memory */
 		this.currentMjPGivenMjOjPAj = null;
-		
-		LOGGER.debug("TAU contains vars " + Arrays.toString(this.currentTau.getVarSet()));
+		this.currentTau = null;
+		this.currentThetajGivenMj = null;
 		
 		this.currentRi = this.makeRi();
 		LOGGER.debug("Ri initialized for current look ahead horizon");

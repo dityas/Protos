@@ -247,7 +247,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					
 					/* dpBackup */
 					newVector = 
-							AlphaVector.dpBackup(
+							AlphaVector.dpBackup2(
 									this.ipomdp,
 									unfactoredBeliefRegion.get(i),
 									beliefRegion[i],

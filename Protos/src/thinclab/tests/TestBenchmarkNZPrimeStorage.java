@@ -51,7 +51,7 @@ class TestBenchmarkNZPrimeStorage {
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
-		LOGGER = Logger.getLogger(TestIPOMDP.class);
+		LOGGER = Logger.getLogger(TestBenchmarkNZPrimeStorage.class);
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 	}
 

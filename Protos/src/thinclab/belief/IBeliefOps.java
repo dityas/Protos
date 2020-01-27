@@ -90,6 +90,11 @@ public class IBeliefOps extends BeliefOperations {
 	@Override
 	public DD beliefUpdate(
 			DD belief, String action, String[] observations) throws ZeroProbabilityObsException {
+		return this.beliefUpdate2(belief, action, observations);
+	}
+	
+	public DD beliefUpdate1(
+			DD belief, String action, String[] observations) throws ZeroProbabilityObsException {
 		
 		/*
 		 * Level 1 belief update
@@ -171,7 +176,7 @@ public class IBeliefOps extends BeliefOperations {
 	}
 	
 	
-	public DD differentBeliefUpdate(
+	public DD beliefUpdate2(
 			DD belief, String action, String[] observations) throws ZeroProbabilityObsException {
 		
 		/*
@@ -212,18 +217,13 @@ public class IBeliefOps extends BeliefOperations {
 								DPRef.obsIVarPrimeIndices, obsVals));
 		
 		/* Collect f1 = P(S, Mj)  */
-		DD f1 = OP.mult(belief, DPRef.currentTau);
+		DD f1 = OP.mult(belief, DPRef.currentTauXPAjGivenMjXPThetajGivenMj);
 
 		/* Collect f2 = P(Aj | Mj) x P(Thetaj| Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
 		DD[] f2 = 
-				ArrayUtils.addAll(
-						ArrayUtils.addAll(
-								DPRef.currentTi.get(action), 
-								new DD[] {DPRef.currentAjGivenMj, DPRef.currentThetajGivenMj}), 
+				ArrayUtils.addAll(		
+						DPRef.currentTi.get(action),  
 						restrictedOi);
-		
-//		/* Get TAU */
-//		DD tau = DPRef.currentTau;
 		
 		/* Perform the sum out */
 		DD nextBelief = 
@@ -278,25 +278,18 @@ public class IBeliefOps extends BeliefOperations {
 						obsVals);
 		
 		/* Collect f1 = P(S, Mj)  */
-		DD f1 = belief;
+		DD f1 = OP.mult(belief, DPRef.currentTauXPAjGivenMjXPThetajGivenMj);
 
 		/* Collect f2 = P(Aj | Mj) x P(Thetaj| Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
 		DD[] f2 = 
-				ArrayUtils.addAll(
-						ArrayUtils.addAll(
-								DPRef.currentTi.get(action), 
-								new DD[] {DPRef.currentAjGivenMj, DPRef.currentThetajGivenMj}), 
+				ArrayUtils.addAll(		
+						DPRef.currentTi.get(action),  
 						restrictedOi);
-		
-		/* Get TAU */
-		DD tau = DPRef.currentTau;
 		
 		/* Perform the sum out */
 		DD nextBelief = 
 				OP.addMultVarElim(
-						ArrayUtils.add(
-								ArrayUtils.addAll(f2, f1), 
-								tau), 
+						ArrayUtils.add(f2, f1), 
 						DPRef.stateVarIndices);
 		
 		/* Shift indices */
@@ -321,6 +314,10 @@ public class IBeliefOps extends BeliefOperations {
 	
 	@Override
 	public DD getObsDist(DD belief, String action) {
+		return this.getObsDist2(belief, action);
+	}
+	
+	public DD getObsDist1(DD belief, String action) {
 		/*
 		 * Because the dpBackUp implementation by Hoey needs it.
 		 */
@@ -347,6 +344,40 @@ public class IBeliefOps extends BeliefOperations {
 						ArrayUtils.add(
 								ArrayUtils.addAll(f2, f1), 
 								tau), 
+						DPRef.stateVarIndices);
+
+		/* compute normalization factor */
+		DD norm = 
+				OP.addMultVarElim(
+						nextBelief, 
+						ArrayUtils.subarray(
+								DPRef.stateVarPrimeIndices, 
+								0, 
+								DPRef.thetaVarPosition));
+
+		return norm;
+	}
+	
+	public DD getObsDist2(DD belief, String action) {
+		/*
+		 * Because the dpBackUp implementation by Hoey needs it.
+		 */
+		
+		IPOMDP DPRef = this.getIPOMDP();
+
+		/* Collect f1 = P(S, Mj)  */
+		DD f1 = OP.mult(belief, DPRef.currentTauXPAjGivenMjXPThetajGivenMj);
+
+		/* Collect f2 = P(Aj | Mj) x P(Thetaj| Mj) x P(Oi'=o, S', Aj) x P (S', Aj, S) */
+		DD[] f2 = 
+				ArrayUtils.addAll(
+						DPRef.currentTi.get(action),  
+						DPRef.currentOi.get(action));
+		
+		/* Perform the sum out */
+		DD nextBelief = 
+				OP.addMultVarElim(
+						ArrayUtils.addAll(f2, f1), 
 						DPRef.stateVarIndices);
 
 		/* compute normalization factor */
