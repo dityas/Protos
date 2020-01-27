@@ -137,8 +137,8 @@ class TestBenchmarkDPBackups {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
-		
+						"/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
@@ -181,6 +181,59 @@ class TestBenchmarkDPBackups {
 				+ times.stream().mapToDouble(a -> a).average().getAsDouble() 
 				+ " msec");
 		
+		
+	}
+	
+	@Test
+	void testPreMultFactorsCorrectness() throws Exception {
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+		
+		parser.parseDomain();
+		
+		LOGGER.info("Calling empty constructor");
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		LOGGER.debug("TAU contains " + ipomdp.currentTau.getNumLeaves() + " DD nodes");
+		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj) contains " 
+				+ ipomdp.currentTauXPAjGivenMjXPThetajGivenMj.getNumLeaves() + " DD nodes");
+		
+		IBeliefOps belOps = (IBeliefOps) ipomdp.bOPs;
+		
+		Global.clearHashtables();
+		
+		/* do all those iterations of DP backup and check computation time */
+		for (int i = 0; i < 100; i++) {
+			
+			Random rand = new Random(100);
+			
+			int a = rand.nextInt(ipomdp.getActions().size());
+			int o = rand.nextInt(ipomdp.getAllPossibleObservations().size());
+			
+			DD nextBel1 = 
+					belOps.beliefUpdate(
+							ipomdp.getCurrentBelief(), 
+							ipomdp.getActions().get(a), 
+							ipomdp.getAllPossibleObservations().get(o)
+								.stream()
+								.toArray(String[]::new));
+			
+			DD nextBel2 = 
+					belOps.differentBeliefUpdate(
+							ipomdp.getCurrentBelief(), 
+							ipomdp.getActions().get(a), 
+							ipomdp.getAllPossibleObservations().get(o)
+								.stream()
+								.toArray(String[]::new));
+			
+			double diff = OP.maxAll(OP.abs(OP.sub(nextBel1, nextBel2)));
+			LOGGER.debug("difference is: " + diff);
+			assertTrue(diff < 1e-8);
+			
+		}
 		
 	}
 
