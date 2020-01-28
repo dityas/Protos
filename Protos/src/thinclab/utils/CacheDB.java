@@ -64,7 +64,7 @@ public class CacheDB {
 		 */
 		
 		try {
-//			this.storageConn = DriverManager.getConnection("jdbc:sqlite::memory:");
+			
 			this.storageConn = DriverManager.getConnection("jdbc:sqlite:" + this.dbDir);
 			
 			/* Create table for storing opponent Model */

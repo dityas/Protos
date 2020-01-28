@@ -60,7 +60,7 @@ public class ConditionalPlanGraph extends ConditionalPlanTree {
 			/* For all combinations */
 			for (List<String> obs : this.observations) {
 				
-				DD belief = this.idToNodeMap.get(parentId).belief;
+				DD belief = this.idToNodeMap.get(parentId).getBelief();
 				
 				this.makeNextPolicyNode(
 						parentId, 
@@ -88,9 +88,9 @@ public class ConditionalPlanGraph extends ConditionalPlanTree {
 			prevNodes.add(i);
 			
 			PolicyNode node = new PolicyNode();
-			node.id = i;
-			node.belief = this.f.getInitialBeliefs().get(i);
-			node.actName = this.solver.getActionForBelief(node.belief);
+			node.setId(i);
+			node.setBelief(this.f.getInitialBeliefs().get(i));
+			node.setActName(this.solver.getActionForBelief(node.getBelief()));
 			
 			if (this.f.getType().contentEquals("IPOMDP")) {
 				
@@ -99,10 +99,10 @@ public class ConditionalPlanGraph extends ConditionalPlanTree {
 			}
 			
 			else 
-				node.sBelief = this.f.getBeliefString(node.belief);
+				node.setsBelief(this.f.getBeliefString(node.getBelief()));
 			
 			this.idToNodeMap.put(i, node);
-			this.nodeDDTreeMap.put(node.belief.toDDTree(), i);
+			this.nodeDDTreeMap.put(node.getBelief().toDDTree(), i);
 			
 			this.currentPolicyNodeCounter += 1;
 		}
@@ -167,10 +167,10 @@ public class ConditionalPlanGraph extends ConditionalPlanTree {
 				int nextNodeId = this.nodeDDTreeMap.get(nextBelDDTree);
 				PolicyNode nextNode = new PolicyNode();
 				
-				nextNode.id = nextNodeId;
-				nextNode.belief = nextBelief;
-				nextNode.actName = solver.getActionForBelief(nextBelief);
-				nextNode.sBelief = nextBeliefString;
+				nextNode.setId(nextNodeId);
+				nextNode.setBelief(nextBelief);
+				nextNode.setActName(solver.getActionForBelief(nextBelief));
+				nextNode.setsBelief(nextBeliefString);
 				
 				/* add next unique node to the nodes map */
 				this.idToNodeMap.put(nextNodeId, nextNode);

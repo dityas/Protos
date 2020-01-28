@@ -69,10 +69,10 @@ public class PolicyGraph extends StructuredTree {
 		for (DD startBelief : DP.getInitialBeliefs()) {
 			
 			PolicyNode node = new PolicyNode();
-			node.belief = startBelief;
+			node.setBelief(startBelief);
 			node.alphaId = DecisionProcess.getBestAlphaIndex(DP, startBelief, this.alphas);
-			node.actName = DP.getActions().get(this.actions[node.alphaId]);
-			node.startNode = true;
+			node.setActName(DP.getActions().get(this.actions[node.alphaId]));
+			node.setStartNode();
 			
 			this.idToNodeMap.put(node.alphaId, node);
 			
@@ -97,8 +97,8 @@ public class PolicyGraph extends StructuredTree {
 					
 					DD nextBel = 
 							DP.beliefUpdate( 
-									node.belief, 
-									node.actName, 
+									node.getBelief(), 
+									node.getActName(), 
 									theObs.stream().toArray(String[]::new));
 					
 					/* get best next node */
@@ -109,9 +109,9 @@ public class PolicyGraph extends StructuredTree {
 						
 						PolicyNode nexNode = new PolicyNode();
 						
-						nexNode.belief = nextBel;
+						nexNode.setBelief(nextBel);
 						nexNode.alphaId = alphaId;
-						nexNode.actName = DP.getActions().get(this.actions[alphaId]);
+						nexNode.setActName(DP.getActions().get(this.actions[alphaId]));
 						
 						this.idToNodeMap.put(alphaId, nexNode);
 						newLeaves.add(alphaId);
@@ -152,12 +152,12 @@ public class PolicyGraph extends StructuredTree {
 		/* Make nodes */
 		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
 			
-			if (entry.getValue().startNode)
+			if (entry.getValue().isStartNode())
 				dotString += " " + entry.getKey() + " [shape=Mrecord, label=\"{";
 			else
 				dotString += " " + entry.getKey() + " [shape=record, label=\"{";
 			
-			dotString += "Ai=" + entry.getValue().actName
+			dotString += "Ai=" + entry.getValue().getActName()
 					+ "}\"];" + endl;
 		}
 		

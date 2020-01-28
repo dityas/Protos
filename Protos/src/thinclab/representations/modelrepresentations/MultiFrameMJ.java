@@ -138,7 +138,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 			for (int node : this.idToNodeMap.get(frameID).keySet()) {
 
 				/* Get optimal action at node */
-				String optimal_action = this.idToNodeMap.get(frameID).get(node).actName;
+				String optimal_action = this.idToNodeMap.get(frameID).get(node).getActName();
 				
 				/*
 				 * For aj depending on mj, P(OPT(Aj) at mj | mj) = 1
@@ -284,16 +284,16 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 			for (int frame : this.idToNodeMap.keySet())
 				mjCount +=
 					this.idToNodeMap.get(frame).values().stream()
-						.filter(n -> (n.H == 0))
-						.map(i -> i.id)
+						.filter(n -> (n.getH() == 0))
+						.map(i -> i.getId())
 						.collect(Collectors.toList()).size();
 			
 			for (int frameID : this.idToNodeMap.keySet()) {
 				
 				List<Integer> roots = 
 						this.idToNodeMap.get(frameID).values().stream()
-							.filter(n -> (n.H == 0))
-							.map(i -> i.id)
+							.filter(n -> (n.getH() == 0))
+							.map(i -> i.getId())
 							.collect(Collectors.toList());
 				
 				/* Uniform distribution over all current roots */
@@ -364,7 +364,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		 */
 		int frame = IPOMDP.getFrameIDFromVarName(node);
 		
-		return this.idToNodeMap.get(frame).get(MJ.getNodeId(node)).actName;
+		return this.idToNodeMap.get(frame).get(MJ.getNodeId(node)).getActName();
 	}
 	
 	public String getBeliefTextAtNode(String node) {
@@ -377,7 +377,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		
 		int frame = IPOMDP.getFrameIDFromVarName(node);
 		
-		return this.idToNodeMap.get(frame).get(MJ.getNodeId(node)).sBelief;
+		return this.idToNodeMap.get(frame).get(MJ.getNodeId(node)).getsBelief();
 	}
 	
 	// --------------------------------------------------------------------------------------

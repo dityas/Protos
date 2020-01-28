@@ -11,19 +11,17 @@ public class PolicyNode implements Serializable {
 	private static final long serialVersionUID = -5523013082898050215L;
 	
 	int alphaId=-1;
-	int actId = 1;
+//	int actId = 1;
 	
-	public String actName = "";
-	public String sBelief = "";
-	public DD belief;
+	private String actName = "";
+	private String sBelief = "";
+	private DD belief;
 
-	public int id = -1;
-	public int H = -1;
-	
-	public HashMap<String, HashMap<String, Float>> factoredBelief;
+	private int id = -1;
+	private int H = -1;
 
-	public boolean startNode = false;
-	public POMDP p;
+	private boolean startNode = false;
+//	public POMDP p;
 	
 	// ------------------------------------------------------------------------------------
 	/*
@@ -34,6 +32,52 @@ public class PolicyNode implements Serializable {
 		
 	}
 	
+	// ------------------------------------------------------------------------------------
+	
+	public String getActName() {
+		return actName;
+	}
+
+	public void setActName(String actName) {
+		this.actName = actName;
+	}
+
+	public String getsBelief() {
+		return sBelief;
+	}
+
+	public void setsBelief(String sBelief) {
+		this.sBelief = sBelief;
+	}
+
+	public DD getBelief() {
+		return belief;
+	}
+
+	public void setBelief(DD belief) {
+		this.belief = belief;
+	}
+
+	public int getH() {
+		return H;
+	}
+
+	public void setH(int h) {
+		H = h;
+	}
+
+	public boolean isStartNode() {
+		return startNode;
+	}
+
+	public void setStartNode(boolean startNode) {
+		this.startNode = startNode;
+	}
+
+	public int getId() {
+		return id;
+	}
+
 	public PolicyNode(int id, int timeStep, String sBelief, String action) {
 		/*
 		 * Constructor for using PolicyNode objects as place holders
@@ -68,8 +112,7 @@ public class PolicyNode implements Serializable {
 	public String toString() {
 		return "PolicyNode \t [ID = " + this.id
 				+ " \t level=" + this.H 
-				+ " \t action=" + this.actName 
-				+ " \t belief=" + this.factoredBelief
+				+ " \t action=" + this.actName
 				+ " \t belief=" + this.sBelief + "]\r\n";
 	}
 

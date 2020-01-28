@@ -85,14 +85,14 @@ public class Simulation extends StructuredTree {
 		
 		try {
 			
-			DD currentBelief = this.idToNodeMap.get(currentNode).belief;
+			DD currentBelief = this.idToNodeMap.get(currentNode).getBelief();
 			
 			if (solver instanceof OnlineSolver)
 				((OnlineSolver) solver).solveCurrentStep();
 			
 			/* optimal action */
 			String action = solver.getActionForBelief(currentBelief);
-			this.idToNodeMap.get(currentNode).actName = action;
+			this.idToNodeMap.get(currentNode).setActName(action);
 			
 			String[] obs = this.act(solver.f, currentBelief, action);
 			
@@ -151,16 +151,16 @@ public class Simulation extends StructuredTree {
 			
 			/* make policy node for next belief */
 			PolicyNode nextNode = new PolicyNode();
-			nextNode.belief = solver.f.getCurrentBelief();
-			nextNode.sBelief = solver.f.getBeliefString(solver.f.getCurrentBelief());
-			nextNode.id = this.currentPolicyNodeCounter++;
-			this.idToNodeMap.put(nextNode.id, nextNode);
+			nextNode.setBelief(solver.f.getCurrentBelief());
+			nextNode.setsBelief(solver.f.getBeliefString(solver.f.getCurrentBelief()));
+			nextNode.setId(this.currentPolicyNodeCounter++);
+			this.idToNodeMap.put(nextNode.getId(), nextNode);
 			
 			/* make path */
 			this.edgeMap.put(currentNode, new HashMap<List<String>, Integer>());
-			this.edgeMap.get(currentNode).put(Arrays.asList(obs), nextNode.id);
+			this.edgeMap.get(currentNode).put(Arrays.asList(obs), nextNode.getId());
 			
-			return nextNode.id;
+			return nextNode.getId();
 		}
 		
 		catch (ZeroProbabilityObsException o) {

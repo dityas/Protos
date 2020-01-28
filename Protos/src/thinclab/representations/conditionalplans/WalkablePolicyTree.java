@@ -82,7 +82,7 @@ public class WalkablePolicyTree extends StructuredTree {
 				/* try stepping to the next IPOMDP state */
 				try {
 					
-					this.solver.nextStep(this.idToNodeMap.get(parentId).actName, obs);
+					this.solver.nextStep(this.idToNodeMap.get(parentId).getActName(), obs);
 				}
 				
 				catch (ZeroProbabilityObsException e) {
@@ -98,22 +98,23 @@ public class WalkablePolicyTree extends StructuredTree {
 					String action = this.solver.getActionAtCurrentBelief();
 					
 					PolicyNode nextNode = new PolicyNode();
-					nextNode.id = this.currentPolicyNodeCounter;
+					nextNode.setId(this.currentPolicyNodeCounter);
 					this.currentPolicyNodeCounter += 1;
-					nextNode.actName = action;
-					nextNode.sBelief = sBelief;
+					nextNode.setActName(action);
+					nextNode.setsBelief(sBelief);
 					
 					/* populate the maps */
-					nodeMap.put(nextNode.sBelief, nextNode.id);
-					this.idToNodeMap.put(nextNode.id, nextNode);
+					nodeMap.put(nextNode.getsBelief(), nextNode.getId());
+					this.idToNodeMap.put(nextNode.getId(), nextNode);
 					
 					/* Store IPOMDP state */
-					String fName = this.storageDir + "IPOMDP_stateAtNode_" + nextNode.id + ".obj"; 
+					String fName = 
+							this.storageDir + "IPOMDP_stateAtNode_" + nextNode.getId() + ".obj"; 
 					IPOMDP.saveIPOMDP(
 							(IPOMDP) this.solver.f, 
 							fName);
 					
-					this.nodeIdToFileNameMap.put(nextNode.id, fName);
+					this.nodeIdToFileNameMap.put(nextNode.getId(), fName);
 				
 				}
 				
@@ -139,25 +140,25 @@ public class WalkablePolicyTree extends StructuredTree {
 		
 		/* make node for start state */
 		PolicyNode node = new PolicyNode();
-		node.id = this.currentPolicyNodeCounter;
+		node.setId(this.currentPolicyNodeCounter);
 		this.currentPolicyNodeCounter += 1;
 		
 		solver.solveCurrentStep();
 		
-		node.sBelief = this.solver.f.getBeliefString(this.solver.f.getCurrentBelief());
-		node.actName = this.solver.getActionAtCurrentBelief();
+		node.setsBelief(this.solver.f.getBeliefString(this.solver.f.getCurrentBelief()));
+		node.setActName(this.solver.getActionAtCurrentBelief());
 		
 		/* store current state */
-		String fName = this.storageDir + "IPOMDP_stateAtNode_" + node.id + ".obj"; 
+		String fName = this.storageDir + "IPOMDP_stateAtNode_" + node.getId() + ".obj"; 
 		IPOMDP.saveIPOMDP(
 				(IPOMDP) this.solver.f, 
 				fName);
 		
 		/* populate maps */
-		this.idToNodeMap.put(node.id, node);
-		this.nodeIdToFileNameMap.put(node.id, fName);
+		this.idToNodeMap.put(node.getId(), node);
+		this.nodeIdToFileNameMap.put(node.getId(), fName);
 		
-		prevNodes.add(node.id);
+		prevNodes.add(node.getId());
 		
 		/* build the rest of the tree */
 		for (int t = 0; t < this.maxT; t++) {

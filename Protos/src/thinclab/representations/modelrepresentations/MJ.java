@@ -28,7 +28,6 @@ import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
 import thinclab.representations.belieftreerepresentations.DynamicBeliefGraph;
-import thinclab.representations.belieftreerepresentations.DynamicBeliefTree;
 import thinclab.solvers.BaseSolver;
 
 /*
@@ -111,7 +110,7 @@ public class MJ extends DynamicBeliefGraph {
 			
 			/* Get optimal action at node */
 			String optimal_action = 
-					this.idToNodeMap.get(node).actName;
+					this.idToNodeMap.get(node).getActName();
 			
 			for (String aj : Aj) {
 				
@@ -258,8 +257,8 @@ public class MJ extends DynamicBeliefGraph {
 			
 			List<Integer> roots = 
 					this.idToNodeMap.values().stream()
-						.filter(n -> (n.H == 0))
-						.map(i -> i.id)
+						.filter(n -> (n.getH() == 0))
+						.map(i -> i.getId())
 						.collect(Collectors.toList());
 			
 			/* Uniform distribution over all current roots */
@@ -302,7 +301,7 @@ public class MJ extends DynamicBeliefGraph {
 		/*
 		 * Returns j's optimal action at the belief point at node
 		 */
-		return this.idToNodeMap.get(MJ.getNodeId(node)).actName;
+		return this.idToNodeMap.get(MJ.getNodeId(node)).getActName();
 	}
 	
 	public String getBeliefTextAtNode(String node) {
@@ -312,7 +311,7 @@ public class MJ extends DynamicBeliefGraph {
 		 * Note that this method only returns the string representation and not the actual
 		 * usable belief
 		 */
-		return this.idToNodeMap.get(MJ.getNodeId(node)).sBelief;
+		return this.idToNodeMap.get(MJ.getNodeId(node)).getsBelief();
 	}
 	
 	// -------------------------------------------------------------------------------------
