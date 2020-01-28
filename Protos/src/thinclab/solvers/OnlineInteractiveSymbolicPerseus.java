@@ -118,6 +118,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		
 		logger.debug("Computed PBVs");
 		
+		Diagnostics.logMemConsumption("After PBV computation");
+		
 		if (debug) {
 			
 			logger.debug("printing belief region");
