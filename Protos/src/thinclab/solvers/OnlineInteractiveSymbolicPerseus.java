@@ -63,9 +63,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		 * Use online symbolic perseus to get solution for given beliefs
 		 */
 		
-		logger.debug("Solving for " + beliefs.size() + " belief points.");
-		
-		DD[][] factoredBeliefRegion = this.f.factorBeliefRegion(beliefs); 
+		logger.debug("Solving for " + beliefs.size() + " belief points."); 
 		
 		/* Make a default alphaVectors as rewards to start with */
 		this.alphaVectors = 
@@ -80,8 +78,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			boundedPerseusStartFromCurrent(
 					1000, 
 					this.dpBackups, 
-					this.dpBackups, 
-					factoredBeliefRegion,
+					this.dpBackups,
 					beliefs,
 					false);
 
@@ -100,7 +97,6 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			int maxAlpha, 
 			int firstStep,
 			int nSteps,
-			DD[][] beliefRegion,
 			List<DD> unfactoredBeliefRegion,
 			boolean debug) throws ZeroProbabilityObsException, VariableNotFoundException {
 		
@@ -111,6 +107,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		int maxAlphaSetSize = maxAlpha;
 
 		bellmanErr = 20 * this.ipomdp.tolerance;
+		
+		DD[][] beliefRegion = this.f.factorBeliefRegion(unfactoredBeliefRegion);
 		
 		this.currentPointBasedValues = 
 				OP.factoredExpectationSparseNoMem(
