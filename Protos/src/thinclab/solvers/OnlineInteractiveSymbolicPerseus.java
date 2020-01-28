@@ -101,7 +101,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			boolean debug) throws ZeroProbabilityObsException, VariableNotFoundException {
 		
 		double bellmanErr;
-		double[] onezero = { 0 };
+//		double[] onezero = { 0 };
 		double steptolerance;
 
 		int maxAlphaSetSize = maxAlpha;
