@@ -60,7 +60,7 @@ public class ConditionalPlanGraph extends ConditionalPlanTree {
 			/* For all combinations */
 			for (List<String> obs : this.observations) {
 				
-				DD belief = this.idToNodeMap.get(parentId).getBelief();
+				DD belief = this.getPolicyNode(parentId).getBelief();
 				
 				this.makeNextPolicyNode(
 						parentId, 
@@ -101,7 +101,7 @@ public class ConditionalPlanGraph extends ConditionalPlanTree {
 			else 
 				node.setsBelief(this.f.getBeliefString(node.getBelief()));
 			
-			this.idToNodeMap.put(i, node);
+			this.putPolicyNode(i, node);
 			this.nodeDDTreeMap.put(node.getBelief().toDDTree(), i);
 			
 			this.currentPolicyNodeCounter += 1;
@@ -173,15 +173,16 @@ public class ConditionalPlanGraph extends ConditionalPlanTree {
 				nextNode.setsBelief(nextBeliefString);
 				
 				/* add next unique node to the nodes map */
-				this.idToNodeMap.put(nextNodeId, nextNode);
+				this.putPolicyNode(nextNodeId, nextNode);
 			}
 			
 			int nextNodeId = this.nodeDDTreeMap.get(nextBelDDTree);
 			
-			if (!this.edgeMap.containsKey(parentNodeId))
-				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
-			
-			this.edgeMap.get(parentNodeId).put(obs, nextNodeId);
+//			if (!this.edgeMap.containsKey(parentNodeId))
+//				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
+//			
+//			this.edgeMap.get(parentNodeId).put(obs, nextNodeId);
+			this.putEdge(parentNodeId, obs, nextNodeId);
 			
 		}
 		

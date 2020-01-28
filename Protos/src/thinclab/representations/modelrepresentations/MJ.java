@@ -86,13 +86,13 @@ public class MJ extends DynamicBeliefGraph {
 		 * Makes a new random variable M. The possible values taken by M are the
 		 * policy nodes in the opponent model policy trees. 
 		 */
-		List<String> valNames = 
-				this.idToNodeMap.keySet().stream()
-					.map(i -> "m" + i)
-					.collect(Collectors.toList()); 
+		List<String> valNames = this.getNodeLabels(); 
+//				this.idToNodeMap.keySet().stream()
+//					.map(i -> "m" + i)
+//					.collect(Collectors.toList()); 
 		
 		String[] nodeNames = 
-				valNames.toArray(new String[this.idToNodeMap.size()]);
+				valNames.toArray(new String[this.getNumNodes()]);
 		
 		return new StateVar("M_j", index, nodeNames);
 	}
@@ -106,11 +106,11 @@ public class MJ extends DynamicBeliefGraph {
 		List<String[]> triples = new ArrayList<String[]>();
 
 		/* Create triples for optimal actions given node */
-		for (int node : this.idToNodeMap.keySet()) {
+		for (int node : this.getAllNodeIds()) {
 			
 			/* Get optimal action at node */
 			String optimal_action = 
-					this.idToNodeMap.get(node).getActName();
+					this.getPolicyNode(node).getActName();
 			
 			for (String aj : Aj) {
 				
@@ -158,11 +158,11 @@ public class MJ extends DynamicBeliefGraph {
 		
 		List<String[]> triples = new ArrayList<String[]>();
 		
-		for (int node : this.idToNodeMap.keySet()) {
+		for (int node : this.getAllNodeIds()) {
 			
 			String[][] triplesFromNode;
 			
-			if (this.edgeMap.containsKey(node))
+			if (this.containsEdge(node))
 				triplesFromNode = this.edgeEntryToStringTriples(node);
 				
 			else
@@ -255,11 +255,11 @@ public class MJ extends DynamicBeliefGraph {
 		
 		if (prior == null) {
 			
-			List<Integer> roots = 
-					this.idToNodeMap.values().stream()
-						.filter(n -> (n.getH() == 0))
-						.map(i -> i.getId())
-						.collect(Collectors.toList());
+			List<Integer> roots = this.getAllRootIds(); 
+//					this.idToNodeMap.values().stream()
+//						.filter(n -> (n.getH() == 0))
+//						.map(i -> i.getId())
+//						.collect(Collectors.toList());
 			
 			/* Uniform distribution over all current roots */
 			for (int node : roots) {
@@ -301,7 +301,7 @@ public class MJ extends DynamicBeliefGraph {
 		/*
 		 * Returns j's optimal action at the belief point at node
 		 */
-		return this.idToNodeMap.get(MJ.getNodeId(node)).getActName();
+		return this.getPolicyNode(MJ.getNodeId(node)).getActName();
 	}
 	
 	public String getBeliefTextAtNode(String node) {
@@ -311,7 +311,7 @@ public class MJ extends DynamicBeliefGraph {
 		 * Note that this method only returns the string representation and not the actual
 		 * usable belief
 		 */
-		return this.idToNodeMap.get(MJ.getNodeId(node)).getsBelief();
+		return this.getPolicyNode(MJ.getNodeId(node)).getsBelief();
 	}
 	
 	// -------------------------------------------------------------------------------------
@@ -320,7 +320,7 @@ public class MJ extends DynamicBeliefGraph {
 		/*
 		 * Returns the edges starting from given nodeId as string triples
 		 */
-		HashMap<List<String>, Integer> edges = this.edgeMap.get(nodeId);
+		HashMap<List<String>, Integer> edges = this.getEdges(nodeId);
 		List<String[]> triples = new ArrayList<String[]>();
 		
 		for (Entry<List<String>, Integer> edge : edges.entrySet()) {
@@ -351,7 +351,7 @@ public class MJ extends DynamicBeliefGraph {
 		 */
 		
 		/* first make sure if the node is indeed a leaf */
-		if (this.edgeMap.containsKey(nodeId))
+		if (this.containsEdge(nodeId))
 			logger.error("NODE: " + nodeId + " is not a leaf");
 		
 		List<String[]> triples = new ArrayList<String[]>();

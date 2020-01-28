@@ -41,7 +41,7 @@ public class StochasticSimulation extends Simulation {
 		node.setId(this.currentPolicyNodeCounter++);
 		
 		/* add to node map */
-		this.idToNodeMap.put(node.getId(), node);
+		this.putPolicyNode(node.getId(), node);
 		
 		LOGGER.debug("Stochastic simulation initialized");
 	}

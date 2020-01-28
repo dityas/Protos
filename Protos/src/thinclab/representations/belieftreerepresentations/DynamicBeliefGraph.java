@@ -60,7 +60,7 @@ public class DynamicBeliefGraph extends StaticBeliefGraph {
 			else 
 				node.setActName("");
 				
-			this.idToNodeMap.put(i, node);
+			this.putPolicyNode(i, node);
 			this.nodeToIdMap.put(node.getBelief(), node.getId());
 			
 			this.currentPolicyNodeCounter += 1;
@@ -142,7 +142,7 @@ public class DynamicBeliefGraph extends StaticBeliefGraph {
 		
 		/* prune leaves from the maps */
 		this.pruneNodeAndEdgeMaps();
-		this.idToNodeMap.values().forEach(n -> n.setH(0));
+		this.setAllAsRoots();
 		
 		logger.debug("After pruning, non zero roots are: " + this.leafNodes);
 	}
@@ -152,12 +152,12 @@ public class DynamicBeliefGraph extends StaticBeliefGraph {
 		 * Removes older nodes from the node and edge maps
 		 */
 		
-		this.edgeMap.clear();
+		this.clearAllEdges();
 
-		for (int nodeId : new ArrayList<Integer>(this.idToNodeMap.keySet())) {
+		for (int nodeId : new ArrayList<Integer>(this.getAllNodeIds())) {
 			if (!this.leafNodes.contains(nodeId)) {
-				this.nodeToIdMap.remove(this.idToNodeMap.get(nodeId).getBelief());
-				this.idToNodeMap.remove(nodeId);
+				this.nodeToIdMap.remove(this.getPolicyNode(nodeId).getBelief());
+				this.removeNode(nodeId);
 			}
 		}
 	}

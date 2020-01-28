@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
@@ -43,8 +44,8 @@ public class StructuredTree implements Serializable {
 	public int maxT;
 	
 	/* Store the tree structure as a map of nodes and edges */
-	public HashMap<Integer, PolicyNode> idToNodeMap = new HashMap<Integer, PolicyNode>();
-	public HashMap<Integer, HashMap<List<String>, Integer>> edgeMap =
+	private HashMap<Integer, PolicyNode> idToNodeMap = new HashMap<Integer, PolicyNode>();
+	private HashMap<Integer, HashMap<List<String>, Integer>> edgeMap =
 			new HashMap<Integer, HashMap<List<String>, Integer>>();
 	
 	public int currentPolicyNodeCounter = 0;
@@ -229,6 +230,74 @@ public class StructuredTree implements Serializable {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+	}
+	
+	// ----------------------------------------------------------------------------------------
+	
+	public PolicyNode getPolicyNode(int id) {
+		
+		return this.idToNodeMap.get(id);
+	}
+	
+	public void putPolicyNode(int id, PolicyNode node) {
+		this.idToNodeMap.put(id, node);
+	}
+	
+	public void setAllAsRoots() {
+		this.idToNodeMap.values().forEach(n -> n.setH(0));
+	}
+	
+	public void clearAllEdges() {
+		this.edgeMap.clear();
+	}
+	
+	public List<Integer> getAllNodeIds() {
+		return new ArrayList<Integer>(this.idToNodeMap.keySet());
+	}
+	
+	public List<Integer> getAllEdgeIds() {
+		return new ArrayList<Integer>(this.edgeMap.keySet());
+	}
+	
+	public List<Integer> getAllRootIds() {
+		return this.idToNodeMap.values().stream()
+					.filter(n -> (n.getH() == 0))
+					.map(i -> i.getId())
+					.collect(Collectors.toList());
+	}
+	
+	public void removeNode(int id) {
+		this.idToNodeMap.remove(id);
+	}
+	
+	public boolean containsEdge(int id) {
+		return this.edgeMap.containsKey(id);
+	}
+	
+	public boolean containsNode(int id) {
+		return this.idToNodeMap.containsKey(id);
+	}
+	
+	public void putEdge(int src, List<String> edgeLabel, int dest) {
+		
+		if (!this.edgeMap.containsKey(src))
+			this.edgeMap.put(src, new HashMap<List<String>, Integer>());
+		
+		this.edgeMap.get(src).put(edgeLabel, dest);
+	}
+	
+	public HashMap<List<String>, Integer> getEdges(int srcId) {
+		return this.edgeMap.get(srcId);
+	}
+	
+	public List<String> getNodeLabels() {
+		return this.idToNodeMap.keySet().stream()
+					.map(i -> "m" + i)
+					.collect(Collectors.toList());
+	}
+	
+	public int getNumNodes() {
+		return this.idToNodeMap.size();
 	}
 	
 	// ----------------------------------------------------------------------------------------

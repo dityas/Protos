@@ -82,7 +82,7 @@ public class WalkablePolicyTree extends StructuredTree {
 				/* try stepping to the next IPOMDP state */
 				try {
 					
-					this.solver.nextStep(this.idToNodeMap.get(parentId).getActName(), obs);
+					this.solver.nextStep(this.getPolicyNode(parentId).getActName(), obs);
 				}
 				
 				catch (ZeroProbabilityObsException e) {
@@ -105,7 +105,7 @@ public class WalkablePolicyTree extends StructuredTree {
 					
 					/* populate the maps */
 					nodeMap.put(nextNode.getsBelief(), nextNode.getId());
-					this.idToNodeMap.put(nextNode.getId(), nextNode);
+					this.putPolicyNode(nextNode.getId(), nextNode);
 					
 					/* Store IPOMDP state */
 					String fName = 
@@ -120,10 +120,11 @@ public class WalkablePolicyTree extends StructuredTree {
 				
 				int nextNode = nodeMap.get(sBelief);
 				
-				if (!this.edgeMap.containsKey(parentId))
-					this.edgeMap.put(parentId, new HashMap<List<String>, Integer>());
-				
-				this.edgeMap.get(parentId).put(obs, nextNode);
+//				if (!this.containsEdge(parentId))
+//					this.edgeMap.put(parentId, new HashMap<List<String>, Integer>());
+//				
+//				this.edgeMap.get(parentId).put(obs, nextNode);
+				this.putEdge(parentId, obs, nextNode);
 				
 			} /* for all observations */
 		} /* for all parents */
@@ -155,7 +156,7 @@ public class WalkablePolicyTree extends StructuredTree {
 				fName);
 		
 		/* populate maps */
-		this.idToNodeMap.put(node.getId(), node);
+		this.putPolicyNode(node.getId(), node);
 		this.nodeIdToFileNameMap.put(node.getId(), fName);
 		
 		prevNodes.add(node.getId());

@@ -85,14 +85,14 @@ public class Simulation extends StructuredTree {
 		
 		try {
 			
-			DD currentBelief = this.idToNodeMap.get(currentNode).getBelief();
+			DD currentBelief = this.getPolicyNode(currentNode).getBelief();
 			
 			if (solver instanceof OnlineSolver)
 				((OnlineSolver) solver).solveCurrentStep();
 			
 			/* optimal action */
 			String action = solver.getActionForBelief(currentBelief);
-			this.idToNodeMap.get(currentNode).setActName(action);
+			this.getPolicyNode(currentNode).setActName(action);
 			
 			String[] obs = this.act(solver.f, currentBelief, action);
 			
@@ -154,11 +154,11 @@ public class Simulation extends StructuredTree {
 			nextNode.setBelief(solver.f.getCurrentBelief());
 			nextNode.setsBelief(solver.f.getBeliefString(solver.f.getCurrentBelief()));
 			nextNode.setId(this.currentPolicyNodeCounter++);
-			this.idToNodeMap.put(nextNode.getId(), nextNode);
+			this.putPolicyNode(nextNode.getId(), nextNode);
 			
 			/* make path */
-			this.edgeMap.put(currentNode, new HashMap<List<String>, Integer>());
-			this.edgeMap.get(currentNode).put(Arrays.asList(obs), nextNode.getId());
+			this.putEdge(currentNode, Arrays.asList(obs), nextNode.getId());
+//			this.edgeMap.get(currentNode).put(Arrays.asList(obs), nextNode.getId());
 			
 			return nextNode.getId();
 		}

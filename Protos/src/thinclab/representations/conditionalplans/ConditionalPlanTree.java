@@ -62,7 +62,7 @@ public class ConditionalPlanTree extends StaticBeliefTree {
 			/* For all combinations */
 			for (List<String> obs : this.observations) {
 				
-				DD belief = this.idToNodeMap.get(parentId).getBelief();
+				DD belief = this.getPolicyNode(parentId).getBelief();
 				
 				this.makeNextPolicyNode(
 						parentId, 
@@ -100,7 +100,7 @@ public class ConditionalPlanTree extends StaticBeliefTree {
 			else 
 				node.setsBelief(this.f.getBeliefString(node.getBelief()));
 			
-			this.idToNodeMap.put(i, node);
+			this.putPolicyNode(i, node);
 			
 			this.currentPolicyNodeCounter += 1;
 		}

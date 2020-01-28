@@ -82,7 +82,7 @@ public class StaticBeliefTree extends StructuredTree {
 				
 				for (String action : this.f.getActions()) {
 					
-					DD belief = this.idToNodeMap.get(parentId).getBelief();
+					DD belief = this.getPolicyNode(parentId).getBelief();
 					
 					this.makeNextBeliefNode(
 							parentId, 
@@ -120,7 +120,7 @@ public class StaticBeliefTree extends StructuredTree {
 			else 
 				node.setActName("");
 				
-			this.idToNodeMap.put(i, node);
+			this.putPolicyNode(i, node);
 			
 			this.currentPolicyNodeCounter += 1;
 		}
