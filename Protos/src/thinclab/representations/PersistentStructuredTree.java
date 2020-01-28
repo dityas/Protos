@@ -7,141 +7,117 @@
  */
 package thinclab.representations;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
+import thinclab.legacy.OP;
+import thinclab.representations.policyrepresentations.PolicyNode;
+import thinclab.solvers.BaseSolver;
+import thinclab.utils.MjDB;
 
 /*
  * @author adityas
  *
  */
-public class PersistentStructuredTree extends StructuredTree {
+public class PersistentStructuredTree extends StructuredTree implements Serializable {
 
-	/* DB connection object */
-	public Connection storageConn;
-	private String dbDir = "/tmp/mj_storage.db";
+	public int maxT;
+	public int currentPolicyNodeCounter = 0;
+	public List<List<String>> observations;
 	
-	private static final Logger LOGGER = Logger.getLogger(PersistentStructuredTree.class);
-	private static final long serialVersionUID = 5825861088529650090L;
+	private MjDB DB = new MjDB();
 	
+	private static final Logger LOGGER = Logger.getLogger(StructuredTree.class);
+	private static final long serialVersionUID = 3354440539923303241L;
 	
-	// -------------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------
 	
-	public PersistentStructuredTree() {
-		this.idToNodeMap = null;
-		this.edgeMap = null;
-		
-		
+	@Override
+	public PolicyNode getPolicyNode(int id) {
+		return this.DB.getNode(id);
 	}
 	
-	private void initializeDB() {
-		
-		/*
-		 * Open DB connection
-		 */
-		
-		try {
-			
-			this.storageConn = DriverManager.getConnection("jdbc:sqlite:" + this.dbDir);
-			
-			/* Create table for storing opponent Model */
-			
-			/* beliefs table */
-			String beliefTableCreation = "CREATE TABLE IF NOT EXISTS nz_cache ("
-					+ "belief_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-					+ "nz_prime BLOB);";
-			
-			Statement query = this.storageConn.createStatement();
-			query.execute(beliefTableCreation);
-			
-			LOGGER.debug("Created table to store NZ Primes");
-		}
-		
-		catch (SQLException e) {
-			LOGGER.error("Local DB connection error " + e.getMessage());
-			System.exit(-1);
-		}
-		
-		catch (Exception e) {
-			LOGGER.error("Error while creating DB " + e.getMessage());
-			System.exit(-1);
-		}
-		
+	@Override
+	public void putPolicyNode(int id, PolicyNode node) {
+		this.DB.putNode(id, node);
 	}
 	
-	private void initializeLocalStorage() {
-		/*
-		 * Creates connection to local in memory sqlite db for storing opponent model
-		 * triples.
-		 */
-		
-		try {
-			
-			this.storageConn = DriverManager.getConnection("jdbc:sqlite:" + this.dbDir);
-			
-			/* Create table for storing opponent Model */
-			
-			/* beliefs table */
-			String beliefTableCreation = "CREATE TABLE IF NOT EXISTS nz_cache ("
-					+ "belief_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-					+ "nz_prime BLOB);";
-			
-			Statement query = this.storageConn.createStatement();
-			query.execute(beliefTableCreation);
-			
-			LOGGER.debug("Created table to store NZ Primes");
-		}
-		
-		catch (SQLException e) {
-			LOGGER.error("Local DB connection error " + e.getMessage());
-			System.exit(-1);
-		}
-		
-		catch (Exception e) {
-			LOGGER.error("Error while creating DB " + e.getMessage());
-			System.exit(-1);
-		} 
+	@Override
+	public void setAllAsRoots() {
+		this.DB.makeAllRoots();
 	}
 	
-	private void makeIdToNodeTable() {
-		
-		/*
-		 * Make table equivalent of idToNodeMap
-		 */
-		
-		try {
-			
-			/* idToNodeTable */
-			String beliefTableCreation = "CREATE TABLE IF NOT EXISTS id_to_node ("
-					+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-					+ "belief BLOB,"
-					+ ");";
-			
-			Statement query = this.storageConn.createStatement();
-			query.execute(beliefTableCreation);
-			
-			LOGGER.debug("Created table to store NZ Primes");
-		}
-		
-		catch (SQLException e) {
-			LOGGER.error("Local DB connection error " + e.getMessage());
-			System.exit(-1);
-		}
-		
-		catch (Exception e) {
-			LOGGER.error("Error while creating DB " + e.getMessage());
-			System.exit(-1);
-		}
-		
+	@Override
+	public void clearAllEdges() {
+		this.DB.clearEdgesTable();
 	}
 	
-	private void makeEdgeTable() {
-		/*
-		 * Create edge table in data base
-		 */
+	@Override
+	public List<Integer> getAllNodeIds() {
+		return this.DB.getAllNodeIds();
 	}
+	
+	@Override
+	public List<Integer> getAllEdgeIds() {
+		return this.DB.getAllEdgeIds();
+	}
+	
+	@Override
+	public List<Integer> getAllRootIds() {
+		return this.DB.getAllRoots();
+	}
+	
+	@Override
+	public void removeNode(int id) {
+		this.DB.removeNode(id);
+	}
+	
+	public boolean containsEdge(int id) {
+		return this.edgeMap.containsKey(id);
+	}
+	
+	public boolean containsNode(int id) {
+		return this.idToNodeMap.containsKey(id);
+	}
+	
+	@Override
+	public void putEdge(int src, List<String> edgeLabel, int dest) {
+		this.DB.putEdge(src, edgeLabel, dest);
+	}
+	
+	public HashMap<List<String>, Integer> getEdges(int srcId) {
+		return this.edgeMap.get(srcId);
+	}
+	
+	public List<String> getNodeLabels() {
+		return this.idToNodeMap.keySet().stream()
+					.map(i -> "m" + i)
+					.collect(Collectors.toList());
+	}
+	
+	public int getNumNodes() {
+		return this.idToNodeMap.size();
+	}
+	
+	// ----------------------------------------------------------------------------------------
 
 }

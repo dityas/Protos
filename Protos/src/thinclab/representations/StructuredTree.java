@@ -122,7 +122,7 @@ public class StructuredTree implements Serializable {
 				else nextNode.setsBelief(f.getBeliefString(nextBelief));
 				
 				/* add next unique node to the nodes map */
-				this.idToNodeMap.put(nextNodeId, nextNode);
+				this.putPolicyNode(nextNodeId, nextNode);
 			}
 			
 			int nextNodeId;
@@ -135,16 +135,16 @@ public class StructuredTree implements Serializable {
 			if (newNodes != null && !newNodes.contains(nextNodeId))
 				newNodes.add(nextNodeId);
 			
-			if (!this.edgeMap.containsKey(parentNodeId))
-				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
+//			if (!this.edgeMap.containsKey(parentNodeId))
+//				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
 			
 			/* construct edge as action + obs */
 			List<String> edge = new ArrayList<String>();
 			edge.add(action);
 			edge.addAll(obs);
 			
-			this.edgeMap.get(parentNodeId).put(edge, nextNodeId);
-			
+//			this.edgeMap.get(parentNodeId).put(edge, nextNodeId);
+			this.putEdge(parentNodeId, edge, nextNodeId);
 		}
 		
 		catch (ZeroProbabilityObsException o) {
@@ -209,15 +209,16 @@ public class StructuredTree implements Serializable {
 				nextNode.setsBelief(nextBeliefString);
 				
 				/* add next unique node to the nodes map */
-				this.idToNodeMap.put(nextNodeId, nextNode);
+				this.putPolicyNode(nextNodeId, nextNode);
 			}
 			
 			int nextNodeId = currentLevelBeliefSet.get(nextBeliefString);
 			
-			if (!this.edgeMap.containsKey(parentNodeId))
-				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
-			
-			this.edgeMap.get(parentNodeId).put(obs, nextNodeId);
+//			if (!this.edgeMap.containsKey(parentNodeId))
+//				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
+//			
+//			this.edgeMap.get(parentNodeId).put(obs, nextNodeId);
+			this.putEdge(parentNodeId, obs, nextNodeId);
 			
 		}
 		
