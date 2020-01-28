@@ -73,7 +73,7 @@ public class StructuredTree implements Serializable {
 		 * Make the next node after taking action at parentNodeBelief and observing the
 		 * specified observation
 		 */
-		DD belief = this.idToNodeMap.get(parentNodeId).getBelief();
+		DD belief = this.getPolicyNode(parentNodeId).getBelief();
 		
 		try {
 			
@@ -241,6 +241,7 @@ public class StructuredTree implements Serializable {
 	}
 	
 	public void putPolicyNode(int id, PolicyNode node) {
+		LOGGER.debug("Putting unique node " + node);
 		this.idToNodeMap.put(id, node);
 	}
 	

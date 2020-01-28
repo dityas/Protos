@@ -110,10 +110,10 @@ public class PolicyNode implements Serializable {
 
 	@Override
 	public String toString() {
-		return "PolicyNode \t [ID = " + this.id
-				+ " \t level=" + this.H 
-				+ " \t action=" + this.actName
-				+ " \t belief=" + this.sBelief + "]\r\n";
+		return "PolicyNode [ID = " + this.id
+				+ " level=" + this.H 
+				+ " action=" + this.actName
+				+ " belief=" + this.sBelief + "]";
 	}
 
 }

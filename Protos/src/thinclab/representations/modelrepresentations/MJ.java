@@ -198,7 +198,7 @@ public class MJ extends DynamicBeliefGraph {
 						varSequence, 
 						Ojs.stream()
 							.map(oj -> oj + "'").toArray(String[]::new));
-		
+
 		DDTree tree = ddMaker.getDDTreeFromSequence(varSequence, triples);
 		
 		/* set probs for mjs of other frames */

@@ -23,10 +23,6 @@ import thinclab.utils.MjDB;
  */
 public class PersistentStructuredTree extends StructuredTree implements Serializable {
 
-	public int maxT;
-	public int currentPolicyNodeCounter = 0;
-	public List<List<String>> observations;
-	
 	private MjDB DB = new MjDB();
 	
 	private static final Logger LOGGER = Logger.getLogger(PersistentStructuredTree.class);
@@ -41,7 +37,9 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 	
 	@Override
 	public void putPolicyNode(int id, PolicyNode node) {
+		LOGGER.debug("Putting node " + node);
 		this.DB.putNode(id, node);
+		LOGGER.debug("Done putting node");
 	}
 	
 	@Override
@@ -86,7 +84,9 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 	
 	@Override
 	public void putEdge(int src, List<String> edgeLabel, int dest) {
+		LOGGER.debug("Putting edge " + src + " -> " + edgeLabel + " -> " + dest);
 		this.DB.putEdge(src, edgeLabel, dest);
+		LOGGER.debug("Done putting edge");
 	}
 	
 	@Override

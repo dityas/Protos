@@ -52,6 +52,8 @@ public class MjDB {
 			
 			/* make tables */
 			this.createTables();
+			
+			LOGGER.debug("Mj DB created at " + this.tempFile.getAbsolutePath());
 		} 
 		
 		catch (Exception e) {
@@ -71,7 +73,7 @@ public class MjDB {
 			
 			this.storageConn = 
 					DriverManager.getConnection("jdbc:sqlite:" 
-							+ this.tempFile.getCanonicalPath());
+							+ this.tempFile.getAbsolutePath());
 			
 			/* Create table for storing opponent Model */
 			
@@ -115,6 +117,7 @@ public class MjDB {
 		/*
 		 * Inserts new Node in the id_to_node
 		 */
+		
 		try {
 			String insertNodeQ = "INSERT INTO id_to_node "
 					+ "(belief_id, time_step, policy_node) "
@@ -141,6 +144,7 @@ public class MjDB {
 		catch (Exception e) {
 			LOGGER.error("While inserting node into id_to_node table " + e.getMessage());
 			e.printStackTrace();
+			this.printTables();
 			System.exit(-1);
 		}
 	}
@@ -160,6 +164,7 @@ public class MjDB {
 			stmt.setString(2, String.join("|", label));
 			stmt.setInt(3, dest_id);
 			stmt.executeUpdate();
+			
 		}
 		
 		catch (Exception e) {
@@ -223,7 +228,7 @@ public class MjDB {
 			ResultSet res = stmt.executeQuery();
 			
 			while (res.next()) {
-				List<String> obs = Arrays.asList(res.getString("label").split("|"));
+				List<String> obs = Arrays.asList(res.getString("label").split("\\|"));
 				int dest = res.getInt("dest_id");
 				
 				deserializedObj.put(obs, dest);
