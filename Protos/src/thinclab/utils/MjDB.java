@@ -19,6 +19,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -184,7 +186,7 @@ public class MjDB {
 			ResultSet res = stmt.executeQuery();
 			
 			while (res.next()) {
-				byte[] bytesIn = res.getBytes("nz_prime");
+				byte[] bytesIn = res.getBytes("policy_node");
 				ByteArrayInputStream byteInStream = new ByteArrayInputStream(bytesIn);
 				ObjectInputStream objInStream = new ObjectInputStream(byteInStream);
 				
@@ -197,6 +199,39 @@ public class MjDB {
 		
 		catch (Exception e) {
 			LOGGER.error("While getting PolicyNode from table " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		
+		return deserializedObj;
+	}
+	
+	public HashMap<List<String>, Integer> getEdges(int src_id) {
+		/*
+		 * De serialize given PolicyNode from the DB and return
+		 */
+		
+		HashMap<List<String>, Integer> deserializedObj = new HashMap<List<String>, Integer>();
+		
+		try {
+			String getPolicyNodeQ = "SELECT * FROM edges WHERE src_id=?";
+			
+			/* select all */
+			PreparedStatement stmt = this.storageConn.prepareStatement(getPolicyNodeQ);
+			stmt.setInt(1, src_id);
+			
+			ResultSet res = stmt.executeQuery();
+			
+			while (res.next()) {
+				List<String> obs = Arrays.asList(res.getString("label").split("|"));
+				int dest = res.getInt("dest_id");
+				
+				deserializedObj.put(obs, dest);
+			}
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While getting edges from table " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}

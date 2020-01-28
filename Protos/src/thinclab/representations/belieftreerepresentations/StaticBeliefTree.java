@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
+import thinclab.representations.PersistentStructuredTree;
 import thinclab.representations.StructuredTree;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
@@ -24,7 +25,7 @@ import thinclab.solvers.BaseSolver;
  * @author adityas
  *
  */
-public class StaticBeliefTree extends StructuredTree {
+public class StaticBeliefTree extends PersistentStructuredTree {
 	
 	/*
 	 * Holds a static belief tree which is expanded to max H at once. 

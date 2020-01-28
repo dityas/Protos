@@ -14,6 +14,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.decisionprocesses.IPOMDP;
+import thinclab.parsers.IPOMDPParser;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.MjDB;
 
@@ -39,8 +41,14 @@ class TestMjDB {
 
 	@Test
 	void testDBStart() {
-		MjDB mjdb = new MjDB();
-		mjdb.printTables();
+		LOGGER.info("Testing IPOMDP stochastic sim");
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser("/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		parser.parseDomain();
+		
+		/* Initialize IPOMDP */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
 	}
 
 }

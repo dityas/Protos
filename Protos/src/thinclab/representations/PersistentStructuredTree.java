@@ -7,31 +7,14 @@
  */
 package thinclab.representations;
 
-import java.io.PrintWriter;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.decisionprocesses.IPOMDP;
-import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.legacy.DD;
-import thinclab.legacy.DDleaf;
-import thinclab.legacy.OP;
 import thinclab.representations.policyrepresentations.PolicyNode;
-import thinclab.solvers.BaseSolver;
 import thinclab.utils.MjDB;
 
 /*
@@ -46,7 +29,7 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 	
 	private MjDB DB = new MjDB();
 	
-	private static final Logger LOGGER = Logger.getLogger(StructuredTree.class);
+	private static final Logger LOGGER = Logger.getLogger(PersistentStructuredTree.class);
 	private static final long serialVersionUID = 3354440539923303241L;
 	
 	// ----------------------------------------------------------------------------------------
@@ -91,12 +74,14 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 		this.DB.removeNode(id);
 	}
 	
+	@Override
 	public boolean containsEdge(int id) {
-		return this.edgeMap.containsKey(id);
+		return this.DB.getAllEdgeIds().contains(id);
 	}
 	
+	@Override
 	public boolean containsNode(int id) {
-		return this.idToNodeMap.containsKey(id);
+		return this.DB.getAllNodeIds().contains(id);
 	}
 	
 	@Override
@@ -104,18 +89,21 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 		this.DB.putEdge(src, edgeLabel, dest);
 	}
 	
+	@Override
 	public HashMap<List<String>, Integer> getEdges(int srcId) {
-		return this.edgeMap.get(srcId);
+		return this.DB.getEdges(srcId);
 	}
 	
+	@Override
 	public List<String> getNodeLabels() {
-		return this.idToNodeMap.keySet().stream()
+		return this.DB.getAllNodeIds().stream()
 					.map(i -> "m" + i)
 					.collect(Collectors.toList());
 	}
 	
+	@Override
 	public int getNumNodes() {
-		return this.idToNodeMap.size();
+		return this.getAllNodeIds().size();
 	}
 	
 	// ----------------------------------------------------------------------------------------
