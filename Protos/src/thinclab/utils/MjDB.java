@@ -40,7 +40,7 @@ public class MjDB {
 	
 	public Connection storageConn;
 	private File tempFile;
-	private static final Logger LOGGER = Logger.getLogger(MjDB.class); 
+	private static final Logger LOGGER = Logger.getLogger(MjDB.class);
 	
 	// ---------------------------------------------------------------------------------
 	

@@ -1281,8 +1281,8 @@ public class IPOMDP extends POMDP {
 		
 		/* null this.currentMjPGivenMjOjPAj to save memory */
 		this.currentMjPGivenMjOjPAj = null;
-		this.currentTau = null;
-		this.currentThetajGivenMj = null;
+//		this.currentTau = null;
+//		this.currentThetajGivenMj = null;
 		
 		this.currentRi = this.makeRi();
 		LOGGER.debug("Ri initialized for current look ahead horizon");
