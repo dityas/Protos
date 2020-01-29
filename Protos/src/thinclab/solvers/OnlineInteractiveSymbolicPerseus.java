@@ -76,7 +76,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		try {
 				
 			boundedPerseusStartFromCurrent(
-					1000, 
+					10, 
 					0, 
 					this.dpBackups,
 					beliefs,
