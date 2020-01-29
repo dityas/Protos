@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.IPOMDP;
+import thinclab.representations.PersistentStructuredTree;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
@@ -48,20 +49,20 @@ public class DynamicBeliefGraph extends StaticBeliefGraph {
 			this.leafNodes.add(i);
 			
 			PolicyNode node = new PolicyNode();
-			node.id = i;
-			node.belief = this.f.getInitialBeliefs().get(i);
-			node.H = 0;
+			node.setId(i);
+			node.setBelief(this.f.getInitialBeliefs().get(i));
+			node.setH(0);
 			
-			node.sBelief = this.f.getBeliefString(node.belief);
+			node.setsBelief(this.f.getBeliefString(node.getBelief()));
 			
 			if (this.solver != null)
-				node.actName = this.solver.getActionForBelief(node.belief);
+				node.setActName(this.solver.getActionForBelief(node.getBelief()));
 			
 			else 
-				node.actName = "";
+				node.setActName("");
 				
-			this.idToNodeMap.put(i, node);
-			this.nodeToIdMap.put(node.belief, node.id);
+			this.putPolicyNode(i, node);
+			this.nodeToIdMap.put(node.getBelief(), node.getId());
 			
 			this.currentPolicyNodeCounter += 1;
 		}
@@ -100,6 +101,9 @@ public class DynamicBeliefGraph extends StaticBeliefGraph {
 				}
 			}
 		}
+		
+		if (this instanceof PersistentStructuredTree)
+			this.commitChanges();
 	}
 	
 	// ----------------------------------------------------------------------------------------
@@ -142,7 +146,7 @@ public class DynamicBeliefGraph extends StaticBeliefGraph {
 		
 		/* prune leaves from the maps */
 		this.pruneNodeAndEdgeMaps();
-		this.idToNodeMap.values().forEach(n -> n.H = 0);
+		this.setAllAsRoots();
 		
 		logger.debug("After pruning, non zero roots are: " + this.leafNodes);
 	}
@@ -152,12 +156,12 @@ public class DynamicBeliefGraph extends StaticBeliefGraph {
 		 * Removes older nodes from the node and edge maps
 		 */
 		
-		this.edgeMap.clear();
+		this.clearAllEdges();
 
-		for (int nodeId : new ArrayList<Integer>(this.idToNodeMap.keySet())) {
+		for (int nodeId : new ArrayList<Integer>(this.getAllNodeIds())) {
 			if (!this.leafNodes.contains(nodeId)) {
-				this.nodeToIdMap.remove(this.idToNodeMap.get(nodeId).belief);
-				this.idToNodeMap.remove(nodeId);
+				this.nodeToIdMap.remove(this.getPolicyNode(nodeId).getBelief());
+				this.removeNode(nodeId);
 			}
 		}
 	}

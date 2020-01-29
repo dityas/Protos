@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
@@ -43,8 +44,8 @@ public class StructuredTree implements Serializable {
 	public int maxT;
 	
 	/* Store the tree structure as a map of nodes and edges */
-	public HashMap<Integer, PolicyNode> idToNodeMap = new HashMap<Integer, PolicyNode>();
-	public HashMap<Integer, HashMap<List<String>, Integer>> edgeMap =
+	private HashMap<Integer, PolicyNode> idToNodeMap = new HashMap<Integer, PolicyNode>();
+	private HashMap<Integer, HashMap<List<String>, Integer>> edgeMap =
 			new HashMap<Integer, HashMap<List<String>, Integer>>();
 	
 	public int currentPolicyNodeCounter = 0;
@@ -72,7 +73,7 @@ public class StructuredTree implements Serializable {
 		 * Make the next node after taking action at parentNodeBelief and observing the
 		 * specified observation
 		 */
-		DD belief = this.idToNodeMap.get(parentNodeId).belief;
+		DD belief = this.getPolicyNode(parentNodeId).getBelief();
 		
 		try {
 			
@@ -105,23 +106,23 @@ public class StructuredTree implements Serializable {
 				
 //				if (newNodes != null) newNodes.add(nextNodeId);
 				
-				nextNode.id = nextNodeId;
-				nextNode.belief = nextBelief;
-				nextNode.H = level;
+				nextNode.setId(nextNodeId);
+				nextNode.setBelief(nextBelief);
+				nextNode.setH(level);
 				
 				if (solver != null)
-					nextNode.actName = solver.getActionForBelief(nextBelief);
+					nextNode.setActName(solver.getActionForBelief(nextBelief));
 				
 				else
-					nextNode.actName = "";
+					nextNode.setActName("");
 				
 				if (f.getType().contentEquals("IPOMDP"))
-					nextNode.sBelief = ((IPOMDP) f).getBeliefString(nextBelief);
+					nextNode.setsBelief(((IPOMDP) f).getBeliefString(nextBelief));
 				
-				else nextNode.sBelief = f.getBeliefString(nextBelief);
+				else nextNode.setsBelief(f.getBeliefString(nextBelief));
 				
 				/* add next unique node to the nodes map */
-				this.idToNodeMap.put(nextNodeId, nextNode);
+				this.putPolicyNode(nextNodeId, nextNode);
 			}
 			
 			int nextNodeId;
@@ -134,16 +135,16 @@ public class StructuredTree implements Serializable {
 			if (newNodes != null && !newNodes.contains(nextNodeId))
 				newNodes.add(nextNodeId);
 			
-			if (!this.edgeMap.containsKey(parentNodeId))
-				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
+//			if (!this.edgeMap.containsKey(parentNodeId))
+//				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
 			
 			/* construct edge as action + obs */
 			List<String> edge = new ArrayList<String>();
 			edge.add(action);
 			edge.addAll(obs);
 			
-			this.edgeMap.get(parentNodeId).put(edge, nextNodeId);
-			
+//			this.edgeMap.get(parentNodeId).put(edge, nextNodeId);
+			this.putEdge(parentNodeId, edge, nextNodeId);
 		}
 		
 		catch (ZeroProbabilityObsException o) {
@@ -201,22 +202,23 @@ public class StructuredTree implements Serializable {
 				int nextNodeId = currentLevelBeliefSet.get(nextBeliefString);
 				PolicyNode nextNode = new PolicyNode();
 				
-				nextNode.id = nextNodeId;
-				nextNode.belief = nextBelief;
-				nextNode.actName = solver.getActionForBelief(nextBelief);
-				nextNode.H = level;
-				nextNode.sBelief = nextBeliefString;
+				nextNode.setId(nextNodeId);
+				nextNode.setBelief(nextBelief);
+				nextNode.setActName(solver.getActionForBelief(nextBelief));
+				nextNode.setH(level);
+				nextNode.setsBelief(nextBeliefString);
 				
 				/* add next unique node to the nodes map */
-				this.idToNodeMap.put(nextNodeId, nextNode);
+				this.putPolicyNode(nextNodeId, nextNode);
 			}
 			
 			int nextNodeId = currentLevelBeliefSet.get(nextBeliefString);
 			
-			if (!this.edgeMap.containsKey(parentNodeId))
-				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
-			
-			this.edgeMap.get(parentNodeId).put(obs, nextNodeId);
+//			if (!this.edgeMap.containsKey(parentNodeId))
+//				this.edgeMap.put(parentNodeId, new HashMap<List<String>, Integer>());
+//			
+//			this.edgeMap.get(parentNodeId).put(obs, nextNodeId);
+			this.putEdge(parentNodeId, obs, nextNodeId);
 			
 		}
 		
@@ -229,6 +231,75 @@ public class StructuredTree implements Serializable {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+	}
+	
+	// ----------------------------------------------------------------------------------------
+	
+	public PolicyNode getPolicyNode(int id) {
+		
+		return this.idToNodeMap.get(id);
+	}
+	
+	public void putPolicyNode(int id, PolicyNode node) {
+		LOGGER.debug("Putting unique node " + node);
+		this.idToNodeMap.put(id, node);
+	}
+	
+	public void setAllAsRoots() {
+		this.idToNodeMap.values().forEach(n -> n.setH(0));
+	}
+	
+	public void clearAllEdges() {
+		this.edgeMap.clear();
+	}
+	
+	public List<Integer> getAllNodeIds() {
+		return new ArrayList<Integer>(this.idToNodeMap.keySet());
+	}
+	
+	public List<Integer> getAllEdgeIds() {
+		return new ArrayList<Integer>(this.edgeMap.keySet());
+	}
+	
+	public List<Integer> getAllRootIds() {
+		return this.idToNodeMap.values().stream()
+					.filter(n -> (n.getH() == 0))
+					.map(i -> i.getId())
+					.collect(Collectors.toList());
+	}
+	
+	public void removeNode(int id) {
+		this.idToNodeMap.remove(id);
+	}
+	
+	public boolean containsEdge(int id) {
+		return this.edgeMap.containsKey(id);
+	}
+	
+	public boolean containsNode(int id) {
+		return this.idToNodeMap.containsKey(id);
+	}
+	
+	public void putEdge(int src, List<String> edgeLabel, int dest) {
+		
+		if (!this.edgeMap.containsKey(src))
+			this.edgeMap.put(src, new HashMap<List<String>, Integer>());
+		
+		this.edgeMap.get(src).put(edgeLabel, dest);
+	}
+	
+	public HashMap<List<String>, Integer> getEdges(int srcId) {
+		return this.edgeMap.get(srcId);
+	}
+	
+	public List<String> getNodeLabels() {
+		return this.idToNodeMap.keySet().stream()
+					.map(i -> "m" + i)
+					.collect(Collectors.toList());
+	}
+	
+	public int getNumNodes() {
+		return this.idToNodeMap.size();
 	}
 	
 	// ----------------------------------------------------------------------------------------
@@ -276,9 +347,11 @@ public class StructuredTree implements Serializable {
 				LOGGER.debug("With optimal action: " + solver.getActionForBelief(midPoint));
 				
 				if (this.idToNodeMap.containsKey(closestBeliefId)) {
-					this.idToNodeMap.get(closestBeliefId).belief = midPoint;
-					this.idToNodeMap.get(closestBeliefId).actName = 
-							solver.getActionForBelief(midPoint);
+					this.idToNodeMap.get(closestBeliefId).setBelief(midPoint);
+					this.idToNodeMap.get(
+							closestBeliefId).setActName(
+									solver.getActionForBelief(
+											midPoint)); 
 				}
 				
 				beliefSet.remove(closestBelief);
@@ -317,11 +390,11 @@ public class StructuredTree implements Serializable {
 			
 			/* add optimal action and beliefs at node */
 			nodeJSONMap.put(entry.getKey(), new HashMap<String, String>());
-			nodeJSONMap.get(entry.getKey()).put("action", entry.getValue().actName);
-			nodeJSONMap.get(entry.getKey()).put("belief", entry.getValue().sBelief);
+			nodeJSONMap.get(entry.getKey()).put("action", entry.getValue().getActName());
+			nodeJSONMap.get(entry.getKey()).put("belief", entry.getValue().getsBelief());
 			
 			/* mark start node */
-			if (entry.getValue().startNode)
+			if (entry.getValue().isStartNode())
 				nodeJSONMap.get(entry.getKey()).put("start", "true");
 		}
 		
@@ -439,14 +512,14 @@ public class StructuredTree implements Serializable {
 		/* Make nodes */
 		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
 			
-			if (entry.getValue().startNode)
+			if (entry.getValue().isStartNode())
 				dotString += " " + entry.getKey() + " [shape=Mrecord, label=\"";
 			else
 				dotString += " " + entry.getKey() + " [shape=record, label=\"";
 			
 			dotString += StructuredTree.jsonBeliefStringToDotNode(
-							entry.getValue().sBelief,
-							entry.getValue().actName)
+							entry.getValue().getsBelief(),
+							entry.getValue().getActName())
 					+ "\"];" + endl;
 		}
 		

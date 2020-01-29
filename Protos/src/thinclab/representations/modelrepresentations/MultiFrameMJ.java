@@ -45,11 +45,11 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 	public HashMap<Integer, MJ> MJs = new HashMap<Integer, MJ>();
 
 	/* store nodeMaps and edge Maps of all frames */
-	public HashMap<Integer, HashMap<Integer, PolicyNode>> idToNodeMap = 
-			new HashMap<Integer, HashMap<Integer, PolicyNode>>();
-
-	public HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>> edgeMap = 
-			new HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>>();
+//	public HashMap<Integer, HashMap<Integer, PolicyNode>> idToNodeMap = 
+//			new HashMap<Integer, HashMap<Integer, PolicyNode>>();
+//
+//	public HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>> edgeMap = 
+//			new HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>>();
 
 	/* compute all possible obs combinations at once and store them */
 	public List<List<String>> obsCombinations;
@@ -95,10 +95,10 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 			this.MJs.get(frameID).buildTree();
 
 			/* add node map references */
-			this.idToNodeMap.put(frameID, this.MJs.get(frameID).idToNodeMap);
+//			this.idToNodeMap.put(frameID, this.MJs.get(frameID).idToNodeMap);
 
 			/* add edge map references */
-			this.edgeMap.put(frameID, this.MJs.get(frameID).edgeMap);
+//			this.edgeMap.put(frameID, this.MJs.get(frameID).edgeMap);
 		}
 	}
 
@@ -114,10 +114,10 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 
 		/* for all frames */
 		for (int frameID : this.MJs.keySet())
-			nodeNamesList.addAll(this.idToNodeMap.get(frameID).keySet().stream()
+			nodeNamesList.addAll(this.MJs.get(frameID).getAllNodeIds().stream()
 					.map(i -> MJ.makeModelLabelFromNodeId(i, frameID)).collect(Collectors.toList()));
 
-		String[] nodeNames = nodeNamesList.toArray(new String[this.idToNodeMap.size()]);
+		String[] nodeNames = nodeNamesList.stream().toArray(String[]::new);
 
 		return new StateVar("M_j", index, nodeNames);
 	}
@@ -132,13 +132,13 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		List<String[]> triples = new ArrayList<String[]>();
 		
 		/* build factors for each frame */
-		for (int frameID : this.idToNodeMap.keySet()) {
+		for (int frameID : this.MJs.keySet()) {
 			
 			/* Create triples for optimal actions given node */
-			for (int node : this.idToNodeMap.get(frameID).keySet()) {
+			for (int node : this.MJs.get(frameID).getAllNodeIds()) {
 
 				/* Get optimal action at node */
-				String optimal_action = this.idToNodeMap.get(frameID).get(node).actName;
+				String optimal_action = this.MJs.get(frameID).getPolicyNode(node).getActName();
 				
 				/*
 				 * For aj depending on mj, P(OPT(Aj) at mj | mj) = 1
@@ -185,10 +185,10 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		List<String[]> triples = new ArrayList<String[]>();
 		
 		/* build factors for each frame */
-		for (int frameID : this.idToNodeMap.keySet()) {
+		for (int frameID : this.MJs.keySet()) {
 			
 			/* Create triples for optimal actions given node */
-			for (int node : this.idToNodeMap.get(frameID).keySet()) {
+			for (int node : this.MJs.get(frameID).getAllNodeIds()) {
 
 				/*
 				 * For aj depending on mj, P(OPT(Aj) at mj | mj) = 1
@@ -241,7 +241,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		 * So for Mj1 transitions, let Mj1 construct parts of the factor which has Mj1 nodes
 		 * and similar for all other frames.
 		 */
-		for (int frameID : this.idToNodeMap.keySet()) {
+		for (int frameID : this.MJs.keySet()) {
 
 			DDTree t = 
 					this.MJs.get(frameID).getPMjPGivenMjOjAj(ddMaker, Aj, OjNames);
@@ -281,20 +281,14 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		if (prior == null) {
 			
 			int mjCount = 0;
-			for (int frame : this.idToNodeMap.keySet())
+			for (int frame : this.MJs.keySet())
 				mjCount +=
-					this.idToNodeMap.get(frame).values().stream()
-						.filter(n -> (n.H == 0))
-						.map(i -> i.id)
-						.collect(Collectors.toList()).size();
+					this.MJs.get(frame).getAllRootIds().size();
 			
-			for (int frameID : this.idToNodeMap.keySet()) {
+			for (int frameID : this.MJs.keySet()) {
 				
 				List<Integer> roots = 
-						this.idToNodeMap.get(frameID).values().stream()
-							.filter(n -> (n.H == 0))
-							.map(i -> i.id)
-							.collect(Collectors.toList());
+						this.MJs.get(frameID).getAllRootIds();
 				
 				/* Uniform distribution over all current roots */
 				for (int node : roots) {
@@ -364,7 +358,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		 */
 		int frame = IPOMDP.getFrameIDFromVarName(node);
 		
-		return this.idToNodeMap.get(frame).get(MJ.getNodeId(node)).actName;
+		return this.MJs.get(frame).getPolicyNode(MJ.getNodeId(node)).getActName();
 	}
 	
 	public String getBeliefTextAtNode(String node) {
@@ -377,7 +371,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		
 		int frame = IPOMDP.getFrameIDFromVarName(node);
 		
-		return this.idToNodeMap.get(frame).get(MJ.getNodeId(node)).sBelief;
+		return this.MJs.get(frame).getPolicyNode(MJ.getNodeId(node)).getsBelief();
 	}
 	
 	// --------------------------------------------------------------------------------------

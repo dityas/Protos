@@ -63,9 +63,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		 * Use online symbolic perseus to get solution for given beliefs
 		 */
 		
-		logger.debug("Solving for " + beliefs.size() + " belief points.");
-		
-		DD[][] factoredBeliefRegion = this.f.factorBeliefRegion(beliefs); 
+		logger.debug("Solving for " + beliefs.size() + " belief points."); 
 		
 		/* Make a default alphaVectors as rewards to start with */
 		this.alphaVectors = 
@@ -79,9 +77,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				
 			boundedPerseusStartFromCurrent(
 					1000, 
-					this.dpBackups, 
-					this.dpBackups, 
-					factoredBeliefRegion,
+					0, 
+					this.dpBackups,
 					beliefs,
 					false);
 
@@ -100,17 +97,18 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			int maxAlpha, 
 			int firstStep,
 			int nSteps,
-			DD[][] beliefRegion,
 			List<DD> unfactoredBeliefRegion,
 			boolean debug) throws ZeroProbabilityObsException, VariableNotFoundException {
 		
 		double bellmanErr;
-		double[] onezero = { 0 };
+//		double[] onezero = { 0 };
 		double steptolerance;
 
 		int maxAlphaSetSize = maxAlpha;
 
 		bellmanErr = 20 * this.ipomdp.tolerance;
+		
+		DD[][] beliefRegion = this.f.factorBeliefRegion(unfactoredBeliefRegion);
 		
 		this.currentPointBasedValues = 
 				OP.factoredExpectationSparseNoMem(
@@ -403,7 +401,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-			if (stepId > 10 && this.declareApproxConvergenceForAlphaVectors(
+			if (stepId > 5 && this.declareApproxConvergenceForAlphaVectors(
 					this.alphaVectors.length, numIter, beliefRegion.length)) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE ALL BELIEFS ARE BEING USED AND NUM ALPHAS IS CONSTANT");

@@ -36,12 +36,12 @@ public class StochasticSimulation extends Simulation {
 		
 		/* make start policy node from initial belief */
 		PolicyNode node = new PolicyNode();
-		node.belief = this.solver.f.getCurrentBelief();
-		node.sBelief = this.solver.f.getBeliefString(this.solver.f.getCurrentBelief());
-		node.id = this.currentPolicyNodeCounter++;
+		node.setBelief(this.solver.f.getCurrentBelief());
+		node.setsBelief(this.solver.f.getBeliefString(this.solver.f.getCurrentBelief()));
+		node.setId(this.currentPolicyNodeCounter++);
 		
 		/* add to node map */
-		this.idToNodeMap.put(node.id, node);
+		this.putPolicyNode(node.getId(), node);
 		
 		LOGGER.debug("Stochastic simulation initialized");
 	}
