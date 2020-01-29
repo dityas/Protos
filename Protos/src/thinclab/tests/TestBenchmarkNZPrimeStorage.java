@@ -577,6 +577,11 @@ class TestBenchmarkNZPrimeStorage {
 							ipomdp, 
 							bel, false, 1e-8);
 			
+//			b = 
+//					NextBelState.oneStepNZPrimeBelStates2(
+//							ipomdp, 
+//							bel, false, 1e-8);
+			
 			for (String act: c.keySet()) {
 				
 				NextBelState cNZ = c.get(act);
@@ -584,7 +589,23 @@ class TestBenchmarkNZPrimeStorage {
 				
 				for (int n = 0; n < cNZ.nextBelStates.length; n++) {
 					for (int s = 0; s < cNZ.nextBelStates[n].length; s++) {
-						assertTrue(cNZ.nextBelStates[n][s].equals(bNZ.nextBelStates[n][s]));
+						double diff = 
+								OP.maxAll(
+										OP.abs(
+												OP.sub(
+														cNZ.nextBelStates[n][s], 
+														bNZ.nextBelStates[n][s])));
+						
+//						LOGGER.debug(OP.sub(
+//														cNZ.nextBelStates[n][s], 
+//														bNZ.nextBelStates[n][s]));
+//						
+//						LOGGER.debug("Checking");
+//						LOGGER.debug(cNZ.nextBelStates[n][s].toDDTree());
+//						LOGGER.debug(bNZ.nextBelStates[n][s].toDDTree());
+						
+						LOGGER.debug("Diff is: " + diff);
+						assertTrue(diff < 1e-4);
 					}
 				}
 			}

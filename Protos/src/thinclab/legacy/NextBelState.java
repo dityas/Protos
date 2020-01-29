@@ -278,14 +278,14 @@ public class NextBelState implements Serializable {
 			List<DD[]> nextBelStatesForAct = new ArrayList<DD[]>();
 			
 			List<List<String>> allObs = ipomdp.getAllPossibleObservations();
-			DD obsDist = ipomdp.getObsDist(ipomdp.getCurrentBelief(), act);
+			DD obsDist = ipomdp.getObsDist(belState, act);
 			double[] obsProbs = OP.convert2array(obsDist, ipomdp.obsIVarPrimeIndices);
 			
 			for (int o = 0; o < allObs.size(); o++) {
 				
 				DD nextBelief = 
 						ipomdp.beliefUpdate(
-								ipomdp.getCurrentBelief(), 
+								belState, 
 								act, 
 								allObs.get(o).stream().toArray(String[]::new));
 				

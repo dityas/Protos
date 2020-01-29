@@ -102,8 +102,8 @@ public class DynamicBeliefGraph extends StaticBeliefGraph {
 			}
 		}
 		
-		if (this instanceof PersistentStructuredTree)
-			this.commitChanges();
+//		if (this instanceof PersistentStructuredTree)
+//			this.commitChanges();
 	}
 	
 	// ----------------------------------------------------------------------------------------
