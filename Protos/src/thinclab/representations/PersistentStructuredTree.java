@@ -37,9 +37,7 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 	
 	@Override
 	public void putPolicyNode(int id, PolicyNode node) {
-		LOGGER.debug("Putting node " + node);
 		this.DB.putNode(id, node);
-		LOGGER.debug("Done putting node");
 	}
 	
 	@Override
@@ -84,9 +82,7 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 	
 	@Override
 	public void putEdge(int src, List<String> edgeLabel, int dest) {
-		LOGGER.debug("Putting edge " + src + " -> " + edgeLabel + " -> " + dest);
 		this.DB.putEdge(src, edgeLabel, dest);
-		LOGGER.debug("Done putting edge");
 	}
 	
 	@Override
@@ -104,6 +100,10 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 	@Override
 	public int getNumNodes() {
 		return this.getAllNodeIds().size();
+	}
+	
+	public void commitChanges() {
+		this.DB.commitChanges();
 	}
 	
 	// ----------------------------------------------------------------------------------------

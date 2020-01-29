@@ -74,6 +74,7 @@ public class MjDB {
 			this.storageConn = 
 					DriverManager.getConnection("jdbc:sqlite:" 
 							+ this.tempFile.getAbsolutePath());
+			this.storageConn.setAutoCommit(false);
 			
 			/* Create table for storing opponent Model */
 			
@@ -111,6 +112,18 @@ public class MjDB {
 			System.exit(-1);
 		}
 		
+	}
+	
+	public void commitChanges() {
+		try {
+			this.storageConn.commit();
+		} 
+		
+		catch (SQLException e) {
+			LOGGER.error("While commiting changes to DB");
+			e.printStackTrace();
+			System.exit(-1);
+		}
 	}
 	
 	public void putNode(int id, PolicyNode node) {
@@ -249,7 +262,7 @@ public class MjDB {
 		 * Makes all nodes in the DB as roots for expansion
 		 */
 		try {
-			String makeAllRootsQ = "UPDATE belief_id SET time_step=0";
+			String makeAllRootsQ = "UPDATE id_to_node SET time_step=0";
 			
 			PreparedStatement stmt = this.storageConn.prepareStatement(makeAllRootsQ);
 			stmt.executeUpdate();
@@ -364,8 +377,6 @@ public class MjDB {
 			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
 			stmt.setInt(1, id);
 			stmt.executeUpdate();
-			
-			LOGGER.debug("Deleted " + id + " id_to_node");
 		}
 		
 		catch (Exception e) {

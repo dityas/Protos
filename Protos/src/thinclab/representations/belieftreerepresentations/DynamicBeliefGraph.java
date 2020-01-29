@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.IPOMDP;
+import thinclab.representations.PersistentStructuredTree;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
@@ -100,6 +101,9 @@ public class DynamicBeliefGraph extends StaticBeliefGraph {
 				}
 			}
 		}
+		
+		if (this instanceof PersistentStructuredTree)
+			this.commitChanges();
 	}
 	
 	// ----------------------------------------------------------------------------------------
