@@ -605,7 +605,7 @@ class TestBenchmarkNZPrimeStorage {
 //						LOGGER.debug(bNZ.nextBelStates[n][s].toDDTree());
 						
 						LOGGER.debug("Diff is: " + diff);
-						assertTrue(diff < 1e-4);
+						assertTrue(diff < 0.001);
 					}
 				}
 			}

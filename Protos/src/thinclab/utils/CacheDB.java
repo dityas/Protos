@@ -9,6 +9,7 @@ package thinclab.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
@@ -58,8 +59,9 @@ public class CacheDB {
 		 */
 		
 		try {
-			
-			this.storageConn = DriverManager.getConnection("jdbc:sqlite:" + this.dbDir);
+			File tempFile = File.createTempFile("nz_cache", ".db");
+			tempFile.deleteOnExit();
+			this.storageConn = DriverManager.getConnection("jdbc:sqlite:" + tempFile.getAbsolutePath());
 			
 			/* Create table for storing opponent Model */
 			
