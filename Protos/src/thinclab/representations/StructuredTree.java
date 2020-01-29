@@ -241,7 +241,6 @@ public class StructuredTree implements Serializable {
 	}
 	
 	public void putPolicyNode(int id, PolicyNode node) {
-		LOGGER.debug("Putting unique node " + node);
 		this.idToNodeMap.put(id, node);
 	}
 	

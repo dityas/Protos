@@ -25,7 +25,7 @@ import thinclab.solvers.BaseSolver;
  * @author adityas
  *
  */
-public class StaticBeliefTree extends /*Persistent*/StructuredTree {
+public class StaticBeliefTree extends PersistentStructuredTree {
 	
 	/*
 	 * Holds a static belief tree which is expanded to max H at once. 
