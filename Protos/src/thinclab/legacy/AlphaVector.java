@@ -358,19 +358,6 @@ public class AlphaVector implements Serializable {
 		
 		sumoutIndices = ArrayUtils.addAll(sumoutIndices, allVarIndices);
 		
-//		DD valFnArray = 
-//				OP.multN(
-//						ArrayUtils.addAll(
-//								ipomdp.currentOi.get(bestAction), 
-//								ipomdp.currentTi.get(bestAction)));
-//		
-//		valFnArray = 
-//				OP.mult(ipomdp.currentTauXPAjGivenMjXPThetajGivenMj, 
-//						valFnArray);
-//		
-//		valFnArray = OP.mult(valFnArray, nextValFn);
-//		System.out.println("valFnArray has " + valFnArray.getNumLeaves() + " DD nodes");
-		
 		DD[] valFnArray = 
 				ArrayUtils.addAll(
 						ipomdp.currentTi.get(bestAction), 

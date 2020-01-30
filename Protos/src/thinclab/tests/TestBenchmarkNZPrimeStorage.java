@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.FloatBuffer;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +36,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CacheDB;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.NextBelStateCache;
@@ -58,6 +60,76 @@ class TestBenchmarkNZPrimeStorage {
 	@AfterEach
 	void tearDown() throws Exception {
 	}
+	
+	@Test
+	void testPBVComputation() throws Exception {
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
+		
+		
+		parser.parseDomain();
+		
+		LOGGER.info("IPOMDP init");
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 30);
+		BE.expand();
+		
+		OnlineInteractiveSymbolicPerseus SP = 
+				new OnlineInteractiveSymbolicPerseus(ipomdp, BE, 1, 1);
+		
+		List<DD> beliefs = BE.getBeliefPoints();
+		DD[] beliefsArray = beliefs.stream().toArray(DD[]::new);
+		DD[][] fBeliefs = ipomdp.factorBeliefRegion(beliefs);
+		int[] vars = ArrayUtils.subarray(ipomdp.stateVarIndices, 0, ipomdp.thetaVarPosition);
+		
+		List<Double> times = new ArrayList<Double>();
+		
+		double[][] opPBVs = null;
+		
+		for (int i = 0; i < 10; i ++) {
+			long then = System.nanoTime();
+			
+			opPBVs = OP.factoredExpectationSparseNoMem(fBeliefs, SP.alphaVectors);
+//			double[][] PBVs = OP.dotProduct(beliefsArray, SP.alphaVectors, vars);
+			
+			long now = System.nanoTime();
+			
+			times.add((double) (now - then) / 1000000);
+		}
+		
+		LOGGER.debug("Factoring took " + times.stream().mapToDouble(a -> a).average().getAsDouble() 
+				+ " msec");
+		
+		List<Double> times2 = new ArrayList<Double>();
+		double[][] dotPBVs = null;
+		for (int i = 0; i < 10; i ++) {
+			long then = System.nanoTime();
+			
+//			double[] PBVs = OP.factoredExpectationSparseNoMem(beliefsArray, SP.alphaVectors);
+			dotPBVs = OP.dotProduct(beliefsArray, SP.alphaVectors, vars);
+			
+			long now = System.nanoTime();
+			
+			times2.add((double) (now - then) / 1000000);
+		}
+		
+		LOGGER.debug("Dot took " + times2.stream().mapToDouble(a -> a).average().getAsDouble() 
+				+ " msec");
+		
+		LOGGER.debug("Checking correctness");
+		
+		for (int i = 0; i < dotPBVs.length; i++) {
+			for (int j = 0; j < dotPBVs[i].length; j++) {
+				double diff = Math.abs(opPBVs[i][j] - dotPBVs[i][j]);
+				LOGGER.debug("Diff is " + diff);
+				assertTrue(diff < 1e-4);
+			}
+		}
+		
+	}
 
 	@Test
 	void testNZPrimeComputation() throws Exception {
@@ -68,7 +140,7 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
@@ -79,6 +151,8 @@ class TestBenchmarkNZPrimeStorage {
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 		
+		DD[] belief = ipomdp.factorBelief(ipomdp.getCurrentBelief());
+		
 		List<Double> times = new ArrayList<Double>();
 		
 		for (int i = 0; i < 10; i ++) {
@@ -87,7 +161,7 @@ class TestBenchmarkNZPrimeStorage {
 			HashMap<String, NextBelState> a = 
 					NextBelState.oneStepNZPrimeBelStates(
 							ipomdp, 
-							ipomdp.getCurrentBelief(), false, 1e-8);
+							belief, false, 1e-8);
 			
 			long now = System.nanoTime();
 			
@@ -104,20 +178,21 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
 		
 		LOGGER.info("Checking nextBelStates2 computation");
 		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		DD[] belief = ipomdp.factorBelief(ipomdp.getCurrentBelief());
 		
 		long then1 = System.nanoTime();
 		/* compute real NextBelStates */
 		HashMap<String, NextBelState> a = 
 				NextBelState.oneStepNZPrimeBelStates(
 						ipomdp, 
-						ipomdp.getCurrentBelief(), false, 1e-8);
+						belief, false, 1e-8);
 		long now1 = System.nanoTime();
 		LOGGER.debug("Original implementation took " + (now1 - then1) / 1000000 + " msecs.");
 		
