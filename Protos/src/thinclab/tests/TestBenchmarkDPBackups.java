@@ -59,7 +59,7 @@ class TestBenchmarkDPBackups {
 		IPOMDPParser parser = 
 				new IPOMDPParser(
 						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
@@ -122,7 +122,7 @@ class TestBenchmarkDPBackups {
 					AlphaVector.dpBackup2(
 							ipomdp,
 							exploredBeliefs.get(i), 
-							factoredBeliefs[i], primedV, maxAbsVal, 
+							/*factoredBeliefs[i],*/ primedV, maxAbsVal, 
 							alphaVectors.length);
 			
 			long now = System.nanoTime();
@@ -216,6 +216,76 @@ class TestBenchmarkDPBackups {
 			LOGGER.debug("New A Vec VAR SET is: " 
 					+ Arrays.toString(vec2.alphaVector.getVarSet()));
 			LOGGER.debug("New A Vec is " + vec2.alphaVector.toDDTree());
+			
+			double diff = OP.maxAll(OP.abs(OP.sub(vec1.alphaVector, vec2.alphaVector)));
+			LOGGER.debug("Diff is " + diff);
+			assertTrue(diff < 1e-8);
+		}
+	}
+	
+	@Test
+	void testDPBackupsCorrectnessWithoutFactoredBelState() throws Exception {
+		
+		IPOMDPParser parser = 
+				new IPOMDPParser(
+						"/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/deception.5S.2O.L1.2F.domain");
+		
+		parser.parseDomain();
+		
+		LOGGER.info("Calling empty constructor");
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
+		BE.expand();
+		List<DD> exploredBeliefs = BE.getBeliefPoints();
+		
+		LOGGER.debug("Found " + exploredBeliefs.size() + " beliefs");
+		
+		OnlineInteractiveSymbolicPerseus solver = 
+				new OnlineInteractiveSymbolicPerseus(
+						ipomdp, 
+						BE, 1, 100);
+		
+		DD[] alphaVectors = solver.getAlphaVectors();
+		LOGGER.debug("Making primed V");
+		
+		/* make primed V */
+		DD[] primedV = new DD[alphaVectors.length];
+		
+		for (int i = 0; i < alphaVectors.length; i++) {
+			primedV[i] = 
+					OP.primeVars(
+							alphaVectors[i], 
+							ipomdp.S.size() + ipomdp.Omega.size());
+		}
+		
+		/* compute maxAbsVal */
+		double maxAbsVal = 
+				Math.max(
+						OP.maxabs(
+								IPOMDP.concatenateArray(
+										OP.maxAllN(alphaVectors), 
+										OP.minAllN(alphaVectors))), 1e-10);
+		
+		DD[][] factoredBeliefs = ipomdp.factorBeliefRegion(exploredBeliefs);
+		
+		/* do all those iterations of DP backup and check computation time */
+		for (int i = 0; i < exploredBeliefs.size(); i++) {
+			
+			AlphaVector vec1 = 
+					AlphaVector.dpBackup2(
+							ipomdp, 
+							exploredBeliefs.get(i), 
+							factoredBeliefs[i], primedV, maxAbsVal, 
+							alphaVectors.length);
+			
+			AlphaVector vec2 = 
+					AlphaVector.dpBackup2(
+							ipomdp,
+							exploredBeliefs.get(i), 
+							/*factoredBeliefs[i],*/primedV, maxAbsVal, 
+							alphaVectors.length);
 			
 			double diff = OP.maxAll(OP.abs(OP.sub(vec1.alphaVector, vec2.alphaVector)));
 			LOGGER.debug("Diff is " + diff);

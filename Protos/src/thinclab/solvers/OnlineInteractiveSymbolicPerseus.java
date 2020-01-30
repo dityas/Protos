@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
@@ -63,7 +64,11 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		 * Use online symbolic perseus to get solution for given beliefs
 		 */
 		
-		logger.debug("Solving for " + beliefs.size() + " belief points."); 
+		DD[] beliefsArray = beliefs.stream().toArray(DD[]::new);
+		beliefs.clear();
+		beliefs = null;
+		
+		logger.debug("Solving for " + beliefsArray.length + " belief points."); 
 		
 		/* Make a default alphaVectors as rewards to start with */
 		this.alphaVectors = 
@@ -79,7 +84,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					10, 
 					0, 
 					this.dpBackups,
-					beliefs,
+					beliefsArray,
 					false);
 
 			this.currentPointBasedValues = null;
@@ -97,22 +102,26 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			int maxAlpha, 
 			int firstStep,
 			int nSteps,
-			List<DD> unfactoredBeliefRegion,
+			DD[] unfactoredBeliefRegion,
 			boolean debug) throws ZeroProbabilityObsException, VariableNotFoundException {
 		
 		double bellmanErr;
-//		double[] onezero = { 0 };
 		double steptolerance;
+		
+		int numBeliefs = unfactoredBeliefRegion.length;
+		
+		int[] ipomdpVars = 
+				ArrayUtils.subarray(
+						((IPOMDP) this.f).stateVarIndices, 
+						0, 
+						((IPOMDP) this.f).thetaVarPosition);
 
 		int maxAlphaSetSize = maxAlpha;
-
 		bellmanErr = 20 * this.ipomdp.tolerance;
 		
-		DD[][] beliefRegion = this.f.factorBeliefRegion(unfactoredBeliefRegion);
-		
 		this.currentPointBasedValues = 
-				OP.factoredExpectationSparseNoMem(
-						beliefRegion, this.alphaVectors);
+				OP.dotProduct(
+						unfactoredBeliefRegion, this.alphaVectors, ipomdpVars);
 		
 		logger.debug("Computed PBVs");
 		
@@ -122,9 +131,9 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			
 			logger.debug("printing belief region");
 			
-			for (int i = 0; i < beliefRegion.length; i++) {
+			for (int i = 0; i < numBeliefs; i++) {
 				logger.debug("Belief:" + i+ " " 
-						+ this.ipomdp.toMap(unfactoredBeliefRegion.get(i)));
+						+ this.ipomdp.toMap(unfactoredBeliefRegion[i]));
 			}
 			logger.debug("Ri : " + this.ipomdp.currentRi);
 		}
@@ -176,14 +185,14 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			int nDpBackups = 0;
 			
 			RandomPermutation permutedIds = new RandomPermutation(
-					Global.random, beliefRegion.length, false);
+					Global.random, numBeliefs, false);
 			
 			this.newAlphaVectors = new AlphaVector[maxAlphaSetSize + 1];
-			this.newPointBasedValues = new double[beliefRegion.length][maxAlphaSetSize + 1];
+			this.newPointBasedValues = new double[numBeliefs][maxAlphaSetSize + 1];
 			this.numNewAlphaVectors = 0;
 						
 			AlphaVector newVector;
-			double[] diff = new double[beliefRegion.length];
+			double[] diff = new double[numBeliefs];
 			double[] maxcurrpbv;
 			double[] maxnewpbv;
 			double[] newValues;
@@ -200,7 +209,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					&& !permutedIds.isempty()) {
 				
 				if (nDpBackups >= 2 * this.alphaVectors.length) {
-					this.computeMaxMinImprovement(beliefRegion);
+					this.computeMaxMinImprovement(numBeliefs);
 					if (this.bestImprovement > this.ipomdp.tolerance
 							&& this.bestImprovement > -2 * this.worstDecline) {
 						
@@ -258,8 +267,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					newVector = 
 							AlphaVector.dpBackup2(
 									this.ipomdp,
-									unfactoredBeliefRegion.get(i),
-									beliefRegion[i],
+									unfactoredBeliefRegion[i],
+									/*beliefRegion[i],*/
 									primedV,
 									maxAbsVal,
 									this.alphaVectors.length);
@@ -281,9 +290,9 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					
 					/* merge and trim */
 					newValues = 
-							OP.factoredExpectationSparseNoMem(
-									beliefRegion, 
-									newVector.alphaVector);	
+							OP.dotProduct(
+									unfactoredBeliefRegion, 
+									newVector.alphaVector, ipomdpVars);	
 						
 					if (this.numNewAlphaVectors < 1)
 						improvement = Double.POSITIVE_INFINITY; 
@@ -305,7 +314,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 									+ Arrays.toString(newVector.alphaVector.getVarSet()));
 						}
 
-						for (int belid = 0; belid < beliefRegion.length; belid++) {
+						for (int belid = 0; belid < numBeliefs; belid++) {
 							this.newPointBasedValues[belid][this.numNewAlphaVectors] = 
 								newValues[belid];
 						}
@@ -316,7 +325,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				}
 			}
 
-			this.computeMaxMinImprovement(beliefRegion);
+			this.computeMaxMinImprovement(numBeliefs);
 
 			/*
 			 * save data and copy over new to old
@@ -339,7 +348,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				this.uniquePolicy[this.policy[j]] = true;
 			}
 
-			for (int j = 0; j < beliefRegion.length; j++) {
+			for (int j = 0; j < unfactoredBeliefRegion.length; j++) {
 				System.arraycopy(
 						this.newPointBasedValues[j], 
 						0, 
@@ -355,7 +364,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			
 			logger.info("I: " + stepId 
 					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
-					+ " \tUSED/TOTAL BELIEFS: " + numIter + "/" + beliefRegion.length
+					+ " \tUSED/TOTAL BELIEFS: " + numIter + "/" + numBeliefs
 					+ " \tA VECTORS: " + this.alphaVectors.length
 					+ " \tAPPROX. CONV PATIENCE: " + this.numSimilar
 					+ " \tNON DEC ERROR PATIENCE: " + this.errorPatience);
@@ -402,7 +411,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			}
 			
 			if (stepId > 5 && this.declareApproxConvergenceForAlphaVectors(
-					this.alphaVectors.length, numIter, beliefRegion.length)) {
+					this.alphaVectors.length, numIter, numBeliefs)) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE ALL BELIEFS ARE BEING USED AND NUM ALPHAS IS CONSTANT");
 				break;

@@ -151,7 +151,7 @@ class TestBenchmarkNZPrimeStorage {
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 		
-		DD[] belief = ipomdp.factorBelief(ipomdp.getCurrentBelief());
+//		DD[] belief = ipomdp.factorBelief(ipomdp.getCurrentBelief());
 		
 		List<Double> times = new ArrayList<Double>();
 		
@@ -161,7 +161,7 @@ class TestBenchmarkNZPrimeStorage {
 			HashMap<String, NextBelState> a = 
 					NextBelState.oneStepNZPrimeBelStates(
 							ipomdp, 
-							belief, false, 1e-8);
+							ipomdp.getCurrentBelief(), false, 1e-8);
 			
 			long now = System.nanoTime();
 			

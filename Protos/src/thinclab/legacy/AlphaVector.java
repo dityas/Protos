@@ -397,6 +397,185 @@ public class AlphaVector implements Serializable {
 		return returnAlpha;
 	}
 	
+	public static AlphaVector dpBackup2(
+			IPOMDP ipomdp,
+			DD belState,
+			DD[] primedV, 
+			double maxAbsVal,
+			int numAlpha) throws ZeroProbabilityObsException, VariableNotFoundException {
+		
+		/*
+		 * A more efficient version of the backup using dot product for computing PBVs
+		 * 
+		 */
+		
+		HashMap<String, NextBelState> nextBelStates;
+		int[] stateVarIndices = ArrayUtils.subarray(ipomdp.stateVarIndices, 0, ipomdp.thetaVarPosition);
+		
+		/* get next unnormalised belief states */
+		double smallestProb;
+		
+		/* measure time constructing for NZ primes */
+		long beforeNZPrimes = System.nanoTime();
+		
+		smallestProb = ipomdp.tolerance / maxAbsVal;
+		nextBelStates = 
+				NextBelState.oneStepNZPrimeBelStatesCached(
+						ipomdp, 
+						belState, 
+						true, 
+						smallestProb);
+
+		/* precompute obsVals */
+		nextBelStates.values().forEach(n -> n.getObsVals(primedV));
+		
+		long afterNZPrimes = System.nanoTime();
+		Diagnostics.NZ_PRIME_TIME.add((afterNZPrimes - beforeNZPrimes));
+
+		double bestValue = Double.NEGATIVE_INFINITY;
+		double actValue;
+		String bestAction = null;
+		
+		int nObservations = ipomdp.obsCombinations.size();
+		
+		int[] bestObsStrat = new int[nObservations];
+		
+		/* measure time for Immediate R */
+		long beforeR = System.nanoTime();
+
+		for (String Ai : ipomdp.getActions()) {
+			
+			actValue = 0.0;
+			
+			/* compute immediate rewards */
+			actValue = 
+					actValue + OP.dotProduct(
+							belState, 
+							ipomdp.currentRi.get(Ai),
+							stateVarIndices);
+
+			/* compute observation strategy */
+			nextBelStates.get(Ai).getObsStrat();
+			actValue = actValue + ipomdp.discFact
+					* nextBelStates.get(Ai).getSumObsValues();
+			
+			if (actValue > bestValue) {
+				
+				bestValue = actValue;
+				bestAction = Ai;
+				bestObsStrat = nextBelStates.get(Ai).obsStrat;
+			}
+		}
+		
+		long afterR = System.nanoTime();
+		Diagnostics.IMMEDIATE_R_TIME.add((afterR - beforeR));
+		
+		/* measure time for constructing A Vec */
+		long beforeAVec = System.nanoTime();
+		
+		/* construct corresponding alpha vector */
+		DD newAlpha = DD.zero;
+		DD nextValFn = DD.zero;
+		DD obsDd;
+		int[] obsConfig = new int[ipomdp.obsIVarIndices.length];
+		
+		long beforeNextValFn = System.nanoTime();
+		
+		for (int alphaId = 0; alphaId < numAlpha; alphaId++) {
+		
+			if (MySet.find(bestObsStrat, alphaId) >= 0) {
+
+				obsDd = DD.zero;
+
+				for (int obsId = 0; obsId < nObservations; obsId++) {
+					
+					if (bestObsStrat[obsId] == alphaId) {
+						
+						obsConfig = 
+								IPOMDP.statedecode(
+										obsId + 1, 
+										ipomdp.obsIVarIndices.length, 
+										ArrayUtils.subarray(
+												ipomdp.obsVarsArity, 
+												0, 
+												ipomdp.obsIVarIndices.length));
+
+						obsDd = 
+								OP.add(
+										obsDd, 
+										Config.convert2dd(
+												IPOMDP.stackArray(
+														ipomdp.obsIVarPrimeIndices, 
+														obsConfig)));
+
+					}
+				}
+				
+				nextValFn = 
+						OP.add(
+								nextValFn, 
+								OP.multN(
+										IPOMDP.concatenateArray(
+												DDleaf.myNew(ipomdp.discFact), 
+												obsDd, 
+												primedV[alphaId])));
+			}
+		}
+		
+		long afterNextValFn = System.nanoTime();
+		Diagnostics.NEXT_VAL_FN_TIME.add((afterNextValFn - beforeNextValFn));
+		
+		int[] sumoutIndices = new int[] {ipomdp.thetaVarPosition + 1, ipomdp.AjVarStartPosition + 1};
+		
+		int[] allVarIndices = 
+				ArrayUtils.addAll(
+						ArrayUtils.subarray(
+								ipomdp.stateVarPrimeIndices, 
+								0, 
+								ipomdp.thetaVarPosition), 
+						ipomdp.obsIVarPrimeIndices);
+		
+		sumoutIndices = ArrayUtils.addAll(sumoutIndices, allVarIndices);
+		
+		DD[] valFnArray = 
+				ArrayUtils.addAll(
+						ipomdp.currentTi.get(bestAction), 
+						ipomdp.currentOi.get(bestAction));
+		
+		valFnArray = 
+				ArrayUtils.addAll(
+						valFnArray, 
+						new DD[] {
+								ipomdp.currentTauXPAjGivenMjXPThetajGivenMj, 
+								nextValFn});
+		
+		newAlpha = 
+				OP.addMultVarElim(
+						valFnArray, 
+						sumoutIndices);
+
+		newAlpha = 
+				OP.addN(
+						IPOMDP.concatenateArray(
+								newAlpha, 
+								ipomdp.currentRi.get(bestAction)));
+		
+		long afterAVec = System.nanoTime();
+		Diagnostics.AVEC_TIME.add((afterAVec - beforeAVec));
+		
+		bestValue = OP.dotProduct(belState, newAlpha, stateVarIndices);
+
+		/* package up to return */
+		AlphaVector returnAlpha = 
+				new AlphaVector(
+						newAlpha, 
+						bestValue, 
+						ipomdp.getActions().indexOf(bestAction), 
+						bestObsStrat);
+		
+		return returnAlpha;
+	}
+	
 	
 	public static AlphaVector dpBackup(
 			POMDP pomdp, DD[] belState, DD[] primedV, double maxAbsVal, int numAlphas) {
