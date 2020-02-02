@@ -26,7 +26,6 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
-import thinclab.representations.policyrepresentations.PolicyNode;
 
 /*
  * @author adityas
