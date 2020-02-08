@@ -64,7 +64,7 @@ class TestBenchmarkDPBackups {
 		parser.parseDomain();
 		
 		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		LOGGER.debug("TAU contains " + ipomdp.currentTau.getNumLeaves() + " DD nodes");
 		
@@ -141,12 +141,12 @@ class TestBenchmarkDPBackups {
 		IPOMDPParser parser = 
 				new IPOMDPParser(
 						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
 		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		LOGGER.debug("TAU contains " + ipomdp.currentTau.getNumLeaves() + " DD nodes");
 		
@@ -234,7 +234,7 @@ class TestBenchmarkDPBackups {
 		parser.parseDomain();
 		
 		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
 		BE.expand();
@@ -299,12 +299,12 @@ class TestBenchmarkDPBackups {
 		IPOMDPParser parser = 
 				new IPOMDPParser(
 						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
 		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		LOGGER.debug("TAU contains " + ipomdp.currentTau.getNumLeaves() + " DD nodes");
 		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj) contains " 
@@ -351,12 +351,12 @@ class TestBenchmarkDPBackups {
 		IPOMDPParser parser = 
 				new IPOMDPParser(
 						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
 		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		LOGGER.debug("TAU contains " + ipomdp.currentTau.getNumLeaves() + " DD nodes");
 		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj) contains " 
@@ -399,12 +399,12 @@ class TestBenchmarkDPBackups {
 		IPOMDPParser parser = 
 				new IPOMDPParser(
 						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
 		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		LOGGER.debug("TAU contains " + ipomdp.currentTau.getNumLeaves() + " DD nodes");
 		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj) contains " 
@@ -446,12 +446,12 @@ class TestBenchmarkDPBackups {
 		IPOMDPParser parser = 
 				new IPOMDPParser(
 						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
 		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		LOGGER.debug("TAU contains " + ipomdp.currentTau.getNumLeaves() + " DD nodes");
 		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj) contains " 

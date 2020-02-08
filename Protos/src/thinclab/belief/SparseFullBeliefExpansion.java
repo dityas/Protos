@@ -106,6 +106,8 @@ public class SparseFullBeliefExpansion extends FullBeliefExpansion {
 				}
 				
 				catch (ZeroProbabilityObsException e) {
+					LOGGER.warn("Zero probability Observation encountered. Somthing"
+							+ " might be seriously wrong");
 				}
 				
 				catch (Exception e) {

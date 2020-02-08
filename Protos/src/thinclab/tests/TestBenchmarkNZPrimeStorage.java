@@ -72,7 +72,7 @@ class TestBenchmarkNZPrimeStorage {
 		parser.parseDomain();
 		
 		LOGGER.info("IPOMDP init");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 30);
 		BE.expand();
@@ -146,7 +146,7 @@ class TestBenchmarkNZPrimeStorage {
 		parser.parseDomain();
 		
 		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
@@ -184,7 +184,7 @@ class TestBenchmarkNZPrimeStorage {
 		parser.parseDomain();
 		
 		LOGGER.info("Checking nextBelStates2 computation");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		DD[] belief = ipomdp.factorBelief(ipomdp.getCurrentBelief());
 		
 		long then1 = System.nanoTime();
@@ -240,13 +240,13 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
 		
 		LOGGER.info("Running manual computations");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
@@ -330,13 +330,13 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
 		
 		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
@@ -379,13 +379,13 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
 		
 		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
@@ -438,12 +438,12 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
@@ -493,12 +493,12 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
@@ -539,12 +539,12 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		NextBelStateCache.useCache();
 		NextBelStateCache.setDB("/tmp/nz_cache.db");
@@ -588,11 +588,11 @@ class TestBenchmarkNZPrimeStorage {
 		IPOMDPParser parser = 
 				new IPOMDPParser(
 						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 1);
 		BE.expand();
