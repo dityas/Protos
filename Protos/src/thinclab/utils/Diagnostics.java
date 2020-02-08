@@ -39,6 +39,8 @@ public class Diagnostics {
 	/* for constructing alpha vector */
 	public static List<Long> AVEC_TIME = new ArrayList<Long>();
 	
+	/* for computing next value function */
+	public static List<Long> NEXT_VAL_FN_TIME = new ArrayList<Long>();
 	
 	private static final Logger LOGGER = Logger.getLogger(Diagnostics.class);
 	
@@ -88,6 +90,7 @@ public class Diagnostics {
 					.orElse(Double.NaN);
 		
 		Diagnostics.AVEC_TIME.clear();
+		Diagnostics.NEXT_VAL_FN_TIME.clear();
 		
 		LOGGER.debug("EXEC TIMES: "
 				+ " BACKUP: " + String.format(Locale.US, "%.03f", (avgBackupTime / 1000000)) 

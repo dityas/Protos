@@ -183,7 +183,7 @@ public class DDTree implements Serializable {
 		 * Sets the value of the leaf at childName to param val
 		 */
 		if (this.children.containsKey(childName)) 
-			this.children.put(childName, ddToAppend.getCopy());
+			this.children.put(childName, ddToAppend/*.getCopy()*/);
 
 		else throw new Exception(varName + " does not contain child " + childName);
 	}

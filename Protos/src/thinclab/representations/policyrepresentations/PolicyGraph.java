@@ -69,12 +69,12 @@ public class PolicyGraph extends StructuredTree {
 		for (DD startBelief : DP.getInitialBeliefs()) {
 			
 			PolicyNode node = new PolicyNode();
-			node.belief = startBelief;
+			node.setBelief(startBelief);
 			node.alphaId = DecisionProcess.getBestAlphaIndex(DP, startBelief, this.alphas);
-			node.actName = DP.getActions().get(this.actions[node.alphaId]);
-			node.startNode = true;
+			node.setActName(DP.getActions().get(this.actions[node.alphaId]));
+			node.setStartNode();
 			
-			this.idToNodeMap.put(node.alphaId, node);
+			this.putPolicyNode(node.alphaId, node);
 			
 			leafNodes.add(node.alphaId);
 		}
@@ -85,7 +85,7 @@ public class PolicyGraph extends StructuredTree {
 		/* Do till there are no terminal policy leaves */
 		while(!leafNodes.isEmpty()) {
 			
-			PolicyNode node = this.idToNodeMap.get(leafNodes.remove(0));
+			PolicyNode node = this.getPolicyNode(leafNodes.remove(0));
 			List<Integer> newLeaves = new ArrayList<Integer>();
 			
 			/*
@@ -97,32 +97,33 @@ public class PolicyGraph extends StructuredTree {
 					
 					DD nextBel = 
 							DP.beliefUpdate( 
-									node.belief, 
-									node.actName, 
+									node.getBelief(), 
+									node.getActName(), 
 									theObs.stream().toArray(String[]::new));
 					
 					/* get best next node */
 					int alphaId = 
 							DecisionProcess.getBestAlphaIndex(DP, nextBel, this.alphas);
 					
-					if (!this.idToNodeMap.containsKey(alphaId)) {
+					if (!this.containsNode(alphaId)) {
 						
 						PolicyNode nexNode = new PolicyNode();
 						
-						nexNode.belief = nextBel;
+						nexNode.setBelief(nextBel);
 						nexNode.alphaId = alphaId;
-						nexNode.actName = DP.getActions().get(this.actions[alphaId]);
+						nexNode.setActName(DP.getActions().get(this.actions[alphaId]));
 						
-						this.idToNodeMap.put(alphaId, nexNode);
+						this.putPolicyNode(alphaId, nexNode);
 						newLeaves.add(alphaId);
 					}
 					
-					if (!this.edgeMap.containsKey(node.alphaId))
-						this.edgeMap.put(
-								node.alphaId, 
-								new HashMap<List<String>, Integer>());
-					
-					this.edgeMap.get(node.alphaId).put(theObs, alphaId);
+//					if (!this.edgeMap.containsKey(node.alphaId))
+//						this.edgeMap.put(
+//								node.alphaId, 
+//								new HashMap<List<String>, Integer>());
+//					
+//					this.edgeMap.get(node.alphaId).put(theObs, alphaId);
+					this.putEdge(node.alphaId, theObs, alphaId);
 					
 				}
 				
@@ -150,24 +151,26 @@ public class PolicyGraph extends StructuredTree {
 		dotString += "graph [ranksep=1];" + endl;
 		
 		/* Make nodes */
-		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
+		for (int nodeId : this.getAllNodeIds()) {
 			
-			if (entry.getValue().startNode)
-				dotString += " " + entry.getKey() + " [shape=Mrecord, label=\"{";
+			PolicyNode node = this.getPolicyNode(nodeId);
+			
+			if (node.isStartNode())
+				dotString += " " + nodeId + " [shape=Mrecord, label=\"{";
 			else
-				dotString += " " + entry.getKey() + " [shape=record, label=\"{";
+				dotString += " " + nodeId + " [shape=record, label=\"{";
 			
-			dotString += "Ai=" + entry.getValue().actName
+			dotString += "Ai=" + node.getActName()
 					+ "}\"];" + endl;
 		}
 		
 		dotString += endl;
 		
-		for (Entry<Integer, HashMap<List<String>, Integer>> edges : this.edgeMap.entrySet()) {
+		for (int edgeSrcs : this.getAllEdgeIds()) {
 			
-			String from = edges.getKey().toString();
+			String from = Integer.valueOf(edgeSrcs).toString();
 			
-			for (Entry<List<String>, Integer> ends : edges.getValue().entrySet()) {
+			for (Entry<List<String>, Integer> ends : this.getEdges(edgeSrcs).entrySet()) {
 				
 				dotString += " " + from + " -> " + ends.getValue()
 					+ " [label=\"" + ends.getKey().toString() + "\"]" + endl;

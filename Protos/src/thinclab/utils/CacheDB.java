@@ -9,21 +9,16 @@ package thinclab.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import java.io.File;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -64,8 +59,9 @@ public class CacheDB {
 		 */
 		
 		try {
-//			this.storageConn = DriverManager.getConnection("jdbc:sqlite::memory:");
-			this.storageConn = DriverManager.getConnection("jdbc:sqlite:" + this.dbDir);
+			File tempFile = File.createTempFile("nz_cache", ".db");
+			tempFile.deleteOnExit();
+			this.storageConn = DriverManager.getConnection("jdbc:sqlite:" + tempFile.getAbsolutePath());
 			
 			/* Create table for storing opponent Model */
 			

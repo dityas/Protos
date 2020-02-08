@@ -38,8 +38,11 @@ public class NextBelState implements Serializable {
 	public int[] obsStrat;
 	public double[] obsValues;
 	public double sumObsValues;
-	public IPOMDP ipomdp;
-	public POMDP pomdp;
+	
+	public String fType;
+	public int[] primeObsIndices;
+	public int nObs;
+	public int obsProbIndex;
 	
 	private static final Logger LOGGER = Logger.getLogger(NextBelState.class);
 	
@@ -50,16 +53,19 @@ public class NextBelState implements Serializable {
 		 * Same as Hoey's implementation with a POMDP passed explicitly as an argument
 		 */
 		
-		this.pomdp = p;
+		this.fType = p.getType();
+		this.primeObsIndices = p.primeObsIndices;
+		this.nObs = p.nObservations;
+		this.obsProbIndex = p.nStateVars;
 		numValidObs = 0;
 		
 		for (int i = 0; i < obsProbs.length; i++)
 			if (obsProbs[i] > smallestProb)
 				numValidObs++;
 		
-		nextBelStates = new DD[numValidObs][this.pomdp.nStateVars + 1];
+		nextBelStates = new DD[numValidObs][p.nStateVars + 1];
 		nzObsIds = new int[numValidObs];
-		obsStrat = new int[this.pomdp.nObservations];
+		obsStrat = new int[p.nObservations];
 		obsValues = new double[numValidObs];
 		int j = 0;
 		for (int i = 0; i < obsProbs.length; i++)
@@ -69,16 +75,19 @@ public class NextBelState implements Serializable {
 	
 	public NextBelState(IPOMDP ip, double[] obsProbs, double smallestProb) {
 		
-		this.ipomdp = ip;
+		this.fType = ip.getType();
+		this.primeObsIndices = ip.obsIVarPrimeIndices;
+		this.nObs = ip.obsCombinations.size();
+		this.obsProbIndex = ip.thetaVarPosition;
 		numValidObs = 0;
 		
 		for (int i = 0; i < obsProbs.length; i++)
 			if (obsProbs[i] > smallestProb)
 				numValidObs++;
 		
-		nextBelStates = new DD[numValidObs][this.ipomdp.nStateVars - 1];
+		nextBelStates = new DD[numValidObs][ip.nStateVars - 1];
 		nzObsIds = new int[numValidObs];
-		obsStrat = new int[this.ipomdp.obsCombinations.size()];
+		obsStrat = new int[ip.obsCombinations.size()];
 		obsValues = new double[numValidObs];
 		
 		int j = 0;
@@ -104,9 +113,6 @@ public class NextBelState implements Serializable {
 		obsValues = a.obsValues;
 		sumObsValues = a.sumObsValues;
 		
-		if (a.ipomdp == null) this.pomdp = a.pomdp;
-		
-		else this.ipomdp = a.ipomdp;
 	}
 	
 	public void populateNextBelStates(DD[][] knownBeliefs) {
@@ -133,27 +139,13 @@ public class NextBelState implements Serializable {
 		
 		int obsId;
 		
-		if (this.ipomdp == null) {
-			for (int obsPtr = 0; obsPtr < numValidObs; obsPtr++) {
-				
-				obsId = nzObsIds[obsPtr];
-				
-				nextBelStates[obsPtr] = OP.restrictN(marginals,
-						POMDP.stackArray(this.pomdp.primeObsIndices, 
-								obsConfig[obsId]));
-			}
-		}
-		
-		else {
-			for (int obsPtr = 0; obsPtr < numValidObs; obsPtr++) {
-				
-				obsId = nzObsIds[obsPtr];
-				
-				nextBelStates[obsPtr] = OP.restrictN(marginals,
-						IPOMDP.stackArray(this.ipomdp.obsIVarPrimeIndices, 
-								obsConfig[obsId]));
-//				System.out.println("OP marginals are " + Arrays.toString(nextBelStates[obsPtr]));
-			}
+		for (int obsPtr = 0; obsPtr < numValidObs; obsPtr++) {
+			
+			obsId = nzObsIds[obsPtr];
+			
+			nextBelStates[obsPtr] = OP.restrictN(marginals,
+					POMDP.stackArray(this.primeObsIndices, 
+							obsConfig[obsId]));
 		}
 	}
 
@@ -186,35 +178,14 @@ public class NextBelState implements Serializable {
 		int obsId;
 		double obsProb;
 		
-		if (this.ipomdp == null) {
-			
-			for (int obsPtr = 0; obsPtr < this.pomdp.nObservations; obsPtr++)
-				obsStrat[obsPtr] = 0;
-		}
-		
-		else {
-			for (int obsPtr = 0; obsPtr < this.ipomdp.obsCombinations.size(); obsPtr++)
-				obsStrat[obsPtr] = 0;
-		}
-		
+		for (int obsPtr = 0; obsPtr < this.nObs; obsPtr++)
+			obsStrat[obsPtr] = 0;
+
 		for (int obsPtr = 0; obsPtr < numValidObs; obsPtr++) {
 			
 			obsId = nzObsIds[obsPtr];
 			
-			if (this.ipomdp == null) {
-				obsProb = nextBelStates[obsPtr][this.pomdp.nStateVars].getVal();
-//				logger.debug("NextBelStates[obsPtr] = " + (nextBelStates[obsPtr][this.pomdp.nStateVars]));
-			}
-				
-			
-			else {
-				obsProb = nextBelStates[obsPtr][this.ipomdp.thetaVarPosition].getVal();
-//				logger.debug("NextBelStates[obsPtr] = " + (nextBelStates[obsPtr][this.ipomdp.nStateVars - 1]));
-			}
-			
-//			System.out.println("NextBelStates[obsPtr][nS] = " 
-//					+ nextBelStates[obsPtr][this.ipomdp.nStateVars - 1]);}
-			
+			obsProb = nextBelStates[obsPtr][this.obsProbIndex].getVal();
 			alphaValue = obsVals[obsPtr][0];
 			
 			for (int i = 1; i < obsVals[obsPtr].length; i++) {
@@ -278,14 +249,14 @@ public class NextBelState implements Serializable {
 			List<DD[]> nextBelStatesForAct = new ArrayList<DD[]>();
 			
 			List<List<String>> allObs = ipomdp.getAllPossibleObservations();
-			DD obsDist = ipomdp.getObsDist(ipomdp.getCurrentBelief(), act);
+			DD obsDist = ipomdp.getObsDist(belState, act);
 			double[] obsProbs = OP.convert2array(obsDist, ipomdp.obsIVarPrimeIndices);
 			
 			for (int o = 0; o < allObs.size(); o++) {
 				
 				DD nextBelief = 
 						ipomdp.beliefUpdate(
-								ipomdp.getCurrentBelief(), 
+								belState, 
 								act, 
 								allObs.get(o).stream().toArray(String[]::new));
 				
@@ -342,8 +313,8 @@ public class NextBelState implements Serializable {
 				if (!nextBelStates.get(Ai).isempty()) {
 					marginals = 
 							OP.marginals(
-									((IBeliefOps) ipomdp.bOPs).getCpts( 
-											belState, 
+									((IBeliefOps) ipomdp.bOPs).getCpts2( 
+											belState,
 											Ai), 
 									ArrayUtils.subarray(
 											ipomdp.stateVarPrimeIndices, 
@@ -352,7 +323,65 @@ public class NextBelState implements Serializable {
 									ArrayUtils.subarray(
 											ipomdp.stateVarIndices, 
 											0, 
-											ipomdp.thetaVarPosition));
+											/*ipomdp.thetaVarPosition*/ipomdp.stateVarIndices.length));
+					
+//					logger.debug("Marginals are " + Arrays.toString(marginals));
+					nextBelStates.get(Ai).restrictN(marginals, obsConfig);
+//					logger.debug("After computing marginals " + nextBelStates[actId]);
+					
+				}
+				
+			}
+			
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+		return nextBelStates;
+	}
+	
+	public static HashMap<String, NextBelState> oneStepNZPrimeBelStates(
+			IPOMDP ipomdp,
+			DD[] belState,
+			boolean normalize, 
+			double smallestProb) throws ZeroProbabilityObsException, VariableNotFoundException {
+		/*
+		 * Computes the next belief states and the observation probabilities for factored belstate
+		 */
+		
+		int[][] obsConfig = ipomdp.obsCombinationsIndices;
+		
+		double[] obsProbs;
+		DD[] marginals = new DD[ipomdp.stateVarIndices.length + 1];
+		DD dd_obsProbs;
+
+		HashMap<String, NextBelState> nextBelStates = new HashMap<String, NextBelState>();
+		
+		IBeliefOps bOps = (IBeliefOps) ipomdp.bOPs;
+		int[] primeVarSubArray = 
+				ArrayUtils.subarray(ipomdp.stateVarPrimeIndices, 0, ipomdp.thetaVarPosition);
+		
+		for (String Ai: ipomdp.getActions()) {
+			
+			/* Assuming factored belief was normalized */
+			dd_obsProbs = bOps.getObsDist2(belState, Ai);
+			
+			obsProbs = OP.convert2array(dd_obsProbs, ipomdp.obsIVarPrimeIndices);
+			nextBelStates.put(Ai, new NextBelState(ipomdp, obsProbs, smallestProb));
+
+			
+			/* Compute marginals */
+			try {
+				if (!nextBelStates.get(Ai).isempty()) {
+					marginals = 
+							OP.marginals(
+									bOps.getCpts2( 
+											belState,
+											Ai), 
+									primeVarSubArray,
+									ipomdp.stateVarIndices);
 					
 //					logger.debug("Marginals are " + Arrays.toString(marginals));
 					nextBelStates.get(Ai).restrictN(marginals, obsConfig);

@@ -9,11 +9,13 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.parsers.ParseSPUDD;
+import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
@@ -22,11 +24,14 @@ import thinclab.parsers.ParseSPUDD;
 class TestParseSPUDD {
 
 	public String l1DomainFile;
+	private Logger LOGGER = null;
 	
 	@BeforeEach
 	void setUp() throws Exception {
+		CustomConfigurationFactory.initializeLogging();
+		LOGGER = Logger.getLogger(TestParseSPUDD.class);
 		this.l1DomainFile = 
-				"/home/adityas/git/repository/FactoredPOMDPsolver/src/attacker_l0.txt";
+				"/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
 	}
 
 	@AfterEach
@@ -48,9 +53,9 @@ class TestParseSPUDD {
 		ParseSPUDD parser = new ParseSPUDD(this.l1DomainFile);
 		parser.parsePOMDP(false);
 		
-		assertEquals(parser.S.size(), 8);
+		assertEquals(parser.S.size(), 1);
 		assertEquals(parser.Omega.size(), 1);
-		assertEquals(parser.A.size(), 7);
+		assertEquals(parser.A.size(), 3);
 		
 		parser.Ti.entrySet().stream()
 			.forEach(e -> assertEquals(e.getValue().size(), parser.S.size()));

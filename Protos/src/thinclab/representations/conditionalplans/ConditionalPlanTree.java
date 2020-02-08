@@ -62,7 +62,7 @@ public class ConditionalPlanTree extends StaticBeliefTree {
 			/* For all combinations */
 			for (List<String> obs : this.observations) {
 				
-				DD belief = this.idToNodeMap.get(parentId).belief;
+				DD belief = this.getPolicyNode(parentId).getBelief();
 				
 				this.makeNextPolicyNode(
 						parentId, 
@@ -90,17 +90,17 @@ public class ConditionalPlanTree extends StaticBeliefTree {
 			prevNodes.add(i);
 			
 			PolicyNode node = new PolicyNode();
-			node.id = i;
-			node.belief = this.f.getInitialBeliefs().get(i);
-			node.actName = this.solver.getActionForBelief(node.belief);
+			node.setId(i);
+			node.setBelief(this.f.getInitialBeliefs().get(i));
+			node.setActName(this.solver.getActionForBelief(node.getBelief()));
 			
 			if (this.f.getType().contentEquals("IPOMDP"))
-				node.sBelief = ((IPOMDP) this.f).getBeliefString(node.belief);
+				node.setsBelief(((IPOMDP) this.f).getBeliefString(node.getBelief()));
 			
 			else 
-				node.sBelief = this.f.getBeliefString(node.belief);
+				node.setsBelief(this.f.getBeliefString(node.getBelief()));
 			
-			this.idToNodeMap.put(i, node);
+			this.putPolicyNode(i, node);
 			
 			this.currentPolicyNodeCounter += 1;
 		}

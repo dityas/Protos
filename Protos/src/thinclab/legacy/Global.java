@@ -265,7 +265,7 @@ public class Global {
 
     public static void clearHashtables() {
     	
-    	LOGGER.warn("Clearning caches. This will reduce performance");
+    	LOGGER.warn("Clearing caches. This will reduce performance");
     	
 		Global.leafHashtable.clear();
 		Global.nodeHashtable.clear();

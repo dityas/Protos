@@ -60,7 +60,7 @@ public class StaticBeliefGraph extends StaticBeliefTree {
 				
 				for (String action : this.f.getActions()) {
 					
-					DD belief = this.idToNodeMap.get(parentId).belief;
+					DD belief = this.getPolicyNode(parentId).getBelief();
 					
 					this.makeNextBeliefNode(
 							parentId, 
@@ -85,22 +85,22 @@ public class StaticBeliefGraph extends StaticBeliefTree {
 			prevNodes.add(i);
 			
 			PolicyNode node = new PolicyNode();
-			node.id = i;
-			node.belief = this.f.getInitialBeliefs().get(i);
-			node.H = 0;
-			node.sBelief = this.f.toMap(node.belief).toString();
+			node.setId(i);
+			node.setBelief(this.f.getInitialBeliefs().get(i));
+			node.setH(0);
+			node.setsBelief(this.f.toMap(node.getBelief()).toString());
 			
 			/* record start node */
-			node.startNode = true;
+			node.setStartNode();
 			
 			if (this.solver != null)
-				node.actName = this.solver.getActionForBelief(node.belief);
+				node.setActName(this.solver.getActionForBelief(node.getBelief()));
 			
 			else 
-				node.actName = "";
+				node.setActName("");
 				
-			this.idToNodeMap.put(i, node);
-			this.nodeToIdMap.put(node.belief, node.id);
+			this.putPolicyNode(i, node);
+			this.nodeToIdMap.put(node.getBelief(), node.getId());
 			
 			this.currentPolicyNodeCounter += 1;
 		}

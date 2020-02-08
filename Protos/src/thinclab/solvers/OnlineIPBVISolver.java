@@ -22,7 +22,6 @@ import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
-import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 
 /*
@@ -173,13 +172,13 @@ public class OnlineIPBVISolver extends OnlineSolver {
 		}
 	}
 
-	public void computeMaxMinImprovement(DD[][] beliefRegion) {
+	public void computeMaxMinImprovement(int beliefRegionLen) {
 
 		double imp;
 		this.bestImprovement = Double.NEGATIVE_INFINITY;
 		this.worstDecline = Double.POSITIVE_INFINITY;
 
-		for (int j = 0; j < beliefRegion.length; j++) {
+		for (int j = 0; j < beliefRegionLen; j++) {
 			/*
 			 * find biggest improvement at this belief point
 			 */
@@ -284,7 +283,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 					
 				/* dpBackup */
 				newVector = 
-						AlphaVector.dpBackup(
+						AlphaVector.dpBackup2(
 								this.ipomdp, 
 								beliefs.get(i), 
 								beliefRegion[i],
@@ -327,7 +326,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 				}
 			}
 
-			computeMaxMinImprovement(beliefRegion);
+			computeMaxMinImprovement(beliefRegion.length);
 
 			/* save data and copy over new to old */
 			this.alphaVectors = new DD[this.numNewAlphaVectors];

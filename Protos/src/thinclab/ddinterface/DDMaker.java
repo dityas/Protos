@@ -186,6 +186,7 @@ public class DDMaker implements Serializable {
 				}
 				catch (Exception e) {
 					e.printStackTrace();
+					System.exit(-1);
 				}
 			} // for (int c=0; c < currentRecord.length; c++)
 			

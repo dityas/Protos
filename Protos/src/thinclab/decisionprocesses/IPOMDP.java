@@ -56,6 +56,8 @@ public class IPOMDP extends POMDP {
 	private static final long serialVersionUID = 4973485302724576384L;
 	private static final Logger LOGGER = Logger.getLogger(IPOMDP.class);
 	
+	private boolean testMode = false;
+	
 	/*
 	 * Reference to Parser object and info extract from parser
 	 */
@@ -115,6 +117,7 @@ public class IPOMDP extends POMDP {
 	public DD currentMjPGivenMjOjPAj;
 	public DD currentThetajGivenMj;
 	public DD currentTau;
+	public DD currentTauXPAjGivenMjXPThetajGivenMj;
 	public DD currentAjGivenMj;
 	public DD currentBelief = null;
 	
@@ -147,33 +150,10 @@ public class IPOMDP extends POMDP {
 		 * Initialize from a IPOMDPParser object
 		 */
 		
-		try {
-			
-			LOGGER.info("Initializing IPOMDP from parser.");
-			
-			this.initializeFromParsers(parsedFrame);
-			this.setMjLookAhead(mjlookAhead);
-			
-			this.mjSearchDepth = mjSearchDepth;
-			
-			LOGGER.info("IPOMDP initialized");
-			
-			/* Solve opponent model and create internal representation */
-			this.solveMj();
-			
-			/* initialize all DDs */
-			this.updateMjInIS();
-			
-			this.initializeOfflineFunctions();
-			this.reinitializeOnlineFunctions();
-			
-		}
+
+		LOGGER.info("Initializing IPOMDP from parser.");
 		
-		catch (Exception e) {
-			LOGGER.error("While parsing " + e.getMessage());
-			e.printStackTrace();
-			System.exit(-1);
-		}
+		this.initiailizeIPOMDP(parsedFrame, mjlookAhead, mjSearchDepth);
 	}
 	
 	public IPOMDP(
@@ -182,36 +162,18 @@ public class IPOMDP extends POMDP {
 			int mjSearchDepth, 
 			double threshold) {
 		
-		try {
-			
-			LOGGER.info("Initializing IPOMDP from parser.");
-			
-			this.mjMergeThreshold = threshold;
-			
-			this.initializeFromParsers(parsedFrame);
-			this.setMjLookAhead(mjlookAhead);
-			
-			this.mjSearchDepth = mjSearchDepth;
-			
-			LOGGER.info("IPOMDP initialized");
-			
-			/* Solve opponent model and create internal representation */
-			this.solveMj();
-			
-			/* initialize all DDs */
-			this.updateMjInIS();
-			
-			this.initializeOfflineFunctions();
-			this.reinitializeOnlineFunctions();
-			
-		}
+		this.mjMergeThreshold = threshold;
+		this.initiailizeIPOMDP(parsedFrame, mjlookAhead, mjSearchDepth);
+	}
+	
+	public IPOMDP(
+			IPOMDPParser parsedFrame, 
+			int mjlookAhead, 
+			int mjSearchDepth, 
+			boolean testMode) {
 		
-		catch (Exception e) {
-			LOGGER.error("While parsing " + e.getMessage());
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		
+		this.testMode = testMode;
+		this.initiailizeIPOMDP(parsedFrame, mjlookAhead, mjSearchDepth);
 	}
 
 	public IPOMDP(String fileName) {
@@ -225,6 +187,35 @@ public class IPOMDP extends POMDP {
 	}
 	
 	// -----------------------------------------------------------------------------------------
+	
+	private void initiailizeIPOMDP(IPOMDPParser parsedFrame, int mjlookAhead, int mjSearchDepth) {
+		
+		try {
+			
+			this.initializeFromParsers(parsedFrame);
+			this.setMjLookAhead(mjlookAhead);
+			
+			this.mjSearchDepth = mjSearchDepth;
+			
+			LOGGER.info("IPOMDP initialized");
+			
+			/* Solve opponent model and create internal representation */
+			this.solveMj();
+			
+			/* initialize all DDs */
+			this.updateMjInIS();
+			
+			this.initializeOfflineFunctions();
+			this.reinitializeOnlineFunctions();
+			
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While parsing " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
 	
 	public void initializeFromParsers(IPOMDPParser parsedFrame) throws ParserException {
 		/*
@@ -386,6 +377,10 @@ public class IPOMDP extends POMDP {
 		LOGGER.debug("Deleting all lower level policy graphs");
 		this.lowerLevelSolutions.clear();
 		this.lowerLevelSolutions = null;
+		this.lowerLevelFrames.clear();
+		this.lowerLevelFrames = null;
+		
+		System.gc();
 	}
 	
 	private void unRollWildCards() {
@@ -1228,6 +1223,8 @@ public class IPOMDP extends POMDP {
 		/* rebuild  P(Mj' | Mj, Aj, Oj') */
 		this.currentMjPGivenMjOjPAj = this.makeOpponentModelTransitionDD();
 		LOGGER.debug("f(Mj', Aj, Mj, Oj') initialized");
+		LOGGER.debug("f(Mj', Aj, Mj, Oj') has " 
+				+ this.currentMjPGivenMjOjPAj.getNumLeaves() + " DD nodes");
 		
 		/* check if P(Mj' | Mj, Aj, Oj') CPD is valid */
 		DD cpdSum = 
@@ -1258,13 +1255,32 @@ public class IPOMDP extends POMDP {
 						ArrayUtils.add(this.currentOj, this.currentMjPGivenMjOjPAj), 
 						this.obsJVarPrimeIndices);
 		
+		LOGGER.debug("TAU contains vars " + Arrays.toString(this.currentTau.getVarSet()));
+		LOGGER.debug("TAU contains " + this.currentTau.getNumLeaves() + " DD nodes");
+		
+		this.currentTauXPAjGivenMjXPThetajGivenMj = 
+				OP.multN(
+						new DD[] {
+								this.currentTau, 
+								this.currentAjGivenMj, 
+								this.currentThetajGivenMj});
+		
+		LOGGER.debug("Pre computed factor TAU x P(Aj | Mj) x P(Thetaj | Mj) "
+				+ "contains " + this.currentTauXPAjGivenMjXPThetajGivenMj.getNumLeaves()
+				+ " DD nodes");
+		
 		/* null this.currentMjPGivenMjOjPAj to save memory */
 		this.currentMjPGivenMjOjPAj = null;
 		
-		LOGGER.debug("TAU contains vars " + Arrays.toString(this.currentTau.getVarSet()));
+		if (!this.testMode) {
+			this.currentTau = null;
+			this.currentThetajGivenMj = null;
+		}
 		
 		this.currentRi = this.makeRi();
 		LOGGER.debug("Ri initialized for current look ahead horizon");
+		
+		Global.clearHashtables();
 	}
 	
 	public void initializeOfflineFunctions() {
