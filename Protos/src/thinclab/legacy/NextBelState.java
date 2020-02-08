@@ -313,8 +313,8 @@ public class NextBelState implements Serializable {
 				if (!nextBelStates.get(Ai).isempty()) {
 					marginals = 
 							OP.marginals(
-									((IBeliefOps) ipomdp.bOPs).getCpts( 
-											belState, 
+									((IBeliefOps) ipomdp.bOPs).getCpts2( 
+											belState,
 											Ai), 
 									ArrayUtils.subarray(
 											ipomdp.stateVarPrimeIndices, 
@@ -323,7 +323,65 @@ public class NextBelState implements Serializable {
 									ArrayUtils.subarray(
 											ipomdp.stateVarIndices, 
 											0, 
-											ipomdp.thetaVarPosition));
+											/*ipomdp.thetaVarPosition*/ipomdp.stateVarIndices.length));
+					
+//					logger.debug("Marginals are " + Arrays.toString(marginals));
+					nextBelStates.get(Ai).restrictN(marginals, obsConfig);
+//					logger.debug("After computing marginals " + nextBelStates[actId]);
+					
+				}
+				
+			}
+			
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+		return nextBelStates;
+	}
+	
+	public static HashMap<String, NextBelState> oneStepNZPrimeBelStates(
+			IPOMDP ipomdp,
+			DD[] belState,
+			boolean normalize, 
+			double smallestProb) throws ZeroProbabilityObsException, VariableNotFoundException {
+		/*
+		 * Computes the next belief states and the observation probabilities for factored belstate
+		 */
+		
+		int[][] obsConfig = ipomdp.obsCombinationsIndices;
+		
+		double[] obsProbs;
+		DD[] marginals = new DD[ipomdp.stateVarIndices.length + 1];
+		DD dd_obsProbs;
+
+		HashMap<String, NextBelState> nextBelStates = new HashMap<String, NextBelState>();
+		
+		IBeliefOps bOps = (IBeliefOps) ipomdp.bOPs;
+		int[] primeVarSubArray = 
+				ArrayUtils.subarray(ipomdp.stateVarPrimeIndices, 0, ipomdp.thetaVarPosition);
+		
+		for (String Ai: ipomdp.getActions()) {
+			
+			/* Assuming factored belief was normalized */
+			dd_obsProbs = bOps.getObsDist2(belState, Ai);
+			
+			obsProbs = OP.convert2array(dd_obsProbs, ipomdp.obsIVarPrimeIndices);
+			nextBelStates.put(Ai, new NextBelState(ipomdp, obsProbs, smallestProb));
+
+			
+			/* Compute marginals */
+			try {
+				if (!nextBelStates.get(Ai).isempty()) {
+					marginals = 
+							OP.marginals(
+									bOps.getCpts2( 
+											belState,
+											Ai), 
+									primeVarSubArray,
+									ipomdp.stateVarIndices);
 					
 //					logger.debug("Marginals are " + Arrays.toString(marginals));
 					nextBelStates.get(Ai).restrictN(marginals, obsConfig);

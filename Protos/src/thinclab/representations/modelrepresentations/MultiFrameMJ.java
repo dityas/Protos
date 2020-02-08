@@ -26,7 +26,6 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
-import thinclab.representations.policyrepresentations.PolicyNode;
 
 /*
  * @author adityas
@@ -373,67 +372,6 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		
 		return this.MJs.get(frame).getPolicyNode(MJ.getNodeId(node)).getsBelief();
 	}
-	
-	// --------------------------------------------------------------------------------------
-	
-//	public void makeAllObsCombinations(List<StateVar> obsJVars) {
-//		/*
-//		 * Makes all possible combinations of observation values
-//		 */
-//		this.obsCombinations = this.recursiveObsCombinations(obsJVars);
-//		LOGGER.debug("All possible Oj are " + this.obsCombinations);
-//
-//		this.obsJVars = obsJVars;
-//		LOGGER.debug("Oj var sequence is " + this.obsJVars);
-//	}
-//	
-//	private void recursiveObsGen(
-//			List<List<String>> obsComb, 
-//			List<StateVar> obsVars, 
-//			List<String> obsVector,
-//			int finalLen, 
-//			int varIndex) {
-//		/*
-//		 * Recursively generates a list of all possible combinations of values of the
-//		 * observation variables
-//		 */
-//
-//		if (varIndex < obsVars.size()) {
-//
-//			if (obsVector.size() == finalLen) {
-//				obsComb.add(obsVector);
-//			}
-//
-//			else {
-//
-//				List<String> obsVectorCopy = new ArrayList<String>(obsVector);
-//				StateVar obs = obsVars.get(varIndex);
-//				for (int i = 0; i < obs.valNames.length; i++) {
-//					List<String> anotherObsVecCopy = new ArrayList<String>(obsVectorCopy);
-//					anotherObsVecCopy.add(obs.valNames[i]);
-//					this.recursiveObsGen(obsComb, obsVars, anotherObsVecCopy, finalLen, varIndex + 1);
-//				}
-//			}
-//
-//		}
-//
-//		else {
-//			obsComb.add(obsVector);
-//		}
-//	} // private void recursiveObsGen
-//
-//	public List<List<String>> recursiveObsCombinations(List<StateVar> obsVars) {
-//		/*
-//		 * Driver program for generating observations recursively
-//		 */
-//		int finalLen = obsVars.size();
-//		List<String> obsVec = new ArrayList<String>();
-//		List<List<String>> obsComb = new ArrayList<List<String>>();
-//
-//		recursiveObsGen(obsComb, obsVars, obsVec, finalLen, 0);
-//
-//		return obsComb;
-//	}
 
 	// ---------------------------------------------------------------------------------------
 

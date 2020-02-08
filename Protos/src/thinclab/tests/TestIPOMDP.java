@@ -64,10 +64,10 @@ class TestIPOMDP {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		LOGGER.debug("IPOMDP Tau size is " + ipomdp.currentTau.getNumLeaves());
 		
@@ -145,10 +145,11 @@ class TestIPOMDP {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain");
+						"/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		LOGGER.debug("Checking after pre multiplying belief with Tau");
 		List<Double> differentTimes = new ArrayList<Double>();
@@ -240,10 +241,6 @@ class TestIPOMDP {
 		LOGGER.info("Solve MJs");
 		ipomdp.solveMj();
 		ipomdp.callUpdateIS();
-		
-		LOGGER.info("Check ObsJ combinations");
-		LOGGER.debug(ipomdp.multiFrameMJ.obsCombinations);
-		assertEquals(ipomdp.multiFrameMJ.obsCombinations.size(), 2);
 		
 		LOGGER.info("Checking Oi creation");
 		ipomdp.currentOi = ipomdp.makeOi();
@@ -855,9 +852,15 @@ class TestIPOMDP {
 		for (String varName : beliefMapFromUpdate3.keySet()) {
 			for (String child : beliefMapFromUpdate3.get(varName).keySet()) {
 				LOGGER.debug("Checking var=" + varName + " value=" + child);
-				assertEquals(
-						beliefMapFromUpdate3.get(varName).get(child), 
-						beliefMapFromStep3.get(varName).get(child));
+				
+				float val = 0;
+				
+				if (beliefMapFromStep3.get(varName).containsKey(child))
+					val = beliefMapFromStep3.get(varName).get(child);
+				
+				float diff = beliefMapFromUpdate3.get(varName).get(child) - val;
+						
+				assertTrue(diff < 0.01);
 			}
 		}
 		
@@ -970,6 +973,7 @@ class TestIPOMDP {
 		parser.parseDomain();
 		
 		NextBelStateCache.useCache();
+		NextBelStateCache.setDB("/tmp/nz_cache.db");
 		
 		/* Initialize IPOMDP */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 20);
@@ -1003,14 +1007,7 @@ class TestIPOMDP {
 				Arrays.asList(new String[] {"growl-left", "silence"}));
 		
 		sp.solveCurrentStep();
-		
-		sp.nextStep(
-				sp.getActionAtCurrentBelief(), 
-				Arrays.asList(new String[] {"growl-left", "silence"}));
-		
-		sp.solveCurrentStep();
 
-		
 //		StochasticSimulation ss = new StochasticSimulation(sp, 5);
 //		ss.runSimulation();
 //		LOGGER.info("\r\n" + ss.getDotString());
@@ -1027,7 +1024,7 @@ class TestIPOMDP {
 		IPOMDPParser parser = 
 				new IPOMDPParser(
 						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/cybersec.5S.2O.L1.2F.domain");
+						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 //		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
