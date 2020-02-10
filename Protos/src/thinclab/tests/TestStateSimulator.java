@@ -23,6 +23,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.simulations.StateSimulator;
+import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.BaseSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
@@ -45,7 +46,8 @@ class TestStateSimulator {
 		LOGGER = Logger.getLogger(TestStateSimulator.class);
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
 //		this.l0DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
-		this.l0DomainFile = "/home/adityas/git/repository/Protos/domains/coffee3po.dat";
+		this.l0DomainFile = "/home/adityas/UGA/THINCLab/DomainFiles/final_domains/exfil.5S.L0.domain";
+//		this.l0DomainFile = "/home/adityas/git/repository/Protos/domains/coffee3po.dat";
 	}
 
 	@AfterEach
@@ -63,12 +65,12 @@ class TestStateSimulator {
 						new SSGABeliefExpansion(pomdp, 10, 10), 
 						10, 100);
 		
-		StateSimulator sim = 
-				new StateSimulator(
-						S0, 10);
+		S0.solve();
 		
-		sim.getObservation(pomdp.getActions().get(0));
-		sim.step(pomdp.getActions().get(0));
+		StochasticSimulation SS = new StochasticSimulation(S0, 10);
+		SS.runSimulation();
+		
+		LOGGER.info(SS.getJSONString());
 	}
 
 }

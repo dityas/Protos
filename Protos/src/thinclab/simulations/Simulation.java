@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
@@ -21,10 +22,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import thinclab.ddinterface.DDTree;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.legacy.Config;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
@@ -55,11 +58,17 @@ public class Simulation extends StructuredTree {
 	 */
 	
 	/* some lists for storing run stats */
+	List<String> stateSequence = new ArrayList<String>();
 	List<String> beliefSequence = new ArrayList<String>();
 	List<String> actionSequence = new ArrayList<String>();
 	List<String> obsSequence = new ArrayList<String>();
 	List<Double> immediateRewardSequence = new ArrayList<Double>();
+	List<Double> trueRewardSequence = new ArrayList<Double>();
 	List<Double> cumulativeRewardSequence = new ArrayList<Double>();
+	List<Double> trueCumulativeReward = new ArrayList<Double>();
+	
+	/* record actual state */
+	private List<DDTree> states = new ArrayList<DDTree>();
 	
 	/* simulation attribs */
 	public BaseSolver solver;
@@ -76,15 +85,46 @@ public class Simulation extends StructuredTree {
 		 */
 		this.solver = solver;
 		this.iterations = iterations;
+		
+		this.initializeState();
 	}
 	
 	// ------------------------------------------------------------------------------------------
 	
-	public int step(BaseSolver solver, int currentNode) {
+	public void initializeState() {
+		
+		/*
+		 * Sample state from one of the agents initial belief
+		 */
+		
+		this.solver.f.setGlobals();
+		
+		DD belief = this.solver.f.getCurrentBelief();
+		
+		/* sample state from initial belief */
+		int[][] stateConfig = OP.sampleMultinomial(belief, this.solver.f.getStateVarIndices());
+		
+		DD state = Config.convert2dd(stateConfig);
+		this.states.add(state.toDDTree());
+		
+		LOGGER.debug("Initial state sampled. Set to " + this.solver.f.toMap(state));
+	}
+	
+	public int step(int currentNode) {
 		
 		try {
 			
+			/* solve current step if solver is online */
 			DD currentBelief = this.getPolicyNode(currentNode).getBelief();
+			DD currentState = this.states.get(this.states.size() - 1).toDD();
+			
+			/* record the step */
+			this.beliefSequence.add(solver.f.getBeliefString(currentBelief));
+			LOGGER.info("At belief " + this.beliefSequence.get(this.beliefSequence.size() - 1));
+			
+			this.stateSequence.add(
+					solver.f.getBeliefString(currentState));
+			LOGGER.info("Real state is " + this.stateSequence.get(this.stateSequence.size() - 1));
 			
 			if (solver instanceof OnlineSolver)
 				((OnlineSolver) solver).solveCurrentStep();
@@ -93,11 +133,9 @@ public class Simulation extends StructuredTree {
 			String action = solver.getActionForBelief(currentBelief);
 			this.getPolicyNode(currentNode).setActName(action);
 			
-			String[] obs = this.act(solver.f, currentBelief, action);
-			
-			/* record the step */
-			this.beliefSequence.add(solver.f.getBeliefString(currentBelief));
-			LOGGER.info("At belief " + this.beliefSequence.get(this.beliefSequence.size() - 1));
+			/* take action */
+//			String[] obs = this.act(solver.f, currentBelief, action);
+			String[] obs = this.envStep(action);
 			
 			if (this.solver instanceof OnlineIPBVISolver) {
 				DD[] aVecs = ((OnlineIPBVISolver) this.solver).alphaVectors;
@@ -113,14 +151,9 @@ public class Simulation extends StructuredTree {
 				}
 			}
 			
-			
+			/* record action and obs */
 			this.actionSequence.add(action);
-			LOGGER.info("Agent took action " 
-					+ this.actionSequence.get(
-							this.actionSequence.size() - 1));
-			
 			this.obsSequence.add(Arrays.toString(obs));
-			LOGGER.info("Agent observed " + this.obsSequence.get(this.obsSequence.size() - 1));
 			
 			/* compute reward */
 			double reward = 
@@ -128,19 +161,37 @@ public class Simulation extends StructuredTree {
 							solver.f.factorBelief(currentBelief), 
 							solver.f.getRewardFunctionForAction(action));
 			
+			double realReward = 
+					OP.factoredExpectationSparse(
+							solver.f.factorBelief(currentState), 
+							solver.f.getRewardFunctionForAction(action));
+			
 			this.immediateRewardSequence.add(reward);
 			LOGGER.info("Immediate expected reward is " 
 					+ this.immediateRewardSequence.get(
 							this.immediateRewardSequence.size() - 1));
 			
-			double lastReward = 0.0;
+			this.trueRewardSequence.add(realReward);
+			LOGGER.info("Immediate True reward is " 
+					+ this.trueRewardSequence.get(
+							this.trueRewardSequence.size() - 1));
 			
-			if (this.cumulativeRewardSequence.size() > 0)
+			double lastReward = 0.0;
+			double lastTrueReward = 0.0;
+			
+			if (this.cumulativeRewardSequence.size() > 0) {
 				lastReward = 
 					this.cumulativeRewardSequence.get(this.cumulativeRewardSequence.size() - 1);
+				
+				lastTrueReward = 
+						this.trueCumulativeReward.get(this.trueCumulativeReward.size() - 1);
+			}
 			
 			this.cumulativeRewardSequence.add(lastReward + reward);
 			LOGGER.info("Cumulative reward is " + (lastReward + reward));
+			
+			this.trueCumulativeReward.add(lastTrueReward + realReward);
+			LOGGER.info("True reward so far is " + (lastTrueReward + realReward));
 			
 			if (solver instanceof OnlineSolver)
 				((OnlineSolver) solver).nextStep(action, Arrays.asList(obs));
@@ -175,6 +226,73 @@ public class Simulation extends StructuredTree {
 		}
 	}
 	
+	// ---------------------------------------------------------------------------------------------
+	
+	public String[] getObservation(String action) {
+		/*
+		 * Sample observation from the state
+		 */
+		
+		/* get observation distribution */
+		DD obsDist = 
+				this.solver.f.getObsDist(
+						this.states.get(this.states.size() - 1).toDD(), 
+						action);
+		
+		/* sample from distribution */
+		int[][] obsConfig = 
+				OP.sampleMultinomial(
+						OP.primeVars(
+								obsDist, 
+								-(this.solver.f.getStateVarIndices().length 
+										+ this.solver.f.getObsVarIndices().length)), 
+						this.solver.f.getObsVarIndices());
+		
+		return POMDP.configToStrings(obsConfig);
+	}
+	
+	public DD getNextState(String action) {
+		/*
+		 * Computes next state from current state and given action
+		 */
+		DD currentState = this.states.get(this.states.size() - 1).toDD();
+		
+		/* first make state transition based on action */
+		DD[] Ti = this.solver.f.getTiForAction(action);
+		DD nextStateDD = 
+				OP.addMultVarElim(
+						ArrayUtils.add(Ti, currentState), 
+						this.solver.f.getStateVarIndices());
+		nextStateDD = OP.primeVars(
+				nextStateDD, 
+				-(this.solver.f.getStateVarIndices().length + this.solver.f.getObsVarIndices().length));
+		
+		int[][] stateConfig = OP.sampleMultinomial(nextStateDD, this.solver.f.getStateVarIndices());
+		DD state = Config.convert2dd(stateConfig);
+		LOGGER.debug("State transitioned to " + this.solver.f.toMap(state));
+		
+		return state;
+	}
+	
+	public String[] envStep(String action) {
+		
+		/*
+		 * Simulate single step of interaction
+		 */
+
+		LOGGER.debug("Taking action " + action 
+				+ " in state " + this.solver.f.toMap(this.states.get(this.states.size() - 1).toDD()));
+		
+		/* get next state */
+		DDTree nextState = this.getNextState(action).toDDTree();
+		this.states.add(nextState);
+		
+		String[] obs = this.getObservation(action);
+		LOGGER.debug("Observation sampled from state is " + Arrays.toString(obs));
+		
+		return obs;
+	}
+	
 	public String[] act(DecisionProcess DP, DD belief, String action) {
 		/*
 		 * Sample observation based on observation probabilities
@@ -198,20 +316,26 @@ public class Simulation extends StructuredTree {
 		return obs;
 	}
 	
+	// ---------------------------------------------------------------------------------------------
+	
 	public void logResults() {
 		/*
 		 * Writes all results to the logger
 		 */
 		
 		LOGGER.info("Sim results:");
-		LOGGER.info("belief, action, obs, immediate R, cumulative R");
+		LOGGER.info("belief, state, action, obs, immediate R, True immediate R, "
+				+ "cumulative R, True cumulative R");
 		
 		for (int i = 0; i < this.beliefSequence.size(); i++) {
 			LOGGER.info("\"" + this.beliefSequence.get(i).replace("\"", "\\\"") + "\"" + ", "
+					+ "\"" + this.stateSequence.get(i).replace("\"", "\\\"") + "\"" + ", "
 					+ this.actionSequence.get(i) + ", "
 					+ "\"" + this.obsSequence.get(i) + "\"" + ", "
 					+ this.immediateRewardSequence.get(i) + ", "
-					+ this.cumulativeRewardSequence.get(i));
+					+ this.trueRewardSequence.get(i) + ", "
+					+ this.cumulativeRewardSequence.get(i) + ", "
+					+ this.trueCumulativeReward.get(i));
 		}
 	}
 	
@@ -245,17 +369,30 @@ public class Simulation extends StructuredTree {
 								this.beliefSequence.get(i), 
 								JsonObject.class));
 				
+				/* write state */
+				record.add(
+						"state", 
+						gsonHandler.fromJson(
+								this.stateSequence.get(i), 
+								JsonObject.class));
+				
 				/* write action */
 				record.add("action", new JsonPrimitive(this.actionSequence.get(i)));
 				
 				/* write observations */
 				record.add("obs", new JsonPrimitive(this.obsSequence.get(i)));
 				
-				/* write rewards */
+				/* write expected rewards */
 				record.add("immediate R", 
 						new JsonPrimitive(this.immediateRewardSequence.get(i)));				
 				record.add("cumulative R", 
 						new JsonPrimitive(this.cumulativeRewardSequence.get(i)));
+				
+				/* write true rewards */
+				record.add("true immediate R", 
+						new JsonPrimitive(this.trueRewardSequence.get(i)));				
+				record.add("true cumulative R", 
+						new JsonPrimitive(this.trueCumulativeReward.get(i)));
 				
 				recordsArray.add(record);
 			}
