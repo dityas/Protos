@@ -1075,6 +1075,24 @@ public class POMDP extends DecisionProcess implements Serializable {
 			return false;
 		return true;
 	}
+
+	@Override
+	public DD[] getTiForAction(String action) {
+		
+		return this.actions[this.getActions().indexOf(action)].transFn;
+	}
+
+	@Override
+	public int[] getStateVarPrimeIndices() {
+		// TODO Auto-generated method stub
+		return this.primeVarIndices;
+	}
+
+	@Override
+	public int[] getObsVarPrimeIndices() {
+		// TODO Auto-generated method stub
+		return this.primeObsIndices;
+	}
 	
 	
 }

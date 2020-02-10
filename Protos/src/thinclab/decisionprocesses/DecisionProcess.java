@@ -46,11 +46,14 @@ public abstract class DecisionProcess implements Serializable {
 	public abstract List<DD> getInitialBeliefs();
 	public abstract DD getCurrentBelief();
 	public abstract int[] getStateVarIndices();
+	public abstract int[] getStateVarPrimeIndices();
 	public abstract int[] getObsVarIndices();
+	public abstract int[] getObsVarPrimeIndices();
 	public abstract void setGlobals();
 	public abstract String getType();
 	public abstract String getBeliefString(DD belief);
 	public abstract DD getRewardFunctionForAction(String action);
+	public abstract DD[] getTiForAction(String action);
 	public abstract void step(DD belief, String action, String[] obs) throws Exception;
 	public abstract void setTi(String action, DD[] Ti);
 	
@@ -68,6 +71,23 @@ public abstract class DecisionProcess implements Serializable {
 		String bestAction = f.getActions().get(policy[bestAlphaId]); 
 		
 		return bestAction;
+	}
+	
+	public static String[] configToStrings(int[][] config) {
+		
+		/*
+		 * Converts config arrays to their String value representations
+		 * 
+		 * Mostly used to convert obsConfigs to Observation value arrays
+		 */
+		
+		String[] vals = new String[config[0].length];
+		
+		for (int varI = 0; varI < config[0].length; varI ++) {
+			vals[varI] = Global.valNames[config[0][varI] - 1][config[1][varI] - 1];
+		}
+		
+		return vals;
 	}
 	
 	// --------------------------------------------------------------------------------
