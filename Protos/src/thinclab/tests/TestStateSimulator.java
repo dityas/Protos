@@ -71,6 +71,7 @@ class TestStateSimulator {
 		SS.runSimulation();
 		
 		LOGGER.info(SS.getJSONString());
+		LOGGER.info(SS.getDotString());
 	}
 
 }

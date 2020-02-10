@@ -68,7 +68,7 @@ public class Simulation extends StructuredTree {
 	List<Double> trueCumulativeReward = new ArrayList<Double>();
 	
 	/* record actual state */
-	private List<DDTree> states = new ArrayList<DDTree>();
+	List<DDTree> states = new ArrayList<DDTree>();
 	
 	/* simulation attribs */
 	public BaseSolver solver;
@@ -206,8 +206,17 @@ public class Simulation extends StructuredTree {
 			nextNode.setId(this.currentPolicyNodeCounter++);
 			this.putPolicyNode(nextNode.getId(), nextNode);
 			
+			/* make next state node */
+			PolicyNode nextStateNode = new PolicyNode();
+			nextStateNode.setBelief(this.states.get(this.states.size() - 1).toDD());
+			nextStateNode.setsBelief(
+					solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
+			nextStateNode.setId(this.currentPolicyNodeCounter++);
+			this.putPolicyNode(nextStateNode.getId(), nextStateNode);
+			
 			/* make path */
 			this.putEdge(currentNode, Arrays.asList(obs), nextNode.getId());
+			this.putEdge(currentNode + 1, Arrays.asList(obs), nextStateNode.getId());
 //			this.edgeMap.get(currentNode).put(Arrays.asList(obs), nextNode.getId());
 			
 			return nextNode.getId();
