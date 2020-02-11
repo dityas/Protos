@@ -7,6 +7,8 @@
  */
 package thinclab.simulations;
 
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,6 +16,12 @@ import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import thinclab.ddinterface.DDTree;
 import thinclab.decisionprocesses.IPOMDP;
@@ -503,6 +511,91 @@ public class MultiAgentSimulation extends Simulation {
 					+ this.l1TrueReward.get(i) + ", "
 					+ this.l0ExpectedReward.get(i) + ", "
 					+ this.l0TrueReward.get(i));
+		}
+	}
+	
+	@Override
+	public void logToFile(String fileName) {
+		/*
+		 * Writes simulation results to csv file
+		 */
+		
+		try {
+			PrintWriter writer = new PrintWriter(new FileOutputStream(fileName));
+			LOGGER.debug("Writing sim results to file " + fileName);
+			
+			/* initialize JSON handler */
+			Gson gsonHandler = 
+					new GsonBuilder()
+						.setPrettyPrinting()
+						.disableHtmlEscaping()
+						.create();
+			
+			JsonArray recordsArray = new JsonArray();
+			
+			for (int i = 0; i < this.beliefSequence.size(); i++) {
+				
+				/* init a new record */
+				JsonObject record = new JsonObject();
+				
+				/* write belief of i */
+				record.add(
+						"beliefI", 
+						gsonHandler.fromJson(
+								this.l1BeliefSequence.get(i), 
+								JsonObject.class));
+				
+				/* write belief of j */
+				record.add(
+						"beliefJ", 
+						gsonHandler.fromJson(
+								this.l0BeliefSequence.get(i), 
+								JsonObject.class));
+				
+				/* write state */
+				record.add(
+						"state", 
+						gsonHandler.fromJson(
+								this.stateSequence.get(i), 
+								JsonObject.class));
+				
+				/* write action of i */
+				record.add("Ai", new JsonPrimitive(this.l1ActionSequence.get(i)));
+				
+				/* write action of j */
+				record.add("Aj", new JsonPrimitive(this.l0ActionSequence.get(i)));
+				
+				/* write observations of i */
+				record.add("Oi", new JsonPrimitive(this.l1ObsSequence.get(i)));
+				
+				/* write observations of j */
+				record.add("Oj", new JsonPrimitive(this.l0ObsSequence.get(i)));
+				
+				/* write rewards of i */
+				record.add("ERi", 
+						new JsonPrimitive(this.l1ExpectedReward.get(i)));				
+				record.add("Ri", 
+						new JsonPrimitive(this.l1TrueReward.get(i)));
+				
+				/* write rewards of j */
+				record.add("ERj", 
+						new JsonPrimitive(this.l0ExpectedReward.get(i)));				
+				record.add("Rj", 
+						new JsonPrimitive(this.l0TrueReward.get(i)));
+				
+				recordsArray.add(record);
+			}
+			
+			writer.println(gsonHandler.toJson(recordsArray));
+			writer.flush();
+			writer.close();
+			
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While writing results to JSON file: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
 		}
 	}
 
