@@ -303,25 +303,15 @@ public class MultiAgentSimulation extends Simulation {
 						varIndices);
 		
 		/* restrict transition to Aj */
-		int[] actVal = new int[] {this.solver.f.getActions().indexOf(actions[1]) + 3};
+		int[] actVal = new int[] {this.solver.f.getActions().indexOf(actions[1]) + 1};
 		int[] actVarConfig = new int[] {((IPOMDP) this.l1Solver.f).AjStartIndex};
 		int[][] actConfig = IPOMDP.stackArray(actVarConfig, actVal); 
 		
-		LOGGER.debug(Arrays.toString(Global.valNames[3]));
-		LOGGER.debug(this.solver.f.getActions());
-//		LOGGER.debug(((POMDP) this.solver.f).actions);
-		LOGGER.debug(Arrays.deepToString(actConfig));
-		LOGGER.debug(nextStateDD);
-		
 		nextStateDD = OP.restrict(nextStateDD, actConfig);
-		
-		LOGGER.debug(nextStateDD);
 		
 		nextStateDD = OP.primeVars(
 				nextStateDD,
 				-(this.l1Solver.f.getNumVars()));
-		
-		LOGGER.debug(nextStateDD);
 		
 		int[][] stateConfig = OP.sampleMultinomial(nextStateDD, this.solver.f.getStateVarIndices());
 		DD state = Config.convert2dd(stateConfig);

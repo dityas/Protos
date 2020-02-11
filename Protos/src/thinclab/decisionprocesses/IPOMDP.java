@@ -1557,6 +1557,12 @@ public class IPOMDP extends POMDP {
 	}
 	
 	@Override
+	public DD[] getOiForAction(String action) {
+		
+		return this.currentOi.get(action);
+	}
+	
+	@Override
 	public DD getCurrentBelief() {
 		/*
 		 * Returns the current belief of the IPOMDP

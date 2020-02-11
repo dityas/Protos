@@ -245,19 +245,21 @@ public class Simulation extends StructuredTree {
 		 */
 		
 		/* get observation distribution */
+		
 		DD obsDist = 
-				this.solver.f.getObsDist(
-						this.states.get(this.states.size() - 1).toDD(), 
-						action);
+				OP.addMultVarElim(
+						ArrayUtils.add(
+								this.solver.f.getOiForAction(action), 
+								OP.primeVars(
+										this.states.get(this.states.size() - 1).toDD(), 
+										this.solver.f.getNumVars())),
+						this.solver.f.getStateVarPrimeIndices());
 		
 		/* sample from distribution */
 		int[][] obsConfig = 
 				OP.sampleMultinomial(
-						OP.primeVars(
-								obsDist, 
-								-(this.solver.f.getStateVarIndices().length 
-										+ this.solver.f.getObsVarIndices().length)), 
-						this.solver.f.getObsVarIndices());
+						obsDist, 
+						this.solver.f.getObsVarPrimeIndices());
 		
 		return POMDP.configToStrings(obsConfig);
 	}
