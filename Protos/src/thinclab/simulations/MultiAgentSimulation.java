@@ -21,11 +21,9 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.Config;
 import thinclab.legacy.DD;
-import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
-import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineSolver;
 
 /*
@@ -139,11 +137,13 @@ public class MultiAgentSimulation extends Simulation {
 			if (this.l1Solver instanceof OnlineSolver) {
 				this.l1Solver.f.setGlobals();
 				((OnlineSolver) this.l1Solver).solveCurrentStep();
+				((OnlineSolver) this.l1Solver).expansionStrategy.clearMem();
 			}
 			
 			if (this.solver instanceof OnlineSolver) {
 				this.solver.f.setGlobals();
 				((OnlineSolver) this.solver).solveCurrentStep();
+				((OnlineSolver) this.solver).expansionStrategy.clearMem();
 			}
 			
 			/* record actions and observations and all that at current step */
