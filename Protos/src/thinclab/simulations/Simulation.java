@@ -89,6 +89,8 @@ public class Simulation extends StructuredTree {
 		this.initializeState();
 	}
 	
+	public Simulation() {}
+	
 	// ------------------------------------------------------------------------------------------
 	
 	public void initializeState() {

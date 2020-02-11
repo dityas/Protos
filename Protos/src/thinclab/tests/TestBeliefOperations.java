@@ -242,7 +242,7 @@ class TestBeliefOperations {
 		IPOMDPParser parser = new IPOMDPParser(l1DomainMultipleFrames);
 		parser.parseDomain();
 		
-		this.ipomdp = new IPOMDP(parser, 6, 20);
+		this.ipomdp = new IPOMDP(parser, 4, 20);
 		LOGGER.info("IPOMDP initialized");
 		
 		FullBeliefExpansion fb = new FullBeliefExpansion(this.ipomdp);

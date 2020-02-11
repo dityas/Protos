@@ -1504,7 +1504,7 @@ public class IPOMDP extends POMDP {
 	
 	@Override
 	public int[] getStateVarIndices() {
-		return ArrayUtils.subarray(this.stateVarIndices, 0, this.thetaVarPosition);
+		return this.stateVarIndices;
 	}
 	
 	@Override

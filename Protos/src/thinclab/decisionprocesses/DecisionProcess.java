@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import thinclab.belief.BeliefOperations;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -132,6 +134,17 @@ public abstract class DecisionProcess implements Serializable {
 		double bestVal = Double.NEGATIVE_INFINITY;
 		double val;
 		int bestAlphaId = 0;
+		
+		int[] varIndices = null;
+		
+		if (DP.getType().contentEquals("IPOMDP")) 
+			varIndices = 
+				ArrayUtils.subarray(
+						DP.getStateVarIndices(), 
+						0, ((IPOMDP) DP).thetaVarPosition);
+		
+		else
+			varIndices = DP.getStateVarIndices();
 		
 		double[] values = new double[alphaVectors.length];
 		for (int alphaId = 0; alphaId < alphaVectors.length; alphaId++) {
