@@ -13,6 +13,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -292,6 +293,7 @@ public class IPOMDP extends POMDP {
 			Ajs.addAll(lowerFrame.getActions());
 		
 		this.Aj.addAll(Ajs);
+		Collections.sort(this.Aj);
 		
 		/* add J's guess for I's actions */
 		this.lowerLevelGuessForAi = this.parser.mostProbableAi;
@@ -1549,11 +1551,22 @@ public class IPOMDP extends POMDP {
 	}
 	
 	@Override
+	public DD[] getTiForAction(String action) {
+		
+		return this.currentTi.get(action);
+	}
+	
+	@Override
 	public DD getCurrentBelief() {
 		/*
 		 * Returns the current belief of the IPOMDP
 		 */
 		return this.currentBelief;
+	}
+	
+	@Override
+	public int getNumVars() {
+		return this.S.size() + this.Omega.size();
 	}
 	
 	@Override

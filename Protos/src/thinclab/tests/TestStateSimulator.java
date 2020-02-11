@@ -101,7 +101,10 @@ class TestStateSimulator {
 		
 		S0.solve();
 		
+		String jAction = ipomdp.getActions().get(0) + "__" + pomdp.getActions().get(0);
+		
 		MultiAgentSimulation Sim = new MultiAgentSimulation(S1, S0, 6);
+		Sim.envStep(jAction);
 		
 //		LOGGER.info(SS.getJSONString());
 //		LOGGER.info(SS.getDotString());
