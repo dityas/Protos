@@ -68,6 +68,35 @@ public class MultiAgentSimulation extends Simulation {
 		this.iterations = interactions;
 		
 		this.initializeState();
+		
+		/*
+		 * Make init nodes
+		 */
+		
+		/* make start policy node from initial belief */
+		this.l1Solver.f.setGlobals();
+		PolicyNode iNode = new PolicyNode();
+		iNode.setBelief(this.l1Solver.f.getCurrentBelief());
+		iNode.setsBelief(this.l1Solver.f.getBeliefString(this.l1Solver.f.getCurrentBelief()));
+		iNode.setId(this.currentPolicyNodeCounter++);
+		
+		/* make state node */
+		this.solver.f.setGlobals();
+		PolicyNode sNode = new PolicyNode();
+		sNode.setBelief(this.states.get(this.states.size() - 1).toDD());
+		sNode.setsBelief(this.solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
+		sNode.setId(this.currentPolicyNodeCounter++);
+		
+		/* make start policy node for j */
+		PolicyNode jNode = new PolicyNode();
+		jNode.setBelief(this.solver.f.getCurrentBelief());
+		jNode.setsBelief(this.solver.f.getBeliefString(this.solver.f.getCurrentBelief()));
+		jNode.setId(this.currentPolicyNodeCounter++);
+		
+		/* add to node map */
+		this.putPolicyNode(iNode.getId(), iNode);
+		this.putPolicyNode(sNode.getId(), sNode);
+		this.putPolicyNode(jNode.getId(), jNode);
 	}
 	
 	// ----------------------------------------------------------------------------------------
@@ -109,15 +138,17 @@ public class MultiAgentSimulation extends Simulation {
 			/* Solve current step for solvers */
 			if (this.l1Solver instanceof OnlineSolver) {
 				this.l1Solver.f.setGlobals();
-				((OnlineSolver) solver).solveCurrentStep();
+				((OnlineSolver) this.l1Solver).solveCurrentStep();
 			}
 			
 			if (this.solver instanceof OnlineSolver) {
 				this.solver.f.setGlobals();
-				((OnlineSolver) solver).solveCurrentStep();
+				((OnlineSolver) this.solver).solveCurrentStep();
 			}
 			
-//			/* record actions and observations and all that at current step */
+			/* record actions and observations and all that at current step */
+			
+			// --------------------------------------------------------------------------------
 			
 			/* record the L1 step */
 			this.l1Solver.f.setGlobals();
@@ -131,6 +162,8 @@ public class MultiAgentSimulation extends Simulation {
 			String l1Action = this.l1Solver.getActionForBelief(currentL1Belief);
 			this.getPolicyNode(currentNode).setActName(l1Action);
 			
+			// ---------------------------------------------------------------------------------
+			
 			/* record L0 belief */
 			this.solver.f.setGlobals();
 			DD currentL0Belief = this.getPolicyNode(currentNode + 2).getBelief();
@@ -143,104 +176,125 @@ public class MultiAgentSimulation extends Simulation {
 			String l0Action = this.solver.getActionForBelief(currentL0Belief);
 			this.getPolicyNode(currentNode + 2).setActName(l0Action);
 			
+			// ----------------------------------------------------------------------------------
+			
 			/* record state */
 			DD currentState = this.states.get(this.states.size() - 1).toDD();
+			DD[] currentFactoredState = this.solver.f.factorBelief(currentState);
 			
 			this.stateSequence.add(
 					this.solver.f.getBeliefString(currentState));
 			LOGGER.info("Real state is " + this.stateSequence.get(this.stateSequence.size() - 1));
 			
+			// ----------------------------------------------------------------------------------
+			
 			/* take action */
-//			String[] obs = this.act(solver.f, currentBelief, action);
-			String[] obs = this.envStep(l1Action + "__" + l0Action);
-			
-			if (this.solver instanceof OnlineIPBVISolver) {
-				DD[] aVecs = ((OnlineIPBVISolver) this.solver).alphaVectors;
-				int[] policy = ((OnlineIPBVISolver) this.solver).policy;
-				
-				for (int v = 0; v < aVecs.length; v++) {
-					LOGGER.info("For A vec. " + v + " representing action " 
-							+ this.solver.f.getActions().get(policy[v]));
-					LOGGER.info("Reward is: " + 
-							OP.dotProduct(
-									currentBelief, 
-									aVecs[v], this.solver.f.getStateVarIndices()));
-				}
-			}
-			
-			/* L0 stuff */
-			DD currentL0Belief = this.getPolicyNode(currentNode + 2).getBelief();
-			
+			String[][] obs = this.multiAgentEnvStep(l1Action + "__" + l0Action);
 			
 			/* record action and obs */
-			this.actionSequence.add(action);
-			this.obsSequence.add(Arrays.toString(obs));
+			this.l0ActionSequence.add(l0Action);
+			this.l1ActionSequence.add(l1Action);
 			
-			/* compute reward */
-			double reward = 
+			this.l0ObsSequence.add(Arrays.toString(obs[1]));
+			this.l1ObsSequence.add(Arrays.toString(obs[0]));
+			
+			// ------------------------------------------------------------------------------------
+			
+			/* compute L1 reward */
+			this.l1Solver.f.setGlobals();
+			double l1ExpectedReward = 
 					OP.factoredExpectationSparse(
-							solver.f.factorBelief(currentBelief), 
-							solver.f.getRewardFunctionForAction(action));
+							this.l1Solver.f.factorBelief(currentL1Belief), 
+							this.l1Solver.f.getRewardFunctionForAction(l1Action));
 			
-			double realReward = 
+			double l1TrueReward = 
 					OP.factoredExpectationSparse(
-							solver.f.factorBelief(currentState), 
-							solver.f.getRewardFunctionForAction(action));
+							currentFactoredState, 
+							this.l1Solver.f.getRewardFunctionForAction(l1Action));
 			
-			this.immediateRewardSequence.add(reward);
-			LOGGER.info("Immediate expected reward is " 
-					+ this.immediateRewardSequence.get(
-							this.immediateRewardSequence.size() - 1));
+			this.l1ExpectedReward.add(l1ExpectedReward);
+			LOGGER.info("Agent i's expected reward is " 
+					+ this.l1ExpectedReward.get(
+							this.l1ExpectedReward.size() - 1));
 			
-			this.trueRewardSequence.add(realReward);
-			LOGGER.info("Immediate True reward is " 
-					+ this.trueRewardSequence.get(
-							this.trueRewardSequence.size() - 1));
+			this.l1TrueReward.add(l1TrueReward);
+			LOGGER.info("Agent i's true reward is " 
+					+ this.l1TrueReward.get(
+							this.l1TrueReward.size() - 1));
 			
-			double lastReward = 0.0;
-			double lastTrueReward = 0.0;
-			
-			if (this.cumulativeRewardSequence.size() > 0) {
-				lastReward = 
-					this.cumulativeRewardSequence.get(this.cumulativeRewardSequence.size() - 1);
-				
-				lastTrueReward = 
-						this.trueCumulativeReward.get(this.trueCumulativeReward.size() - 1);
-			}
-			
-			this.cumulativeRewardSequence.add(lastReward + reward);
-			LOGGER.info("Cumulative reward is " + (lastReward + reward));
-			
-			this.trueCumulativeReward.add(lastTrueReward + realReward);
-			LOGGER.info("True reward so far is " + (lastTrueReward + realReward));
-			
-			if (solver instanceof OnlineSolver)
-				((OnlineSolver) solver).nextStep(action, Arrays.asList(obs));
+			/* step agent I */
+			if (this.l1Solver instanceof OnlineSolver)
+				((OnlineSolver) this.l1Solver).nextStep(l1Action, Arrays.asList(obs[0]));
 			
 			else
-				solver.f.step(currentBelief, action, obs);
+				this.l1Solver.f.step(currentL1Belief, l1Action, obs[0]);
 			
-			/* make policy node for next belief */
-			PolicyNode nextNode = new PolicyNode();
-			nextNode.setBelief(solver.f.getCurrentBelief());
-			nextNode.setsBelief(solver.f.getBeliefString(solver.f.getCurrentBelief()));
-			nextNode.setId(this.currentPolicyNodeCounter++);
-			this.putPolicyNode(nextNode.getId(), nextNode);
+			/* make next policy node for agent i */
+			PolicyNode nextINode = new PolicyNode();
+			nextINode.setBelief(this.l1Solver.f.getCurrentBelief());
+			nextINode.setsBelief(this.l1Solver.f.getBeliefString(this.l1Solver.f.getCurrentBelief()));
+			nextINode.setId(this.currentPolicyNodeCounter++);
+			this.putPolicyNode(nextINode.getId(), nextINode);
 			
-			/* make next state node */
+			/* make state node here to maintain currentPolicyNodeCounter order */
 			PolicyNode nextStateNode = new PolicyNode();
+			nextStateNode.setId(this.currentPolicyNodeCounter++);
+			
+			// --------------------------------------------------------------------------------------
+			
+			/* compute L0 reward */
+			this.solver.f.setGlobals();
+			double l0ExpectedReward = 
+					OP.factoredExpectationSparse(
+							this.solver.f.factorBelief(currentL0Belief), 
+							this.solver.f.getRewardFunctionForAction(l0Action));
+			
+			double l0TrueReward = 
+					OP.factoredExpectationSparse(
+							this.solver.f.factorBelief(currentState), 
+							this.solver.f.getRewardFunctionForAction(l0Action));
+			
+			this.l0ExpectedReward.add(l0ExpectedReward);
+			LOGGER.info("Agent j's expected reward is " 
+					+ this.l0ExpectedReward.get(
+							this.l0ExpectedReward.size() - 1));
+			
+			this.l0TrueReward.add(l0TrueReward);
+			LOGGER.info("Agent j's true reward is " 
+					+ this.l0TrueReward.get(
+							this.l0TrueReward.size() - 1));
+			
+			/* step agent J */
+			if (this.solver instanceof OnlineSolver)
+				((OnlineSolver) this.solver).nextStep(l0Action, Arrays.asList(obs[1]));
+			
+			else
+				solver.f.step(currentL0Belief, l0Action, obs[1]);
+			
+			/* make policy node for next belief of agent j */
+			PolicyNode nextJNode = new PolicyNode();
+			nextJNode.setBelief(this.solver.f.getCurrentBelief());
+			nextJNode.setsBelief(this.solver.f.getBeliefString(this.solver.f.getCurrentBelief()));
+			nextJNode.setId(this.currentPolicyNodeCounter++);
+			this.putPolicyNode(nextJNode.getId(), nextJNode);
+			
+			/* populate next state node */
 			nextStateNode.setBelief(this.states.get(this.states.size() - 1).toDD());
 			nextStateNode.setsBelief(
-					solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
-			nextStateNode.setId(this.currentPolicyNodeCounter++);
+					this.solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
 			this.putPolicyNode(nextStateNode.getId(), nextStateNode);
 			
-			/* make path */
-			this.putEdge(currentNode, Arrays.asList(obs), nextNode.getId());
-			this.putEdge(currentNode + 1, Arrays.asList(obs), nextStateNode.getId());
-//			this.edgeMap.get(currentNode).put(Arrays.asList(obs), nextNode.getId());
+			// -------------------------------------------------------------------------------------
 			
-			return nextNode.getId();
+			/* make path */
+			this.putEdge(currentNode, Arrays.asList(obs[0]), nextINode.getId());
+			this.putEdge(
+					currentNode + 1, 
+					Arrays.asList(new String[] {l1Action, l0Action}), 
+					nextStateNode.getId());
+			this.putEdge(currentNode + 2, Arrays.asList(obs[1]), nextJNode.getId());
+			
+			return nextINode.getId();
 		}
 		
 		catch (ZeroProbabilityObsException o) {
@@ -258,6 +312,17 @@ public class MultiAgentSimulation extends Simulation {
 	
 	@Override
 	public String[] envStep(String action) {
+		LOGGER.error("Method not applicable");
+		return null;
+	}
+	
+	@Override
+	public String[] getObservation(String action) {
+		LOGGER.error("Method not applicable");
+		return null;
+	}
+	
+	public String[][] multiAgentEnvStep(String action) {
 		
 		/*
 		 * Simulate single step of interaction
@@ -272,10 +337,84 @@ public class MultiAgentSimulation extends Simulation {
 		DDTree nextState = this.getNextState(action).toDDTree();
 		this.states.add(nextState);
 		
-		String[] obs = this.getObservation(action);
-		LOGGER.debug("Observation sampled from state is " + Arrays.toString(obs));
+		/* sample observation */
+		String[] l1Obs = this.getL1Observation(action);
+		LOGGER.debug("L1 observation sampled from state is " + Arrays.toString(l1Obs));
+		
+		String[] l0Obs = this.getL0Observation(action);
+		LOGGER.debug("L0 observation sampled from state is " + Arrays.toString(l0Obs));
+		
+		/* stack observation arrays */
+		String[][] obs = new String[2][];
+		obs[0] = l1Obs;
+		obs[1] = l0Obs;
 		
 		return obs;
+	}
+	
+	public String[] getL1Observation(String action) {
+		/*
+		 * Sample observation from the state
+		 */
+		
+		/* relevant varIndices */
+		String[] actions = action.split("__");
+		int[] varIndices = 
+				ArrayUtils.subarray(
+						this.l1Solver.f.getStateVarPrimeIndices(), 
+						0, ((IPOMDP) this.l1Solver.f).MjVarPosition);
+		
+		/* create config structure to restrict Aj */
+		int[] actVal = new int[] {this.solver.f.getActions().indexOf(actions[1]) + 1};
+		int[] actVarConfig = new int[] {((IPOMDP) this.l1Solver.f).AjStartIndex};
+		int[][] actConfig = IPOMDP.stackArray(actVarConfig, actVal);
+		
+		/* get observation distribution */
+		DD obsDist = 
+				OP.addMultVarElim(
+						ArrayUtils.add(
+								this.l1Solver.f.getOiForAction(actions[0]), 
+								OP.primeVars(
+										this.states.get(this.states.size() - 1).toDD(), 
+										this.l1Solver.f.getNumVars())),
+						varIndices);
+		
+		obsDist = OP.restrict(obsDist, actConfig);
+		
+		/* sample from distribution */
+		int[][] obsConfig = 
+				OP.sampleMultinomial(
+						obsDist, 
+						this.l1Solver.f.getObsVarPrimeIndices());
+		
+		return IPOMDP.configToStrings(obsConfig);
+	}
+	
+	public String[] getL0Observation(String action) {
+		/*
+		 * Sample observation from the state
+		 */
+		
+		this.solver.f.setGlobals();
+		String[] actions = action.split("__");
+		
+		/* get observation distribution */
+		DD obsDist = 
+				OP.addMultVarElim(
+						ArrayUtils.add(
+								this.solver.f.getOiForAction(actions[1]), 
+								OP.primeVars(
+										this.states.get(this.states.size() - 1).toDD(), 
+										this.solver.f.getNumVars())),
+						this.solver.f.getStateVarPrimeIndices());
+		
+		/* sample from distribution */
+		int[][] obsConfig = 
+				OP.sampleMultinomial(
+						obsDist, 
+						this.solver.f.getObsVarPrimeIndices());
+		
+		return POMDP.configToStrings(obsConfig);
 	}
 	
 	@Override
@@ -319,6 +458,52 @@ public class MultiAgentSimulation extends Simulation {
 		LOGGER.debug("State transitioned to " + this.solver.f.toMap(state));
 		
 		return state;
+	}
+	
+	// -----------------------------------------------------------------------------------------------
+	
+	public void runSimulation() {
+		/*
+		 * Runs the simulation for the given number of iterations
+		 */
+		
+		LOGGER.info("Running simulation for " + this.iterations + " iterations...");
+		
+		int previousNode = 0;
+		
+		for (int i = 0; i < this.iterations; i++) {
+			int nextNode = this.step(previousNode);
+			previousNode = nextNode;
+		}
+		
+		this.logResults();
+	}
+	
+	// ---------------------------------------------------------------------------------------------
+	
+	@Override
+	public void logResults() {
+		/*
+		 * Writes all results to the logger
+		 */
+		
+		LOGGER.info("Sim results:");
+		LOGGER.info("I belief, state, J belief, Ai, Aj, Oi, Oj, ERi, Ri, ERj, Rj"
+				+ "cumulative R, True cumulative R");
+		
+		for (int i = 0; i < this.l1BeliefSequence.size(); i++) {
+			LOGGER.info("\"" + this.l1BeliefSequence.get(i).replace("\"", "\\\"") + "\"" + ", "
+					+ "\"" + this.stateSequence.get(i).replace("\"", "\\\"") + "\"" + ", "
+					+ "\"" + this.l0BeliefSequence.get(i).replace("\"", "\\\"") + "\"" + ", "
+					+ this.l1ActionSequence.get(i) + ", "
+					+ this.l0ActionSequence.get(i) + ", "
+					+ "\"" + this.l1ObsSequence.get(i) + "\"" + ", "
+					+ "\"" + this.l0ObsSequence.get(i) + "\"" + ", "
+					+ this.l1ExpectedReward.get(i) + ", "
+					+ this.l1TrueReward.get(i) + ", "
+					+ this.l0ExpectedReward.get(i) + ", "
+					+ this.l0TrueReward.get(i));
+		}
 	}
 
 }

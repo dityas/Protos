@@ -1515,6 +1515,11 @@ public class IPOMDP extends POMDP {
 	}
 	
 	@Override
+	public int[] getObsVarPrimeIndices() {
+		return this.obsIVarPrimeIndices;
+	}
+	
+	@Override
 	public String getType() {
 		return "IPOMDP";
 	}
