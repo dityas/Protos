@@ -115,6 +115,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 			new HashMap<String, HashMap<String, DDTree>>();
     
     public List<DDTree> costs = new ArrayList<DDTree>();
+    public HashMap<String, DDTree> costMap = new HashMap<String, DDTree>();
     
     public DDTree R;
     public DDTree initBeliefDdTree;
@@ -358,6 +359,13 @@ public class POMDP extends DecisionProcess implements Serializable {
 		this.A.addAll(parserObj.A);
 		this.costs.addAll(parserObj.costs);
 		
+		for (String action: this.A) {
+			int i = this.A.indexOf(action);
+			this.costMap.put(action, this.costs.get(i));
+		}
+		
+		Collections.sort(this.A);
+		
 		LOGGER.debug("A initialized to " + this.A);
 		LOGGER.debug("Costs for A: " + this.costs);
 	}
@@ -493,7 +501,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 			actions[a].addTransFn(TiaArray.toArray(new DD[TiaArray.size()]));
 			actions[a].addObsFn(OiaArray.toArray(new DD[OiaArray.size()]));
 			actions[a].rewFn = 
-					OP.sub(this.R.toDD(), this.costs.get(a).toDD());
+					OP.sub(this.R.toDD(), this.costMap.get(actName).toDD());
 			actions[a].buildRewTranFn();
 			actions[a].rewFn = 
 					OP.addMultVarElim(actions[a].rewTransFn, primeVarIndices);
@@ -945,7 +953,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 	
 	@Override
 	public List<String> getActions() {
-		return this.A;
+		return Arrays.stream(this.actions).map(a -> a.name).collect(Collectors.toList());
 	}
 	
 	@Override
@@ -1075,6 +1083,33 @@ public class POMDP extends DecisionProcess implements Serializable {
 			return false;
 		return true;
 	}
+
+	@Override
+	public DD[] getTiForAction(String action) {
+		
+		return this.actions[this.getActions().indexOf(action)].transFn;
+	}
 	
+	@Override
+	public DD[] getOiForAction(String action) {
+		
+		return this.actions[this.getActions().indexOf(action)].obsFn;
+	}
+
+	@Override
+	public int[] getStateVarPrimeIndices() {
+		// TODO Auto-generated method stub
+		return this.primeVarIndices;
+	}
+
+	@Override
+	public int[] getObsVarPrimeIndices() {
+		// TODO Auto-generated method stub
+		return this.primeObsIndices;
+	}
 	
+	@Override
+	public int getNumVars() {
+		return this.nStateVars + this.nObsVars;
+	}
 }
