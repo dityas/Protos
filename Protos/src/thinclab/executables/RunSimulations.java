@@ -229,6 +229,9 @@ public class RunSimulations extends Executable {
 								"plan_frame_" + T.f.frameID + "_" + i);
 					}
 					
+					/* store ref to agent J */
+					POMDP pomdp = ipomdp.lowerLevelFrames.get(frameSample);
+					
 					ipomdp.clearLowerLevelSolutions();
 					
 					/* set context back to IPOMDP */
@@ -255,7 +258,6 @@ public class RunSimulations extends Executable {
 					
 					/* Agent j */
 					LOGGER.info("Solving agent J...");
-					POMDP pomdp = ipomdp.lowerLevelFrames.get(frameSample);
 					pomdp.setGlobals();
 					OfflineSymbolicPerseus jSolver = 
 							OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
