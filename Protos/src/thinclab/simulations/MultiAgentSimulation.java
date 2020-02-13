@@ -32,6 +32,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
+import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineSolver;
 
 /*
@@ -230,6 +231,21 @@ public class MultiAgentSimulation extends Simulation {
 					+ this.l1TrueReward.get(
 							this.l1TrueReward.size() - 1));
 			
+			/* log alpha vectors for I */
+			if (this.l1Solver instanceof OnlineIPBVISolver) {
+				DD[] aVecs = ((OnlineIPBVISolver) this.l1Solver).alphaVectors;
+				int[] policy = ((OnlineIPBVISolver) this.l1Solver).policy;
+				
+				for (int v = 0; v < aVecs.length; v++) {
+					LOGGER.info("For A vec. " + v + " representing action " 
+							+ this.l1Solver.f.getActions().get(policy[v]));
+					LOGGER.info("Reward is: " + 
+							OP.dotProduct(
+									currentL1Belief, 
+									aVecs[v], this.l1Solver.f.getStateVarIndices()));
+				}
+			}
+			
 			/* step agent I */
 			if (this.l1Solver instanceof OnlineSolver)
 				((OnlineSolver) this.l1Solver).nextStep(l1Action, Arrays.asList(obs[0]));
@@ -296,10 +312,6 @@ public class MultiAgentSimulation extends Simulation {
 			
 			/* make path */
 			this.putEdge(currentNode, Arrays.asList(obs[0]), nextINode.getId());
-//			this.putEdge(currentNode, Arrays.asList(l1Action), currentNode + 1);
-//			this.putEdge(currentNode + 2, Arrays.asList(l0Action), currentNode + 1);
-//			this.putEdge(nextStateNode.getId(), Arrays.asList(obs[0]), currentNode);
-//			this.putEdge(nextStateNode.getId(), Arrays.asList(obs[1]), currentNode + 2);
 			this.putEdge(
 					currentNode + 1, 
 					Arrays.asList(new String[] {l1Action, l0Action}), 
