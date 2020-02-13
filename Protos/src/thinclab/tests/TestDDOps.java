@@ -176,4 +176,31 @@ class TestDDOps {
 		LOGGER.debug("x is " + OP.mult(f1dd, f2dd).toDDTree());
 	}
 	
+	@Test
+	public void testVarIndependenceForDomainsWithSameTConnections() throws Exception {
+		
+//		String domain = "/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+//				+ "exfil.6S.L0.obs_deception.domain";
+		
+		String domain = "/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+				+ "exfil.6S.L0.obs_deception.domain";
+		
+		POMDP pomdp = new POMDP(domain);
+		
+		DD currentBelief = pomdp.getCurrentBelief();
+		
+		for (int i = 0; i < 100; i++) {
+			currentBelief = pomdp.beliefUpdate(currentBelief, "VULN_RECON", new String[] {"success"});
+			
+	//		LOGGER.debug(currentBelief.toDDTree());
+			
+			DD[] factors = pomdp.factorBelief(currentBelief);
+			
+			DD joint = OP.multN(factors);
+			
+			LOGGER.debug(OP.maxAll(OP.abs(OP.sub(joint, currentBelief))));
+		}
+		
+	}
+	
 }

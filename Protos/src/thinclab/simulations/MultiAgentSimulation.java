@@ -296,6 +296,10 @@ public class MultiAgentSimulation extends Simulation {
 			
 			/* make path */
 			this.putEdge(currentNode, Arrays.asList(obs[0]), nextINode.getId());
+//			this.putEdge(currentNode, Arrays.asList(l1Action), currentNode + 1);
+//			this.putEdge(currentNode + 2, Arrays.asList(l0Action), currentNode + 1);
+//			this.putEdge(nextStateNode.getId(), Arrays.asList(obs[0]), currentNode);
+//			this.putEdge(nextStateNode.getId(), Arrays.asList(obs[1]), currentNode + 2);
 			this.putEdge(
 					currentNode + 1, 
 					Arrays.asList(new String[] {l1Action, l0Action}), 

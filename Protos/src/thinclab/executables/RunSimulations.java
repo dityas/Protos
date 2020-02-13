@@ -7,6 +7,8 @@
  */
 package thinclab.executables;
 
+import java.util.Random;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -21,6 +23,7 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.conditionalplans.ConditionalPlanTree;
 import thinclab.representations.policyrepresentations.PolicyGraph;
+import thinclab.simulations.MultiAgentSimulation;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.BaseSolver;
 import thinclab.solvers.OfflinePBVISolver;
@@ -163,7 +166,6 @@ public class RunSimulations extends Executable {
 				
 				/* set NextBelState Caching */
 				NextBelStateCache.useCache();
-				NextBelStateCache.setDB("/tmp/nz_cache.db");
 				
 				LOGGER.info("Simulating IPOMDP...");
 				
@@ -189,6 +191,10 @@ public class RunSimulations extends Executable {
 						ipomdp = new IPOMDP(parser, lookAhead, simLength * 2, mergeThreshold);
 					
 					else ipomdp = new IPOMDP(parser, lookAhead, simLength * 2);
+					
+					Random rng = new Random();
+					
+					int frameSample = rng.nextInt(ipomdp.lowerLevelSolutions.size());
 					
 					for (BaseSolver solver : ipomdp.lowerLevelSolutions) {
 						
@@ -222,6 +228,9 @@ public class RunSimulations extends Executable {
 								"plan_frame_" + T.f.frameID + "_" + i);
 					}
 					
+					/* store ref to agent J */
+					POMDP pomdp = ipomdp.lowerLevelFrames.get(frameSample);
+					
 					ipomdp.clearLowerLevelSolutions();
 					
 					/* set context back to IPOMDP */
@@ -240,12 +249,21 @@ public class RunSimulations extends Executable {
 						numRounds = 1;
 					}
 					
+					/* Agent i */
 					OnlineInteractiveSymbolicPerseus solver = 
 							new OnlineInteractiveSymbolicPerseus(
 									ipomdp, 
 									BE, numRounds, backups);
 					
-					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
+					/* Agent j */
+					LOGGER.info("Solving agent J...");
+					pomdp.setGlobals();
+					OfflineSymbolicPerseus jSolver = 
+							OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
+									pomdp, simLength, 2, 10, backups);
+					jSolver.solve();
+					
+					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
 					ss.runSimulation();
 					
 					ss.logToFile(storageDir + "/" + "sim" + i + ".json");

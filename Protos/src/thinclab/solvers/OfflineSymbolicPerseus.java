@@ -22,6 +22,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.legacy.RandomPermutation;
+import thinclab.utils.Diagnostics;
 import thinclab.utils.PolicyCache;
 
 /*
@@ -68,12 +69,12 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		
 		this.pCache = new PolicyCache(5);
 		
-		DD[][] factoredBeliefRegion = this.p.factorBeliefRegion(beliefs);
+//		DD[][] factoredBeliefRegion = this.p.factorBeliefRegion(beliefs);
 
 		/* try running IPBVI */
 		try {
 			this.pCache.resetOscillationTracking();
-			this.SymbolicPerseus(100, 0, this.numDpBackups, factoredBeliefRegion);
+			this.SymbolicPerseus(100, 0, this.numDpBackups, beliefs.stream().toArray(DD[]::new));
 		}
 
 		catch (Exception e) {
@@ -90,7 +91,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			int maxAlpha, 
 			int firstStep,
 			int nSteps,
-			DD[][] belRegion) {
+			DD[] belRegion) {
 		
 		double bellmanErr;
 		double[] onezero = { 0 };
@@ -101,8 +102,8 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		bellmanErr = 20 * this.p.tolerance;
 
 		/* compute point based values using current alpha vectors */
-		currentPointBasedValues = OP.factoredExpectationSparse(belRegion,
-				alphaVectors);
+		currentPointBasedValues = OP.dotProduct(belRegion,
+				alphaVectors, this.f.getStateVarIndices());
 		
 		DD[] primedV;
 		double maxAbsVal = 0;
@@ -153,7 +154,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 				
 				if (nDpBackups >= 2 * alphaVectors.length) {
 					
-					this.computeMaxMinImprovement(belRegion);
+					this.computeMaxMinImprovement(belRegion.length);
 					if (bestImprovement > this.p.tolerance 
 							&& bestImprovement > -2 * worstDecline) 
 						break;
@@ -187,7 +188,9 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 				if (numNewAlphaVectors < 1
 						|| (OP.max(newPointBasedValues[i], numNewAlphaVectors)
 								- OP.max(currentPointBasedValues[i]) < steptolerance)) {
-				
+					
+					long beforeBackup = System.nanoTime();
+					
 					/* perform the backup operation */
 					newVector = 
 							AlphaVector.dpBackup(
@@ -197,6 +200,11 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 									maxAbsVal, 
 									this.alphaVectors.length);
 					
+					long afterBackup = System.nanoTime();
+					
+					/* record backup computation time */
+					Diagnostics.BACKUP_TIME.add((afterBackup - beforeBackup));
+					
 					numUsed += 1;
 					newVector.alphaVector = OP.approximate(
 							newVector.alphaVector, bellmanErr * (1 - this.p.discFact)
@@ -204,8 +212,8 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 					newVector.setWitness(i);
 	
 					/* merge and trim */
-					newValues = OP.factoredExpectationSparseNoMem(belRegion,
-							newVector.alphaVector);
+					newValues = OP.dotProduct(belRegion,
+							newVector.alphaVector, this.f.getStateVarIndices());
 	
 					if (numNewAlphaVectors < 1) {
 						improvement = Double.POSITIVE_INFINITY;
@@ -228,7 +236,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 				}
 			}
 			
-			this.computeMaxMinImprovement(belRegion);
+			this.computeMaxMinImprovement(belRegion.length);
 
 			/* save data and copy over new to old */
 			alphaVectors = new DD[numNewAlphaVectors];
@@ -259,6 +267,10 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr)
 					+ " \tUSED/BELIEF POINTS: " + numUsed + "/" + belRegion.length
 					+ " \tA VECTORS: " + alphaVectors.length);
+			
+			/* report diagnostics on exec times */
+			Diagnostics.reportDiagnostics();
+			Diagnostics.reportCacheSizes();
 			
 			if (stepId % 100 < 1) continue;
 			

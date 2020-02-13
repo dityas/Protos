@@ -21,8 +21,8 @@ import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
-import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -79,6 +79,8 @@ public class OfflinePBVISolver extends OfflineSolver {
 		
 		/* initialize unique policy */
 		this.uniquePolicy = new boolean[this.p.getActions().size()];
+		
+		this.initPolicy();
 	}
 	
 	// ----------------------------------------------------------------------------------
@@ -86,9 +88,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 	 * super class overrides.
 	 */
 	
-	@Override
-	public void solve() {
-		
+	public void initPolicy() {
 		/* Make a default alphaVectors as rewards to start with */
 		this.alphaVectors = 
 				Arrays.stream(this.p.actions)
@@ -100,6 +100,12 @@ public class OfflinePBVISolver extends OfflineSolver {
 		this.policy = new int[this.p.getActions().size()];
 		for (int i = 0; i < this.p.actions.length; i++)
 			this.policy[i] = this.p.getActions().indexOf(this.p.actions[i].name);
+	}
+	
+	@Override
+	public void solve() {
+		
+		this.initPolicy();
 		
 		/* set initial policy */
 		if (this.expansionStrategy instanceof SSGABeliefExpansion) {
@@ -123,6 +129,9 @@ public class OfflinePBVISolver extends OfflineSolver {
 						this.alphaVectors, this.policy);
 			}
 		}
+		
+		if (NextBelStateCache.cachingAllowed())
+			NextBelStateCache.clearCache();
 	}
 	
 	@Override
@@ -259,7 +268,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 				
 			}
 
-			this.computeMaxMinImprovement(belRegion);
+			this.computeMaxMinImprovement(belRegion.length);
 
 			/* save data and copy over new to old */
 			alphaVectors = new DD[numNewAlphaVectors];
@@ -307,13 +316,13 @@ public class OfflinePBVISolver extends OfflineSolver {
 
 	}
 	
-	public void computeMaxMinImprovement(DD[][] beliefRegion) {
+	public void computeMaxMinImprovement(int belRegionSize) {
 
 		double imp;
 		this.bestImprovement = Double.NEGATIVE_INFINITY;
 		this.worstDecline = Double.POSITIVE_INFINITY;
 
-		for (int j = 0; j < beliefRegion.length; j++) {
+		for (int j = 0; j < belRegionSize; j++) {
 			/*
 			 * find biggest improvement at this belief point
 			 */
