@@ -54,7 +54,7 @@ public class CyberDeceptionSimulation extends StochasticSimulation {
 		int previousNode = 0;
 		
 		for (int i = 0; i < this.iterations; i++) {
-			int nextNode = this.step(this.solver, previousNode);
+			int nextNode = this.step(previousNode);
 			previousNode = nextNode;
 		}
 		
