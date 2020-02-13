@@ -21,6 +21,7 @@ import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -51,7 +52,7 @@ public class POMDPSolver extends Executable {
 		/*
 		 * Set class attributes
 		 */
-		
+		NextBelStateCache.useCache();
 		this.domainFile = fileName;
 		this.perseusRounds = rounds;
 		this.numDpBackups = dpBackups;
