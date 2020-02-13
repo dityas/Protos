@@ -229,7 +229,7 @@ public class RunSimulations extends Executable {
 					}
 					
 					/* store ref to agent J */
-					POMDP pomdp = ipomdp.lowerLevelFrames.get(frameSample);
+					BaseSolver jSolver = ipomdp.lowerLevelSolutions.get(frameSample);
 					
 					ipomdp.clearLowerLevelSolutions();
 					
@@ -254,14 +254,6 @@ public class RunSimulations extends Executable {
 							new OnlineInteractiveSymbolicPerseus(
 									ipomdp, 
 									BE, numRounds, backups);
-					
-					/* Agent j */
-					LOGGER.info("Solving agent J...");
-					pomdp.setGlobals();
-					OfflineSymbolicPerseus jSolver = 
-							OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
-									pomdp, simLength, 2, 10, backups);
-					jSolver.solve();
 					
 					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
 					ss.runSimulation();
