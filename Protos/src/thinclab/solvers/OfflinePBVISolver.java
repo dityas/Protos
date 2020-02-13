@@ -79,6 +79,8 @@ public class OfflinePBVISolver extends OfflineSolver {
 		
 		/* initialize unique policy */
 		this.uniquePolicy = new boolean[this.p.getActions().size()];
+		
+		this.initPolicy();
 	}
 	
 	// ----------------------------------------------------------------------------------
@@ -86,9 +88,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 	 * super class overrides.
 	 */
 	
-	@Override
-	public void solve() {
-		
+	public void initPolicy() {
 		/* Make a default alphaVectors as rewards to start with */
 		this.alphaVectors = 
 				Arrays.stream(this.p.actions)
@@ -100,6 +100,12 @@ public class OfflinePBVISolver extends OfflineSolver {
 		this.policy = new int[this.p.getActions().size()];
 		for (int i = 0; i < this.p.actions.length; i++)
 			this.policy[i] = this.p.getActions().indexOf(this.p.actions[i].name);
+	}
+	
+	@Override
+	public void solve() {
+		
+		this.initPolicy();
 		
 		/* set initial policy */
 		if (this.expansionStrategy instanceof SSGABeliefExpansion) {

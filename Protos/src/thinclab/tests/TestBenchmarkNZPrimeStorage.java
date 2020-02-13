@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.NextBelState;
@@ -212,6 +213,68 @@ class TestBenchmarkNZPrimeStorage {
 			
 			NextBelState aNZ = a.get(act);
 			NextBelState bNZ = b.get(act);
+			
+			for (int n = 0; n < aNZ.nextBelStates.length; n++) {
+				for (int s = 0; s < aNZ.nextBelStates[n].length; s++) {
+					
+					double diff = 
+							OP.maxAll(
+									OP.abs(
+											OP.sub(
+													aNZ.nextBelStates[n][s], 
+													bNZ.nextBelStates[n][s])));
+
+					LOGGER.debug("Diff is: " + diff);
+					assertTrue(diff < 1e-4);
+				}
+			}
+		}
+		
+	}
+	
+	@Test
+	void testoneStepNextBelStatesForPOMDPs() throws Exception {
+		
+		POMDP pomdp = 
+				new POMDP(
+						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+						+ "exfil.6S.L0.obs_deception.domain");
+		
+		LOGGER.info("Checking nextBelStates2 computation");
+		
+		
+		DD[] belief = pomdp.factorBelief(pomdp.getCurrentBelief());
+		
+		long then1 = System.nanoTime();
+		
+		/* compute real NextBelStates */
+		NextBelState[] a = 
+				NextBelState.oneStepNZPrimeBelStates(
+						pomdp, 
+						belief, false, 1e-8);
+		
+		long now1 = System.nanoTime();
+		LOGGER.debug("Original implementation took " + (now1 - then1) / 1000000 + " msecs.");
+		
+		long then2 = System.nanoTime();
+		
+		/* compute efficiently */
+		HashMap<String, NextBelState> b = 
+				NextBelState.oneStepNZPrimeBelStates(
+						pomdp, 
+						pomdp.getCurrentBelief(), false, 1e-8);
+		
+		long now2 = System.nanoTime();
+		
+		LOGGER.debug("New implementation took " + (now2 - then2) / 1000000 + " msecs.");
+		
+		/* check results */
+		LOGGER.debug("Checking for correctness");
+		
+		for (int i = 0;i < a.length; i++) {
+			
+			NextBelState aNZ = a[i];
+			NextBelState bNZ = b.get(pomdp.getActions().get(i));
 			
 			for (int n = 0; n < aNZ.nextBelStates.length; n++) {
 				for (int s = 0; s < aNZ.nextBelStates[n].length; s++) {

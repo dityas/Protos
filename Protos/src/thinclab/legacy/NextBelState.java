@@ -448,4 +448,58 @@ public class NextBelState implements Serializable {
 		
 		return nextBelStates;
 	}
+	
+	public static HashMap<String, NextBelState> oneStepNZPrimeBelStates(
+			POMDP pomdp, DD belState, boolean normalize, double smallestProb) {
+		
+		HashMap<String, NextBelState> nextBelStates = new HashMap<String, NextBelState>();
+		
+		for (String act: pomdp.getActions()) {
+			
+			List<DD[]> nextBelStatesForAct = new ArrayList<DD[]>();
+			
+			List<List<String>> allObs = pomdp.getAllPossibleObservations();
+			DD obsDist = pomdp.getObsDist(belState, act);
+			double[] obsProbs = OP.convert2array(obsDist, pomdp.primeObsIndices);
+			
+			for (int o = 0; o < allObs.size(); o++) {
+				
+				DD nextBelief = null;
+				
+				try {
+					
+					nextBelief = 
+							pomdp.beliefUpdate(
+									belState, 
+									act, 
+									allObs.get(o).stream().toArray(String[]::new));
+				}
+				
+				catch (ZeroProbabilityObsException e) {
+					LOGGER.error("Got a zero probability exception. "
+							+ "Everything will break after this. "
+							+ "And I won't fix it.");
+				}
+				
+				DD[] factoredNextBel = pomdp.factorBelief(nextBelief);
+				factoredNextBel = 
+						OP.primeVarsN(factoredNextBel, pomdp.getNumVars());
+				
+				factoredNextBel = 
+						ArrayUtils.add(
+								factoredNextBel, 
+								DDleaf.myNew(obsProbs[o]));
+				
+				nextBelStatesForAct.add(factoredNextBel);
+			}
+			
+			DD[][] nextBelStatesFactors = nextBelStatesForAct.stream().toArray(DD[][]::new);
+			
+			NextBelState nbState = new NextBelState(pomdp, obsProbs, 1e-8);
+			nbState.nextBelStates = nextBelStatesFactors;
+			nextBelStates.put(act, nbState);
+		}
+		
+		return nextBelStates;
+	}
 }
