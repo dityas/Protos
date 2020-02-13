@@ -28,6 +28,7 @@ import thinclab.solvers.BaseSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -78,6 +79,7 @@ class TestStateSimulator {
 	void testMultiAgentStateSimInit() throws Exception {
 		
 		/* init L1 */
+		NextBelStateCache.useCache();
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
@@ -106,6 +108,9 @@ class TestStateSimulator {
 //		Sim.envStep(jAction);
 		Sim.runSimulation();
 		LOGGER.info(Sim.getDotString());
+		LOGGER.info(Sim.getJSONString());
+		
+		Sim.logToFile("/tmp/res.json");
 		
 //		LOGGER.info(SS.getJSONString());
 //		LOGGER.info(SS.getDotString());

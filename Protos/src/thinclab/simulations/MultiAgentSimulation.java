@@ -537,7 +537,7 @@ public class MultiAgentSimulation extends Simulation {
 			
 			JsonArray recordsArray = new JsonArray();
 			
-			for (int i = 0; i < this.beliefSequence.size(); i++) {
+			for (int i = 0; i < this.stateSequence.size(); i++) {
 				
 				/* init a new record */
 				JsonObject record = new JsonObject();
