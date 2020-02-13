@@ -410,8 +410,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-			if (stepId > 5 && this.declareApproxConvergenceForAlphaVectors(
-					this.alphaVectors.length, numIter, numBeliefs)) {
+			if (this.declareApproxConvergenceForAlphaVectors(
+					this.alphaVectors.length, numIter, numBeliefs) && bellmanErr < 0.1) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE ALL BELIEFS ARE BEING USED AND NUM ALPHAS IS CONSTANT");
 				break;

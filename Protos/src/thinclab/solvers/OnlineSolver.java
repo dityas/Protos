@@ -64,6 +64,7 @@ public abstract class OnlineSolver extends BaseSolver {
 		/*
 		 * Solves for the look ahead starting from current belief
 		 */
+		NextBelStateCache.clearCache();
 		
 		for (int r = 0; r < this.maxRounds; r++) {
 		
