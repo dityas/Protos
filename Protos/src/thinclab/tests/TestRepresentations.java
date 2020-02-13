@@ -9,42 +9,25 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
-import thinclab.ddinterface.DDTree;
-import thinclab.ddinterface.DDTreeLeaf;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
-import thinclab.exceptions.ParserException;
-import thinclab.exceptions.SolverException;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.legacy.DD;
-import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
-import thinclab.representations.belieftreerepresentations.DynamicBeliefTree;
 import thinclab.representations.belieftreerepresentations.StaticBeliefTree;
 import thinclab.representations.conditionalplans.ConditionalPlanGraph;
 import thinclab.representations.conditionalplans.ConditionalPlanTree;
-import thinclab.representations.conditionalplans.WalkablePolicyTree;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.policyrepresentations.PolicyGraph;
-import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
-import thinclab.solvers.OnlineIPBVISolver;
-import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
-import thinclab.solvers.OnlineValueIterationSolver;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -69,34 +52,6 @@ class TestRepresentations {
 
 	@AfterEach
 	void tearDown() throws Exception {
-	}
-
-	@Test
-	void testOnlinePolicyTree() {
-		System.out.println("Running testOnlinePolicyTree()");
-		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
-		
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 7, 3);
-		
-		OnlineInteractiveSymbolicPerseus solver = 
-				new OnlineInteractiveSymbolicPerseus(
-						tigerL1IPOMDP, 
-						new FullBeliefExpansion(tigerL1IPOMDP), 
-						1, 
-						100);
-
-		WalkablePolicyTree T = new WalkablePolicyTree(solver, 3);
-		T.buildTree();
-		
-		System.out.println(T.nodeIdToFileNameMap);
-		System.out.println(T.idToNodeMap);
-		System.out.println(T.edgeMap);
-		
-		assertEquals(T.nodeIdToFileNameMap.size(), T.idToNodeMap.size());
-		
-		System.out.println(T.getDotString());
 	}
 	
 	@Test
@@ -190,92 +145,6 @@ class TestRepresentations {
 	}
 	
 	@Test
-	void testStaticPolicyTree() {
-		System.out.println("Running testStaticPolicyTree()");
-		
-		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
-	
-		OfflineSymbolicPerseus solver = 
-				new OfflineSymbolicPerseus(
-						pomdp, 
-						new SSGABeliefExpansion(pomdp, 20, 1), 
-						5, 100);
-		
-		solver.solve();
-		
-		ConditionalPlanTree T = new ConditionalPlanTree(solver, 5);
-		T.buildTree();
-		
-		System.out.println(T.getDotString());
-//		assertTrue(T.idToNodeMap.size() == 9);
-//		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
-		
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 7, 3);
-		
-		OnlineIPBVISolver isolver = 
-				new OnlineIPBVISolver(
-						tigerL1IPOMDP, 
-						new FullInteractiveBeliefExpansion(tigerL1IPOMDP), 
-						1, 100);
-
-		isolver.solveCurrentStep();
-//		System.out.println(isolver.expansionStrategy.getBeliefPoints().stream().map(b -> isolver.f.getBeliefString(b)).collect(Collectors.toList()));
-		ConditionalPlanTree sT = new ConditionalPlanTree(isolver, 3);
-		sT.buildTree();
-		
-		System.out.println(sT.getDotString());
-	}
-	
-	@Test
-	void testDynamicBeliefTree() {
-		System.out.println("Running testDynamicBeliefTree()");
-		
-		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
-	
-		OfflineSymbolicPerseus solver = 
-				new OfflineSymbolicPerseus(
-						pomdp, 
-						new SSGABeliefExpansion(pomdp, 20, 1), 
-						5, 100);
-		
-		solver.solve();
-		
-		DynamicBeliefTree T = new DynamicBeliefTree(solver, 3);
-		
-		HashSet<Integer> prevLeaves = new HashSet<Integer>(T.leafNodes);
-		System.out.println(prevLeaves);
-		
-		T.buildTree();
-		
-		HashSet<Integer> nextLeaves = new HashSet<Integer>(T.leafNodes);
-		System.out.println(nextLeaves);
-		System.out.println(prevLeaves);
-		System.out.println(nextLeaves.containsAll(prevLeaves));
-		/* check if leaf nodes are updated properly */
-		assertTrue(!nextLeaves.containsAll(prevLeaves));
-		
-		T.buildTree();
-		
-		HashSet<Integer> nextNextLeaves = new HashSet<Integer>(T.leafNodes);
-		System.out.println(nextNextLeaves);
-		
-		assertTrue(!nextNextLeaves.containsAll(nextLeaves));
-		
-		List<Integer> nonZeroTest = new ArrayList<Integer>(nextNextLeaves).subList(0, 5);
-		System.out.println(T.idToNodeMap);
-		T.pruneZeroProbabilityLeaves(nonZeroTest);
-		System.out.println(T.idToNodeMap);
-		
-		assertTrue(nonZeroTest.size() == T.idToNodeMap.size());
-		assertTrue(T.edgeMap.size() == 0);
-		
-		
-	}
-	
-	
-	@Test
 	void testMJ() throws ZeroProbabilityObsException, VariableNotFoundException {
 		LOGGER.info("Running testMJ()");
 		
@@ -334,35 +203,6 @@ class TestRepresentations {
 //		System.out.println(tigerL1IPOMDP.getBeliefString(nextBel));
 //		
 //		Mj.step(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel).get("M_j"), 3);
-	}
-	
-	@Test
-	void testMultipleMJInit() throws 
-		ZeroProbabilityObsException, 
-		VariableNotFoundException, 
-		ParserException, SolverException {
-		
-		/*
-		 * Single Frame
-		 */
-		LOGGER.info("Running testMultipleMJInit() on single frame");
-		
-		/* parse multiple frames */
-		String fileName = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
-		
-		IPOMDPParser parser = new IPOMDPParser(fileName);
-		parser.parseDomain();
-		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
-		
-		System.out.println(ipomdp.multiFrameMJ.idToNodeMap);
-		
-		FullBeliefExpansion fb = new FullBeliefExpansion(ipomdp);
-		fb.expand();
-		for (DD bel : fb.getBeliefPoints()) {
-			System.out.println(ipomdp.toMap(bel));
-//			System.out.println(bel.toDDTree());
-		}
 	}
 	
 	@Test
