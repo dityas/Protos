@@ -973,7 +973,6 @@ class TestIPOMDP {
 		parser.parseDomain();
 		
 		NextBelStateCache.useCache();
-		NextBelStateCache.setDB("/tmp/nz_cache.db");
 		
 		/* Initialize IPOMDP */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 20);

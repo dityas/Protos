@@ -23,7 +23,6 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.simulations.MultiAgentSimulation;
-import thinclab.simulations.StateSimulator;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.BaseSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
