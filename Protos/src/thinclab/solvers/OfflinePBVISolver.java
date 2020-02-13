@@ -21,8 +21,8 @@ import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
-import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -129,6 +129,9 @@ public class OfflinePBVISolver extends OfflineSolver {
 						this.alphaVectors, this.policy);
 			}
 		}
+		
+		if (NextBelStateCache.cachingAllowed())
+			NextBelStateCache.clearCache();
 	}
 	
 	@Override
@@ -265,7 +268,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 				
 			}
 
-			this.computeMaxMinImprovement(belRegion);
+			this.computeMaxMinImprovement(belRegion.length);
 
 			/* save data and copy over new to old */
 			alphaVectors = new DD[numNewAlphaVectors];
@@ -313,13 +316,13 @@ public class OfflinePBVISolver extends OfflineSolver {
 
 	}
 	
-	public void computeMaxMinImprovement(DD[][] beliefRegion) {
+	public void computeMaxMinImprovement(int belRegionSize) {
 
 		double imp;
 		this.bestImprovement = Double.NEGATIVE_INFINITY;
 		this.worstDecline = Double.POSITIVE_INFINITY;
 
-		for (int j = 0; j < beliefRegion.length; j++) {
+		for (int j = 0; j < belRegionSize; j++) {
 			/*
 			 * find biggest improvement at this belief point
 			 */

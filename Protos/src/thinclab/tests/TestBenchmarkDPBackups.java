@@ -35,6 +35,7 @@ import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.Diagnostics;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -362,7 +363,9 @@ class TestBenchmarkDPBackups {
 		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
 				+ "exfil.6S.L0.obs_deception.domain");
 		
-		FullBeliefExpansion BE = new FullBeliefExpansion(pomdp, 4);
+		NextBelStateCache.useCache();
+		
+		FullBeliefExpansion BE = new FullBeliefExpansion(pomdp, 3);
 		BE.expand();
 		
 		List<DD> exploredBeliefs = BE.getBeliefPoints();

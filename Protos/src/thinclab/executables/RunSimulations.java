@@ -166,7 +166,6 @@ public class RunSimulations extends Executable {
 				
 				/* set NextBelState Caching */
 				NextBelStateCache.useCache();
-				NextBelStateCache.setDB("/tmp/nz_cache.db");
 				
 				LOGGER.info("Simulating IPOMDP...");
 				

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
@@ -16,6 +17,7 @@ public class AlphaVector implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1357799705845487274L;
+	private static final Logger LOGGER = Logger.getLogger(AlphaVector.class);
 
 	public DD alphaVector;
 	public double value;
@@ -698,15 +700,23 @@ public class AlphaVector implements Serializable {
 		 * Backup operation for POMDPs
 		 */
 		
-		HashMap<String, NextBelState> nextBelStates;
+		HashMap<String, NextBelState> nextBelStates = null;
 		
 		double smallestProb;
 		
 		long beforeNZPrimes = System.nanoTime();
 		smallestProb = pomdp.tolerance / maxAbsVal;
 		
-		nextBelStates = 
-				NextBelState.oneStepNZPrimeBelStates(pomdp, belState, true, smallestProb);
+		try {
+			nextBelStates = 
+					NextBelState.oneStepNZPrimeBelStatesCached(pomdp, belState, true, smallestProb);
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("Error while computing nextbelstates for POMDP");
+			e.printStackTrace();
+			System.exit(-1);
+		}
 
 		/* precompute obsVals */
 		for (String action : pomdp.getActions()) {

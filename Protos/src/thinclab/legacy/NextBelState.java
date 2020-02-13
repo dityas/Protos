@@ -449,6 +449,32 @@ public class NextBelState implements Serializable {
 		return nextBelStates;
 	}
 	
+	public static HashMap<String, NextBelState> oneStepNZPrimeBelStatesCached(
+			POMDP pomdp,
+			DD belState,
+			boolean normalize, 
+			double smallestProb) throws ZeroProbabilityObsException, VariableNotFoundException {
+		
+		/* if already computed, recover from cache */
+		if (NextBelStateCache.cachingAllowed()) {
+			HashMap<String, NextBelState> cachedEntry = 
+					NextBelStateCache.getCachedEntry(belState);
+			
+			if (cachedEntry != null) return cachedEntry;
+		}
+		
+		/* else compute and cache */
+		HashMap<String, NextBelState> nzPrimes = 
+				oneStepNZPrimeBelStates(pomdp, belState, normalize, smallestProb);
+		
+		if (NextBelStateCache.cachingAllowed()) {
+			NextBelStateCache.cacheNZPrime(belState, nzPrimes);
+		}
+		
+		return nzPrimes;
+		
+	}
+	
 	public static HashMap<String, NextBelState> oneStepNZPrimeBelStates(
 			POMDP pomdp, DD belState, boolean normalize, double smallestProb) {
 		

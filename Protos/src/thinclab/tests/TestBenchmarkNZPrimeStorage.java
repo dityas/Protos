@@ -37,6 +37,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CacheDB;
 import thinclab.utils.CustomConfigurationFactory;
@@ -111,6 +112,68 @@ class TestBenchmarkNZPrimeStorage {
 			
 //			double[] PBVs = OP.factoredExpectationSparseNoMem(beliefsArray, SP.alphaVectors);
 			dotPBVs = OP.dotProduct(beliefsArray, SP.alphaVectors, vars);
+			
+			long now = System.nanoTime();
+			
+			times2.add((double) (now - then) / 1000000);
+		}
+		
+		LOGGER.debug("Dot took " + times2.stream().mapToDouble(a -> a).average().getAsDouble() 
+				+ " msec");
+		
+		LOGGER.debug("Checking correctness");
+		
+		for (int i = 0; i < dotPBVs.length; i++) {
+			for (int j = 0; j < dotPBVs[i].length; j++) {
+				double diff = Math.abs(opPBVs[i][j] - dotPBVs[i][j]);
+				LOGGER.debug("Diff is " + diff);
+				assertTrue(diff < 1e-4);
+			}
+		}
+		
+	}
+	
+	@Test
+	void testPBVComputationForPOMDPs() throws Exception {
+		
+		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+				+ "exfil.6S.L0.obs_deception.domain");
+		
+		FullBeliefExpansion BE = new FullBeliefExpansion(pomdp, 3);
+		BE.expand();
+		
+		OfflineSymbolicPerseus solver = new OfflineSymbolicPerseus(pomdp, BE, 3, 50);
+		
+		List<DD> beliefs = BE.getBeliefPoints();
+		DD[] beliefsArray = beliefs.stream().toArray(DD[]::new);
+		DD[][] fBeliefs = pomdp.factorBeliefRegion(beliefs);
+		int[] vars = pomdp.getStateVarIndices();
+		
+		List<Double> times = new ArrayList<Double>();
+		
+		double[][] opPBVs = null;
+		
+		for (int i = 0; i < 10; i ++) {
+			long then = System.nanoTime();
+			
+			opPBVs = OP.factoredExpectationSparseNoMem(fBeliefs, solver.alphaVectors);
+//			double[][] PBVs = OP.dotProduct(beliefsArray, SP.alphaVectors, vars);
+			
+			long now = System.nanoTime();
+			
+			times.add((double) (now - then) / 1000000);
+		}
+		
+		LOGGER.debug("Factoring took " + times.stream().mapToDouble(a -> a).average().getAsDouble() 
+				+ " msec");
+		
+		List<Double> times2 = new ArrayList<Double>();
+		double[][] dotPBVs = null;
+		for (int i = 0; i < 10; i ++) {
+			long then = System.nanoTime();
+			
+//			double[] PBVs = OP.factoredExpectationSparseNoMem(beliefsArray, SP.alphaVectors);
+			dotPBVs = OP.dotProduct(beliefsArray, solver.alphaVectors, vars);
 			
 			long now = System.nanoTime();
 			
@@ -516,7 +579,7 @@ class TestBenchmarkNZPrimeStorage {
 						ipomdp, 
 						ipomdp.getCurrentBelief(), false, 1e-8);
 		
-		CacheDB db = new CacheDB("/tmp/nz_cache.db");
+		CacheDB db = new CacheDB();
 		db.insertNewNZPrime(1, a);
 		
 		List<Double> times = new ArrayList<Double>();
@@ -571,7 +634,7 @@ class TestBenchmarkNZPrimeStorage {
 						ipomdp, 
 						ipomdp.getCurrentBelief(), false, 1e-8);
 		
-		CacheDB db = new CacheDB("/tmp/nz_cache.db");
+		CacheDB db = new CacheDB();
 		db.insertNewNZPrime(1, a);
 		db.insertNewNZPrime(2, a);
 		db.insertNewNZPrime(3, a);
@@ -610,7 +673,7 @@ class TestBenchmarkNZPrimeStorage {
 		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
 		
 		NextBelStateCache.useCache();
-		NextBelStateCache.setDB("/tmp/nz_cache.db");
+//		NextBelStateCache.setDB("/tmp/nz_cache.db");
 		
 		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 1);
 		BE.expand();
@@ -663,7 +726,7 @@ class TestBenchmarkNZPrimeStorage {
 		List<DD> beliefs = BE.getBeliefPoints();
 		
 		NextBelStateCache.useCache();
-		NextBelStateCache.setDB("/tmp/nz_cache.db");
+//		NextBelStateCache.setDB("/tmp/nz_cache.db");
 		
 		for (DD bel: beliefs) {
 			
@@ -713,6 +776,109 @@ class TestBenchmarkNZPrimeStorage {
 			HashMap<String, NextBelState> c = 
 					NextBelState.oneStepNZPrimeBelStates(
 							ipomdp, 
+							bel, false, 1e-8);
+			
+//			b = 
+//					NextBelState.oneStepNZPrimeBelStates2(
+//							ipomdp, 
+//							bel, false, 1e-8);
+			
+			for (String act: c.keySet()) {
+				
+				NextBelState cNZ = c.get(act);
+				NextBelState bNZ = b.get(act);
+				
+				for (int n = 0; n < cNZ.nextBelStates.length; n++) {
+					for (int s = 0; s < cNZ.nextBelStates[n].length; s++) {
+						double diff = 
+								OP.maxAll(
+										OP.abs(
+												OP.sub(
+														cNZ.nextBelStates[n][s], 
+														bNZ.nextBelStates[n][s])));
+						
+//						LOGGER.debug(OP.sub(
+//														cNZ.nextBelStates[n][s], 
+//														bNZ.nextBelStates[n][s]));
+//						
+//						LOGGER.debug("Checking");
+//						LOGGER.debug(cNZ.nextBelStates[n][s].toDDTree());
+//						LOGGER.debug(bNZ.nextBelStates[n][s].toDDTree());
+						
+						LOGGER.debug("Diff is: " + diff);
+						assertTrue(diff < 0.001);
+					}
+				}
+			}
+			
+			LOGGER.debug("Correct!");
+		}
+		
+		NextBelStateCache.clearCache();
+	}
+	
+	@Test
+	void testCachedSteppingForPOMDPs() throws Exception {
+		
+		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+				+ "exfil.6S.L0.obs_deception.domain");
+		
+		FullBeliefExpansion BE = new FullBeliefExpansion(pomdp, 3);
+		BE.expand();
+		
+		List<DD> beliefs = BE.getBeliefPoints();
+		
+		NextBelStateCache.useCache();
+//		NextBelStateCache.setDB("/tmp/nz_cache.db");
+		
+		for (DD bel: beliefs) {
+			
+			LOGGER.debug("Checking " + pomdp.toMap(bel));
+			long free = Runtime.getRuntime().freeMemory();
+			long total = Runtime.getRuntime().totalMemory();
+			LOGGER.debug("Mem is: " + (total - free) / 1000000 + "MB");
+			
+			long thenC = System.nanoTime();
+			
+			HashMap<String, NextBelState> a = 
+					NextBelState.oneStepNZPrimeBelStatesCached(
+							pomdp, 
+							bel, false, 1e-8);
+			
+			long nowC = System.nanoTime();
+			
+			LOGGER.debug("Computing took " + (nowC - thenC) / 1000000 + " msecs");
+			
+			long thenR = System.nanoTime();
+			HashMap<String, NextBelState> b = 
+					NextBelState.oneStepNZPrimeBelStatesCached(
+							pomdp, 
+							bel, false, 1e-8);
+			
+			long nowR = System.nanoTime();
+			LOGGER.debug("Cache fetching took " + (nowR - thenR) / 1000000 + " msecs");
+			
+			LOGGER.debug("Checking for correctness");
+			
+			for (String act: a.keySet()) {
+				
+				NextBelState aNZ = a.get(act);
+				NextBelState bNZ = b.get(act);
+				
+				for (int n = 0; n < aNZ.nextBelStates.length; n++) {
+					for (int s = 0; s < aNZ.nextBelStates[n].length; s++) {
+						assertTrue(aNZ.nextBelStates[n][s].equals(bNZ.nextBelStates[n][s]));
+					}
+				}
+			}
+			
+			LOGGER.debug("Correct!");
+			
+			LOGGER.debug("Checking with older result");
+			
+			HashMap<String, NextBelState> c = 
+					NextBelState.oneStepNZPrimeBelStates(
+							pomdp, 
 							bel, false, 1e-8);
 			
 //			b = 
