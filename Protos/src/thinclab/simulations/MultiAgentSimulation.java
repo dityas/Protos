@@ -163,6 +163,11 @@ public class MultiAgentSimulation extends Simulation {
 			this.l1Solver.f.setGlobals();
 			DD currentL1Belief = this.getPolicyNode(currentNode).getBelief();
 			
+			int[] aVecIndices = 
+					ArrayUtils.subarray(
+							this.l1Solver.f.getStateVarIndices(), 
+							0, ((IPOMDP) this.l1Solver.f).thetaVarPosition);
+			
 			this.l1BeliefSequence.add(this.l1Solver.f.getBeliefString(currentL1Belief));
 			LOGGER.info("At L1 belief " 
 					+ this.l1BeliefSequence.get(this.l1BeliefSequence.size() - 1));
@@ -242,7 +247,7 @@ public class MultiAgentSimulation extends Simulation {
 					LOGGER.info("Reward is: " + 
 							OP.dotProduct(
 									currentL1Belief, 
-									aVecs[v], this.l1Solver.f.getStateVarIndices()));
+									aVecs[v], aVecIndices));
 					LOGGER.info("Vector is: " + aVecs[v].toDDTree());
 				}
 			}
