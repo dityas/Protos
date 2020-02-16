@@ -434,7 +434,10 @@ public class StructuredTree implements Serializable {
 		
 		dotString += "{";
 		
-		JsonElement mjElement = JSONTree.getAsJsonObject().get("M_j");
+		JsonElement mjElement = null;
+		
+		if (JSONTree.getAsJsonObject().has("M_j"))
+			mjElement = JSONTree.getAsJsonObject().get("M_j");
 		
 		if (mjElement != null) {
 			JsonArray mjArray = mjElement.getAsJsonArray();

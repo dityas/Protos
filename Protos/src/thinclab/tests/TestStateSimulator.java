@@ -83,26 +83,19 @@ class TestStateSimulator {
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 6);
+		IPOMDP ipomdp = new IPOMDP(parser, 4, 6);
 		
 		/* init solver */
 		OnlineInteractiveSymbolicPerseus S1 = 
 				new OnlineInteractiveSymbolicPerseus(
 						ipomdp, 
 						new SparseFullBeliefExpansion(ipomdp, 10), 
-						1, 10);
+						1, 100);
 		
 		/* init L0 */
-		POMDP pomdp = new POMDP(this.l0DomainFile);
-		OfflineSymbolicPerseus S0 = 
-				new OfflineSymbolicPerseus(
-						pomdp, 
-						new SSGABeliefExpansion(pomdp, 10, 10), 
-						10, 100);
-		
-		S0.solve();
-		
-		String jAction = ipomdp.getActions().get(0) + "__" + pomdp.getActions().get(0);
+		BaseSolver S0 = ipomdp.lowerLevelSolutions.get(0); 
+				
+//		String jAction = ipomdp.getActions().get(0) + "__" + pomdp.getActions().get(0);
 //		String jAction = "listen__open-left";
 		MultiAgentSimulation Sim = new MultiAgentSimulation(S1, S0, 6);
 //		Sim.envStep(jAction);

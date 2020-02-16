@@ -248,7 +248,7 @@ public class MultiAgentSimulation extends Simulation {
 							OP.dotProduct(
 									currentL1Belief, 
 									aVecs[v], aVecIndices));
-					LOGGER.info("Vector is: " + aVecs[v].toDDTree());
+//					LOGGER.info("Vector is: " + aVecs[v].toDDTree());
 				}
 			}
 			

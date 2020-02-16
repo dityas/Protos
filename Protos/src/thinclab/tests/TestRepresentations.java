@@ -239,5 +239,46 @@ class TestRepresentations {
 		
 		LOGGER.info("LazyDBG is " + LazyG.getDotStringForPersistent());
 	}
+	
+	@Test
+	public void testIPOMDPInitWithFiniteMj() throws Exception {
+		
+		String fileName2 = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
+		
+		IPOMDPParser parser2 = new IPOMDPParser(fileName2);
+		parser2.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser2, 3, 10);
+		
+		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+		
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+		
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+		
+		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+		
+	}
+	
+	@Test
+	public void testPolicyGraph() {
+		
+		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.noisy.txt");
+		OfflineSymbolicPerseus solver = 
+				new OfflineSymbolicPerseus(
+						pomdp, 
+						new SSGABeliefExpansion(pomdp, 20, 1), 
+						5, 100);
+		
+		solver.solve();
+		
+		PolicyGraph pg = new PolicyGraph(solver);
+		pg.makeGraph();
+		
+		LOGGER.debug("PG is " + pg.getDotStringForPersistent());
+	}
 
 }

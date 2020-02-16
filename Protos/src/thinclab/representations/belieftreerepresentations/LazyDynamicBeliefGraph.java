@@ -72,7 +72,7 @@ public class LazyDynamicBeliefGraph extends DynamicBeliefGraph {
 		this.leafNodes.addAll(this.getNextPolicyNodes(prevNodes, 1));
 		
 		this.appendPolicyGraph();
-		this.mergeWithPolicyGrapg(new ArrayList<Integer>(leafNodes));
+		this.mergeWithPolicyGraph(new ArrayList<Integer>(leafNodes));
 		
 		if (this instanceof PersistentStructuredTree)
 			this.commitChanges();
@@ -93,14 +93,19 @@ public class LazyDynamicBeliefGraph extends DynamicBeliefGraph {
 		/* add nodes from policy graph */
 		for (int id: this.G.getAllNodeIds()) {
 			
+			LOGGER.warn(this.G.getAllNodeIds());
+			
 			/* modify PolicyNode for use with BeliefGraph */
 			PolicyNode node = this.G.getPolicyNode(id);
-			node.setsBelief("{\"N/A\":\"N/A\"}");
-			node.setStartNode(false);
+			
+			PolicyNode copyNode = new PolicyNode();
+			copyNode.setActName(node.getActName());
+			copyNode.setsBelief("{\"N/A\":\"N/A\"}");
 			
 			int bGraphId = node.getAlphaId() + this.currentPolicyNodeCounter;
+			copyNode.setId(bGraphId);
 			
-			this.putPolicyNode(node.getAlphaId() + this.currentPolicyNodeCounter, node);
+			this.putPolicyNode(bGraphId, copyNode);
 			
 			for (Entry<List<String>, Integer> entry: this.G.getEdges(id).entrySet()) {
 				
@@ -119,7 +124,7 @@ public class LazyDynamicBeliefGraph extends DynamicBeliefGraph {
 		}
 	}
 	
-	public void mergeWithPolicyGrapg(List<Integer> nodeIds) {
+	public void mergeWithPolicyGraph(List<Integer> nodeIds) {
 		/*
 		 * Merge mj lookahead tree with policy graph
 		 */

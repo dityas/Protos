@@ -191,6 +191,9 @@ class TestIPOMDP {
 		LOGGER.info("Calling empty constructor");
 		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
 		
+//		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+//		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(1).getDotStringForPersistent());
+		
 		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotString());
 		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(1).getDotString());
 		

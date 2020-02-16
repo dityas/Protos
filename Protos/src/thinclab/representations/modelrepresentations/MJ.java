@@ -28,13 +28,14 @@ import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
 import thinclab.representations.belieftreerepresentations.DynamicBeliefGraph;
+import thinclab.representations.belieftreerepresentations.LazyDynamicBeliefGraph;
 import thinclab.solvers.BaseSolver;
 
 /*
  * @author adityas
  *
  */
-public class MJ extends DynamicBeliefGraph {
+public class MJ extends LazyDynamicBeliefGraph {
 	
 	/*
 	 * Contains the opponent's model and functions which enable IPOMDP objects
@@ -46,14 +47,14 @@ public class MJ extends DynamicBeliefGraph {
 	/* keep track of root time step */
 	int T = 0;
 	
-	private static final Logger logger = Logger.getLogger(MJ.class);
+	private static final Logger LOGGER = Logger.getLogger(MJ.class);
 	
 	// ------------------------------------------------------------------------------------
 	
 	public MJ(BaseSolver solver, int lookAhead) {
 		
 		super(solver, lookAhead);
-		logger.debug("Building MJ for look ahead of " + this.maxT);
+		LOGGER.debug("Building MJ for look ahead of " + this.maxT);
 	}
 
 	// -------------------------------------------------------------------------------------
@@ -69,13 +70,13 @@ public class MJ extends DynamicBeliefGraph {
 		if (this.leafNodes.size() > 0)
 			this.currentPolicyNodeCounter = Collections.max(this.leafNodes) + 1;
 		
-		else logger.info("No models from frame " + this.solver.f.frameID);
+		else LOGGER.info("No models from frame " + this.solver.f.frameID);
 		
-		logger.debug("Cached previous belief and added non zero nodes "
+		LOGGER.debug("Cached previous belief and added non zero nodes "
 				+ this.leafNodes + " to current roots");
 		
 		this.T += 1;
-		logger.info("Opponent Model currently tracking time step " + this.T);
+		LOGGER.info("Opponent Model currently tracking time step " + this.T);
 
 	}
 	
@@ -139,7 +140,7 @@ public class MJ extends DynamicBeliefGraph {
 						triples.toArray(new String[triples.size()][]));
 		
 		DD PAjMjDD = OP.reorder(PAjMj.toDD()); 
-		logger.debug("P(Aj | Mj) DD contains variables " 
+		LOGGER.debug("P(Aj | Mj) DD contains variables " 
 				+ Arrays.toString(PAjMjDD.getVarSet()));
 		
 		return PAjMjDD;
@@ -159,14 +160,14 @@ public class MJ extends DynamicBeliefGraph {
 		List<String[]> triples = new ArrayList<String[]>();
 		
 		for (int node : this.getAllNodeIds()) {
-			
-			String[][] triplesFromNode;
+			LOGGER.debug(this.getPolicyNode(node));
+			String[][] triplesFromNode = null;
 			
 			if (this.containsEdge(node))
 				triplesFromNode = this.edgeEntryToStringTriples(node);
 				
-			else
-				triplesFromNode = this.getLeafNodeEdges(node);
+//			else
+//				triplesFromNode = this.getLeafNodeEdges(node);
 			
 			for (String[] triple : triplesFromNode) {
 				
@@ -198,7 +199,7 @@ public class MJ extends DynamicBeliefGraph {
 						varSequence, 
 						Ojs.stream()
 							.map(oj -> oj + "'").toArray(String[]::new));
-
+		
 		DDTree tree = ddMaker.getDDTreeFromSequence(varSequence, triples);
 		
 		/* set probs for mjs of other frames */
@@ -211,7 +212,7 @@ public class MJ extends DynamicBeliefGraph {
 				} 
 				
 				catch (Exception e) {
-					logger.error("While assigning 0 prob to " + child);
+					LOGGER.error("While assigning 0 prob to " + child);
 					e.printStackTrace();
 					System.exit(-1);
 				}
@@ -236,7 +237,7 @@ public class MJ extends DynamicBeliefGraph {
 			} 
 			
 			catch (Exception e) {
-				logger.error("While visiting value " + child + " M_j" + this.solver.f.frameID);
+				LOGGER.error("While visiting value " + child + " M_j" + this.solver.f.frameID);
 				e.printStackTrace();
 				System.exit(-1);
 			}
@@ -250,7 +251,7 @@ public class MJ extends DynamicBeliefGraph {
 		/*
 		 * Constructs an initial belief DDTree based on the current roots
 		 */
-		logger.debug("Making initial belief for current opponent model traversal");
+		LOGGER.debug("Making initial belief for current opponent model traversal");
 		DDTree beliefMj = ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
 		
 		if (prior == null) {
@@ -269,7 +270,7 @@ public class MJ extends DynamicBeliefGraph {
 				} 
 				
 				catch (Exception e) {
-					logger.error("While making initial Mj: " + e.getMessage());
+					LOGGER.error("While making initial Mj: " + e.getMessage());
 					e.printStackTrace();
 				}
 			}
@@ -293,7 +294,7 @@ public class MJ extends DynamicBeliefGraph {
 			
 		}
 		
-		logger.debug("Made initial belief");
+		LOGGER.debug("Made initial belief");
 		return beliefMj;
 	}
 	
@@ -352,7 +353,7 @@ public class MJ extends DynamicBeliefGraph {
 		
 		/* first make sure if the node is indeed a leaf */
 		if (this.containsEdge(nodeId))
-			logger.error("NODE: " + nodeId + " is not a leaf");
+			LOGGER.error("NODE: " + nodeId + " is not a leaf");
 		
 		List<String[]> triples = new ArrayList<String[]>();
 		
