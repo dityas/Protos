@@ -22,11 +22,15 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.representations.belieftreerepresentations.DynamicBeliefGraph;
+import thinclab.representations.belieftreerepresentations.DynamicBeliefTree;
+import thinclab.representations.belieftreerepresentations.LazyDynamicBeliefGraph;
 import thinclab.representations.belieftreerepresentations.StaticBeliefTree;
 import thinclab.representations.conditionalplans.ConditionalPlanGraph;
 import thinclab.representations.conditionalplans.ConditionalPlanTree;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.policyrepresentations.PolicyGraph;
+import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 
@@ -165,44 +169,6 @@ class TestRepresentations {
 		/* only true for tiger problem */
 		assertTrue(Mj.getOpponentModelStateVar(1).arity == 9);
 		
-		/* test PAjMj */
-//		DD PAjMj = mj.getAjGivenMj(tigerL1IPOMDP.ddMaker, tigerL1IPOMDP.getActions());
-////		System.out.println(PAjMj);
-//		assertTrue(
-//				OP.maxAll(
-//						OP.abs(
-//							OP.sub(
-//								DD.one, 
-//								OP.addMultVarElim(
-//									PAjMj, 3)))) < 1e-8);
-//		
-////		System.out.println(mj.idToNodeMap);
-////		System.out.println(mj.edgeMap);
-////		System.out.println(mj.getJSONString());
-//		/* test Mj transition */
-//		System.out.println(Arrays.deepToString(mj.getMjTransitionTriples()));
-//		
-//		System.out.println(mj.getMjInitBelief(tigerL1IPOMDP.ddMaker));
-//		
-//		DD nextBel = 
-//				InteractiveBelief.staticL1BeliefUpdate(
-//						tigerL1IPOMDP, 
-//						mj.getMjInitBelief(tigerL1IPOMDP.ddMaker).toDD(), 
-//						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(2).toArray(new String[2]));
-//		
-//		System.out.println(tigerL1IPOMDP.getBeliefString(nextBel));
-//		
-//		Mj.step(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel).get("M_j"), 3);
-//		
-//		nextBel = 
-//				InteractiveBelief.staticL1BeliefUpdate(
-//						tigerL1IPOMDP, 
-//						nextBel, 
-//						"listen", tigerL1IPOMDP.getAllPossibleObservations().get(5).toArray(new String[2]));
-//		
-//		System.out.println(tigerL1IPOMDP.getBeliefString(nextBel));
-//		
-//		Mj.step(InteractiveBelief.toStateMap(tigerL1IPOMDP, nextBel).get("M_j"), 3);
 	}
 	
 	@Test
@@ -241,6 +207,37 @@ class TestRepresentations {
 		assertEquals(ipomdp2.multiFrameMJ.getOpponentModelStateVar(2).arity, 42);
 		
 		
+	}
+	
+	@Test
+	void testMjLookAheadBoost() {
+		LOGGER.info("Testing alternate Mj representation for deeper lookaheads");
+		
+		String fileName2 = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
+		
+		IPOMDPParser parser2 = new IPOMDPParser(fileName2);
+		parser2.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser2, 3, 10);
+		
+		LOGGER.info("Building Mj separately ");
+		
+		MJ mj = new MJ(ipomdp.lowerLevelSolutions.get(0), 3);
+		mj.buildTree();
+		
+		LOGGER.info("MJ built is " + mj.getDotStringForPersistent());
+		
+		LOGGER.info("Building DynamicBeliefGraph separately");
+		DynamicBeliefGraph G = new DynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 3);
+		G.buildTree();
+		
+		LOGGER.info("DBG is " + G.getDotStringForPersistent());
+		
+		LOGGER.info("Building LazyDynamicBeliefGraph separately");
+		LazyDynamicBeliefGraph LazyG = new LazyDynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 3);
+		LazyG.buildTree();
+		
+		LOGGER.info("LazyDBG is " + LazyG.getDotStringForPersistent());
 	}
 
 }

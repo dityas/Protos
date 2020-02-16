@@ -540,6 +540,47 @@ public class StructuredTree implements Serializable {
 		return dotString;
 	}
 	
+	public String getDotStringForPersistent() {
+		/*
+		 * Converts to graphviz compatible dot string
+		 */
+		String endl = "\r\n";
+		String dotString = "digraph G{ " + endl;
+		
+		dotString += "graph [ranksep=3];" + endl;
+		
+		/* Make nodes */
+		for (int id : this.getAllNodeIds()) {
+			
+			PolicyNode node = this.getPolicyNode(id);
+			
+			if (node.isStartNode())
+				dotString += " " + id + " [shape=Mrecord, label=\"";
+			else
+				dotString += " " + id + " [shape=record, label=\"";
+			
+			dotString += StructuredTree.jsonBeliefStringToDotNode(
+							node.getsBelief(),
+							node.getActName())
+					+ "\"];" + endl;
+		}
+		
+		dotString += endl;
+		
+		for (int edgeSource: this.getAllEdgeIds()) {
+			
+			for (Entry<List<String>, Integer> ends : this.getEdges(edgeSource).entrySet()) {
+				
+				dotString += " " + edgeSource + " -> " + ends.getValue()
+					+ " [label=\"" + ends.getKey().toString() + "\"]" + endl;
+			}
+		}
+		
+		dotString += "}" + endl;
+		
+		return dotString;
+	}
+	
 	public void writeDotFile(String dirName, String name) {
 		/*
 		 * Creates a graphviz dot file for the specified structure
