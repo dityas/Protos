@@ -28,6 +28,7 @@ import thinclab.legacy.Global;
 import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.simulations.MultiAgentSimulation;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
@@ -88,38 +89,8 @@ class TestOnlineSymbolicPerseus {
 						1, 
 						100);
 		
-		StochasticSimulation ss = new StochasticSimulation(solver, 5);
-		ss.runSimulation();
-		
-//		LOGGER.debug(ss.getDotString());
-	}
-	
-	@Test
-	void testIPOMDPSymbolicPerseusWithMjCompression() throws ZeroProbabilityObsException {
-
-		
-		LOGGER.info("Running testOnlineSymbolicPerseus()");
-		
-		IPOMDPParser parser = new IPOMDPParser(this.l1multiple);
-		parser.parseDomain();
-		
-		/*
-		 * Initialize IPOMDP
-		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 10, 0.1);
-		
-		SparseFullBeliefExpansion fb = 
-				new SparseFullBeliefExpansion(
-						tigerL1IPOMDP, 2);
-		
-		OnlineInteractiveSymbolicPerseus solver = 
-				new OnlineInteractiveSymbolicPerseus(
-						tigerL1IPOMDP, 
-						fb, 
-						1, 
-						100);
-		
-		StochasticSimulation ss = new StochasticSimulation(solver, 3);
+		MultiAgentSimulation ss = 
+				new MultiAgentSimulation(solver, tigerL1IPOMDP.lowerLevelSolutions.get(0), 3);
 		ss.runSimulation();
 		
 //		LOGGER.debug(ss.getDotString());
