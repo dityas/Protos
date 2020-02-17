@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.representations.PersistentStructuredTree;
 import thinclab.representations.policyrepresentations.PolicyGraph;
@@ -47,7 +48,6 @@ public class LazyDynamicBeliefGraph extends DynamicBeliefGraph {
 		
 		/* build and store policy graph */
 		this.G = new PolicyGraph((OfflinePBVISolver) solver);
-		this.G.makeGraph();
 		LOGGER.debug("Policy graph for frame " + this.solver.f.frameID + " initialized");
 		
 	}
@@ -71,8 +71,7 @@ public class LazyDynamicBeliefGraph extends DynamicBeliefGraph {
 		this.leafNodes.clear();
 		this.leafNodes.addAll(this.getNextPolicyNodes(prevNodes, 1));
 		
-		this.appendPolicyGraph();
-		this.mergeWithPolicyGraph(new ArrayList<Integer>(leafNodes));
+		this.extendToPolicyGraph(new ArrayList<Integer>(leafNodes));
 		
 		if (this instanceof PersistentStructuredTree)
 			this.commitChanges();
@@ -121,6 +120,76 @@ public class LazyDynamicBeliefGraph extends DynamicBeliefGraph {
 							entry.getValue() + this.currentPolicyNodeCounter);
 				}
 			}
+		}
+	}
+	
+	public void extendToPolicyGraph(List<Integer> nodeIds) {
+		/*
+		 * Extend the leafs of the belief tree given in nodeIds to policy graph
+		 */
+		
+		DecisionProcess DP = this.solver.f;
+		
+		/* branch for all possible observations */
+		List<List<String>> obs = DP.getAllPossibleObservations();
+		
+		/* Do till there are no terminal policy leaves */
+		while(!nodeIds.isEmpty()) {
+			
+			PolicyNode node = this.getPolicyNode(nodeIds.remove(0));
+			List<Integer> newLeaves = new ArrayList<Integer>();
+			
+			/*
+			 * For all observations, perform belief updates and get best action nodes
+			 */
+			for (List<String> theObs : obs) {
+				
+				try {
+					
+					DD nextBel = 
+							DP.beliefUpdate( 
+									node.getBelief(), 
+									node.getActName(), 
+									theObs.stream().toArray(String[]::new));
+					
+					/* get best next node */
+					int alphaId = 
+							DecisionProcess.getBestAlphaIndex(DP, nextBel, this.G.alphas)
+							+ this.currentPolicyNodeCounter;
+					
+					if (!this.containsNode(alphaId)) {
+						
+						PolicyNode nexNode = new PolicyNode();
+						
+						nexNode.setsBelief("{\"N/A\":\"N/A\"}");
+						nexNode.setBelief(nextBel);
+						nexNode.setId(alphaId);
+						nexNode.setActName(
+								DP.getActions().get(
+										this.G.actions[alphaId - this.currentPolicyNodeCounter]));
+						
+						this.putPolicyNode(alphaId, nexNode);
+						newLeaves.add(alphaId);
+					}
+					
+					for (String action: DP.getActions()) {
+						
+						List<String> edge = new ArrayList<String>();
+						edge.add(action);
+						edge.addAll(theObs);
+						
+						if (!this.getEdges(node.getId()).containsKey(edge))
+							this.putEdge(node.getId(), edge, alphaId);
+					}
+					
+				}
+				
+				catch (ZeroProbabilityObsException e) {
+					continue;
+				}
+			}
+			
+			nodeIds.addAll(newLeaves);
 		}
 	}
 	

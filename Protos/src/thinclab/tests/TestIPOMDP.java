@@ -62,9 +62,12 @@ class TestIPOMDP {
 		
 		LOGGER.info("Running belief update benchmarks");
 		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		
 		parser.parseDomain();
 		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
@@ -142,11 +145,13 @@ class TestIPOMDP {
 	void testBenchMarkPreMultipliedBeliefUpdate() throws Exception {
 		
 		LOGGER.info("Running pre multiplied belief update benchmarks");
-		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		IPOMDP ipomdp = new IPOMDP(parser, 3, 10, true);
@@ -189,7 +194,7 @@ class TestIPOMDP {
 		parser.parseDomain();
 		
 		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 4, 10);
 		
 //		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
 //		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(1).getDotStringForPersistent());
@@ -898,31 +903,31 @@ class TestIPOMDP {
 		
 	}
 	
-	@Test
-	void testIPOMDPSerialization() 
-			throws Exception {
-		LOGGER.info("Running testIPOMDPSerialization()");
-		
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
-		
-		/* Initialize IPOMDP */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
-		
-		tigerL1IPOMDP.step(
-				tigerL1IPOMDP.getInitialBeliefs().get(0), 
-				"listen", 
-				new String[] {"growl-left", "silence"});
-		
-		IPOMDP.saveIPOMDP(tigerL1IPOMDP, "/tmp/tigerIPOMDP.obj");
-		
-		IPOMDP ipomdp = IPOMDP.loadIPOMDP("/tmp/tigerIPOMDP.obj");
-		
-		ipomdp.step(
-				ipomdp.getInitialBeliefs().get(0), 
-				"listen", 
-				new String[] {"growl-left", "silence"});
-	}
+//	@Test
+//	void testIPOMDPSerialization() 
+//			throws Exception {
+//		LOGGER.info("Running testIPOMDPSerialization()");
+//		
+//		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+//		parser.parseDomain();
+//		
+//		/* Initialize IPOMDP */
+//		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
+//		
+//		tigerL1IPOMDP.step(
+//				tigerL1IPOMDP.getInitialBeliefs().get(0), 
+//				"listen", 
+//				new String[] {"growl-left", "silence"});
+//		
+//		IPOMDP.saveIPOMDP(tigerL1IPOMDP, "/tmp/tigerIPOMDP.obj");
+//		
+//		IPOMDP ipomdp = IPOMDP.loadIPOMDP("/tmp/tigerIPOMDP.obj");
+//		
+//		ipomdp.step(
+//				ipomdp.getInitialBeliefs().get(0), 
+//				"listen", 
+//				new String[] {"growl-left", "silence"});
+//	}
 	
 	@Test
 	void testBeliefToJSON() {
@@ -941,30 +946,30 @@ class TestIPOMDP {
 						tigerL1IPOMDP.getBeliefString(tigerL1IPOMDP.getCurrentBelief()), ""));
 	}
 	
-	@Test
-	void testIPOMDPSS() {
-		
-		LOGGER.info("Testing IPOMDP stochastic sim");
-		
-		IPOMDPParser parser = 
-				new IPOMDPParser("/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
-		parser.parseDomain();
-		
-		/* Initialize IPOMDP */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
-		
-		OnlineInteractiveSymbolicPerseus sp = 
-				new OnlineInteractiveSymbolicPerseus(
-						tigerL1IPOMDP, 
-						new FullBeliefExpansion(tigerL1IPOMDP), 
-						1, 100);
-		
-		StochasticSimulation ss = new StochasticSimulation(sp, 10);
-		ss.runSimulation();
-		LOGGER.info("\r\n" + ss.getDotString());
-		
-		ss.logResults();
-	}
+//	@Test
+//	void testIPOMDPSS() {
+//		
+//		LOGGER.info("Testing IPOMDP stochastic sim");
+//		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser("/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+//		parser.parseDomain();
+//		
+//		/* Initialize IPOMDP */
+//		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
+//		
+//		OnlineInteractiveSymbolicPerseus sp = 
+//				new OnlineInteractiveSymbolicPerseus(
+//						tigerL1IPOMDP, 
+//						new FullBeliefExpansion(tigerL1IPOMDP), 
+//						1, 100);
+//		
+//		StochasticSimulation ss = new StochasticSimulation(sp, 10);
+//		ss.runSimulation();
+//		LOGGER.info("\r\n" + ss.getDotString());
+//		
+//		ss.logResults();
+//	}
 	
 	@Test
 	void testNZPrimesTime() throws Exception {
@@ -1022,11 +1027,13 @@ class TestIPOMDP {
 	void testJointActionTi() {
 		
 		LOGGER.info("Testing joint action Ti creation");
-		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 //		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();

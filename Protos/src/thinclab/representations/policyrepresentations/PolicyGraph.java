@@ -8,7 +8,6 @@
 package thinclab.representations.policyrepresentations;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -79,6 +78,16 @@ public class PolicyGraph extends StructuredTree {
 			leafNodes.add(node.alphaId);
 		}
 		
+		this.makeGraph(leafNodes);
+	}
+	
+	public void makeGraph(List<Integer> leafNodes) {
+		/*
+		 * Makes policy graph from the leafNodes given
+		 */
+		
+		DecisionProcess DP = this.solver.getFramework();
+		
 		/* branch for all possible observations */
 		List<List<String>> obs = DP.getAllPossibleObservations();
 		
@@ -117,12 +126,6 @@ public class PolicyGraph extends StructuredTree {
 						newLeaves.add(alphaId);
 					}
 					
-//					if (!this.edgeMap.containsKey(node.alphaId))
-//						this.edgeMap.put(
-//								node.alphaId, 
-//								new HashMap<List<String>, Integer>());
-//					
-//					this.edgeMap.get(node.alphaId).put(theObs, alphaId);
 					this.putEdge(node.alphaId, theObs, alphaId);
 					
 				}
@@ -135,7 +138,6 @@ public class PolicyGraph extends StructuredTree {
 			leafNodes.addAll(newLeaves);
 			
 		}
-			
 	}
 	
 	// ---------------------------------------------------------------------------------------

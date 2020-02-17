@@ -27,7 +27,6 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.legacy.StateVar;
-import thinclab.representations.belieftreerepresentations.DynamicBeliefGraph;
 import thinclab.representations.belieftreerepresentations.LazyDynamicBeliefGraph;
 import thinclab.solvers.BaseSolver;
 
@@ -158,22 +157,22 @@ public class MJ extends LazyDynamicBeliefGraph {
 		 */
 		
 		List<String[]> triples = new ArrayList<String[]>();
-		
+//		LOGGER.debug("Edges are " + this.getAllEdgeIds());
 		for (int node : this.getAllNodeIds()) {
-			LOGGER.debug(this.getPolicyNode(node));
+//			LOGGER.debug("Node is " + this.getPolicyNode(node));
 			String[][] triplesFromNode = null;
 			
 			if (this.containsEdge(node))
 				triplesFromNode = this.edgeEntryToStringTriples(node);
 				
-//			else
-//				triplesFromNode = this.getLeafNodeEdges(node);
+			else
+				triplesFromNode = this.getLeafNodeEdges(node);
 			
 			for (String[] triple : triplesFromNode) {
 				
 				/* Add transition probability */
 				triple = ArrayUtils.add(triple, "1.0");
-				
+//				LOGGER.debug("Constructed triple is " + Arrays.toString(triple));
 				triples.add(triple);
 			}
 		}
@@ -200,11 +199,15 @@ public class MJ extends LazyDynamicBeliefGraph {
 						Ojs.stream()
 							.map(oj -> oj + "'").toArray(String[]::new));
 		
+//		for (int r = 0; r < triples.length; r++) {
+//			LOGGER.debug("triple " + r + " is " + Arrays.toString(triples[r]));
+//		}
+		
 		DDTree tree = ddMaker.getDDTreeFromSequence(varSequence, triples);
 		
 		/* set probs for mjs of other frames */
 		for (String child : tree.children.keySet()) {
-			
+//			LOGGER.debug("child is " + child);
 			if (IPOMDP.getFrameIDFromVarName(child) != this.solver.f.frameID) {
 				
 				try {

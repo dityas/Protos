@@ -222,17 +222,17 @@ class TestRepresentations {
 		
 		LOGGER.info("Building Mj separately ");
 		
-		MJ mj = new MJ(ipomdp.lowerLevelSolutions.get(0), 3);
-		mj.buildTree();
-		
-		LOGGER.info("MJ built is " + mj.getDotStringForPersistent());
-		
-		LOGGER.info("Building DynamicBeliefGraph separately");
-		DynamicBeliefGraph G = new DynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 3);
-		G.buildTree();
-		
-		LOGGER.info("DBG is " + G.getDotStringForPersistent());
-		
+//		MJ mj = new MJ(ipomdp.lowerLevelSolutions.get(0), 3);
+//		mj.buildTree();
+//		
+//		LOGGER.info("MJ built is " + mj.getDotStringForPersistent());
+//		
+//		LOGGER.info("Building DynamicBeliefGraph separately");
+//		DynamicBeliefGraph G = new DynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 3);
+//		G.buildTree();
+//		
+//		LOGGER.info("DBG is " + G.getDotStringForPersistent());
+//		
 		LOGGER.info("Building LazyDynamicBeliefGraph separately");
 		LazyDynamicBeliefGraph LazyG = new LazyDynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 3);
 		LazyG.buildTree();

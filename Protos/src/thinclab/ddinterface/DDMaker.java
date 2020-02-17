@@ -182,6 +182,7 @@ public class DDMaker implements Serializable {
 				}
 			
 				try {
+//					logger.debug("Record " + record + " is " + Arrays.toString(currentRecord));
 					currentNode = currentNode.atChild(currentRecord[c]);
 				}
 				catch (Exception e) {

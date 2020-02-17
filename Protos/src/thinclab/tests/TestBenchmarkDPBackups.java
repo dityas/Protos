@@ -60,10 +60,13 @@ class TestBenchmarkDPBackups {
 	@Test
 	void testDPBackups() throws Exception {
 		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		
 		parser.parseDomain();
 		
@@ -144,8 +147,12 @@ class TestBenchmarkDPBackups {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
@@ -232,8 +239,12 @@ class TestBenchmarkDPBackups {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
@@ -300,8 +311,10 @@ class TestBenchmarkDPBackups {
 	@Test
 	void testDPBackupsCorrectnessWithoutFactoredBelStateForPOMDPs() throws Exception {
 		
-		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
-				+ "exfil.6S.L0.obs_deception.domain");
+//		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+//				+ "exfil.6S.L0.obs_deception.domain");
+		
+		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
 		
 		FullBeliefExpansion BE = new FullBeliefExpansion(pomdp, 4);
 		BE.expand();
@@ -360,8 +373,10 @@ class TestBenchmarkDPBackups {
 	@Test
 	void testDPBackupsForPOMDPs() throws Exception {
 		
-		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
-				+ "exfil.6S.L0.obs_deception.domain");
+//		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+//				+ "exfil.6S.L0.obs_deception.domain");
+		
+		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
 		
 		NextBelStateCache.useCache();
 		
@@ -424,10 +439,14 @@ class TestBenchmarkDPBackups {
 	@Test
 	void testPreMultFactors() throws Exception {
 		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
+		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		
 		parser.parseDomain();
 		
@@ -476,10 +495,14 @@ class TestBenchmarkDPBackups {
 	@Test
 	void testObsDist() throws Exception {
 		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
+		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		
 		parser.parseDomain();
 		
@@ -524,10 +547,14 @@ class TestBenchmarkDPBackups {
 	@Test
 	void testObsDistCorrectness() throws Exception {
 		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
+		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		
 		parser.parseDomain();
 		
@@ -571,10 +598,14 @@ class TestBenchmarkDPBackups {
 	@Test
 	void testPreMultFactorsCorrectness() throws Exception {
 		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
+		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		
 		parser.parseDomain();
 		

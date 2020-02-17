@@ -99,59 +99,6 @@ class TestDDTree {
 	}
 	
 	@Test
-	void testDDTreeToDDConversion() {
-		/*
-		 * Test to check conversion from DDTree to symbolic perseus DD
-		 */
-		LOGGER.info("Running testDDTreeToDDConversion()");
-		
-		/*
-		 * Make test POMDP domain and solve it
-		 */
-		
-		POMDP pomdp = null;
-		
-		try {
-			
-			pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/attacker_l0.txt");
-			
-			OfflineSymbolicPerseus solver = 
-					OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
-							pomdp, 
-							50, 
-							1, 
-							10, 
-							100);
-			solver.solve();
-		}
-		
-		catch (Exception e) {
-			System.err.println(e.getMessage());
-			System.exit(1);
-		}
-		
-		System.out.println(pomdp.initialBelState_f[0]);
-		
-		DDTree sessPrivsBelief = new DDTree("SESSION_PRIVS");
-		sessPrivsBelief.children.put("user", new DDTreeLeaf(0.5));
-		sessPrivsBelief.children.put("admin", new DDTreeLeaf(0.5));
-		
-		DD sessPrivsDD = sessPrivsBelief.toDD();
-		
-		LOGGER.debug(sessPrivsDD);
-		LOGGER.debug("SESS_PRIVS: " + pomdp.initialBelState_f[0]);
-		LOGGER.debug("SESS_PRIVS varset: " + Arrays.toString(pomdp.initialBelState_f[0].getVarSet()));
-	
-		LOGGER.debug("OTHER: " + pomdp.initialBelState_f[1]);
-		LOGGER.debug("OTHER varset: " + Arrays.toString(pomdp.initialBelState_f[1].getVarSet()));
-	
-		LOGGER.debug("MULT: " + OP.mult(pomdp.initialBelState_f[1], pomdp.initialBelState_f[0]));
-//		System.out.println("OTHER varset: " + Arrays.toString(pomdp.initialBelState_f[1].getVarSet()));
-		
-//		assertTrue(pomdp.initialBelState_f[0].equals(sessPrivsDD));
-	}
-	
-	@Test
 	void testDDToDDTree() {
 		LOGGER.info("Running testDDToDDTree()");
 		
