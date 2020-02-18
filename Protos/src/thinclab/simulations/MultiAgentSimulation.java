@@ -47,6 +47,8 @@ public class MultiAgentSimulation extends Simulation {
 	
 	private OnlineSolver l1Solver;
 	
+	private String mjDotDir = null;
+	
 	/* some lists for storing run stats */
 	List<String> stateSequence = new ArrayList<String>();
 	List<String> l1BeliefSequence = new ArrayList<String>();
@@ -106,6 +108,10 @@ public class MultiAgentSimulation extends Simulation {
 		this.putPolicyNode(jNode.getId(), jNode);
 	}
 	
+	public void setMjDotDir(String mjDotDir) {
+		this.mjDotDir = mjDotDir;
+	}
+	
 	// ----------------------------------------------------------------------------------------
 	
 	@Override
@@ -147,6 +153,10 @@ public class MultiAgentSimulation extends Simulation {
 				this.l1Solver.f.setGlobals();
 				((OnlineSolver) this.l1Solver).solveCurrentStep();
 				((OnlineSolver) this.l1Solver).expansionStrategy.clearMem();
+				
+				if (this.mjDotDir != null)
+					((IPOMDP) this.l1Solver.f)
+						.multiFrameMJ.MJs.get(0).writeDotFile(this.mjDotDir, "step_" + currentNode);
 			}
 			
 			if (this.solver instanceof OnlineSolver) {
@@ -248,7 +258,7 @@ public class MultiAgentSimulation extends Simulation {
 							OP.dotProduct(
 									currentL1Belief, 
 									aVecs[v], aVecIndices));
-//					LOGGER.info("Vector is: " + aVecs[v].toDDTree());
+					LOGGER.info("Vector is: " + aVecs[v].toDDTree());
 				}
 			}
 			

@@ -592,7 +592,12 @@ public class StructuredTree implements Serializable {
 		try {
 			
 			PrintWriter writer = new PrintWriter(dirName + "/" + name + ".dot");
-			writer.println(this.getDotString());
+			
+			if (this instanceof PersistentStructuredTree)
+				writer.println(this.getDotStringForPersistent());
+			else
+				writer.println(this.getDotString());
+			
 			writer.flush();
 			
 			LOGGER.info("dot file " + dirName + "/" + name + ".dot" + " created");

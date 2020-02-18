@@ -256,6 +256,7 @@ public class RunSimulations extends Executable {
 									BE, numRounds, backups);
 					
 					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
+					ss.setMjDotDir(storageDir);
 					ss.runSimulation();
 					
 					ss.logToFile(storageDir + "/" + "sim" + i + ".json");
