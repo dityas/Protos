@@ -85,6 +85,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		
 		/* save memory */
 		this.pCache = null;
+		Global.clearHashtables();
 	}
 	
 	public void SymbolicPerseus(
