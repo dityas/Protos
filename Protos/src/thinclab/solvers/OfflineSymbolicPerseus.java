@@ -283,12 +283,12 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 				break;
 			}
 			
-			if (bellmanErr < 0.01) {
-				logger.warn("BELLMAN ERROR LESS THAN 0.01. PROBABLY CONVERGED.");
+			if (bellmanErr < 0.005) {
+				logger.warn("BELLMAN ERROR LESS THAN 0.005. PROBABLY CONVERGED.");
 				break;
 			}
 			
-			if (stepId > 20 && errorVar < 0.0000001) {
+			if (stepId > 20 && errorVar < 0.00001) {
 				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;
