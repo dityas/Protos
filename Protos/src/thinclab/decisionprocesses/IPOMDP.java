@@ -1545,7 +1545,7 @@ public class IPOMDP extends POMDP {
 		/*
 		 * Just a wrapped up call to OpponentModels getOptimalActionAtNode method 
 		 */
-		return this.Mj.getOptimalActionAtNode(mjNode);
+		return this.multiFrameMJ.getOptimalActionAtNode(mjNode);
 	}
 	
 	public HashMap<String, HashMap<String, Float>> toMapWithTheta(DD belief) {

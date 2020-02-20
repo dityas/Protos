@@ -9,7 +9,9 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
@@ -21,6 +23,7 @@ import thinclab.belief.SSGABeliefExpansion;
 import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.parsers.IPOMDPParser;
@@ -220,6 +223,43 @@ class TestBeliefExpansionStartegies {
 		assertTrue(fb.getBeliefPoints().size() == ipomdp.getInitialBeliefs().size());
 		ssgaB.resetToNewInitialBelief();
 		assertTrue(ssgaB.getBeliefPoints().size() == ipomdp.getInitialBeliefs().size());
+	}
+	
+	@Test
+	void testBeliefExpansionForStrictlyOptimalMj() throws Exception {
+		LOGGER.info("Testing belief expansion in strictly optimal MJs");
+		
+		String l1DomainFile = 
+				"/home/adityas/UGA/THINCLab/DomainFiles/tiger.L1.F3.agnostic.domain";
+		
+		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 6, 10);
+		
+//		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 1);
+//		BE.expand();
+//		
+//		for (DD belief: BE.getBeliefPoints()) {
+//			LOGGER.debug("Belief is: " + ipomdp.toMapWithTheta(belief));
+//		}
+		
+		DD startBelief = ipomdp.getCurrentBelief();
+		
+		for (int i = 0; i < 4; i++) {
+			
+			LOGGER.info("Belief is: " + ipomdp.toMapWithTheta(startBelief));
+			
+			Set<String> mjs = ipomdp.toMap(startBelief).get("M_j").keySet();
+			
+			for (String mj: mjs) {
+				LOGGER.debug("MJ: " + mj + " OPT(Mj): " + ipomdp.getOptimalActionAtMj(mj));
+			}
+			
+			startBelief = 
+					ipomdp.beliefUpdate(startBelief, "listen", new String[] {"growl-left", "silence"});
+			
+		}
 	}
 
 }

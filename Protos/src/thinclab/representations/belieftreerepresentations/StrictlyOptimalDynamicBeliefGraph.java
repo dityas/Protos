@@ -27,7 +27,7 @@ import thinclab.solvers.OfflinePBVISolver;
  * @author adityas
  *
  */
-public class LazyDynamicBeliefGraph extends DynamicBeliefGraph {
+public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 
 	/*
 	 * Only does full belief expansion for the first step to maintain complete information
@@ -38,11 +38,11 @@ public class LazyDynamicBeliefGraph extends DynamicBeliefGraph {
 	private PolicyGraph G;
 	
 	private static final long serialVersionUID = -4519925553640062581L;
-	private static final Logger LOGGER = Logger.getLogger(LazyDynamicBeliefGraph.class);
+	private static final Logger LOGGER = Logger.getLogger(StrictlyOptimalDynamicBeliefGraph.class);
 	
 	// ---------------------------------------------------------------------------------------------
 
-	public LazyDynamicBeliefGraph(BaseSolver solver, int lookAhead) {
+	public StrictlyOptimalDynamicBeliefGraph(BaseSolver solver, int lookAhead) {
 		
 		super(solver, lookAhead);
 		

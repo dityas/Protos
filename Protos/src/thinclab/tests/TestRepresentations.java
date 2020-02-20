@@ -24,7 +24,7 @@ import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.belieftreerepresentations.DynamicBeliefGraph;
 import thinclab.representations.belieftreerepresentations.DynamicBeliefTree;
-import thinclab.representations.belieftreerepresentations.LazyDynamicBeliefGraph;
+import thinclab.representations.belieftreerepresentations.StrictlyOptimalDynamicBeliefGraph;
 import thinclab.representations.belieftreerepresentations.StaticBeliefTree;
 import thinclab.representations.conditionalplans.ConditionalPlanGraph;
 import thinclab.representations.conditionalplans.ConditionalPlanTree;
@@ -234,7 +234,7 @@ class TestRepresentations {
 //		LOGGER.info("DBG is " + G.getDotStringForPersistent());
 //		
 		LOGGER.info("Building LazyDynamicBeliefGraph separately");
-		LazyDynamicBeliefGraph LazyG = new LazyDynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 3);
+		StrictlyOptimalDynamicBeliefGraph LazyG = new StrictlyOptimalDynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 3);
 		LazyG.buildTree();
 		
 		LOGGER.info("LazyDBG is " + LazyG.getDotStringForPersistent());
