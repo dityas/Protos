@@ -151,7 +151,7 @@ public abstract class DecisionProcess implements Serializable {
 		double[] values = new double[alphaVectors.length];
 		for (int alphaId = 0; alphaId < alphaVectors.length; alphaId++) {
 			
-			val = OP.dotProduct(belief, alphaVectors[alphaId], DP.getStateVarIndices());
+			val = OP.dotProduct(belief, alphaVectors[alphaId], varIndices);
 			values[alphaId] = val;
 			
 			if (val >= bestVal) {

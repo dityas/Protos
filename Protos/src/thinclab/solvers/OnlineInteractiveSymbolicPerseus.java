@@ -170,7 +170,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				primedV[i] = 
 						OP.primeVars(
 								this.alphaVectors[i], 
-								ipomdp.S.size() + ipomdp.Omega.size());
+								ipomdp.getNumVars());
 			}
 			
 			maxAbsVal = 

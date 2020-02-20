@@ -29,6 +29,7 @@ import thinclab.legacy.Global;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OnlineIPBVISolver;
+import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -230,7 +231,7 @@ class TestBeliefExpansionStartegies {
 		LOGGER.info("Testing belief expansion in strictly optimal MJs");
 		
 		String l1DomainFile = 
-				"/home/adityas/UGA/THINCLab/DomainFiles/tiger.L1.F3.agnostic.domain";
+				"/home/adityas/git/repository/Protos/domains/tiger.L1.enemy.txt";
 		
 		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
 		parser.parseDomain();
@@ -260,6 +261,20 @@ class TestBeliefExpansionStartegies {
 					ipomdp.beliefUpdate(startBelief, "listen", new String[] {"growl-left", "silence"});
 			
 		}
+		
+		LOGGER.debug(ipomdp.currentRi);
+		
+		OnlineInteractiveSymbolicPerseus solver = 
+				new OnlineInteractiveSymbolicPerseus(
+						ipomdp, 
+						new SparseFullBeliefExpansion(ipomdp, 10), 
+						10, 100);
+		
+		solver.solveCurrentStep();
+		
+		for (DD alphaV : solver.getAlphaVectors())
+			LOGGER.debug(alphaV.toDDTree());
+		
 	}
 
 }
