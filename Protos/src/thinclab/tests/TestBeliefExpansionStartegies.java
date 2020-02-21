@@ -9,8 +9,11 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,14 +22,19 @@ import org.junit.jupiter.api.Test;
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.belief.SparseFullBeliefExpansion;
+import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OnlineIPBVISolver;
+import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -220,6 +228,163 @@ class TestBeliefExpansionStartegies {
 		assertTrue(fb.getBeliefPoints().size() == ipomdp.getInitialBeliefs().size());
 		ssgaB.resetToNewInitialBelief();
 		assertTrue(ssgaB.getBeliefPoints().size() == ipomdp.getInitialBeliefs().size());
+	}
+	
+	@Test
+	void testBeliefExpansionForStrictlyOptimalMj() throws Exception {
+		LOGGER.info("Testing belief expansion in strictly optimal MJs");
+		
+		NextBelStateCache.useCache();
+		
+//		String l1DomainFile = 
+//				"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.6S.2O.2F.domain";
+		String l1DomainFile = 
+				"/home/adityas/git/repository/Protos/domains/tiger.L1.enemy.txt";
+		
+		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+//		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 1);
+//		BE.expand();
+//		
+//		for (DD belief: BE.getBeliefPoints()) {
+//			LOGGER.debug("Belief is: " + ipomdp.toMapWithTheta(belief));
+//		}
+		
+		DD startBelief = ipomdp.getCurrentBelief();
+		
+		for (int i = 0; i < 4; i++) {
+			
+			LOGGER.info("Belief is: " + ipomdp.toMapWithTheta(startBelief));
+			
+			Set<String> mjs = ipomdp.toMap(startBelief).get("M_j").keySet();
+			
+			for (String mj: mjs) {
+				LOGGER.debug("MJ: " + mj + " OPT(Mj): " + ipomdp.getOptimalActionAtMj(mj));
+			}
+			
+//			startBelief = 
+//					ipomdp.beliefUpdate(startBelief, "listen", new String[] {"growl-left", "silence"});
+			
+		}
+		
+//		LOGGER.debug(ipomdp.currentRi);
+		
+		OnlineInteractiveSymbolicPerseus solver = 
+				new OnlineInteractiveSymbolicPerseus(
+						ipomdp, 
+						new SparseFullBeliefExpansion(ipomdp, 10), 
+						1, 100);
+		
+		for (int nodeId: ipomdp.multiFrameMJ.MJs.get(0).getAllNodeIds()) {
+			PolicyNode node = ipomdp.multiFrameMJ.MJs.get(0).getPolicyNode(nodeId);
+			LOGGER.debug(node);
+		}
+		
+		solver.solveCurrentStep();
+		LOGGER.debug("OPT Ai is " +
+				DecisionProcess.getActionFromPolicy(
+						ipomdp, 
+						ipomdp.getCurrentBelief(), 
+						solver.getAlphaVectors(), 
+						solver.policy));
+		
+		if (solver instanceof OnlineIPBVISolver) {
+			DD[] aVecs = ((OnlineIPBVISolver) solver).alphaVectors;
+			int[] policy = ((OnlineIPBVISolver) solver).policy;
+			
+			for (int v = 0; v < aVecs.length; v++) {
+				LOGGER.info("For A vec. " + v + " representing action " 
+						+ ipomdp.getActions().get(policy[v]));
+				LOGGER.info("Reward is: " + 
+						OP.dotProduct(
+								ipomdp.getCurrentBelief(), 
+								aVecs[v], ArrayUtils.subarray(
+										ipomdp.getStateVarIndices(), 
+										0, ipomdp.thetaVarPosition)));
+				
+			}
+		}
+		
+		solver.nextStep("listen", Arrays.asList(new String[] {"growl-left", "silence"}));
+		
+		for (int nodeId: ipomdp.multiFrameMJ.MJs.get(0).getAllNodeIds()) {
+			PolicyNode node = ipomdp.multiFrameMJ.MJs.get(0).getPolicyNode(nodeId);
+			LOGGER.debug(node);
+		}
+		
+		
+		solver.solveCurrentStep();
+		LOGGER.debug("OPT Ai is " +
+				DecisionProcess.getActionFromPolicy(
+						ipomdp, 
+						ipomdp.getCurrentBelief(), 
+						solver.getAlphaVectors(), 
+						solver.policy));
+		
+		if (solver instanceof OnlineIPBVISolver) {
+			DD[] aVecs = ((OnlineIPBVISolver) solver).alphaVectors;
+			int[] policy = ((OnlineIPBVISolver) solver).policy;
+			
+			for (int v = 0; v < aVecs.length; v++) {
+				LOGGER.info("For A vec. " + v + " representing action " 
+						+ ipomdp.getActions().get(policy[v]));
+				LOGGER.info("Reward is: " + 
+						OP.dotProduct(
+								ipomdp.getCurrentBelief(), 
+								aVecs[v], ArrayUtils.subarray(
+										ipomdp.getStateVarIndices(), 
+										0, ipomdp.thetaVarPosition)));
+				
+			}
+		}
+		
+		solver.nextStep("listen", Arrays.asList(new String[] {"growl-left", "silence"}));
+		
+		for (int nodeId: ipomdp.multiFrameMJ.MJs.get(0).getAllNodeIds()) {
+			PolicyNode node = ipomdp.multiFrameMJ.MJs.get(0).getPolicyNode(nodeId);
+			LOGGER.debug(node);
+		}
+		
+		solver.solveCurrentStep();
+		LOGGER.debug("OPT Ai is " +
+				DecisionProcess.getActionFromPolicy(
+						ipomdp, 
+						ipomdp.getCurrentBelief(), 
+						solver.getAlphaVectors(), 
+						solver.policy));
+		
+		if (solver instanceof OnlineIPBVISolver) {
+			DD[] aVecs = ((OnlineIPBVISolver) solver).alphaVectors;
+			int[] policy = ((OnlineIPBVISolver) solver).policy;
+			
+			for (int v = 0; v < aVecs.length; v++) {
+				LOGGER.info("For A vec. " + v + " representing action " 
+						+ ipomdp.getActions().get(policy[v]));
+				LOGGER.info("Reward is: " + 
+						OP.dotProduct(
+								ipomdp.getCurrentBelief(), 
+								aVecs[v], ArrayUtils.subarray(
+										ipomdp.getStateVarIndices(), 
+										0, ipomdp.thetaVarPosition)));
+				
+			}
+		}
+		
+		solver.nextStep("listen", Arrays.asList(new String[] {"growl-left", "silence"}));
+		
+		for (int nodeId: ipomdp.multiFrameMJ.MJs.get(0).getAllNodeIds()) {
+			PolicyNode node = ipomdp.multiFrameMJ.MJs.get(0).getPolicyNode(nodeId);
+			LOGGER.debug(node);
+		}
+		
+//		LOGGER.debug(ipomdp.currentTau.toDDTree());
+//		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+//		for (DD alphaV : solver.getAlphaVectors())
+//			LOGGER.debug(alphaV.toDDTree());
+		
 	}
 
 }

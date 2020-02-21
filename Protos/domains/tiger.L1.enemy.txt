@@ -7,6 +7,8 @@
  	(creak creak-left creak-right silence)
 )
 
+most_probable_ai listen 0.99
+
 init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
 
 unnormalized
@@ -279,8 +281,8 @@ tolerance 0.001
 		 	(growl growl-left growl-right))
 		
 		init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
-		adjunct a1 (tiger-location (tiger-left (0.75)) (tiger-right (0.25)))
-		adjunct a2 (tiger-location (tiger-left (0.25)) (tiger-right (0.75)))
+//		adjunct a1 (tiger-location (tiger-left (0.75)) (tiger-right (0.25)))
+//		adjunct a2 (tiger-location (tiger-left (0.25)) (tiger-right (0.75)))
 //		adjunct a3 (tiger-location (tiger-left (0.99)) (tiger-right (0.01)))
 		
 		action listen
