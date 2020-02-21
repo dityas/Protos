@@ -436,8 +436,8 @@ class TestIPOMDP {
 		
 		LOGGER.info("Parsing the domain");
 		ipomdp.initializeFromParsers(parser);
-		ipomdp.setMjDepth(3);
-		ipomdp.setMjLookAhead(2);
+//		ipomdp.setMjDepth(10);
+		ipomdp.setMjLookAhead(3);
 		
 		LOGGER.info("Solve MJs");
 		ipomdp.solveMj();
@@ -589,8 +589,8 @@ class TestIPOMDP {
 		
 		LOGGER.debug(ipomdp.currentMjPGivenMjOjPAj.toDDTree());
 		
-		for (List<String> row : ipomdp.currentMjPGivenMjOjPAj.toDDTree().getCPT())
-			LOGGER.debug(row);
+//		for (List<String> row : ipomdp.currentMjPGivenMjOjPAj.toDDTree().getCPT())
+//			LOGGER.debug(row);
 		
 		LOGGER.info("Check initial belief");
 		DD mjInit = ipomdp.multiFrameMJ.getMjInitBelief(ipomdp.ddMaker, null).toDD();

@@ -685,7 +685,7 @@ class TestBenchmarkNZPrimeStorage {
 		NextBelStateCache.useCache();
 //		NextBelStateCache.setDB("/tmp/nz_cache.db");
 		
-		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 1);
+		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
 		BE.expand();
 		
 		List<DD> beliefs = BE.getBeliefPoints();

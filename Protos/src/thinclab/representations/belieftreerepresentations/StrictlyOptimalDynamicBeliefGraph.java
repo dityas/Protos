@@ -167,6 +167,7 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 						nexNode.setActName(
 								DP.getActions().get(
 										this.G.actions[alphaId - this.currentPolicyNodeCounter]));
+						nexNode.setH(2);
 						
 						this.putPolicyNode(alphaId, nexNode);
 						newLeaves.add(alphaId);
@@ -178,8 +179,12 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 						edge.add(action);
 						edge.addAll(theObs);
 						
-						if (!this.getEdges(node.getId()).containsKey(edge))
-							this.putEdge(node.getId(), edge, alphaId);
+						if (!this.getEdges(node.getId()).containsKey(edge)) {
+							if (node.getActName().contentEquals(action))
+								this.putEdge(node.getId(), edge, alphaId);
+							else
+								this.putEdge(node.getId(), edge, node.getId());
+						}
 					}
 					
 				}

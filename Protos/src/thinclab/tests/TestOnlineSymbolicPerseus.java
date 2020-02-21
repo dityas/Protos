@@ -106,21 +106,26 @@ class TestOnlineSymbolicPerseus {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 2, 20);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 20);
 		
-		for (int t = 0; t < 2; t++) {
+//		DD belief = tigerL1IPOMDP.getCurrentBelief();
+//		LOGGER.debug(belief.toDDTree());
 		
+		for (int t = 0; t < 5; t++) {
+			
+			DD belief = tigerL1IPOMDP.getCurrentBelief();
+			
 			HashMap<String, NextBelState> nextStates = 
-					NextBelState.oneStepNZPrimeBelStates(
+					NextBelState.oneStepNZPrimeBelStatesCached(
 							tigerL1IPOMDP, 
-							tigerL1IPOMDP.getCurrentBelief(), 
+							belief, 
 							false, 0.00000001);
 			
-			LOGGER.debug("Starting belief is " + tigerL1IPOMDP.getCurrentBelief().toDDTree());
+			LOGGER.debug("Starting belief is " + belief.toDDTree());
 			LOGGER.debug("All possible combinations are " 
 					+ tigerL1IPOMDP.getAllPossibleObservations());
 			
-			DD obsDist = tigerL1IPOMDP.getObsDist(tigerL1IPOMDP.getCurrentBelief(), "listen");
+			DD obsDist = tigerL1IPOMDP.getObsDist(belief, "listen");
 //			DD obsDist = tigerL1IPOMDP.getObsDist(tigerL1IPOMDP.getCurrentBelief(), "NOP");
 			
 			LOGGER.debug("Obs dist is " + obsDist);
@@ -138,7 +143,7 @@ class TestOnlineSymbolicPerseus {
 					
 					DD nextBelief = 
 							tigerL1IPOMDP.beliefUpdate(
-									tigerL1IPOMDP.getCurrentBelief(), 
+									belief, 
 									action, 
 									tigerL1IPOMDP.obsCombinations.get(s).stream().toArray(String[]::new));
 					
@@ -155,8 +160,10 @@ class TestOnlineSymbolicPerseus {
 						LOGGER.debug("Marginal is: " + marginal);
 						LOGGER.debug("Primed factor is: " + primedFactor);
 						
-						assertTrue(OP.abs(OP.sub(primedFactor, marginal)).getVal() < 1e-8);
+						assertTrue(OP.maxAll(OP.abs(OP.sub(primedFactor, marginal))) < 1e-8);
 					}
+					
+//					belief = nextBelief;
 				}
 			}
 			
@@ -166,7 +173,7 @@ class TestOnlineSymbolicPerseus {
 				obs[varI] = Global.valNames[obsConfig[0][varI] - 1][obsConfig[1][varI] - 1];
 			}
 			
-			tigerL1IPOMDP.step(tigerL1IPOMDP.getCurrentBelief(), "listen", obs);
+			tigerL1IPOMDP.step(belief, "listen", obs);
 //			tigerL1IPOMDP.step(tigerL1IPOMDP.getCurrentBelief(), "NOP", obs);
 		}
 	}
