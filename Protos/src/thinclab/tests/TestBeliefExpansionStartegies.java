@@ -280,10 +280,10 @@ class TestBeliefExpansionStartegies {
 						new SparseFullBeliefExpansion(ipomdp, 10), 
 						1, 100);
 		
-		for (int nodeId: ipomdp.multiFrameMJ.MJs.get(0).getAllNodeIds()) {
-			PolicyNode node = ipomdp.multiFrameMJ.MJs.get(0).getPolicyNode(nodeId);
-			LOGGER.debug(node);
-		}
+//		for (int nodeId: ipomdp.multiFrameMJ.MJs.get(0).getAllNodeIds()) {
+//			PolicyNode node = ipomdp.multiFrameMJ.MJs.get(0).getPolicyNode(nodeId);
+//			LOGGER.debug(node);
+//		}
 		
 		solver.solveCurrentStep();
 		LOGGER.debug("OPT Ai is " +
@@ -312,10 +312,10 @@ class TestBeliefExpansionStartegies {
 		
 		solver.nextStep("listen", Arrays.asList(new String[] {"growl-left", "silence"}));
 		
-		for (int nodeId: ipomdp.multiFrameMJ.MJs.get(0).getAllNodeIds()) {
-			PolicyNode node = ipomdp.multiFrameMJ.MJs.get(0).getPolicyNode(nodeId);
-			LOGGER.debug(node);
-		}
+//		for (int nodeId: ipomdp.multiFrameMJ.MJs.get(0).getAllNodeIds()) {
+//			PolicyNode node = ipomdp.multiFrameMJ.MJs.get(0).getPolicyNode(nodeId);
+//			LOGGER.debug(node);
+//		}
 		
 		
 		solver.solveCurrentStep();
@@ -345,10 +345,42 @@ class TestBeliefExpansionStartegies {
 		
 		solver.nextStep("listen", Arrays.asList(new String[] {"growl-left", "silence"}));
 		
-		for (int nodeId: ipomdp.multiFrameMJ.MJs.get(0).getAllNodeIds()) {
-			PolicyNode node = ipomdp.multiFrameMJ.MJs.get(0).getPolicyNode(nodeId);
-			LOGGER.debug(node);
+//		for (int nodeId: ipomdp.multiFrameMJ.MJs.get(0).getAllNodeIds()) {
+//			PolicyNode node = ipomdp.multiFrameMJ.MJs.get(0).getPolicyNode(nodeId);
+//			LOGGER.debug(node);
+//		}
+		
+		solver.solveCurrentStep();
+		LOGGER.debug("OPT Ai is " +
+				DecisionProcess.getActionFromPolicy(
+						ipomdp, 
+						ipomdp.getCurrentBelief(), 
+						solver.getAlphaVectors(), 
+						solver.policy));
+		
+		if (solver instanceof OnlineIPBVISolver) {
+			DD[] aVecs = ((OnlineIPBVISolver) solver).alphaVectors;
+			int[] policy = ((OnlineIPBVISolver) solver).policy;
+			
+			for (int v = 0; v < aVecs.length; v++) {
+				LOGGER.info("For A vec. " + v + " representing action " 
+						+ ipomdp.getActions().get(policy[v]));
+				LOGGER.info("Reward is: " + 
+						OP.dotProduct(
+								ipomdp.getCurrentBelief(), 
+								aVecs[v], ArrayUtils.subarray(
+										ipomdp.getStateVarIndices(), 
+										0, ipomdp.thetaVarPosition)));
+				
+			}
 		}
+		
+		solver.nextStep("listen", Arrays.asList(new String[] {"growl-left", "silence"}));
+		
+//		for (int nodeId: ipomdp.multiFrameMJ.MJs.get(0).getAllNodeIds()) {
+//			PolicyNode node = ipomdp.multiFrameMJ.MJs.get(0).getPolicyNode(nodeId);
+//			LOGGER.debug(node);
+//		}
 		
 //		LOGGER.debug(ipomdp.currentTau.toDDTree());
 //		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
