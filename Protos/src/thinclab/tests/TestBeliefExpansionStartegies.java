@@ -255,22 +255,22 @@ class TestBeliefExpansionStartegies {
 //			LOGGER.debug("Belief is: " + ipomdp.toMapWithTheta(belief));
 //		}
 		
-		DD startBelief = ipomdp.getCurrentBelief();
-		
-		for (int i = 0; i < 4; i++) {
-			
-			LOGGER.info("Belief is: " + ipomdp.toMapWithTheta(startBelief));
-			
-			Set<String> mjs = ipomdp.toMap(startBelief).get("M_j").keySet();
-			
-			for (String mj: mjs) {
-				LOGGER.debug("MJ: " + mj + " OPT(Mj): " + ipomdp.getOptimalActionAtMj(mj));
-			}
-			
-//			startBelief = 
-//					ipomdp.beliefUpdate(startBelief, "listen", new String[] {"growl-left", "silence"});
-			
-		}
+//		DD startBelief = ipomdp.getCurrentBelief();
+//		
+//		for (int i = 0; i < 4; i++) {
+//			
+//			LOGGER.info("Belief is: " + ipomdp.toMapWithTheta(startBelief));
+//			
+//			Set<String> mjs = ipomdp.toMap(startBelief).get("M_j").keySet();
+//			
+//			for (String mj: mjs) {
+//				LOGGER.debug("MJ: " + mj + " OPT(Mj): " + ipomdp.getOptimalActionAtMj(mj));
+//			}
+//			
+////			startBelief = 
+////					ipomdp.beliefUpdate(startBelief, "listen", new String[] {"growl-left", "silence"});
+//			
+//		}
 		
 //		LOGGER.debug(ipomdp.currentRi);
 		
@@ -286,6 +286,7 @@ class TestBeliefExpansionStartegies {
 //		}
 		
 		solver.solveCurrentStep();
+		LOGGER.debug("Most probable Aj is: " + ipomdp.getMostProbableAj());
 		LOGGER.debug("OPT Ai is " +
 				DecisionProcess.getActionFromPolicy(
 						ipomdp, 
@@ -319,6 +320,7 @@ class TestBeliefExpansionStartegies {
 		
 		
 		solver.solveCurrentStep();
+		LOGGER.debug("Most probable Aj is: " + ipomdp.getMostProbableAj());
 		LOGGER.debug("OPT Ai is " +
 				DecisionProcess.getActionFromPolicy(
 						ipomdp, 
@@ -351,6 +353,7 @@ class TestBeliefExpansionStartegies {
 //		}
 		
 		solver.solveCurrentStep();
+		LOGGER.debug("Most probable Aj is: " + ipomdp.getMostProbableAj());
 		LOGGER.debug("OPT Ai is " +
 				DecisionProcess.getActionFromPolicy(
 						ipomdp, 

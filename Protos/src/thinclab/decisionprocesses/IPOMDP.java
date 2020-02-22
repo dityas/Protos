@@ -1555,6 +1555,31 @@ public class IPOMDP extends POMDP {
 		return ((IBeliefOps) this.bOPs).toMapWithTheta(belief);
 	}
 	
+	public String getMostProbableAj(DD belief) {
+		/*
+		 * Returns Mj's most probable action based on current belief
+		 */
+		HashMap<String, HashMap<String, Float>> bMap = this.toMap(belief);
+		String mostProbableMj = null;
+		float mjProb = 0;
+		
+		for (String mj: bMap.get("M_j").keySet()) {
+			
+			float currentMjProb = bMap.get("M_j").get(mj); 
+			
+			if (currentMjProb > mjProb) {
+				mostProbableMj = mj;
+				mjProb = currentMjProb;
+			}
+		}
+		
+		return this.getOptimalActionAtMj(mostProbableMj);
+	}
+	
+	public String getMostProbableAj() {
+		return this.getMostProbableAj(this.currentBelief);
+	}
+	
 	@Override
 	public DD[] getTiForAction(String action) {
 		

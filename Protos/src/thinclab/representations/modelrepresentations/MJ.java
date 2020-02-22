@@ -35,7 +35,7 @@ import thinclab.solvers.BaseSolver;
  * @author adityas
  *
  */
-public class MJ extends StrictlyOptimalDynamicBeliefGraph {
+public class MJ extends /*StrictlyOptimal*/DynamicBeliefGraph {
 	
 	/*
 	 * Contains the opponent's model and functions which enable IPOMDP objects
