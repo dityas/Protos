@@ -39,7 +39,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 	
 	private static final long serialVersionUID = 3646574134759239287L;
 	
-	private static final Logger logger = 
+	private static final Logger LOGGER = 
 			Logger.getLogger(OnlineInteractiveSymbolicPerseus.class);
 	
 	// --------------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		beliefs.clear();
 		beliefs = null;
 		
-		logger.debug("Solving for " + beliefsArray.length + " belief points."); 
+		LOGGER.debug("Solving for " + beliefsArray.length + " belief points."); 
 		
 		/* Make a default alphaVectors as rewards to start with */
 		this.alphaVectors = 
@@ -81,7 +81,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		try {
 				
 			boundedPerseusStartFromCurrent(
-					10, 
+					20, 
 					0, 
 					this.dpBackups,
 					beliefsArray,
@@ -89,10 +89,18 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 
 			this.currentPointBasedValues = null;
 			this.newPointBasedValues = null;
+
+			if (this.bestAlphaVectors != null) {
+				this.alphaVectors = this.bestAlphaVectors;
+				this.policy = this.bestPolicy;
+			}
+			
+			LOGGER.info("Finished, using alpha vectors from best solution with "
+					+ " bellman error: " + this.bestBellmanError);
 		}
 		
 		catch (Exception e) {
-			logger.error("While running solver: " + e.getMessage());
+			LOGGER.error("While running solver: " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -123,19 +131,19 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				OP.dotProduct(
 						unfactoredBeliefRegion, this.alphaVectors, ipomdpVars);
 		
-		logger.debug("Computed PBVs");
+		LOGGER.debug("Computed PBVs");
 		
 		Diagnostics.logMemConsumption("After PBV computation");
 		
 		if (debug) {
 			
-			logger.debug("printing belief region");
+			LOGGER.debug("printing belief region");
 			
 			for (int i = 0; i < numBeliefs; i++) {
-				logger.debug("Belief:" + i+ " " 
+				LOGGER.debug("Belief:" + i+ " " 
 						+ this.ipomdp.toMap(unfactoredBeliefRegion[i]));
 			}
-			logger.debug("Ri : " + this.ipomdp.currentRi);
+			LOGGER.debug("Ri : " + this.ipomdp.currentRi);
 		}
 		
 		DD[] primedV;
@@ -151,15 +159,15 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			long freeMem = Runtime.getRuntime().freeMemory();
 			
 			if (((totalMem - freeMem) / 1000000000) > 40) {
-				logger.debug("JVM consuming more than 40 GB. Clearing caches");
+				LOGGER.debug("JVM consuming more than 40 GB. Clearing caches");
 				Global.clearHashtables();
 				System.gc();
 			}
 			
 			if (debug) {
-				logger.debug("STEP:=====================================================================");
-				logger.debug("A vecs are: " + Arrays.toString(this.alphaVectors));
-				logger.debug("Ri : " + this.ipomdp.currentRi);
+				LOGGER.debug("STEP:=====================================================================");
+				LOGGER.debug("A vecs are: " + Arrays.toString(this.alphaVectors));
+				LOGGER.debug("Ri : " + this.ipomdp.currentRi);
 			}
 			
 			steptolerance = ipomdp.tolerance;
@@ -214,7 +222,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 							&& this.bestImprovement > -2 * this.worstDecline) {
 						
 						if (debug) {
-							logger.warn("Breaking because bestImprovement " 
+							LOGGER.warn("Breaking because bestImprovement " 
 									+ ipomdp.bestImprovement + ""
 									+ "> tolerance " + ipomdp.tolerance 
 									+ " && bestImprovement " + ipomdp.bestImprovement 
@@ -244,7 +252,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					
 					if (permutedIds.isempty()) {
 						
-						if (debug) logger.warn("Breaking because no belief points...");
+						if (debug) LOGGER.warn("Breaking because no belief points...");
 						
 						break;
 					}
@@ -309,8 +317,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					if (improvement > ipomdp.tolerance) {
 						
 						if (debug) {
-							logger.debug("Improvement after backup is " + improvement);
-							logger.debug("Adding the new Alpha Vector with vars " 
+							LOGGER.debug("Improvement after backup is " + improvement);
+							LOGGER.debug("Adding the new Alpha Vector with vars " 
 									+ Arrays.toString(newVector.alphaVector.getVarSet()));
 						}
 
@@ -357,12 +365,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 						this.numNewAlphaVectors);
 			}
 
-//			bellmanErr = Math.min(10, Math.max(this.bestImprovement, -this.worstDecline));
-			
 			bellmanErr = Math.max(this.bestImprovement, -this.worstDecline);
 			float errorVar = this.getErrorVariance((float) bellmanErr);
 			
-			logger.info("I: " + stepId 
+			LOGGER.info("I: " + stepId 
 					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
 					+ " \tUSED/TOTAL BELIEFS: " + numIter + "/" + numBeliefs
 					+ " \tA VECTORS: " + this.alphaVectors.length
@@ -380,39 +386,51 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 						.mapToInt(x -> x)
 						.toArray();
 			
-			logger.info("Num Leaves in Alpha vectors are: " + Arrays.toString(numLeaves));
+			LOGGER.info("Num Leaves in Alpha vectors are: " + Arrays.toString(numLeaves));
 			
 			/* check memory consumption */
 			long free = Runtime.getRuntime().freeMemory();
 			long total = Runtime.getRuntime().totalMemory();
-			logger.debug("JVM reported mem consumption is: " + (total - free) / 1000000 + "MB");
+			LOGGER.debug("JVM reported mem consumption is: " + (total - free) / 1000000 + "MB");
 			
-			if (stepId % 100 < 1)
-				continue;
+			if (bellmanErr < this.bestBellmanError) {
+				this.bestBellmanError = bellmanErr;
+				
+				this.bestAlphaVectors = new DD[this.alphaVectors.length];
+				System.arraycopy(
+						this.alphaVectors, 0, this.bestAlphaVectors, 0, this.bestAlphaVectors.length);
+				
+				this.bestPolicy = new int[this.policy.length];
+				System.arraycopy(this.policy, 0, this.bestPolicy, 0, this.policy.length);
+			}
 			
 			if (bellmanErr < 0.01) {
-				logger.warn("BELLMAN ERROR LESS THAN 0.01. COVERGENCE! SOFTWARE VERSION 7.0... "
+				LOGGER.warn("BELLMAN ERROR LESS THAN 0.01. COVERGENCE! SOFTWARE VERSION 7.0... "
 						+ "LOOKING AT LIFE THROUGH THE EYES OF A TIRED HEART.");
+				
+				this.declareConvergence();
 				
 				if (debug) this.logAlphaVectors();
 				break;
 			}
 			
-			if (stepId > 20 && errorVar < 0.00001) {
-				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
+			if (stepId > 20 && errorVar < 1e-8) {
+				LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;
 			}
 			
-			if (stepId > 10 && this.isErrorNonDecreasing((float) bellmanErr)) {
-				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
-						+ " BECAUSE OF NON DECREASING ERROR");
-				break;
+			if (stepId > 20) {
+				if (this.isErrorNonDecreasing((float) bellmanErr)) {
+					LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
+							+ " BECAUSE OF NON DECREASING ERROR");
+					break;
+				}
 			}
 			
 			if (this.declareApproxConvergenceForAlphaVectors(
 					this.alphaVectors.length, numIter, numBeliefs) && bellmanErr < 1.0) {
-				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
+				LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE ALL BELIEFS ARE BEING USED AND NUM ALPHAS IS CONSTANT");
 				break;
 			}
@@ -440,7 +458,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 	public void logAlphaVectors() {
 		
 		for (int i = 0; i < this.ipomdp.policy.length; i++) {
-			logger.debug("Alpha Vector " + i + " is " + this.alphaVectors[i] +
+			LOGGER.debug("Alpha Vector " + i + " is " + this.alphaVectors[i] +
 					" for action " + this.ipomdp.getActions().get(this.ipomdp.policy[i]));
 		}
 	}

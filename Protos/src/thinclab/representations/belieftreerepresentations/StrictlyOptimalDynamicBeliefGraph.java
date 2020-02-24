@@ -27,7 +27,7 @@ import thinclab.solvers.OfflinePBVISolver;
  * @author adityas
  *
  */
-public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
+public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefTree {
 
 	/*
 	 * Only does full belief expansion for the first step to maintain complete information
@@ -71,17 +71,18 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 		this.leafNodes.clear();
 		this.leafNodes.addAll(this.getNextPolicyNodes(prevNodes, 1));
 		
-		this.extendToPolicyGraph(new ArrayList<Integer>(leafNodes));
+		for (int id: this.leafNodes)
+			this.extendToPolicyGraph(id);
 		
 		if (this instanceof PersistentStructuredTree)
 			this.commitChanges();
 		
-		/* clear out unique nodes map to save mem */
-		for (int nodeId : new ArrayList<Integer>(this.getAllNodeIds())) {
-			if (!this.leafNodes.contains(nodeId)) {
-				this.nodeToIdMap.remove(this.getPolicyNode(nodeId).getBelief());
-			}
-		}
+//		/* clear out unique nodes map to save mem */
+//		for (int nodeId : new ArrayList<Integer>(this.getAllNodeIds())) {
+//			if (!this.leafNodes.contains(nodeId)) {
+//				this.nodeToIdMap.remove(this.getPolicyNode(nodeId).getBelief());
+//			}
+//		}
 	}
 	
 	public void appendPolicyGraph() {
@@ -123,7 +124,7 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 		}
 	}
 	
-	public void extendToPolicyGraph(List<Integer> nodeIds) {
+	public void extendToPolicyGraph(int nodeId) {
 		/*
 		 * Extend the leafs of the belief tree given in nodeIds to policy graph
 		 */
@@ -132,6 +133,8 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 		
 		/* branch for all possible observations */
 		List<List<String>> obs = DP.getAllPossibleObservations();
+		List<Integer> nodeIds = new ArrayList<Integer>();
+		nodeIds.add(nodeId);
 		
 		/* Do till there are no terminal policy leaves */
 		while(!nodeIds.isEmpty()) {
@@ -174,11 +177,11 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 					}
 					
 					for (String action: DP.getActions()) {
-						
+					
 						List<String> edge = new ArrayList<String>();
 						edge.add(action);
 						edge.addAll(theObs);
-						
+					
 						if (!this.getEdges(node.getId()).containsKey(edge)) {
 							if (node.getActName().contentEquals(action))
 								this.putEdge(node.getId(), edge, alphaId);
@@ -186,7 +189,6 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 								this.putEdge(node.getId(), edge, node.getId());
 						}
 					}
-					
 				}
 				
 				catch (ZeroProbabilityObsException e) {

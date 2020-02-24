@@ -248,18 +248,18 @@ class TestRepresentations {
 		IPOMDPParser parser2 = new IPOMDPParser(fileName2);
 		parser2.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser2, 3, 10);
+		IPOMDP ipomdp = new IPOMDP(parser2, 5, 10);
 		
-		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(1).getDotStringForPersistent());
 		
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
-		
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
-		
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+//		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+//		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+//		
+//		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+//		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+//		
+//		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
+//		LOGGER.debug("LazyDBG is " + ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
 		
 	}
 	

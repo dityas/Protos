@@ -287,6 +287,8 @@ public class IPOMDP extends POMDP {
 				this.Ai.add(a.split("__")[0]);
 			});
 		
+		Collections.sort(this.Ai);
+		
 		/* Aj set */
 		HashSet<String> Ajs = new HashSet<String>();
 		for (DecisionProcess lowerFrame : this.lowerLevelFrames)
