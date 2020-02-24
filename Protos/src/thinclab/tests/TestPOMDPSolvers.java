@@ -221,4 +221,20 @@ class TestPOMDPSolvers {
 		
 		LOGGER.debug(ss.getDotString());
 	}
+	
+	@Test
+	void testPolicyEval() {
+		LOGGER.info("Testing Stochastic sim");
+		
+		POMDP p1 = new POMDP(this.tigerDom);
+		FullBeliefExpansion fb = new FullBeliefExpansion(p1, 2);
+		OfflineSymbolicPerseus solver = new OfflineSymbolicPerseus(p1, fb, 4, 100);
+		solver.solve();
+		
+		LOGGER.debug("Expected Value is: " 
+				+ p1.evaluatePolicy(
+						solver.getAlphaVectors(), 
+						solver.getPolicy(), 
+						1000, 10));
+	}
 }
