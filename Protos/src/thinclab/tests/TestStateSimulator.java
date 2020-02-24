@@ -84,7 +84,7 @@ class TestStateSimulator {
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 10, 10);
+		IPOMDP ipomdp = new IPOMDP(parser, 4, 10);
 		
 		SSGABeliefExpansion BE = new SSGABeliefExpansion(ipomdp, 30);
 //		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
