@@ -240,7 +240,7 @@ public class RunSimulations extends Executable {
 					int numRounds = 1;
 					
 					if (line.hasOption("e")) {
-						BE = new SSGABeliefExpansion(ipomdp, 10);
+						BE = new SSGABeliefExpansion(ipomdp, 30);
 						numRounds = 5;
 					}
 					

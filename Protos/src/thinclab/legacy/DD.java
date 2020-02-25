@@ -1,18 +1,19 @@
 package thinclab.legacy;
 
-import java.util.*;
-
 import thinclab.ddinterface.DDTree;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public abstract class DD implements Serializable {
-		public static DD one = DDleaf.myNew(1);
-		public static DD zero = DDleaf.myNew(0);
+	
+	public static DD one = DDleaf.myNew(1);
+	public static DD zero = DDleaf.myNew(0);
 
-		protected int var;
+	protected int var;
 
+	private static final long serialVersionUID = 2478730562973454848L;
+	
     public int getVar() { return var; }
 
 		public int getAddress() {
