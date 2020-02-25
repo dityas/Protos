@@ -57,7 +57,7 @@ public class EvaluateStationaryPolicy extends Executable {
 		opt.addOption("r", true, "number of symbolic perseus rounds (always 1 for IPOMDPs)");
 		
 		/* look ahead or search depth */
-		opt.addOption("n", false, "look ahead for IPOMDPs / SSGA depth for POMDPs");
+		opt.addOption("n", true, "look ahead for IPOMDPs / SSGA depth for POMDPs");
 		
 		/* Use SSGA? */
 		opt.addOption(
