@@ -86,15 +86,15 @@ class TestStateSimulator {
 		
 		IPOMDP ipomdp = new IPOMDP(parser, 4, 10);
 		
-		SSGABeliefExpansion BE = new SSGABeliefExpansion(ipomdp, 30);
-//		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
+//		SSGABeliefExpansion BE = new SSGABeliefExpansion(ipomdp, 30);
+		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
 		
 		/* init solver */
 		OnlineInteractiveSymbolicPerseus S1 = 
 				new OnlineInteractiveSymbolicPerseus(
 						ipomdp, 
 						BE, 
-						5, 100);
+						1, 100);
 		
 		/* init L0 */
 		BaseSolver S0 = ipomdp.lowerLevelSolutions.get(0); 

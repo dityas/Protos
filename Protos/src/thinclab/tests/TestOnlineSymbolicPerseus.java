@@ -9,14 +9,16 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import cern.colt.Arrays;
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.belief.SparseFullBeliefExpansion;
@@ -43,6 +45,7 @@ class TestOnlineSymbolicPerseus {
 
 	public String l1DomainFile;
 	public String l1multiple;
+	public String l1Enemy;
 	public String tigerDom;
 	
 	private static Logger LOGGER;
@@ -53,6 +56,8 @@ class TestOnlineSymbolicPerseus {
 		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
 		this.l1multiple = 
 				"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
+		this.l1Enemy = 
+				"/home/adityas/git/repository/Protos/domains/tiger.L1.enemy.txt";
 //		this.l1multiple = 
 //				"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain";
 		
@@ -82,6 +87,15 @@ class TestOnlineSymbolicPerseus {
 				new FullBeliefExpansion(
 						tigerL1IPOMDP);
 		
+		fb.expandSingleStep();
+		List<DD> T1 = fb.getBeliefPoints();
+		
+		fb.expandSingleStep();
+		List<DD> T2 = fb.getBeliefPoints();
+		
+//		fb.expandSingleStep();
+//		List<DD> T3 = fb.getBeliefPoints();
+		
 		OnlineInteractiveSymbolicPerseus solver = 
 				new OnlineInteractiveSymbolicPerseus(
 						tigerL1IPOMDP, 
@@ -89,9 +103,10 @@ class TestOnlineSymbolicPerseus {
 						1, 
 						100);
 		
-		MultiAgentSimulation ss = 
-				new MultiAgentSimulation(solver, tigerL1IPOMDP.lowerLevelSolutions.get(0), 3);
-		ss.runSimulation();
+		solver.solveForBeliefs(T2);
+//		MultiAgentSimulation ss = 
+//				new MultiAgentSimulation(solver, tigerL1IPOMDP.lowerLevelSolutions.get(0), 3);
+//		ss.runSimulation();
 		
 //		LOGGER.debug(ss.getDotString());
 	}
@@ -334,6 +349,39 @@ class TestOnlineSymbolicPerseus {
 		solver.nextStep(
 				solver.getActionAtCurrentBelief(), 
 				tigerL1IPOMDP.obsCombinations.get(2));
+	}
+	
+	@Test
+	void testIPOMDPSymbolicPerseusExpectedValue() throws Exception {
+
+		LOGGER.info("Running testOnlineSymbolicPerseus()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1Enemy);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 10);
+		
+		FullBeliefExpansion fb = 
+				new FullBeliefExpansion(
+						tigerL1IPOMDP);
+		
+		OnlineInteractiveSymbolicPerseus solver = 
+				new OnlineInteractiveSymbolicPerseus(
+						tigerL1IPOMDP, 
+						fb, 
+						1, 
+						100);
+
+		solver.solveCurrentStep();
+		solver.nextStep("listen", Arrays.asList(new String[] {"growl-left", "silence"}));
+		solver.solveCurrentStep();
+		
+		LOGGER.debug("Expected val is: " + 
+				tigerL1IPOMDP.evaluatePolicy(solver.getAlphaVectors(), solver.getPolicy(), 10000, 10, false));
+		LOGGER.debug("Best action is: " + solver.getActionAtCurrentBelief());
 	}
 
 }

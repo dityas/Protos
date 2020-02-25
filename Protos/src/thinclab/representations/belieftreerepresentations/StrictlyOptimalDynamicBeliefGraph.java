@@ -8,9 +8,7 @@
 package thinclab.representations.belieftreerepresentations;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
@@ -27,7 +25,7 @@ import thinclab.solvers.OfflinePBVISolver;
  * @author adityas
  *
  */
-public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefTree {
+public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 
 	/*
 	 * Only does full belief expansion for the first step to maintain complete information
@@ -83,45 +81,6 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefTree {
 //				this.nodeToIdMap.remove(this.getPolicyNode(nodeId).getBelief());
 //			}
 //		}
-	}
-	
-	public void appendPolicyGraph() {
-		/*
-		 * Appends the PolicyGraph to the overall Mj structure
-		 */
-		
-		/* add nodes from policy graph */
-		for (int id: this.G.getAllNodeIds()) {
-			
-			LOGGER.warn(this.G.getAllNodeIds());
-			
-			/* modify PolicyNode for use with BeliefGraph */
-			PolicyNode node = this.G.getPolicyNode(id);
-			
-			PolicyNode copyNode = new PolicyNode();
-			copyNode.setActName(node.getActName());
-			copyNode.setsBelief("{\"N/A\":\"N/A\"}");
-			
-			int bGraphId = node.getAlphaId() + this.currentPolicyNodeCounter;
-			copyNode.setId(bGraphId);
-			
-			this.putPolicyNode(bGraphId, copyNode);
-			
-			for (Entry<List<String>, Integer> entry: this.G.getEdges(id).entrySet()) {
-				
-				for (String action: this.solver.f.getActions()) {
-					
-					List<String> edge = new ArrayList<String>();
-					edge.add(action);
-					edge.addAll(entry.getKey());
-					
-					this.putEdge(
-							bGraphId, 
-							edge, 
-							entry.getValue() + this.currentPolicyNodeCounter);
-				}
-			}
-		}
 	}
 	
 	public void extendToPolicyGraph(int nodeId) {
@@ -197,53 +156,6 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefTree {
 			}
 			
 			nodeIds.addAll(newLeaves);
-		}
-	}
-	
-	public void mergeWithPolicyGraph(List<Integer> nodeIds) {
-		/*
-		 * Merge mj lookahead tree with policy graph
-		 */
-		
-		for (int nodeId: nodeIds) {
-			
-			/* get PolicyNode */
-			PolicyNode node = this.getPolicyNode(nodeId);
-			DD nodeBelief = node.getBelief();
-			
-			/* for each action and observation, find optimal alpha ID */
-			for (String action: this.f.getActions()) {
-				for (List<String> obs: this.f.getAllPossibleObservations()) {
-					
-					try {
-						DD nextBelief = 
-								this.f.beliefUpdate(
-										nodeBelief, action, obs.stream().toArray(String[]::new));
-						
-						int alphaId = 
-								DecisionProcess.getBestAlphaIndex(
-										this.f, 
-										nextBelief, 
-										((OfflinePBVISolver) this.solver).getAlphaVectors());
-						
-						List<String> edge = new ArrayList<String>();
-						edge.add(action);
-						edge.addAll(obs);
-						
-						HashMap<List<String>, Integer> prevEdges = this.getEdges(nodeId);
-						
-						if (!prevEdges.containsKey(edge))
-							this.putEdge(nodeId, edge, alphaId + this.currentPolicyNodeCounter);
-					}
-					
-					catch (Exception e) {
-						LOGGER.error("While merging PolicyGraph with DynamicBeliefGraph, " + e.getMessage());
-						e.printStackTrace();
-						System.exit(-1);
-					}
-				}
-			}
-			
 		}
 	}
 }

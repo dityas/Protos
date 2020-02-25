@@ -90,13 +90,13 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			this.currentPointBasedValues = null;
 			this.newPointBasedValues = null;
 
-			if (this.bestAlphaVectors != null) {
-				this.alphaVectors = this.bestAlphaVectors;
-				this.policy = this.bestPolicy;
-			}
+//			if (this.bestAlphaVectors != null) {
+//				this.alphaVectors = this.bestAlphaVectors;
+//				this.policy = this.bestPolicy;
+//			}
 			
-			LOGGER.info("Finished, using alpha vectors from best solution with "
-					+ " bellman error: " + this.bestBellmanError);
+//			LOGGER.info("Finished, using alpha vectors from best solution with "
+//					+ " bellman error: " + this.bestBellmanError);
 		}
 		
 		catch (Exception e) {
@@ -286,11 +286,11 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					/* record backup computation time */
 					Diagnostics.BACKUP_TIME.add((afterBackup - beforeBackup));
 
-//					newVector.alphaVector = OP.approximate(
-//							newVector.alphaVector, bellmanErr * (1 - ipomdp.discFact)
-//									/ 2.0, onezero);
+					newVector.alphaVector = OP.approximate(
+							newVector.alphaVector, bellmanErr * (1 - ipomdp.discFact)
+									/ 2.0, new double[] {0});
 					
-					newVector.alphaVector = OP.approximate(newVector.alphaVector, 0.001);
+//					newVector.alphaVector = OP.approximate(newVector.alphaVector, 0.001);
 					
 					newVector.setWitness(i);
 
@@ -420,13 +420,13 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-			if (stepId > 20) {
-				if (this.isErrorNonDecreasing((float) bellmanErr)) {
-					LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
-							+ " BECAUSE OF NON DECREASING ERROR");
-					break;
-				}
-			}
+//			if (stepId > 20) {
+//				if (this.isErrorNonDecreasing((float) bellmanErr)) {
+//					LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
+//							+ " BECAUSE OF NON DECREASING ERROR");
+//					break;
+//				}
+//			}
 			
 			if (this.declareApproxConvergenceForAlphaVectors(
 					this.alphaVectors.length, numIter, numBeliefs) && bellmanErr < 1.0) {

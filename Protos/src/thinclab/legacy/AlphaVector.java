@@ -509,7 +509,6 @@ public class AlphaVector implements Serializable {
 												IPOMDP.stackArray(
 														ipomdp.obsIVarPrimeIndices, 
 														obsConfig)));
-
 					}
 				}
 				
