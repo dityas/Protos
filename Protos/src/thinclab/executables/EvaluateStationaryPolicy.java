@@ -173,7 +173,8 @@ public class EvaluateStationaryPolicy extends Executable {
 						ipomdp.evaluatePolicy(
 								solver.getAlphaVectors(), 
 								solver.getPolicy(), 
-								10000, lookAhead, false));
+								10000, lookAhead, false)
+						+ " for starting action: " + solver.getActionAtCurrentBelief());
 			}
 			
 		} 
