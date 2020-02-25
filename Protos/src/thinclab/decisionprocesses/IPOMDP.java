@@ -1765,6 +1765,9 @@ public class IPOMDP extends POMDP {
 				if (verbose)
 					LOGGER.debug("Run: " + n + " total reward is " + totalReward);
 				
+				if ((n % 1000) == 0)
+					LOGGER.debug("Finished " + n + " trials");
+				
 				rewards.add(totalReward);
 			}
 			
