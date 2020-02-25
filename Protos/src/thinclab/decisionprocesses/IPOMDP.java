@@ -1766,7 +1766,9 @@ public class IPOMDP extends POMDP {
 					LOGGER.debug("Run: " + n + " total reward is " + totalReward);
 				
 				if ((n % 1000) == 0)
-					LOGGER.debug("Finished " + n + " trials");
+					LOGGER.debug("Finished " + n + " trials,"
+							+ " avg. reward is: " 
+							+ rewards.stream().mapToDouble(r -> r).average().getAsDouble());
 				
 				rewards.add(totalReward);
 			}
