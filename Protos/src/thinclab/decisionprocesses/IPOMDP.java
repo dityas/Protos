@@ -1768,7 +1768,7 @@ public class IPOMDP extends POMDP {
 				if ((n % 1000) == 0)
 					LOGGER.debug("Finished " + n + " trials,"
 							+ " avg. reward is: " 
-							+ rewards.stream().mapToDouble(r -> r).average().getAsDouble());
+							+ rewards.stream().mapToDouble(r -> r).average().orElse(Double.NaN));
 				
 				rewards.add(totalReward);
 			}
