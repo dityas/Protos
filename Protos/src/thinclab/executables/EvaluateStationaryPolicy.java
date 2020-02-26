@@ -128,9 +128,16 @@ public class EvaluateStationaryPolicy extends Executable {
 				POMDP pomdp = new POMDP(domainFile);
 				OfflineSymbolicPerseus solver = 
 						OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
-								pomdp, lookAhead, 2, rounds, backups);
+								pomdp, lookAhead, 10, rounds, backups);
 				
 				solver.solve();
+				
+				LOGGER.info("Calculated policy value is: " +
+						pomdp.evaluatePolicy(
+								solver.getAlphaVectors(), 
+								solver.getPolicy(), 
+								10000, lookAhead, false)
+						+ " for starting action: " + solver.getActionForBelief(pomdp.getCurrentBelief()));
 			}
 			
 			/* for IPOMDPs */

@@ -1661,6 +1661,7 @@ public class IPOMDP extends POMDP {
 		return gsonHandler.toJson(jsonObject);
 	}
 	
+	@Override
 	public double evaluatePolicy(
 			DD[] alphaVectors, int[] policy, int trials, int evalDepth, boolean verbose) {
 		/*
