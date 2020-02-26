@@ -123,6 +123,9 @@ public class EvaluateStationaryPolicy extends Executable {
 			if (line.hasOption("p")) {
 				LOGGER.info("Solving POMDP...");
 				
+				/* set cache usage */
+				NextBelStateCache.useCache();
+				
 				int rounds = new Integer(line.getOptionValue("r"));
 				
 				POMDP pomdp = new POMDP(domainFile);
