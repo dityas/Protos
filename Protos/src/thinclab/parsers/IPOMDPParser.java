@@ -46,7 +46,7 @@ public class IPOMDPParser extends ParseSPUDD {
 	/* Separate container for costs */
 	public HashMap<String, DDTree> costMap;
 	
-	private static final Logger logger = Logger.getLogger(IPOMDPParser.class);
+	private static final Logger LOGGER = Logger.getLogger(IPOMDPParser.class);
 	
 	// ------------------------------------------------------------------------------------------
 	/*
@@ -61,6 +61,9 @@ public class IPOMDPParser extends ParseSPUDD {
 		this.initialize();
 		try {
 		    this.stream = new StreamTokenizer(new FileReader(fileName));
+		    stream.wordChars('\'','\'');
+			stream.wordChars('_','_');
+			stream.quoteChar('"');
 		} 
 		
 		catch (FileNotFoundException e) {             				
@@ -68,8 +71,6 @@ public class IPOMDPParser extends ParseSPUDD {
 		    System.exit(-1);
 		}
 		
-		this.stream.wordChars('\'', '\'');
-		this.stream.wordChars('_', '_');
 	}
 	
 	public IPOMDPParser(StreamTokenizer stream) {
@@ -224,7 +225,7 @@ public class IPOMDPParser extends ParseSPUDD {
 			/*
 			 * Loop the frame parser to parse possible multiple frames
 			 */
-			logger.info("Parsing new frame");
+			LOGGER.info("Parsing new frame");
 			this.stream.nextToken();
 			
 			/*
@@ -245,29 +246,56 @@ public class IPOMDPParser extends ParseSPUDD {
 					Global.clearHashtables();
 					int frameID = this.parseFrameID();
 					int stratLevel = this.parseStratLevel();
+					boolean isExternal = this.isExternalFile();
 					
-					/*
-					 * If the strat level is 0, the opponent's model is a POMDP.
-					 * So use Jesse Hoey's parser here as it is.
-					 */
-					if (stratLevel == 0) {
-						ParseSPUDD l0frame = new ParseSPUDD(this.stream);
+					if (!isExternal) {
+					
+						/*
+						 * If the strat level is 0, the opponent's model is a POMDP.
+						 * So use Jesse Hoey's parser here as it is.
+						 */
+						if (stratLevel == 0) {
+							ParseSPUDD l0frame = new ParseSPUDD(this.stream);
+							l0frame.parsePOMDP(false);
+							l0frame.level = stratLevel;
+							l0frame.frameID = frameID;
+							this.childFrames.add(l0frame);
+						}
+						
+						/*
+						 * For strat levels greater than 0, use an IPOMDP Parser.
+						 */
+						else {
+							IPOMDPParser lframe = new IPOMDPParser(this.stream);
+							lframe.parseDomain();
+							lframe.level = stratLevel;
+							lframe.frameID = frameID;
+							this.childFrames.add(lframe);
+						}
+					}
+					
+					else {
+						
+						this.stream.nextToken();
+						
+						String fileName = stream.sval;
+				    	LOGGER.debug("Importing from SPUDD file " + fileName);
+				    	
+				    	StreamTokenizer new_stream = new StreamTokenizer(new FileReader(fileName));
+				    	new_stream.wordChars('\'','\'');
+						new_stream.wordChars('_','_');
+						new_stream.quoteChar('"');
+				    	
+						ParseSPUDD l0frame = new ParseSPUDD(new_stream);
 						l0frame.parsePOMDP(false);
 						l0frame.level = stratLevel;
 						l0frame.frameID = frameID;
+						
 						this.childFrames.add(l0frame);
-					}
-					
-					/*
-					 * For strat levels greater than 0, use an IPOMDP Parser.
-					 */
-					else {
-						IPOMDPParser lframe = new IPOMDPParser(this.stream);
-						lframe.parseDomain();
-						lframe.level = stratLevel;
-						lframe.frameID = frameID;
-						this.childFrames.add(lframe);
-					}
+						
+						this.stream.nextToken();
+						if (this.stream.ttype != ')') throw new ParserException("frame def missing ')'");
+				    }
 					
 				}
 				
@@ -292,7 +320,7 @@ public class IPOMDPParser extends ParseSPUDD {
 			return this.stream.sval;
 		
 		else {
-			logger.error("While parsing most_probable_ai");
+			LOGGER.error("While parsing most_probable_ai");
 			throw new ParserException("Action not specified");
 		}
 	}
@@ -308,7 +336,7 @@ public class IPOMDPParser extends ParseSPUDD {
 			return (double) this.stream.nval;
 		
 		else {
-			logger.error("While parsing most_probable_ai probability");
+			LOGGER.error("While parsing most_probable_ai probability");
 			throw new ParserException("Action probability not specified");
 		}
 	}
@@ -350,6 +378,21 @@ public class IPOMDPParser extends ParseSPUDD {
 		else throw new ParserException("Expected level definition, got " + this.stream);
 	}
 	
+	private boolean isExternalFile() throws Exception {
+		/*
+		 * Check if frame is defined in the file or externally
+		 */
+		this.stream.nextToken();
+		
+		if (this.stream.ttype == StreamTokenizer.TT_WORD && this.stream.sval.compareTo("def") == 0)
+			return false;
+		
+		else if (this.stream.ttype == StreamTokenizer.TT_WORD && 
+				this.stream.sval.compareTo("import") == 0) return true;
+		
+		else throw new ParserException("Frame header is of format (frame <id> level <L> def/import)");
+	}
+	
 	// ------------------------------------------------------------------------------------------	
 	public void setGlobals() {
 		/*
@@ -360,7 +403,7 @@ public class IPOMDPParser extends ParseSPUDD {
 		 * globals set by the upper frames.
 		 */
 		Global.clearHashtables();
-		logger.info("Setting globals");
+		LOGGER.info("Setting globals");
 		this.createPrimeVars();
 		
 		String[] actNamesArray = new String[actNames.size()];

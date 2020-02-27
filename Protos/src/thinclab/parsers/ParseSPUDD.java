@@ -44,7 +44,7 @@ public class ParseSPUDD implements Serializable {
     public int frameID;
     public int level;
     
-    private static final Logger logger = Logger.getLogger(ParseSPUDD.class);
+    private static final Logger LOGGER = Logger.getLogger(ParseSPUDD.class);
     
     // --------------------------------------------------------------------------------------
     /*
@@ -158,93 +158,118 @@ public class ParseSPUDD implements Serializable {
 
     public void parsePOMDP(boolean fullyObservable) {
 		try {
-		    boolean primeVarsCreated = false;
-		    while (true) {
-			if (!primeVarsCreated && nStateVars > 0 && (fullyObservable || nObsVars > 0)) {
-			    primeVarsCreated = true;
-			    createPrimeVars();
-			}
-			stream.nextToken();
-			switch(stream.ttype) {
-			case '(':
-			    stream.nextToken();
-			    if (stream.sval.compareTo("variables") == 0) {
-			    	logger.debug("Parsing variables");
-				parseVariables();
-			    }
-			    else if (stream.sval.compareTo("observations") == 0) {
-			    	logger.debug("Parsing observations");
-				parseObservations();
-			    }
-			    else error("Expected \"variables\" or \"observations\"");
-			    break;
-			case StreamTokenizer.TT_WORD:
-			    if (stream.sval.compareTo("unnormalized") == 0) {
-				unnormalized = true;
-				break;
-			    }
-			    else if (stream.sval.compareTo("unnormalised") == 0) {
-				unnormalized = true;
-				break;
-			    }
-			    else if (stream.sval.compareTo("dd") == 0) {
-			    	logger.debug("Parsing DD def");
-				parseDDdefinition();
-				break;
-			    }
-			    else if (stream.sval.compareTo("action") == 0) {
-			    	logger.debug("Parsing actions");
-				parseAction();
-				break;
-			    }
-			    else if (stream.sval.compareTo("adjunct") == 0) {
-				parseAdjunct();
-				break;
-			    }
-			    else if (stream.sval.compareTo("reward") == 0) {
-				parseReward();
-				break;
-			    }
-			    else if (stream.sval.compareTo("discount") == 0) {
-				parseDiscount();
-				break;
-			    }
-			    else if (stream.sval.compareTo("horizon") == 0) {
-				parseHorizon();
-				break;
-			    }
-			    else if (stream.sval.compareTo("tolerance") == 0) {
-				parseTolerance();
-				break;
-			    }
-			    else if (stream.sval.compareTo("init") == 0) {
-				parseInit();
-				break;
-			    }
-			    error("Expected \"unnormalized\" or \"dd\" or \"action\" or \"reward\"");
-			case StreamTokenizer.TT_EOF:
-	
-			    // set valNames for actions
-			    String[] actNamesArray = new String[actNames.size()];
-			    for (int actId=0; actId<actNames.size(); actId++) {
-				actNamesArray[actId] = (String)actNames.get(actId);
-			    }
-			    Global.setValNames(Global.valNames.length+1,actNamesArray);
-											
-											
-			    // set varDomSize with extra action variable
-			    int[] varDomSizeArray = new int[Global.varDomSize.length+1];
-			    for (int varId=0; varId<Global.varDomSize.length; varId++) {
-				varDomSizeArray[varId] = Global.varDomSize[varId];
-			    }
-			    varDomSizeArray[varDomSizeArray.length-1] = actNamesArray.length;
-			    Global.setVarDomSize(varDomSizeArray);
-			    this.populateDDTreeObjects();
-			    return;
-			default:
-				this.populateDDTreeObjects();
-			    return;
-			}
+		    
+			boolean primeVarsCreated = false;
+		    
+			while (true) {
+				
+				if (!primeVarsCreated && nStateVars > 0 && (fullyObservable || nObsVars > 0)) {
+				    primeVarsCreated = true;
+				    createPrimeVars();
+				}
+				
+				stream.nextToken();
+				
+				switch(stream.ttype) {
+				
+				case '(':
+				    
+					stream.nextToken();
+					
+					if (stream.sval.compareTo("variables") == 0) {
+				    	LOGGER.debug("Parsing variables");
+				    	parseVariables();
+				    }
+				    
+					else if (stream.sval.compareTo("observations") == 0) {
+				    	LOGGER.debug("Parsing observations");
+				    	parseObservations();
+				    }
+				    
+					else error("Expected \"variables\" or \"observations\"");
+				    
+					break;
+				
+				case StreamTokenizer.TT_WORD:
+				    
+					if (stream.sval.compareTo("unnormalized") == 0) {
+						unnormalized = true;
+						break;
+				    }
+				    
+					else if (stream.sval.compareTo("unnormalised") == 0) {
+						unnormalized = true;
+						break;
+				    }
+					
+				    else if (stream.sval.compareTo("dd") == 0) {
+				    	LOGGER.debug("Parsing DD def");
+				    	parseDDdefinition();
+				    	break;
+				    }
+					
+				    else if (stream.sval.compareTo("action") == 0) {
+				    	LOGGER.debug("Parsing actions");
+				    	parseAction();
+				    	break;
+				    }
+					
+				    else if (stream.sval.compareTo("adjunct") == 0) {
+				    	parseAdjunct();
+				    	break;
+				    }
+					
+				    else if (stream.sval.compareTo("reward") == 0) {
+						parseReward();
+						break;
+				    }
+					
+				    else if (stream.sval.compareTo("discount") == 0) {
+						parseDiscount();
+						break;
+				    }
+					
+				    else if (stream.sval.compareTo("horizon") == 0) {
+						parseHorizon();
+						break;
+				    }
+					
+				    else if (stream.sval.compareTo("tolerance") == 0) {
+						parseTolerance();
+						break;
+				    }
+					
+				    else if (stream.sval.compareTo("init") == 0) {
+						parseInit();
+						break;
+				    }
+					
+				    error("Expected \"unnormalized\" or \"dd\" or \"action\" or \"reward\"");
+				
+				case StreamTokenizer.TT_EOF:
+		
+				    // set valNames for actions
+				    String[] actNamesArray = new String[actNames.size()];
+				    
+				    for (int actId=0; actId<actNames.size(); actId++) {
+				    	actNamesArray[actId] = (String)actNames.get(actId);
+				    }
+				    
+				    Global.setValNames(Global.valNames.length+1,actNamesArray);
+												
+				    // set varDomSize with extra action variable
+				    int[] varDomSizeArray = new int[Global.varDomSize.length+1];
+				    for (int varId=0; varId<Global.varDomSize.length; varId++) {
+					varDomSizeArray[varId] = Global.varDomSize[varId];
+				    }
+				    varDomSizeArray[varDomSizeArray.length-1] = actNamesArray.length;
+				    Global.setVarDomSize(varDomSizeArray);
+				    this.populateDDTreeObjects();
+				    return;
+				default:
+					this.populateDDTreeObjects();
+				    return;
+				}
 		    }
 	
 		} 
@@ -274,7 +299,7 @@ public class ParseSPUDD implements Serializable {
 				    while (true) {
 				    	
 						if (StreamTokenizer.TT_WORD == stream.nextToken()) {
-						    
+						    LOGGER.debug(varValNames);
 							if (varValNames.contains(stream.sval)) 
 								error("Duplicate value name");
 						    
@@ -337,7 +362,7 @@ public class ParseSPUDD implements Serializable {
 		// create SAMEvariable dds
 		for (int varId=0; varId<Global.varNames.length/2; varId++) {
 			
-			logger.debug("Creating SAME DD for " + Global.varNames[varId]);
+			LOGGER.debug("Creating SAME DD for " + Global.varNames[varId]);
 		    
 			String ddName = new String("SAME") + Global.varNames[varId];
 		    DD[] children = new DD[Global.varDomSize[varId]];
@@ -352,7 +377,7 @@ public class ParseSPUDD implements Serializable {
 				    else grandChildren[j] = DD.zero;
 				}
 		    	
-				logger.debug("Making child " + Global.valNames[varId][i]);
+				LOGGER.debug("Making child " + Global.valNames[varId][i]);
 				children[i] = DDnode.myNew(varId+1,grandChildren);
 		    
 		    }
@@ -364,7 +389,7 @@ public class ParseSPUDD implements Serializable {
 		// create NOISYvariable dds
 		for (int varId=0; varId<Global.varNames.length/2; varId++) {
 			
-			logger.debug("Creating 5% noisy transition DD for " + Global.varNames[varId]);
+			LOGGER.debug("Creating 5% noisy transition DD for " + Global.varNames[varId]);
 		    
 			String ddName = new String("NOISE5") + Global.varNames[varId];
 		    DD[] children = new DD[Global.varDomSize[varId]];
@@ -379,7 +404,7 @@ public class ParseSPUDD implements Serializable {
 				    else grandChildren[j] = DDleaf.myNew(0.05 / (Global.varDomSize[varId] - 1));
 				}
 		    	
-				logger.debug("Making child " + Global.valNames[varId][i]);
+				LOGGER.debug("Making child " + Global.valNames[varId][i]);
 				children[i] = DDnode.myNew(varId+1,grandChildren);
 		    
 		    }
@@ -391,7 +416,7 @@ public class ParseSPUDD implements Serializable {
 		// create NOISYvariable dds
 		for (int varId=0; varId<Global.varNames.length/2; varId++) {
 			
-			logger.debug("Creating 1% noisy transition DD for " + Global.varNames[varId]);
+			LOGGER.debug("Creating 1% noisy transition DD for " + Global.varNames[varId]);
 		    
 			String ddName = new String("NOISE1") + Global.varNames[varId];
 		    DD[] children = new DD[Global.varDomSize[varId]];
@@ -407,7 +432,7 @@ public class ParseSPUDD implements Serializable {
 				    		DDleaf.myNew(0.01 / (Global.varDomSize[varId] - 1));
 				}
 		    	
-				logger.debug("Making child " + Global.valNames[varId][i]);
+				LOGGER.debug("Making child " + Global.valNames[varId][i]);
 				children[i] = DDnode.myNew(varId+1,grandChildren);
 		    
 		    }
@@ -450,7 +475,7 @@ public class ParseSPUDD implements Serializable {
 		    }
 		    valNames.add(varValNames);
 		    nObsVars++;
-		    logger.debug("Parsed " + varNames.lastElement() + " with values " + valNames.lastElement());
+		    LOGGER.debug("Parsed " + varNames.lastElement() + " with values " + valNames.lastElement());
 		}
 		else if (stream.ttype == ')') {
 		    break;
@@ -829,7 +854,7 @@ public class ParseSPUDD implements Serializable {
     	/*
     	 * Converts everything to DDTree representation
     	 */
-    	logger.debug("Begin populating DDTree structures");
+    	LOGGER.debug("Begin populating DDTree structures");
 //    	HashMap<String, HashMap<String, DDTree>> Oi = 
 //    			new HashMap<String, HashMap<String, DDTree>>();
 //    	
@@ -844,7 +869,7 @@ public class ParseSPUDD implements Serializable {
     						(String[]) this.valNames.get(i).toArray(
     								new String[this.valNames.get(i).size()]))));
     	
-    	logger.debug("S initialized to: " + this.S);
+    	LOGGER.debug("S initialized to: " + this.S);
     	
     	IntStream.range(this.nStateVars, this.nStateVars + this.nObsVars)
 			.forEach(i -> this.Omega.add(
@@ -854,17 +879,17 @@ public class ParseSPUDD implements Serializable {
 							(String[]) this.valNames.get(i).toArray(
 									new String[this.valNames.get(i).size()]))));
     	
-    	logger.debug("Omega initialized to: " + this.Omega);
+    	LOGGER.debug("Omega initialized to: " + this.Omega);
     	
     	/* Ai */
     	for (int a = 0; a < this.actNames.size(); a++) {
     		
     		/* Add action names */
-    		logger.debug("Populating structures for action " + this.actNames.get(a));
+    		LOGGER.debug("Populating structures for action " + this.actNames.get(a));
     		this.A.add(this.actNames.get(a));
     		
     		/* Add costs for each action */
-    		logger.debug(
+    		LOGGER.debug(
     				"Cost for action " 
     				+ this.actNames.get(a) 
     				+ " is " 
@@ -875,14 +900,14 @@ public class ParseSPUDD implements Serializable {
     		
     		/* Populate Oi */
     		for (int o = 0; o < this.nObsVars; o++) {
-    			logger.debug(
+    			LOGGER.debug(
     					"Population O DDtree for o " + this.varNames.get(this.nStateVars + o));
     			Oi_a.put(
     					this.varNames.get(this.nStateVars + o),
     					this.actObserve.get(a)[o].toDDTree());
     		}
     		
-    		logger.debug("Oi_a for a=" + this.actNames.get(a) + " is " + Oi_a);
+    		LOGGER.debug("Oi_a for a=" + this.actNames.get(a) + " is " + Oi_a);
     		
     		this.Oi.put(this.actNames.get(a), Oi_a);
     		
