@@ -504,6 +504,17 @@ public class NextBelState implements Serializable {
 									belState, 
 									act, 
 									allObs.get(o).stream().toArray(String[]::new));
+					
+					DD[] factoredNextBel = pomdp.factorBelief(nextBelief);
+					factoredNextBel = 
+							OP.primeVarsN(factoredNextBel, pomdp.getNumVars());
+					
+					factoredNextBel = 
+							ArrayUtils.add(
+									factoredNextBel, 
+									DDleaf.myNew(obsProbs[o]));
+					
+					nextBelStatesForAct.add(factoredNextBel);
 				}
 				
 				catch (ZeroProbabilityObsException e) {
@@ -511,17 +522,6 @@ public class NextBelState implements Serializable {
 							+ "Everything will break after this. "
 							+ "And I won't fix it.");
 				}
-				
-				DD[] factoredNextBel = pomdp.factorBelief(nextBelief);
-				factoredNextBel = 
-						OP.primeVarsN(factoredNextBel, pomdp.getNumVars());
-				
-				factoredNextBel = 
-						ArrayUtils.add(
-								factoredNextBel, 
-								DDleaf.myNew(obsProbs[o]));
-				
-				nextBelStatesForAct.add(factoredNextBel);
 			}
 			
 			DD[][] nextBelStatesFactors = nextBelStatesForAct.stream().toArray(DD[][]::new);
