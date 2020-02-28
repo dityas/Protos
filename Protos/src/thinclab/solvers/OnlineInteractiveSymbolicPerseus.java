@@ -81,7 +81,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		try {
 				
 			boundedPerseusStartFromCurrent(
-					20, 
+					10, 
 					0, 
 					this.dpBackups,
 					beliefsArray,
@@ -90,13 +90,6 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			this.currentPointBasedValues = null;
 			this.newPointBasedValues = null;
 
-//			if (this.bestAlphaVectors != null) {
-//				this.alphaVectors = this.bestAlphaVectors;
-//				this.policy = this.bestPolicy;
-//			}
-			
-//			LOGGER.info("Finished, using alpha vectors from best solution with "
-//					+ " bellman error: " + this.bestBellmanError);
 		}
 		
 		catch (Exception e) {
@@ -379,14 +372,13 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			Diagnostics.reportDiagnostics();
 			Diagnostics.reportCacheSizes();
 			
-			/* report num leaves in alpha vectors */
-			int[] numLeaves = 
+			/* report num nodes in alpha vectors */
+			int numLeaves = 
 					Arrays.stream(this.alphaVectors)
 						.map(d -> d.getNumLeaves())
-						.mapToInt(x -> x)
-						.toArray();
+						.mapToInt(x -> x).sum();
 			
-			LOGGER.info("Num Leaves in Alpha vectors are: " + Arrays.toString(numLeaves));
+			LOGGER.info("Total nodes in all Alpha vectors are: " + numLeaves);
 			
 			/* check memory consumption */
 			long free = Runtime.getRuntime().freeMemory();
@@ -420,13 +412,13 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				break;
 			}
 			
-//			if (stepId > 20) {
-//				if (this.isErrorNonDecreasing((float) bellmanErr)) {
-//					LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
-//							+ " BECAUSE OF NON DECREASING ERROR");
-//					break;
-//				}
-//			}
+			if (stepId > 20) {
+				if (this.isErrorNonDecreasing((float) bellmanErr)) {
+					LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
+							+ " BECAUSE OF NON DECREASING ERROR");
+					break;
+				}
+			}
 			
 			if (this.declareApproxConvergenceForAlphaVectors(
 					this.alphaVectors.length, numIter, numBeliefs) && bellmanErr < 1.0) {
