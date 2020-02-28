@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import thinclab.ddinterface.DDTree;
@@ -43,6 +44,8 @@ public class IPOMDPParser extends ParseSPUDD {
 	public double mpAiProb = 0.99;
 	public List<ParseSPUDD> childFrames = new ArrayList<ParseSPUDD>();
 	
+	private String domainPath = "";
+	
 	/* Separate container for costs */
 	public HashMap<String, DDTree> costMap;
 	
@@ -60,6 +63,12 @@ public class IPOMDPParser extends ParseSPUDD {
 		 */
 		this.initialize();
 		try {
+			
+			String[] pathParts = fileName.split("/");
+			
+			this.domainPath = 
+					"/" + String.join("/", ArrayUtils.subarray(pathParts, 0, pathParts.length - 1));
+			
 		    this.stream = new StreamTokenizer(new FileReader(fileName));
 		    stream.wordChars('\'','\'');
 			stream.wordChars('_','_');
@@ -278,7 +287,8 @@ public class IPOMDPParser extends ParseSPUDD {
 						
 						this.stream.nextToken();
 						
-						String fileName = stream.sval;
+						String fileName = this.domainPath + "/" + stream.sval;
+						
 				    	LOGGER.debug("Importing from SPUDD file " + fileName);
 				    	
 				    	StreamTokenizer new_stream = new StreamTokenizer(new FileReader(fileName));
