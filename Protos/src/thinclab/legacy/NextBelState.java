@@ -518,9 +518,9 @@ public class NextBelState implements Serializable {
 				}
 				
 				catch (ZeroProbabilityObsException e) {
-					LOGGER.error("Got a zero probability exception. "
-							+ "Everything will break after this. "
-							+ "And I won't fix it.");
+//					LOGGER.error("Got a zero probability exception. "
+//							+ "Everything will break after this. "
+//							+ "And I won't fix it.");
 				}
 			}
 			
