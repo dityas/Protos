@@ -124,7 +124,7 @@ public class EvaluateStationaryPolicy extends Executable {
 				LOGGER.info("Solving POMDP...");
 				
 				/* set cache usage */
-//				NextBelStateCache.useCache();
+				NextBelStateCache.useCache();
 				
 				int rounds = new Integer(line.getOptionValue("r"));
 				
