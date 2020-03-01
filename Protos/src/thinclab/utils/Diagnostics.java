@@ -42,6 +42,9 @@ public class Diagnostics {
 	/* for computing next value function */
 	public static List<Long> NEXT_VAL_FN_TIME = new ArrayList<Long>();
 	
+	/* for counting Cache hits */
+	public static int CACHE_HITS = 0;
+	
 	private static final Logger LOGGER = Logger.getLogger(Diagnostics.class);
 	
 	// --------------------------------------------------------------------------------------
@@ -100,7 +103,10 @@ public class Diagnostics {
 				+ " NZ_PRIMES: " + String.format(Locale.US, "%.03f", (avgNZPrimeTime / 1000000)) 
 					+ " msec"
 				+ " A VEC CONST.: " + String.format(Locale.US, "%.03f", (avgAVecTime / 1000000)) 
-					+ " msec");
+					+ " msec"
+				+ " CACHE HITS: " + Diagnostics.CACHE_HITS);
+		
+		Diagnostics.CACHE_HITS = 0;
 	}
 	
 	public static void reportCacheSizes() {

@@ -711,6 +711,7 @@ public class MultiAgentSimulation extends Simulation {
 		this.summaryWriter.println(
 				"Agent j takes action " + l0Action + " and observes " + Arrays.toString(l0Obs));
 		this.summaryWriter.println("Interaction ends");
+		this.summaryWriter.flush();
 	}
 	
 	private void summarizeBelief(String name, JsonObject jsonBelief, boolean showProbs) {

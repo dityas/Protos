@@ -21,6 +21,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.utils.Diagnostics;
 import thinclab.utils.NextBelStateCache;
 
 /*
@@ -221,7 +222,10 @@ public class NextBelState implements Serializable {
 			HashMap<String, NextBelState> cachedEntry = 
 					NextBelStateCache.getCachedEntry(belState);
 			
-			if (cachedEntry != null) return cachedEntry;
+			if (cachedEntry != null) {
+				Diagnostics.CACHE_HITS += 1;
+				return cachedEntry;
+			}
 		}
 		
 		/* else compute and cache */
@@ -465,7 +469,10 @@ public class NextBelState implements Serializable {
 			HashMap<String, NextBelState> cachedEntry = 
 					NextBelStateCache.getCachedEntry(belState);
 			
-			if (cachedEntry != null) return cachedEntry;
+			if (cachedEntry != null) {
+				Diagnostics.CACHE_HITS += 1;
+				return cachedEntry;
+			}
 		}
 		
 		/* else compute and cache */
