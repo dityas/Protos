@@ -674,6 +674,7 @@ public class MultiAgentSimulation extends Simulation {
 
 		LOGGER.debug("Interaction step " + i + " summary:");
 		this.summaryWriter.println("Interaction step " + i + " summary:");
+		this.summaryWriter.println();
 		
 		LOGGER.debug("State is,");
 		this.summaryWriter.println("State is,");
@@ -681,6 +682,8 @@ public class MultiAgentSimulation extends Simulation {
 		JsonObject stateJsonObject = stateJsonTree.getAsJsonObject();
 		for (String stateVar: stateJsonObject.keySet())	
 			this.summarizeBelief(stateVar, stateJsonObject.get(stateVar).getAsJsonObject(), false);
+		
+		this.summaryWriter.println();
 
 		LOGGER.debug("Agent i at L1 believes,");
 		this.summaryWriter.println("Agent i at L1 believes,");
@@ -695,9 +698,12 @@ public class MultiAgentSimulation extends Simulation {
 		}
 		
 		this.summarizeMjBelief(l1JsonObject.get("M_j").getAsJsonArray());
+		this.summaryWriter.println();
+		
 		LOGGER.debug("Agent i takes action " + l1Action + " and observes " + Arrays.toString(l1Obs));
 		this.summaryWriter.println(
 				"Agent i takes action " + l1Action + " and observes " + Arrays.toString(l1Obs));
+		this.summaryWriter.println();
 		
 		LOGGER.debug("Agent j at L0 believes,");
 		this.summaryWriter.println("Agent j at L0 believes,");
@@ -706,11 +712,15 @@ public class MultiAgentSimulation extends Simulation {
 		for (String l0StateVar: l0JsonObject.keySet())	
 			this.summarizeBelief(l0StateVar, l0JsonObject.get(l0StateVar).getAsJsonObject(), true);
 		
+		this.summaryWriter.println();
+		
 		LOGGER.debug("Agent j takes action " + l0Action + " and observes " + Arrays.toString(l0Obs));
 		LOGGER.debug("Interaction ends");
 		this.summaryWriter.println(
 				"Agent j takes action " + l0Action + " and observes " + Arrays.toString(l0Obs));
+		this.summaryWriter.println();
 		this.summaryWriter.println("Interaction ends");
+		this.summaryWriter.println();
 		this.summaryWriter.flush();
 	}
 	
