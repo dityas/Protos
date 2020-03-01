@@ -99,7 +99,7 @@ public abstract class OnlineSolver extends BaseSolver {
 			/* solve for explored beliefs */
 			this.solveForBeliefs(exploredBeliefs);
 			
-			if (this.isConverged()) break;
+			if (this.isConverged() && r > 0) break;
 		}
 		
 		this.expansionStrategy.clearMem();
