@@ -187,7 +187,7 @@ public class MultiAgentSimulation extends Simulation {
 			int[] l1Policy = ((OnlineIPBVISolver) this.l1Solver).getPolicy();
 			double l1DiscountedReward = 
 					this.l1Solver.f.evaluatePolicy(
-							l1AlphaVecs, l1Policy, 10000, this.iterations, false);
+							l1AlphaVecs, l1Policy, 1000, 5, false);
 			
 			DD currentL1Belief = this.getPolicyNode(currentNode).getBelief();
 			String currentL1BeliefJson = this.l1Solver.f.getBeliefString(currentL1Belief);
@@ -296,7 +296,7 @@ public class MultiAgentSimulation extends Simulation {
 			int[] l0Policy = ((OfflineSymbolicPerseus) this.solver).getPolicy();
 			double l0DiscountedReward = 
 					this.solver.f.evaluatePolicy(
-							l0AlphaVecs, l0Policy, 10000, this.iterations, false);
+							l0AlphaVecs, l0Policy, 1000, 5, false);
 			
 			this.l0ExpectedReward.add(l0DiscountedReward);
 			LOGGER.info("Agent j's expected reward is " 
