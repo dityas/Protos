@@ -119,7 +119,7 @@ public class MultiAgentSimulation extends Simulation {
 			this.summaryWriter = 
 					new PrintWriter(
 							new FileOutputStream(
-									this.mjDotDir + "/" + "interation_summary" + id + ".txt"));
+									this.mjDotDir + "/" + "interaction_summary" + id + ".txt"));
 		}
 		
 		catch (Exception e) {
