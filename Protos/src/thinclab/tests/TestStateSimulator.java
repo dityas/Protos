@@ -101,7 +101,7 @@ class TestStateSimulator {
 				
 //		String jAction = ipomdp.getActions().get(0) + "__" + pomdp.getActions().get(0);
 //		String jAction = "listen__open-left";
-		MultiAgentSimulation Sim = new MultiAgentSimulation(S1, S0, 3);
+		MultiAgentSimulation Sim = new MultiAgentSimulation(S1, S0, 2);
 //		Sim.envStep(jAction);
 		Sim.runSimulation();
 		LOGGER.info(Sim.getDotString());

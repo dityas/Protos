@@ -20,7 +20,9 @@ import org.apache.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import thinclab.ddinterface.DDTree;
@@ -48,6 +50,7 @@ public class MultiAgentSimulation extends Simulation {
 	private OnlineSolver l1Solver;
 	
 	private String mjDotDir = null;
+	private PrintWriter summaryWriter = null;
 	
 	/* some lists for storing run stats */
 	List<String> stateSequence = new ArrayList<String>();
@@ -108,8 +111,19 @@ public class MultiAgentSimulation extends Simulation {
 		this.putPolicyNode(jNode.getId(), jNode);
 	}
 	
-	public void setMjDotDir(String mjDotDir) {
+	public void setMjDotDir(String mjDotDir, int id) {
 		this.mjDotDir = mjDotDir;
+		
+		try {
+			this.summaryWriter = 
+					new PrintWriter(
+							new FileOutputStream(
+									this.mjDotDir + "/" + "interation_summary" + id + ".txt"));
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("Could not make summary file");
+		}
 	}
 	
 	// ----------------------------------------------------------------------------------------
@@ -153,10 +167,6 @@ public class MultiAgentSimulation extends Simulation {
 				this.l1Solver.f.setGlobals();
 				((OnlineSolver) this.l1Solver).solveCurrentStep();
 				((OnlineSolver) this.l1Solver).expansionStrategy.clearMem();
-				
-				if (this.mjDotDir != null)
-					((IPOMDP) this.l1Solver.f)
-						.multiFrameMJ.MJs.get(0).writeDotFile(this.mjDotDir, "step_" + currentNode);
 			}
 			
 			if (this.solver instanceof OnlineSolver) {
@@ -172,6 +182,7 @@ public class MultiAgentSimulation extends Simulation {
 			/* record the L1 step */
 			this.l1Solver.f.setGlobals();
 			DD currentL1Belief = this.getPolicyNode(currentNode).getBelief();
+			String currentL1BeliefJson = this.l1Solver.f.getBeliefString(currentL1Belief);
 			
 			int[] aVecIndices = 
 					ArrayUtils.subarray(
@@ -191,6 +202,7 @@ public class MultiAgentSimulation extends Simulation {
 			/* record L0 belief */
 			this.solver.f.setGlobals();
 			DD currentL0Belief = this.getPolicyNode(currentNode + 2).getBelief();
+			String currentL0BeliefJson = this.solver.f.getBeliefString(currentL0Belief);
 			
 			this.l0BeliefSequence.add(this.solver.f.getBeliefString(currentL0Belief));
 			LOGGER.info("L0 belief is " 
@@ -205,6 +217,7 @@ public class MultiAgentSimulation extends Simulation {
 			/* record state */
 			DD currentState = this.states.get(this.states.size() - 1).toDD();
 			DD[] currentFactoredState = this.solver.f.factorBelief(currentState);
+			String stateJson = this.solver.f.getBeliefString(currentState);
 			
 			this.stateSequence.add(
 					this.solver.f.getBeliefString(currentState));
@@ -260,6 +273,19 @@ public class MultiAgentSimulation extends Simulation {
 									aVecs[v], aVecIndices));
 //					LOGGER.info("Vector is: " + aVecs[v].toDDTree());
 				}
+			}
+			
+			/* summarize the interaction */
+			if (this.summaryWriter != null) {
+				this.summarizeInteraction(
+						this.states.size(),
+						stateJson,
+						currentL1BeliefJson, 
+						currentL0BeliefJson, 
+						l1Action, 
+						l0Action,
+						obs[0],
+						obs[1]);
 			}
 			
 			/* step agent I */
@@ -622,6 +648,7 @@ public class MultiAgentSimulation extends Simulation {
 			writer.flush();
 			writer.close();
 			
+			if (this.summaryWriter != null) this.summaryWriter.close();
 		}
 		
 		catch (Exception e) {
@@ -629,6 +656,143 @@ public class MultiAgentSimulation extends Simulation {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+	}
+	
+	public void summarizeInteraction(
+			int numStep,
+			String state,
+			String l1belief,
+			String l0belief,
+			String l1Action,
+			String l0Action,
+			String[] l1Obs,
+			String[] l0Obs) throws Exception {
+		/*
+		 * Makes a human readable summary of the details of the interaction
+		 */
+		int i = numStep - 1;
+
+		LOGGER.debug("Interaction step " + i + " summary:");
+		this.summaryWriter.println("Interaction step " + i + " summary:");
+		
+		LOGGER.debug("State is,");
+		this.summaryWriter.println("State is,");
+		JsonElement stateJsonTree = JsonParser.parseString(state);
+		JsonObject stateJsonObject = stateJsonTree.getAsJsonObject();
+		for (String stateVar: stateJsonObject.keySet())	
+			this.summarizeBelief(stateVar, stateJsonObject.get(stateVar).getAsJsonObject(), false);
+
+		LOGGER.debug("Agent i at L1 believes,");
+		this.summaryWriter.println("Agent i at L1 believes,");
+		JsonElement l1JsonTree = JsonParser.parseString(l1belief);
+		JsonObject l1JsonObject = l1JsonTree.getAsJsonObject();
+		for (String l1StateVar: l1JsonObject.keySet()) {
+			
+			if (l1StateVar.contentEquals("M_j"))
+				continue;
+			
+			this.summarizeBelief(l1StateVar, l1JsonObject.get(l1StateVar).getAsJsonObject(), true);
+		}
+		
+		this.summarizeMjBelief(l1JsonObject.get("M_j").getAsJsonArray());
+		LOGGER.debug("Agent i takes action " + l1Action + " and observes " + Arrays.toString(l1Obs));
+		this.summaryWriter.println(
+				"Agent i takes action " + l1Action + " and observes " + Arrays.toString(l1Obs));
+		
+		LOGGER.debug("Agent j at L0 believes,");
+		this.summaryWriter.println("Agent j at L0 believes,");
+		JsonElement l0JsonTree = JsonParser.parseString(l0belief);
+		JsonObject l0JsonObject = l0JsonTree.getAsJsonObject();
+		for (String l0StateVar: l0JsonObject.keySet())	
+			this.summarizeBelief(l0StateVar, l0JsonObject.get(l0StateVar).getAsJsonObject(), true);
+		
+		LOGGER.debug("Agent j takes action " + l0Action + " and observes " + Arrays.toString(l0Obs));
+		LOGGER.debug("Interaction ends");
+		this.summaryWriter.println(
+				"Agent j takes action " + l0Action + " and observes " + Arrays.toString(l0Obs));
+		this.summaryWriter.println("Interaction ends");
+	}
+	
+	private void summarizeBelief(String name, JsonObject jsonBelief, boolean showProbs) {
+		/*
+		 * Makes a summary of the belief over states
+		 */
+		String jsonVal = "";
+		float maxProb = 0;
+		
+		for (String val: jsonBelief.keySet()) {
+			
+			float valProb = jsonBelief.get(val).getAsFloat();
+			
+			if (valProb > maxProb) {
+				jsonVal = val;
+				maxProb = valProb;
+			}
+		}
+		
+		if (showProbs) {
+			LOGGER.debug(name + " is likely " + jsonVal + " with probability " + maxProb);
+			this.summaryWriter.println(name + " is likely " + jsonVal + " with probability " + maxProb);
+		}
+		
+		else {
+			LOGGER.debug(name + " is " + jsonVal);
+			this.summaryWriter.println(name + " is " + jsonVal);
+		}
+	}
+	
+	private void summarizeMjBelief(JsonArray jsonBelief) {
+		/*
+		 * Makes a summary of the belief over states
+		 */
+		JsonObject mostProbableMj = null;
+		float maxProb = 0;
+		
+		for (JsonElement obj: jsonBelief) {
+			
+			float valProb = obj.getAsJsonObject().get("prob").getAsFloat();
+//			LOGGER.debug(valProb + " for " + obj);
+			if (valProb > maxProb) {
+				mostProbableMj = obj.getAsJsonObject();
+				maxProb = valProb;
+			}
+		}
+		
+		String mostProbableAj = mostProbableMj.get("model").getAsJsonObject().get("A_j").getAsString();
+		mostProbableMj = mostProbableMj.get("model").getAsJsonObject().get("belief_j").getAsJsonObject();
+		
+		for (String varName: mostProbableMj.keySet()) {
+			
+			String jsonVal = "";
+			float maxValProb = 0;
+			
+			for (String val: mostProbableMj.get(varName).getAsJsonObject().keySet()) {
+				
+				float valProb = 
+						mostProbableMj.get(varName)
+									  .getAsJsonObject()
+									  .get(val)
+									  .getAsFloat();
+				
+				if (valProb > maxValProb) {
+					jsonVal = val;
+					maxValProb = valProb;
+				}
+			}
+			
+			LOGGER.debug("L1 believes that L0 believes " + varName + " is"
+					+ " likely " + jsonVal + " with probability " + maxValProb 
+					+ " with probability " + maxProb);
+			
+			this.summaryWriter.println("L1 believes that L0 believes " + varName + " is"
+					+ " likely " + jsonVal + " with probability " + maxValProb 
+					+ " with probability " + maxProb);
+		}
+		
+		LOGGER.debug("This leads agent i to believe that agent j will perfrom action " + mostProbableAj
+				+ " with a probability " + maxProb);
+		this.summaryWriter.println("This leads agent i to believe that agent j will perfrom action " + mostProbableAj
+				+ " with a probability " + maxProb);
 	}
 
 }
