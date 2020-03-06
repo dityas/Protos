@@ -186,10 +186,10 @@ public class NextBelState implements Serializable {
 			obsId = nzObsIds[obsPtr];
 			
 			obsProb = nextBelStates[obsPtr][this.obsProbIndex].getVal();
-			if (obsProb > 1.0 || obsProb < 0.0) {
-				LOGGER.error("observation probability cannot be: " + obsProb);
-				System.exit(-1);
-			}
+//			if (obsProb > 1.0 || obsProb < 0.0) {
+//				LOGGER.error("observation probability cannot be: " + obsProb);
+//				System.exit(-1);
+//			}
 			
 			alphaValue = obsVals[obsPtr][0];
 			
