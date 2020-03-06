@@ -11,6 +11,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.apache.log4j.Logger;
 
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.POMDP;
@@ -18,7 +19,6 @@ import thinclab.representations.conditionalplans.ConditionalPlanTree;
 import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OfflinePBVISolver;
-import thinclab.solvers.OfflineSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.NextBelStateCache;
@@ -43,7 +43,9 @@ public class POMDPSolver extends Executable {
 	public int searchDepth;
 	
 	/* solver instance */
-	public OfflineSolver solver;
+	public OfflineSymbolicPerseus solver;
+	
+	private static Logger LOGGER;
 	
 	// ---------------------------------------------------------------------------------------------
 	
@@ -73,6 +75,13 @@ public class POMDPSolver extends Executable {
 						this.numDpBackups);
 		
 		solver.solve();
+		
+		LOGGER.info("Calculated policy value is: " +
+				pomdp.evaluatePolicy(
+						solver.getAlphaVectors(), 
+						solver.getPolicy(), 
+						10000, this.searchDepth, false)
+				+ " for starting action: " + solver.getActionForBelief(pomdp.getCurrentBelief()));
 	}
 	
 	public void makeConditionalPlan(String dirName) {
@@ -161,6 +170,10 @@ public class POMDPSolver extends Executable {
 		POMDPSolver solver = null;
 
 		try {
+			
+			CustomConfigurationFactory.initializeLogging();
+			LOGGER = Logger.getLogger(POMDPSolver.class);
+			
 			line = cliParser.parse(opt, args);
 			
 			/* set CLI args */

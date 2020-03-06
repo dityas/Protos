@@ -110,6 +110,10 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		double maxAbsVal = 0;
 
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
+			
+			/* if caches are huge, clear them, unless you get your hands on 128 GB RAM */
+			if (Global.multHashtable.size() > 5000000)
+				Global.clearHashtables();
 
 			steptolerance = this.p.tolerance;
 
