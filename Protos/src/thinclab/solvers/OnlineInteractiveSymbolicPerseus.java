@@ -90,6 +90,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			this.currentPointBasedValues = null;
 			this.newPointBasedValues = null;
 			
+			LOGGER.info("Using alpha vectors from back iteration with bellman error " 
+					+ this.bestBellmanError);
 			this.alphaVectors = this.bestAlphaVectors;
 			this.policy = this.bestPolicy;
 
