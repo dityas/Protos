@@ -70,7 +70,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		 * Run a full belief expansion for 3 time steps to facilitate proper exploration
 		 */
 		
-		FullBeliefExpansion fb = new FullBeliefExpansion(this.p, 3);
+		FullBeliefExpansion fb = new FullBeliefExpansion(this.p, 2);
 		fb.expand();
 		
 		this.initialBeliefs = new ArrayList<DD>();
