@@ -89,6 +89,9 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 
 			this.currentPointBasedValues = null;
 			this.newPointBasedValues = null;
+			
+			this.alphaVectors = this.bestAlphaVectors;
+			this.policy = this.bestPolicy;
 
 		}
 		
