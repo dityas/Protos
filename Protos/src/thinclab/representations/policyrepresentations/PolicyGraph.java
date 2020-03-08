@@ -37,6 +37,8 @@ public class PolicyGraph extends StructuredTree {
 	/* policy vars */
 	public DD[] alphas;
 	public int[] actions;
+	
+	public double MEU = Double.NEGATIVE_INFINITY;
 
 	private static final Logger LOGGER = Logger.getLogger(PolicyGraph.class);
 
@@ -50,6 +52,10 @@ public class PolicyGraph extends StructuredTree {
 		/* set policy attributes */
 		this.alphas = this.solver.getAlphaVectors();
 		this.actions = this.solver.getPolicy();
+		
+		this.MEU = 
+				this.solver.getFramework().evaluatePolicy(
+						this.alphas, this.actions, 10000, this.solver.expansionStrategy.getHBound(), false);
 
 		LOGGER.info("Initializing policy graph for " + this.alphas.length + " A vectors");
 	}
@@ -165,6 +171,10 @@ public class PolicyGraph extends StructuredTree {
 			dotString += "Ai=" + node.getActName()
 					+ "}\"];" + endl;
 		}
+		
+		/* write MEU */
+		dotString += (this.getNumNodes() + 2) 
+				+ " [shape=Mrecord, label=\"{ Expected Utility=" + this.MEU + "}\"];" + endl;
 		
 		dotString += endl;
 		
