@@ -13,6 +13,12 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
@@ -156,6 +162,23 @@ public class PolicyGraph extends StructuredTree {
 	}
 	
 	// ---------------------------------------------------------------------------------------
+	
+	@Override
+	public String getJSONString() {
+		
+		Gson gsonHandler = 
+				new GsonBuilder()
+					.disableHtmlEscaping()
+					.setPrettyPrinting()
+					.create();
+		
+		String jsonString = super.getJSONString();
+		
+		JsonObject policyGraphJSON = JsonParser.parseString(jsonString).getAsJsonObject();
+		policyGraphJSON.add("discounted reward", new JsonPrimitive(this.MEU));
+		
+		return gsonHandler.toJson(policyGraphJSON);
+	}
 
 	@Override
 	public String getDotString() {
