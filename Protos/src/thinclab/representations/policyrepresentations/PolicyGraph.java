@@ -52,12 +52,21 @@ public class PolicyGraph extends StructuredTree {
 		/* set policy attributes */
 		this.alphas = this.solver.getAlphaVectors();
 		this.actions = this.solver.getPolicy();
-		
-		this.MEU = 
-				this.solver.getFramework().evaluatePolicy(
-						this.alphas, this.actions, 10000, this.solver.expansionStrategy.getHBound(), false);
 
 		LOGGER.info("Initializing policy graph for " + this.alphas.length + " A vectors");
+	}
+	
+	public void computeEU() {
+		/*
+		 * Computes the expected utility for the graph representing the policy
+		 */
+		this.MEU = 
+				this.solver.getFramework().evaluatePolicy(
+						this.alphas, 
+						this.actions, 
+						10000, 
+						this.solver.expansionStrategy.getHBound(), 
+						false);
 	}
 
 	public void makeGraph() {
@@ -173,8 +182,8 @@ public class PolicyGraph extends StructuredTree {
 		}
 		
 		/* write MEU */
-		dotString += (this.getNumNodes() + 2) 
-				+ " [shape=Mrecord, label=\"{ Expected Utility=" + this.MEU + "}\"];" + endl;
+		dotString += -1 
+				+ " [shape=record, label=\"{Expected Utility=" + this.MEU + "}\"];" + endl;
 		
 		dotString += endl;
 		

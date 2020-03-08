@@ -204,6 +204,7 @@ public class RunSimulations extends Executable {
 						/* make policy graph */
 						PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
 						pg.makeGraph();
+						pg.computeEU();
 						
 						/* store policy graph solution */
 						pg.writeDotFile(
