@@ -94,6 +94,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					+ this.bestBellmanError);
 			this.alphaVectors = this.bestAlphaVectors;
 			this.policy = this.bestPolicy;
+			this.bestBellmanError = Double.POSITIVE_INFINITY;
 
 		}
 		
