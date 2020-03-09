@@ -39,6 +39,9 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 	private static final Logger logger = Logger.getLogger(OfflineSymbolicPerseus.class);
 	
 	private PolicyCache pCache;
+	private double bestBellmanError = Double.POSITIVE_INFINITY;
+	private DD[] bestAlphaVectors;
+	private int[] bestPolicy;
 	
 	// -------------------------------------------------------------------------------------
 	
@@ -76,8 +79,14 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			this.pCache.resetOscillationTracking();
 			this.SymbolicPerseus(100, 0, this.numDpBackups, beliefs.stream().toArray(DD[]::new));
 			
-			this.alphaVectors = this.pCache.getMaxAlphaVecs();
-			this.policy = this.pCache.getMaxPolicy();
+			
+			this.alphaVectors = this.bestAlphaVectors;
+			this.policy = this.bestPolicy;
+			
+			logger.info("Using policy containing " + this.alphaVectors.length
+					+ " A vectors from best backup round with bellman error " + this.bestBellmanError);
+			
+			this.bestBellmanError = Double.POSITIVE_INFINITY;
 		}
 
 		catch (Exception e) {
@@ -270,6 +279,17 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 			bellmanErr = Math.min(10, Math.max(bestImprovement, -worstDecline));
 			float errorVar = this.getErrorVariance((float) bellmanErr);
+			
+			if (bellmanErr < this.bestBellmanError) {
+				this.bestBellmanError = bellmanErr;
+				
+				this.bestAlphaVectors = new DD[this.alphaVectors.length];
+				System.arraycopy(
+						this.alphaVectors, 0, this.bestAlphaVectors, 0, this.bestAlphaVectors.length);
+				
+				this.bestPolicy = new int[this.policy.length];
+				System.arraycopy(this.policy, 0, this.bestPolicy, 0, this.policy.length);
+			}
 			
 			logger.info("STEP: " + stepId 
 					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr)
