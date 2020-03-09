@@ -152,7 +152,7 @@ public class RunSimulations extends Executable {
 					POMDP pomdp = new POMDP(domainFile);
 					OfflineSymbolicPerseus solver = 
 							OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
-									pomdp, lookAhead, 2, rounds, backups);
+									pomdp, lookAhead, 30, rounds, backups);
 					
 					solver.solve();
 					
