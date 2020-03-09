@@ -110,6 +110,7 @@ public class RunSimulations extends Executable {
 		CommandLine line = null;
 
 		try {
+			NextBelStateCache.useCache();
 			line = cliParser.parse(opt, args);
 			
 			/* set CLI args */
