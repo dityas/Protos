@@ -155,6 +155,7 @@ public class RunSimulations extends Executable {
 					
 					PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
 					pg.makeGraph();
+					pg.computeEU();
 					
 					pg.writeDotFile(storageDir, "policy_graph_" + i);
 					pg.writeJSONFile(storageDir, "policy_graph_" + i);
