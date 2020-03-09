@@ -75,6 +75,9 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		try {
 			this.pCache.resetOscillationTracking();
 			this.SymbolicPerseus(100, 0, this.numDpBackups, beliefs.stream().toArray(DD[]::new));
+			
+			this.alphaVectors = this.pCache.getMaxAlphaVecs();
+			this.policy = this.pCache.getMaxPolicy();
 		}
 
 		catch (Exception e) {

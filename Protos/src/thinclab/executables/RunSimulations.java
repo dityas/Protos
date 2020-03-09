@@ -153,6 +153,12 @@ public class RunSimulations extends Executable {
 					
 					solver.solve();
 					
+					PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
+					pg.makeGraph();
+					
+					pg.writeDotFile(storageDir, "policy_graph_" + i);
+					pg.writeJSONFile(storageDir, "policy_graph_" + i);
+					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
 					ss.logToFile(storageDir + "/" + "sim" + i + ".json");

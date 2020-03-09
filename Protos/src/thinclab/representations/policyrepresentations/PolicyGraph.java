@@ -13,6 +13,12 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
@@ -37,6 +43,8 @@ public class PolicyGraph extends StructuredTree {
 	/* policy vars */
 	public DD[] alphas;
 	public int[] actions;
+	
+	public double MEU = Double.NEGATIVE_INFINITY;
 
 	private static final Logger LOGGER = Logger.getLogger(PolicyGraph.class);
 
@@ -52,6 +60,19 @@ public class PolicyGraph extends StructuredTree {
 		this.actions = this.solver.getPolicy();
 
 		LOGGER.info("Initializing policy graph for " + this.alphas.length + " A vectors");
+	}
+	
+	public void computeEU() {
+		/*
+		 * Computes the expected utility for the graph representing the policy
+		 */
+		this.MEU = 
+				this.solver.getFramework().evaluatePolicy(
+						this.alphas, 
+						this.actions, 
+						10000, 
+						this.solver.expansionStrategy.getHBound(), 
+						false);
 	}
 
 	public void makeGraph() {
@@ -141,6 +162,23 @@ public class PolicyGraph extends StructuredTree {
 	}
 	
 	// ---------------------------------------------------------------------------------------
+	
+	@Override
+	public String getJSONString() {
+		
+		Gson gsonHandler = 
+				new GsonBuilder()
+					.disableHtmlEscaping()
+					.setPrettyPrinting()
+					.create();
+		
+		String jsonString = super.getJSONString();
+		
+		JsonObject policyGraphJSON = JsonParser.parseString(jsonString).getAsJsonObject();
+		policyGraphJSON.add("discounted reward", new JsonPrimitive(this.MEU));
+		
+		return gsonHandler.toJson(policyGraphJSON);
+	}
 
 	@Override
 	public String getDotString() {
@@ -165,6 +203,10 @@ public class PolicyGraph extends StructuredTree {
 			dotString += "Ai=" + node.getActName()
 					+ "}\"];" + endl;
 		}
+		
+		/* write MEU */
+		dotString += -1 
+				+ " [shape=record, label=\"{Expected Utility=" + this.MEU + "}\"];" + endl;
 		
 		dotString += endl;
 		
