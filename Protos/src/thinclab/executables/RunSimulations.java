@@ -110,7 +110,7 @@ public class RunSimulations extends Executable {
 		CommandLine line = null;
 
 		try {
-			NextBelStateCache.useCache();
+			
 			line = cliParser.parse(opt, args);
 			
 			/* set CLI args */
@@ -124,6 +124,8 @@ public class RunSimulations extends Executable {
 			
 			CustomConfigurationFactory.initializeLogging();
 			LOGGER = Logger.getLogger(RunSimulations.class);
+			
+			NextBelStateCache.useCache();
 			
 			/* set domain file */
 			String domainFile = line.getOptionValue("d");
