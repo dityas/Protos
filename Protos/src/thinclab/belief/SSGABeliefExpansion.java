@@ -155,7 +155,8 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 					DD obsDist = this.f.getObsDist(belief, this.f.getActions().get(act));
 					LOGGER.debug("for " +  this.f.getActions().get(act) +
 							Arrays.toString(this.f.getTiForAction(this.f.getActions().get(act))));
-
+					LOGGER.debug("for " +  this.f.getActions().get(act));
+					
 					int[][] obsConfig = null;
 					
 					if (this.f.getType().contentEquals("POMDP"))
