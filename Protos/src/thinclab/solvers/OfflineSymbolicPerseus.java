@@ -36,9 +36,13 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 	 */
 	
 	private static final long serialVersionUID = 3643319647660633983L;
-	private static final Logger logger = Logger.getLogger(OfflineSymbolicPerseus.class);
+	private static final Logger LOGGER = Logger.getLogger(OfflineSymbolicPerseus.class);
 	
 	private PolicyCache pCache;
+	
+	public int[] bestPolicy = null;
+	public DD[] bestAlphaVectors = null;
+	public double bestBellmanError = Double.MAX_VALUE;
 	
 	// -------------------------------------------------------------------------------------
 	
@@ -51,7 +55,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		/* call super */
 		super(pomdp, be, numRounds, numDpBackups);
 		
-		logger.info("OfflineSymbolicPerseus initialized for " + this.numRounds + " rounds and "
+		LOGGER.info("OfflineSymbolicPerseus initialized for " + this.numRounds + " rounds and "
 				+ this.numDpBackups + " backup iterations");
 	}
 	
@@ -64,7 +68,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		 * Use online PBVI to get solution for given beliefs
 		 */
 
-		logger.debug("Solving for " + beliefs.size() + " belief points.");
+		LOGGER.debug("Solving for " + beliefs.size() + " belief points.");
 
 		
 		this.pCache = new PolicyCache(5);
@@ -76,12 +80,15 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			this.pCache.resetOscillationTracking();
 			this.SymbolicPerseus(100, 0, this.numDpBackups, beliefs.stream().toArray(DD[]::new));
 			
-			this.alphaVectors = this.pCache.getMaxAlphaVecs();
-			this.policy = this.pCache.getMaxPolicy();
+			LOGGER.info("Using alpha vectors from back iteration with bellman error " 
+					+ this.bestBellmanError);
+			this.alphaVectors = this.bestAlphaVectors;
+			this.policy = this.bestPolicy;
+			this.bestBellmanError = Double.POSITIVE_INFINITY;
 		}
 
 		catch (Exception e) {
-			logger.error("While running solver: " + e.getMessage());
+			LOGGER.error("While running solver: " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -267,7 +274,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			bellmanErr = Math.min(10, Math.max(bestImprovement, -worstDecline));
 			float errorVar = this.getErrorVariance((float) bellmanErr);
 			
-			logger.info("STEP: " + stepId 
+			LOGGER.info("STEP: " + stepId 
 					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr)
 					+ " \tUSED/BELIEF POINTS: " + numUsed + "/" + belRegion.length
 					+ " \tA VECTORS: " + alphaVectors.length);
@@ -276,24 +283,33 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			Diagnostics.reportDiagnostics();
 			Diagnostics.reportCacheSizes();
 			
-			if (stepId % 100 < 1) continue;
+			if (bellmanErr < this.bestBellmanError) {
+				this.bestBellmanError = bellmanErr;
+				
+				this.bestAlphaVectors = new DD[this.alphaVectors.length];
+				System.arraycopy(
+						this.alphaVectors, 0, this.bestAlphaVectors, 0, this.bestAlphaVectors.length);
+				
+				this.bestPolicy = new int[this.policy.length];
+				System.arraycopy(this.policy, 0, this.bestPolicy, 0, this.policy.length);
+			}
 			
 			this.pCache.cachePolicy(
 					this.alphaVectors.length, 
 					this.alphaVectors, this.policy);
 			
 			if (this.pCache.isOscillating(String.format(Locale.US, "%.05f", bellmanErr))) {
-				logger.warn("BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
+				LOGGER.warn("BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
 				break;
 			}
 			
 			if (bellmanErr < 0.001) {
-				logger.warn("BELLMAN ERROR LESS THAN 0.01. PROBABLY CONVERGED.");
+				LOGGER.warn("BELLMAN ERROR LESS THAN 0.01. PROBABLY CONVERGED.");
 				break;
 			}
 			
 			if (stepId > 10 && errorVar < 0.00001) {
-				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
+				LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;
 			}
