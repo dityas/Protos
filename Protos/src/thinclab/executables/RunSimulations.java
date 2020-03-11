@@ -195,9 +195,9 @@ public class RunSimulations extends Executable {
 					IPOMDP ipomdp;
 					
 					if (mergeThreshold > 0.0)
-						ipomdp = new IPOMDP(parser, lookAhead, simLength * 2, mergeThreshold);
+						ipomdp = new IPOMDP(parser, lookAhead, simLength, mergeThreshold);
 					
-					else ipomdp = new IPOMDP(parser, lookAhead, simLength * 2);
+					else ipomdp = new IPOMDP(parser, lookAhead, simLength);
 					
 					Random rng = new Random();
 					
