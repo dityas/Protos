@@ -49,7 +49,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	/* number of iterations of SSGA during each expansion */
 	private int nIterations;
 	
-	private static final Logger logger = Logger.getLogger(SSGABeliefExpansion.class);
+	private static final Logger LOGGER = Logger.getLogger(SSGABeliefExpansion.class);
 	
 	// ----------------------------------------------------------------------------------------
 	
@@ -81,7 +81,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		
 		fb = null;
 		
-		logger.debug("SSGA expansion search initialized");
+		LOGGER.debug("SSGA expansion search initialized");
 	}
 	
 	public SSGABeliefExpansion(IPOMDP ip, int iterations) {
@@ -119,7 +119,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		 * Run SSGA expansion for nIterations
 		 */
 		
-		logger.debug("Starting " + this.nIterations 
+		LOGGER.debug("Starting " + this.nIterations 
 				+ " expansions till depth " + this.getHBound() 
 				+ " from " + this.initialBeliefs.size() + " belief points.");
 		
@@ -152,6 +152,8 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 					else act = Global.random.nextInt(this.f.getActions().size());
 						
 					DD obsDist = this.f.getObsDist(belief, this.f.getActions().get(act));
+					LOGGER.debug(this.f.getTiForAction(this.f.getActions().get(act)));
+					LOGGER.debug(this.f.getOiForAction(this.f.getActions().get(act)));
 
 					int[][] obsConfig = null;
 					
@@ -209,7 +211,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 			
 		} /* for iterations */
 	
-		logger.debug("Total beliefs explored are " + this.exploredBeliefs.size());
+		LOGGER.debug("Total beliefs explored are " + this.exploredBeliefs.size());
 	}
 
 	@Override
