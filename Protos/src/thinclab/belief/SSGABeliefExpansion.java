@@ -153,9 +153,6 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 					else act = Global.random.nextInt(this.f.getActions().size());
 						
 					DD obsDist = this.f.getObsDist(belief, this.f.getActions().get(act));
-					LOGGER.debug("for " +  this.f.getActions().get(act) +
-							Arrays.toString(this.f.getTiForAction(this.f.getActions().get(act))));
-					LOGGER.debug("for " +  this.f.getActions().get(act));
 					
 					int[][] obsConfig = null;
 					
