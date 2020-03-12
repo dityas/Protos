@@ -7,6 +7,8 @@
  	(creak creak-left creak-right silence)
 )
 
+most_probable_ai listen 0.99
+
 init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
 
 unnormalized
@@ -271,7 +273,7 @@ discount  0.9
 tolerance 0.001
 
 (frames
-	(frame 0 level 0
+	(frame 0 level 0 def
 		(variables 
 		 	(tiger-location tiger-left tiger-right))
 		
@@ -279,9 +281,6 @@ tolerance 0.001
 		 	(growl growl-left growl-right))
 		
 		init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
-		adjunct a1 (tiger-location (tiger-left (0.75)) (tiger-right (0.25)))
-		adjunct a2 (tiger-location (tiger-left (0.25)) (tiger-right (0.75)))
-//		adjunct a3 (tiger-location (tiger-left (0.99)) (tiger-right (0.01)))
 		
 		action listen
 		    tiger-location (SAMEtiger-location)
@@ -315,7 +314,7 @@ tolerance 0.001
 		endaction
 		
 		// discount factor
-		discount  0.95
+		discount  0.9
 		
 		// tolerance ??
 		tolerance 0.001

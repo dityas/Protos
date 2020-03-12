@@ -1,9 +1,7 @@
 package thinclab.representations.policyrepresentations;
 
 import java.io.Serializable;
-import java.util.*;
 
-import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
 
 public class PolicyNode implements Serializable {
@@ -76,6 +74,10 @@ public class PolicyNode implements Serializable {
 
 	public int getId() {
 		return id;
+	}
+	
+	public int getAlphaId() {
+		return this.alphaId;
 	}
 
 	public PolicyNode(int id, int timeStep, String sBelief, String action) {

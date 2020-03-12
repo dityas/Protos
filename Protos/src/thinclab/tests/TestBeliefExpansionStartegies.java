@@ -9,8 +9,14 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,14 +25,22 @@ import org.junit.jupiter.api.Test;
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.belief.SparseFullBeliefExpansion;
+import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
+import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.representations.policyrepresentations.PolicyGraph;
+import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OnlineIPBVISolver;
+import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -220,6 +234,108 @@ class TestBeliefExpansionStartegies {
 		assertTrue(fb.getBeliefPoints().size() == ipomdp.getInitialBeliefs().size());
 		ssgaB.resetToNewInitialBelief();
 		assertTrue(ssgaB.getBeliefPoints().size() == ipomdp.getInitialBeliefs().size());
+	}
+	
+	private HashMap<String, Float> getActionProbs(IPOMDP ipomdp, DD belief) {
+		
+		HashMap<String, Float> actProbs = new HashMap<String, Float>();
+		
+		for (String mj: ipomdp.toMap(belief).get("M_j").keySet()) {
+			
+			String act = ipomdp.getOptimalActionAtMj(mj);
+			
+			if (!actProbs.containsKey(act))
+				actProbs.put(act, ipomdp.toMap(belief).get("M_j").get(mj));
+			else
+				actProbs.put(act, actProbs.get(act) + ipomdp.toMap(belief).get("M_j").get(mj));
+		}
+		
+		return actProbs;
+	}
+	
+	@Test
+	void testBeliefExpansionForStrictlyOptimalMj() throws Exception {
+		LOGGER.info("Testing belief expansion in strictly optimal MJs");
+		
+		NextBelStateCache.useCache();
+		
+//		String l1DomainFile = 
+//				"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.6S.2O.2F.domain";
+		String l1DomainFile = 
+				"/home/adityas/git/repository/Protos/domains/tiger.L1.enemy.txt";
+		
+		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 5, 10);
+		
+		FullBeliefExpansion FB = new FullBeliefExpansion(ipomdp);
+		
+		FB.expandSingleStep();
+		List<DD> T1 = FB.getBeliefPoints();
+		
+		FB.expandSingleStep();
+		List<DD> T2 = FB.getBeliefPoints();
+		
+		FB.expandSingleStep();
+		List<DD> T3 = FB.getBeliefPoints();
+		
+		List<DD> beliefs = FB.getBeliefPoints();
+		
+		DD t0belief = ipomdp.getCurrentBelief();
+		DD t1belief = ipomdp.beliefUpdate(t0belief, "listen", new String[] {"growl-left", "silence"});
+		DD t2belief = ipomdp.beliefUpdate(t1belief, "listen", new String[] {"growl-left", "silence"});
+		DD t3belief = ipomdp.beliefUpdate(t2belief, "listen", new String[] {"growl-left", "silence"});
+		DD t4belief = ipomdp.beliefUpdate(t3belief, "listen", new String[] {"growl-left", "silence"});
+
+		DD belief = t3belief;
+		
+		LOGGER.debug("===========================");
+		LOGGER.debug("===========================");
+		LOGGER.debug("Mj: " + ipomdp.toMap(belief));
+		LOGGER.debug("Most probable Aj: " + ipomdp.getMostProbableAj(belief));
+		LOGGER.debug("Aj probs are: " + this.getActionProbs(ipomdp, belief));
+		for (String act: ipomdp.getActions()) {
+			LOGGER.debug("For action: " + act);
+			DD Vec = ipomdp.getRewardFunctionForAction(act);
+			double val = OP.dotProduct(Vec, belief, ipomdp.getStateVarIndices());
+			LOGGER.debug("val is " + val);
+			LOGGER.debug("Ri is: " + Vec.toDDTree());
+		}
+		
+		OnlineInteractiveSymbolicPerseus S = 
+				new OnlineInteractiveSymbolicPerseus(ipomdp, FB, 1, 1);
+		
+		DD[] alphaVectors = S.getAlphaVectors();
+		
+		DD[] primedV = new DD[alphaVectors.length];
+		
+		for (int i = 0; i < alphaVectors.length; i++) {
+			primedV[i] = 
+					OP.primeVars(
+							alphaVectors[i], 
+							ipomdp.getNumVars());
+		}
+		
+		double maxAbsVal = 
+				Math.max(
+						OP.maxabs(
+								IPOMDP.concatenateArray(
+										OP.maxAllN(alphaVectors), 
+										OP.minAllN(alphaVectors))), 1e-10);
+		
+		AlphaVector newVector = 
+				AlphaVector.dpBackup2(
+						ipomdp,
+						t3belief,
+						primedV,
+						maxAbsVal,
+						alphaVectors.length);
+		
+		LOGGER.debug("Alpha Vector is: " + newVector.alphaVector.toDDTree());
+		LOGGER.debug("Value is: " + newVector.value);
+	
+//		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
 	}
 
 }

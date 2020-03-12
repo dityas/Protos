@@ -21,6 +21,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.utils.Diagnostics;
 import thinclab.utils.NextBelStateCache;
 
 /*
@@ -186,6 +187,11 @@ public class NextBelState implements Serializable {
 			obsId = nzObsIds[obsPtr];
 			
 			obsProb = nextBelStates[obsPtr][this.obsProbIndex].getVal();
+			if (obsProb > 1.0 || obsProb < 0.0) {
+				LOGGER.error("observation probability cannot be: " + obsProb);
+				System.exit(-1);
+			}
+			
 			alphaValue = obsVals[obsPtr][0];
 			
 			for (int i = 1; i < obsVals[obsPtr].length; i++) {
@@ -216,7 +222,10 @@ public class NextBelState implements Serializable {
 			HashMap<String, NextBelState> cachedEntry = 
 					NextBelStateCache.getCachedEntry(belState);
 			
-			if (cachedEntry != null) return cachedEntry;
+			if (cachedEntry != null) {
+				Diagnostics.CACHE_HITS += 1;
+				return cachedEntry;
+			}
 		}
 		
 		/* else compute and cache */
@@ -444,6 +453,89 @@ public class NextBelState implements Serializable {
 
 			}
 
+		}
+		
+		return nextBelStates;
+	}
+	
+	public static HashMap<String, NextBelState> oneStepNZPrimeBelStatesCached(
+			POMDP pomdp,
+			DD belState,
+			boolean normalize, 
+			double smallestProb) throws ZeroProbabilityObsException, VariableNotFoundException {
+		
+		/* if already computed, recover from cache */
+		if (NextBelStateCache.cachingAllowed()) {
+			HashMap<String, NextBelState> cachedEntry = 
+					NextBelStateCache.getCachedEntry(belState);
+			
+			if (cachedEntry != null) {
+				Diagnostics.CACHE_HITS += 1;
+				return cachedEntry;
+			}
+		}
+		
+		/* else compute and cache */
+		HashMap<String, NextBelState> nzPrimes = 
+				oneStepNZPrimeBelStates(pomdp, belState, normalize, smallestProb);
+		
+		if (NextBelStateCache.cachingAllowed()) {
+			NextBelStateCache.cacheNZPrime(belState, nzPrimes);
+		}
+		
+		return nzPrimes;
+		
+	}
+	
+	public static HashMap<String, NextBelState> oneStepNZPrimeBelStates(
+			POMDP pomdp, DD belState, boolean normalize, double smallestProb) {
+		
+		HashMap<String, NextBelState> nextBelStates = new HashMap<String, NextBelState>();
+		
+		for (String act: pomdp.getActions()) {
+			
+			List<DD[]> nextBelStatesForAct = new ArrayList<DD[]>();
+			
+			List<List<String>> allObs = pomdp.getAllPossibleObservations();
+			DD obsDist = pomdp.getObsDist(belState, act);
+			double[] obsProbs = OP.convert2array(obsDist, pomdp.primeObsIndices);
+			
+			for (int o = 0; o < allObs.size(); o++) {
+				
+				DD nextBelief = null;
+				
+				try {
+					
+					nextBelief = 
+							pomdp.beliefUpdate(
+									belState, 
+									act, 
+									allObs.get(o).stream().toArray(String[]::new));
+				}
+				
+				catch (ZeroProbabilityObsException e) {
+					LOGGER.error("Got a zero probability exception. "
+							+ "Everything will break after this. "
+							+ "And I won't fix it.");
+				}
+				
+				DD[] factoredNextBel = pomdp.factorBelief(nextBelief);
+				factoredNextBel = 
+						OP.primeVarsN(factoredNextBel, pomdp.getNumVars());
+				
+				factoredNextBel = 
+						ArrayUtils.add(
+								factoredNextBel, 
+								DDleaf.myNew(obsProbs[o]));
+				
+				nextBelStatesForAct.add(factoredNextBel);
+			}
+			
+			DD[][] nextBelStatesFactors = nextBelStatesForAct.stream().toArray(DD[][]::new);
+			
+			NextBelState nbState = new NextBelState(pomdp, obsProbs, 1e-8);
+			nbState.nextBelStates = nextBelStatesFactors;
+			nextBelStates.put(act, nbState);
 		}
 		
 		return nextBelStates;

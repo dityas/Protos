@@ -7,6 +7,8 @@
  */
 package thinclab.executables;
 
+import java.util.Random;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -21,6 +23,7 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.conditionalplans.ConditionalPlanTree;
 import thinclab.representations.policyrepresentations.PolicyGraph;
+import thinclab.simulations.MultiAgentSimulation;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.BaseSolver;
 import thinclab.solvers.OfflinePBVISolver;
@@ -133,6 +136,7 @@ public class RunSimulations extends Executable {
 			/* conditional plan and policy graph */
 			if (line.hasOption("p")) {
 				LOGGER.info("Simulating POMDP...");
+				NextBelStateCache.useCache();
 				
 				int rounds = new Integer(line.getOptionValue("r"));
 				int simRounds = new Integer(line.getOptionValue("y"));
@@ -146,9 +150,15 @@ public class RunSimulations extends Executable {
 					POMDP pomdp = new POMDP(domainFile);
 					OfflineSymbolicPerseus solver = 
 							OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
-									pomdp, lookAhead, 2, rounds, backups);
+									pomdp, lookAhead, 30, rounds, backups);
 					
 					solver.solve();
+					
+					PolicyGraph pg = new PolicyGraph(solver);
+					pg.makeGraph();
+					pg.computeEU();
+					pg.writeDotFile(storageDir, "policy_graph" + i);
+					pg.writeJSONFile(storageDir, "policy_graph" + i);
 					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
@@ -163,7 +173,6 @@ public class RunSimulations extends Executable {
 				
 				/* set NextBelState Caching */
 				NextBelStateCache.useCache();
-				NextBelStateCache.setDB("/tmp/nz_cache.db");
 				
 				LOGGER.info("Simulating IPOMDP...");
 				
@@ -186,9 +195,13 @@ public class RunSimulations extends Executable {
 					IPOMDP ipomdp;
 					
 					if (mergeThreshold > 0.0)
-						ipomdp = new IPOMDP(parser, lookAhead, simLength * 2, mergeThreshold);
+						ipomdp = new IPOMDP(parser, lookAhead, simLength, mergeThreshold);
 					
-					else ipomdp = new IPOMDP(parser, lookAhead, simLength * 2);
+					else ipomdp = new IPOMDP(parser, lookAhead, simLength);
+					
+					Random rng = new Random();
+					
+					int frameSample = rng.nextInt(ipomdp.lowerLevelSolutions.size());
 					
 					for (BaseSolver solver : ipomdp.lowerLevelSolutions) {
 						
@@ -198,6 +211,7 @@ public class RunSimulations extends Executable {
 						/* make policy graph */
 						PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
 						pg.makeGraph();
+						pg.computeEU();
 						
 						/* store policy graph solution */
 						pg.writeDotFile(
@@ -222,6 +236,9 @@ public class RunSimulations extends Executable {
 								"plan_frame_" + T.f.frameID + "_" + i);
 					}
 					
+					/* store ref to agent J */
+					BaseSolver jSolver = ipomdp.lowerLevelSolutions.get(frameSample);
+					
 					ipomdp.clearLowerLevelSolutions();
 					
 					/* set context back to IPOMDP */
@@ -240,12 +257,14 @@ public class RunSimulations extends Executable {
 						numRounds = 1;
 					}
 					
+					/* Agent i */
 					OnlineInteractiveSymbolicPerseus solver = 
 							new OnlineInteractiveSymbolicPerseus(
 									ipomdp, 
 									BE, numRounds, backups);
 					
-					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
+					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
+					ss.setMjDotDir(storageDir, i);
 					ss.runSimulation();
 					
 					ss.logToFile(storageDir + "/" + "sim" + i + ".json");

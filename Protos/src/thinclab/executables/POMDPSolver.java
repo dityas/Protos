@@ -21,6 +21,7 @@ import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -51,7 +52,7 @@ public class POMDPSolver extends Executable {
 		/*
 		 * Set class attributes
 		 */
-		
+		NextBelStateCache.useCache();
 		this.domainFile = fileName;
 		this.perseusRounds = rounds;
 		this.numDpBackups = dpBackups;
@@ -92,17 +93,25 @@ public class POMDPSolver extends Executable {
 		
 		PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
 		pg.makeGraph();
+		pg.computeEU();
 		
 		pg.writeDotFile(dirName, "policy_graph");
 		pg.writeJSONFile(dirName, "policy_graph");
 	}
 	
-	public void runSimulation(int iterations) {
+	public void runSimulation(int trials, int iterations, String dirName) {
 		/*
 		 * Runs the simulation for given iterations
 		 */
-		StochasticSimulation ss = new StochasticSimulation(this.solver, iterations);
-		ss.runSimulation();
+		
+		for (int i = 0; i < trials; i++) {
+			
+			StochasticSimulation ss = new StochasticSimulation(this.solver, iterations);
+			ss.runSimulation();
+			
+			ss.logToFile(dirName + "/" + "sim" + i + ".json");
+			ss.writeDotFile(dirName, "sim" + i);
+		}
 	}
 	
 	// -----------------------------------------------------------------------------------------------
@@ -128,20 +137,12 @@ public class POMDPSolver extends Executable {
 		/* SSGA Expansion depth */
 		opt.addOption("s", true, "depth of the SSGA belief search");
 		
-		/* Create conditional plan */
+		/* solution dir */
 		opt.addOption(
-				"p", 
-				"plan", 
+				"o", 
+				"output", 
 				true, 
-				"make conditional plan for 10 time steps and "
-				+ "create dot and JSON files in the given dir");
-		
-		/* create policy graph */
-		opt.addOption(
-				"g", 
-				"graph", 
-				true, 
-				"make policy graph and create dot and JSON files in the given dir");
+				"write all output in this dir");
 		
 		/* simulation switch */
 		opt.addOption(
@@ -149,6 +150,13 @@ public class POMDPSolver extends Executable {
 				"sim",
 				true,
 				"run stochastic simulation for given iterations");
+		
+		/* number of simulations */
+		opt.addOption(
+				"u",
+				"iter",
+				true,
+				"run stochastic simulation these many times");
 		
 		CommandLine line = null;
 		POMDPSolver solver = null;
@@ -180,19 +188,12 @@ public class POMDPSolver extends Executable {
 			solver.solvePOMDP();
 			
 			/* conditional plan and policy graph */
-			if (line.hasOption("p")) {
-				String planDir = line.getOptionValue("p");
+			if (line.hasOption("o")) {
+				
+				String planDir = line.getOptionValue("o");
 				solver.makeConditionalPlan(planDir);
-			}
-			
-			if (line.hasOption("g")) {
-				String planDir = line.getOptionValue("g");
 				solver.makePolicyGraph(planDir);
-			}
-			
-			if (line.hasOption("t")) {
-				int iters = Integer.parseInt(line.getOptionValue("t"));
-				solver.runSimulation(iters);
+				
 			}
 		} 
 		

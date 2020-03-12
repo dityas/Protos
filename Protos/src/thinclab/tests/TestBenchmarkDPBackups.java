@@ -20,18 +20,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import cern.colt.Arrays;
+import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.IBeliefOps;
 import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.Diagnostics;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -56,10 +60,13 @@ class TestBenchmarkDPBackups {
 	@Test
 	void testDPBackups() throws Exception {
 		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		
 		parser.parseDomain();
 		
@@ -140,8 +147,12 @@ class TestBenchmarkDPBackups {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
@@ -228,8 +239,12 @@ class TestBenchmarkDPBackups {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
@@ -294,12 +309,144 @@ class TestBenchmarkDPBackups {
 	}
 	
 	@Test
+	void testDPBackupsCorrectnessWithoutFactoredBelStateForPOMDPs() throws Exception {
+		
+//		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+//				+ "exfil.6S.L0.obs_deception.domain");
+		
+		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
+		
+		FullBeliefExpansion BE = new FullBeliefExpansion(pomdp, 4);
+		BE.expand();
+		
+		List<DD> exploredBeliefs = BE.getBeliefPoints();
+		
+		LOGGER.debug("Found " + exploredBeliefs.size() + " beliefs");
+		
+		OfflineSymbolicPerseus solver = new OfflineSymbolicPerseus(pomdp, BE, 3, 50);
+		
+		DD[] alphaVectors = solver.getAlphaVectors();
+		LOGGER.debug("Making primed V");
+		
+		/* make primed V */
+		DD[] primedV = new DD[alphaVectors.length];
+		
+		for (int i = 0; i < alphaVectors.length; i++) {
+			primedV[i] = 
+					OP.primeVars(
+							alphaVectors[i], 
+							pomdp.getNumVars());
+		}
+		
+		/* compute maxAbsVal */
+		double maxAbsVal = 
+				Math.max(
+						OP.maxabs(
+								POMDP.concatenateArray(
+										OP.maxAllN(alphaVectors), 
+										OP.minAllN(alphaVectors))), 1e-10);
+		
+		DD[][] factoredBeliefs = pomdp.factorBeliefRegion(exploredBeliefs);
+		
+		/* do all those iterations of DP backup and check computation time */
+		for (int i = 0; i < exploredBeliefs.size(); i++) {
+			
+			AlphaVector vec1 = 
+					AlphaVector.dpBackup(
+							pomdp, 
+							factoredBeliefs[i], primedV, maxAbsVal, 
+							alphaVectors.length);
+			
+			AlphaVector vec2 = 
+					AlphaVector.dpBackup(
+							pomdp,
+							exploredBeliefs.get(i), 
+							primedV, maxAbsVal, 
+							alphaVectors.length);
+			
+			double diff = OP.maxAll(OP.abs(OP.sub(vec1.alphaVector, vec2.alphaVector)));
+			LOGGER.debug("Diff is " + diff);
+			assertTrue(diff < 1e-8);
+		}
+	}
+	
+	@Test
+	void testDPBackupsForPOMDPs() throws Exception {
+		
+//		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+//				+ "exfil.6S.L0.obs_deception.domain");
+		
+		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
+		
+		NextBelStateCache.useCache();
+		
+		FullBeliefExpansion BE = new FullBeliefExpansion(pomdp, 3);
+		BE.expand();
+		
+		List<DD> exploredBeliefs = BE.getBeliefPoints();
+		
+		LOGGER.debug("Found " + exploredBeliefs.size() + " beliefs");
+		
+		OfflineSymbolicPerseus solver = new OfflineSymbolicPerseus(pomdp, BE, 3, 50);
+		
+		DD[] alphaVectors = solver.getAlphaVectors();
+		LOGGER.debug("Making primed V");
+		
+		/* make primed V */
+		DD[] primedV = new DD[alphaVectors.length];
+		
+		for (int i = 0; i < alphaVectors.length; i++) {
+			primedV[i] = 
+					OP.primeVars(
+							alphaVectors[i], 
+							pomdp.getNumVars());
+		}
+		
+		/* compute maxAbsVal */
+		double maxAbsVal = 
+				Math.max(
+						OP.maxabs(
+								IPOMDP.concatenateArray(
+										OP.maxAllN(alphaVectors), 
+										OP.minAllN(alphaVectors))), 1e-10);
+		
+		DD[][] factoredBeliefs = pomdp.factorBeliefRegion(exploredBeliefs);
+		
+		List<Double> times = new ArrayList<Double>();
+		
+		/* do all those iterations of DP backup and check computation time */
+		for (int i = 0; i < exploredBeliefs.size(); i++) {
+			
+			long then = System.nanoTime();
+			
+			AlphaVector vec = 
+					AlphaVector.dpBackup(
+							pomdp,
+							exploredBeliefs.get(i), 
+							/*factoredBeliefs[i],*/ primedV, maxAbsVal, 
+							alphaVectors.length);
+			
+			long now = System.nanoTime();
+			times.add((double) (now - then) / 1000000);
+		}
+		
+		LOGGER.debug("DP backup took " + times.stream().mapToDouble(a -> a).average().getAsDouble() 
+				+ " msec");
+		
+		Diagnostics.reportDiagnostics();
+	}
+	
+	@Test
 	void testPreMultFactors() throws Exception {
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		
 		parser.parseDomain();
 		
@@ -348,10 +495,14 @@ class TestBenchmarkDPBackups {
 	@Test
 	void testObsDist() throws Exception {
 		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
+		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		
 		parser.parseDomain();
 		
@@ -396,10 +547,14 @@ class TestBenchmarkDPBackups {
 	@Test
 	void testObsDistCorrectness() throws Exception {
 		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
+		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		
 		parser.parseDomain();
 		
@@ -443,10 +598,14 @@ class TestBenchmarkDPBackups {
 	@Test
 	void testPreMultFactorsCorrectness() throws Exception {
 		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
+		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
 		
 		parser.parseDomain();
 		

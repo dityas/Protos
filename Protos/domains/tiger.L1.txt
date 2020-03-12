@@ -8,6 +8,8 @@
 )
 
 
+most_probable_ai listen 0.99
+
 unnormalized
 
 init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))

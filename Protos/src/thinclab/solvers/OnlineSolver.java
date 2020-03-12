@@ -14,7 +14,6 @@ import org.apache.commons.collections15.buffer.CircularFifoBuffer;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
@@ -46,6 +45,12 @@ public abstract class OnlineSolver extends BaseSolver {
 	int numAlphas = -1;
 	int numBeliefs = -1;
 	int maxRounds = 1;
+	
+	private boolean solverConverged = false;
+	
+	public int[] bestPolicy = null;
+	public DD[] bestAlphaVectors = null;
+	public double bestBellmanError = Double.MAX_VALUE;
 
 	// ------------------------------------------------------------------------------------------
 	
@@ -64,8 +69,11 @@ public abstract class OnlineSolver extends BaseSolver {
 		/*
 		 * Solves for the look ahead starting from current belief
 		 */
+		NextBelStateCache.clearCache();
 		
 		for (int r = 0; r < this.maxRounds; r++) {
+			
+			this.resetConvergenceIndicator();
 		
 			/* reset approx convergence patience counter */
 			this.numSimilar = 0;
@@ -78,24 +86,24 @@ public abstract class OnlineSolver extends BaseSolver {
 					this instanceof OnlineIPBVISolver) {
 
 				((SSGABeliefExpansion) this.expansionStrategy).setRecentPolicy(
-						((OnlineIPBVISolver) this).alphaVectors, 
-						((OnlineIPBVISolver) this).policy);
-				
+						((OnlineIPBVISolver) this).getAlphaVectors(), 
+						((OnlineIPBVISolver) this).getPolicy());
 			}
 			
 			/* Expand the belief space */
 			this.expansionStrategy.expand();
 			List<DD> exploredBeliefs = this.expansionStrategy.getBeliefPoints();
 			
-//			if (NextBelStateCache.cachingAllowed())
-//				NextBelStateCache.populateCache((IPOMDP) this.f, exploredBeliefs);
-			
 			Global.clearHashtables();
 			
 			/* solve for explored beliefs */
 			this.solveForBeliefs(exploredBeliefs);
+			
+			if (this.isConverged() && r > 0) break;
 		}
 		
+		this.expansionStrategy.clearMem();
+		this.bestBellmanError = Double.MAX_VALUE;
 		NextBelStateCache.clearCache();
 	}
 	
@@ -157,6 +165,18 @@ public abstract class OnlineSolver extends BaseSolver {
 		
 		return variance;
 					
+	}
+	
+	public boolean isConverged() {
+		return this.solverConverged;
+	}
+	
+	public void declareConvergence() {
+		this.solverConverged = true;
+	}
+	
+	public void resetConvergenceIndicator() {
+		this.solverConverged = false;
 	}
 	
 	public boolean isNumAlphaConstant(int numAlphas) {
@@ -241,7 +261,7 @@ public abstract class OnlineSolver extends BaseSolver {
 		
 		else {
 			
-			if (this.errorPatience >= 9) {
+			if (this.errorPatience >= 20) {
 				this.errorPatience = 0;
 				this.minError = Float.POSITIVE_INFINITY;
 				

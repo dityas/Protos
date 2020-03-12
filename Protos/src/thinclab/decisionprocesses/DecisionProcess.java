@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import thinclab.belief.BeliefOperations;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -46,13 +48,20 @@ public abstract class DecisionProcess implements Serializable {
 	public abstract List<DD> getInitialBeliefs();
 	public abstract DD getCurrentBelief();
 	public abstract int[] getStateVarIndices();
+	public abstract int[] getStateVarPrimeIndices();
 	public abstract int[] getObsVarIndices();
+	public abstract int[] getObsVarPrimeIndices();
 	public abstract void setGlobals();
 	public abstract String getType();
 	public abstract String getBeliefString(DD belief);
 	public abstract DD getRewardFunctionForAction(String action);
+	public abstract DD[] getTiForAction(String action);
+	public abstract DD[] getOiForAction(String action);
 	public abstract void step(DD belief, String action, String[] obs) throws Exception;
 	public abstract void setTi(String action, DD[] Ti);
+	public abstract int getNumVars();
+	public abstract double evaluatePolicy(
+			DD[] alphaVectors, int[] policy, int trials, int evalDepth, boolean verbose);
 	
 	// ---------------------------------------------------------------------------------
 	
@@ -68,6 +77,23 @@ public abstract class DecisionProcess implements Serializable {
 		String bestAction = f.getActions().get(policy[bestAlphaId]); 
 		
 		return bestAction;
+	}
+	
+	public static String[] configToStrings(int[][] config) {
+		
+		/*
+		 * Converts config arrays to their String value representations
+		 * 
+		 * Mostly used to convert obsConfigs to Observation value arrays
+		 */
+		
+		String[] vals = new String[config[0].length];
+		
+		for (int varI = 0; varI < config[0].length; varI ++) {
+			vals[varI] = Global.valNames[config[0][varI] - 1][config[1][varI] - 1];
+		}
+		
+		return vals;
 	}
 	
 	// --------------------------------------------------------------------------------
@@ -113,10 +139,21 @@ public abstract class DecisionProcess implements Serializable {
 		double val;
 		int bestAlphaId = 0;
 		
+		int[] varIndices = null;
+		
+		if (DP.getType().contentEquals("IPOMDP")) 
+			varIndices = 
+				ArrayUtils.subarray(
+						DP.getStateVarIndices(), 
+						0, ((IPOMDP) DP).thetaVarPosition);
+		
+		else
+			varIndices = DP.getStateVarIndices();
+		
 		double[] values = new double[alphaVectors.length];
 		for (int alphaId = 0; alphaId < alphaVectors.length; alphaId++) {
 			
-			val = OP.dotProduct(belief, alphaVectors[alphaId], DP.getStateVarIndices());
+			val = OP.dotProduct(belief, alphaVectors[alphaId], varIndices);
 			values[alphaId] = val;
 			
 			if (val >= bestVal) {

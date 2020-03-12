@@ -212,6 +212,14 @@ public class OnlineIPBVISolver extends OnlineSolver {
 		return DecisionProcess.getActionFromPolicy(
 				this.f, belief, this.alphaVectors, this.policy);
 	}
+	
+	public DD[] getAlphaVectors() {
+		return this.alphaVectors;
+	}
+	
+	public int[] getPolicy() {
+		return this.policy;
+	}
 
 	// --------------------------------------------------------------------------------------------
 

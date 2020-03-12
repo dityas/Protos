@@ -30,7 +30,6 @@ public class NextBelStateCache {
 	 */
 	
 	private static boolean USE_CACHE = false;
-	private static String USE_DB = "";
 	private static CacheDB DB = null;
 	private static int CACHE_LIMIT = 50;
 	
@@ -130,12 +129,6 @@ public class NextBelStateCache {
 		
 	}
 	
-	public static void setDB(String filename) {
-		LOGGER.info("Setting NextBelStateCache DB to " + filename);
-		NextBelStateCache.USE_DB = filename;
-		NextBelStateCache.DB = new CacheDB(NextBelStateCache.USE_DB);
-	}
-	
 	public static void clearCache() {
 		LOGGER.info("Clearing NextBelState Cache");
 		NextBelStateCache.NEXT_BELSTATE_CACHE.clear();
@@ -148,6 +141,7 @@ public class NextBelStateCache {
 	
 	public static void useCache() {
 		NextBelStateCache.USE_CACHE = true;
+		NextBelStateCache.DB = new CacheDB();
 	}
 	
 	public static boolean cachingAllowed() {

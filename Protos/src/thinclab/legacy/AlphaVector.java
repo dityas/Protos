@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
@@ -16,6 +17,7 @@ public class AlphaVector implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1357799705845487274L;
+	private static final Logger LOGGER = Logger.getLogger(AlphaVector.class);
 
 	public DD alphaVector;
 	public double value;
@@ -507,7 +509,6 @@ public class AlphaVector implements Serializable {
 												IPOMDP.stackArray(
 														ipomdp.obsIVarPrimeIndices, 
 														obsConfig)));
-
 					}
 				}
 				
@@ -680,6 +681,145 @@ public class AlphaVector implements Serializable {
 								pomdp.actions[bestActId].rewFn));
 
 		bestValue = OP.factoredExpectationSparse(belState, newAlpha);
+
+		/* package up to return */
+		AlphaVector returnAlpha = 
+				new AlphaVector(
+						newAlpha, 
+						bestValue, 
+						bestActId, 
+						bestObsStrat);
+		
+		return returnAlpha;
+	}
+	
+	public static AlphaVector dpBackup(
+			POMDP pomdp, DD belState, DD[] primedV, double maxAbsVal, int numAlphas) {
+		/*
+		 * Backup operation for POMDPs
+		 */
+		
+		HashMap<String, NextBelState> nextBelStates = null;
+		
+		double smallestProb;
+		
+		long beforeNZPrimes = System.nanoTime();
+		smallestProb = pomdp.tolerance / maxAbsVal;
+		
+		try {
+			nextBelStates = 
+					NextBelState.oneStepNZPrimeBelStatesCached(pomdp, belState, true, smallestProb);
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("Error while computing nextbelstates for POMDP");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+
+		/* precompute obsVals */
+		for (String action : pomdp.getActions()) {
+			nextBelStates.get(action).getObsVals(primedV);
+		}
+		
+		long afterNZPrimes = System.nanoTime();
+		Diagnostics.NZ_PRIME_TIME.add((afterNZPrimes - beforeNZPrimes));
+		
+		double bestValue = Double.NEGATIVE_INFINITY;
+		double actValue;
+		
+		int bestActId = 0;
+		int[] bestObsStrat = new int[pomdp.nObservations];
+		
+		long beforeR = System.nanoTime();
+
+		for (String action: pomdp.getActions()) {
+			actValue = 0.0;
+			
+			/* compute immediate rewards */
+			actValue = 
+					actValue 
+						+ OP.dotProduct(
+								belState, 
+								pomdp.getRewardFunctionForAction(action),
+								pomdp.getStateVarIndices());
+
+			/* compute observation strategy */
+			nextBelStates.get(action).getObsStrat();
+			actValue = 
+					actValue + pomdp.discFact * nextBelStates.get(action).getSumObsValues();
+
+			if (actValue > bestValue) {
+				bestValue = actValue;
+				bestActId = pomdp.getActions().indexOf(action);
+				bestObsStrat = nextBelStates.get(action).obsStrat;
+			}
+		}
+		
+		long afterR = System.nanoTime();
+		Diagnostics.IMMEDIATE_R_TIME.add((afterR - beforeR));
+		
+		long beforeAVec = System.nanoTime();
+
+		/* construct the alpha vector */
+		DD newAlpha = DD.zero;
+		DD nextValFn = DD.zero;
+		DD obsDd;
+		
+		int[] obsConfig = new int[pomdp.nObsVars];
+		for (int alphaId = 0; alphaId < numAlphas; alphaId++) {
+			
+			if (MySet.find(bestObsStrat, alphaId) >= 0) {
+				
+				obsDd = DD.zero;
+				
+				for (int obsId = 0; obsId < pomdp.nObservations; obsId++) {
+					
+					if (bestObsStrat[obsId] == alphaId) {
+						obsConfig = 
+								POMDP.statedecode(
+										obsId + 1, 
+										pomdp.nObsVars, 
+										pomdp.obsVarsArity);
+
+						obsDd = 
+								OP.add(
+										obsDd, 
+										Config.convert2dd(
+												POMDP.stackArray(
+														pomdp.primeObsIndices, 
+														obsConfig)));
+
+					}
+				}
+				
+				nextValFn = 
+						OP.add(nextValFn, 
+								OP.multN(ArrayUtils.addAll(
+										new DD[] {DDleaf.myNew(pomdp.discFact)}, 
+										new DD[] {obsDd, primedV[alphaId]})));
+			}
+		}
+		
+		newAlpha = 
+				OP.addMultVarElim(
+						ArrayUtils.addAll(
+								pomdp.actions[bestActId].transFn, 
+								ArrayUtils.addAll(pomdp.actions[bestActId].obsFn, nextValFn)), 
+						ArrayUtils.addAll(
+								pomdp.primeVarIndices, 
+								pomdp.primeObsIndices));
+
+		newAlpha = 
+				OP.addN(
+						ArrayUtils.addAll(
+								new DD[] {newAlpha}, 
+								pomdp.actions[bestActId].rewFn));
+		
+		long afterAVec = System.nanoTime();
+		Diagnostics.AVEC_TIME.add((afterAVec - beforeAVec));
+
+		bestValue = OP.dotProduct(belState, newAlpha, pomdp.getStateVarIndices());
 
 		/* package up to return */
 		AlphaVector returnAlpha = 

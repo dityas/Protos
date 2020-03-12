@@ -2498,6 +2498,7 @@ public class OP {
 
 	    // otherwise there is a bug
 	    System.err.println("Bug in sample multinomial");
+	    System.err.println("DD: " + dd.toDDTree());
 	    return config;
 	}
     }

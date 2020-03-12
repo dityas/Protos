@@ -36,17 +36,22 @@ public class CacheDB {
 	/* DB connection object */
 	public Connection storageConn;
 	
-	private String dbDir = null;
-	
 	private static final Logger logger = Logger.getLogger(CacheDB.class);
 	
 	// ----------------------------------------------------------------------------------------
 	
-	public CacheDB(String fileName) {
+//	public CacheDB(String fileName) {
+//		
+//		/* initialize tables */
+//		logger.debug("Initializing local storage for belief tree");
+//		this.dbDir = fileName;
+//		this.initializeLocalStorage();
+//	}
+	
+	public CacheDB() {
 		
 		/* initialize tables */
 		logger.debug("Initializing local storage for belief tree");
-		this.dbDir = fileName;
 		this.initializeLocalStorage();
 	}
 	
