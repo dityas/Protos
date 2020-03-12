@@ -21,6 +21,7 @@ import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.utils.Diagnostics;
 import thinclab.utils.NextBelStateCache;
 
 /*
@@ -186,6 +187,11 @@ public class NextBelState implements Serializable {
 			obsId = nzObsIds[obsPtr];
 			
 			obsProb = nextBelStates[obsPtr][this.obsProbIndex].getVal();
+			if (obsProb > 1.0 || obsProb < 0.0) {
+				LOGGER.error("observation probability cannot be: " + obsProb);
+				System.exit(-1);
+			}
+			
 			alphaValue = obsVals[obsPtr][0];
 			
 			for (int i = 1; i < obsVals[obsPtr].length; i++) {
@@ -216,7 +222,10 @@ public class NextBelState implements Serializable {
 			HashMap<String, NextBelState> cachedEntry = 
 					NextBelStateCache.getCachedEntry(belState);
 			
-			if (cachedEntry != null) return cachedEntry;
+			if (cachedEntry != null) {
+				Diagnostics.CACHE_HITS += 1;
+				return cachedEntry;
+			}
 		}
 		
 		/* else compute and cache */
@@ -460,7 +469,10 @@ public class NextBelState implements Serializable {
 			HashMap<String, NextBelState> cachedEntry = 
 					NextBelStateCache.getCachedEntry(belState);
 			
-			if (cachedEntry != null) return cachedEntry;
+			if (cachedEntry != null) {
+				Diagnostics.CACHE_HITS += 1;
+				return cachedEntry;
+			}
 		}
 		
 		/* else compute and cache */

@@ -45,8 +45,9 @@ class TestStateSimulator {
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
 		LOGGER = Logger.getLogger(TestStateSimulator.class);
-		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
-		this.l0DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
+//		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
+//		this.l0DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
+		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.enemy.txt";
 //		this.l0DomainFile = "/home/adityas/UGA/THINCLab/DomainFiles/final_domains/exfil.5S.L0.domain";
 //		this.l0DomainFile = "/home/adityas/git/repository/Protos/domains/coffee3po.dat";
 	}
@@ -83,28 +84,24 @@ class TestStateSimulator {
 		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 6);
+		IPOMDP ipomdp = new IPOMDP(parser, 4, 10);
+		
+//		SSGABeliefExpansion BE = new SSGABeliefExpansion(ipomdp, 30);
+		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
 		
 		/* init solver */
 		OnlineInteractiveSymbolicPerseus S1 = 
 				new OnlineInteractiveSymbolicPerseus(
 						ipomdp, 
-						new SparseFullBeliefExpansion(ipomdp, 10), 
-						1, 10);
+						BE, 
+						1, 100);
 		
 		/* init L0 */
-		POMDP pomdp = new POMDP(this.l0DomainFile);
-		OfflineSymbolicPerseus S0 = 
-				new OfflineSymbolicPerseus(
-						pomdp, 
-						new SSGABeliefExpansion(pomdp, 10, 10), 
-						10, 100);
-		
-		S0.solve();
-		
-		String jAction = ipomdp.getActions().get(0) + "__" + pomdp.getActions().get(0);
+		BaseSolver S0 = ipomdp.lowerLevelSolutions.get(0); 
+				
+//		String jAction = ipomdp.getActions().get(0) + "__" + pomdp.getActions().get(0);
 //		String jAction = "listen__open-left";
-		MultiAgentSimulation Sim = new MultiAgentSimulation(S1, S0, 6);
+		MultiAgentSimulation Sim = new MultiAgentSimulation(S1, S0, 2);
 //		Sim.envStep(jAction);
 		Sim.runSimulation();
 		LOGGER.info(Sim.getDotString());

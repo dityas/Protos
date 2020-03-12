@@ -20,7 +20,9 @@ import org.apache.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import thinclab.ddinterface.DDTree;
@@ -32,6 +34,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
+import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineSolver;
 
@@ -46,6 +49,9 @@ public class MultiAgentSimulation extends Simulation {
 	 */
 	
 	private OnlineSolver l1Solver;
+	
+	private String mjDotDir = null;
+	private PrintWriter summaryWriter = null;
 	
 	/* some lists for storing run stats */
 	List<String> stateSequence = new ArrayList<String>();
@@ -106,6 +112,21 @@ public class MultiAgentSimulation extends Simulation {
 		this.putPolicyNode(jNode.getId(), jNode);
 	}
 	
+	public void setMjDotDir(String mjDotDir, int id) {
+		this.mjDotDir = mjDotDir;
+		
+		try {
+			this.summaryWriter = 
+					new PrintWriter(
+							new FileOutputStream(
+									this.mjDotDir + "/" + "interaction_summary" + id + ".txt"));
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("Could not make summary file");
+		}
+	}
+	
 	// ----------------------------------------------------------------------------------------
 	
 	@Override
@@ -161,7 +182,15 @@ public class MultiAgentSimulation extends Simulation {
 			
 			/* record the L1 step */
 			this.l1Solver.f.setGlobals();
+			
+			DD[] l1AlphaVecs = ((OnlineIPBVISolver) this.l1Solver).getAlphaVectors();
+			int[] l1Policy = ((OnlineIPBVISolver) this.l1Solver).getPolicy();
+			double l1DiscountedReward = 
+					this.l1Solver.f.evaluatePolicy(
+							l1AlphaVecs, l1Policy, 1000, 5, false);
+			
 			DD currentL1Belief = this.getPolicyNode(currentNode).getBelief();
+			String currentL1BeliefJson = this.l1Solver.f.getBeliefString(currentL1Belief);
 			
 			int[] aVecIndices = 
 					ArrayUtils.subarray(
@@ -181,6 +210,7 @@ public class MultiAgentSimulation extends Simulation {
 			/* record L0 belief */
 			this.solver.f.setGlobals();
 			DD currentL0Belief = this.getPolicyNode(currentNode + 2).getBelief();
+			String currentL0BeliefJson = this.solver.f.getBeliefString(currentL0Belief);
 			
 			this.l0BeliefSequence.add(this.solver.f.getBeliefString(currentL0Belief));
 			LOGGER.info("L0 belief is " 
@@ -194,7 +224,8 @@ public class MultiAgentSimulation extends Simulation {
 			
 			/* record state */
 			DD currentState = this.states.get(this.states.size() - 1).toDD();
-			DD[] currentFactoredState = this.solver.f.factorBelief(currentState);
+//			DD[] currentFactoredState = this.solver.f.factorBelief(currentState);
+			String stateJson = this.solver.f.getBeliefString(currentState);
 			
 			this.stateSequence.add(
 					this.solver.f.getBeliefString(currentState));
@@ -216,25 +247,11 @@ public class MultiAgentSimulation extends Simulation {
 			
 			/* compute L1 reward */
 			this.l1Solver.f.setGlobals();
-			double l1ExpectedReward = 
-					OP.factoredExpectationSparse(
-							this.l1Solver.f.factorBelief(currentL1Belief), 
-							this.l1Solver.f.getRewardFunctionForAction(l1Action));
 			
-			double l1TrueReward = 
-					OP.factoredExpectationSparse(
-							currentFactoredState, 
-							this.l1Solver.f.getRewardFunctionForAction(l1Action));
-			
-			this.l1ExpectedReward.add(l1ExpectedReward);
+			this.l1ExpectedReward.add(l1DiscountedReward);
 			LOGGER.info("Agent i's expected reward is " 
 					+ this.l1ExpectedReward.get(
 							this.l1ExpectedReward.size() - 1));
-			
-			this.l1TrueReward.add(l1TrueReward);
-			LOGGER.info("Agent i's true reward is " 
-					+ this.l1TrueReward.get(
-							this.l1TrueReward.size() - 1));
 			
 			/* log alpha vectors for I */
 			if (this.l1Solver instanceof OnlineIPBVISolver) {
@@ -248,7 +265,7 @@ public class MultiAgentSimulation extends Simulation {
 							OP.dotProduct(
 									currentL1Belief, 
 									aVecs[v], aVecIndices));
-					LOGGER.info("Vector is: " + aVecs[v].toDDTree());
+//					LOGGER.info("Vector is: " + aVecs[v].toDDTree());
 				}
 			}
 			
@@ -274,25 +291,17 @@ public class MultiAgentSimulation extends Simulation {
 			
 			/* compute L0 reward */
 			this.solver.f.setGlobals();
-			double l0ExpectedReward = 
-					OP.factoredExpectationSparse(
-							this.solver.f.factorBelief(currentL0Belief), 
-							this.solver.f.getRewardFunctionForAction(l0Action));
 			
-			double l0TrueReward = 
-					OP.factoredExpectationSparse(
-							this.solver.f.factorBelief(currentState), 
-							this.solver.f.getRewardFunctionForAction(l0Action));
+			DD[] l0AlphaVecs = ((OfflineSymbolicPerseus) this.solver).getAlphaVectors();
+			int[] l0Policy = ((OfflineSymbolicPerseus) this.solver).getPolicy();
+			double l0DiscountedReward = 
+					this.solver.f.evaluatePolicy(
+							l0AlphaVecs, l0Policy, 1000, 5, false);
 			
-			this.l0ExpectedReward.add(l0ExpectedReward);
+			this.l0ExpectedReward.add(l0DiscountedReward);
 			LOGGER.info("Agent j's expected reward is " 
 					+ this.l0ExpectedReward.get(
 							this.l0ExpectedReward.size() - 1));
-			
-			this.l0TrueReward.add(l0TrueReward);
-			LOGGER.info("Agent j's true reward is " 
-					+ this.l0TrueReward.get(
-							this.l0TrueReward.size() - 1));
 			
 			/* step agent J */
 			if (this.solver instanceof OnlineSolver)
@@ -300,6 +309,21 @@ public class MultiAgentSimulation extends Simulation {
 			
 			else
 				solver.f.step(currentL0Belief, l0Action, obs[1]);
+			
+			/* summarize the interaction */
+			if (this.summaryWriter != null) {
+				this.summarizeInteraction(
+						this.states.size(),
+						stateJson,
+						currentL1BeliefJson, 
+						currentL0BeliefJson, 
+						l1Action, 
+						l0Action,
+						obs[0],
+						obs[1],
+						l1DiscountedReward,
+						l0DiscountedReward);
+			}
 			
 			/* make policy node for next belief of agent j */
 			PolicyNode nextJNode = new PolicyNode();
@@ -518,8 +542,7 @@ public class MultiAgentSimulation extends Simulation {
 		 */
 		
 		LOGGER.info("Sim results:");
-		LOGGER.info("I belief, state, J belief, Ai, Aj, Oi, Oj, ERi, Ri, ERj, Rj"
-				+ "cumulative R, True cumulative R");
+		LOGGER.info("I belief, state, J belief, Ai, Aj, Oi, Oj, ERi, ERj");
 		
 		for (int i = 0; i < this.l1BeliefSequence.size(); i++) {
 			LOGGER.info("\"" + this.l1BeliefSequence.get(i).replace("\"", "\\\"") + "\"" + ", "
@@ -530,9 +553,7 @@ public class MultiAgentSimulation extends Simulation {
 					+ "\"" + this.l1ObsSequence.get(i) + "\"" + ", "
 					+ "\"" + this.l0ObsSequence.get(i) + "\"" + ", "
 					+ this.l1ExpectedReward.get(i) + ", "
-					+ this.l1TrueReward.get(i) + ", "
-					+ this.l0ExpectedReward.get(i) + ", "
-					+ this.l0TrueReward.get(i));
+					+ this.l0ExpectedReward.get(i));
 		}
 	}
 	
@@ -596,14 +617,10 @@ public class MultiAgentSimulation extends Simulation {
 				/* write rewards of i */
 				record.add("ERi", 
 						new JsonPrimitive(this.l1ExpectedReward.get(i)));				
-				record.add("Ri", 
-						new JsonPrimitive(this.l1TrueReward.get(i)));
 				
 				/* write rewards of j */
 				record.add("ERj", 
 						new JsonPrimitive(this.l0ExpectedReward.get(i)));				
-				record.add("Rj", 
-						new JsonPrimitive(this.l0TrueReward.get(i)));
 				
 				recordsArray.add(record);
 			}
@@ -612,6 +629,7 @@ public class MultiAgentSimulation extends Simulation {
 			writer.flush();
 			writer.close();
 			
+			if (this.summaryWriter != null) this.summaryWriter.close();
 		}
 		
 		catch (Exception e) {
@@ -619,6 +637,158 @@ public class MultiAgentSimulation extends Simulation {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+	}
+	
+	public void summarizeInteraction(
+			int numStep,
+			String state,
+			String l1belief,
+			String l0belief,
+			String l1Action,
+			String l0Action,
+			String[] l1Obs,
+			String[] l0Obs,
+			double l1Reward,
+			double l0Reward) throws Exception {
+		/*
+		 * Makes a human readable summary of the details of the interaction
+		 */
+		int i = numStep - 1;
+
+		LOGGER.debug("Interaction step " + i + " summary:");
+		this.summaryWriter.println("Interaction step " + i + " summary:");
+		this.summaryWriter.println();
+		
+		LOGGER.debug("State is,");
+		this.summaryWriter.println("State is,");
+		JsonElement stateJsonTree = JsonParser.parseString(state);
+		JsonObject stateJsonObject = stateJsonTree.getAsJsonObject();
+		for (String stateVar: stateJsonObject.keySet())	
+			this.summarizeBelief(stateVar, stateJsonObject.get(stateVar).getAsJsonObject(), false);
+		
+		this.summaryWriter.println();
+
+		LOGGER.debug("Agent i at L1 believes,");
+		this.summaryWriter.println("Agent i at L1 believes,");
+		JsonElement l1JsonTree = JsonParser.parseString(l1belief);
+		JsonObject l1JsonObject = l1JsonTree.getAsJsonObject();
+		for (String l1StateVar: l1JsonObject.keySet()) {
+			
+			if (l1StateVar.contentEquals("M_j"))
+				continue;
+			
+			this.summarizeBelief(l1StateVar, l1JsonObject.get(l1StateVar).getAsJsonObject(), true);
+		}
+		
+		this.summarizeMjBelief(l1JsonObject.get("M_j").getAsJsonArray());
+		this.summaryWriter.println();
+		
+		LOGGER.debug("Agent i takes action " + l1Action + " and observes " + Arrays.toString(l1Obs));
+		this.summaryWriter.println(
+				"Agent i takes action " + l1Action + " and observes " + Arrays.toString(l1Obs));
+		this.summaryWriter.println("i expects average discounted reward " + l1Reward);
+		this.summaryWriter.println();
+		
+		LOGGER.debug("Agent j at L0 believes,");
+		this.summaryWriter.println("Agent j at L0 believes,");
+		JsonElement l0JsonTree = JsonParser.parseString(l0belief);
+		JsonObject l0JsonObject = l0JsonTree.getAsJsonObject();
+		for (String l0StateVar: l0JsonObject.keySet())	
+			this.summarizeBelief(l0StateVar, l0JsonObject.get(l0StateVar).getAsJsonObject(), true);
+		
+		this.summaryWriter.println();
+		
+		LOGGER.debug("Agent j takes action " + l0Action + " and observes " + Arrays.toString(l0Obs));
+		LOGGER.debug("Interaction ends");
+		this.summaryWriter.println(
+				"Agent j takes action " + l0Action + " and observes " + Arrays.toString(l0Obs));
+		this.summaryWriter.println("j expects average discounted reward " + l0Reward);
+		this.summaryWriter.println();
+		this.summaryWriter.println("Interaction ends");
+		this.summaryWriter.println();
+		this.summaryWriter.flush();
+	}
+	
+	private void summarizeBelief(String name, JsonObject jsonBelief, boolean showProbs) {
+		/*
+		 * Makes a summary of the belief over states
+		 */
+		String jsonVal = "";
+		float maxProb = 0;
+		
+		for (String val: jsonBelief.keySet()) {
+			
+			float valProb = jsonBelief.get(val).getAsFloat();
+			
+			if (valProb > maxProb) {
+				jsonVal = val;
+				maxProb = valProb;
+			}
+		}
+		
+		if (showProbs) {
+			LOGGER.debug(name + " is likely " + jsonVal + " with probability " + maxProb);
+			this.summaryWriter.println(name + " is likely " + jsonVal + " with probability " + maxProb);
+		}
+		
+		else {
+			LOGGER.debug(name + " is " + jsonVal);
+			this.summaryWriter.println(name + " is " + jsonVal);
+		}
+	}
+	
+	private void summarizeMjBelief(JsonArray jsonBelief) {
+		/*
+		 * Makes a summary of the belief over states
+		 */
+		JsonObject mostProbableMj = null;
+		float maxProb = 0;
+		
+		for (JsonElement obj: jsonBelief) {
+			
+			float valProb = obj.getAsJsonObject().get("prob").getAsFloat();
+//			LOGGER.debug(valProb + " for " + obj);
+			if (valProb > maxProb) {
+				mostProbableMj = obj.getAsJsonObject();
+				maxProb = valProb;
+			}
+		}
+		
+		String mostProbableAj = mostProbableMj.get("model").getAsJsonObject().get("A_j").getAsString();
+		mostProbableMj = mostProbableMj.get("model").getAsJsonObject().get("belief_j").getAsJsonObject();
+		
+		for (String varName: mostProbableMj.keySet()) {
+			
+			String jsonVal = "";
+			float maxValProb = 0;
+			
+			for (String val: mostProbableMj.get(varName).getAsJsonObject().keySet()) {
+				
+				float valProb = 
+						mostProbableMj.get(varName)
+									  .getAsJsonObject()
+									  .get(val)
+									  .getAsFloat();
+				
+				if (valProb > maxValProb) {
+					jsonVal = val;
+					maxValProb = valProb;
+				}
+			}
+			
+			LOGGER.debug("i believes that j believes " + varName + " is"
+					+ " likely " + jsonVal + " with probability " + maxValProb 
+					+ " with probability " + maxProb);
+			
+			this.summaryWriter.println("i believes that j believes " + varName + " is"
+					+ " likely " + jsonVal + " with probability " + maxValProb 
+					+ " with probability " + maxProb);
+		}
+		
+		LOGGER.debug("This leads agent i to believe that agent j will perfrom action " + mostProbableAj
+				+ " with a probability " + maxProb);
+		this.summaryWriter.println("This leads agent i to believe that agent j will perfrom action " + mostProbableAj
+				+ " with a probability " + maxProb);
 	}
 
 }

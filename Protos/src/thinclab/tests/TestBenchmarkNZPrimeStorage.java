@@ -56,7 +56,7 @@ class TestBenchmarkNZPrimeStorage {
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
 		LOGGER = Logger.getLogger(TestBenchmarkNZPrimeStorage.class);
-		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
+		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
 	}
 
 	@AfterEach
@@ -68,7 +68,7 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
+						this.l1DomainFile);
 		
 		
 		parser.parseDomain();
@@ -136,8 +136,9 @@ class TestBenchmarkNZPrimeStorage {
 	@Test
 	void testPBVComputationForPOMDPs() throws Exception {
 		
-		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
-				+ "exfil.6S.L0.obs_deception.domain");
+//		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+//				+ "exfil.6S.L0.obs_deception.domain");
+		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
 		
 		FullBeliefExpansion BE = new FullBeliefExpansion(pomdp, 3);
 		BE.expand();
@@ -198,13 +199,13 @@ class TestBenchmarkNZPrimeStorage {
 	@Test
 	void testNZPrimeComputation() throws Exception {
 		
-//		IPOMDPParser parser = 
-//				new IPOMDPParser(
-//						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
-		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
@@ -242,7 +243,11 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
@@ -298,10 +303,11 @@ class TestBenchmarkNZPrimeStorage {
 	@Test
 	void testoneStepNextBelStatesForPOMDPs() throws Exception {
 		
-		POMDP pomdp = 
-				new POMDP(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
-						+ "exfil.6S.L0.obs_deception.domain");
+//		POMDP pomdp = 
+//				new POMDP(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+//						+ "exfil.6S.L0.obs_deception.domain");
+		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
 		
 		LOGGER.info("Checking nextBelStates2 computation");
 		
@@ -360,13 +366,13 @@ class TestBenchmarkNZPrimeStorage {
 	@Test
 	void testManualNZPrimeComputation() throws Exception {
 		
-//		IPOMDPParser parser = 
-//				new IPOMDPParser(
-//						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
-		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
@@ -450,13 +456,13 @@ class TestBenchmarkNZPrimeStorage {
 	@Test
 	void testNZPrimeSerialization() throws Exception {
 		
-//		IPOMDPParser parser = 
-//				new IPOMDPParser(
-//						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
-		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
@@ -499,13 +505,13 @@ class TestBenchmarkNZPrimeStorage {
 	@Test
 	void testNZPrimeSerializationRead() throws Exception {
 		
-//		IPOMDPParser parser = 
-//				new IPOMDPParser(
-//						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
-		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
@@ -558,13 +564,13 @@ class TestBenchmarkNZPrimeStorage {
 	@Test
 	void testNZPrimeCacheDBStorage() throws Exception {
 		
-//		IPOMDPParser parser = 
-//				new IPOMDPParser(
-//						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
-		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
@@ -613,13 +619,13 @@ class TestBenchmarkNZPrimeStorage {
 	@Test
 	void testNZPrimeCacheDBClear() throws Exception {
 		
-//		IPOMDPParser parser = 
-//				new IPOMDPParser(
-//						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
-		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
@@ -665,7 +671,11 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/deception.5S.2O.L1.2F.domain");
 		
 		
 		parser.parseDomain();
@@ -675,7 +685,7 @@ class TestBenchmarkNZPrimeStorage {
 		NextBelStateCache.useCache();
 //		NextBelStateCache.setDB("/tmp/nz_cache.db");
 		
-		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 1);
+		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
 		BE.expand();
 		
 		List<DD> beliefs = BE.getBeliefPoints();
@@ -713,8 +723,12 @@ class TestBenchmarkNZPrimeStorage {
 		
 		IPOMDPParser parser = 
 				new IPOMDPParser(
-						"/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.5S.2O.L1.2F.domain");
+						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
+		
+//		IPOMDPParser parser = 
+//				new IPOMDPParser(
+//						"/home/adityas/UGA/THINCLab/DomainFiles/"
+//						+ "final_domains/deception.5S.2O.L1.2F.domain");
 		
 		parser.parseDomain();
 		
@@ -820,8 +834,10 @@ class TestBenchmarkNZPrimeStorage {
 	@Test
 	void testCachedSteppingForPOMDPs() throws Exception {
 		
-		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
-				+ "exfil.6S.L0.obs_deception.domain");
+//		POMDP pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+//				+ "exfil.6S.L0.obs_deception.domain");
+		
+		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
 		
 		FullBeliefExpansion BE = new FullBeliefExpansion(pomdp, 3);
 		BE.expand();

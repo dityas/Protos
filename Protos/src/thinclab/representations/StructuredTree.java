@@ -434,7 +434,10 @@ public class StructuredTree implements Serializable {
 		
 		dotString += "{";
 		
-		JsonElement mjElement = JSONTree.getAsJsonObject().get("M_j");
+		JsonElement mjElement = null;
+		
+		if (JSONTree.getAsJsonObject().has("M_j"))
+			mjElement = JSONTree.getAsJsonObject().get("M_j");
 		
 		if (mjElement != null) {
 			JsonArray mjArray = mjElement.getAsJsonArray();
@@ -540,6 +543,47 @@ public class StructuredTree implements Serializable {
 		return dotString;
 	}
 	
+	public String getDotStringForPersistent() {
+		/*
+		 * Converts to graphviz compatible dot string
+		 */
+		String endl = "\r\n";
+		String dotString = "digraph G{ " + endl;
+		
+		dotString += "graph [ranksep=3];" + endl;
+		
+		/* Make nodes */
+		for (int id : this.getAllNodeIds()) {
+			
+			PolicyNode node = this.getPolicyNode(id);
+			
+			if (node.isStartNode())
+				dotString += " " + id + " [shape=Mrecord, label=\"";
+			else
+				dotString += " " + id + " [shape=record, label=\"";
+			
+			dotString += StructuredTree.jsonBeliefStringToDotNode(
+							node.getsBelief(),
+							node.getActName())
+					+ "\"];" + endl;
+		}
+		
+		dotString += endl;
+		
+		for (int edgeSource: this.getAllEdgeIds()) {
+			
+			for (Entry<List<String>, Integer> ends : this.getEdges(edgeSource).entrySet()) {
+				
+				dotString += " " + edgeSource + " -> " + ends.getValue()
+					+ " [label=\"" + ends.getKey().toString() + "\"]" + endl;
+			}
+		}
+		
+		dotString += "}" + endl;
+		
+		return dotString;
+	}
+	
 	public void writeDotFile(String dirName, String name) {
 		/*
 		 * Creates a graphviz dot file for the specified structure
@@ -548,7 +592,12 @@ public class StructuredTree implements Serializable {
 		try {
 			
 			PrintWriter writer = new PrintWriter(dirName + "/" + name + ".dot");
-			writer.println(this.getDotString());
+			
+			if (this instanceof PersistentStructuredTree)
+				writer.println(this.getDotStringForPersistent());
+			else
+				writer.println(this.getDotString());
+			
 			writer.flush();
 			
 			LOGGER.info("dot file " + dirName + "/" + name + ".dot" + " created");

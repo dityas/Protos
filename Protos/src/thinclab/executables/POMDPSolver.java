@@ -93,6 +93,7 @@ public class POMDPSolver extends Executable {
 		
 		PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
 		pg.makeGraph();
+		pg.computeEU();
 		
 		pg.writeDotFile(dirName, "policy_graph");
 		pg.writeJSONFile(dirName, "policy_graph");

@@ -60,6 +60,8 @@ public abstract class DecisionProcess implements Serializable {
 	public abstract void step(DD belief, String action, String[] obs) throws Exception;
 	public abstract void setTi(String action, DD[] Ti);
 	public abstract int getNumVars();
+	public abstract double evaluatePolicy(
+			DD[] alphaVectors, int[] policy, int trials, int evalDepth, boolean verbose);
 	
 	// ---------------------------------------------------------------------------------
 	
@@ -151,7 +153,7 @@ public abstract class DecisionProcess implements Serializable {
 		double[] values = new double[alphaVectors.length];
 		for (int alphaId = 0; alphaId < alphaVectors.length; alphaId++) {
 			
-			val = OP.dotProduct(belief, alphaVectors[alphaId], DP.getStateVarIndices());
+			val = OP.dotProduct(belief, alphaVectors[alphaId], varIndices);
 			values[alphaId] = val;
 			
 			if (val >= bestVal) {

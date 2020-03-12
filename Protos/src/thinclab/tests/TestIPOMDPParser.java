@@ -26,6 +26,7 @@ import thinclab.utils.CustomConfigurationFactory;
 class TestIPOMDPParser {
 
 	public String testFileName;
+	public String testL1domain;
 	
 	private static Logger LOGGER;
 	
@@ -36,6 +37,9 @@ class TestIPOMDPParser {
 		LOGGER = Logger.getLogger(TestIPOMDPParser.class);
 		
 		this.testFileName = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
+		this.testL1domain = 
+				"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/"
+				+ "deception.single_host/defender.L1.spudd";
 	}
 
 	@AfterEach
@@ -45,7 +49,8 @@ class TestIPOMDPParser {
 	@Test
 	void testParserInit() throws Exception {
 		LOGGER.info("Running testParserInit()");
-		IPOMDPParser parser = new IPOMDPParser(this.testFileName);
+//		IPOMDPParser parser = new IPOMDPParser(this.testFileName);
+		IPOMDPParser parser = new IPOMDPParser(this.testL1domain);
 		parser.parseDomain();
 		assertNotNull(parser);
 		

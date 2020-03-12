@@ -8,6 +8,7 @@
 package thinclab.belief;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	/* number of iterations of SSGA during each expansion */
 	private int nIterations;
 	
-	private static final Logger logger = Logger.getLogger(SSGABeliefExpansion.class);
+	private static final Logger LOGGER = Logger.getLogger(SSGABeliefExpansion.class);
 	
 	// ----------------------------------------------------------------------------------------
 	
@@ -70,7 +71,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		 * Run a full belief expansion for 3 time steps to facilitate proper exploration
 		 */
 		
-		FullBeliefExpansion fb = new FullBeliefExpansion(this.p, 3);
+		FullBeliefExpansion fb = new FullBeliefExpansion(this.p, 1);
 		fb.expand();
 		
 		this.initialBeliefs = new ArrayList<DD>();
@@ -81,7 +82,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		
 		fb = null;
 		
-		logger.debug("SSGA expansion search initialized");
+		LOGGER.debug("SSGA expansion search initialized");
 	}
 	
 	public SSGABeliefExpansion(IPOMDP ip, int iterations) {
@@ -119,7 +120,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		 * Run SSGA expansion for nIterations
 		 */
 		
-		logger.debug("Starting " + this.nIterations 
+		LOGGER.debug("Starting " + this.nIterations 
 				+ " expansions till depth " + this.getHBound() 
 				+ " from " + this.initialBeliefs.size() + " belief points.");
 		
@@ -152,7 +153,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 					else act = Global.random.nextInt(this.f.getActions().size());
 						
 					DD obsDist = this.f.getObsDist(belief, this.f.getActions().get(act));
-
+					
 					int[][] obsConfig = null;
 					
 					if (this.f.getType().contentEquals("POMDP"))
@@ -209,7 +210,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 			
 		} /* for iterations */
 	
-		logger.debug("Total beliefs explored are " + this.exploredBeliefs.size());
+		LOGGER.debug("Total beliefs explored are " + this.exploredBeliefs.size());
 	}
 
 	@Override

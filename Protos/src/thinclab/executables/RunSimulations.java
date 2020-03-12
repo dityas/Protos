@@ -136,6 +136,7 @@ public class RunSimulations extends Executable {
 			/* conditional plan and policy graph */
 			if (line.hasOption("p")) {
 				LOGGER.info("Simulating POMDP...");
+				NextBelStateCache.useCache();
 				
 				int rounds = new Integer(line.getOptionValue("r"));
 				int simRounds = new Integer(line.getOptionValue("y"));
@@ -149,9 +150,15 @@ public class RunSimulations extends Executable {
 					POMDP pomdp = new POMDP(domainFile);
 					OfflineSymbolicPerseus solver = 
 							OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
-									pomdp, lookAhead, 2, rounds, backups);
+									pomdp, lookAhead, 30, rounds, backups);
 					
 					solver.solve();
+					
+					PolicyGraph pg = new PolicyGraph(solver);
+					pg.makeGraph();
+					pg.computeEU();
+					pg.writeDotFile(storageDir, "policy_graph" + i);
+					pg.writeJSONFile(storageDir, "policy_graph" + i);
 					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
@@ -188,9 +195,9 @@ public class RunSimulations extends Executable {
 					IPOMDP ipomdp;
 					
 					if (mergeThreshold > 0.0)
-						ipomdp = new IPOMDP(parser, lookAhead, simLength * 2, mergeThreshold);
+						ipomdp = new IPOMDP(parser, lookAhead, simLength, mergeThreshold);
 					
-					else ipomdp = new IPOMDP(parser, lookAhead, simLength * 2);
+					else ipomdp = new IPOMDP(parser, lookAhead, simLength);
 					
 					Random rng = new Random();
 					
@@ -204,6 +211,7 @@ public class RunSimulations extends Executable {
 						/* make policy graph */
 						PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
 						pg.makeGraph();
+						pg.computeEU();
 						
 						/* store policy graph solution */
 						pg.writeDotFile(
@@ -256,6 +264,7 @@ public class RunSimulations extends Executable {
 									BE, numRounds, backups);
 					
 					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
+					ss.setMjDotDir(storageDir, i);
 					ss.runSimulation();
 					
 					ss.logToFile(storageDir + "/" + "sim" + i + ".json");

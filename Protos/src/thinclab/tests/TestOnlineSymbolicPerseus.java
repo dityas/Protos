@@ -9,14 +9,16 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import cern.colt.Arrays;
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.belief.SparseFullBeliefExpansion;
@@ -28,6 +30,7 @@ import thinclab.legacy.Global;
 import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.simulations.MultiAgentSimulation;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
@@ -42,6 +45,7 @@ class TestOnlineSymbolicPerseus {
 
 	public String l1DomainFile;
 	public String l1multiple;
+	public String l1Enemy;
 	public String tigerDom;
 	
 	private static Logger LOGGER;
@@ -52,6 +56,8 @@ class TestOnlineSymbolicPerseus {
 		this.tigerDom = "/home/adityas/git/repository/FactoredPOMDPsolver/src/tiger.95.SPUDD.txt";
 		this.l1multiple = 
 				"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
+		this.l1Enemy = 
+				"/home/adityas/git/repository/Protos/domains/tiger.L1.enemy.txt";
 //		this.l1multiple = 
 //				"/home/adityas/UGA/THINCLab/DomainFiles/final_domains/cybersec.5S.2O.L1.2F.domain";
 		
@@ -81,36 +87,14 @@ class TestOnlineSymbolicPerseus {
 				new FullBeliefExpansion(
 						tigerL1IPOMDP);
 		
-		OnlineInteractiveSymbolicPerseus solver = 
-				new OnlineInteractiveSymbolicPerseus(
-						tigerL1IPOMDP, 
-						fb, 
-						1, 
-						100);
+		fb.expandSingleStep();
+		List<DD> T1 = fb.getBeliefPoints();
 		
-		StochasticSimulation ss = new StochasticSimulation(solver, 5);
-		ss.runSimulation();
+		fb.expandSingleStep();
+		List<DD> T2 = fb.getBeliefPoints();
 		
-//		LOGGER.debug(ss.getDotString());
-	}
-	
-	@Test
-	void testIPOMDPSymbolicPerseusWithMjCompression() throws ZeroProbabilityObsException {
-
-		
-		LOGGER.info("Running testOnlineSymbolicPerseus()");
-		
-		IPOMDPParser parser = new IPOMDPParser(this.l1multiple);
-		parser.parseDomain();
-		
-		/*
-		 * Initialize IPOMDP
-		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 10, 0.1);
-		
-		SparseFullBeliefExpansion fb = 
-				new SparseFullBeliefExpansion(
-						tigerL1IPOMDP, 2);
+//		fb.expandSingleStep();
+//		List<DD> T3 = fb.getBeliefPoints();
 		
 		OnlineInteractiveSymbolicPerseus solver = 
 				new OnlineInteractiveSymbolicPerseus(
@@ -119,8 +103,10 @@ class TestOnlineSymbolicPerseus {
 						1, 
 						100);
 		
-		StochasticSimulation ss = new StochasticSimulation(solver, 3);
-		ss.runSimulation();
+		solver.solveForBeliefs(T2);
+//		MultiAgentSimulation ss = 
+//				new MultiAgentSimulation(solver, tigerL1IPOMDP.lowerLevelSolutions.get(0), 3);
+//		ss.runSimulation();
 		
 //		LOGGER.debug(ss.getDotString());
 	}
@@ -135,21 +121,26 @@ class TestOnlineSymbolicPerseus {
 		/*
 		 * Initialize IPOMDP
 		 */
-		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 2, 20);
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 20);
 		
-		for (int t = 0; t < 2; t++) {
+//		DD belief = tigerL1IPOMDP.getCurrentBelief();
+//		LOGGER.debug(belief.toDDTree());
 		
+		for (int t = 0; t < 5; t++) {
+			
+			DD belief = tigerL1IPOMDP.getCurrentBelief();
+			
 			HashMap<String, NextBelState> nextStates = 
-					NextBelState.oneStepNZPrimeBelStates(
+					NextBelState.oneStepNZPrimeBelStatesCached(
 							tigerL1IPOMDP, 
-							tigerL1IPOMDP.getCurrentBelief(), 
+							belief, 
 							false, 0.00000001);
 			
-			LOGGER.debug("Starting belief is " + tigerL1IPOMDP.getCurrentBelief().toDDTree());
+			LOGGER.debug("Starting belief is " + belief.toDDTree());
 			LOGGER.debug("All possible combinations are " 
 					+ tigerL1IPOMDP.getAllPossibleObservations());
 			
-			DD obsDist = tigerL1IPOMDP.getObsDist(tigerL1IPOMDP.getCurrentBelief(), "listen");
+			DD obsDist = tigerL1IPOMDP.getObsDist(belief, "listen");
 //			DD obsDist = tigerL1IPOMDP.getObsDist(tigerL1IPOMDP.getCurrentBelief(), "NOP");
 			
 			LOGGER.debug("Obs dist is " + obsDist);
@@ -167,7 +158,7 @@ class TestOnlineSymbolicPerseus {
 					
 					DD nextBelief = 
 							tigerL1IPOMDP.beliefUpdate(
-									tigerL1IPOMDP.getCurrentBelief(), 
+									belief, 
 									action, 
 									tigerL1IPOMDP.obsCombinations.get(s).stream().toArray(String[]::new));
 					
@@ -184,8 +175,10 @@ class TestOnlineSymbolicPerseus {
 						LOGGER.debug("Marginal is: " + marginal);
 						LOGGER.debug("Primed factor is: " + primedFactor);
 						
-						assertTrue(OP.abs(OP.sub(primedFactor, marginal)).getVal() < 1e-8);
+						assertTrue(OP.maxAll(OP.abs(OP.sub(primedFactor, marginal))) < 1e-8);
 					}
+					
+//					belief = nextBelief;
 				}
 			}
 			
@@ -195,7 +188,7 @@ class TestOnlineSymbolicPerseus {
 				obs[varI] = Global.valNames[obsConfig[0][varI] - 1][obsConfig[1][varI] - 1];
 			}
 			
-			tigerL1IPOMDP.step(tigerL1IPOMDP.getCurrentBelief(), "listen", obs);
+			tigerL1IPOMDP.step(belief, "listen", obs);
 //			tigerL1IPOMDP.step(tigerL1IPOMDP.getCurrentBelief(), "NOP", obs);
 		}
 	}
@@ -356,6 +349,39 @@ class TestOnlineSymbolicPerseus {
 		solver.nextStep(
 				solver.getActionAtCurrentBelief(), 
 				tigerL1IPOMDP.obsCombinations.get(2));
+	}
+	
+	@Test
+	void testIPOMDPSymbolicPerseusExpectedValue() throws Exception {
+
+		LOGGER.info("Running testOnlineSymbolicPerseus()");
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1Enemy);
+		parser.parseDomain();
+		
+		/*
+		 * Initialize IPOMDP
+		 */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 10);
+		
+		FullBeliefExpansion fb = 
+				new FullBeliefExpansion(
+						tigerL1IPOMDP);
+		
+		OnlineInteractiveSymbolicPerseus solver = 
+				new OnlineInteractiveSymbolicPerseus(
+						tigerL1IPOMDP, 
+						fb, 
+						1, 
+						100);
+
+		solver.solveCurrentStep();
+		solver.nextStep("listen", Arrays.asList(new String[] {"growl-left", "silence"}));
+		solver.solveCurrentStep();
+		
+		LOGGER.debug("Expected val is: " + 
+				tigerL1IPOMDP.evaluatePolicy(solver.getAlphaVectors(), solver.getPolicy(), 10000, 10, false));
+		LOGGER.debug("Best action is: " + solver.getActionAtCurrentBelief());
 	}
 
 }

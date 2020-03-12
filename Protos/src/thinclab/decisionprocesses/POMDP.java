@@ -23,6 +23,7 @@ import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.Action;
 import thinclab.legacy.AlphaVector;
+import thinclab.legacy.Config;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
@@ -1111,5 +1112,98 @@ public class POMDP extends DecisionProcess implements Serializable {
 	@Override
 	public int getNumVars() {
 		return this.nStateVars + this.nObsVars;
+	}
+	
+	@Override
+	public double evaluatePolicy(
+			DD[] alphaVectors, int[] policy, int trials, int evalDepth, boolean verbose) {
+		/*
+		 * Run given number of trials of evaluation upto the given depth and return
+		 * average reward
+		 * 
+		 * ****** This is completely based on Hoey's evalPolicyStationary function
+		 */
+		
+		List<Double> rewards = new ArrayList<Double>();
+		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
+		
+		try {
+			
+			Global.clearHashtables();
+			
+			for (int n = 0; n < trials; n++) {
+				DD currentBelief = currentBeliefTree.toDD();
+				
+				double totalReward = 0.0;
+				double totalDiscount = 1.0;
+				
+				int[][] stateConfig = OP.sampleMultinomial(currentBelief, this.getStateVarIndices());
+				
+				for (int t = 0; t < evalDepth; t++) {
+					
+					String action = 
+							DecisionProcess.getActionFromPolicy(this, currentBelief, alphaVectors, policy);
+					
+					if (verbose) {
+						LOGGER.debug("Best Action in state " 
+								+ Arrays.toString(POMDP.configToStrings(stateConfig)) + " "
+								+ "is " + action);
+					}
+					
+					/* evaluate action */
+					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					totalReward = totalReward + (totalDiscount * currentReward);
+					totalDiscount = totalDiscount * this.discFact;
+					
+					/* get next state and generate observation */
+					DD[] TforS = OP.restrictN(this.getTiForAction(action), stateConfig);
+					int[][] nextStateConfig = OP.sampleMultinomial(TforS, this.getStateVarPrimeIndices());
+					
+					DD[] obsDist = 
+							OP.restrictN(
+									this.getOiForAction(action), 
+									POMDP.concatenateArray(stateConfig, nextStateConfig));
+					
+					/* sample obs from distribution */
+					int[][] obsConfig = 
+							OP.sampleMultinomial(
+									obsDist, 
+									this.getObsVarPrimeIndices());
+					
+					String[] obs = POMDP.configToStrings(obsConfig);
+					
+					currentBelief = this.beliefUpdate(currentBelief, action, obs);
+					stateConfig = Config.primeVars(nextStateConfig, -this.getNumVars());
+				}
+				
+				if (verbose)
+					LOGGER.debug("Run: " + n + " total reward is " + totalReward);
+				
+				if ((n % 1000) == 0)
+					LOGGER.debug("Finished " + n + " trials,"
+							+ " avg. reward is: " 
+							+ rewards.stream().mapToDouble(r -> r).average().orElse(Double.NaN));
+				
+				rewards.add(totalReward);
+			}
+			
+			Global.clearHashtables();
+		}
+		
+		catch (ZeroProbabilityObsException o) {
+			LOGGER.error("Evaluation crashed: " + o.getMessage());
+			return -1;
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("Evaluation crashed: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+			
+			return -1;
+		}
+		
+		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		return avgReward;
 	}
 }
