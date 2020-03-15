@@ -24,12 +24,14 @@ import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.belieftreerepresentations.DynamicBeliefGraph;
 import thinclab.representations.belieftreerepresentations.DynamicBeliefTree;
+import thinclab.representations.belieftreerepresentations.OptimalDynamicBeliefTree;
 import thinclab.representations.belieftreerepresentations.StrictlyOptimalDynamicBeliefGraph;
 import thinclab.representations.belieftreerepresentations.StaticBeliefTree;
 import thinclab.representations.conditionalplans.ConditionalPlanGraph;
 import thinclab.representations.conditionalplans.ConditionalPlanTree;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.policyrepresentations.PolicyGraph;
+import thinclab.representations.policyrepresentations.PolicyTree;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
@@ -270,7 +272,7 @@ class TestRepresentations {
 		OfflineSymbolicPerseus solver = 
 				new OfflineSymbolicPerseus(
 						pomdp, 
-						new SSGABeliefExpansion(pomdp, 20, 1), 
+						new SSGABeliefExpansion(pomdp, 20, 30), 
 						5, 100);
 		
 		solver.solve();
@@ -278,7 +280,51 @@ class TestRepresentations {
 		PolicyGraph pg = new PolicyGraph(solver);
 		pg.makeGraph();
 		
-		LOGGER.debug("PG is " + pg.getDotStringForPersistent());
+		LOGGER.debug("PG is " + pg.getDotString());
+	}
+	
+	@Test
+	public void testPolicyTree() {
+		
+		POMDP pomdp = 
+				new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/deception.single_host.generic/pt.L0.spudd");
+//		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.noisy.txt");
+		
+		OfflineSymbolicPerseus solver = 
+				new OfflineSymbolicPerseus(
+						pomdp, 
+						new SSGABeliefExpansion(pomdp, 20, 30), 
+						5, 100);
+		
+		solver.solve();
+		
+		PolicyTree T = new PolicyTree(solver, 10);
+		T.buildTree();
+		
+		LOGGER.debug("Tree is: " + T.getDotStringForPersistent());
+	}
+	
+	@Test
+	public void testOptimalDynamicBeliefTree() {
+		
+		POMDP pomdp = 
+				new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/deception.single_host.generic/pt.L0.spudd");
+//		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.noisy.txt");
+		
+		OfflineSymbolicPerseus solver = 
+				new OfflineSymbolicPerseus(
+						pomdp, 
+						new SSGABeliefExpansion(pomdp, 20, 30), 
+						5, 100);
+		
+		solver.solve();
+		
+		OptimalDynamicBeliefTree T = new OptimalDynamicBeliefTree(solver, 5);
+		T.buildTree();
+		
+		LOGGER.debug("Tree is: " + T.getDotStringForPersistent());
 	}
 
 }

@@ -271,6 +271,10 @@ public class StructuredTree implements Serializable {
 		this.idToNodeMap.remove(id);
 	}
 	
+	public void removeEdge(int srcId) {
+		this.edgeMap.remove(srcId);
+	}
+	
 	public boolean containsEdge(int id) {
 		return this.edgeMap.containsKey(id);
 	}
