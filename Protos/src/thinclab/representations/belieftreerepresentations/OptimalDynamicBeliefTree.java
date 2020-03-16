@@ -67,13 +67,14 @@ public class OptimalDynamicBeliefTree extends DynamicBeliefTree {
 		return new ArrayList<Integer>(nodeMap.values());
 	}
 	
+	@Override
 	public void buildTree() {
 		/*
 		 * Builds the full OnlinePolicyTree upto maxT
 		 */
 		
 		List<Integer> prevNodes = new ArrayList<Integer>();
-		prevNodes.addAll(leafNodes);
+		prevNodes.addAll(this.leafNodes);
 		
 		/*
 		 * build lookahead tree for first step
@@ -94,6 +95,7 @@ public class OptimalDynamicBeliefTree extends DynamicBeliefTree {
 		/* strip beliefs from the policy nodes */
 		this.stripBeliefInfo();
 		this.mergeCommonSubTrees();
+		this.padEdges();
 		
 		if (this instanceof PersistentStructuredTree)
 			this.commitChanges();
@@ -120,13 +122,6 @@ public class OptimalDynamicBeliefTree extends DynamicBeliefTree {
 		/*
 		 * Delete the entire subtree rooted at nodeId
 		 */
-		
-		HashMap<List<String>, Integer> children = this.getEdges(nodeId);
-		
-		/* delete children */
-		if (children != null && children.size() > 0) {
-			for (int childId: children.values()) this.deleteSubTree(childId);
-		}
 		
 		this.removeNode(nodeId);
 		this.removeEdgeWithDestId(nodeId);
@@ -161,8 +156,6 @@ public class OptimalDynamicBeliefTree extends DynamicBeliefTree {
 						HashMap<Integer, HashMap<List<String>, Integer>> edges = 
 								this.getEdgesEndingAt(otherNodeId);
 						
-						LOGGER.debug("Pointing " + edges + " to " + nodeId);
-						
 						for (int src: edges.keySet()) {
 							for (List<String> label: edges.get(src).keySet()) {
 								this.updateEdgeDest(src, label, otherNodeId, nodeId);
@@ -185,12 +178,12 @@ public class OptimalDynamicBeliefTree extends DynamicBeliefTree {
 		
 		PolicyNode node = this.getPolicyNode(nodeId);
 		PolicyNode otherNode = this.getPolicyNode(otherNodeId);
-		LOGGER.debug("Checking " + node + " and " + otherNode);
+//		LOGGER.debug("Checking " + node + " and " + otherNode);
 		
 		if (node == null || otherNode == null) return false;
 		
 		if (!node.getActName().contentEquals(otherNode.getActName())) {
-			LOGGER.debug(node.getActName() + " != " + otherNode.getActName());
+//			LOGGER.debug(node.getActName() + " != " + otherNode.getActName());
 			return false;
 		}
 		
@@ -200,7 +193,7 @@ public class OptimalDynamicBeliefTree extends DynamicBeliefTree {
 		if (nodeChildren == null || 
 				otherNodeChildren == null || 
 				nodeChildren.size() != otherNodeChildren.size()) {
-			LOGGER.debug("children are null or unequal");
+//			LOGGER.debug("children are null or unequal");
 			return false;
 		}
 		
@@ -223,12 +216,48 @@ public class OptimalDynamicBeliefTree extends DynamicBeliefTree {
 				childrenEqual.add(childsEqual);
 			}
 			
-			LOGGER.debug("Children equality check " + childrenEqual);
 			return childrenEqual.stream().reduce(true, (a, b) -> a & b);
 		}
 		
-		LOGGER.debug(nodeId + " and " + otherNodeId + " seem to be equal");
-		return true;
+		/* declare nodes are equal if actions are same */
+		if (node.getActName().contentEquals(otherNode.getActName()))
+			return true;
+		
+		else return false;
+	}
+	
+	private void padEdges() {
+		/*
+		 * Make loop vertices to themselves for non optimal action observation edges
+		 * 
+		 * This will not really affect the factor since P(Aj|Mj) = 0 for sub optimal Aj.
+		 * But it is still required for the DD reduction after the factor is created
+		 */
+		
+		for (int nodeId: this.getAllNodeIds()) {
+			
+			HashMap<List<String>, Integer> edges = this.getEdges(nodeId);
+			
+			for (List<String> obs: this.solver.f.getAllPossibleObservations()) {
+				for (String action: this.solver.f.getActions()) {
+					
+					List<String> newEdge = new ArrayList<String>();
+					newEdge.add(action);
+					newEdge.addAll(obs);
+					
+					if (edges.containsKey(newEdge)) continue;
+					
+					else edges.put(newEdge, nodeId);
+				}
+			}
+			
+			this.removeEdge(nodeId);
+			
+			for (List<String> edge: edges.keySet())
+				this.putEdge(nodeId, edge, edges.get(edge));
+		}
+		
+		this.commitChanges();
 	}
 
 }

@@ -130,13 +130,6 @@ public class PolicyTree extends StaticBeliefTree {
 		 * Delete the entire subtree rooted at nodeId
 		 */
 		
-		HashMap<List<String>, Integer> children = this.getEdges(nodeId);
-		
-		/* delete children */
-		if (children != null && children.size() > 0) {
-			for (int childId: children.values()) this.deleteSubTree(childId);
-		}
-		
 		this.removeNode(nodeId);
 		this.removeEdgeWithDestId(nodeId);
 		this.removeEdge(nodeId);
@@ -150,7 +143,6 @@ public class PolicyTree extends StaticBeliefTree {
 		for (int t = 0; t < this.maxT + 1; t++) {
 			
 			ArrayList<Integer> nodes = new ArrayList<Integer>(this.getAllNodesAtHorizon(t));
-			LOGGER.debug("Looking for common subtrees in " + nodes);
 			
 			if (nodes.size() < 2) continue;
 			
@@ -169,8 +161,6 @@ public class PolicyTree extends StaticBeliefTree {
 						
 						HashMap<Integer, HashMap<List<String>, Integer>> edges = 
 								this.getEdgesEndingAt(otherNodeId);
-						
-						LOGGER.debug("Pointing " + edges + " to " + nodeId);
 						
 						for (int src: edges.keySet()) {
 							for (List<String> label: edges.get(src).keySet()) {
@@ -194,12 +184,10 @@ public class PolicyTree extends StaticBeliefTree {
 		
 		PolicyNode node = this.getPolicyNode(nodeId);
 		PolicyNode otherNode = this.getPolicyNode(otherNodeId);
-		LOGGER.debug("Checking " + node + " and " + otherNode);
 		
 		if (node == null || otherNode == null) return false;
 		
 		if (!node.getActName().contentEquals(otherNode.getActName())) {
-			LOGGER.debug(node.getActName() + " != " + otherNode.getActName());
 			return false;
 		}
 		
@@ -220,7 +208,6 @@ public class PolicyTree extends StaticBeliefTree {
 			for (List<String> edge: nodeChildren.keySet()) {
 				
 				if (!otherNodeChildren.containsKey(edge)) {
-					LOGGER.debug("Children maps don't match");
 					return false;
 				}
 				
@@ -232,12 +219,14 @@ public class PolicyTree extends StaticBeliefTree {
 				childrenEqual.add(childsEqual);
 			}
 			
-			LOGGER.debug("Children equality check " + childrenEqual);
 			return childrenEqual.stream().reduce(true, (a, b) -> a & b);
 		}
 		
-		LOGGER.debug(nodeId + " and " + otherNodeId + " seem to be equal");
-		return true;
+		/* declare nodes are equal if actions are same */
+		if (node.getActName().contentEquals(otherNode.getActName()))
+			return true;
+		
+		else return false;
 	}
 	
 	// -----------------------------------------------------------------------------------------------
