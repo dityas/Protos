@@ -28,6 +28,12 @@ public class PolicyTree extends StaticBeliefTree {
 	 * Constructs a policy tree for a fixed horizon 
 	 */
 	
+	/* policy vars */
+	public DD[] alphas;
+	public int[] actions;
+	
+	public double MEU = Double.NEGATIVE_INFINITY;
+	
 	private static final long serialVersionUID = -3134912845660452376L;
 	private static final Logger LOGGER = Logger.getLogger(PolicyTree.class);
 	
@@ -36,9 +42,26 @@ public class PolicyTree extends StaticBeliefTree {
 	public PolicyTree(OfflinePBVISolver solver, int maxH) {
 		
 		super(solver, maxH);
+		
+		/* set policy attributes */
+		this.alphas = solver.getAlphaVectors();
+		this.actions = solver.getPolicy();
 	}
 	
 	// -------------------------------------------------------------------------------------
+	
+	public void computeEU() {
+		/*
+		 * Computes the expected utility for the graph representing the policy
+		 */
+		this.MEU = 
+				this.solver.f.evaluatePolicy(
+						this.alphas, 
+						this.actions, 
+						10000, 
+						((OfflinePBVISolver) this.solver).expansionStrategy.getHBound(), 
+						false);
+	}
 	
 	@Override
 	public List<Integer> getNextPolicyNodes(List<Integer> previousNodes, int T) {
