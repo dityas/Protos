@@ -215,11 +215,11 @@ public class RunSimulations extends Executable {
 						/* store policy graph solution */
 						T.writeDotFile(
 								storageDir, 
-								"policy_graph_frame_" + T.solver.f.frameID + "_" + i);
+								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
 						
 						T.writeJSONFile(
 								storageDir, 
-								"policy_graph_frame_" + T.solver.f.frameID + "_" + i);
+								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
 					}
 					
 					/* store ref to agent J */

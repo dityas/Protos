@@ -14,6 +14,12 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+
 import thinclab.legacy.DD;
 import thinclab.representations.belieftreerepresentations.StaticBeliefTree;
 import thinclab.solvers.OfflinePBVISolver;
@@ -253,6 +259,23 @@ public class PolicyTree extends StaticBeliefTree {
 	}
 	
 	// -----------------------------------------------------------------------------------------------
+	
+	@Override
+	public String getJSONString() {
+		
+		Gson gsonHandler = 
+				new GsonBuilder()
+					.disableHtmlEscaping()
+					.setPrettyPrinting()
+					.create();
+		
+		String jsonString = super.getJSONString();
+		
+		JsonObject policyGraphJSON = JsonParser.parseString(jsonString).getAsJsonObject();
+		policyGraphJSON.add("discounted reward", new JsonPrimitive(this.MEU));
+		
+		return gsonHandler.toJson(policyGraphJSON);
+	}
 	
 	public String getDotStringForPersistent() {
 		/*
