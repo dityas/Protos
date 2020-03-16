@@ -277,6 +277,10 @@ public class PolicyTree extends StaticBeliefTree {
 					+ "\"];" + endl;
 		}
 		
+		/* write MEU */
+		dotString += -1 
+				+ " [shape=record, label=\"{Avg. discounted reward=" + this.MEU + "}\"];" + endl;
+		
 		dotString += endl;
 		
 		for (int edgeSource: this.getAllEdgeIds()) {
