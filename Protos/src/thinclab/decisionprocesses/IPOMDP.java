@@ -1690,8 +1690,11 @@ public class IPOMDP extends POMDP {
 				
 				int[][] fullStateConfig = 
 						OP.sampleMultinomial(
-								OP.multN(new DD[] {
-										currentBelief, this.currentAjGivenMj, this.currentThetajGivenMj}), 
+								OP.multN(
+										new DD[] {
+										currentBelief, 
+										this.currentAjGivenMj, 
+										this.currentThetajGivenMj}), 
 								this.getStateVarIndices());
 				
 				int[][] frameConfig = 
@@ -1713,7 +1716,8 @@ public class IPOMDP extends POMDP {
 								{stateConfig[1][this.MjVarPosition]}};
 					
 					String action = 
-							DecisionProcess.getActionFromPolicy(this, currentBelief, alphaVectors, policy);
+							DecisionProcess.getActionFromPolicy(
+									this, currentBelief, alphaVectors, policy);
 					
 					if (verbose) {
 						LOGGER.debug("Best Action in state " 

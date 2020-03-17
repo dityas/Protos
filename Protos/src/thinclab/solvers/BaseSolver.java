@@ -27,5 +27,7 @@ public abstract class BaseSolver implements Serializable {
 	
 	/* return the status of the solver */
 	public abstract boolean hasSolution();
-
+	
+	/* evaluate policy */
+	public abstract double evaluatePolicy(int trials, int evalDepth, boolean verbose);
 }

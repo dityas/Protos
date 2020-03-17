@@ -19,6 +19,7 @@ import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.POMDP;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
@@ -28,7 +29,7 @@ import thinclab.utils.NextBelStateCache;
  * @author adityas
  *
  */
-public class OfflinePBVISolver extends OfflineSolver {
+public class OfflinePBVISolver extends AlphaVectorPolicySolver {
 	
 	/*
 	 * Offline PBVI solver for POMDPs
@@ -42,16 +43,6 @@ public class OfflinePBVISolver extends OfflineSolver {
 	double bestImprovement;
 	double worstDecline;
 
-	/* Variables to hold AlphaVectors */
-	public DD[] alphaVectors;
-	AlphaVector[] newAlphaVectors;
-	int numNewAlphaVectors;
-
-	/* policy holders */
-	int[] policy;
-	double[] policyvalue;
-	boolean[] uniquePolicy;
-	
 	/* maintain a reference to the POMDP */
 	POMDP p;
 	
@@ -59,7 +50,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 	int numRounds;
 	int numDpBackups;
 	
-	private static final Logger logger = Logger.getLogger(OfflinePBVISolver.class);
+	private static final Logger LOGGER = Logger.getLogger(OfflinePBVISolver.class);
 	
 	// -----------------------------------------------------------------------------------
 	
@@ -109,7 +100,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 		
 		/* set initial policy */
 		if (this.expansionStrategy instanceof SSGABeliefExpansion) {
-			logger.debug("Setting default policy for belief expansion");
+			LOGGER.debug("Setting default policy for belief expansion");
 			((SSGABeliefExpansion) this.expansionStrategy).setRecentPolicy(
 					this.alphaVectors, this.policy);
 		}
@@ -124,7 +115,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 			this.solveForBeliefs(beliefs);
 			
 			if (this.expansionStrategy instanceof SSGABeliefExpansion) {
-				logger.debug("Updating expansion policy");
+				LOGGER.debug("Updating expansion policy");
 				((SSGABeliefExpansion) this.expansionStrategy).setRecentPolicy(
 						this.alphaVectors, this.policy);
 			}
@@ -141,7 +132,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 		 * Use online PBVI to get solution for given beliefs
 		 */
 
-		logger.debug("Solving for " + beliefs.size() + " belief points.");
+		LOGGER.debug("Solving for " + beliefs.size() + " belief points.");
 
 		DD[][] factoredBeliefRegion = this.p.factorBeliefRegion(beliefs);
 		
@@ -151,7 +142,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 		}
 
 		catch (Exception e) {
-			logger.error("While running solver: " + e.getMessage());
+			LOGGER.error("While running solver: " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -295,7 +286,7 @@ public class OfflinePBVISolver extends OfflineSolver {
 			bellmanErr = Math.min(10, Math.max(bestImprovement, -worstDecline));
 			float errorVar = this.getErrorVariance((float) bellmanErr);
 			
-			logger.info("STEP: " + stepId 
+			LOGGER.info("STEP: " + stepId 
 					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr)
 					+ " \tUSED/BELIEF POINTS: " + numUsed + "/" + belRegion.length
 					+ " \tA VECTORS: " + alphaVectors.length);
@@ -303,12 +294,12 @@ public class OfflinePBVISolver extends OfflineSolver {
 			if (stepId % 100 < 1) continue;
 			
 			if (bellmanErr < 0.01) {
-				logger.warn("BELLMAN ERROR LESS THAN 0.01. PROBABLY CONVERGED.");
+				LOGGER.warn("BELLMAN ERROR LESS THAN 0.01. PROBABLY CONVERGED.");
 				break;
 			}
 			
 			if (stepId > 20 && errorVar < 0.0001) {
-				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
+				LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;
 			}
@@ -340,13 +331,17 @@ public class OfflinePBVISolver extends OfflineSolver {
 	/*
 	 * Getters for policy variables
 	 */
-	
-	public DD[] getAlphaVectors() {
-		return this.alphaVectors;
+
+	@Override
+	public String getActionAtCurrentBelief() {
+		LOGGER.error("This method is not applicable for this type of solver");
+		return null;
 	}
-	
-	public int[] getPolicy() {
-		return this.policy;
+
+	@Override
+	public void nextStep(String action, List<String> obs) throws ZeroProbabilityObsException {
+		// TODO Auto-generated method stub
+		LOGGER.warn("Calling nextStep on offline solver, nothing will happen");
 	}
 
 }

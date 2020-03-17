@@ -192,10 +192,10 @@ public class MultiAgentSimulation extends Simulation {
 			DD currentL1Belief = this.getPolicyNode(currentNode).getBelief();
 			String currentL1BeliefJson = this.l1Solver.f.getBeliefString(currentL1Belief);
 			
-			int[] aVecIndices = 
-					ArrayUtils.subarray(
-							this.l1Solver.f.getStateVarIndices(), 
-							0, ((IPOMDP) this.l1Solver.f).thetaVarPosition);
+//			int[] aVecIndices = 
+//					ArrayUtils.subarray(
+//							this.l1Solver.f.getStateVarIndices(), 
+//							0, ((IPOMDP) this.l1Solver.f).thetaVarPosition);
 			
 			this.l1BeliefSequence.add(this.l1Solver.f.getBeliefString(currentL1Belief));
 			LOGGER.info("At L1 belief " 
@@ -254,20 +254,20 @@ public class MultiAgentSimulation extends Simulation {
 							this.l1ExpectedReward.size() - 1));
 			
 			/* log alpha vectors for I */
-			if (this.l1Solver instanceof OnlineIPBVISolver) {
-				DD[] aVecs = ((OnlineIPBVISolver) this.l1Solver).alphaVectors;
-				int[] policy = ((OnlineIPBVISolver) this.l1Solver).policy;
-				
-				for (int v = 0; v < aVecs.length; v++) {
-					LOGGER.info("For A vec. " + v + " representing action " 
-							+ this.l1Solver.f.getActions().get(policy[v]));
-					LOGGER.info("Reward is: " + 
-							OP.dotProduct(
-									currentL1Belief, 
-									aVecs[v], aVecIndices));
-//					LOGGER.info("Vector is: " + aVecs[v].toDDTree());
-				}
-			}
+//			if (this.l1Solver instanceof OnlineIPBVISolver) {
+//				DD[] aVecs = ((OnlineIPBVISolver) this.l1Solver).alphaVectors;
+//				int[] policy = ((OnlineIPBVISolver) this.l1Solver).policy;
+//				
+//				for (int v = 0; v < aVecs.length; v++) {
+//					LOGGER.info("For A vec. " + v + " representing action " 
+//							+ this.l1Solver.f.getActions().get(policy[v]));
+//					LOGGER.info("Reward is: " + 
+//							OP.dotProduct(
+//									currentL1Belief, 
+//									aVecs[v], aVecIndices));
+////					LOGGER.info("Vector is: " + aVecs[v].toDDTree());
+//				}
+//			}
 			
 			/* step agent I */
 			if (this.l1Solver instanceof OnlineSolver)
