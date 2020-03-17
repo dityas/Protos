@@ -15,7 +15,7 @@ import org.apache.commons.cli.Options;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.representations.conditionalplans.ConditionalPlanTree;
-import thinclab.representations.policyrepresentations.PolicyGraph;
+import thinclab.representations.policyrepresentations.PolicyTree;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSolver;
@@ -91,12 +91,12 @@ public class POMDPSolver extends Executable {
 		 * Makes the policy graph from the alpha vector policy
 		 */
 		
-		PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
-		pg.makeGraph();
-		pg.computeEU();
+		PolicyTree T = new PolicyTree((OfflinePBVISolver) solver, 10);
+		T.buildTree();
+		T.computeEU();
 		
-		pg.writeDotFile(dirName, "policy_graph");
-		pg.writeJSONFile(dirName, "policy_graph");
+		T.writeDotFile(dirName, "policy_graph");
+		T.writeJSONFile(dirName, "policy_graph");
 	}
 	
 	public void runSimulation(int trials, int iterations, String dirName) {

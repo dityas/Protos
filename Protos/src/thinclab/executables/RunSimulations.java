@@ -21,8 +21,7 @@ import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
-import thinclab.representations.conditionalplans.ConditionalPlanTree;
-import thinclab.representations.policyrepresentations.PolicyGraph;
+import thinclab.representations.policyrepresentations.PolicyTree;
 import thinclab.simulations.MultiAgentSimulation;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.BaseSolver;
@@ -154,11 +153,11 @@ public class RunSimulations extends Executable {
 					
 					solver.solve();
 					
-					PolicyGraph pg = new PolicyGraph(solver);
-					pg.makeGraph();
-					pg.computeEU();
-					pg.writeDotFile(storageDir, "policy_graph" + i);
-					pg.writeJSONFile(storageDir, "policy_graph" + i);
+					PolicyTree T = new PolicyTree(solver, simLength);
+					T.buildTree();
+					T.computeEU();
+					T.writeDotFile(storageDir, "policy_tree" + i);
+					T.writeJSONFile(storageDir, "policy_tree" + i);
 					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
@@ -209,31 +208,18 @@ public class RunSimulations extends Executable {
 						solver.f.setGlobals();
 						
 						/* make policy graph */
-						PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
-						pg.makeGraph();
-						pg.computeEU();
+						PolicyTree T = new PolicyTree((OfflinePBVISolver) solver, simLength);
+						T.buildTree();
+						T.computeEU();
 						
 						/* store policy graph solution */
-						pg.writeDotFile(
-								storageDir, 
-								"policy_graph_frame_" + pg.solver.f.frameID + "_" + i);
-						
-						pg.writeJSONFile(
-								storageDir, 
-								"policy_graph_frame_" + pg.solver.f.frameID + "_" + i);
-						
-						/* make conditional plan */
-						ConditionalPlanTree T = new ConditionalPlanTree(solver, simLength);
-						T.buildTree();
-						
-						/* Store conditional Plan */
 						T.writeDotFile(
 								storageDir, 
-								"plan_frame_" + T.f.frameID + "_" + i);
+								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
 						
 						T.writeJSONFile(
 								storageDir, 
-								"plan_frame_" + T.f.frameID + "_" + i);
+								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
 					}
 					
 					/* store ref to agent J */

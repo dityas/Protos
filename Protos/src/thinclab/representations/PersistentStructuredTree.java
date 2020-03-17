@@ -25,6 +25,7 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 
 	private MjDB DB = new MjDB();
 	
+	@SuppressWarnings("unused")
 	private static final Logger LOGGER = Logger.getLogger(PersistentStructuredTree.class);
 	private static final long serialVersionUID = 3354440539923303241L;
 	
@@ -65,9 +66,30 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 		return this.DB.getAllRoots();
 	}
 	
+	public List<Integer> getAllNodesAtHorizon(int horizon) {
+		return this.DB.getAllNodesAtHorizon(horizon);
+	}
+	
+	public HashMap<Integer, HashMap<List<String>, Integer>> getEdgesEndingAt(int dest_id) {
+		return this.DB.getEdgesEndingAt(dest_id);
+	}
+	
+	public void updateEdgeDest(int src_id, List<String> label, int old_dest_id, int new_dest_id) {
+		this.DB.updateEdgeDest(src_id, label, old_dest_id, new_dest_id);
+	}
+	
 	@Override
 	public void removeNode(int id) {
 		this.DB.removeNode(id);
+	}
+	
+	@Override
+	public void removeEdge(int srcTd) {
+		this.DB.removeEdge(srcTd);
+	}
+	
+	public void removeEdgeWithDestId(int destId) {
+		this.DB.removeEdgeWithDestId(destId);
 	}
 	
 	@Override

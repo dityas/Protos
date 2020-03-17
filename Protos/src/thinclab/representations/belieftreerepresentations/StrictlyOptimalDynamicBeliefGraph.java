@@ -75,12 +75,6 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 		if (this instanceof PersistentStructuredTree)
 			this.commitChanges();
 		
-//		/* clear out unique nodes map to save mem */
-//		for (int nodeId : new ArrayList<Integer>(this.getAllNodeIds())) {
-//			if (!this.leafNodes.contains(nodeId)) {
-//				this.nodeToIdMap.remove(this.getPolicyNode(nodeId).getBelief());
-//			}
-//		}
 	}
 	
 	public void extendToPolicyGraph(int nodeId) {

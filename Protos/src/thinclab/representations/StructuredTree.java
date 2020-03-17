@@ -271,6 +271,10 @@ public class StructuredTree implements Serializable {
 		this.idToNodeMap.remove(id);
 	}
 	
+	public void removeEdge(int srcId) {
+		this.edgeMap.remove(srcId);
+	}
+	
 	public boolean containsEdge(int id) {
 		return this.edgeMap.containsKey(id);
 	}
@@ -385,24 +389,26 @@ public class StructuredTree implements Serializable {
 				new HashMap<Integer, HashMap<String, String>>();
 		
 		/* populate nodes */
-		for (Entry<Integer, PolicyNode> entry : this.idToNodeMap.entrySet()) {
+		for (int nodeId : this.getAllNodeIds()) {
+			
+			PolicyNode node = this.getPolicyNode(nodeId);
 			
 			/* add optimal action and beliefs at node */
-			nodeJSONMap.put(entry.getKey(), new HashMap<String, String>());
-			nodeJSONMap.get(entry.getKey()).put("action", entry.getValue().getActName());
-			nodeJSONMap.get(entry.getKey()).put("belief", entry.getValue().getsBelief());
+			nodeJSONMap.put(nodeId, new HashMap<String, String>());
+			nodeJSONMap.get(nodeId).put("action", node.getActName());
+			nodeJSONMap.get(nodeId).put("belief", node.getsBelief());
 			
 			/* mark start node */
-			if (entry.getValue().isStartNode())
-				nodeJSONMap.get(entry.getKey()).put("start", "true");
+			if (node.isStartNode())
+				nodeJSONMap.get(nodeId).put("start", "true");
 		}
 		
 		/* populate edges */
-		for (int fromNode : this.edgeMap.keySet()) {
+		for (int fromNode : this.getAllEdgeIds()) {
 			
 			edgesJSONMap.put(fromNode, new HashMap<String, String>());
 			
-			for (Entry<List<String>, Integer> entry : this.edgeMap.get(fromNode).entrySet())
+			for (Entry<List<String>, Integer> entry : this.getEdges(fromNode).entrySet())
 				edgesJSONMap.get(fromNode).put(
 						entry.getKey().toString(), 
 						entry.getValue().toString());
