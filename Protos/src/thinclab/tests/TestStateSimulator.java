@@ -28,6 +28,7 @@ import thinclab.solvers.BaseSolver;
 import thinclab.solvers.DefaultActionPolicySolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
+import thinclab.solvers.RandomActionPolicySolver;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.NextBelStateCache;
 
@@ -132,19 +133,42 @@ class TestStateSimulator {
 		
 		/* init L0 */
 		BaseSolver S0 = ipomdp.lowerLevelSolutions.get(0); 
-				
-//		String jAction = ipomdp.getActions().get(0) + "__" + pomdp.getActions().get(0);
-//		String jAction = "listen__open-left";
+
 		MultiAgentSimulation Sim = new MultiAgentSimulation(DS, S0, 5);
-//		Sim.envStep(jAction);
+
 		Sim.runSimulation();
 		LOGGER.info(Sim.getDotString());
 		LOGGER.info(Sim.getJSONString());
 		
 		Sim.logToFile("/tmp/res.json");
+	}
+	
+	@Test
+	void testMultiAgentStateSimWithRandomActionSolver() throws Exception {
 		
-//		LOGGER.info(SS.getJSONString());
-//		LOGGER.info(SS.getDotString());
+		/* init L1 */
+		NextBelStateCache.useCache();
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 4, 10);
+		
+//		SSGABeliefExpansion BE = new SSGABeliefExpansion(ipomdp, 30);
+		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
+		
+		/* init solver */
+		RandomActionPolicySolver RS = new RandomActionPolicySolver(ipomdp);
+		
+		/* init L0 */
+		BaseSolver S0 = ipomdp.lowerLevelSolutions.get(0); 
+
+		MultiAgentSimulation Sim = new MultiAgentSimulation(RS, S0, 5);
+
+		Sim.runSimulation();
+		LOGGER.info(Sim.getDotString());
+		LOGGER.info(Sim.getJSONString());
+		
+		Sim.logToFile("/tmp/res.json");
 	}
 
 }
