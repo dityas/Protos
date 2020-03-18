@@ -72,8 +72,6 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 		
 		this.pCache = new PolicyCache(5);
-		
-//		DD[][] factoredBeliefRegion = this.p.factorBeliefRegion(beliefs);
 
 		/* try running IPBVI */
 		try {

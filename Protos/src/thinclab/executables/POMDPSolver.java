@@ -17,8 +17,8 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.representations.conditionalplans.ConditionalPlanTree;
 import thinclab.representations.policyrepresentations.PolicyTree;
 import thinclab.simulations.StochasticSimulation;
+import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.OfflinePBVISolver;
-import thinclab.solvers.OfflineSolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.NextBelStateCache;
@@ -43,7 +43,7 @@ public class POMDPSolver extends Executable {
 	public int searchDepth;
 	
 	/* solver instance */
-	public OfflineSolver solver;
+	public AlphaVectorPolicySolver solver;
 	
 	// ---------------------------------------------------------------------------------------------
 	

@@ -15,7 +15,6 @@ import org.apache.log4j.Logger;
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
@@ -155,19 +154,6 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 		this.bestBellmanError = Double.MAX_VALUE;
 		NextBelStateCache.clearCache();
 	}
-	
-	// ------------------------------------------------------------------------------------------
-	
-	/* Actual solution method */
-	public abstract void solveForBeliefs(List<DD> beliefs);
-	public abstract void solve();
-	
-	/* Find best action for current belief */
-	public abstract String getActionAtCurrentBelief();
-	
-	/* Update belief after taking action and observing */
-	public abstract void nextStep(String action, List<String> obs) 
-			throws ZeroProbabilityObsException;
 	
 	// -----------------------------------------------------------------------------------------
 	

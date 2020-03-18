@@ -15,10 +15,9 @@ import org.apache.commons.cli.Options;
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.parsers.IPOMDPParser;
-import thinclab.representations.conditionalplans.WalkablePolicyTree;
 import thinclab.simulations.StochasticSimulation;
+import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.OnlineIPBVISolver;
-import thinclab.solvers.OnlineSolver;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
@@ -40,11 +39,8 @@ public class IPOMDPSolver extends Executable {
 	public int numDpBackups;
 	public int lookAhead;
 	
-	/* conditional plan instance */
-	public WalkablePolicyTree plan;
-	
 	/* solver instance */
-	public OnlineSolver solver;
+	public AlphaVectorPolicySolver solver;
 	
 	// ---------------------------------------------------------------------------------------------
 	
@@ -76,28 +72,12 @@ public class IPOMDPSolver extends Executable {
 						1, this.numDpBackups);
 	}
 	
-	public void buildPlan(int depth) {
-		/*
-		 * Starts the solver and waits for convergence or max rounds
-		 */
-		this.plan = new WalkablePolicyTree(solver, depth);
-		this.plan.buildTree();
-	}
-	
 	public void runSim(int nIters) {
 		/*
 		 * Run stochastic simulator for given iterations
 		 */
 		StochasticSimulation ss = new StochasticSimulation(this.solver, nIters);
 		ss.runSimulation();
-	}
-	
-	public void makeConditionalPlan(String dirName) {
-		/*
-		 * Starts the visualizer and shows the policy graph in JUNG
-		 */
-		this.plan.writeDotFile(dirName, "plan");
-		this.plan.writeJSONFile(dirName, "plan");
 	}
 	
 	// -----------------------------------------------------------------------------------------------
@@ -170,8 +150,6 @@ public class IPOMDPSolver extends Executable {
 				/* set plan depth */
 				int depth = new Integer(line.getOptionValue("s"));
 				solver.initializeIPOMDP(depth * 2);
-				solver.buildPlan(depth);
-				solver.makeConditionalPlan(planDir);
 			}
 			
 			/* sim */

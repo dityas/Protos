@@ -7,10 +7,8 @@
  */
 package thinclab.solvers;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -70,33 +68,17 @@ public class OfflinePBVISolver extends AlphaVectorPolicySolver {
 		
 		/* initialize unique policy */
 		this.uniquePolicy = new boolean[this.p.getActions().size()];
-		
-		this.initPolicy();
 	}
 	
 	// ----------------------------------------------------------------------------------
-	/*
-	 * super class overrides.
-	 */
 	
-	public void initPolicy() {
-		/* Make a default alphaVectors as rewards to start with */
-		this.alphaVectors = 
-				Arrays.stream(this.p.actions)
-					.map(a -> OP.reorder(a.rewFn))
-					.collect(Collectors.toList())
-					.toArray(new DD[this.p.actions.length]);
-		
-		/* default policy */
-		this.policy = new int[this.p.getActions().size()];
-		for (int i = 0; i < this.p.actions.length; i++)
-			this.policy[i] = this.p.getActions().indexOf(this.p.actions[i].name);
+	@Override
+	public void solveCurrentStep() {
+		LOGGER.error("This method is not applicable for an offline solver.");
 	}
 	
 	@Override
 	public void solve() {
-		
-		this.initPolicy();
 		
 		/* set initial policy */
 		if (this.expansionStrategy instanceof SSGABeliefExpansion) {
@@ -340,8 +322,16 @@ public class OfflinePBVISolver extends AlphaVectorPolicySolver {
 
 	@Override
 	public void nextStep(String action, List<String> obs) throws ZeroProbabilityObsException {
-		// TODO Auto-generated method stub
-		LOGGER.warn("Calling nextStep on offline solver, nothing will happen");
+		
+		try {
+			this.f.step(this.f.getCurrentBelief(), action, obs.stream().toArray(String[]::new));
+		} 
+		
+		catch (Exception e) {
+			LOGGER.error("While stepping: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
 	}
 
 }
