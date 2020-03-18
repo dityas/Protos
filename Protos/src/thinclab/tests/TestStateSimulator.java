@@ -25,8 +25,10 @@ import thinclab.parsers.IPOMDPParser;
 import thinclab.simulations.MultiAgentSimulation;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.BaseSolver;
+import thinclab.solvers.DefaultActionPolicySolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
+import thinclab.solvers.RandomActionPolicySolver;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.NextBelStateCache;
 
@@ -111,6 +113,62 @@ class TestStateSimulator {
 		
 //		LOGGER.info(SS.getJSONString());
 //		LOGGER.info(SS.getDotString());
+	}
+	
+	@Test
+	void testMultiAgentStateSimWithDefaultActionSolver() throws Exception {
+		
+		/* init L1 */
+		NextBelStateCache.useCache();
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 4, 10);
+		
+//		SSGABeliefExpansion BE = new SSGABeliefExpansion(ipomdp, 30);
+		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
+		
+		/* init solver */
+		DefaultActionPolicySolver DS = new DefaultActionPolicySolver(ipomdp, ipomdp.lowerLevelGuessForAi);
+		
+		/* init L0 */
+		BaseSolver S0 = ipomdp.lowerLevelSolutions.get(0); 
+
+		MultiAgentSimulation Sim = new MultiAgentSimulation(DS, S0, 5);
+
+		Sim.runSimulation();
+		LOGGER.info(Sim.getDotString());
+		LOGGER.info(Sim.getJSONString());
+		
+		Sim.logToFile("/tmp/res.json");
+	}
+	
+	@Test
+	void testMultiAgentStateSimWithRandomActionSolver() throws Exception {
+		
+		/* init L1 */
+		NextBelStateCache.useCache();
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 4, 10);
+		
+//		SSGABeliefExpansion BE = new SSGABeliefExpansion(ipomdp, 30);
+		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
+		
+		/* init solver */
+		RandomActionPolicySolver RS = new RandomActionPolicySolver(ipomdp);
+		
+		/* init L0 */
+		BaseSolver S0 = ipomdp.lowerLevelSolutions.get(0); 
+
+		MultiAgentSimulation Sim = new MultiAgentSimulation(RS, S0, 5);
+
+		Sim.runSimulation();
+		LOGGER.info(Sim.getDotString());
+		LOGGER.info(Sim.getJSONString());
+		
+		Sim.logToFile("/tmp/res.json");
 	}
 
 }

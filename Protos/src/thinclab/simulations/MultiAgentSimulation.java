@@ -33,10 +33,8 @@ import thinclab.legacy.Config;
 import thinclab.legacy.DD;
 import thinclab.legacy.OP;
 import thinclab.representations.policyrepresentations.PolicyNode;
+import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.BaseSolver;
-import thinclab.solvers.OfflineSymbolicPerseus;
-import thinclab.solvers.OnlineIPBVISolver;
-import thinclab.solvers.OnlineSolver;
 
 /*
  * @author adityas
@@ -48,7 +46,7 @@ public class MultiAgentSimulation extends Simulation {
 	 * Makes simulation API for multi agent setting
 	 */
 	
-	private OnlineSolver l1Solver;
+	private BaseSolver l1Solver;
 	
 	private String mjDotDir = null;
 	private PrintWriter summaryWriter = null;
@@ -72,7 +70,7 @@ public class MultiAgentSimulation extends Simulation {
 	// ---------------------------------------------------------------------------------------
 	
 	public MultiAgentSimulation(
-			OnlineSolver ipomdpSolver, BaseSolver pomdpSolver, int interactions) {
+			BaseSolver ipomdpSolver, BaseSolver pomdpSolver, int interactions) {
 		
 		super();
 		
@@ -164,16 +162,16 @@ public class MultiAgentSimulation extends Simulation {
 		try {
 			
 			/* Solve current step for solvers */
-			if (this.l1Solver instanceof OnlineSolver) {
+			if (this.l1Solver instanceof AlphaVectorPolicySolver) {
 				this.l1Solver.f.setGlobals();
-				((OnlineSolver) this.l1Solver).solveCurrentStep();
-				((OnlineSolver) this.l1Solver).expansionStrategy.clearMem();
+				((AlphaVectorPolicySolver) this.l1Solver).solveCurrentStep();
+				((AlphaVectorPolicySolver) this.l1Solver).expansionStrategy.clearMem();
 			}
 			
-			if (this.solver instanceof OnlineSolver) {
+			if (this.solver instanceof AlphaVectorPolicySolver) {
 				this.solver.f.setGlobals();
-				((OnlineSolver) this.solver).solveCurrentStep();
-				((OnlineSolver) this.solver).expansionStrategy.clearMem();
+				((AlphaVectorPolicySolver) this.solver).solveCurrentStep();
+				((AlphaVectorPolicySolver) this.solver).expansionStrategy.clearMem();
 			}
 			
 			/* record actions and observations and all that at current step */
@@ -183,19 +181,10 @@ public class MultiAgentSimulation extends Simulation {
 			/* record the L1 step */
 			this.l1Solver.f.setGlobals();
 			
-			DD[] l1AlphaVecs = ((OnlineIPBVISolver) this.l1Solver).getAlphaVectors();
-			int[] l1Policy = ((OnlineIPBVISolver) this.l1Solver).getPolicy();
-			double l1DiscountedReward = 
-					this.l1Solver.f.evaluatePolicy(
-							l1AlphaVecs, l1Policy, 1000, 5, false);
+			double l1DiscountedReward = this.l1Solver.evaluatePolicy(1000, 5, false);
 			
 			DD currentL1Belief = this.getPolicyNode(currentNode).getBelief();
 			String currentL1BeliefJson = this.l1Solver.f.getBeliefString(currentL1Belief);
-			
-			int[] aVecIndices = 
-					ArrayUtils.subarray(
-							this.l1Solver.f.getStateVarIndices(), 
-							0, ((IPOMDP) this.l1Solver.f).thetaVarPosition);
 			
 			this.l1BeliefSequence.add(this.l1Solver.f.getBeliefString(currentL1Belief));
 			LOGGER.info("At L1 belief " 
@@ -224,7 +213,6 @@ public class MultiAgentSimulation extends Simulation {
 			
 			/* record state */
 			DD currentState = this.states.get(this.states.size() - 1).toDD();
-//			DD[] currentFactoredState = this.solver.f.factorBelief(currentState);
 			String stateJson = this.solver.f.getBeliefString(currentState);
 			
 			this.stateSequence.add(
@@ -253,25 +241,9 @@ public class MultiAgentSimulation extends Simulation {
 					+ this.l1ExpectedReward.get(
 							this.l1ExpectedReward.size() - 1));
 			
-			/* log alpha vectors for I */
-			if (this.l1Solver instanceof OnlineIPBVISolver) {
-				DD[] aVecs = ((OnlineIPBVISolver) this.l1Solver).alphaVectors;
-				int[] policy = ((OnlineIPBVISolver) this.l1Solver).policy;
-				
-				for (int v = 0; v < aVecs.length; v++) {
-					LOGGER.info("For A vec. " + v + " representing action " 
-							+ this.l1Solver.f.getActions().get(policy[v]));
-					LOGGER.info("Reward is: " + 
-							OP.dotProduct(
-									currentL1Belief, 
-									aVecs[v], aVecIndices));
-//					LOGGER.info("Vector is: " + aVecs[v].toDDTree());
-				}
-			}
-			
 			/* step agent I */
-			if (this.l1Solver instanceof OnlineSolver)
-				((OnlineSolver) this.l1Solver).nextStep(l1Action, Arrays.asList(obs[0]));
+			if (this.l1Solver instanceof AlphaVectorPolicySolver)
+				((AlphaVectorPolicySolver) this.l1Solver).nextStep(l1Action, Arrays.asList(obs[0]));
 			
 			else
 				this.l1Solver.f.step(currentL1Belief, l1Action, obs[0]);
@@ -292,11 +264,7 @@ public class MultiAgentSimulation extends Simulation {
 			/* compute L0 reward */
 			this.solver.f.setGlobals();
 			
-			DD[] l0AlphaVecs = ((OfflineSymbolicPerseus) this.solver).getAlphaVectors();
-			int[] l0Policy = ((OfflineSymbolicPerseus) this.solver).getPolicy();
-			double l0DiscountedReward = 
-					this.solver.f.evaluatePolicy(
-							l0AlphaVecs, l0Policy, 1000, 5, false);
+			double l0DiscountedReward = this.solver.evaluatePolicy(1000, 5, false);
 			
 			this.l0ExpectedReward.add(l0DiscountedReward);
 			LOGGER.info("Agent j's expected reward is " 
@@ -304,11 +272,11 @@ public class MultiAgentSimulation extends Simulation {
 							this.l0ExpectedReward.size() - 1));
 			
 			/* step agent J */
-			if (this.solver instanceof OnlineSolver)
-				((OnlineSolver) this.solver).nextStep(l0Action, Arrays.asList(obs[1]));
+			if (this.solver instanceof AlphaVectorPolicySolver)
+				((AlphaVectorPolicySolver) this.solver).nextStep(l0Action, Arrays.asList(obs[1]));
 			
 			else
-				solver.f.step(currentL0Belief, l0Action, obs[1]);
+				this.solver.f.step(currentL0Belief, l0Action, obs[1]);
 			
 			/* summarize the interaction */
 			if (this.summaryWriter != null) {

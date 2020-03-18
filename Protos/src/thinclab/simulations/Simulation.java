@@ -33,9 +33,8 @@ import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.representations.StructuredTree;
 import thinclab.representations.policyrepresentations.PolicyNode;
+import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.BaseSolver;
-import thinclab.solvers.OnlineIPBVISolver;
-import thinclab.solvers.OnlineSolver;
 
 /*
  * @author adityas
@@ -128,20 +127,19 @@ public class Simulation extends StructuredTree {
 					solver.f.getBeliefString(currentState));
 			LOGGER.info("Real state is " + this.stateSequence.get(this.stateSequence.size() - 1));
 			
-			if (solver instanceof OnlineSolver)
-				((OnlineSolver) solver).solveCurrentStep();
+			if (solver instanceof AlphaVectorPolicySolver)
+				((AlphaVectorPolicySolver) solver).solveCurrentStep();
 			
 			/* optimal action */
 			String action = solver.getActionForBelief(currentBelief);
 			this.getPolicyNode(currentNode).setActName(action);
 			
 			/* take action */
-//			String[] obs = this.act(solver.f, currentBelief, action);
 			String[] obs = this.envStep(action);
 			
-			if (this.solver instanceof OnlineIPBVISolver) {
-				DD[] aVecs = ((OnlineIPBVISolver) this.solver).alphaVectors;
-				int[] policy = ((OnlineIPBVISolver) this.solver).policy;
+			if (this.solver instanceof AlphaVectorPolicySolver) {
+				DD[] aVecs = ((AlphaVectorPolicySolver) this.solver).getAlphaVectors();
+				int[] policy = ((AlphaVectorPolicySolver) this.solver).getPolicy();
 				
 				for (int v = 0; v < aVecs.length; v++) {
 					LOGGER.info("For A vec. " + v + " representing action " 
@@ -195,8 +193,8 @@ public class Simulation extends StructuredTree {
 			this.trueCumulativeReward.add(lastTrueReward + realReward);
 			LOGGER.info("True reward so far is " + (lastTrueReward + realReward));
 			
-			if (solver instanceof OnlineSolver)
-				((OnlineSolver) solver).nextStep(action, Arrays.asList(obs));
+			if (solver instanceof AlphaVectorPolicySolver)
+				((AlphaVectorPolicySolver) solver).nextStep(action, Arrays.asList(obs));
 			
 			else
 				solver.f.step(currentBelief, action, obs);

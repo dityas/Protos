@@ -10,7 +10,6 @@ package thinclab.solvers;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -69,13 +68,6 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		beliefs = null;
 		
 		LOGGER.debug("Solving for " + beliefsArray.length + " belief points."); 
-		
-		/* Make a default alphaVectors as rewards to start with */
-		this.alphaVectors = 
-				this.ipomdp.currentRi.values().stream()
-					.map(a -> OP.reorder(a))
-					.collect(Collectors.toList())
-					.toArray(new DD[this.ipomdp.currentRi.size()]);
 		
 		/* try running interactive symbolic perseus */
 		try {
@@ -444,13 +436,6 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		 * Getter to access the IPOMDP
 		 */
 		return this.ipomdp;
-	}
-	
-	public DD[] getAlphaVectors() {
-		/*
-		 * Returns the alpha vectors
-		 */
-		return this.alphaVectors;
 	}
 	
 	public void logAlphaVectors() {

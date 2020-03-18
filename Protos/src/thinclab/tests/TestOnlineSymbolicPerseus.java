@@ -34,7 +34,6 @@ import thinclab.simulations.MultiAgentSimulation;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
-import thinclab.solvers.OnlineSolver;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*

@@ -10,13 +10,15 @@ package thinclab.solvers;
 import java.util.List;
 
 import org.apache.commons.collections15.buffer.CircularFifoBuffer;
+import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.exceptions.ZeroProbabilityObsException;
+import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.legacy.OP;
 import thinclab.utils.NextBelStateCache;
 import thinclab.utils.PolicyCache;
 
@@ -24,18 +26,18 @@ import thinclab.utils.PolicyCache;
  * @author adityas
  *
  */
-public abstract class OnlineSolver extends BaseSolver {
-	
+public abstract class AlphaVectorPolicySolver extends BaseSolver {
+
 	/*
-	 * Defines the basic skeleton and structure for implementing Online Solvers
+	 * Base class for solvers which represent policies as a set of alpha vectors
 	 */
+	
+	private static final long serialVersionUID = 7488141502214152405L;
 
-	private static final long serialVersionUID = -2064622541038073651L;
-
+	/* belief region exploration */
 	public BeliefRegionExpansionStrategy expansionStrategy;
 	
 	PolicyCache pCache = new PolicyCache(5);
-	
 	CircularFifoBuffer<Float> bErrorVals = new CircularFifoBuffer<Float>(5);
 	
 	/* for checking used beliefs and num alpha vectors */
@@ -48,22 +50,69 @@ public abstract class OnlineSolver extends BaseSolver {
 	
 	private boolean solverConverged = false;
 	
+	/* policy representation */
+	public DD[] alphaVectors;
+	public AlphaVector[] newAlphaVectors;
+	int numNewAlphaVectors;
+
+	public int[] policy;
+	double[] policyvalue;
+	boolean[] uniquePolicy;
+	
 	public int[] bestPolicy = null;
 	public DD[] bestAlphaVectors = null;
 	public double bestBellmanError = Double.MAX_VALUE;
-
-	// ------------------------------------------------------------------------------------------
 	
-	public OnlineSolver(DecisionProcess f, BeliefRegionExpansionStrategy b) {
-		/*
-		 * Set properties and all that
-		 */
+	private static Logger LOGGER = Logger.getLogger(AlphaVectorPolicySolver.class);
+	
+	// --------------------------------------------------------------------------------------
+	
+	public AlphaVectorPolicySolver(DecisionProcess DP, BeliefRegionExpansionStrategy BE) {
 		
-		this.f = f;
-		this.expansionStrategy = b;
+		this.f = DP;
+		this.expansionStrategy = BE;
+		
+		this.setInitPolicy();
 	}
 	
-	// ------------------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------------
+	
+	@Override
+	public boolean hasSolution() {return this.solverConverged;}
+	
+	@Override
+	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
+		/*
+		 * Run policy evaluation for IPOMDPs
+		 */
+		return this.f.evaluatePolicy(
+				this.getAlphaVectors(), this.getPolicy(), trials, evalDepth, verbose);
+	}
+	
+	public void setInitPolicy() {
+		/*
+		 * Sets initial policy and alpha vectors
+		 */
+		
+		/* Make a default alphaVectors as rewards to start with */
+		this.alphaVectors = 
+				this.f.getActions().stream()
+					.map(a -> OP.reorder(this.f.getRewardFunctionForAction(a)))
+					.toArray(DD[]::new);
+		
+		/* default policy */
+		this.policy = new int[this.f.getActions().size()];
+		for (int i = 0; i < this.f.getActions().size(); i++)
+			this.policy[i] = this.f.getActions().indexOf(this.f.getActions().get(i));
+		
+		/* update belief strategy policy */
+		if (this.expansionStrategy instanceof SSGABeliefExpansion) {
+			LOGGER.debug("Updating expansion policy");
+			((SSGABeliefExpansion) this.expansionStrategy).setRecentPolicy(
+					this.alphaVectors, this.policy);
+		}
+		
+	}
 	
 	public void solveCurrentStep() {
 		/*
@@ -82,12 +131,11 @@ public abstract class OnlineSolver extends BaseSolver {
 			
 			/* if SSGA with IPBVI, set expansion policy */
 			/* update belief strategy policy */
-			if (this.expansionStrategy instanceof SSGABeliefExpansion && 
-					this instanceof OnlineIPBVISolver) {
+			if (this.expansionStrategy instanceof SSGABeliefExpansion) {
 
 				((SSGABeliefExpansion) this.expansionStrategy).setRecentPolicy(
-						((OnlineIPBVISolver) this).getAlphaVectors(), 
-						((OnlineIPBVISolver) this).getPolicy());
+						this.getAlphaVectors(), 
+						this.getPolicy());
 			}
 			
 			/* Expand the belief space */
@@ -106,18 +154,6 @@ public abstract class OnlineSolver extends BaseSolver {
 		this.bestBellmanError = Double.MAX_VALUE;
 		NextBelStateCache.clearCache();
 	}
-	
-	// ------------------------------------------------------------------------------------------
-	
-	/* Actual solution method */
-	public abstract void solveForBeliefs(List<DD> beliefs);
-	
-	/* Find best action for current belief */
-	public abstract String getActionAtCurrentBelief();
-	
-	/* Update belief after taking action and observing */
-	public abstract void nextStep(String action, List<String> obs) 
-			throws ZeroProbabilityObsException;
 	
 	// -----------------------------------------------------------------------------------------
 	
@@ -143,6 +179,8 @@ public abstract class OnlineSolver extends BaseSolver {
 		this.f = f;
 		this.expansionStrategy.setFramework(f);
 	}
+	
+	// -------------------------------------------------------------------------------------------
 	
 	public float getErrorVariance(float bellManError) {
 		/*
@@ -275,5 +313,14 @@ public abstract class OnlineSolver extends BaseSolver {
 		}
 		
 	}
-
+	
+	// -----------------------------------------------------------------------------------------
+	
+	public DD[] getAlphaVectors() {
+		return this.alphaVectors;
+	}
+	
+	public int[] getPolicy() {
+		return this.policy;
+	}
 }

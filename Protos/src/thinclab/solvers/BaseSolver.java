@@ -8,8 +8,10 @@
 package thinclab.solvers;
 
 import java.io.Serializable;
+import java.util.List;
 
 import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 
 /*
@@ -27,5 +29,18 @@ public abstract class BaseSolver implements Serializable {
 	
 	/* return the status of the solver */
 	public abstract boolean hasSolution();
-
+	
+	/* Actual solution method */
+	public abstract void solveForBeliefs(List<DD> beliefs);
+	public abstract void solve();
+	
+	/* evaluate policy */
+	public abstract double evaluatePolicy(int trials, int evalDepth, boolean verbose);
+	
+	/* Update belief after taking action and observing for online solvers */
+	public abstract void nextStep(String action, List<String> obs) 
+			throws ZeroProbabilityObsException;
+	
+	/* Find best action for current belief for online solvers */
+	public abstract String getActionAtCurrentBelief();
 }
