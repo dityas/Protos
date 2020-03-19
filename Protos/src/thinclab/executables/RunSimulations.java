@@ -25,9 +25,11 @@ import thinclab.representations.policyrepresentations.PolicyTree;
 import thinclab.simulations.MultiAgentSimulation;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.BaseSolver;
+import thinclab.solvers.DefaultActionPolicySolver;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
+import thinclab.solvers.RandomActionPolicySolver;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.NextBelStateCache;
 
@@ -74,7 +76,21 @@ public class RunSimulations extends Executable {
 				"e", 
 				"ssga", 
 				false, 
-				"use SSGA expansion? (5 perseus rounds and 10 iterations of exploration)");
+				"use SSGA expansion? (5 perseus rounds and 30 iterations of exploration)");
+		
+		/* use default policy */
+		opt.addOption(
+				"j", 
+				"default-policy", 
+				false, 
+				"use default policy for L1?");
+		
+		/* use default policy */
+		opt.addOption(
+				"k", 
+				"random-policy", 
+				false, 
+				"use random policy for L1?");
 		
 		/* simulation switch */
 		opt.addOption(
@@ -234,7 +250,7 @@ public class RunSimulations extends Executable {
 					int numRounds = 1;
 					
 					if (line.hasOption("e")) {
-						BE = new SSGABeliefExpansion(ipomdp, 10);
+						BE = new SSGABeliefExpansion(ipomdp, 30);
 						numRounds = 5;
 					}
 					
@@ -243,11 +259,21 @@ public class RunSimulations extends Executable {
 						numRounds = 1;
 					}
 					
+					BaseSolver solver = null;
+					
+					if (line.hasOption('j'))
+						solver = new DefaultActionPolicySolver(ipomdp, ipomdp.lowerLevelGuessForAi);
+					
+					else if (line.hasOption('k'))
+						solver = new RandomActionPolicySolver(ipomdp);
+					
 					/* Agent i */
-					OnlineInteractiveSymbolicPerseus solver = 
+					else {
+						solver = 
 							new OnlineInteractiveSymbolicPerseus(
 									ipomdp, 
 									BE, numRounds, backups);
+					}
 					
 					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
 					ss.setMjDotDir(storageDir, i);
