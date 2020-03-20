@@ -224,19 +224,9 @@ class TestRepresentations {
 		
 		LOGGER.info("Building Mj separately ");
 		
-//		MJ mj = new MJ(ipomdp.lowerLevelSolutions.get(0), 3);
-//		mj.buildTree();
-//		
-//		LOGGER.info("MJ built is " + mj.getDotStringForPersistent());
-//		
-//		LOGGER.info("Building DynamicBeliefGraph separately");
-//		DynamicBeliefGraph G = new DynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 3);
-//		G.buildTree();
-//		
-//		LOGGER.info("DBG is " + G.getDotStringForPersistent());
-//		
 		LOGGER.info("Building LazyDynamicBeliefGraph separately");
-		StrictlyOptimalDynamicBeliefGraph LazyG = new StrictlyOptimalDynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 3);
+		StrictlyOptimalDynamicBeliefGraph LazyG = 
+				new StrictlyOptimalDynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 5);
 		LazyG.buildTree();
 		
 		LOGGER.info("LazyDBG is " + LazyG.getDotStringForPersistent());
@@ -321,10 +311,34 @@ class TestRepresentations {
 		
 		solver.solve();
 		
-		OptimalDynamicBeliefTree T = new OptimalDynamicBeliefTree(solver, 5);
+		OptimalDynamicBeliefTree T = new OptimalDynamicBeliefTree(solver, 10);
 		T.buildTree();
 		
 		LOGGER.debug("Tree is: " + T.getDotStringForPersistent());
+	}
+	
+	@Test
+	public void testOptimalDynamicBeliefGraph() {
+		
+		POMDP pomdp = 
+				new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/deception.single_host.generic/pt.L0.spudd");
+//		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.noisy.txt");
+		
+		OfflineSymbolicPerseus solver = 
+				new OfflineSymbolicPerseus(
+						pomdp, 
+						new SSGABeliefExpansion(pomdp, 20, 30), 
+						5, 100);
+		
+		solver.solve();
+		
+		StrictlyOptimalDynamicBeliefGraph G = new StrictlyOptimalDynamicBeliefGraph(solver, 10);
+//		OptimalDynamicBeliefTree T = new OptimalDynamicBeliefTree(solver, 10);
+//		T.buildTree();
+		G.buildTree();
+		
+		LOGGER.debug("Tree is: " + G.getDotStringForPersistent());
 	}
 
 }

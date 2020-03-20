@@ -66,14 +66,17 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 		return this.DB.getAllRoots();
 	}
 	
+	@Override
 	public List<Integer> getAllNodesAtHorizon(int horizon) {
 		return this.DB.getAllNodesAtHorizon(horizon);
 	}
 	
+	@Override
 	public HashMap<Integer, HashMap<List<String>, Integer>> getEdgesEndingAt(int dest_id) {
 		return this.DB.getEdgesEndingAt(dest_id);
 	}
 	
+	@Override
 	public void updateEdgeDest(int src_id, List<String> label, int old_dest_id, int new_dest_id) {
 		this.DB.updateEdgeDest(src_id, label, old_dest_id, new_dest_id);
 	}
@@ -126,6 +129,11 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 	
 	public void commitChanges() {
 		this.DB.commitChanges();
+	}
+	
+	@Override
+	public List<Integer> getAllNodesIdsForAction(String action) {
+		return this.DB.getAllNodesByAction(action);
 	}
 	
 	// ----------------------------------------------------------------------------------------

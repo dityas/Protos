@@ -9,31 +9,26 @@ package thinclab.representations.belieftreerepresentations;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
-import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.exceptions.ZeroProbabilityObsException;
-import thinclab.legacy.DD;
 import thinclab.representations.PersistentStructuredTree;
-import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.representations.policyrepresentations.PolicyNode;
+import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.BaseSolver;
-import thinclab.solvers.OfflinePBVISolver;
 
 /*
  * @author adityas
  *
  */
-public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
+public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefTree {
 
 	/*
 	 * Only does full belief expansion for the first step to maintain complete information
 	 * about the immediate next step. After that, does policy graph expansion to produce Ajs for
 	 * look ahead. 
 	 */
-	
-	private PolicyGraph G;
 	
 	private static final long serialVersionUID = -4519925553640062581L;
 	private static final Logger LOGGER = Logger.getLogger(StrictlyOptimalDynamicBeliefGraph.class);
@@ -43,11 +38,6 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 	public StrictlyOptimalDynamicBeliefGraph(BaseSolver solver, int lookAhead) {
 		
 		super(solver, lookAhead);
-		
-		/* build and store policy graph */
-		this.G = new PolicyGraph((OfflinePBVISolver) solver);
-		LOGGER.debug("Policy graph for frame " + this.solver.f.frameID + " initialized");
-		
 	}
 	
 	// --------------------------------------------------------------------------------------
@@ -59,6 +49,7 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 		 * rest of the lookahead depth
 		 */
 		
+		this.solver.f.setGlobals();
 		List<Integer> prevNodes = new ArrayList<Integer>();
 		prevNodes.addAll(leafNodes);
 		
@@ -69,87 +60,83 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefGraph {
 		this.leafNodes.clear();
 		this.leafNodes.addAll(this.getNextPolicyNodes(prevNodes, 1));
 		
-		for (int id: this.leafNodes)
-			this.extendToPolicyGraph(id);
+		prevNodes.clear();
+		prevNodes.addAll(this.leafNodes);
+		
+		LOGGER.debug(this.getDotStringForPersistent());
+		
+		for (int t = 2; t < this.maxT; t++) {
+			prevNodes = this.expandPolicyGraph(prevNodes, (AlphaVectorPolicySolver) this.solver, t);
+		}
 		
 		if (this instanceof PersistentStructuredTree)
 			this.commitChanges();
 		
+		this.stripBeliefInfo();
 	}
 	
-	public void extendToPolicyGraph(int nodeId) {
+	private void stripBeliefInfo() {
 		/*
-		 * Extend the leafs of the belief tree given in nodeIds to policy graph
+		 * Removes the information about beliefs from the policy nodes
 		 */
 		
-		DecisionProcess DP = this.solver.f;
-		
-		/* branch for all possible observations */
-		List<List<String>> obs = DP.getAllPossibleObservations();
-		List<Integer> nodeIds = new ArrayList<Integer>();
-		nodeIds.add(nodeId);
-		
-		/* Do till there are no terminal policy leaves */
-		while(!nodeIds.isEmpty()) {
+		for (int nodeId: this.getAllNodeIds()) {
 			
-			PolicyNode node = this.getPolicyNode(nodeIds.remove(0));
-			List<Integer> newLeaves = new ArrayList<Integer>();
+			PolicyNode node = this.getPolicyNode(nodeId);
+			if (node.getH() < 2) continue;
 			
-			/*
-			 * For all observations, perform belief updates and get best action nodes
-			 */
-			for (List<String> theObs : obs) {
-				
-				try {
-					
-					DD nextBel = 
-							DP.beliefUpdate( 
-									node.getBelief(), 
-									node.getActName(), 
-									theObs.stream().toArray(String[]::new));
-					
-					/* get best next node */
-					int alphaId = 
-							DecisionProcess.getBestAlphaIndex(DP, nextBel, this.G.alphas)
-							+ this.currentPolicyNodeCounter;
-					
-					if (!this.containsNode(alphaId)) {
-						
-						PolicyNode nexNode = new PolicyNode();
-						
-						nexNode.setsBelief("{\"N/A\":\"N/A\"}");
-						nexNode.setBelief(nextBel);
-						nexNode.setId(alphaId);
-						nexNode.setActName(
-								DP.getActions().get(
-										this.G.actions[alphaId - this.currentPolicyNodeCounter]));
-						nexNode.setH(2);
-						
-						this.putPolicyNode(alphaId, nexNode);
-						newLeaves.add(alphaId);
-					}
-					
-					for (String action: DP.getActions()) {
-					
-						List<String> edge = new ArrayList<String>();
-						edge.add(action);
-						edge.addAll(theObs);
-					
-						if (!this.getEdges(node.getId()).containsKey(edge)) {
-							if (node.getActName().contentEquals(action))
-								this.putEdge(node.getId(), edge, alphaId);
-							else
-								this.putEdge(node.getId(), edge, node.getId());
-						}
-					}
-				}
-				
-				catch (ZeroProbabilityObsException e) {
-					continue;
-				}
-			}
-			
-			nodeIds.addAll(newLeaves);
+			this.removeNode(nodeId);
+			node.setsBelief("{\"N/A\":\"N/A\"}");
+			node.setBelief(null);
+			this.putPolicyNode(nodeId, node);
 		}
 	}
+	
+	// ---------------------------------------------------------------------------------------------
+	
+	@Override
+	public String getDotStringForPersistent() {
+		/*
+		 * Converts to graphviz compatible dot string
+		 */
+		String endl = "\r\n";
+		String dotString = "digraph G{ " + endl;
+		
+		dotString += "graph [ranksep=3];" + endl;
+		
+		/* Make nodes */
+		for (int id : this.getAllNodeIds()) {
+			
+			PolicyNode node = this.getPolicyNode(id);
+			
+			if (node.isStartNode())
+				dotString += " " + id + " [shape=Mrecord, label=\"";
+			else
+				dotString += " " + id + " [shape=record, label=\"";
+			
+			dotString += node.getActName()
+					+ "\"];" + endl;
+		}
+		
+		/* write MEU */
+//		dotString += -1 
+//				+ " [shape=record, label=\"{Avg. discounted reward=" + this.MEU + "}\"];" + endl;
+		
+		dotString += endl;
+		
+		for (int edgeSource: this.getAllEdgeIds()) {
+			
+			for (Entry<List<String>, Integer> ends : this.getEdges(edgeSource).entrySet()) {
+				
+				dotString += " " + edgeSource + " -> " + ends.getValue()
+					+ " [label=\"" + ends.getKey().toString() 
+					+ "\"]" + endl;
+			}
+		}
+		
+		dotString += "}" + endl;
+		
+		return dotString;
+	}
+	
 }

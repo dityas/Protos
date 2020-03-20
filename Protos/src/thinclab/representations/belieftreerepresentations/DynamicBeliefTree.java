@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.policyrepresentations.PolicyNode;
+import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.BaseSolver;
 
 /*
@@ -54,6 +55,9 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 			PolicyNode node = new PolicyNode();
 			node.setId(i);
 			node.setBelief(this.f.getInitialBeliefs().get(i));
+			node.setAlphaId(
+					((AlphaVectorPolicySolver) solver).getBestAlphaIndex(
+							this.f.getInitialBeliefs().get(i)));
 			node.setH(0);
 			
 			node.setsBelief(this.f.getBeliefString(node.getBelief()));

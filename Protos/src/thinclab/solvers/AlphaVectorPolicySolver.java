@@ -323,4 +323,8 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 	public int[] getPolicy() {
 		return this.policy;
 	}
+	
+	public int getBestAlphaIndex(DD belief) {
+		return DecisionProcess.getBestAlphaIndex(this.f, belief, this.getAlphaVectors());
+	}
 }
