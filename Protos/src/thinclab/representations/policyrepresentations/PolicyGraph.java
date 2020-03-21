@@ -92,13 +92,14 @@ public class PolicyGraph extends PersistentStructuredTree {
 			
 			PolicyNode node = new PolicyNode();
 			node.setBelief(startBelief);
+			node.setId(this.currentPolicyNodeCounter++);
 			node.alphaId = DecisionProcess.getBestAlphaIndex(DP, startBelief, this.alphas);
 			node.setActName(DP.getActions().get(this.actions[node.alphaId]));
 			node.setStartNode();
 			
-			this.putPolicyNode(node.alphaId, node);
+			this.putPolicyNode(node.getId(), node);
 			
-			leafNodes.add(node.alphaId);
+			leafNodes.add(node.getId());
 		}
 		
 		this.makeGraph(leafNodes);
