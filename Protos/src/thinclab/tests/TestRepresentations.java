@@ -107,7 +107,7 @@ class TestRepresentations {
 		System.out.println(Arrays.toString(solver.getAlphaVectors()));
 		System.out.println(Arrays.toString(solver.getPolicy()));
 		
-		PolicyGraph pg = new PolicyGraph(solver);
+		PolicyGraph pg = new PolicyGraph(solver, 10);
 		pg.makeGraph();
 		
 		System.out.println(pg.getDotString());
@@ -268,7 +268,7 @@ class TestRepresentations {
 		
 		solver.solve();
 		
-		PolicyGraph pg = new PolicyGraph(solver);
+		PolicyGraph pg = new PolicyGraph(solver, 10);
 		pg.makeGraph();
 		
 		LOGGER.debug("PG is " + pg.getDotString());

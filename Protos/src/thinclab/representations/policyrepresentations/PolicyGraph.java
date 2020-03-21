@@ -20,16 +20,15 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
-import thinclab.representations.StructuredTree;
-import thinclab.solvers.OfflinePBVISolver;
+import thinclab.representations.PersistentStructuredTree;
+import thinclab.solvers.AlphaVectorPolicySolver;
 
 /*
  * @author adityas
  *
  */
-public class PolicyGraph extends StructuredTree {
+public class PolicyGraph extends PersistentStructuredTree {
 
 	/*
 	 * Makes a policy graph with actions as nodes from an alpha vector policy
@@ -38,19 +37,20 @@ public class PolicyGraph extends StructuredTree {
 	private static final long serialVersionUID = 2533632217752542090L;
 
 	/* Solver reference */
-	public OfflinePBVISolver solver;
+	public AlphaVectorPolicySolver solver;
 
 	/* policy vars */
 	public DD[] alphas;
 	public int[] actions;
 	
 	public double MEU = Double.NEGATIVE_INFINITY;
+	public int maxT;
 
 	private static final Logger LOGGER = Logger.getLogger(PolicyGraph.class);
 
 	// ------------------------------------------------------------------------------------
 
-	public PolicyGraph(OfflinePBVISolver solver) {
+	public PolicyGraph(AlphaVectorPolicySolver solver, int maxT) {
 
 		/* set solver reference */
 		this.solver = solver;
@@ -58,6 +58,8 @@ public class PolicyGraph extends StructuredTree {
 		/* set policy attributes */
 		this.alphas = this.solver.getAlphaVectors();
 		this.actions = this.solver.getPolicy();
+		
+		this.maxT = maxT;
 
 		LOGGER.info("Initializing policy graph for " + this.alphas.length + " A vectors");
 	}
@@ -107,57 +109,8 @@ public class PolicyGraph extends StructuredTree {
 		 * Makes policy graph from the leafNodes given
 		 */
 		
-		DecisionProcess DP = this.solver.getFramework();
-		
-		/* branch for all possible observations */
-		List<List<String>> obs = DP.getAllPossibleObservations();
-		
-		/* Do till there are no terminal policy leaves */
-		while(!leafNodes.isEmpty()) {
-			
-			PolicyNode node = this.getPolicyNode(leafNodes.remove(0));
-			List<Integer> newLeaves = new ArrayList<Integer>();
-			
-			/*
-			 * For all observations, perform belief updates and get best action nodes
-			 */
-			for (List<String> theObs : obs) {
-				
-				try {
-					
-					DD nextBel = 
-							DP.beliefUpdate( 
-									node.getBelief(), 
-									node.getActName(), 
-									theObs.stream().toArray(String[]::new));
-					
-					/* get best next node */
-					int alphaId = 
-							DecisionProcess.getBestAlphaIndex(DP, nextBel, this.alphas);
-					
-					if (!this.containsNode(alphaId)) {
-						
-						PolicyNode nexNode = new PolicyNode();
-						
-						nexNode.setBelief(nextBel);
-						nexNode.alphaId = alphaId;
-						nexNode.setActName(DP.getActions().get(this.actions[alphaId]));
-						
-						this.putPolicyNode(alphaId, nexNode);
-						newLeaves.add(alphaId);
-					}
-					
-					this.putEdge(node.alphaId, theObs, alphaId);
-					
-				}
-				
-				catch (ZeroProbabilityObsException e) {
-					continue;
-				}
-			}
-			
-			leafNodes.addAll(newLeaves);
-			
+		for (int t = 0; t < this.maxT; t++) {
+			leafNodes = this.expandPolicyGraph(leafNodes, this.solver, t);
 		}
 	}
 	
@@ -218,6 +171,51 @@ public class PolicyGraph extends StructuredTree {
 				
 				dotString += " " + from + " -> " + ends.getValue()
 					+ " [label=\"" + ends.getKey().toString() + "\"]" + endl;
+			}
+		}
+		
+		dotString += "}" + endl;
+		
+		return dotString;
+	}
+	
+	@Override
+	public String getDotStringForPersistent() {
+		/*
+		 * Converts to graphviz compatible dot string
+		 */
+		String endl = "\r\n";
+		String dotString = "digraph G{ " + endl;
+		
+		dotString += "graph [ranksep=1];" + endl;
+		
+		/* Make nodes */
+		for (int id : this.getAllNodeIds()) {
+			
+			PolicyNode node = this.getPolicyNode(id);
+			
+			if (node.isStartNode())
+				dotString += " " + id + " [shape=Mrecord, label=\"";
+			else
+				dotString += " " + id + " [shape=record, label=\"";
+			
+			dotString += node.getActName()
+					+ "\"];" + endl;
+		}
+		
+		/* write MEU */
+		dotString += -1 
+				+ " [shape=record, label=\"{Avg. discounted reward=" + this.MEU + "}\"];" + endl;
+		
+		dotString += endl;
+		
+		for (int edgeSource: this.getAllEdgeIds()) {
+			
+			for (Entry<List<String>, Integer> ends : this.getEdges(edgeSource).entrySet()) {
+				
+				dotString += " " + edgeSource + " -> " + ends.getValue()
+					+ " [label=\"" + ends.getKey().toString() 
+					+ "\"]" + endl;
 			}
 		}
 		
