@@ -50,6 +50,7 @@ public class MultiAgentSimulation extends Simulation {
 	
 	private String mjDotDir = null;
 	private PrintWriter summaryWriter = null;
+	private int iterId = -1;
 	
 	/* some lists for storing run stats */
 	List<String> stateSequence = new ArrayList<String>();
@@ -112,6 +113,7 @@ public class MultiAgentSimulation extends Simulation {
 	
 	public void setMjDotDir(String mjDotDir, int id) {
 		this.mjDotDir = mjDotDir;
+		this.iterId = id;
 		
 		try {
 			this.summaryWriter = 
@@ -166,6 +168,15 @@ public class MultiAgentSimulation extends Simulation {
 				this.l1Solver.f.setGlobals();
 				((AlphaVectorPolicySolver) this.l1Solver).solveCurrentStep();
 				((AlphaVectorPolicySolver) this.l1Solver).expansionStrategy.clearMem();
+				
+				if (this.mjDotDir != null) {
+					for (int frameId: ((IPOMDP) this.l1Solver.f).multiFrameMJ.MJs.keySet()) {
+						((IPOMDP) this.l1Solver.f).multiFrameMJ.MJs
+							.get(frameId)
+							.writeDotFile(this.mjDotDir, "mj_" + frameId + "_step_" + currentNode 
+									+ "_iter_" + this.iterId);
+					}
+				}
 			}
 			
 			if (this.solver instanceof AlphaVectorPolicySolver) {
