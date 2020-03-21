@@ -159,6 +159,21 @@ public class MultiAgentSimulation extends Simulation {
 		LOGGER.debug("Initial state sampled. Set to " + stateMap);
 	}
 	
+	public void dumpMj(int currentNode) {
+		/*
+		 * write the Mj look ahead graph for debugging policies
+		 */
+		if (this.mjDotDir != null) {
+			for (int frameId: ((IPOMDP) this.l1Solver.f).multiFrameMJ.MJs.keySet()) {
+				((IPOMDP) this.l1Solver.f).multiFrameMJ.MJs
+					.get(frameId)
+					.writeDotFile(this.mjDotDir, "mj_" + frameId + "_step_" + currentNode 
+							+ "_iter_" + this.iterId);
+			}
+		}
+		
+	}
+	
 	public int step(int currentNode) {
 		
 		try {
@@ -169,14 +184,7 @@ public class MultiAgentSimulation extends Simulation {
 				((AlphaVectorPolicySolver) this.l1Solver).solveCurrentStep();
 				((AlphaVectorPolicySolver) this.l1Solver).expansionStrategy.clearMem();
 				
-				if (this.mjDotDir != null) {
-					for (int frameId: ((IPOMDP) this.l1Solver.f).multiFrameMJ.MJs.keySet()) {
-						((IPOMDP) this.l1Solver.f).multiFrameMJ.MJs
-							.get(frameId)
-							.writeDotFile(this.mjDotDir, "mj_" + frameId + "_step_" + currentNode 
-									+ "_iter_" + this.iterId);
-					}
-				}
+				this.dumpMj(currentNode);
 			}
 			
 			if (this.solver instanceof AlphaVectorPolicySolver) {
