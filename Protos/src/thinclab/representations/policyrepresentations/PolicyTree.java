@@ -22,6 +22,7 @@ import com.google.gson.JsonPrimitive;
 
 import thinclab.legacy.DD;
 import thinclab.representations.belieftreerepresentations.StaticBeliefTree;
+import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.OfflinePBVISolver;
 
 /*
@@ -45,7 +46,7 @@ public class PolicyTree extends StaticBeliefTree {
 	
 	// -------------------------------------------------------------------------------------
 	
-	public PolicyTree(OfflinePBVISolver solver, int maxH) {
+	public PolicyTree(AlphaVectorPolicySolver solver, int maxH) {
 		
 		super(solver, maxH);
 		
@@ -277,6 +278,7 @@ public class PolicyTree extends StaticBeliefTree {
 		return gsonHandler.toJson(policyGraphJSON);
 	}
 	
+	@Override
 	public String getDotStringForPersistent() {
 		/*
 		 * Converts to graphviz compatible dot string
@@ -284,7 +286,7 @@ public class PolicyTree extends StaticBeliefTree {
 		String endl = "\r\n";
 		String dotString = "digraph G{ " + endl;
 		
-		dotString += "graph [ranksep=3];" + endl;
+		dotString += "graph [ranksep=1];" + endl;
 		
 		/* Make nodes */
 		for (int id : this.getAllNodeIds()) {

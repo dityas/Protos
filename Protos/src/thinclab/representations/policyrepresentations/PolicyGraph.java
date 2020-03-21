@@ -215,7 +215,7 @@ public class PolicyGraph extends PersistentStructuredTree {
 			for (Entry<List<String>, Integer> ends : this.getEdges(edgeSource).entrySet()) {
 				
 				dotString += " " + edgeSource + " -> " + ends.getValue()
-					+ " [label=\"" + ends.getKey().toString() 
+					+ " [label=\"" + ends.getKey().subList(1, ends.getKey().size()).toString() 
 					+ "\"]" + endl;
 			}
 		}

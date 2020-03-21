@@ -229,10 +229,17 @@ public class RunSimulations extends Executable {
 						G.makeGraph();
 						G.computeEU();
 						
+						PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, simLength);
+						T.buildTree();
+						
 						/* store policy graph solution */
 						G.writeDotFile(
 								storageDir, 
 								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
+						
+						T.writeDotFile(
+								storageDir, 
+								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
 						
 						G.writeJSONFile(
 								storageDir, 
