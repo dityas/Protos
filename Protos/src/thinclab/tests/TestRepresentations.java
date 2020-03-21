@@ -35,6 +35,7 @@ import thinclab.representations.policyrepresentations.PolicyTree;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -334,6 +335,26 @@ class TestRepresentations {
 		solver.solve();
 		
 		StrictlyOptimalDynamicBeliefGraph G = new StrictlyOptimalDynamicBeliefGraph(solver, 10);
+//		OptimalDynamicBeliefTree T = new OptimalDynamicBeliefTree(solver, 10);
+//		T.buildTree();
+		G.buildTree();
+		
+		LOGGER.debug("Tree is: " + G.getDotStringForPersistent());
+	}
+	
+	@Test
+	public void testOptimalDynamicBeliefGraphWithIPOMDPs() {
+		NextBelStateCache.useCache();
+		IPOMDPParser parser = 
+				new IPOMDPParser("/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "final_domains/deception.single_host.generic/defender.L1.spudd");
+//		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.noisy.txt");
+		parser.parseDomain();
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
+		
+		StrictlyOptimalDynamicBeliefGraph G = 
+				new StrictlyOptimalDynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 3);
 //		OptimalDynamicBeliefTree T = new OptimalDynamicBeliefTree(solver, 10);
 //		T.buildTree();
 		G.buildTree();

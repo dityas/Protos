@@ -8,6 +8,7 @@
 package thinclab.representations.belieftreerepresentations;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -51,7 +52,7 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefTree {
 		
 		this.solver.f.setGlobals();
 		List<Integer> prevNodes = new ArrayList<Integer>();
-		prevNodes.addAll(leafNodes);
+		prevNodes.addAll(this.leafNodes);
 		
 		/*
 		 * build lookahead tree for first step
@@ -63,8 +64,6 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefTree {
 		prevNodes.clear();
 		prevNodes.addAll(this.leafNodes);
 		
-		LOGGER.debug(this.getDotStringForPersistent());
-		
 		for (int t = 2; t < this.maxT; t++) {
 			prevNodes = this.expandPolicyGraph(prevNodes, (AlphaVectorPolicySolver) this.solver, t);
 		}
@@ -72,7 +71,10 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefTree {
 		if (this instanceof PersistentStructuredTree)
 			this.commitChanges();
 		
+		LOGGER.debug("Mj is: " + this.getDotStringForPersistent());
+		
 		this.stripBeliefInfo();
+		this.padEdges();
 	}
 	
 	private void stripBeliefInfo() {
@@ -102,7 +104,7 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefTree {
 		String endl = "\r\n";
 		String dotString = "digraph G{ " + endl;
 		
-		dotString += "graph [ranksep=3];" + endl;
+		dotString += "graph [ranksep=1];" + endl;
 		
 		/* Make nodes */
 		for (int id : this.getAllNodeIds()) {
@@ -137,6 +139,40 @@ public class StrictlyOptimalDynamicBeliefGraph extends DynamicBeliefTree {
 		dotString += "}" + endl;
 		
 		return dotString;
+	}
+	
+	private void padEdges() {
+		/*
+		 * Make loop vertices to themselves for non optimal action observation edges
+		 * 
+		 * This will not really affect the factor since P(Aj|Mj) = 0 for sub optimal Aj.
+		 * But it is still required for the DD reduction after the factor is created
+		 */
+		
+		for (int nodeId: this.getAllNodeIds()) {
+			
+			HashMap<List<String>, Integer> edges = this.getEdges(nodeId);
+			
+			for (List<String> obs: this.solver.f.getAllPossibleObservations()) {
+				for (String action: this.solver.f.getActions()) {
+					
+					List<String> newEdge = new ArrayList<String>();
+					newEdge.add(action);
+					newEdge.addAll(obs);
+					
+					if (edges.containsKey(newEdge)) continue;
+					
+					else edges.put(newEdge, nodeId);
+				}
+			}
+			
+			this.removeEdge(nodeId);
+			
+			for (List<String> edge: edges.keySet())
+				this.putEdge(nodeId, edge, edges.get(edge));
+		}
+		
+		this.commitChanges();
 	}
 	
 }
