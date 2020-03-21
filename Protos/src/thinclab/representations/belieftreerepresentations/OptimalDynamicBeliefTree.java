@@ -7,9 +7,11 @@
  */
 package thinclab.representations.belieftreerepresentations;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
@@ -28,6 +30,8 @@ public class OptimalDynamicBeliefTree extends DynamicBeliefTree {
 	 * Represents a policy tree starting from a depth 1 full belief expansion
 	 * to cover Mj completely
 	 */
+	
+	private String storedDotString = "";
 	
 	private static final long serialVersionUID = -8284860199891317543L;
 	private static final Logger LOGGER = Logger.getLogger(OptimalDynamicBeliefTree.class);
@@ -95,6 +99,8 @@ public class OptimalDynamicBeliefTree extends DynamicBeliefTree {
 		/* strip beliefs from the policy nodes */
 		this.stripBeliefInfo();
 		this.mergeCommonSubTrees();
+		
+		this.storedDotString = this.getDotStringForPersistent();
 		this.padEdges();
 		
 		if (this instanceof PersistentStructuredTree)
@@ -258,6 +264,77 @@ public class OptimalDynamicBeliefTree extends DynamicBeliefTree {
 		}
 		
 		this.commitChanges();
+	}
+	
+	// ------------------------------------------------------------------------------------------------
+	
+	@Override
+	public String getDotStringForPersistent() {
+		/*
+		 * Converts to graphviz compatible dot string
+		 */
+		String endl = "\r\n";
+		String dotString = "digraph G{ " + endl;
+		
+		dotString += "graph [ranksep=1];" + endl;
+		
+		/* Make nodes */
+		for (int id : this.getAllNodeIds()) {
+			
+			PolicyNode node = this.getPolicyNode(id);
+			
+			if (node.isStartNode())
+				dotString += " " + id + " [shape=Mrecord, label=\"";
+			else
+				dotString += " " + id + " [shape=record, label=\"";
+			
+			dotString += node.getActName()
+					+ "\"];" + endl;
+		}
+		
+		dotString += endl;
+		
+		for (int edgeSource: this.getAllEdgeIds()) {
+			
+			for (Entry<List<String>, Integer> ends : this.getEdges(edgeSource).entrySet()) {
+				
+				dotString += " " + edgeSource + " -> " + ends.getValue()
+					+ " [label=\"" + ends.getKey().toString() 
+					+ "\"]" + endl;
+			}
+		}
+		
+		dotString += "}" + endl;
+		
+		return dotString;
+	}
+	
+	@Override
+	public void writeDotFile(String dirName, String name) {
+		/*
+		 * Creates a graphviz dot file for the specified structure
+		 */
+		
+		try {
+			
+			PrintWriter writer = new PrintWriter(dirName + "/" + name + ".dot");
+			
+			if (this instanceof PersistentStructuredTree)
+				writer.println(this.storedDotString);
+			else
+				writer.println(this.getDotString());
+			
+			writer.flush();
+			
+			LOGGER.info("dot file " + dirName + "/" + name + ".dot" + " created");
+			writer.close();
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While creating dot file " + dirName + "/" + name + ".dot");
+			e.printStackTrace();
+			System.exit(-1);
+		}
 	}
 
 }
