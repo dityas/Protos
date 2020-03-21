@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -21,26 +20,23 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.IBeliefOps;
 import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.StructuredTree;
-import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
-import thinclab.utils.Diagnostics;
 import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
  *
  */
+@SuppressWarnings("unused")
 class TestIPOMDP {
 
 	public String l1DomainFile;

@@ -149,6 +149,7 @@ public class CacheDB {
 		return res;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public HashMap<String, NextBelState> getNZPrime(int belief_id) {
 		/*
 		 * Deserialize given object from the DB and return
