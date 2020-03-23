@@ -89,7 +89,7 @@ public class OptimalDynamicBeliefTree extends DynamicBeliefTree {
 		prevNodes.clear();
 		prevNodes.addAll(this.leafNodes);
 		
-		for (int t = 2; t < this.maxT + 1; t++) {
+		for (int t = 2; t < this.maxT; t++) {
 			
 			List<Integer> nextNodes = 
 					this.getOptimalNextPolicyNodes(prevNodes, t);
