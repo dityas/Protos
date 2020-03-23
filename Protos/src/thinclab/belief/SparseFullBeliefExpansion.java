@@ -124,15 +124,15 @@ public class SparseFullBeliefExpansion extends FullBeliefExpansion {
 					
 					if (this.exploredBeliefs.size() > this.maxBeliefs) {
 						
-						LOGGER.warn("Max beliefs limit reached, replacing random belief");
-						
-						DD beliefToRemove = null;
-						for (DD belToRemove: this.exploredBeliefs) {
-							beliefToRemove = belToRemove;
-							break;
-						}
-						
-						this.exploredBeliefs.remove(beliefToRemove);
+						LOGGER.warn("Max beliefs limit reached, stopping");
+						break;
+//						DD beliefToRemove = null;
+//						for (DD belToRemove: this.exploredBeliefs) {
+//							beliefToRemove = belToRemove;
+//							break;
+//						}
+//						
+//						this.exploredBeliefs.remove(beliefToRemove);
 					}
 					
 					this.exploredBeliefs.add(nextBelief);

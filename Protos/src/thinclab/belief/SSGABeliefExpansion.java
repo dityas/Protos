@@ -203,17 +203,17 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 								
 								else {
 									
-									LOGGER.warn("Max beliefs limit reached, replacing random belief");
-									
-									DD beliefToRemove = null;
-									
-									for (DD belToRemove: this.exploredBeliefs) {
-										beliefToRemove = belToRemove;
-										break;
-									}
-									
-									this.exploredBeliefs.remove(beliefToRemove);
-									this.exploredBeliefs.add(nextBelief);
+									LOGGER.warn("Max beliefs limit reached. stopping.");
+									break;
+//									DD beliefToRemove = null;
+//									
+//									for (DD belToRemove: this.exploredBeliefs) {
+//										beliefToRemove = belToRemove;
+//										break;
+//									}
+//									
+//									this.exploredBeliefs.remove(beliefToRemove);
+//									this.exploredBeliefs.add(nextBelief);
 								}
 							}
 						}
