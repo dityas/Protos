@@ -51,6 +51,7 @@ public class MultiAgentSimulation extends Simulation {
 	private String mjDotDir = null;
 	private PrintWriter summaryWriter = null;
 	private int iterId = -1;
+	private int jFrameID = -1;
 	
 	/* some lists for storing run stats */
 	List<String> stateSequence = new ArrayList<String>();
@@ -76,6 +77,7 @@ public class MultiAgentSimulation extends Simulation {
 		super();
 		
 		this.solver = pomdpSolver;
+		this.jFrameID = pomdpSolver.f.frameID;
 		this.l1Solver = ipomdpSolver;
 		this.iterations = interactions;
 		
@@ -588,6 +590,9 @@ public class MultiAgentSimulation extends Simulation {
 						gsonHandler.fromJson(
 								this.stateSequence.get(i), 
 								JsonObject.class));
+				
+				/* ThetaJ */
+				record.add("Theta_j", new JsonPrimitive(this.jFrameID));
 				
 				/* write action of i */
 				record.add("Ai", new JsonPrimitive(this.l1ActionSequence.get(i)));
