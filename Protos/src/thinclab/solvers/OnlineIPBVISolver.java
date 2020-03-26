@@ -10,12 +10,10 @@ package thinclab.solvers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
-import thinclab.belief.SSGABeliefExpansion;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.VariableNotFoundException;
@@ -28,7 +26,7 @@ import thinclab.legacy.OP;
  * @author adityas
  *
  */
-public class OnlineIPBVISolver extends OnlineSolver {
+public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 
 	/*
 	 * Implements interactive point based value iteration for solving IPOMDPs
@@ -42,23 +40,13 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	double bestImprovement;
 	double worstDecline;
 
-	/* Variables to hold AlphaVectors */
-	public DD[] alphaVectors;
-	public AlphaVector[] newAlphaVectors;
-	int numNewAlphaVectors;
-
-	/* policy holders */
-	public int[] policy;
-	double[] policyvalue;
-	boolean[] uniquePolicy;
-
 	/* Store local reference to the IPOMDP */
 	IPOMDP ipomdp;
 
 	/* IPBVI hyper params */
 	int dpBackups;
 
-	private static final Logger logger = Logger.getLogger(OnlineIPBVISolver.class);
+	private static final Logger LOGGER = Logger.getLogger(OnlineIPBVISolver.class);
 
 	// -----------------------------------------------------------------------------------------
 
@@ -78,38 +66,9 @@ public class OnlineIPBVISolver extends OnlineSolver {
 
 		/* initialize unique policy */
 		this.uniquePolicy = new boolean[this.ipomdp.getActions().size()];
-		
-		/* set initial policy */
-		this.setInitPolicy();
 	}
 
 	// -------------------------------------------------------------------------------------------
-	
-	public void setInitPolicy() {
-		/*
-		 * Sets initial policy and alpha vectors
-		 */
-		
-		/* Make a default alphaVectors as rewards to start with */
-		this.alphaVectors = 
-				this.ipomdp.currentRi.values().stream()
-					.map(a -> OP.reorder(a))
-					.collect(Collectors.toList())
-					.toArray(new DD[this.ipomdp.currentRi.size()]);
-		
-		/* default policy */
-		this.policy = new int[this.f.getActions().size()];
-		for (int i = 0; i < this.f.getActions().size(); i++)
-			this.policy[i] = this.f.getActions().indexOf(this.f.getActions().get(i));
-		
-		/* update belief strategy policy */
-		if (this.expansionStrategy instanceof SSGABeliefExpansion) {
-			logger.debug("Updating expansion policy");
-			((SSGABeliefExpansion) this.expansionStrategy).setRecentPolicy(
-					this.alphaVectors, this.policy);
-		}
-		
-	}
 	
 	@Override
 	public void setFramework(DecisionProcess ipomdp) {
@@ -126,7 +85,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 		 * Use online IPBVI to get solution for given beliefs
 		 */
 
-		logger.debug("Solving for " + beliefs.size() + " belief points.");
+		LOGGER.debug("Solving for " + beliefs.size() + " belief points.");
 
 		DD[][] factoredBeliefRegion = this.f.factorBeliefRegion(beliefs);
 
@@ -140,10 +99,15 @@ public class OnlineIPBVISolver extends OnlineSolver {
 		}
 
 		catch (Exception e) {
-			logger.error("While running solver: " + e.getMessage());
+			LOGGER.error("While running solver: " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}
+	}
+	
+	@Override
+	public void solve() {
+		LOGGER.error("the solve method is not applicable for this type of solver");
 	}
 
 	@Override
@@ -165,7 +129,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 		}
 
 		catch (VariableNotFoundException e) {
-			logger.error("While taking action " 
+			LOGGER.error("While taking action " 
 					+ action + " and observing " 
 					+ obs + " got error: " + e.getMessage());
 			System.exit(-1);
@@ -193,12 +157,6 @@ public class OnlineIPBVISolver extends OnlineSolver {
 	}
 	
 	@Override
-	public boolean hasSolution() {
-		
-		return (this.alphaVectors != null);
-	}
-
-	@Override
 	public String getActionAtCurrentBelief() {
 
 		return this.getActionForBelief(this.ipomdp.getCurrentBelief());
@@ -211,14 +169,6 @@ public class OnlineIPBVISolver extends OnlineSolver {
 		 */
 		return DecisionProcess.getActionFromPolicy(
 				this.f, belief, this.alphaVectors, this.policy);
-	}
-	
-	public DD[] getAlphaVectors() {
-		return this.alphaVectors;
-	}
-	
-	public int[] getPolicy() {
-		return this.policy;
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -376,7 +326,7 @@ public class OnlineIPBVISolver extends OnlineSolver {
 			
 			backupTimes.clear();
 			
-			logger.info("I: " + stepId 
+			LOGGER.info("I: " + stepId 
 					+ "  B ERROR: " + String.format(Locale.US, "%.03f", bellmanErr) 
 					+ "\t USED/TOTAL BELIEFS: " + nDpBackups 
 					+ "/" + beliefRegion.length 
@@ -387,13 +337,13 @@ public class OnlineIPBVISolver extends OnlineSolver {
 				continue;
 
 			if (bellmanErr < 0.01) {
-				logger.warn("BELLMAN ERROR LESS THAN 0.01. COVERGENCE! SOFTWARE VERSION 7.0... "
+				LOGGER.warn("BELLMAN ERROR LESS THAN 0.01. COVERGENCE! SOFTWARE VERSION 7.0... "
 						+ "LOOKING AT LIFE THROUGH THE EYES OF A TIRED HEART.");
 				break;
 			}
 
 			if (stepId > 20 && errorVar < 0.0001) {
-				logger.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
+				LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;
 			}
@@ -401,5 +351,4 @@ public class OnlineIPBVISolver extends OnlineSolver {
 		}
 
 	}
-
 }

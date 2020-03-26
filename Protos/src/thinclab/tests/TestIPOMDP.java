@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -21,25 +20,23 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.IBeliefOps;
+import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.StructuredTree;
-import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
-import thinclab.utils.Diagnostics;
 import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
  *
  */
+@SuppressWarnings("unused")
 class TestIPOMDP {
 
 	public String l1DomainFile;
@@ -180,50 +177,6 @@ class TestIPOMDP {
 		LOGGER.debug("That took " 
 				+ differentTimes.stream().mapToDouble(a -> a).average().getAsDouble() 
 				+ " msec");
-	}
-	
-	
-	
-	
-	@Test
-	void testMJCompression() throws Exception {
-		
-		IPOMDPParser parser = 
-				new IPOMDPParser(
-						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
-		parser.parseDomain();
-		
-		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 4, 10);
-		
-//		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
-//		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(1).getDotStringForPersistent());
-		
-		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotString());
-		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(1).getDotString());
-		
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 	}
 
 	@Test
@@ -654,9 +607,21 @@ class TestIPOMDP {
 		for (String varName : beliefMapFromUpdate.keySet()) {
 			for (String child : beliefMapFromUpdate.get(varName).keySet()) {
 				LOGGER.debug("Checking var=" + varName + " value=" + child);
-				assertEquals(
-						beliefMapFromUpdate.get(varName).get(child), 
-						beliefMapFromStep.get(varName).get(child));
+				
+				float bel2;
+				
+				if (beliefMapFromStep.get(varName).containsKey(child)) 
+					bel2 = beliefMapFromStep.get(varName).get(child);
+				else
+					bel2 = 0;
+				
+				double bel1 = beliefMapFromUpdate.get(varName).get(child);
+//				bel2 = beliefMapFromStep3.get(varName).get(child);
+				
+				LOGGER.debug("Difference between update and step is " + Math.abs(bel1 - bel2));
+				
+				assertTrue(
+						Math.abs(bel1 - bel2) < 0.01);
 			}
 		}
 		
@@ -685,9 +650,21 @@ class TestIPOMDP {
 		for (String varName : beliefMapFromUpdate2.keySet()) {
 			for (String child : beliefMapFromUpdate2.get(varName).keySet()) {
 				LOGGER.debug("Checking var=" + varName + " value=" + child);
-				assertEquals(
-						beliefMapFromUpdate2.get(varName).get(child), 
-						beliefMapFromStep2.get(varName).get(child));
+				
+				float bel2;
+				
+				if (beliefMapFromStep2.get(varName).containsKey(child)) 
+					bel2 = beliefMapFromStep2.get(varName).get(child);
+				else
+					bel2 = 0;
+				
+				double bel1 = beliefMapFromUpdate2.get(varName).get(child);
+//				bel2 = beliefMapFromStep2.get(varName).get(child);
+				
+				LOGGER.debug("Difference between update and step is " + Math.abs(bel1 - bel2));
+				
+				assertTrue(
+						Math.abs(bel1 - bel2) < 0.01);
 			}
 		}
 		
@@ -717,45 +694,49 @@ class TestIPOMDP {
 			for (String child : beliefMapFromUpdate3.get(varName).keySet()) {
 				LOGGER.debug("Checking var=" + varName + " value=" + child);
 				
-				float bel;
+				float bel2;
 				
 				if (beliefMapFromStep3.get(varName).containsKey(child)) 
-					bel = beliefMapFromStep3.get(varName).get(child);
+					bel2 = beliefMapFromStep3.get(varName).get(child);
 				else
-					bel = 0;
+					bel2 = 0;
+				
+				double bel1 = beliefMapFromUpdate3.get(varName).get(child);
+//				bel2 = beliefMapFromStep3.get(varName).get(child);
+				
+				LOGGER.debug("Difference between update and step is " + Math.abs(bel1 - bel2));
 				
 				assertTrue(
-						(beliefMapFromUpdate3.get(varName).get(child) - 
-						bel) < 0.01);
+						Math.abs(bel1 - bel2) < 0.01);
 			}
 		}
 		
-		LOGGER.info("Running random steps");
-		
-		parser = new IPOMDPParser(this.l1DomainFile);
-		parser.parseDomain();
-		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 20);
-		
-		Random rand = new Random();
-		
-		/* run for 100 iters */
-		for (int i = 0; i < 5; i++) {
-			
-			List<String> actions = ipomdp.getActions();
-			String action = actions.get(rand.nextInt(actions.size()));
-			
-			DD obsdist = ipomdp.getObsDist(ipomdp.getCurrentBelief(), action);
-			
-			int[][] obsConfig = OP.sampleMultinomial(obsdist, ipomdp.obsIVarPrimeIndices);
-			String[] obs = new String[obsConfig[0].length];
-			
-			for (int varI = 0; varI < obsConfig[0].length; varI ++) {
-				obs[varI] = Global.valNames[obsConfig[0][varI] - 1][obsConfig[1][varI] - 1];
-			}
-			
-			ipomdp.step(ipomdp.getCurrentBelief(), action, obs);
-		}
+//		LOGGER.info("Running random steps");
+//		
+//		parser = new IPOMDPParser(this.l1DomainFile);
+//		parser.parseDomain();
+//		
+//		IPOMDP ipomdp = new IPOMDP(parser, 3, 20);
+//		
+//		Random rand = new Random();
+//		
+//		/* run for 100 iters */
+//		for (int i = 0; i < 5; i++) {
+//			
+//			List<String> actions = ipomdp.getActions();
+//			String action = actions.get(rand.nextInt(actions.size()));
+//			
+//			DD obsdist = ipomdp.getObsDist(ipomdp.getCurrentBelief(), action);
+//			
+//			int[][] obsConfig = OP.sampleMultinomial(obsdist, ipomdp.obsIVarPrimeIndices);
+//			String[] obs = new String[obsConfig[0].length];
+//			
+//			for (int varI = 0; varI < obsConfig[0].length; varI ++) {
+//				obs[varI] = Global.valNames[obsConfig[0][varI] - 1][obsConfig[1][varI] - 1];
+//			}
+//			
+//			ipomdp.step(ipomdp.getCurrentBelief(), action, obs);
+//		}
 	}
 	
 	@Test
@@ -790,6 +771,9 @@ class TestIPOMDP {
 		tigerL1IPOMDP.step(start, action1, obs1);
 		LOGGER.debug("next belief from step is " 
 				+ tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief()));
+//		LOGGER.debug(tigerL1IPOMDP.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+//		LOGGER.debug(tigerL1IPOMDP.multiFrameMJ.MJs.get(1).getDotStringForPersistent());
+//		System.exit(-1);
 		
 		LOGGER.debug("Assert equality between beliefUpdate and steps");
 		HashMap<String, HashMap<String, Float>> beliefMapFromStep = 
@@ -798,9 +782,21 @@ class TestIPOMDP {
 		for (String varName : beliefMapFromUpdate.keySet()) {
 			for (String child : beliefMapFromUpdate.get(varName).keySet()) {
 				LOGGER.debug("Checking var=" + varName + " value=" + child);
-				assertEquals(
-						beliefMapFromUpdate.get(varName).get(child), 
-						beliefMapFromStep.get(varName).get(child));
+				
+				float bel2;
+				
+				if (beliefMapFromStep.get(varName).containsKey(child)) 
+					bel2 = beliefMapFromStep.get(varName).get(child);
+				else
+					bel2 = 0;
+				
+				double bel1 = beliefMapFromUpdate.get(varName).get(child);
+//				bel2 = beliefMapFromStep3.get(varName).get(child);
+				
+				LOGGER.debug("Difference between update and step is " + Math.abs(bel1 - bel2));
+				
+				assertTrue(
+						Math.abs(bel1 - bel2) < 0.01);
 			}
 		}
 		
@@ -829,9 +825,21 @@ class TestIPOMDP {
 		for (String varName : beliefMapFromUpdate2.keySet()) {
 			for (String child : beliefMapFromUpdate2.get(varName).keySet()) {
 				LOGGER.debug("Checking var=" + varName + " value=" + child);
-				assertEquals(
-						beliefMapFromUpdate2.get(varName).get(child), 
-						beliefMapFromStep2.get(varName).get(child));
+				
+				float bel2;
+				
+				if (beliefMapFromStep2.get(varName).containsKey(child)) 
+					bel2 = beliefMapFromStep2.get(varName).get(child);
+				else
+					bel2 = 0;
+				
+				double bel1 = beliefMapFromUpdate2.get(varName).get(child);
+//				bel2 = beliefMapFromStep3.get(varName).get(child);
+				
+				LOGGER.debug("Difference between update and step is " + Math.abs(bel1 - bel2));
+				
+				assertTrue(
+						Math.abs(bel1 - bel2) < 0.01);
 			}
 		}
 		
@@ -861,45 +869,51 @@ class TestIPOMDP {
 			for (String child : beliefMapFromUpdate3.get(varName).keySet()) {
 				LOGGER.debug("Checking var=" + varName + " value=" + child);
 				
-				float val = 0;
+				float bel2;
 				
-				if (beliefMapFromStep3.get(varName).containsKey(child))
-					val = beliefMapFromStep3.get(varName).get(child);
+				if (beliefMapFromStep3.get(varName).containsKey(child)) 
+					bel2 = beliefMapFromStep3.get(varName).get(child);
+				else
+					bel2 = 0;
 				
-				float diff = beliefMapFromUpdate3.get(varName).get(child) - val;
-						
-				assertTrue(diff < 0.01);
+				double bel1 = beliefMapFromUpdate3.get(varName).get(child);
+//				bel2 = beliefMapFromStep3.get(varName).get(child);
+				
+				LOGGER.debug("Difference between update and step is " + Math.abs(bel1 - bel2));
+				
+				assertTrue(
+						Math.abs(bel1 - bel2) < 0.1);
 			}
 		}
 		
-		LOGGER.info("Running random steps");
-		
-		parser = new IPOMDPParser(
-						"/home/adityas/git/repository/Protos/"
-						+ "domains/tiger.L1multiple_new_parser.txt");
-		parser.parseDomain();
-		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 20);
-		
-		Random rand = new Random();
-		
-		/* run for 100 iters */
-		for (int i = 0; i < 5; i++) {
-			
-			List<String> actions = ipomdp.getActions();
-			String action = actions.get(rand.nextInt(actions.size()));
-			
-			DD obsdist = ipomdp.getObsDist(ipomdp.getCurrentBelief(), action);
-			
-			int[][] obsConfig = OP.sampleMultinomial(obsdist, ipomdp.obsIVarPrimeIndices);
-			String[] obs = new String[obsConfig[0].length];
-			
-			for (int varI = 0; varI < obsConfig[0].length; varI ++) {
-				obs[varI] = Global.valNames[obsConfig[0][varI] - 1][obsConfig[1][varI] - 1];
-			}
-			
-			ipomdp.step(ipomdp.getCurrentBelief(), action, obs);
-		}
+//		LOGGER.info("Running random steps");
+//		
+//		parser = new IPOMDPParser(
+//						"/home/adityas/git/repository/Protos/"
+//						+ "domains/tiger.L1multiple_new_parser.txt");
+//		parser.parseDomain();
+//		
+//		IPOMDP ipomdp = new IPOMDP(parser, 3, 20);
+//		
+//		Random rand = new Random();
+//		
+//		/* run for 100 iters */
+//		for (int i = 0; i < 5; i++) {
+//			
+//			List<String> actions = ipomdp.getActions();
+//			String action = actions.get(rand.nextInt(actions.size()));
+//			
+//			DD obsdist = ipomdp.getObsDist(ipomdp.getCurrentBelief(), action);
+//			
+//			int[][] obsConfig = OP.sampleMultinomial(obsdist, ipomdp.obsIVarPrimeIndices);
+//			String[] obs = new String[obsConfig[0].length];
+//			
+//			for (int varI = 0; varI < obsConfig[0].length; varI ++) {
+//				obs[varI] = Global.valNames[obsConfig[0][varI] - 1][obsConfig[1][varI] - 1];
+//			}
+//			
+//			ipomdp.step(ipomdp.getCurrentBelief(), action, obs);
+//		}
 		
 	}
 	
@@ -985,7 +999,7 @@ class TestIPOMDP {
 		/* Initialize IPOMDP */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 20);
 		
-		FullBeliefExpansion fb = new FullBeliefExpansion(tigerL1IPOMDP);
+		SparseFullBeliefExpansion fb = new SparseFullBeliefExpansion(tigerL1IPOMDP, 10);
 //		fb.expand();
 //		
 //		NextBelStateCache.populateCache(tigerL1IPOMDP, fb.getBeliefPoints());

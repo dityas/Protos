@@ -71,6 +71,10 @@ public class PolicyNode implements Serializable {
 	public void setStartNode(boolean startNode) {
 		this.startNode = startNode;
 	}
+	
+	public void setAlphaId(int alphaId) {
+		this.alphaId = alphaId;
+	}
 
 	public int getId() {
 		return id;

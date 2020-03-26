@@ -13,14 +13,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.FloatBuffer;
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-
-import javax.naming.spi.DirStateFactory.Result;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -47,6 +43,7 @@ import thinclab.utils.NextBelStateCache;
  * @author adityas
  *
  */
+@SuppressWarnings("unused")
 class TestBenchmarkNZPrimeStorage {
 	
 	public String l1DomainFile;

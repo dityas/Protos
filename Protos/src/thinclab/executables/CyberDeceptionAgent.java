@@ -167,7 +167,7 @@ public class CyberDeceptionAgent extends Executable {
 					solver.f.setGlobals();
 					
 					/* make policy graph */
-					PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
+					PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver, simLength);
 					pg.makeGraph();
 					
 					/* store policy graph solution */

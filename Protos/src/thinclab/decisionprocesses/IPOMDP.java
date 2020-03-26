@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -1690,8 +1691,11 @@ public class IPOMDP extends POMDP {
 				
 				int[][] fullStateConfig = 
 						OP.sampleMultinomial(
-								OP.multN(new DD[] {
-										currentBelief, this.currentAjGivenMj, this.currentThetajGivenMj}), 
+								OP.multN(
+										new DD[] {
+										currentBelief, 
+										this.currentAjGivenMj, 
+										this.currentThetajGivenMj}), 
 								this.getStateVarIndices());
 				
 				int[][] frameConfig = 
@@ -1713,10 +1717,275 @@ public class IPOMDP extends POMDP {
 								{stateConfig[1][this.MjVarPosition]}};
 					
 					String action = 
-							DecisionProcess.getActionFromPolicy(this, currentBelief, alphaVectors, policy);
+							DecisionProcess.getActionFromPolicy(
+									this, currentBelief, alphaVectors, policy);
 					
 					if (verbose) {
 						LOGGER.debug("Best Action in state " 
+								+ Arrays.toString(IPOMDP.configToStrings(stateConfig)) + " "
+								+ "is " + action);
+					}
+					
+					/* evaluate action */
+					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					totalReward = totalReward + (totalDiscount * currentReward);
+					totalDiscount = totalDiscount * this.discFact;
+								
+					DD actDD = OP.restrict(this.currentAjGivenMj, mjConfig);
+					int[][] actConfig = OP.sampleMultinomial(actDD, this.AjStartIndex);
+					
+					DD[] TiForMj = 
+							OP.restrictN(
+									OP.restrictN(
+											ArrayUtils.add(
+													this.getTiForAction(action), 
+													this.currentTauXPAjGivenMjXPThetajGivenMj), 
+											frameConfig), 
+									actConfig);
+					
+					DD[] TforS = 
+							OP.restrictN(TiForMj, stateConfig);
+					
+					int[][] nextStateConfig = 
+							OP.sampleMultinomial(TforS, primeStateVars);
+					
+					/* sample obs from distribution */
+					DD[] restrictedO = OP.restrictN(this.getOiForAction(action), actConfig);
+					
+					DD[] obsDist = 
+							OP.restrictN(
+									restrictedO, 
+									POMDP.concatenateArray(stateConfig, nextStateConfig));
+					
+					int[][] obsConfig = 
+							OP.sampleMultinomial(
+									obsDist, 
+									this.getObsVarPrimeIndices());
+					
+					String[] obs = IPOMDP.configToStrings(obsConfig);
+					
+					currentBelief = this.beliefUpdate(currentBelief, action, obs);
+					stateConfig = Config.primeVars(nextStateConfig, -this.getNumVars());
+				}
+				
+				if (verbose)
+					LOGGER.debug("Run: " + n + " total reward is " + totalReward);
+				
+				if ((n % 100) == 0)
+					LOGGER.debug("Finished " + n + " trials,"
+							+ " avg. reward is: " 
+							+ rewards.stream().mapToDouble(r -> r).average().orElse(Double.NaN));
+				
+				rewards.add(totalReward);
+			}
+			
+			Global.clearHashtables();
+		}
+		
+		catch (ZeroProbabilityObsException o) {
+			LOGGER.error("Evaluation crashed: " + o.getMessage());
+			return -1;
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("Evaluation crashed: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+			
+			return -1;
+		}
+		
+		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		return avgReward;
+	}
+	
+	@Override
+	public double evaluateDefaultPolicy(
+			String defaultAction, int trials, int evalDepth, boolean verbose) {
+		/*
+		 * 
+		 */
+		
+		List<Double> rewards = new ArrayList<Double>();
+		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
+		
+		int[] primeStateVars = 
+				ArrayUtils.subarray(
+						this.stateVarPrimeIndices, 0, this.thetaVarPosition);
+		
+		try {
+			
+			Global.clearHashtables();
+			
+			for (int n = 0; n < trials; n++) {
+				DD currentBelief = currentBeliefTree.toDD();
+				
+				double totalReward = 0.0;
+				double totalDiscount = 1.0;
+				
+				int[][] fullStateConfig = 
+						OP.sampleMultinomial(
+								OP.multN(
+										new DD[] {
+										currentBelief, 
+										this.currentAjGivenMj, 
+										this.currentThetajGivenMj}), 
+								this.getStateVarIndices());
+				
+				int[][] frameConfig = 
+						new int[][] {
+							{this.thetaVarPosition + 1}, 
+							{fullStateConfig[1][this.thetaVarPosition]}};
+							
+				int[][] stateConfig = 
+						new int[][] {
+							ArrayUtils.subarray(fullStateConfig[0], 0, this.thetaVarPosition),
+							ArrayUtils.subarray(fullStateConfig[1], 0, this.thetaVarPosition)};
+				
+				for (int t = 0; t < this.mjLookAhead; t++) {
+					
+					/* get mj from state config */
+					int[][] mjConfig = 
+							new int[][] {
+								{this.MjVarIndex}, 
+								{stateConfig[1][this.MjVarPosition]}};
+					
+					String action = defaultAction;
+					
+					if (verbose) {
+						LOGGER.debug("Default action in state " 
+								+ Arrays.toString(IPOMDP.configToStrings(stateConfig)) + " "
+								+ "is " + action);
+					}
+					
+					/* evaluate action */
+					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					totalReward = totalReward + (totalDiscount * currentReward);
+					totalDiscount = totalDiscount * this.discFact;
+								
+					DD actDD = OP.restrict(this.currentAjGivenMj, mjConfig);
+					int[][] actConfig = OP.sampleMultinomial(actDD, this.AjStartIndex);
+					
+					DD[] TiForMj = 
+							OP.restrictN(
+									OP.restrictN(
+											ArrayUtils.add(
+													this.getTiForAction(action), 
+													this.currentTauXPAjGivenMjXPThetajGivenMj), 
+											frameConfig), 
+									actConfig);
+					
+					DD[] TforS = 
+							OP.restrictN(TiForMj, stateConfig);
+					
+					int[][] nextStateConfig = 
+							OP.sampleMultinomial(TforS, primeStateVars);
+					
+					/* sample obs from distribution */
+					DD[] restrictedO = OP.restrictN(this.getOiForAction(action), actConfig);
+					
+					DD[] obsDist = 
+							OP.restrictN(
+									restrictedO, 
+									POMDP.concatenateArray(stateConfig, nextStateConfig));
+					
+					int[][] obsConfig = 
+							OP.sampleMultinomial(
+									obsDist, 
+									this.getObsVarPrimeIndices());
+					
+					String[] obs = IPOMDP.configToStrings(obsConfig);
+					
+					currentBelief = this.beliefUpdate(currentBelief, action, obs);
+					stateConfig = Config.primeVars(nextStateConfig, -this.getNumVars());
+				}
+				
+				if (verbose)
+					LOGGER.debug("Run: " + n + " total reward is " + totalReward);
+				
+				if ((n % 100) == 0)
+					LOGGER.debug("Finished " + n + " trials,"
+							+ " avg. reward is: " 
+							+ rewards.stream().mapToDouble(r -> r).average().orElse(Double.NaN));
+				
+				rewards.add(totalReward);
+			}
+			
+			Global.clearHashtables();
+		}
+		
+		catch (ZeroProbabilityObsException o) {
+			LOGGER.error("Evaluation crashed: " + o.getMessage());
+			return -1;
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("Evaluation crashed: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+			
+			return -1;
+		}
+		
+		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		return avgReward;
+	}
+	
+	@Override
+	public double evaluateRandomPolicy(int trials, int evalDepth, boolean verbose) {
+		/*
+		 * 
+		 */
+		
+		List<Double> rewards = new ArrayList<Double>();
+		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
+		
+		int[] primeStateVars = 
+				ArrayUtils.subarray(
+						this.stateVarPrimeIndices, 0, this.thetaVarPosition);
+		
+		try {
+			
+			Global.clearHashtables();
+			
+			for (int n = 0; n < trials; n++) {
+				DD currentBelief = currentBeliefTree.toDD();
+				
+				double totalReward = 0.0;
+				double totalDiscount = 1.0;
+				
+				int[][] fullStateConfig = 
+						OP.sampleMultinomial(
+								OP.multN(
+										new DD[] {
+										currentBelief, 
+										this.currentAjGivenMj, 
+										this.currentThetajGivenMj}), 
+								this.getStateVarIndices());
+				
+				int[][] frameConfig = 
+						new int[][] {
+							{this.thetaVarPosition + 1}, 
+							{fullStateConfig[1][this.thetaVarPosition]}};
+							
+				int[][] stateConfig = 
+						new int[][] {
+							ArrayUtils.subarray(fullStateConfig[0], 0, this.thetaVarPosition),
+							ArrayUtils.subarray(fullStateConfig[1], 0, this.thetaVarPosition)};
+				
+				for (int t = 0; t < this.mjLookAhead; t++) {
+					
+					/* get mj from state config */
+					int[][] mjConfig = 
+							new int[][] {
+								{this.MjVarIndex}, 
+								{stateConfig[1][this.MjVarPosition]}};
+					
+					Random rnd = new Random();
+					String action = this.getActions().get(rnd.nextInt(this.getActions().size()));
+					
+					if (verbose) {
+						LOGGER.debug("Random action in state " 
 								+ Arrays.toString(IPOMDP.configToStrings(stateConfig)) + " "
 								+ "is " + action);
 					}

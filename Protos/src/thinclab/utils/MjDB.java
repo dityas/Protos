@@ -82,6 +82,7 @@ public class MjDB {
 			String nodeTable = "CREATE TABLE IF NOT EXISTS id_to_node ("
 					+ "belief_id INTEGER PRIMARY KEY,"
 					+ "time_step INTEGER,"
+					+ "opt_action TEXT,"
 					+ "policy_node BLOB);";
 			
 			Statement query = this.storageConn.createStatement();
@@ -116,6 +117,7 @@ public class MjDB {
 	
 	public void commitChanges() {
 		try {
+			LOGGER.debug("Commiting changes");
 			this.storageConn.commit();
 		} 
 		
@@ -133,8 +135,8 @@ public class MjDB {
 		
 		try {
 			String insertNodeQ = "INSERT INTO id_to_node "
-					+ "(belief_id, time_step, policy_node) "
-					+ "VALUES(?, ?, ?)";
+					+ "(belief_id, time_step, opt_action, policy_node) "
+					+ "VALUES(?, ?, ?, ?)";
 			
 			ByteArrayOutputStream bArrayOutStream = new ByteArrayOutputStream();
 			ObjectOutputStream outStream = new ObjectOutputStream(bArrayOutStream);
@@ -150,7 +152,8 @@ public class MjDB {
 			PreparedStatement stmt = this.storageConn.prepareStatement(insertNodeQ);
 			stmt.setInt(1, id);
 			stmt.setInt(2, node.getH());
-			stmt.setBytes(3, serializedNode);
+			stmt.setString(3, node.getActName());
+			stmt.setBytes(4, serializedNode);
 			stmt.executeUpdate();
 		}
 		
@@ -178,6 +181,35 @@ public class MjDB {
 			stmt.setInt(3, dest_id);
 			stmt.executeUpdate();
 			
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While inserting node into id_to_node table " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+	
+	public void updateEdgeDest(int src_id, List<String> label, int old_dest_id, int new_dest_id) {
+		/*
+		 * Inserts new Node in the id_to_node
+		 */
+		
+		LOGGER.debug("Updating edge " + src_id + " -> " + label + " -> " + old_dest_id +
+				" to " + src_id + " -> " + label + " -> " + new_dest_id);
+		
+		try {
+			String insertEdgeQ = "UPDATE edges "
+					+ "SET dest_id=? "
+					+ "WHERE src_id=? AND label=? AND dest_id=?";
+			
+			/* Insert belief */
+			PreparedStatement stmt = this.storageConn.prepareStatement(insertEdgeQ);
+			stmt.setInt(1, new_dest_id);
+			stmt.setInt(2, src_id);
+			stmt.setString(3, String.join("|", label));
+			stmt.setInt(4, old_dest_id);
+			stmt.executeUpdate();
 		}
 		
 		catch (Exception e) {
@@ -257,6 +289,45 @@ public class MjDB {
 		return deserializedObj;
 	}
 	
+	public HashMap<Integer, HashMap<List<String>, Integer>> getEdgesEndingAt(int dest_id) {
+		/*
+		 * Deserialize all edges ending at given dest_id
+		 */
+		
+		HashMap<Integer, HashMap<List<String>, Integer>> deserializedObj = 
+				new HashMap<Integer, HashMap<List<String>, Integer>>();
+		
+		try {
+			String getPolicyNodeQ = "SELECT * FROM edges WHERE dest_id=?";
+			
+			/* select all */
+			PreparedStatement stmt = this.storageConn.prepareStatement(getPolicyNodeQ);
+			stmt.setInt(1, dest_id);
+			
+			ResultSet res = stmt.executeQuery();
+			
+			while (res.next()) {
+				
+				int src = res.getInt("src_id");
+				List<String> obs = Arrays.asList(res.getString("label").split("\\|"));
+				int dest = res.getInt("dest_id");
+				
+				if (!deserializedObj.containsKey(src))
+					deserializedObj.put(src, new HashMap<List<String>, Integer>());
+				
+				deserializedObj.get(src).put(obs, dest);
+			}
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While getting edges from table " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		
+		return deserializedObj;
+	}
+	
 	public void makeAllRoots() {
 		/*
 		 * Makes all nodes in the DB as roots for expansion
@@ -290,6 +361,66 @@ public class MjDB {
 			/* select all */
 			PreparedStatement stmt = this.storageConn.prepareStatement(getAllRootsQ);
 			stmt.setInt(1, 0);
+			
+			ResultSet res = stmt.executeQuery();
+			
+			while (res.next()) {
+				ids.add(res.getInt("belief_id"));
+			}
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While getting PolicyNode from table " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		
+		return ids;
+	}
+	
+	public List<Integer> getAllNodesAtHorizon(int horizon) {
+		/*
+		 * Get all root nodes
+		 */
+		
+		List<Integer> ids = new ArrayList<Integer>();
+		
+		try {
+			String getAllRootsQ = "SELECT belief_id FROM id_to_node WHERE time_step=?";
+			
+			/* select all */
+			PreparedStatement stmt = this.storageConn.prepareStatement(getAllRootsQ);
+			stmt.setInt(1, horizon);
+			
+			ResultSet res = stmt.executeQuery();
+			
+			while (res.next()) {
+				ids.add(res.getInt("belief_id"));
+			}
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While getting PolicyNode from table " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		
+		return ids;
+	}
+	
+	public List<Integer> getAllNodesByAction(String action) {
+		/*
+		 * Get all root nodes
+		 */
+		
+		List<Integer> ids = new ArrayList<Integer>();
+		
+		try {
+			String getAllRootsQ = "SELECT belief_id FROM id_to_node WHERE opt_action=?";
+			
+			/* select all */
+			PreparedStatement stmt = this.storageConn.prepareStatement(getAllRootsQ);
+			stmt.setString(1, action);
 			
 			ResultSet res = stmt.executeQuery();
 			
@@ -381,6 +512,48 @@ public class MjDB {
 		
 		catch (Exception e) {
 			LOGGER.error("While deleting from id_to_node table " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+	
+	public void removeEdge(int srcId) {
+		/*
+		 * Delete all entries in the id_to_node table 
+		 */
+		
+		try {
+			String deleteEntriesQ = "DELETE FROM edges WHERE src_id=?";
+			
+			/* select all */
+			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+			stmt.setInt(1, srcId);
+			stmt.executeUpdate();
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While deleting from edges table " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+	
+	public void removeEdgeWithDestId(int destId) {
+		/*
+		 * Delete edge with destination id  
+		 */
+		
+		try {
+			String deleteEntriesQ = "DELETE FROM edges WHERE dest_id=?";
+			
+			/* select all */
+			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+			stmt.setInt(1, destId);
+			stmt.executeUpdate();
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While deleting from edges table " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -492,13 +665,13 @@ public class MjDB {
 			}
 			
 			/* edges table */
-			ResultSet edgesRes = this.getNodeTable();
+			ResultSet edgesRes = this.getEdgesTable();
 			
 			LOGGER.debug("Edges Table:");
 			while(edgesRes.next()) {
 				LOGGER.debug("ID: " + edgesRes.getInt("edge") 
 					+ " SRC: " + edgesRes.getInt("src_id")
-					+ " LABEL: " + edgesRes.getBytes("label")
+					+ " LABEL: " + edgesRes.getString("label")
 					+ " DEST: " + edgesRes.getInt("dest_id"));
 			}
 		}

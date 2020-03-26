@@ -9,14 +9,9 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,17 +20,13 @@ import org.junit.jupiter.api.Test;
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.belief.SparseFullBeliefExpansion;
-import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
-import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
-import thinclab.representations.policyrepresentations.PolicyGraph;
-import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
@@ -253,6 +244,7 @@ class TestBeliefExpansionStartegies {
 		return actProbs;
 	}
 	
+	@SuppressWarnings("unused")
 	@Test
 	void testBeliefExpansionForStrictlyOptimalMj() throws Exception {
 		LOGGER.info("Testing belief expansion in strictly optimal MJs");
@@ -334,6 +326,10 @@ class TestBeliefExpansionStartegies {
 		
 		LOGGER.debug("Alpha Vector is: " + newVector.alphaVector.toDDTree());
 		LOGGER.debug("Value is: " + newVector.value);
+		
+		T1 = null;
+		T2 = null;
+		
 	
 //		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
 	}

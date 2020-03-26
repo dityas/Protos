@@ -9,7 +9,6 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -21,26 +20,22 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.SSGABeliefExpansion;
-import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
-import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
-import thinclab.simulations.MultiAgentSimulation;
-import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineIPBVISolver;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
-import thinclab.solvers.OnlineSolver;
 import thinclab.utils.CustomConfigurationFactory;
 
 /*
  * @author adityas
  *
  */
+@SuppressWarnings("unused")
 class TestOnlineSymbolicPerseus {
 
 	public String l1DomainFile;

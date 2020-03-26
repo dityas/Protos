@@ -8,7 +8,6 @@
 package thinclab.belief;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -49,6 +48,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	
 	/* number of iterations of SSGA during each expansion */
 	private int nIterations;
+	private int maxBeliefs = 500;
 	
 	private static final Logger LOGGER = Logger.getLogger(SSGABeliefExpansion.class);
 	
@@ -81,6 +81,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		this.exploredBeliefs.addAll(fb.getBeliefPoints());
 		
 		fb = null;
+		this.maxBeliefs = 500;
 		
 		LOGGER.debug("SSGA expansion search initialized");
 	}
@@ -102,6 +103,8 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		
 		this.exploredBeliefs = new HashSet<DD>();
 		this.exploredBeliefs.addAll(this.initialBeliefs);
+		
+		this.maxBeliefs = 200;
 	}
 	
 	// ----------------------------------------------------------------------------------------
@@ -192,8 +195,27 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 								
 							}
 							
-							if (minDist > 0.01)
-								this.exploredBeliefs.add(nextBelief);
+							if (minDist > 0.01) {
+								
+								if (this.exploredBeliefs.size() < this.maxBeliefs) {
+									this.exploredBeliefs.add(nextBelief);
+								}
+								
+								else {
+									
+									LOGGER.warn("Max beliefs limit reached. stopping.");
+									break;
+//									DD beliefToRemove = null;
+//									
+//									for (DD belToRemove: this.exploredBeliefs) {
+//										beliefToRemove = belToRemove;
+//										break;
+//									}
+//									
+//									this.exploredBeliefs.remove(beliefToRemove);
+//									this.exploredBeliefs.add(nextBelief);
+								}
+							}
 						}
 						
 						belief = nextBelief;

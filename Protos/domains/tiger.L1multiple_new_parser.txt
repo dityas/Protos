@@ -148,7 +148,7 @@ discount  0.9
 tolerance 0.001
 
 (frames
-	(frame 0 level 0
+	(frame 0 level 0 def
 		(variables 
 		 	(tiger-location tiger-left tiger-right))
 		
@@ -197,7 +197,7 @@ tolerance 0.001
 		tolerance 0.001
 	)
 	
-	(frame 1 level 0
+	(frame 1 level 0 def
 		(variables 
 		 	(tiger-location tiger-left tiger-right))
 		

@@ -21,14 +21,16 @@ import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
-import thinclab.representations.conditionalplans.ConditionalPlanTree;
 import thinclab.representations.policyrepresentations.PolicyGraph;
+import thinclab.representations.policyrepresentations.PolicyTree;
 import thinclab.simulations.MultiAgentSimulation;
 import thinclab.simulations.StochasticSimulation;
+import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.BaseSolver;
-import thinclab.solvers.OfflinePBVISolver;
+import thinclab.solvers.DefaultActionPolicySolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
+import thinclab.solvers.RandomActionPolicySolver;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.NextBelStateCache;
 
@@ -75,7 +77,21 @@ public class RunSimulations extends Executable {
 				"e", 
 				"ssga", 
 				false, 
-				"use SSGA expansion? (5 perseus rounds and 10 iterations of exploration)");
+				"use SSGA expansion? (5 perseus rounds and 30 iterations of exploration)");
+		
+		/* use default policy */
+		opt.addOption(
+				"j", 
+				"default-policy", 
+				false, 
+				"use default policy for L1?");
+		
+		/* use default policy */
+		opt.addOption(
+				"k", 
+				"random-policy", 
+				false, 
+				"use random policy for L1?");
 		
 		/* simulation switch */
 		opt.addOption(
@@ -154,11 +170,11 @@ public class RunSimulations extends Executable {
 					
 					solver.solve();
 					
-					PolicyGraph pg = new PolicyGraph(solver);
-					pg.makeGraph();
-					pg.computeEU();
-					pg.writeDotFile(storageDir, "policy_graph" + i);
-					pg.writeJSONFile(storageDir, "policy_graph" + i);
+					PolicyTree T = new PolicyTree(solver, simLength);
+					T.buildTree();
+					T.computeEU();
+					T.writeDotFile(storageDir, "policy_tree" + i);
+					T.writeJSONFile(storageDir, "policy_tree" + i);
 					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
@@ -209,31 +225,25 @@ public class RunSimulations extends Executable {
 						solver.f.setGlobals();
 						
 						/* make policy graph */
-						PolicyGraph pg = new PolicyGraph((OfflinePBVISolver) solver);
-						pg.makeGraph();
-						pg.computeEU();
+						PolicyGraph G = new PolicyGraph((AlphaVectorPolicySolver) solver, simLength);
+						G.makeGraph();
+						G.computeEU();
 						
-						/* store policy graph solution */
-						pg.writeDotFile(
-								storageDir, 
-								"policy_graph_frame_" + pg.solver.f.frameID + "_" + i);
-						
-						pg.writeJSONFile(
-								storageDir, 
-								"policy_graph_frame_" + pg.solver.f.frameID + "_" + i);
-						
-						/* make conditional plan */
-						ConditionalPlanTree T = new ConditionalPlanTree(solver, simLength);
+						PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, simLength);
 						T.buildTree();
 						
-						/* Store conditional Plan */
+						/* store policy graph solution */
+						G.writeDotFile(
+								storageDir, 
+								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
+						
 						T.writeDotFile(
 								storageDir, 
-								"plan_frame_" + T.f.frameID + "_" + i);
+								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
 						
-						T.writeJSONFile(
+						G.writeJSONFile(
 								storageDir, 
-								"plan_frame_" + T.f.frameID + "_" + i);
+								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
 					}
 					
 					/* store ref to agent J */
@@ -248,7 +258,7 @@ public class RunSimulations extends Executable {
 					int numRounds = 1;
 					
 					if (line.hasOption("e")) {
-						BE = new SSGABeliefExpansion(ipomdp, 10);
+						BE = new SSGABeliefExpansion(ipomdp, 30);
 						numRounds = 5;
 					}
 					
@@ -257,14 +267,25 @@ public class RunSimulations extends Executable {
 						numRounds = 1;
 					}
 					
+					BaseSolver solver = null;
+					
+					if (line.hasOption('j'))
+						solver = new DefaultActionPolicySolver(ipomdp, ipomdp.lowerLevelGuessForAi);
+					
+					else if (line.hasOption('k'))
+						solver = new RandomActionPolicySolver(ipomdp);
+					
 					/* Agent i */
-					OnlineInteractiveSymbolicPerseus solver = 
+					else {
+						solver = 
 							new OnlineInteractiveSymbolicPerseus(
 									ipomdp, 
 									BE, numRounds, backups);
+					}
 					
 					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
 					ss.setMjDotDir(storageDir, i);
+//					ss.dumpMj(0);
 					ss.runSimulation();
 					
 					ss.logToFile(storageDir + "/" + "sim" + i + ".json");
