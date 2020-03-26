@@ -50,6 +50,8 @@ public class MultiAgentSimulation extends Simulation {
 	
 	private String mjDotDir = null;
 	private PrintWriter summaryWriter = null;
+	private int iterId = -1;
+	private int jFrameID = -1;
 	
 	/* some lists for storing run stats */
 	List<String> stateSequence = new ArrayList<String>();
@@ -75,6 +77,7 @@ public class MultiAgentSimulation extends Simulation {
 		super();
 		
 		this.solver = pomdpSolver;
+		this.jFrameID = pomdpSolver.f.frameID;
 		this.l1Solver = ipomdpSolver;
 		this.iterations = interactions;
 		
@@ -112,6 +115,7 @@ public class MultiAgentSimulation extends Simulation {
 	
 	public void setMjDotDir(String mjDotDir, int id) {
 		this.mjDotDir = mjDotDir;
+		this.iterId = id;
 		
 		try {
 			this.summaryWriter = 
@@ -157,6 +161,21 @@ public class MultiAgentSimulation extends Simulation {
 		LOGGER.debug("Initial state sampled. Set to " + stateMap);
 	}
 	
+	public void dumpMj(int currentNode) {
+		/*
+		 * write the Mj look ahead graph for debugging policies
+		 */
+		if (this.mjDotDir != null) {
+			for (int frameId: ((IPOMDP) this.l1Solver.f).multiFrameMJ.MJs.keySet()) {
+				((IPOMDP) this.l1Solver.f).multiFrameMJ.MJs
+					.get(frameId)
+					.writeDotFile(this.mjDotDir, "mj_" + frameId + "_step_" + currentNode 
+							+ "_iter_" + this.iterId);
+			}
+		}
+		
+	}
+	
 	public int step(int currentNode) {
 		
 		try {
@@ -166,6 +185,8 @@ public class MultiAgentSimulation extends Simulation {
 				this.l1Solver.f.setGlobals();
 				((AlphaVectorPolicySolver) this.l1Solver).solveCurrentStep();
 				((AlphaVectorPolicySolver) this.l1Solver).expansionStrategy.clearMem();
+				
+//				this.dumpMj(currentNode);
 			}
 			
 			if (this.solver instanceof AlphaVectorPolicySolver) {
@@ -569,6 +590,9 @@ public class MultiAgentSimulation extends Simulation {
 						gsonHandler.fromJson(
 								this.stateSequence.get(i), 
 								JsonObject.class));
+				
+				/* ThetaJ */
+				record.add("Theta_j", new JsonPrimitive(this.jFrameID));
 				
 				/* write action of i */
 				record.add("Ai", new JsonPrimitive(this.l1ActionSequence.get(i)));

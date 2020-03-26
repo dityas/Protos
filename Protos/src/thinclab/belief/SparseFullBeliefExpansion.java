@@ -32,6 +32,7 @@ public class SparseFullBeliefExpansion extends FullBeliefExpansion {
 	 */
 	
 	private int nIters = 30;
+	private int maxBeliefs = 200;
 	
 	private static final long serialVersionUID = 1571517162981801344L;
 	
@@ -120,6 +121,20 @@ public class SparseFullBeliefExpansion extends FullBeliefExpansion {
 				if (nextBelief == null) continue;
 				
 				if (!this.exploredBeliefs.contains(nextBelief)) {
+					
+					if (this.exploredBeliefs.size() > this.maxBeliefs) {
+						
+						LOGGER.warn("Max beliefs limit reached, stopping");
+						break;
+//						DD beliefToRemove = null;
+//						for (DD belToRemove: this.exploredBeliefs) {
+//							beliefToRemove = belToRemove;
+//							break;
+//						}
+//						
+//						this.exploredBeliefs.remove(beliefToRemove);
+					}
+					
 					this.exploredBeliefs.add(nextBelief);
 					newLeaves.add(nextBelief);
 				}

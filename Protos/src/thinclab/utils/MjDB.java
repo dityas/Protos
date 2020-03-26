@@ -82,6 +82,7 @@ public class MjDB {
 			String nodeTable = "CREATE TABLE IF NOT EXISTS id_to_node ("
 					+ "belief_id INTEGER PRIMARY KEY,"
 					+ "time_step INTEGER,"
+					+ "opt_action TEXT,"
 					+ "policy_node BLOB);";
 			
 			Statement query = this.storageConn.createStatement();
@@ -134,8 +135,8 @@ public class MjDB {
 		
 		try {
 			String insertNodeQ = "INSERT INTO id_to_node "
-					+ "(belief_id, time_step, policy_node) "
-					+ "VALUES(?, ?, ?)";
+					+ "(belief_id, time_step, opt_action, policy_node) "
+					+ "VALUES(?, ?, ?, ?)";
 			
 			ByteArrayOutputStream bArrayOutStream = new ByteArrayOutputStream();
 			ObjectOutputStream outStream = new ObjectOutputStream(bArrayOutStream);
@@ -151,7 +152,8 @@ public class MjDB {
 			PreparedStatement stmt = this.storageConn.prepareStatement(insertNodeQ);
 			stmt.setInt(1, id);
 			stmt.setInt(2, node.getH());
-			stmt.setBytes(3, serializedNode);
+			stmt.setString(3, node.getActName());
+			stmt.setBytes(4, serializedNode);
 			stmt.executeUpdate();
 		}
 		
@@ -389,6 +391,36 @@ public class MjDB {
 			/* select all */
 			PreparedStatement stmt = this.storageConn.prepareStatement(getAllRootsQ);
 			stmt.setInt(1, horizon);
+			
+			ResultSet res = stmt.executeQuery();
+			
+			while (res.next()) {
+				ids.add(res.getInt("belief_id"));
+			}
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("While getting PolicyNode from table " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		
+		return ids;
+	}
+	
+	public List<Integer> getAllNodesByAction(String action) {
+		/*
+		 * Get all root nodes
+		 */
+		
+		List<Integer> ids = new ArrayList<Integer>();
+		
+		try {
+			String getAllRootsQ = "SELECT belief_id FROM id_to_node WHERE opt_action=?";
+			
+			/* select all */
+			PreparedStatement stmt = this.storageConn.prepareStatement(getAllRootsQ);
+			stmt.setString(1, action);
 			
 			ResultSet res = stmt.executeQuery();
 			

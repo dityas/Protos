@@ -21,12 +21,13 @@ import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
+import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.representations.policyrepresentations.PolicyTree;
 import thinclab.simulations.MultiAgentSimulation;
 import thinclab.simulations.StochasticSimulation;
+import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.BaseSolver;
 import thinclab.solvers.DefaultActionPolicySolver;
-import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.solvers.RandomActionPolicySolver;
@@ -224,18 +225,25 @@ public class RunSimulations extends Executable {
 						solver.f.setGlobals();
 						
 						/* make policy graph */
-						PolicyTree T = new PolicyTree((OfflinePBVISolver) solver, simLength);
+						PolicyGraph G = new PolicyGraph((AlphaVectorPolicySolver) solver, simLength);
+						G.makeGraph();
+						G.computeEU();
+						
+						PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, simLength);
 						T.buildTree();
-						T.computeEU();
 						
 						/* store policy graph solution */
+						G.writeDotFile(
+								storageDir, 
+								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
+						
 						T.writeDotFile(
 								storageDir, 
 								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
 						
-						T.writeJSONFile(
+						G.writeJSONFile(
 								storageDir, 
-								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
+								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
 					}
 					
 					/* store ref to agent J */
@@ -277,6 +285,7 @@ public class RunSimulations extends Executable {
 					
 					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
 					ss.setMjDotDir(storageDir, i);
+//					ss.dumpMj(0);
 					ss.runSimulation();
 					
 					ss.logToFile(storageDir + "/" + "sim" + i + ".json");

@@ -10,7 +10,6 @@ package thinclab.tests;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -28,7 +27,6 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.AlphaVector;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.solvers.OfflineSymbolicPerseus;
@@ -41,6 +39,8 @@ import thinclab.utils.NextBelStateCache;
  * @author adityas
  *
  */
+
+@SuppressWarnings("unused")
 class TestBenchmarkDPBackups {
 
 	public String l1DomainFile;

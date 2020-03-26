@@ -54,6 +54,9 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 			PolicyNode node = new PolicyNode();
 			node.setId(i);
 			node.setBelief(this.f.getInitialBeliefs().get(i));
+//			node.setAlphaId(
+//					((AlphaVectorPolicySolver) solver).getBestAlphaIndex(
+//							this.f.getInitialBeliefs().get(i)));
 			node.setH(0);
 			
 			node.setsBelief(this.f.getBeliefString(node.getBelief()));
@@ -140,6 +143,15 @@ public class DynamicBeliefTree extends StaticBeliefTree {
 		/* prune leaves from the maps */
 		this.pruneNodeAndEdgeMaps();
 		this.setAllAsRoots();
+		
+		/* remove optimal alpha index to avoid looping back to root */
+		for (int nodeId: this.getAllRootIds()) {
+			PolicyNode node = this.getPolicyNode(nodeId);
+			node.setAlphaId(-1);
+			
+			this.removeNode(nodeId);
+			this.putPolicyNode(nodeId, node);
+		}
 		
 		logger.debug("After pruning, non zero roots are: " + this.leafNodes);
 	}

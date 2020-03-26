@@ -31,6 +31,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.OP;
 import thinclab.representations.policyrepresentations.PolicyNode;
+import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.BaseSolver;
 
 /*
@@ -110,8 +111,11 @@ public class StructuredTree implements Serializable {
 				nextNode.setBelief(nextBelief);
 				nextNode.setH(level);
 				
-				if (solver != null)
+				if (solver != null) {
+					nextNode.setAlphaId(
+							((AlphaVectorPolicySolver) solver).getBestAlphaIndex(nextBelief));
 					nextNode.setActName(solver.getActionForBelief(nextBelief));
+				}
 				
 				else
 					nextNode.setActName("");
@@ -233,6 +237,152 @@ public class StructuredTree implements Serializable {
 		}
 	}
 	
+	public List<Integer> expandPolicyGraph(
+			List<Integer> previousLeaves, AlphaVectorPolicySolver solver, int level) {
+		/*
+		 * Expands policy graph for one time step.
+		 * 
+		 * Note that if the policy graph isn't finitely transient, the policy graph won't converge 
+		 */
+		
+		List<Integer> nextLeaves = new ArrayList<Integer>();
+		
+		/* expand all previous leaves */
+		while (!previousLeaves.isEmpty()) {
+			
+			LOGGER.debug("Nodes to expand: " + previousLeaves);
+			
+			int nodeId = previousLeaves.remove(0);
+			PolicyNode node = this.getPolicyNode(nodeId);
+			
+			String optAction = node.getActName();
+			HashMap<List<String>, PolicyNode> nextNodesMap = new HashMap<List<String>, PolicyNode>();
+			
+			for (List<String> obs: solver.f.getAllPossibleObservations()) {
+				
+				try {
+					
+					LOGGER.debug("For node " + nodeId + " and action " + optAction + " and obs " + obs);
+					
+					DD nextBelief = 
+							solver.f.beliefUpdate(
+									node.getBelief(), optAction, obs.stream().toArray(String[]::new));
+					
+					PolicyNode nextNode = new PolicyNode();
+					nextNode.setBelief(nextBelief);
+					nextNode.setH(level);
+					nextNode.setActName(solver.getActionForBelief(nextBelief));
+					nextNode.setId(this.currentPolicyNodeCounter++);
+					nextNode.setsBelief(solver.f.getBeliefString(nextBelief));
+					nextNode.setAlphaId(solver.getBestAlphaIndex(nextBelief));
+					
+					List<String> edge = new ArrayList<String>();
+					edge.add(optAction);
+					edge.addAll(obs);
+					
+					nextNodesMap.put(edge, nextNode);
+				} 
+				
+				catch (ZeroProbabilityObsException e) {
+					LOGGER.warn("zero prob exception for obs " + obs);
+				}
+			}
+			
+			int sameNode = this.findSameNode(node, nextNodesMap); 
+			
+			if (sameNode == -1) {
+				
+				for (List<String> obs: nextNodesMap.keySet()) {
+					
+					PolicyNode nextNode = nextNodesMap.get(obs);
+					
+					this.putPolicyNode(nextNode.getId(), nextNode);
+					this.putEdge(node.getId(), obs, nextNode.getId());
+					nextLeaves.add(nextNode.getId());
+				}
+			}
+			
+			else {
+				
+				LOGGER.debug("Repeated node, updating edges");
+				HashMap<Integer, HashMap<List<String>, Integer>> edgesEndingAtNode = 
+						this.getEdgesEndingAt(nodeId);
+				
+				for (int srcId: edgesEndingAtNode.keySet()) {
+					for (List<String> obs: edgesEndingAtNode.get(srcId).keySet()) {
+						this.updateEdgeDest(
+								srcId, obs, edgesEndingAtNode.get(srcId).get(obs), sameNode);
+					}
+				}
+				
+				this.removeNode(nodeId);
+				this.removeEdge(nodeId);
+				
+				if (this instanceof PersistentStructuredTree)
+					((PersistentStructuredTree) this).commitChanges();
+			}
+			
+		} /* while previous leaves */
+		
+		return nextLeaves;
+	}
+	
+	private int findSameNode(
+			PolicyNode node, HashMap<List<String>, PolicyNode> nextNodesMap) {
+		
+		List<Integer> nodeIds = this.getAllNodesIdsForAction(node.getActName());
+		LOGGER.debug("Checking for duplicate nodes in " + nodeIds);
+		
+		int duplicateNodeId = -1;
+		
+		if (nodeIds.size() < 1) {
+			LOGGER.debug("Breaking because " + node.getActName() + " has no nodes at this point");
+			return -1;
+		}
+		
+		for (int nodeId: nodeIds) {
+			if (node.getAlphaId() == this.getPolicyNode(nodeId).getAlphaId()) {
+				
+				HashMap<List<String>, Integer> otherNodeEdges = this.getEdges(nodeId);
+				
+				if (otherNodeEdges.size() < 1) {
+					LOGGER.debug("Breaking because " + nodeId + " has no edges");
+					continue;
+				}
+				
+				for (List<String> obs: otherNodeEdges.keySet()) {
+					
+					if (nextNodesMap.containsKey(obs)) {
+						
+						PolicyNode nextNode = nextNodesMap.get(obs);
+						PolicyNode otherNode = this.getPolicyNode(otherNodeEdges.get(obs));
+						
+						if (nextNode.getAlphaId() != otherNode.getAlphaId()) {
+							LOGGER.debug("Breaking because " + nextNode.getAlphaId() + 
+									" != " + otherNode.getAlphaId());
+							break;
+						}
+					}
+					
+					else {
+						LOGGER.debug("Breaking " + nextNodesMap + " != " + otherNodeEdges);
+						break;
+					}
+				}
+				
+				duplicateNodeId = nodeId;
+			}
+			
+			else {
+				LOGGER.debug("breaking because " + node.getAlphaId() + 
+						" != " + this.getPolicyNode(nodeId).getAlphaId());
+				continue;
+			}
+		}
+		
+		return duplicateNodeId;
+	}
+	
 	// ----------------------------------------------------------------------------------------
 	
 	public PolicyNode getPolicyNode(int id) {
@@ -303,6 +453,40 @@ public class StructuredTree implements Serializable {
 	
 	public int getNumNodes() {
 		return this.idToNodeMap.size();
+	}
+	
+	public List<Integer> getAllNodesAtHorizon(int horizon) {
+		List<Integer> nodeIds = new ArrayList<Integer>();
+		
+		for (Entry<Integer, PolicyNode> entry: this.idToNodeMap.entrySet()) {
+			
+			if (entry.getValue().getH() == horizon)
+				nodeIds.add(entry.getKey());
+		}
+		
+		return nodeIds;
+	}
+	
+	public HashMap<Integer, HashMap<List<String>, Integer>> getEdgesEndingAt(int dest_id) {
+		LOGGER.error("Method not implemented");
+		return null;
+	}
+	
+	public void updateEdgeDest(int src_id, List<String> label, int old_dest_id, int new_dest_id) {
+		LOGGER.error("Method not implemented");
+	}
+	
+	public List<Integer> getAllNodesIdsForAction(String action) {
+		
+		List<Integer> nodeIds = new ArrayList<Integer>();
+		
+		for (Entry<Integer, PolicyNode> entry: this.idToNodeMap.entrySet()) {
+			
+			if (entry.getValue().getActName().contentEquals(action))
+				nodeIds.add(entry.getKey());
+		}
+		
+		return nodeIds;
 	}
 	
 	// ----------------------------------------------------------------------------------------

@@ -7,11 +7,6 @@
  */
 package thinclab.tests;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +31,7 @@ import thinclab.utils.NextBelStateCache;
  * @author adityas
  *
  */
+@SuppressWarnings("unused")
 class TestStateSimulator {
 
 	public String l1DomainFile;

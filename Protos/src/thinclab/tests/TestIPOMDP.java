@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -21,25 +20,23 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import thinclab.belief.FullBeliefExpansion;
 import thinclab.belief.IBeliefOps;
+import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.legacy.NextBelState;
 import thinclab.legacy.OP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.StructuredTree;
-import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
-import thinclab.utils.Diagnostics;
 import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
  *
  */
+@SuppressWarnings("unused")
 class TestIPOMDP {
 
 	public String l1DomainFile;
@@ -180,41 +177,6 @@ class TestIPOMDP {
 		LOGGER.debug("That took " 
 				+ differentTimes.stream().mapToDouble(a -> a).average().getAsDouble() 
 				+ " msec");
-	}
-	
-	
-	
-	
-	@Test
-	void testMJCompression() throws Exception {
-		
-		IPOMDPParser parser = 
-				new IPOMDPParser(
-						"/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt");
-		parser.parseDomain();
-		
-		LOGGER.info("Calling empty constructor");
-		IPOMDP ipomdp = new IPOMDP(parser, 4, 10);
-		
-//		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
-//		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(1).getDotStringForPersistent());
-		
-		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(0).getDotString());
-		LOGGER.debug(ipomdp.multiFrameMJ.MJs.get(1).getDotString());
-		
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "creak-right"});
-		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 	}
 
 	@Test
@@ -809,6 +771,9 @@ class TestIPOMDP {
 		tigerL1IPOMDP.step(start, action1, obs1);
 		LOGGER.debug("next belief from step is " 
 				+ tigerL1IPOMDP.toMapWithTheta(tigerL1IPOMDP.getCurrentBelief()));
+//		LOGGER.debug(tigerL1IPOMDP.multiFrameMJ.MJs.get(0).getDotStringForPersistent());
+//		LOGGER.debug(tigerL1IPOMDP.multiFrameMJ.MJs.get(1).getDotStringForPersistent());
+//		System.exit(-1);
 		
 		LOGGER.debug("Assert equality between beliefUpdate and steps");
 		HashMap<String, HashMap<String, Float>> beliefMapFromStep = 
@@ -1034,7 +999,7 @@ class TestIPOMDP {
 		/* Initialize IPOMDP */
 		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 4, 20);
 		
-		FullBeliefExpansion fb = new FullBeliefExpansion(tigerL1IPOMDP);
+		SparseFullBeliefExpansion fb = new SparseFullBeliefExpansion(tigerL1IPOMDP, 10);
 //		fb.expand();
 //		
 //		NextBelStateCache.populateCache(tigerL1IPOMDP, fb.getBeliefPoints());

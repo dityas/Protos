@@ -182,6 +182,7 @@ class TestBeliefOperations {
 		assertTrue((float) 0.5 > map.get("tiger-location").get("tiger-left"));
 	}
 	
+	@SuppressWarnings("unused")
 	@Test
 	void testFactoredExpectationComputation() {
 		LOGGER.info("Testing FactoredExpectation Computation");
@@ -233,6 +234,7 @@ class TestBeliefOperations {
 		
 	}
 	
+	@SuppressWarnings("unused")
 	@Test
 	void testBeliefRegionFactoring() {
 		LOGGER.info("Testing parallelization on belief region factoring");
