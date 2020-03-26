@@ -186,7 +186,7 @@ public class MultiAgentSimulation extends Simulation {
 				((AlphaVectorPolicySolver) this.l1Solver).solveCurrentStep();
 				((AlphaVectorPolicySolver) this.l1Solver).expansionStrategy.clearMem();
 				
-				this.dumpMj(currentNode);
+//				this.dumpMj(currentNode);
 			}
 			
 			if (this.solver instanceof AlphaVectorPolicySolver) {
