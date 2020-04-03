@@ -30,7 +30,8 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 	 * The interaction takes place over HTTP
 	 */
 	
-	private CyberDeceptionEnvironmentConnector envConnector;
+	private CyberDeceptionEnvironmentConnector attEnvConnector;
+	private CyberDeceptionEnvironmentConnector defEnvConnector;
 	
 	private static final long serialVersionUID = 9022031217500704107L;
 	private static final Logger LOGGER = Logger.getLogger(CyberDeceptionSimulation.class);
@@ -41,7 +42,8 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 			int envPort) {
 		
 		super(ipomdpSolver, pomdpSolver, interactions);
-		this.envConnector = new CyberDeceptionEnvironmentConnector(envIP, envPort);
+		this.attEnvConnector = new CyberDeceptionEnvironmentConnector(envIP, 2003);
+		this.defEnvConnector = new CyberDeceptionEnvironmentConnector(envIP, 2004);
 		
 		LOGGER.info("Starting agent based simulation");
 	}
@@ -53,7 +55,8 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		 */
 		
 		LOGGER.info("Running simulation for " + this.iterations + " iterations...");
-		this.envConnector.establishSync();
+		this.attEnvConnector.establishSync();
+		this.defEnvConnector.establishSync();
 		
 		int previousNode = 0;
 		
@@ -62,22 +65,23 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 			previousNode = nextNode;
 		}
 		
-		this.envConnector.closeConnection();
+		this.attEnvConnector.closeConnection();
+		this.defEnvConnector.closeConnection();
 		
 		this.logResults();
 	}
 	
-	@Override
-	public String[] act(DecisionProcess DP, DD belief, String action) {
-		/*
-		 * Override to send actions to an actual agent and get observations
-		 */
-		
-		LOGGER.info("Sending action " + action + " to the environment connector");
-		String[] obs = this.envConnector.step(action);
-		
-		return obs;
-	}
+//	@Override
+//	public String[] act(DecisionProcess DP, DD belief, String action) {
+//		/*
+//		 * Override to send actions to an actual agent and get observations
+//		 */
+//		
+//		LOGGER.info("Sending action " + action + " to the environment connector");
+//		String[] obs = this.envConnector.step(action);
+//		
+//		return obs;
+//	}
 	
 	@Override
 	public int step(int currentNode) {
@@ -99,7 +103,7 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		
 		/* relevant varIndices */
 		String[] actions = action.split("__");
-		String[] obs = this.envConnector.step(actions[0]);
+		String[] obs = this.defEnvConnector.step(actions[0]);
 		
 		return obs;
 	}
@@ -112,7 +116,7 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		
 		/* relevant varIndices */
 		String[] actions = action.split("__");
-		String[] obs = this.envConnector.step(actions[1]);
+		String[] obs = this.attEnvConnector.step(actions[1]);
 		
 		return obs;
 	}
