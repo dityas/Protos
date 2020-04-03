@@ -102,8 +102,8 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		 */
 		
 		/* relevant varIndices */
-		String[] actions = action.split("__");
-		String[] obs = this.defEnvConnector.step(actions[0]);
+//		String[] actions = action.split("__");
+		String[] obs = this.defEnvConnector.step(action);
 		
 		return obs;
 	}
@@ -115,8 +115,8 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		 */
 		
 		/* relevant varIndices */
-		String[] actions = action.split("__");
-		String[] obs = this.attEnvConnector.step(actions[1]);
+//		String[] actions = action.split("__");
+		String[] obs = this.attEnvConnector.step(action);
 		
 		return obs;
 	}
