@@ -89,8 +89,8 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		String[] obs1 = this.getL1Observation("ACTION_FROM_DEFENDER");
 		LOGGER.debug("Defender got observation " + Arrays.toString(obs1));
 		
-//		String[] obs2 = this.getL0Observation("ACTION_FROM_ATTACKER");
-//		LOGGER.debug("Attacker got observation " + Arrays.toString(obs2));
+		String[] obs2 = this.getL0Observation("ACTION_FROM_ATTACKER");
+		LOGGER.debug("Attacker got observation " + Arrays.toString(obs2));
 		
 		return currentNode + 1;
 	}
