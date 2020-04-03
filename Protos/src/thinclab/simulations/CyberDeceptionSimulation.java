@@ -17,7 +17,7 @@ import thinclab.solvers.BaseSolver;
  * @author adityas
  *
  */
-public class CyberDeceptionSimulation extends StochasticSimulation {
+public class CyberDeceptionSimulation extends MultiAgentSimulation {
 
 	/*
 	 * Provides decision making interface for an actual agent
@@ -31,12 +31,11 @@ public class CyberDeceptionSimulation extends StochasticSimulation {
 	private static final Logger LOGGER = Logger.getLogger(CyberDeceptionSimulation.class);
 	
 	public CyberDeceptionSimulation(
-			BaseSolver solver, 
-			int iterations,
+			BaseSolver ipomdpSolver, BaseSolver pomdpSolver, int interactions,
 			String envIP,
 			int envPort) {
 		
-		super(solver, iterations);
+		super(ipomdpSolver, pomdpSolver, interactions);
 		this.envConnector = new CyberDeceptionEnvironmentConnector(envIP, envPort);
 		
 		LOGGER.info("Starting agent based simulation");
