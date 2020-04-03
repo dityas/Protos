@@ -7,10 +7,13 @@
  */
 package thinclab.simulations;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.DecisionProcess;
+import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
+import thinclab.legacy.OP;
 import thinclab.solvers.BaseSolver;
 
 /*
@@ -70,6 +73,32 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		
 		LOGGER.info("Sending action " + action + " to the environment connector");
 		String[] obs = this.envConnector.step(action);
+		
+		return obs;
+	}
+	
+	@Override
+	public String[] getL1Observation(String action) {
+		/*
+		 * Sample observation from the state
+		 */
+		
+		/* relevant varIndices */
+		String[] actions = action.split("__");
+		String[] obs = this.envConnector.step(actions[0]);
+		
+		return obs;
+	}
+	
+	@Override
+	public String[] getL0Observation(String action) {
+		/*
+		 * Sample observation from the state
+		 */
+		
+		/* relevant varIndices */
+		String[] actions = action.split("__");
+		String[] obs = this.envConnector.step(actions[1]);
 		
 		return obs;
 	}

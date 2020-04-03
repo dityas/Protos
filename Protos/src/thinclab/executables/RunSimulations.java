@@ -23,7 +23,6 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.representations.policyrepresentations.PolicyTree;
-import thinclab.simulations.CyberDeceptionSimulation;
 import thinclab.simulations.MultiAgentSimulation;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.AlphaVectorPolicySolver;
@@ -284,10 +283,9 @@ public class RunSimulations extends Executable {
 									BE, numRounds, backups);
 					}
 					
-//					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
-					CyberDeceptionSimulation ss = new CyberDeceptionSimulation(solver, jSolver, simLength, "172.19.48.71", 2004);
+					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
+
 					ss.setMjDotDir(storageDir, i);
-//					ss.dumpMj(0);
 					ss.runSimulation();
 					
 					ss.logToFile(storageDir + "/" + "sim" + i + ".json");
