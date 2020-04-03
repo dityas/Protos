@@ -120,6 +120,12 @@ public class CyberDeceptionSimulationRunner extends Executable {
 				false,
 				"set if the domain is a IPOMDP domain");
 		
+		opt.addOption(
+				"c",
+				"ip",
+				true,
+				"IP address of env connector");
+		
 		/* merge threshold */
 		opt.addOption("m", "merge", true, "For MJ merge threshold");
 		
@@ -142,6 +148,9 @@ public class CyberDeceptionSimulationRunner extends Executable {
 			
 			/* set domain file */
 			String domainFile = line.getOptionValue("d");
+			
+			/* get IP address */
+			String ipAddr = line.getOptionValue("c");
 			
 			/* set look ahead */
 			int backups = new Integer(line.getOptionValue("b"));
@@ -284,7 +293,7 @@ public class CyberDeceptionSimulationRunner extends Executable {
 //					}
 					
 					CyberDeceptionSimulation ss = 
-							new CyberDeceptionSimulation(null, null, simLength, "172.19.48.71", 2004);
+							new CyberDeceptionSimulation(null, null, simLength, ipAddr, 2004);
 
 					ss.setMjDotDir(storageDir, i);
 					ss.runSimulation();

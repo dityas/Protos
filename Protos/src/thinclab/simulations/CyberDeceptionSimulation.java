@@ -7,6 +7,8 @@
  */
 package thinclab.simulations;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
@@ -75,6 +77,18 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		String[] obs = this.envConnector.step(action);
 		
 		return obs;
+	}
+	
+	@Override
+	public int step(int currentNode) {
+		
+		String[] obs1 = this.getL1Observation("HELLO_FROM_DEFENDER");
+		LOGGER.debug("Defender got observation " + Arrays.toString(obs1));
+		
+		String[] obs2 = this.getL0Observation("HELLO_FROM_ATTACKER");
+		LOGGER.debug("Attacker got observation " + Arrays.toString(obs2));
+		
+		return currentNode + 1;
 	}
 	
 	@Override
