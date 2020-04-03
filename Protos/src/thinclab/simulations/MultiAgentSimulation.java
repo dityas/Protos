@@ -77,7 +77,7 @@ public class MultiAgentSimulation extends Simulation {
 		super();
 		
 		this.solver = pomdpSolver;
-		this.jFrameID = pomdpSolver.f.frameID;
+//		this.jFrameID = pomdpSolver.f.frameID;
 		this.l1Solver = ipomdpSolver;
 		this.iterations = interactions;
 		
