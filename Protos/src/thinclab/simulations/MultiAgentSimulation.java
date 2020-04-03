@@ -81,36 +81,36 @@ public class MultiAgentSimulation extends Simulation {
 		this.l1Solver = ipomdpSolver;
 		this.iterations = interactions;
 		
-		this.initializeState();
-		
-		/*
-		 * Make init nodes
-		 */
-		
-		/* make start policy node from initial belief */
-		this.l1Solver.f.setGlobals();
-		PolicyNode iNode = new PolicyNode();
-		iNode.setBelief(this.l1Solver.f.getCurrentBelief());
-		iNode.setsBelief(this.l1Solver.f.getBeliefString(this.l1Solver.f.getCurrentBelief()));
-		iNode.setId(this.currentPolicyNodeCounter++);
-		
-		/* make state node */
-		this.solver.f.setGlobals();
-		PolicyNode sNode = new PolicyNode();
-		sNode.setBelief(this.states.get(this.states.size() - 1).toDD());
-		sNode.setsBelief(this.solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
-		sNode.setId(this.currentPolicyNodeCounter++);
-		
-		/* make start policy node for j */
-		PolicyNode jNode = new PolicyNode();
-		jNode.setBelief(this.solver.f.getCurrentBelief());
-		jNode.setsBelief(this.solver.f.getBeliefString(this.solver.f.getCurrentBelief()));
-		jNode.setId(this.currentPolicyNodeCounter++);
-		
-		/* add to node map */
-		this.putPolicyNode(iNode.getId(), iNode);
-		this.putPolicyNode(sNode.getId(), sNode);
-		this.putPolicyNode(jNode.getId(), jNode);
+//		this.initializeState();
+//		
+//		/*
+//		 * Make init nodes
+//		 */
+//		
+//		/* make start policy node from initial belief */
+//		this.l1Solver.f.setGlobals();
+//		PolicyNode iNode = new PolicyNode();
+//		iNode.setBelief(this.l1Solver.f.getCurrentBelief());
+//		iNode.setsBelief(this.l1Solver.f.getBeliefString(this.l1Solver.f.getCurrentBelief()));
+//		iNode.setId(this.currentPolicyNodeCounter++);
+//		
+//		/* make state node */
+//		this.solver.f.setGlobals();
+//		PolicyNode sNode = new PolicyNode();
+//		sNode.setBelief(this.states.get(this.states.size() - 1).toDD());
+//		sNode.setsBelief(this.solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
+//		sNode.setId(this.currentPolicyNodeCounter++);
+//		
+//		/* make start policy node for j */
+//		PolicyNode jNode = new PolicyNode();
+//		jNode.setBelief(this.solver.f.getCurrentBelief());
+//		jNode.setsBelief(this.solver.f.getBeliefString(this.solver.f.getCurrentBelief()));
+//		jNode.setId(this.currentPolicyNodeCounter++);
+//		
+//		/* add to node map */
+//		this.putPolicyNode(iNode.getId(), iNode);
+//		this.putPolicyNode(sNode.getId(), sNode);
+//		this.putPolicyNode(jNode.getId(), jNode);
 	}
 	
 	public void setMjDotDir(String mjDotDir, int id) {
