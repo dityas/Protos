@@ -105,7 +105,7 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 //		String[] actions = action.split("__");
 		String[] obs = this.defEnvConnector.step(action);
 		
-		return obs;
+		return new String[] {"none", "user"};
 	}
 	
 	@Override
