@@ -219,81 +219,81 @@ public class CyberDeceptionSimulationRunner extends Executable {
 					
 					IPOMDP ipomdp;
 					
-//					if (mergeThreshold > 0.0)
-//						ipomdp = new IPOMDP(parser, lookAhead, simLength, mergeThreshold);
-//					
-//					else ipomdp = new IPOMDP(parser, lookAhead, simLength);
-//					
-//					Random rng = new Random();
-//					
-//					int frameSample = rng.nextInt(ipomdp.lowerLevelSolutions.size());
-//					
-//					for (BaseSolver solver : ipomdp.lowerLevelSolutions) {
-//						
-//						/* set context */
-//						solver.f.setGlobals();
-//						
-//						/* make policy graph */
-//						PolicyGraph G = new PolicyGraph((AlphaVectorPolicySolver) solver, simLength);
-//						G.makeGraph();
-//						G.computeEU();
-//						
-//						PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, simLength);
-//						T.buildTree();
-//						
-//						/* store policy graph solution */
-//						G.writeDotFile(
-//								storageDir, 
-//								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
-//						
-//						T.writeDotFile(
-//								storageDir, 
-//								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
-//						
-//						G.writeJSONFile(
-//								storageDir, 
-//								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
-//					}
-//					
-//					/* store ref to agent J */
-//					BaseSolver jSolver = ipomdp.lowerLevelSolutions.get(frameSample);
-//					
-//					ipomdp.clearLowerLevelSolutions();
-//					
-//					/* set context back to IPOMDP */
-//					ipomdp.setGlobals();
-//					
-//					BeliefRegionExpansionStrategy BE;
-//					int numRounds = 1;
-//					
-//					if (line.hasOption("e")) {
-//						BE = new SSGABeliefExpansion(ipomdp, 30);
-//						numRounds = 5;
-//					}
-//					
-//					else {
-//						BE = new SparseFullBeliefExpansion(ipomdp, 10);
-//						numRounds = 1;
-//					}
-//					
-//					BaseSolver solver = null;
-//					
-//					if (line.hasOption('j'))
-//						solver = new DefaultActionPolicySolver(ipomdp, ipomdp.lowerLevelGuessForAi);
-//					
-//					else if (line.hasOption('k'))
-//						solver = new RandomActionPolicySolver(ipomdp);
-//					
-//					/* Agent i */
-//					else {
-//						solver = 
-//							new OnlineInteractiveSymbolicPerseus(
-//									ipomdp, 
-//									BE, numRounds, backups);
-//					}
+					if (mergeThreshold > 0.0)
+						ipomdp = new IPOMDP(parser, lookAhead, simLength, mergeThreshold);
+					
+					else ipomdp = new IPOMDP(parser, lookAhead, simLength);
+					
+					Random rng = new Random();
+					
+					int frameSample = rng.nextInt(ipomdp.lowerLevelSolutions.size());
+					
+					for (BaseSolver solver : ipomdp.lowerLevelSolutions) {
+						
+						/* set context */
+						solver.f.setGlobals();
+						
+						/* make policy graph */
+						PolicyGraph G = new PolicyGraph((AlphaVectorPolicySolver) solver, simLength);
+						G.makeGraph();
+						G.computeEU();
+						
+						PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, simLength);
+						T.buildTree();
+						
+						/* store policy graph solution */
+						G.writeDotFile(
+								storageDir, 
+								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
+						
+						T.writeDotFile(
+								storageDir, 
+								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
+						
+						G.writeJSONFile(
+								storageDir, 
+								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
+					}
+					
+					/* store ref to agent J */
+					BaseSolver jSolver = ipomdp.lowerLevelSolutions.get(frameSample);
+					
+					ipomdp.clearLowerLevelSolutions();
+					
+					/* set context back to IPOMDP */
+					ipomdp.setGlobals();
+					
+					BeliefRegionExpansionStrategy BE;
+					int numRounds = 1;
+					
+					if (line.hasOption("e")) {
+						BE = new SSGABeliefExpansion(ipomdp, 30);
+						numRounds = 5;
+					}
+					
+					else {
+						BE = new SparseFullBeliefExpansion(ipomdp, 10);
+						numRounds = 1;
+					}
+					
+					BaseSolver solver = null;
+					
+					if (line.hasOption('j'))
+						solver = new DefaultActionPolicySolver(ipomdp, ipomdp.lowerLevelGuessForAi);
+					
+					else if (line.hasOption('k'))
+						solver = new RandomActionPolicySolver(ipomdp);
+					
+					/* Agent i */
+					else {
+						solver = 
+							new OnlineInteractiveSymbolicPerseus(
+									ipomdp, 
+									BE, numRounds, backups);
+					}
 					
 					CyberDeceptionSimulation ss = 
-							new CyberDeceptionSimulation(null, null, simLength, ipAddr, 2004);
+							new CyberDeceptionSimulation(solver, jSolver, simLength, ipAddr, 2004);
 
 					ss.setMjDotDir(storageDir, i);
 					ss.runSimulation();
