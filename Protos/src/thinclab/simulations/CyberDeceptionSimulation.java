@@ -12,6 +12,10 @@ import java.util.Arrays;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
@@ -36,6 +40,8 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 	private static final long serialVersionUID = 9022031217500704107L;
 	private static final Logger LOGGER = Logger.getLogger(CyberDeceptionSimulation.class);
 	
+	// ---------------------------------------------------------------------------------------------
+	
 	public CyberDeceptionSimulation(
 			BaseSolver ipomdpSolver, BaseSolver pomdpSolver, int interactions,
 			String envIP,
@@ -47,6 +53,8 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		
 		LOGGER.info("Starting agent based simulation");
 	}
+	
+	// ---------------------------------------------------------------------------------------------
 	
 	@Override
 	public void runSimulation() {
@@ -103,9 +111,48 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		
 		/* relevant varIndices */
 		String[] actions = action.split("__");
-		String[] obs = this.defEnvConnector.step(actions[0]);
 		
-		return new String[] {"none", "user"};
+		/*
+		 * Map action to defender agent
+		 */
+		String defAction = actions[0];
+		
+		if (defAction.contentEquals("SHOW_LOWER_PRIVS"))
+			defAction = "whoami";
+		
+		else if (defAction.contentEquals("SHOW_HIGHER_PRIVS"))
+			defAction = "undo_whoami";
+		
+		else if (defAction.contentEquals("DEPLOY_HONEY_FILES"))
+			defAction = "filebomb";
+		
+		String[] obs = this.defEnvConnector.step(defAction);
+		
+		/*
+		 * Observation is in format {1:0, 2:0, ...}
+		 */
+		
+		String obsString = obs[0].substring(1, obs[0].length() - 1);
+		String[] obsStrings = obsString.split(",");
+		
+		for (String singleObs: obsStrings) {
+			
+			String[] obsMap = singleObs.split(":");
+			
+			if (obsMap[0].contentEquals("1") && obsMap[1].contentEquals("1"))
+				return new String[] {"file_enum"};
+			
+			else if (obsMap[0].contentEquals("2") && obsMap[1].contentEquals("1"))
+				return new String[] {"vuln_recon"};
+			
+			else if (obsMap[0].contentEquals("3") && obsMap[1].contentEquals("1"))
+				return new String[] {"exfil_attempt"};
+			
+			else if (obsMap[0].contentEquals("4") && obsMap[1].contentEquals("1"))
+				return new String[] {"persistence_attempt"};
+		}
+		
+		return new String[] {"none"};
 	}
 	
 	@Override
