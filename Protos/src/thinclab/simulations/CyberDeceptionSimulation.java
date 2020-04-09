@@ -8,6 +8,10 @@
 package thinclab.simulations;
 
 import java.util.Arrays;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -104,12 +108,24 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 //	}
 	
 	@Override
-	public String[] getL1Observation(String action) {
-		/*
-		 * Sample observation from the state
-		 */
+	public String[][] doJointAction(String jointAction) {
 		
-		/* relevant varIndices */
+		this.defEnvConnector.sendAction(this.mapL1Action(jointAction));
+		this.attEnvConnector.sendAction(jointAction.split("__")[1]);
+		
+		String[] l1Obs = this.mapL1Obs(this.defEnvConnector.getObservation());
+		String[] l0Obs = this.attEnvConnector.getObservation();
+		
+		/* stack observation arrays */
+		String[][] obs = new String[2][];
+		obs[0] = l1Obs;
+		obs[1] = l0Obs;
+		
+		return obs;
+	}
+	
+	public String mapL1Action(String action) {
+		
 		String[] actions = action.split("__");
 		
 		/*
@@ -126,6 +142,42 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		else if (defAction.contentEquals("DEPLOY_HONEY_FILES"))
 			defAction = "filebomb";
 		
+		return defAction;
+	}
+	
+	public String[] mapL1Obs(String[] obs) {
+		
+		String obsString = obs[0].substring(1, obs[0].length() - 1);
+		String[] obsStrings = obsString.split(",");
+		
+		for (String singleObs: obsStrings) {
+			
+			String[] obsMap = singleObs.split(":");
+			
+			if (obsMap[0].contentEquals("1") && obsMap[1].contentEquals("1"))
+				return new String[] {"file_enum"};
+			
+			else if (obsMap[0].contentEquals("2") && obsMap[1].contentEquals("1"))
+				return new String[] {"vuln_recon"};
+			
+			else if (obsMap[0].contentEquals("3") && obsMap[1].contentEquals("1"))
+				return new String[] {"exfil_attempt"};
+			
+			else if (obsMap[0].contentEquals("4") && obsMap[1].contentEquals("1"))
+				return new String[] {"persistence_attempt"};
+		}
+		
+		return new String[] {"none"};
+	}
+	
+	
+	@Override
+	public String[] getL1Observation(String action) {
+		/*
+		 * Sample observation from the state
+		 */
+		
+		String defAction = this.mapL1Action(action);
 		String[] obs = this.defEnvConnector.step(defAction);
 		
 		/*

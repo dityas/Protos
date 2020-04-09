@@ -380,11 +380,16 @@ public class MultiAgentSimulation extends Simulation {
 		DDTree nextState = this.getNextState(action).toDDTree();
 		this.states.add(nextState);
 		
+		return this.doJointAction(action);
+	}
+	
+	public String[][] doJointAction(String jointAction) {
+		
 		/* sample observation */
-		String[] l1Obs = this.getL1Observation(action);
+		String[] l1Obs = this.getL1Observation(jointAction);
 		LOGGER.debug("L1 observation sampled from state is " + Arrays.toString(l1Obs));
 		
-		String[] l0Obs = this.getL0Observation(action);
+		String[] l0Obs = this.getL0Observation(jointAction);
 		LOGGER.debug("L0 observation sampled from state is " + Arrays.toString(l0Obs));
 		
 		/* stack observation arrays */
