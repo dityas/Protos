@@ -245,6 +245,8 @@ public class MultiAgentSimulation extends Simulation {
 			/* take action */
 			String[][] obs = this.multiAgentEnvStep(l1Action + "__" + l0Action);
 			
+			if (obs == null) return -1;
+			
 			/* record action and obs */
 			this.l0ActionSequence.add(l0Action);
 			this.l1ActionSequence.add(l1Action);
@@ -521,6 +523,8 @@ public class MultiAgentSimulation extends Simulation {
 		
 		for (int i = 0; i < this.iterations; i++) {
 			int nextNode = this.step(previousNode);
+			if (nextNode == -1) break;
+			
 			previousNode = nextNode;
 		}
 		
