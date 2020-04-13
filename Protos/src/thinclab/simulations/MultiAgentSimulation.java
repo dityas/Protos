@@ -245,7 +245,6 @@ public class MultiAgentSimulation extends Simulation {
 			/* take action */
 			String[][] obs = this.multiAgentEnvStep(l1Action + "__" + l0Action);
 			
-			this.stateSequence.remove(this.stateSequence.size() - 1);
 			if (obs == null) return -1;
 			
 			/* record action and obs */

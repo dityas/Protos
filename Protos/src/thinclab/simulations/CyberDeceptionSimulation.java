@@ -85,8 +85,7 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 			LOGGER.error("Exception: " + e);
 			e.printStackTrace();
 		}
-		
-		this.logResults();
+
 	}
 
 	@Override
