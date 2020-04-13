@@ -48,7 +48,7 @@ abstract public class NetworkedEnvironmentConnector implements ExternalEnvironme
 	
 	// ------------------------------------------------------------------------------
 	
-	private void createEnvStreams() throws Exception {
+	public void createEnvStreams() throws Exception {
 		/*
 		 * Connects to the environment and returns the socket
 		 */
@@ -116,6 +116,12 @@ abstract public class NetworkedEnvironmentConnector implements ExternalEnvironme
 		this.envOutStream.println(action);
 		this.waitForAck(this.envInStream);
 		LOGGER.info("Sent action " + action);
+	}
+	
+	public void sendControlAction(String action) {
+		
+		this.envOutStream.println(action);
+		LOGGER.info("Sent control action " + action);
 	}
 
 	@Override

@@ -7,23 +7,10 @@
  */
 package thinclab.simulations;
 
-import java.util.Arrays;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-
-import thinclab.decisionprocesses.DecisionProcess;
-import thinclab.decisionprocesses.IPOMDP;
-import thinclab.legacy.DD;
-import thinclab.legacy.OP;
 import thinclab.solvers.BaseSolver;
 
 /*
@@ -40,6 +27,7 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 	
 	private CyberDeceptionEnvironmentConnector attEnvConnector;
 	private CyberDeceptionEnvironmentConnector defEnvConnector;
+	private CyberDeceptionEnvironmentConnector controllerConnector;
 	
 	private static final long serialVersionUID = 9022031217500704107L;
 	private static final Logger LOGGER = Logger.getLogger(CyberDeceptionSimulation.class);
@@ -54,7 +42,8 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		super(ipomdpSolver, pomdpSolver, interactions);
 		this.attEnvConnector = new CyberDeceptionEnvironmentConnector(envIP, 2003);
 		this.defEnvConnector = new CyberDeceptionEnvironmentConnector(envIP, 2004);
-		
+		this.controllerConnector = new CyberDeceptionEnvironmentConnector(envIP, 2008);
+
 		LOGGER.info("Starting agent based simulation");
 	}
 	
@@ -79,36 +68,27 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 			previousNode = nextNode;
 		}
 		
-		this.attEnvConnector.closeConnection();
-		this.defEnvConnector.closeConnection();
+		try {
+			
+			this.controllerConnector.createEnvStreams();
+			this.controllerConnector.sendControlAction("restart");
+			
+			TimeUnit.SECONDS.sleep(5);
+			
+			this.attEnvConnector.closeConnection();
+			this.defEnvConnector.closeConnection();
+			
+			TimeUnit.SECONDS.sleep(10);
+		}
+		
+		catch (Exception e) {
+			LOGGER.error("Exception: " + e);
+			e.printStackTrace();
+		}
 		
 		this.logResults();
 	}
-	
-//	@Override
-//	public String[] act(DecisionProcess DP, DD belief, String action) {
-//		/*
-//		 * Override to send actions to an actual agent and get observations
-//		 */
-//		
-//		LOGGER.info("Sending action " + action + " to the environment connector");
-//		String[] obs = this.envConnector.step(action);
-//		
-//		return obs;
-//	}
-	
-//	@Override
-//	public int step(int currentNode) {
-//		
-//		String[] obs1 = this.getL1Observation("ACTION_FROM_DEFENDER");
-//		LOGGER.debug("Defender got observation " + Arrays.toString(obs1));
-//		
-//		String[] obs2 = this.getL0Observation("ACTION_FROM_ATTACKER");
-//		LOGGER.debug("Attacker got observation " + Arrays.toString(obs2));
-//		
-//		return currentNode + 1;
-//	}
-	
+
 	@Override
 	public String[][] doJointAction(String jointAction) {
 		
