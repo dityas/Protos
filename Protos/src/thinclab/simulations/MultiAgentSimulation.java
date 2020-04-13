@@ -52,6 +52,7 @@ public class MultiAgentSimulation extends Simulation {
 	private PrintWriter summaryWriter = null;
 	private int iterId = -1;
 	private int jFrameID = -1;
+	private boolean interactionOver = false;
 	
 	/* some lists for storing run stats */
 	List<String> stateSequence = new ArrayList<String>();
@@ -76,6 +77,7 @@ public class MultiAgentSimulation extends Simulation {
 		
 		super();
 		
+		this.interactionOver = false;
 		this.solver = pomdpSolver;
 		this.jFrameID = pomdpSolver.f.frameID;
 		this.l1Solver = ipomdpSolver;
@@ -127,6 +129,10 @@ public class MultiAgentSimulation extends Simulation {
 		catch (Exception e) {
 			LOGGER.error("Could not make summary file");
 		}
+	}
+	
+	public void endSimulation() {
+		this.interactionOver = true;
 	}
 	
 	// ----------------------------------------------------------------------------------------
@@ -245,8 +251,6 @@ public class MultiAgentSimulation extends Simulation {
 			/* take action */
 			String[][] obs = this.multiAgentEnvStep(l1Action + "__" + l0Action);
 			
-			if (obs == null) return -1;
-			
 			/* record action and obs */
 			this.l0ActionSequence.add(l0Action);
 			this.l1ActionSequence.add(l1Action);
@@ -338,6 +342,8 @@ public class MultiAgentSimulation extends Simulation {
 					Arrays.asList(new String[] {l1Action, l0Action}), 
 					nextStateNode.getId());
 			this.putEdge(currentNode + 2, Arrays.asList(obs[1]), nextJNode.getId());
+			
+			if (this.interactionOver) return -1;
 			
 			return nextINode.getId();
 		}

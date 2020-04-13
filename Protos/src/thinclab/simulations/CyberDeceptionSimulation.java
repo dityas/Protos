@@ -98,7 +98,7 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		String[] l0Obs = this.attEnvConnector.getObservation();
 		
 		if (jointAction.split("__")[1].contentEquals("EXIT"))
-			return null;
+			this.endSimulation();
 		
 		/* stack observation arrays */
 		String[][] obs = new String[2][];
