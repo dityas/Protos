@@ -32,7 +32,6 @@ public class ReactiveSolver extends BaseSolver {
 	
 	private boolean deceptionDeployed = false;
 	private boolean fakeVulnDeployed = false;
-	private String currentAction = "NOP";
 	
 	private static final long serialVersionUID = -9200255582382484951L;
 	private static final Logger LOGGER = Logger.getLogger(ReactiveSolver.class);
@@ -49,7 +48,9 @@ public class ReactiveSolver extends BaseSolver {
 
 	@Override
 	public String getActionForBelief(DD belief) {
-		return this.currentAction;
+		return this.getDeceptionActionFromBelief(((IPOMDP) this.f)
+						.toMapWithTheta(this.f.getCurrentBelief())
+						.get("Theta_j"));
 	}
 
 	@Override
@@ -78,10 +79,6 @@ public class ReactiveSolver extends BaseSolver {
 		
 		try {
 			this.f.step(this.f.getCurrentBelief(), action, obs.stream().toArray(String[]::new));
-			this.currentAction = 
-					this.getDeceptionActionFromBelief(((IPOMDP) this.f)
-							.toMapWithTheta(this.f.getCurrentBelief())
-							.get("Theta_j"));
 		} 
 		
 		catch (Exception e) {
@@ -93,7 +90,7 @@ public class ReactiveSolver extends BaseSolver {
 
 	@Override
 	public String getActionAtCurrentBelief() {
-		return this.currentAction;
+		return null;
 	}
 	
 	private String getDeceptionActionFromBelief(HashMap<String, Float> frameBelief) {
