@@ -70,8 +70,7 @@ public class ReactiveSolver extends BaseSolver {
 
 	@Override
 	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
-		return this.f.evaluateDefaultPolicy(
-				this.getActionAtCurrentBelief(), trials, evalDepth, verbose);
+		return Double.NaN;
 	}
 
 	@Override
