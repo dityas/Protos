@@ -70,7 +70,7 @@ public class ReactiveSolver extends BaseSolver {
 
 	@Override
 	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
-		return Double.NaN;
+		return 0.0;
 	}
 
 	@Override
