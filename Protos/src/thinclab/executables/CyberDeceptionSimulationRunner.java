@@ -31,6 +31,7 @@ import thinclab.solvers.DefaultActionPolicySolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.solvers.RandomActionPolicySolver;
+import thinclab.solvers.basiccyberdeceptionsolvers.ReactiveSolver;
 import thinclab.utils.CustomConfigurationFactory;
 import thinclab.utils.NextBelStateCache;
 
@@ -83,8 +84,15 @@ public class CyberDeceptionSimulationRunner extends Executable {
 		opt.addOption(
 				"j", 
 				"default-policy", 
-				false, 
+				true, 
 				"use default policy for L1?");
+		
+		/* use cyber deception solver */
+		opt.addOption(
+				"q", 
+				"cyberdec-reactive", 
+				false, 
+				"use reactive solver");
 		
 		/* use default policy */
 		opt.addOption(
@@ -278,11 +286,21 @@ public class CyberDeceptionSimulationRunner extends Executable {
 					
 					BaseSolver solver = null;
 					
-					if (line.hasOption('j'))
-						solver = new DefaultActionPolicySolver(ipomdp, ipomdp.lowerLevelGuessForAi);
+					if (line.hasOption('j')) {
+						
+						String action = line.getOptionValue('j');
+						
+						if (action == null)
+							action = ipomdp.lowerLevelGuessForAi;
+						
+						solver = new DefaultActionPolicySolver(ipomdp, action);
+					}
 					
 					else if (line.hasOption('k'))
 						solver = new RandomActionPolicySolver(ipomdp);
+					
+					else if (line.hasOption('q'))
+						solver = new ReactiveSolver(ipomdp);
 					
 					/* Agent i */
 					else {
