@@ -83,7 +83,7 @@ public class RunSimulations extends Executable {
 		opt.addOption(
 				"j", 
 				"default-policy", 
-				false, 
+				true, 
 				"use default policy for L1?");
 		
 		/* use default policy */
@@ -269,8 +269,15 @@ public class RunSimulations extends Executable {
 					
 					BaseSolver solver = null;
 					
-					if (line.hasOption('j'))
-						solver = new DefaultActionPolicySolver(ipomdp, ipomdp.lowerLevelGuessForAi);
+					if (line.hasOption('j')) {
+						
+						String action = line.getOptionValue('j');
+						
+						if (action == null)
+							action = ipomdp.lowerLevelGuessForAi;
+						
+						solver = new DefaultActionPolicySolver(ipomdp, action);
+					}
 					
 					else if (line.hasOption('k'))
 						solver = new RandomActionPolicySolver(ipomdp);
