@@ -129,6 +129,9 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		else if (defAction.contentEquals("DEPLOY_REAL_ROOT_VULN"))
 			defAction = "undo_uname";
 		
+		else if (defAction.contentEquals("DEPLOY_FAKE_VULN_INDICATORS"))
+			defAction = "ps";
+		
 		return defAction;
 	}
 	
