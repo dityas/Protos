@@ -132,6 +132,9 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		else if (defAction.contentEquals("DEPLOY_FAKE_VULN_INDICATORS"))
 			defAction = "ps";
 		
+		else if (defAction.contentEquals("DISABLE_DECEPTION"))
+			defAction = "undo_ps";
+		
 		return defAction;
 	}
 	
