@@ -191,7 +191,7 @@ public class POMDPSolver extends Executable {
 			if (line.hasOption("o")) {
 				
 				String planDir = line.getOptionValue("o");
-				solver.makeConditionalPlan(planDir);
+//				solver.makeConditionalPlan(planDir);
 				solver.makePolicyGraph(planDir);
 				
 			}
