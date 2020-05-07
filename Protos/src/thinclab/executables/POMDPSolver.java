@@ -69,7 +69,7 @@ public class POMDPSolver extends Executable {
 		this.solver = 
 				new OfflineSymbolicPerseus(
 						this.pomdp, 
-						new SSGABeliefExpansion(this.pomdp, this.searchDepth, 10), 
+						new SSGABeliefExpansion(this.pomdp, this.searchDepth, 30), 
 						this.perseusRounds, 
 						this.numDpBackups);
 		
