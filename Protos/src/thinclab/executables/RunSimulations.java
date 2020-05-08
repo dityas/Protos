@@ -237,7 +237,7 @@ public class RunSimulations extends Executable {
 						G.makeGraph();
 						G.computeEU();
 						
-						PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, simLength);
+						PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, 5);
 						T.buildTree();
 						
 						/* store policy graph solution */
