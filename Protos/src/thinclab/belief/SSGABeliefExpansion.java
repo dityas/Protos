@@ -48,7 +48,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	
 	/* number of iterations of SSGA during each expansion */
 	private int nIterations;
-	private int maxBeliefs = 500;
+	private int maxBeliefs = 200;
 	
 	private static final Logger LOGGER = Logger.getLogger(SSGABeliefExpansion.class);
 	

@@ -76,7 +76,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		/* try running IPBVI */
 		try {
 			this.pCache.resetOscillationTracking();
-			this.SymbolicPerseus(100, 0, this.numDpBackups, beliefs.stream().toArray(DD[]::new));
+			this.SymbolicPerseus(30, 0, this.numDpBackups, beliefs.stream().toArray(DD[]::new));
 			
 			LOGGER.info("Using alpha vectors from back iteration with bellman error " 
 					+ this.bestBellmanError);
