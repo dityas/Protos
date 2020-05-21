@@ -263,11 +263,19 @@ public class NextBelState implements Serializable {
 			
 			for (int o = 0; o < allObs.size(); o++) {
 				
-				DD nextBelief = 
-						ipomdp.beliefUpdate(
-								belState, 
-								act, 
-								allObs.get(o).stream().toArray(String[]::new));
+				DD nextBelief = null;
+				
+				try {
+					nextBelief = 
+							ipomdp.beliefUpdate(
+									belState, 
+									act, 
+									allObs.get(o).stream().toArray(String[]::new));
+				}
+				
+				catch (ZeroProbabilityObsException e) {
+					continue;
+				}
 				
 				DD[] factoredNextBel = ipomdp.factorBelief(nextBelief);
 				factoredNextBel = 
