@@ -178,7 +178,7 @@ public class RunSimulations extends Executable {
 					
 					solver.solve();
 					
-					PolicyTree T = new PolicyTree(solver, simLength);
+					PolicyTree T = new PolicyTree(solver, 3);
 					T.buildTree();
 					T.computeEU();
 					T.writeDotFile(storageDir, "policy_tree" + i);
