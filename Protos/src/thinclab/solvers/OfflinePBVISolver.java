@@ -96,6 +96,11 @@ public class OfflinePBVISolver extends AlphaVectorPolicySolver {
 			/* Solve for the explored beliefs */
 			this.solveForBeliefs(beliefs);
 			
+			/* break if max beliefs reached */
+			if (this.expansionStrategy.maxBeliefsReached()) {
+				LOGGER.info("Reached maximum number of beliefs. Breaking...");
+			}
+			
 			if (this.expansionStrategy instanceof SSGABeliefExpansion) {
 				LOGGER.debug("Updating expansion policy");
 				((SSGABeliefExpansion) this.expansionStrategy).setRecentPolicy(
