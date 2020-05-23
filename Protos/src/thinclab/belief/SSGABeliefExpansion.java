@@ -119,7 +119,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	
 	@Override
 	public boolean maxBeliefsReached() {
-		return (this.exploredBeliefs.size() > this.maxBeliefs);
+		return (this.exploredBeliefs.size() >= this.maxBeliefs);
 	}
 	
 	@Override
