@@ -72,7 +72,7 @@ public class PolicyGraph extends PersistentStructuredTree {
 				this.solver.getFramework().evaluatePolicy(
 						this.alphas, 
 						this.actions, 
-						10000, 
+						1000, 
 						this.solver.expansionStrategy.getHBound(), 
 						false);
 	}
