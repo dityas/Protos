@@ -720,6 +720,9 @@ public class ParseSPUDD implements Serializable {
 	    
 	    /* Make SAMEvarName DDs here */
 	    for (String name: varNames) {
+	    	
+	    	if (varNames.indexOf(name) >= cpts.length) continue;
+	    	
 	    	LOGGER.debug("Adding SAME DD for varName " + name);
 	    	cpts[varNames.indexOf(name)] = (DD) this.existingDds.get("SAME" + name);
 	    }
