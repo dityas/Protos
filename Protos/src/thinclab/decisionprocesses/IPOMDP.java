@@ -98,7 +98,7 @@ public class IPOMDP extends POMDP {
 	public int thetaVarPosition = -1;
 	
 	/* actions costs stored locally to avoid storing the full parser object */
-	private HashMap<String, DDTree> costMap;
+//	public HashMap<String, DDTree> costMap;
 	
 	/* Staging area for j's observation functions */
 	/*
