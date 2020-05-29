@@ -49,8 +49,10 @@ public class MAPOMDP extends IPOMDP {
 	private DDTree sameThetaDDTree;
 	private DDTree initialThetaBelief;
 	
-//	private HashMap<String, DDTree[]> TiStager = new HashMap<String, DDTree[]>();
-//	private HashMap<String, DDTree[]> OiStager = new HashMap<String, DDTree[]>();
+	public HashMap<String, HashMap<String, DDTree>> jointTiStager = 
+			new HashMap<String, HashMap<String, DDTree>>();
+	public HashMap<String, HashMap<String, DDTree>> jointOiStager = 
+			new HashMap<String, HashMap<String, DDTree>>();
 	
 	// ---------------------------------------------------------------------------------
 	
@@ -59,9 +61,9 @@ public class MAPOMDP extends IPOMDP {
 	
 	// ---------------------------------------------------------------------------------
 	
-	public MAPOMDP(IPOMDPParser parsedFrame, int mjlookAhead, int mjSearchDepth) {
+	public MAPOMDP(IPOMDPParser parsedFrame, int mjSearchDepth) {
 		
-		super(parsedFrame, mjlookAhead, mjSearchDepth);
+		super(parsedFrame, 2, mjSearchDepth);
 		LOGGER.info("MAPOMDP initialized");
 		
 		/* make same theta DD */
@@ -88,8 +90,6 @@ public class MAPOMDP extends IPOMDP {
 			this.remakeTi();
 			this.remakeOi();
 			this.remakeRi();
-			
-			LOGGER.debug(this.costMap);
 			
 			/* redo indices */
 			this.reindexVars();
@@ -167,6 +167,7 @@ public class MAPOMDP extends IPOMDP {
 		this.AjGivenTheta = OP.reorder(this.ajGivenThetajDDTree.toDD());
 	}
 	
+	@Override
 	public void setDynamics() {
 		/*
 		 * Starts building up DDs which define system dynamics based on Ti and Oi
@@ -198,6 +199,7 @@ public class MAPOMDP extends IPOMDP {
 			
 			actions[a].addTransFn(TiaArray.toArray(new DD[TiaArray.size()]));
 			actions[a].addObsFn(OiaArray.toArray(new DD[OiaArray.size()]));
+			
 			actions[a].rewFn = OP.reorder(this.costMap.get(actName).toDD());
 //					OP.sub(OP.reorder(this.R.toDD()), OP.reorder(this.costMap.get(actName).toDD()));
 			actions[a].buildRewTranFn();
@@ -233,8 +235,6 @@ public class MAPOMDP extends IPOMDP {
 		 * Sum out Aj according to the static distribution
 		 */
 		
-		this.Ti.clear();
-		
 		for (String action: this.getActions()) {
 			
 			DD[] oldTi = this.currentTi.get(action);
@@ -265,8 +265,6 @@ public class MAPOMDP extends IPOMDP {
 		/*
 		 * Sum out Aj according to the static distribution
 		 */
-		
-		this.Oi.clear();
 		
 		for (String action: this.getActions()) {
 			
@@ -303,7 +301,7 @@ public class MAPOMDP extends IPOMDP {
 			
 			DD RSMj = 
 					OP.addMultVarElim( 
-							new DD[] {this.AjGivenTheta, this.currentRi.get(Ai)},
+							new DD[] {this.AjGivenTheta, OP.reorder(this.costMap.get(Ai).toDD())},
 							this.AjStartIndex);
 			
 			LOGGER.debug("For Ai=" + Ai + " R(S,Mj) has vars " 
@@ -312,6 +310,74 @@ public class MAPOMDP extends IPOMDP {
 			
 			this.costMap.put(Ai, RSMj.toDDTree());
 		}
+	}
+	
+	@Override
+	public HashMap<String, DD> makeRi() {
+		/*
+		 * Construct's i's reward function based on joint actions (Mj)
+		 */
+		
+		LOGGER.debug("Making reward funtion");
+		
+		/* First condition rewards on Mj for each Ai */
+		HashMap<String, DD> Ri = new HashMap<String, DD>(); 
+		HashMap<String, DD> actionCosts = new HashMap<String, DD>(); 
+		
+		for (String Ai : this.Ai) {
+			
+			DDTree ajDDTree = 
+					this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
+			
+			for (String action : ajDDTree.children.keySet()) {
+				
+				try {
+					
+					ajDDTree.setDDAt(
+							action, 
+							OP.sub(
+									OP.reorder(this.R.toDD()), 
+									OP.reorder(this.costMap.get(
+											Ai + "__" 
+											+ action)
+												.toDD())).toDDTree());
+				} 
+				
+				catch (Exception e) {
+					LOGGER.error("While making cost for action " + Ai + " : " + e.getMessage());
+					e.printStackTrace();
+					System.exit(-1);
+				}
+			} /* for each aj */
+			
+			actionCosts.put(Ai, OP.reorder(ajDDTree.toDD()));
+			this.costMap.put(Ai, ajDDTree);
+		} /* for each Ai */
+		
+		LOGGER.debug("Done conditioning costs on Aj");
+		
+		/*
+		 * Build rewTranFn like in POMDP setDynamics.
+		 * 
+		 * This computation is essentially the expected reward considering Aj for each Ai.
+		 * 
+		 * ER(S, Ai) = Sumout[Aj] f(S, Ai, Aj) 
+		 */
+		for (String Ai : actionCosts.keySet()) {
+			
+			DD RSMj = 
+					OP.addMultVarElim( 
+							new DD[] {this.currentAjGivenMj, actionCosts.get(Ai)},
+							this.AjStartIndex);
+			
+			LOGGER.debug("For Ai=" + Ai + " R(S,Mj) has vars " 
+					+ Arrays.toString(RSMj.getVarSet()));
+//			LOGGER.debug("Ri is: " + RSMj.toDDTree());
+			
+			Ri.put(Ai, RSMj);
+		}
+		
+		return Ri;
 	}
 	
 	public void reindexVars() {
@@ -339,9 +405,92 @@ public class MAPOMDP extends IPOMDP {
 		this.currentTi = null;
 		this.currentTauXPAjGivenMjXPThetajGivenMj = null;
 		this.currentThetajGivenMj = null;
+		this.MjVarIndex = -1;
+		this.MjVarPosition = -1;
+		this.AjVarStartPosition = -1;
+		this.AjStartIndex = -1;
 	}
 	
 	// --------------------------------------------------------------------------------------
+	
+	@Override
+	public HashMap<String, DD[]> makeTi() {
+		/*
+		 * Constructs i's transition function.
+		 * 
+		 * The DBN structure is:
+		 * 
+		 * 		[Mj] -------------------.
+		 * 								|
+		 * 								v
+		 * 		[S]  ----------------> [S']
+		 * 
+		 */
+		
+		/*
+		 * The parsed Ti is in the form of a joint action transition function of the form -
+		 * (Ai - Aj) -> S -> f(S', S)
+		 * 
+		 * We need to map that to the form Ai -> f(S', Aj, S)
+		 */
+		LOGGER.debug("Making Ti");
+		
+		HashMap<String, DD[]> Ti = 
+				new HashMap<String, DD[]>();
+		
+		List<String> S = 
+				this.S.subList(0, this.MjVarPosition).stream()
+					.map(f -> f.name)
+					.collect(Collectors.toList());
+
+		/* For each action */
+		for (String Ai : this.Ai) {
+
+			DD[] ddTrees = new DD[this.MjVarPosition];
+			
+			for (String s : S) {
+				
+				DDTree ajDDTree = 
+						this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
+				
+				/* for all of J's actions */
+				for (String aj : this.Aj) {
+					
+					String ajPath = Ai + "__" + aj;
+					
+					DDTree tiGivenaj = this.Ti.get(ajPath).get(s);
+					
+					try {
+						/* avoid passing the original actionCombination because it is mutable */
+						ajDDTree.setDDAt(aj, tiGivenaj);
+					}
+					
+					catch (Exception e) {
+						LOGGER.error("While setting " + tiGivenaj + " at " + ajDDTree);
+						e.printStackTrace();
+						System.exit(-1);
+					}
+				}
+				
+				LOGGER.debug("Made f(S', "
+						+ this.S.stream()
+							.filter(v -> v.name.contains("A_j"))
+							.map(i -> i.name)
+							.collect(Collectors.toList())
+						+ ", S) for S=" + s + " and Ai=" + Ai);
+				
+				DD TiForS = OP.reorder(ajDDTree.toDD());
+				
+				ddTrees[S.indexOf(s)] = TiForS;
+			}
+			
+			Ti.put(Ai, ddTrees);
+		}
+		
+		LOGGER.debug("Finished making Ti");
+		
+		return Ti;
+	}
 	
 	@Override
 	public String getType() {

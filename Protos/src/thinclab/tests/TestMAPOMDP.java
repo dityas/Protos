@@ -51,7 +51,7 @@ class TestMAPOMDP {
 		LOGGER.info("Testing init");
 		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
 		parser.parseDomain();
-		MAPOMDP mapomdp = new MAPOMDP(parser, 2, 10);
+		MAPOMDP mapomdp = new MAPOMDP(parser, 10);
 		
 		LOGGER.debug(mapomdp.getInitialBeliefs());
 //		LOGGER.debug(mapomdp.Oi);
