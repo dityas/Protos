@@ -19,6 +19,7 @@ import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.MAPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.policyrepresentations.PolicyGraph;
@@ -128,8 +129,11 @@ public class RunSimulations extends Executable {
 				false,
 				"set if the domain is a IPOMDP domain");
 		
-		/* merge threshold */
-		opt.addOption("m", "merge", true, "For MJ merge threshold");
+		opt.addOption(
+				"m",
+				"mapomdp",
+				false,
+				"set if the domain is a MAPOMDP domain");
 		
 		CommandLine line = null;
 
@@ -204,9 +208,6 @@ public class RunSimulations extends Executable {
 				int simLength = new Integer(line.getOptionValue("x"));
 				double mergeThreshold = 0.0;
 				
-				if (line.hasOption("m"))
-					mergeThreshold = new Double(line.getOptionValue("m"));
-				
 				/* run simulation for simRounds */
 				for (int i = 0; i < simRounds; i++) {
 					
@@ -219,7 +220,7 @@ public class RunSimulations extends Executable {
 					IPOMDP ipomdp;
 					
 					if (mergeThreshold > 0.0)
-						ipomdp = new IPOMDP(parser, lookAhead, simLength, mergeThreshold);
+						ipomdp = new IPOMDP(parser, lookAhead, simLength, 0.0);
 					
 					else ipomdp = new IPOMDP(parser, lookAhead, simLength);
 					
@@ -299,6 +300,105 @@ public class RunSimulations extends Executable {
 							new OnlineInteractiveSymbolicPerseus(
 									ipomdp, 
 									BE, numRounds, backups);
+					}
+					
+					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
+
+					ss.setMjDotDir(storageDir, i);
+					ss.runSimulation();
+					
+					ss.logToFile(storageDir + "/" + "sim" + i + ".json");
+					ss.writeDotFile(storageDir, "sim" + i);
+				}
+			}
+			
+			
+			/* for MAPOMDPs */
+			else if (line.hasOption("m")) {
+				
+				/* set NextBelState Caching */
+				NextBelStateCache.useCache();
+				
+				LOGGER.info("Simulating MAPOMDP...");
+				
+				int simRounds = new Integer(line.getOptionValue("y"));
+				int simLength = new Integer(line.getOptionValue("x"));
+				
+				/* run simulation for simRounds */
+				for (int i = 0; i < simRounds; i++) {
+					
+					LOGGER.info("Starting simulation round " + i);
+					
+					/* initialize IPOMDP */
+					IPOMDPParser parser = new IPOMDPParser(domainFile);
+					parser.parseDomain();
+					
+					MAPOMDP mapomdp = new MAPOMDP(parser, simLength);
+					
+					Random rng = new Random();
+					
+					int frameSample = rng.nextInt(mapomdp.lowerLevelSolutions.size());
+					
+					for (BaseSolver solver : mapomdp.lowerLevelSolutions) {
+						
+						/* set context */
+						solver.f.setGlobals();
+						
+						/* make policy graph */
+						PolicyGraph G = new PolicyGraph((AlphaVectorPolicySolver) solver, simLength);
+						G.makeGraph();
+						G.computeEU();
+						
+						PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, 5);
+						T.buildTree();
+						
+						/* store policy graph solution */
+						G.writeDotFile(
+								storageDir, 
+								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
+						
+						T.writeDotFile(
+								storageDir, 
+								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
+						
+						G.writeJSONFile(
+								storageDir, 
+								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
+					}
+					
+					/* store ref to agent J */
+					BaseSolver jSolver = mapomdp.lowerLevelSolutions.get(frameSample);
+					
+					mapomdp.clearLowerLevelSolutions();
+					
+					/* set context back to MAPOMDP */
+					mapomdp.setGlobals();
+					
+					BeliefRegionExpansionStrategy BE;
+					BE = new SSGABeliefExpansion(mapomdp, simLength, 50);
+					
+					BaseSolver solver = null;
+					
+					if (line.hasOption('j')) {
+						
+						String action = line.getOptionValue('j');
+						
+						if (action == null)
+							action = mapomdp.lowerLevelGuessForAi;
+						
+						solver = new DefaultActionPolicySolver(mapomdp, action);
+					}
+					
+					else if (line.hasOption('k'))
+						solver = new RandomActionPolicySolver(mapomdp);
+					
+					else if (line.hasOption('q'))
+						solver = new ReactiveSolver(mapomdp);
+					
+					/* Agent i */
+					else {
+						solver = new OfflineSymbolicPerseus(mapomdp, BE, 10, 100);
+						solver.solve();
 					}
 					
 					MultiAgentSimulation ss = new MultiAgentSimulation(solver, jSolver, simLength);
