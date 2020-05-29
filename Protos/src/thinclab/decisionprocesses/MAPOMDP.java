@@ -138,6 +138,8 @@ public class MAPOMDP extends IPOMDP {
 			
 			DD[] aVecs = solver.getAlphaVectors();
 			HashMap<String, Double> ajProbs = new HashMap<String, Double>();
+			for (String ajName: this.Aj) ajProbs.put(ajName, 0.0);
+			
 			int numAlpha = aVecs.length;
 			int[] policy = solver.getPolicy();
 			LOGGER.debug("frame " + frameId + " contains " + numAlpha + " vectors");
@@ -157,13 +159,8 @@ public class MAPOMDP extends IPOMDP {
 			
 			DDTree ajTree = this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
 			
-			for (String aj: ajTree.children.keySet()) {
-				LOGGER.debug(aj);
-				LOGGER.debug(numAlpha);
-				LOGGER.debug(ajProbs);
-				LOGGER.debug(ajTree);
+			for (String aj: ajTree.children.keySet())
 				ajTree.setValueAt(aj, (ajProbs.get(aj) / (float) numAlpha));
-			}
 			
 			AjGivenThetaj.setDDAt("theta/" + frameId, ajTree);
 		}
