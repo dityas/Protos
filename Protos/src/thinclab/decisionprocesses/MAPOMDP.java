@@ -157,8 +157,12 @@ public class MAPOMDP extends IPOMDP {
 			
 			DDTree ajTree = this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
 			
-			for (String aj: ajTree.children.keySet()) 
+			for (String aj: ajTree.children.keySet()) {
+				LOGGER.debug(aj);
+				LOGGER.debug(numAlpha);
+				LOGGER.debug(ajProbs);
 				ajTree.setValueAt(aj, (ajProbs.get(aj) / (float) numAlpha));
+			}
 			
 			AjGivenThetaj.setDDAt("theta/" + frameId, ajTree);
 		}
