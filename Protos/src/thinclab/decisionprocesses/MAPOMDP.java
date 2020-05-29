@@ -161,6 +161,7 @@ public class MAPOMDP extends IPOMDP {
 				LOGGER.debug(aj);
 				LOGGER.debug(numAlpha);
 				LOGGER.debug(ajProbs);
+				LOGGER.debug(ajTree);
 				ajTree.setValueAt(aj, (ajProbs.get(aj) / (float) numAlpha));
 			}
 			
