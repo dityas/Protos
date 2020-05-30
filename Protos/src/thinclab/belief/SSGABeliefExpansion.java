@@ -81,7 +81,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		this.exploredBeliefs.addAll(fb.getBeliefPoints());
 		
 		fb = null;
-		this.maxBeliefs = 200;
+		this.maxBeliefs = 300;
 		
 		LOGGER.debug("SSGA expansion search initialized");
 	}
