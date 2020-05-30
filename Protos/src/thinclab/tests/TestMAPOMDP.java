@@ -86,9 +86,9 @@ class TestMAPOMDP {
 //		
 //		LOGGER.debug(G.getDotString());
 //		
-//		LOGGER.debug(mapomdp.actions[0].rewFn);
-//		LOGGER.debug(mapomdp.actions[1].rewFn);
-//		LOGGER.debug(mapomdp.actions[2].rewFn);
+		LOGGER.debug(mapomdp.actions[0].rewFn);
+		LOGGER.debug(mapomdp.actions[1].rewFn);
+		LOGGER.debug(mapomdp.actions[2].rewFn);
 //		
 //		LOGGER.debug(mapomdp.R);
 //		LOGGER.debug(mapomdp.costMap);

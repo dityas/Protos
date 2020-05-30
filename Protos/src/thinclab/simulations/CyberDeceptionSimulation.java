@@ -123,10 +123,22 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		else if (defAction.contentEquals("SHOW_HIGHER_PRIVS"))
 			defAction = "undo_whoami";
 		
-		else if (defAction.contentEquals("DEPLOY_HONEY_FILES"))
-			defAction = "filebomb";
+		else if (defAction.contentEquals("DEPLOY_C_DATA_DECOYS"))
+			defAction = "cdata";
 		
-		else if (defAction.contentEquals("DEPLOY_REAL_ROOT_VULN"))
+		else if (defAction.contentEquals("DEPLOY_S_DATA_DECOYS"))
+			defAction = "sdata";
+		
+		else if (defAction.contentEquals("REMOVE_S_DATA_DECOYS"))
+			defAction = "undo_sdata";
+		
+		else if (defAction.contentEquals("REMOVE_C_DATA_DECOYS"))
+			defAction = "undo_cdata";
+		
+		else if (defAction.contentEquals("REMOVE_DECOYS"))
+			defAction = "undo_alldata";
+		
+		else if (defAction.contentEquals("DEPLOY_VULN"))
 			defAction = "undo_uname";
 		
 		else if (defAction.contentEquals("DEPLOY_FAKE_VULN_INDICATORS"))
