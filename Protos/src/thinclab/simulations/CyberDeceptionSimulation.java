@@ -117,26 +117,26 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		 */
 		String defAction = actions[0];
 		
-		if (defAction.contentEquals("SHOW_LOWER_PRIVS"))
+		if (defAction.contentEquals("SHOW_USER_PRIVS"))
 			defAction = "whoami";
 		
-		else if (defAction.contentEquals("SHOW_HIGHER_PRIVS"))
+		else if (defAction.contentEquals("SHOW_ROOT_PRIVS"))
 			defAction = "undo_whoami";
 		
 		else if (defAction.contentEquals("DEPLOY_C_DATA_DECOYS"))
-			defAction = "cdata";
+			defAction = "deploy_c_data";
 		
 		else if (defAction.contentEquals("DEPLOY_S_DATA_DECOYS"))
-			defAction = "sdata";
+			defAction = "deploy_s_data";
 		
 		else if (defAction.contentEquals("REMOVE_S_DATA_DECOYS"))
-			defAction = "undo_sdata";
+			defAction = "remove_s_data";
 		
 		else if (defAction.contentEquals("REMOVE_C_DATA_DECOYS"))
-			defAction = "undo_cdata";
+			defAction = "remove_c_data";
 		
 		else if (defAction.contentEquals("REMOVE_DECOYS"))
-			defAction = "undo_alldata";
+			defAction = "remove_all";
 		
 		else if (defAction.contentEquals("DEPLOY_VULN"))
 			defAction = "undo_uname";
@@ -191,25 +191,29 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		
 		String obsString = obs[0].substring(1, obs[0].length() - 1);
 		String[] obsStrings = obsString.split(",");
+		String[] obsMade = new String[3];
+		obsMade[2] = "none";
+		obsMade[0] = "no";
+		obsMade[1] = "no";
 		
 		for (String singleObs: obsStrings) {
 			
 			String[] obsMap = singleObs.split(":");
 			
 			if (obsMap[0].contentEquals("1") && obsMap[1].contentEquals("1"))
-				return new String[] {"file_enum"};
+				obsMade[2] = "file_recon";
 			
-			else if (obsMap[0].contentEquals("2") && obsMap[1].contentEquals("1"))
-				return new String[] {"vuln_recon"};
+			if (obsMap[0].contentEquals("2") && obsMap[1].contentEquals("1"))
+				obsMade[2] = "sys_info";
 			
-			else if (obsMap[0].contentEquals("3") && obsMap[1].contentEquals("1"))
-				return new String[] {"exfil_attempt"};
+			if (obsMap[0].contentEquals("3") && obsMap[1].contentEquals("1"))
+				obsMade[0] = "yes";
 			
-			else if (obsMap[0].contentEquals("4") && obsMap[1].contentEquals("1"))
-				return new String[] {"persistence_attempt"};
+			if (obsMap[0].contentEquals("4") && obsMap[1].contentEquals("1"))
+				obsMade[2] = "persist_attempt";
 		}
 		
-		return new String[] {"none"};
+		return obsMade;
 	}
 	
 	@Override

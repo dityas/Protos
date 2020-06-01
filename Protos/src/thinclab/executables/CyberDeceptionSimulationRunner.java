@@ -242,11 +242,11 @@ public class CyberDeceptionSimulationRunner extends Executable {
 						solver.f.setGlobals();
 						
 						/* make policy graph */
-						PolicyGraph G = new PolicyGraph((AlphaVectorPolicySolver) solver, simLength);
+						PolicyGraph G = new PolicyGraph((AlphaVectorPolicySolver) solver, 5);
 						G.makeGraph();
 						G.computeEU();
 						
-						PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, simLength);
+						PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, 5);
 						T.buildTree();
 						
 						/* store policy graph solution */
