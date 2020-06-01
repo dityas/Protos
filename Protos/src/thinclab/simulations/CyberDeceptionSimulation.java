@@ -216,6 +216,9 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 			if (obsMap[0].contentEquals("2") && obsMap[1].contentEquals("1"))
 				obsMade[2] = "sys_info";
 			
+			if (obsMap[0].contentEquals("6") && obsMap[1].contentEquals("1"))
+				obsMade[2] = "sys_info";
+			
 			if (obsMap[0].contentEquals("3") && obsMap[1].contentEquals("1"))
 				obsMade[0] = "yes";
 			
