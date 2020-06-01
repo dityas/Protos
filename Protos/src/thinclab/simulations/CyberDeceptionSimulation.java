@@ -152,27 +152,37 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 	
 	public String[] mapL1Obs(String[] obs) {
 		
+//		String defAction = this.mapL1Action(action);
+//		String[] obs = this.defEnvConnector.step(defAction);
+		/*
+		 * Observation is in format {1:0, 2:0, ...}
+		 */
+		
 		String obsString = obs[0].substring(1, obs[0].length() - 1);
 		String[] obsStrings = obsString.split(",");
+		String[] obsMade = new String[3];
+		obsMade[2] = "none";
+		obsMade[0] = "no";
+		obsMade[1] = "no";
 		
 		for (String singleObs: obsStrings) {
 			
 			String[] obsMap = singleObs.split(":");
 			
 			if (obsMap[0].contentEquals("1") && obsMap[1].contentEquals("1"))
-				return new String[] {"file_enum"};
+				obsMade[2] = "file_recon";
 			
-			else if (obsMap[0].contentEquals("2") && obsMap[1].contentEquals("1"))
-				return new String[] {"vuln_recon"};
+			if (obsMap[0].contentEquals("2") && obsMap[1].contentEquals("1"))
+				obsMade[2] = "sys_info";
 			
-			else if (obsMap[0].contentEquals("3") && obsMap[1].contentEquals("1"))
-				return new String[] {"exfil_attempt"};
+			if (obsMap[0].contentEquals("3") && obsMap[1].contentEquals("1"))
+				obsMade[0] = "yes";
 			
-			else if (obsMap[0].contentEquals("4") && obsMap[1].contentEquals("1"))
-				return new String[] {"persistence_attempt"};
+			if (obsMap[0].contentEquals("4") && obsMap[1].contentEquals("1"))
+				obsMade[2] = "persist_attempt";
 		}
 		
-		return new String[] {"none"};
+		return obsMade;
 	}
 	
 	
