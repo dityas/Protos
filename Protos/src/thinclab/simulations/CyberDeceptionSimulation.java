@@ -175,11 +175,17 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 			if (obsMap[0].contentEquals("2") && obsMap[1].contentEquals("1"))
 				obsMade[2] = "sys_info";
 			
+			if (obsMap[0].contentEquals("6") && obsMap[1].contentEquals("1"))
+				obsMade[2] = "sys_info";
+			
 			if (obsMap[0].contentEquals("3") && obsMap[1].contentEquals("1"))
 				obsMade[0] = "yes";
 			
 			if (obsMap[0].contentEquals("4") && obsMap[1].contentEquals("1"))
 				obsMade[2] = "persist_attempt";
+			
+			if (obsMap[0].contentEquals("7") && obsMap[1].contentEquals("1"))
+				obsMade[1] = "yes";
 		}
 		
 		return obsMade;
@@ -224,6 +230,9 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 			
 			if (obsMap[0].contentEquals("4") && obsMap[1].contentEquals("1"))
 				obsMade[2] = "persist_attempt";
+			
+			if (obsMap[0].contentEquals("7") && obsMap[1].contentEquals("1"))
+				obsMade[1] = "yes";
 		}
 		
 		return obsMade;
