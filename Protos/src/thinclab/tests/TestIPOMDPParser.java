@@ -72,7 +72,10 @@ class TestIPOMDPParser {
 	void testParserInit2() throws Exception {
 		LOGGER.info("Running testParserInit()");
 //		IPOMDPParser parser = new IPOMDPParser(this.testFileName);
-		IPOMDPParser parser = new IPOMDPParser(this.testFileName);
+		IPOMDPParser parser = 
+				new IPOMDPParser("/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "CyberDeceptionDomainFiles/final_domains/deception.adaptive/"
+						+ "defender.L1.spudd");
 		parser.parseDomain();
 		assertNotNull(parser);
 		
@@ -88,6 +91,8 @@ class TestIPOMDPParser {
 		LOGGER.debug(ipomdp.lowerLevelGuessForAi);
 		LOGGER.debug(ipomdp.lowerLevelAiProb);
 		LOGGER.debug(ipomdp.lowerLevelAiDist);
+		
+		LOGGER.debug(ipomdp.currentTi);
 	}
 
 }

@@ -213,6 +213,20 @@ public class IPOMDP extends POMDP {
 			this.initializeOfflineFunctions();
 			this.reinitializeOnlineFunctions();
 			
+			/* log dynamics just for fun */
+			for (String acti: this.currentTi.keySet()) {
+				
+				LOGGER.debug("Logging Ti for action " + acti);
+				for (DD tiDD: this.currentTi.get(acti)) {
+					LOGGER.debug("DD is " + tiDD.toDDTree());
+				}
+				
+				LOGGER.debug("Logging Oi for action "+ acti);
+				for (DD oiDD: this.currentOi.get(acti)) {
+					LOGGER.debug("DD is " + oiDD.toDDTree());
+				}
+			}
+			
 		}
 		
 		catch (Exception e) {
