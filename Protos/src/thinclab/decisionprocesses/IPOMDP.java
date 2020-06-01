@@ -544,7 +544,7 @@ public class IPOMDP extends POMDP {
 						new OfflineSymbolicPerseus(
 								(POMDP) mj, 
 								new SSGABeliefExpansion((POMDP) mj, this.mjSearchDepth, 50), 
-								10, 100);
+								15, 100);
 				
 				/* modification for new solver API */
 				solver.solve();
