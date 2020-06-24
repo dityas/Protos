@@ -358,7 +358,7 @@ public class MultiAgentSimulation extends Simulation {
 			
 			if (this.interactionOver) return -1;
 			
-			if (l0Action.contentEquals("EXIT")) this.endSimulation();
+//			if (l0Action.contentEquals("EXIT")) this.endSimulation();
 			
 			return nextINode.getId();
 		}
