@@ -364,7 +364,7 @@ public class MultiAgentSimulation extends Simulation {
 		}
 		
 		catch (ZeroProbabilityObsException o) {
-			LOGGER.error("While running multi-agent simulation " + o.getMessage());
+			LOGGER.error("While running multi agent simulation " + o.getMessage());
 			System.exit(-1);
 			return -1;
 		}
