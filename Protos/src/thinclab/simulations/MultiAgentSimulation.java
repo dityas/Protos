@@ -133,7 +133,7 @@ public class MultiAgentSimulation extends Simulation {
 	}
 	
 	public void endSimulation() {
-		this.interactionOver = true;
+		this.interactionOver = false;
 	}
 	
 	// ----------------------------------------------------------------------------------------
