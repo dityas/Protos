@@ -71,6 +71,7 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		try {
 			
 			this.controllerConnector.createEnvStreams();
+			this.attEnvConnector.sendAction("restart");
 			this.controllerConnector.sendControlAction("restart");
 			
 			TimeUnit.SECONDS.sleep(5);
