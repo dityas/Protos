@@ -63,7 +63,7 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 		
 		for (int i = 0; i < this.iterations; i++) {
 			int nextNode = this.step(previousNode);
-			if (nextNode == -1) break;
+//			if (nextNode == -1) break;
 			
 			previousNode = nextNode;
 		}
