@@ -7,6 +7,7 @@
  */
 package thinclab.belief;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -170,7 +171,6 @@ public class BeliefOps extends BeliefOperations {
 		POMDP POMDPRef = this.getPOMDP();
 		
 		int actId = POMDPRef.getActions().indexOf(action);
-		
 		DD obsDist = OP.addMultVarElim(
 				POMDP.concatenateArray(previousBelief, 
 						POMDPRef.actions[actId].transFn,

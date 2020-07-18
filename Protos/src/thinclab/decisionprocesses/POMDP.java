@@ -491,18 +491,18 @@ public class POMDP extends DecisionProcess implements Serializable {
 			/* Re order T and O as arrays according to variable sequence */
 			HashMap<String, DDTree> Ti_a = this.Ti.get(actName);
 			List<DD> TiaArray = this.S.stream()
-					.map(s -> Ti_a.get(s.name).toDD())
+					.map(s -> OP.reorder(Ti_a.get(s.name).toDD()))
 					.collect(Collectors.toList());
 			
 			HashMap<String, DDTree> Oi_a = this.Oi.get(actName);
 			List<DD> OiaArray = this.Omega.stream()
-					.map(o -> Oi_a.get(o.name).toDD())
+					.map(o -> OP.reorder(Oi_a.get(o.name).toDD()))
 					.collect(Collectors.toList());
 			
 			actions[a].addTransFn(TiaArray.toArray(new DD[TiaArray.size()]));
 			actions[a].addObsFn(OiaArray.toArray(new DD[OiaArray.size()]));
 			actions[a].rewFn = 
-					OP.sub(this.R.toDD(), this.costMap.get(actName).toDD());
+					OP.sub(OP.reorder(this.R.toDD()), OP.reorder(this.costMap.get(actName).toDD()));
 			actions[a].buildRewTranFn();
 			actions[a].rewFn = 
 					OP.addMultVarElim(actions[a].rewTransFn, primeVarIndices);

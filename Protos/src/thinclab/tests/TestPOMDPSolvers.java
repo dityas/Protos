@@ -231,4 +231,12 @@ class TestPOMDPSolvers {
 		
 		LOGGER.debug(ss.getDotString());
 	}
+	
+	@Test
+	void testTempDDPrinting() {
+		POMDP p1 = new POMDP("/home/adityas/UGA/THINCLab/ThesisExperiments/CyberDeceptionDomainFiles/"
+				+ "final_domains/deception.adaptive/pt.L0.spudd");
+		
+		LOGGER.debug(p1.getTiForAction("VULN_RECON")[8].toDDTree());
+	}
 }

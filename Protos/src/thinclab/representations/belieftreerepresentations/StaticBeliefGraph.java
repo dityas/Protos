@@ -88,7 +88,7 @@ public class StaticBeliefGraph extends StaticBeliefTree {
 			node.setId(i);
 			node.setBelief(this.f.getInitialBeliefs().get(i));
 			node.setH(0);
-			node.setsBelief(this.f.toMap(node.getBelief()).toString());
+			node.setsBelief(this.f.getBeliefString(node.getBelief()));
 			
 			/* record start node */
 			node.setStartNode();

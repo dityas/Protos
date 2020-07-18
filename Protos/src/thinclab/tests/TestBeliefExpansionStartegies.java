@@ -190,7 +190,7 @@ class TestBeliefExpansionStartegies {
 //				"/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 		
 		String l1DomainFile = 
-				"/home/adityas/UGA/THINCLab/DomainFiles/tiger.L1.F3.agnostic.domain";
+				"/home/adityas/UGA/THINCLab/DomainFiles/tiger.L1.txt";
 		
 		IPOMDPParser parser = new IPOMDPParser(l1DomainFile);
 		parser.parseDomain();
