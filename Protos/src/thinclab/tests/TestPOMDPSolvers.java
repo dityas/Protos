@@ -9,8 +9,6 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Arrays;
-
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

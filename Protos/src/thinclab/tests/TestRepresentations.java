@@ -22,20 +22,15 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.parsers.IPOMDPParser;
-import thinclab.representations.belieftreerepresentations.DynamicBeliefGraph;
-import thinclab.representations.belieftreerepresentations.DynamicBeliefTree;
 import thinclab.representations.belieftreerepresentations.OptimalDynamicBeliefTree;
-import thinclab.representations.belieftreerepresentations.StrictlyOptimalDynamicBeliefGraph;
 import thinclab.representations.belieftreerepresentations.StaticBeliefTree;
 import thinclab.representations.conditionalplans.ConditionalPlanGraph;
 import thinclab.representations.conditionalplans.ConditionalPlanTree;
 import thinclab.representations.modelrepresentations.MJ;
 import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.representations.policyrepresentations.PolicyTree;
-import thinclab.solvers.OfflinePBVISolver;
 import thinclab.solvers.OfflineSymbolicPerseus;
 import thinclab.utils.CustomConfigurationFactory;
-import thinclab.utils.NextBelStateCache;
 
 /*
  * @author adityas
@@ -213,27 +208,6 @@ class TestRepresentations {
 	}
 	
 	@Test
-	void testMjLookAheadBoost() {
-		LOGGER.info("Testing alternate Mj representation for deeper lookaheads");
-		
-		String fileName2 = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
-		
-		IPOMDPParser parser2 = new IPOMDPParser(fileName2);
-		parser2.parseDomain();
-		
-		IPOMDP ipomdp = new IPOMDP(parser2, 3, 10);
-		
-		LOGGER.info("Building Mj separately ");
-		
-		LOGGER.info("Building LazyDynamicBeliefGraph separately");
-		StrictlyOptimalDynamicBeliefGraph LazyG = 
-				new StrictlyOptimalDynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 5);
-		LazyG.buildTree();
-		
-		LOGGER.info("LazyDBG is " + LazyG.getDotStringForPersistent());
-	}
-	
-	@Test
 	public void testIPOMDPInitWithFiniteMj() throws Exception {
 		
 		String fileName2 = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
@@ -316,50 +290,6 @@ class TestRepresentations {
 		T.buildTree();
 		
 		LOGGER.debug("Tree is: " + T.getDotStringForPersistent());
-	}
-	
-	@Test
-	public void testOptimalDynamicBeliefGraph() {
-		
-		POMDP pomdp = 
-				new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.single_host.generic/pt.L0.spudd");
-//		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.noisy.txt");
-		
-		OfflineSymbolicPerseus solver = 
-				new OfflineSymbolicPerseus(
-						pomdp, 
-						new SSGABeliefExpansion(pomdp, 20, 30), 
-						5, 100);
-		
-		solver.solve();
-		
-		StrictlyOptimalDynamicBeliefGraph G = new StrictlyOptimalDynamicBeliefGraph(solver, 10);
-//		OptimalDynamicBeliefTree T = new OptimalDynamicBeliefTree(solver, 10);
-//		T.buildTree();
-		G.buildTree();
-		
-		LOGGER.debug("Tree is: " + G.getDotStringForPersistent());
-	}
-	
-	@Test
-	public void testOptimalDynamicBeliefGraphWithIPOMDPs() {
-		NextBelStateCache.useCache();
-		IPOMDPParser parser = 
-				new IPOMDPParser("/home/adityas/UGA/THINCLab/DomainFiles/"
-						+ "final_domains/deception.single_host.generic/defender.L1.spudd");
-//		POMDP pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.noisy.txt");
-		parser.parseDomain();
-		
-		IPOMDP ipomdp = new IPOMDP(parser, 3, 10);
-		
-		StrictlyOptimalDynamicBeliefGraph G = 
-				new StrictlyOptimalDynamicBeliefGraph(ipomdp.lowerLevelSolutions.get(0), 3);
-//		OptimalDynamicBeliefTree T = new OptimalDynamicBeliefTree(solver, 10);
-//		T.buildTree();
-		G.buildTree();
-		
-		LOGGER.debug("Tree is: " + G.getDotStringForPersistent());
 	}
 
 }
