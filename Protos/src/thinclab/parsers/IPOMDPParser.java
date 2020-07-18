@@ -42,6 +42,7 @@ public class IPOMDPParser extends ParseSPUDD {
 	public int frameID;
 	public String mostProbableAi = null;
 	public double mpAiProb = 0.99;
+	public HashMap<String, Double> aiDist = new HashMap<String, Double>();
 	public List<ParseSPUDD> childFrames = new ArrayList<ParseSPUDD>();
 	
 	private String domainPath = "";
@@ -189,8 +190,7 @@ public class IPOMDPParser extends ParseSPUDD {
 					    }
 						
 					    else if (stream.sval.compareTo("most_probable_ai") == 0) {
-					    	this.mostProbableAi = this.parseMostProbableAi();
-					    	this.mpAiProb = this.parseMostProbableAiVal();
+					    	this.aiDist.put(this.parseMostProbableAi(), this.parseMostProbableAiVal());
 					    	break;
 					    }
 						

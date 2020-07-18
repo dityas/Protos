@@ -9,6 +9,8 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Arrays;
+
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +34,9 @@ class TestPOMDPSolvers {
 
 	public String tigerDom = "/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
 //	public String attDom = "/home/adityas/git/repository/Protos/domains/attacker_l0.txt";
+	public String attackerDom = "/home/adityas/UGA/THINCLab/DomainFiles/"
+			+ "CyberDeceptionDomainFiles/final_domains/deception.single_host.generic.2frames/"
+			+ "exfil_attacker.L0.spudd";
 	
 	private static Logger LOGGER;
 	
@@ -71,6 +76,11 @@ class TestPOMDPSolvers {
 						p1.getAllPossibleObservations().get(0).stream().toArray(String[]::new));
 		
 		LOGGER.debug(p1.toMap(b1));
+		
+		POMDP p = new POMDP(this.attackerDom);
+		LOGGER.debug(p.getTiForAction("PRIV_ESC")[1].toDDTree());
+		LOGGER.debug("");
+		p.getTiForAction("PRIV_ESC")[1].printDotDD(System.out);
 	}
 	
 	@Test
@@ -220,5 +230,13 @@ class TestPOMDPSolvers {
 		ss.runSimulation();
 		
 		LOGGER.debug(ss.getDotString());
+	}
+	
+	@Test
+	void testTempDDPrinting() {
+		POMDP p1 = new POMDP("/home/adityas/UGA/THINCLab/ThesisExperiments/CyberDeceptionDomainFiles/"
+				+ "final_domains/deception.adaptive/pt.L0.spudd");
+		
+		LOGGER.debug(p1.getTiForAction("VULN_RECON")[8].toDDTree());
 	}
 }

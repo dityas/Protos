@@ -27,6 +27,7 @@ import com.google.gson.JsonPrimitive;
 
 import thinclab.ddinterface.DDTree;
 import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.MAPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.Config;
@@ -52,6 +53,7 @@ public class MultiAgentSimulation extends Simulation {
 	private PrintWriter summaryWriter = null;
 	private int iterId = -1;
 	private int jFrameID = -1;
+	private boolean interactionOver = false;
 	
 	/* some lists for storing run stats */
 	List<String> stateSequence = new ArrayList<String>();
@@ -76,6 +78,7 @@ public class MultiAgentSimulation extends Simulation {
 		
 		super();
 		
+		this.interactionOver = false;
 		this.solver = pomdpSolver;
 		this.jFrameID = pomdpSolver.f.frameID;
 		this.l1Solver = ipomdpSolver;
@@ -129,6 +132,10 @@ public class MultiAgentSimulation extends Simulation {
 		}
 	}
 	
+	public void endSimulation() {
+		this.interactionOver = false;
+	}
+	
 	// ----------------------------------------------------------------------------------------
 	
 	@Override
@@ -142,19 +149,31 @@ public class MultiAgentSimulation extends Simulation {
 		DD belief = this.l1Solver.f.getCurrentBelief();
 		
 		/* sample state from initial belief */
-		int[][] stateConfig = 
-				OP.sampleMultinomial(
+		int[][] stateConfig = null;
+		
+		if (this.l1Solver.f.getType().contentEquals("IPOMDP")) {
+			stateConfig = OP.sampleMultinomial(
 						belief, 
 						ArrayUtils.subarray(
 								this.l1Solver.f.getStateVarIndices(),
 								0, ((IPOMDP) this.l1Solver.f).thetaVarPosition));
+		}
+		
+		else {
+			stateConfig = OP.sampleMultinomial(
+					belief, 
+					ArrayUtils.subarray(
+							this.l1Solver.f.getStateVarIndices(), 
+							0, this.l1Solver.f.getStateVarIndices().length - 1));
+		}
 		
 		DD state = Config.convert2dd(stateConfig);
 		
 		HashMap<String, HashMap<String, Float>> stateMap = this.l1Solver.f.toMap(state);
-		stateMap.remove("M_j");
+		stateMap.remove("Theta_j");
 		
-		state = OP.addout(state, ((IPOMDP) this.l1Solver.f).MjVarIndex);
+		if (this.l1Solver.f.getType().contentEquals("IPOMDP"))
+			state = OP.addout(state, ((IPOMDP) this.l1Solver.f).MjVarIndex);
 		
 		this.states.add(state.toDDTree());
 		
@@ -337,10 +356,16 @@ public class MultiAgentSimulation extends Simulation {
 					nextStateNode.getId());
 			this.putEdge(currentNode + 2, Arrays.asList(obs[1]), nextJNode.getId());
 			
+			if (this.interactionOver) return -1;
+			
+//			if (l0Action.contentEquals("EXIT")) this.endSimulation();
+			
 			return nextINode.getId();
 		}
 		
 		catch (ZeroProbabilityObsException o) {
+			LOGGER.error("While running multi agent simulation " + o.getMessage());
+			System.exit(-1);
 			return -1;
 		}
 		
@@ -380,11 +405,16 @@ public class MultiAgentSimulation extends Simulation {
 		DDTree nextState = this.getNextState(action).toDDTree();
 		this.states.add(nextState);
 		
+		return this.doJointAction(action);
+	}
+	
+	public String[][] doJointAction(String jointAction) {
+		
 		/* sample observation */
-		String[] l1Obs = this.getL1Observation(action);
+		String[] l1Obs = this.getL1Observation(jointAction);
 		LOGGER.debug("L1 observation sampled from state is " + Arrays.toString(l1Obs));
 		
-		String[] l0Obs = this.getL0Observation(action);
+		String[] l0Obs = this.getL0Observation(jointAction);
 		LOGGER.debug("L0 observation sampled from state is " + Arrays.toString(l0Obs));
 		
 		/* stack observation arrays */
@@ -399,6 +429,36 @@ public class MultiAgentSimulation extends Simulation {
 		/*
 		 * Sample observation from the state
 		 */
+		
+		if (this.l1Solver.f instanceof MAPOMDP || this.l1Solver.f.getType().contentEquals("POMDP")) {
+			
+			HashMap<String, DDTree> ODDTree = ((MAPOMDP)this.l1Solver.f).Oi.get(action);
+			
+			List<DD> O = new ArrayList<DD>();
+			for (String o: ODDTree.keySet()) {
+				O.add(OP.reorder(ODDTree.get(o).toDD()));
+			}
+			
+			DD[] obsFunc = O.stream().toArray(DD[]::new);
+			
+			/* get observation distribution */
+			DD obsDist = 
+					OP.addMultVarElim(
+							ArrayUtils.add(
+									obsFunc, 
+									OP.primeVars(
+											this.states.get(this.states.size() - 1).toDD(), 
+											this.l1Solver.f.getNumVars())),
+							this.l1Solver.f.getStateVarPrimeIndices());
+			
+			/* sample from distribution */
+			int[][] obsConfig = 
+					OP.sampleMultinomial(
+							obsDist, 
+							this.l1Solver.f.getObsVarPrimeIndices());
+			
+			return POMDP.configToStrings(obsConfig);
+		}
 		
 		/* relevant varIndices */
 		String[] actions = action.split("__");
@@ -479,17 +539,39 @@ public class MultiAgentSimulation extends Simulation {
 		/* first make state transition based on action */
 		DD[] Ti = this.l1Solver.f.getTiForAction(actions[0]);
 
-		DD nextStateDD = 
-				OP.addMultVarElim(
-						ArrayUtils.add(Ti, currentState), 
-						varIndices);
+		DD nextStateDD = null;
 		
+		if (this.l1Solver.f.getType().contentEquals("IPOMDP")) {
+			nextStateDD = OP.addMultVarElim(
+					ArrayUtils.add(Ti, currentState), 
+					varIndices);
+		}
+		
+		else {
+			
+			HashMap<String, DDTree> jointTi = ((MAPOMDP) this.l1Solver.f).Ti.get(action);
+			
+			List<DD> TiReconstructed = new ArrayList<DD>();
+			for (String s: jointTi.keySet()) {
+				TiReconstructed.add(OP.reorder(jointTi.get(s).toDD()));
+			}
+			
+			nextStateDD = OP.addMultVarElim(
+					ArrayUtils.add(
+							TiReconstructed.stream().toArray(DD[]::new), 
+							currentState), 
+					ArrayUtils.subarray(
+							this.l1Solver.f.getStateVarIndices(), 
+							0, this.l1Solver.f.getStateVarIndices().length - 1));
+		}
+
 		/* restrict transition to Aj */
 		int[] actVal = new int[] {this.solver.f.getActions().indexOf(actions[1]) + 1};
 		int[] actVarConfig = new int[] {((IPOMDP) this.l1Solver.f).AjStartIndex};
 		int[][] actConfig = IPOMDP.stackArray(actVarConfig, actVal); 
 		
-		nextStateDD = OP.restrict(nextStateDD, actConfig);
+		if (this.l1Solver.f.getType().contentEquals("IPOMDP"))
+			nextStateDD = OP.restrict(nextStateDD, actConfig);
 		
 		nextStateDD = OP.primeVars(
 				nextStateDD,
@@ -516,6 +598,8 @@ public class MultiAgentSimulation extends Simulation {
 		
 		for (int i = 0; i < this.iterations; i++) {
 			int nextNode = this.step(previousNode);
+			if (nextNode == -1) break;
+			
 			previousNode = nextNode;
 		}
 		

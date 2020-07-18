@@ -188,8 +188,8 @@ public class NextBelState implements Serializable {
 			
 			obsProb = nextBelStates[obsPtr][this.obsProbIndex].getVal();
 			if (obsProb > 1.0 || obsProb < 0.0) {
-				LOGGER.error("observation probability cannot be: " + obsProb);
-				System.exit(-1);
+//				LOGGER.error("observation probability cannot be: " + obsProb);
+//				System.exit(-1);
 			}
 			
 			alphaValue = obsVals[obsPtr][0];
@@ -263,11 +263,19 @@ public class NextBelState implements Serializable {
 			
 			for (int o = 0; o < allObs.size(); o++) {
 				
-				DD nextBelief = 
-						ipomdp.beliefUpdate(
-								belState, 
-								act, 
-								allObs.get(o).stream().toArray(String[]::new));
+				DD nextBelief = null;
+				
+				try {
+					nextBelief = 
+							ipomdp.beliefUpdate(
+									belState, 
+									act, 
+									allObs.get(o).stream().toArray(String[]::new));
+				}
+				
+				catch (ZeroProbabilityObsException e) {
+					continue;
+				}
 				
 				DD[] factoredNextBel = ipomdp.factorBelief(nextBelief);
 				factoredNextBel = 
@@ -514,9 +522,10 @@ public class NextBelState implements Serializable {
 				}
 				
 				catch (ZeroProbabilityObsException e) {
-					LOGGER.error("Got a zero probability exception. "
-							+ "Everything will break after this. "
-							+ "And I won't fix it.");
+//					LOGGER.error("Got a zero probability exception. "
+//							+ "Everything will break after this. "
+//							+ "And I won't fix it.");
+					continue;
 				}
 				
 				DD[] factoredNextBel = pomdp.factorBelief(nextBelief);

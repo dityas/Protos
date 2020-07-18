@@ -148,6 +148,12 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 			this.solveForBeliefs(exploredBeliefs);
 			
 			if (this.isConverged() && r > 0) break;
+			
+			/* break if max beliefs reached */
+			if (this.expansionStrategy.maxBeliefsReached()) {
+				LOGGER.info("Reached maximum number of beliefs. Breaking...");
+				break;
+			}
 		}
 		
 		this.expansionStrategy.clearMem();

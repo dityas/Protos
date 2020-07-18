@@ -50,6 +50,10 @@ public abstract class BeliefRegionExpansionStrategy implements Serializable {
 		return this.H;
 	}
 	
+	public boolean maxBeliefsReached() {
+		return false;
+	}
+	
 	// ------------------------------------------------------------------------------------
 	
 	/* run the expansion algorithm */

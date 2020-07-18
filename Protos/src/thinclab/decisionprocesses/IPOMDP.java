@@ -78,6 +78,8 @@ public class IPOMDP extends POMDP {
 	public String lowerLevelGuessForAi = null;
 	public double lowerLevelAiProb = 0.0;
 	
+	public HashMap<String, Double> lowerLevelAiDist = new HashMap<String, Double>();
+	
 	/*
 	 * Store a local reference to OpponentModel object to get easier access to node
 	 * indices and all that
@@ -98,7 +100,7 @@ public class IPOMDP extends POMDP {
 	public int thetaVarPosition = -1;
 	
 	/* actions costs stored locally to avoid storing the full parser object */
-	private HashMap<String, DDTree> costMap;
+//	public HashMap<String, DDTree> costMap;
 	
 	/* Staging area for j's observation functions */
 	/*
@@ -211,6 +213,20 @@ public class IPOMDP extends POMDP {
 			this.initializeOfflineFunctions();
 			this.reinitializeOnlineFunctions();
 			
+			/* log dynamics just for fun */
+			for (String acti: this.currentTi.keySet()) {
+				
+				LOGGER.debug("Logging Ti for action " + acti);
+				for (DD tiDD: this.currentTi.get(acti)) {
+					LOGGER.debug("DD is " + tiDD.toDDTree());
+				}
+				
+				LOGGER.debug("Logging Oi for action "+ acti);
+				for (DD oiDD: this.currentOi.get(acti)) {
+					LOGGER.debug("DD is " + oiDD.toDDTree());
+				}
+			}
+			
 		}
 		
 		catch (Exception e) {
@@ -302,6 +318,7 @@ public class IPOMDP extends POMDP {
 		/* add J's guess for I's actions */
 		this.lowerLevelGuessForAi = this.parser.mostProbableAi;
 		this.lowerLevelAiProb = this.parser.mpAiProb;
+		this.lowerLevelAiDist.putAll(this.parser.aiDist);
 		
 		/* Add Aj as a stateVar */
 		this.S.add(
@@ -526,8 +543,8 @@ public class IPOMDP extends POMDP {
 				OfflineSymbolicPerseus solver = 
 						new OfflineSymbolicPerseus(
 								(POMDP) mj, 
-								new SSGABeliefExpansion((POMDP) mj, this.mjSearchDepth, 30), 
-								10, 100);
+								new SSGABeliefExpansion((POMDP) mj, this.mjSearchDepth, 50), 
+								15, 100);
 				
 				/* modification for new solver API */
 				solver.solve();
@@ -643,24 +660,36 @@ public class IPOMDP extends POMDP {
 					/* create Ai distribution */
 					DD AiDist = null;
 					
-					if (this.lowerLevelGuessForAi == null)
+					if (this.lowerLevelAiDist.size() == 0)
 						AiDist = DDleaf.myNew(1.0 / this.getActions().size());
 					
 					else {
 						DDTree aiDist = 
 								this.ddMaker.getDDTreeFromSequence(new String[] {"A_i"});
 						
+						double totalWeight = 
+								this.lowerLevelAiDist.values().stream().reduce(0.0, (a, b) -> a + b);
+						
+						double otherWeight = 
+								(1 - totalWeight) / (this.getActions().size() - this.lowerLevelAiDist.size());
+						
+						for (String ai: this.getActions()) {
+							if (!this.lowerLevelAiDist.containsKey(ai))
+								this.lowerLevelAiDist.put(ai, otherWeight);
+						}
+						
 						for (String PAi : aiDist.children.keySet()) {
 							
 							/* 0.9 probability for guessed action */
-							if (this.lowerLevelGuessForAi.contentEquals(PAi)) {
-								aiDist.setValueAt(PAi, this.lowerLevelAiProb);
+							if (this.lowerLevelAiDist.containsKey(PAi)) {
+								aiDist.setValueAt(PAi, this.lowerLevelAiDist.get(PAi));
 							}
 							
-							else aiDist.setValueAt(PAi, (1.0 - this.lowerLevelAiProb) / (this.getActions().size() - 1));
+							else aiDist.setValueAt(PAi, otherWeight);
 						}
 						
 						AiDist = OP.reorder(aiDist.toDD());
+						LOGGER.debug("Ai distribution for j is " + AiDist.toDDTree());
 					}
 					
 					DDTree jTi = OP.addMultVarElim(
