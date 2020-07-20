@@ -34,6 +34,8 @@ java -Xms50g -Xmx55g -cp Protos.jar thinclab.executables.RunSimulations
 
 #### Example
 
+Here is the solver simulating the multi-agent tiger problem for 10 steps.
+
 Run:
 
 ```
@@ -43,7 +45,10 @@ java -Xms55g -Xmx60g -cp Protos.jar thinclab.executables.RunSimulations -b 100
 ```
 
 The output directory will contain:
-- policy graph of every solved POMDP frame.
+- policy graph of every solved POMDP frame. (dot file)
 - policy tree of every solved POMDP frame (not all POMDP policies can be compressed into finite policy graphs).
 - human readable summary of the simulation
 - complete trace of the simulation in json format.
+
+Example policy graph of lower level frame:
+![image](/home/adityas/Downloads/graphviz.svg)
