@@ -7,7 +7,6 @@
  */
 package thinclab.belief;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 
