@@ -31,3 +31,14 @@ java -Xms50g -Xmx55g -cp Protos.jar thinclab.executables.RunSimulations
                              length
  -y <arg>                    number of simulation trials
 ```
+
+#### Example
+
+Run:
+
+```
+java -Xms55g -Xmx60g -cp Protos.jar thinclab.executables.RunSimulations -b 100 -d /path/to/domain_file/tiger.L1.F3.agnostic.domain -s /path/to/results/dir/ 
+-n 5 --ipomdp --sim 10 -y 1 -ssga
+```
+
+The output directory will contain:
