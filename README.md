@@ -37,8 +37,13 @@ java -Xms50g -Xmx55g -cp Protos.jar thinclab.executables.RunSimulations
 Run:
 
 ```
-java -Xms55g -Xmx60g -cp Protos.jar thinclab.executables.RunSimulations -b 100 -d /path/to/domain_file/tiger.L1.F3.agnostic.domain -s /path/to/results/dir/ 
+java -Xms55g -Xmx60g -cp Protos.jar thinclab.executables.RunSimulations -b 100 
+-d /path/to/domain_file/tiger.L1.F3.agnostic.domain -s /path/to/results/dir/ 
 -n 5 --ipomdp --sim 10 -y 1 -ssga
 ```
 
 The output directory will contain:
+- policy graph of every solved POMDP frame.
+- policy tree of every solved POMDP frame (not all POMDP policies can be compressed into finite policy graphs).
+- human readable summary of the simulation
+- complete trace of the simulation in json format.
