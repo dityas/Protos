@@ -6,8 +6,11 @@ The pre built JAR file is in the `Protos/build/` directory.
 
 ******
 
-## Online IPOMDP simulator:
-Simulates a 2 agent interaction between the I-POMDP agent and a randomly sampled POMDP agent from the I-POMDP frames.
+### Domain file format
+The I-POMDP domain file follows the SPUDD format for representing ADDs in plaintext. Using the original SPUDD parser, I have hacked together some functionality to parse I-POMDP domains (the parser does not recursively parse I-POMDP strategy levels hence restricted to level 1 I-POMDPs).
+
+### Online IPOMDP simulator
+Simulates a 2 agent interaction between the I-POMDP agent and a randomly sampled POMDP agent from the I-POMDP frames. The I-POMDP is solved online.
 
 #### Usage
 
