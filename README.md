@@ -101,7 +101,7 @@ Interaction ends
 ```
 The complete simulation trace is captured in JSON format in the simX.json file where X is the trial number.
 The schema for the json trace is:
-```json
+```
 [
     {
         "beliefI": {
