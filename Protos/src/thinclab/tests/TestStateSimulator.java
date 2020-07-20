@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.belief.SSGABeliefExpansion;
 import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
+import thinclab.decisionprocesses.MAPOMDP;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.simulations.MultiAgentSimulation;
@@ -35,6 +36,7 @@ import thinclab.utils.NextBelStateCache;
 class TestStateSimulator {
 
 	public String l1DomainFile;
+	public String l1DomainFileM;
 	public String l0DomainFile;
 	
 	private static Logger LOGGER;
@@ -43,7 +45,7 @@ class TestStateSimulator {
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
 		LOGGER = Logger.getLogger(TestStateSimulator.class);
-//		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
+		this.l1DomainFileM = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
 //		this.l0DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.enemy.txt";
 //		this.l0DomainFile = "/home/adityas/UGA/THINCLab/DomainFiles/final_domains/exfil.5S.L0.domain";
@@ -79,7 +81,7 @@ class TestStateSimulator {
 		
 		/* init L1 */
 		NextBelStateCache.useCache();
-		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFileM);
 		parser.parseDomain();
 		
 		IPOMDP ipomdp = new IPOMDP(parser, 4, 10);
@@ -99,7 +101,41 @@ class TestStateSimulator {
 				
 //		String jAction = ipomdp.getActions().get(0) + "__" + pomdp.getActions().get(0);
 //		String jAction = "listen__open-left";
-		MultiAgentSimulation Sim = new MultiAgentSimulation(S1, S0, 5);
+		MultiAgentSimulation Sim = new MultiAgentSimulation(S1, S0, 10);
+//		Sim.envStep(jAction);
+		Sim.runSimulation();
+		LOGGER.info(Sim.getDotString());
+		LOGGER.info(Sim.getJSONString());
+		
+		Sim.logToFile("/tmp/res.json");
+		
+//		LOGGER.info(SS.getJSONString());
+//		LOGGER.info(SS.getDotString());
+	}
+	
+	@Test
+	void testMultiAgentStateSimMAPOMDP() throws Exception {
+		
+		/* init L1 */
+		NextBelStateCache.useCache();
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFileM);
+		parser.parseDomain();
+		
+		MAPOMDP mapomdp = new MAPOMDP(parser, 10);
+		
+		SSGABeliefExpansion BE = new SSGABeliefExpansion((POMDP) mapomdp, 10, 30);
+//		SparseFullBeliefExpansion BE = new SparseFullBeliefExpansion(ipomdp, 10);
+		
+		/* init solver */
+		OfflineSymbolicPerseus S1 = new OfflineSymbolicPerseus(mapomdp, BE, 10, 100);
+		S1.solve();
+		
+		/* init L0 */
+		BaseSolver S0 = mapomdp.lowerLevelSolutions.get(0); 
+				
+//		String jAction = ipomdp.getActions().get(0) + "__" + pomdp.getActions().get(0);
+//		String jAction = "listen__open-left";
+		MultiAgentSimulation Sim = new MultiAgentSimulation(S1, S0, 10);
 //		Sim.envStep(jAction);
 		Sim.runSimulation();
 		LOGGER.info(Sim.getDotString());

@@ -170,7 +170,6 @@ public class BeliefOps extends BeliefOperations {
 		POMDP POMDPRef = this.getPOMDP();
 		
 		int actId = POMDPRef.getActions().indexOf(action);
-		
 		DD obsDist = OP.addMultVarElim(
 				POMDP.concatenateArray(previousBelief, 
 						POMDPRef.actions[actId].transFn,

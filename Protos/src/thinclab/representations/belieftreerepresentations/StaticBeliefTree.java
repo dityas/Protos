@@ -45,7 +45,7 @@ public class StaticBeliefTree extends PersistentStructuredTree {
 		/* set attributes */
 		this.f = f;
 		
-		if (f instanceof IPOMDP)
+		if (f.getType().contentEquals("IPOMDP"))
 			this.maxT = ((IPOMDP) this.f).mjLookAhead;
 		
 		else this.maxT = maxH;
@@ -109,7 +109,7 @@ public class StaticBeliefTree extends PersistentStructuredTree {
 			node.setId(i);
 			node.setBelief(this.f.getInitialBeliefs().get(i));
 			node.setH(0);
-			node.setsBelief(this.f.toMap(node.getBelief()).toString());
+			node.setsBelief(this.f.getBeliefString(node.getBelief()));
 			
 			/* record start node */
 			node.setStartNode();

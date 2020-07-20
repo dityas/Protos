@@ -48,7 +48,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	
 	/* number of iterations of SSGA during each expansion */
 	private int nIterations;
-	private int maxBeliefs = 500;
+	private int maxBeliefs = 200;
 	
 	private static final Logger LOGGER = Logger.getLogger(SSGABeliefExpansion.class);
 	
@@ -81,7 +81,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		this.exploredBeliefs.addAll(fb.getBeliefPoints());
 		
 		fb = null;
-		this.maxBeliefs = 500;
+		this.maxBeliefs = 200;
 		
 		LOGGER.debug("SSGA expansion search initialized");
 	}
@@ -115,6 +115,11 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 		 */
 		this.alphaVectors = aVectors;
 		this.policy = policy;
+	}
+	
+	@Override
+	public boolean maxBeliefsReached() {
+		return (this.exploredBeliefs.size() >= this.maxBeliefs);
 	}
 	
 	@Override

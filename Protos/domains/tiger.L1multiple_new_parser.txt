@@ -211,10 +211,10 @@ tolerance 0.001
 		action listen
 		    tiger-location (SAMEtiger-location)
 		    observe
-		        growl (tiger-location' (tiger-left  (growl' (growl-left  (0.85))
-								    (growl-right (0.15))))
-					       (tiger-right (growl' (growl-left  (0.15))
-								    (growl-right (0.85)))))
+		        growl (tiger-location' (tiger-left  (growl' (growl-left  (0.90))
+								    (growl-right (0.10))))
+					       (tiger-right (growl' (growl-left  (0.1))
+								    (growl-right (0.9)))))
 		    endobserve
 		    cost (1)
 		endaction

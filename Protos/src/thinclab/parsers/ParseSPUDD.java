@@ -717,6 +717,15 @@ public class ParseSPUDD implements Serializable {
 	    else actNames.add(stream.sval);
 	    actCosts.add(DD.zero);
 	    DD[] cpts = new DD[nStateVars];
+	    
+	    /* Make SAMEvarName DDs here */
+	    for (String name: varNames) {
+	    	
+	    	if (varNames.indexOf(name) >= cpts.length) continue;
+	    	
+	    	LOGGER.debug("Adding SAME DD for varName " + name);
+	    	cpts[varNames.indexOf(name)] = (DD) this.existingDds.get("SAME" + name);
+	    }
 						
 	    // parse cpts
 	    while (true) {

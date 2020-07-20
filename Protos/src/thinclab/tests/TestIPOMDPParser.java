@@ -50,7 +50,7 @@ class TestIPOMDPParser {
 	void testParserInit() throws Exception {
 		LOGGER.info("Running testParserInit()");
 //		IPOMDPParser parser = new IPOMDPParser(this.testFileName);
-		IPOMDPParser parser = new IPOMDPParser(this.testL1domain);
+		IPOMDPParser parser = new IPOMDPParser(this.testFileName);
 		parser.parseDomain();
 		assertNotNull(parser);
 		
@@ -65,9 +65,34 @@ class TestIPOMDPParser {
 		LOGGER.debug(ipomdp.Oi);
 		LOGGER.debug(ipomdp.lowerLevelGuessForAi);
 		LOGGER.debug(ipomdp.lowerLevelAiProb);
-//		LOGGER.debug(ipomdp.costMap);
+		LOGGER.debug(ipomdp.lowerLevelAiDist);
 	}
 	
-	
+	@Test
+	void testParserInit2() throws Exception {
+		LOGGER.info("Running testParserInit()");
+//		IPOMDPParser parser = new IPOMDPParser(this.testFileName);
+		IPOMDPParser parser = 
+				new IPOMDPParser("/home/adityas/UGA/THINCLab/DomainFiles/"
+						+ "CyberDeceptionDomainFiles/final_domains/deception.adaptive/"
+						+ "defender.L1.spudd");
+		parser.parseDomain();
+		assertNotNull(parser);
+		
+//		assertTrue(parser.childFrames.size() == 2);
+//		assertEquals(0, parser.childFrames.get(0).level);
+//		assertEquals(0, parser.childFrames.get(1).level);
+		
+		IPOMDP ipomdp = new IPOMDP(parser, 10, 3);
+//		ipomdp.initializeFromParsers(parser);
+		
+		LOGGER.debug(ipomdp.Ti);
+		LOGGER.debug(ipomdp.Oi);
+		LOGGER.debug(ipomdp.lowerLevelGuessForAi);
+		LOGGER.debug(ipomdp.lowerLevelAiProb);
+		LOGGER.debug(ipomdp.lowerLevelAiDist);
+		
+		LOGGER.debug(ipomdp.currentTi);
+	}
 
 }
