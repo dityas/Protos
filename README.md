@@ -371,3 +371,16 @@ For the tiger problem example above, the json trace look like this:
   .
 ]
 ```
+
+### Structure of the code
+
+The `Protos/src/thinclab/` folder contains multiple folders. The code in these folders roughly serves the following purpose,
+ - `belief` : Handles operations on beliefs and belief expansion strategies.
+ - `ddinterface` : Some easy functionality for building DDs during runtime.
+ - `decisionprocess` : POMDP and I-POMDP classes.
+ - `legacy` : Dr. Jesse Hoey's orignal symbolic Perseus code.
+ - `parsers` : The POMDP and I-POMDP domain file parsers.
+ - `representations` : Classes for representing policy trees, belief trees, and reachability trees.
+ - `simulations` : For simulating single agent POMDPs and two-agent I-POMDPs using stochastic simulation.
+ - `solvers` : The symbolic Perseus solver and its extension to I-POMDPs.
+ - `utils` : Caching and serialization mechanisms to save memory while running huge domains.
