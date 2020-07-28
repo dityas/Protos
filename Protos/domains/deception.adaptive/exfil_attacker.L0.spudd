@@ -1,12 +1,3 @@
-// Before you change the domain once again, remember, why you designed this domain this way.
-// The probability of finding data at root is 0.5 because the attacker does not know he has found the data till he gets the observation.
-// So even if he enumerates the directory, but you deceive him by not showing the observation, he hasn't found the data.
-// This domain is awesome. Don't change it. Please!
-
-// Assumptions
-// There is always data on the system
-// There is always a vulnerability on the system
-// All file recons are complete i.e. they will search in all the directories with read privs
 
 (variables
 	(PRIVS_DECEPTION 		user root none)
