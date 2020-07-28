@@ -1,13 +1,148 @@
 # Protos
-## A level 1 factored I-POMDP solver
+## A level 1 factored Interactive POMDP (I-POMDP) solver
 
-Protos is a level 1 factored IPOMDP solver developed at [THINC Lab @ UGA](http://thinc.cs.uga.edu/). It uses Jesse Hoey's implementation of the Symbolic Perseus POMDP solver and extends it to solve IPOMDPs. 
+Protos is a level 1 factored I-POMDP solver developed at [THINC Lab @ UGA](http://thinc.cs.uga.edu/). It uses Jesse Hoey's implementation of the Symbolic Perseus POMDP solver and extends it to solve IPOMDPs. 
 The pre built JAR file is in the `Protos/build/` directory.
 
 ******
 
 ### Domain file format
-The I-POMDP domain file follows the SPUDD format for representing ADDs in plaintext. Using the original SPUDD parser, I have hacked together some functionality to parse I-POMDP domains (the parser does not recursively parse I-POMDP strategy levels hence restricted to level 1 I-POMDPs).
+The I-POMDP domain file follows the SPUDD format for representing ADDs in plaintext. Using the original SPUDD parser, I have hacked together some functionality to parse I-POMDP domains (the parser does not recursively parse I-POMDP strategy levels hence restricted to level 1 I-POMDPs). For POMDPs, the parser works exactly like the symbolic Perseus parser. The following grammar is from [Dr. Pascal Poupart's symbolic Perseus](https://cs.uwaterloo.ca/~ppoupart/software/symbolicPerseus/problems/SYNTAX.txt) with a few changes.
+For specifying I-POMDP domains the format is as follows,
+
+```
+<problem> ::= <decl_list> 
+
+<decl_list> ::= <decl> <decl_list> | NIL
+
+<decl> ::= <state_var_decl> | <obs_var_decl> | <unnormalized_decl> | <dd_decl> | <action_decl> | <reward_decl> | <discount_decl> | <tolerance_decl> 
+
+<state_var_decl> ::= "(" "variables" <var_def_list> ")"
+
+<obs_var_decl> ::= "(" "observations" <var_def_list> ")"
+
+<var_def_list> ::= <var_def> <var_def_list> | NIL
+
+<var_def> ::= "(" <var_name> <val_name_list> ")"
+
+<var_name> ::= STRING
+
+<val_name_list> ::= <val_name> <val_name_list> | NIL
+
+<val_name> ::= STRING
+
+<unnormalized_decl> ::= "unnormalized" | "unnormalised"
+
+
+%%%%%%%%%%%%%%%%% decision diagram %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% examples:
+%%
+%%     // example of a constant: p1 = 5
+%%     dd p1 
+%%         (5) 
+%%     enddd
+%%
+%%     // example of a tree
+%%     dd cpt1 
+%%         (weather_report (rainy (0.1)) 
+%%                         (sunny (0.3)) 
+%%                         (cloudy (0.6))) 
+%%     enddd
+%%
+%%     // example of artithmetic operations
+%%     dd cpt2 
+%%         (actual_weather' (rainy [* (p2) (0.2)])
+%%                          (sunny [* (p2) (0.3)])
+%%                          (cloudy [* (p2) (0.5)]))
+%%     enddd
+%%
+%%     // another tree
+%%     dd rewardFn 
+%%         (actual_weather (rainy (-5)) 
+%%                         (sunny (5)) 
+%%                         (cloudy (-1)))
+%%     enddd
+%%
+%%     // example for the short hand "SAME<var_name>" which is equivalent
+%%     // to the identity function.  The following two dds are equivalent:
+%%     dd identity1
+%%         (SAMEvar)
+%%     end
+%%     dd identity2 
+%%         (var (true  (var' (true (1))
+%%                           (false (0))))
+%%              (false (var' (true (0))
+%%                           (false (1)))))
+%%     enddd
+%%
+%%     // example for the short hand "<var_name><val_name>", 
+%%     // which is equivalent to the deterministic function 
+%%     // that assigns 1 to val_name and probability 0 to 
+%%     // all other values.  The following two dds are equivalent:
+%%     dd deterministic1
+%%         (vartrue)
+%%     enddd
+%%     dd deterministic2
+%%         (var (true (1)) (false (0)))
+%%     enddd
+%%    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+<dd_decl> ::= "dd" <dd_name> <dd> "enddd"
+
+<dd_name> ::= STRING
+
+<dd> ::= "(" <dd_name> ")" | "(" <variable_node> ")" | "(" identity_mapping ")" | "(" <value_mapping> ")" | "(" NUMBER ")" | "[" <op_node> "]"
+
+<variable_node> ::= <var_name> <child_list>
+
+<child_list> ::= <child> <child_list> | NIL
+
+<child> ::= "(" <val_name> <dd> ")"
+
+<identity_mapping> ::= SAME<var_name>
+
+<value_mapping> ::= <var_name><val_name>
+
+<op_node> ::= <normalize_op_node> | <nary_op_node>
+
+<normalize_op_node> ::= "#" <var_name> <dd>
+
+<nary_op_node> ::= <nary_op> <dd_list>
+
+<nary_op> ::= "+" | "*"
+
+<dd_list> ::= <dd> <dd_list> | NIL
+                                                              
+<action_decl> ::= "action" <act_name> <def_list> "endaction"
+
+<act_name> ::= STRING
+
+<def_list> ::= <def> <def_list> | NIL
+
+<def> ::= <state_cpt_def> | <obs_fn_def> | <cost_def>
+
+<state_cpt_def> ::= <var_name> <dd>
+
+<obs_fn_def> ::= "observe" <obs_cpt_def_list> "endobserve"
+
+<obs_cpt_def_list> ::= <obs_cpt_def> <obs_cpt_def_list> | NIL
+
+<obs_cpt_def> ::= <var_name> <dd>
+
+<cost_def> ::= "cost" <dd>
+
+<reward_decl> ::= "reward" <dd>
+
+<discount_def> ::= "discount" <dd>
+
+<tolerance_def> ::= "tolerance" <dd>
+
+<comment> ::= "//" <string_list> EOL
+
+<string_list> ::= STRING <string_list> | NIL
+
+```
 
 ### Online IPOMDP simulator
 Simulates a 2 agent interaction between the I-POMDP agent and a randomly sampled POMDP agent from the I-POMDP frames. The I-POMDP is solved online.
