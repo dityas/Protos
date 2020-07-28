@@ -7,140 +7,83 @@ The pre built JAR file is in the `Protos/build/` directory.
 ******
 
 ### Domain file format
-The I-POMDP domain file follows the SPUDD format for representing ADDs in plaintext. Using the original SPUDD parser, I have hacked together some functionality to parse I-POMDP domains (the parser does not recursively parse I-POMDP strategy levels hence restricted to level 1 I-POMDPs). For POMDPs, the parser works exactly like the symbolic Perseus parser. The following grammar is from [Dr. Pascal Poupart's symbolic Perseus](https://cs.uwaterloo.ca/~ppoupart/software/symbolicPerseus/problems/SYNTAX.txt) with a few changes.
-For specifying I-POMDP domains the format is as follows,
+The I-POMDP domain file follows the SPUDD format for representing ADDs in plaintext. Using the original SPUDD parser, I have hacked together some functionality to parse I-POMDP domains (the parser does not recursively parse I-POMDP strategy levels hence restricted to level 1 I-POMDPs). For POMDPs, the parser works exactly like the symbolic Perseus parser. The grammar is from [Dr. Pascal Poupart's symbolic Perseus](https://cs.uwaterloo.ca/~ppoupart/software/symbolicPerseus/problems/SYNTAX.txt). For specifying I-POMDP domains the format is as follows,
 
 ```
-<problem> ::= <decl_list> 
+(variables
+  (state_var1 state1 state2)
+  (state_var2 state3 state4)
+  .
+  .
+  .
+)
 
-<decl_list> ::= <decl> <decl_list> | NIL
+(observations
+  (obs_var1 obs1 obs2)
+  (obs_var2 obs3 obs4)
+  .
+  .
+  .
+)
 
-<decl> ::= <state_var_decl> | <obs_var_decl> | <unnormalized_decl> | <dd_decl> | <action_decl> | <reward_decl> | <discount_decl> | <tolerance_decl> 
+//////////////////
+// DD definitions
 
-<state_var_decl> ::= "(" "variables" <var_def_list> ")"
+dd <dd-name>
 
-<obs_var_decl> ::= "(" "observations" <var_def_list> ")"
+<dd-defn>
 
-<var_def_list> ::= <var_def> <var_def_list> | NIL
+enddd
 
-<var_def> ::= "(" <var_name> <val_name_list> ")"
+/////////////////
+// Joint actions
 
-<var_name> ::= STRING
+action <actionI-name>__<actionJ-name>
 
-<val_name_list> ::= <val_name> <val_name_list> | NIL
+  state_var1  (<state-transition-dd>)
+  state_var2  (<state-transition-dd>)
+  .
+  .
+  .
 
-<val_name> ::= STRING
+  observe
 
-<unnormalized_decl> ::= "unnormalized" | "unnormalised"
+    obs_var1  (obs-dd)
+    obs_var2  (obs-dd)
+    .
+    .
+    .
+
+  endobserve
+
+  cost  (<cost-dd>)
+
+endaction
 
 
-%%%%%%%%%%%%%%%%% decision diagram %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% examples:
-%%
-%%     // example of a constant: p1 = 5
-%%     dd p1 
-%%         (5) 
-%%     enddd
-%%
-%%     // example of a tree
-%%     dd cpt1 
-%%         (weather_report (rainy (0.1)) 
-%%                         (sunny (0.3)) 
-%%                         (cloudy (0.6))) 
-%%     enddd
-%%
-%%     // example of artithmetic operations
-%%     dd cpt2 
-%%         (actual_weather' (rainy [* (p2) (0.2)])
-%%                          (sunny [* (p2) (0.3)])
-%%                          (cloudy [* (p2) (0.5)]))
-%%     enddd
-%%
-%%     // another tree
-%%     dd rewardFn 
-%%         (actual_weather (rainy (-5)) 
-%%                         (sunny (5)) 
-%%                         (cloudy (-1)))
-%%     enddd
-%%
-%%     // example for the short hand "SAME<var_name>" which is equivalent
-%%     // to the identity function.  The following two dds are equivalent:
-%%     dd identity1
-%%         (SAMEvar)
-%%     end
-%%     dd identity2 
-%%         (var (true  (var' (true (1))
-%%                           (false (0))))
-%%              (false (var' (true (0))
-%%                           (false (1)))))
-%%     enddd
-%%
-%%     // example for the short hand "<var_name><val_name>", 
-%%     // which is equivalent to the deterministic function 
-%%     // that assigns 1 to val_name and probability 0 to 
-%%     // all other values.  The following two dds are equivalent:
-%%     dd deterministic1
-%%         (vartrue)
-%%     enddd
-%%     dd deterministic2
-%%         (var (true (1)) (false (0)))
-%%     enddd
-%%    
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+///////////////////
+// reward DD defn
 
-<dd_decl> ::= "dd" <dd_name> <dd> "enddd"
+reward
 
-<dd_name> ::= STRING
+(<reward-dd>)
 
-<dd> ::= "(" <dd_name> ")" | "(" <variable_node> ")" | "(" identity_mapping ")" | "(" <value_mapping> ")" | "(" NUMBER ")" | "[" <op_node> "]"
+discount <discount>
 
-<variable_node> ::= <var_name> <child_list>
+tolerance <tolerance>
 
-<child_list> ::= <child> <child_list> | NIL
 
-<child> ::= "(" <val_name> <dd> ")"
+////////////////////
+// lower level frames
 
-<identity_mapping> ::= SAME<var_name>
-
-<value_mapping> ::= <var_name><val_name>
-
-<op_node> ::= <normalize_op_node> | <nary_op_node>
-
-<normalize_op_node> ::= "#" <var_name> <dd>
-
-<nary_op_node> ::= <nary_op> <dd_list>
-
-<nary_op> ::= "+" | "*"
-
-<dd_list> ::= <dd> <dd_list> | NIL
-                                                              
-<action_decl> ::= "action" <act_name> <def_list> "endaction"
-
-<act_name> ::= STRING
-
-<def_list> ::= <def> <def_list> | NIL
-
-<def> ::= <state_cpt_def> | <obs_fn_def> | <cost_def>
-
-<state_cpt_def> ::= <var_name> <dd>
-
-<obs_fn_def> ::= "observe" <obs_cpt_def_list> "endobserve"
-
-<obs_cpt_def_list> ::= <obs_cpt_def> <obs_cpt_def_list> | NIL
-
-<obs_cpt_def> ::= <var_name> <dd>
-
-<cost_def> ::= "cost" <dd>
-
-<reward_decl> ::= "reward" <dd>
-
-<discount_def> ::= "discount" <dd>
-
-<tolerance_def> ::= "tolerance" <dd>
-
-<comment> ::= "//" <string_list> EOL
-
-<string_list> ::= STRING <string_list> | NIL
+(
+  (frame 0 level 0 import
+    "<pomdp-frame-file-path>"
+  )
+  .
+  .
+  .
+)
 
 ```
 
