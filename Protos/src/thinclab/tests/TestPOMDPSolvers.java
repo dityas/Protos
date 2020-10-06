@@ -237,4 +237,68 @@ class TestPOMDPSolvers {
 		
 		LOGGER.debug(p1.getTiForAction("VULN_RECON")[8].toDDTree());
 	}
+	
+	@Test
+	void testOfflineSymbolicPerseusSolverSerialization() throws Exception {
+		LOGGER.info("Running testOfflineSymbolicPerseusSolverSerialization()");
+		
+		POMDP p1 = new POMDP(this.tigerDom);
+		SSGABeliefExpansion be = new SSGABeliefExpansion(p1, 100, 1);
+		OfflineSymbolicPerseus solver = new OfflineSymbolicPerseus(p1, be, 15, 100);
+		
+		solver.solve();
+		
+		solver.save("/tmp/");
+	}
+	
+	@Test
+	void testOfflineSymbolicPerseusSolverSerializationLoading() throws Exception {
+		LOGGER.info("Running testOfflineSymbolicPerseusSolverSerializationLoading()");
+		
+		POMDP p1 = new POMDP(this.tigerDom);
+		SSGABeliefExpansion be = new SSGABeliefExpansion(p1, 100, 1);
+		OfflineSymbolicPerseus solver = new OfflineSymbolicPerseus(p1, be, 15, 100);
+		
+		solver.solve();
+		
+		solver.save("/tmp/");
+		solver = null;
+		
+		solver = 
+				(OfflineSymbolicPerseus) OfflineSymbolicPerseus.load("/tmp/0_0.solver");
+		LOGGER.info("Solver successfully loaded");
+		
+		DD initial = p1.getInitialBeliefs().get(0);
+		
+		assertTrue(
+				solver.getActionForBelief(
+						p1.getInitialBeliefs().get(0)).contentEquals("listen"));
+		
+		DD nextBelief = 
+				p1.beliefUpdate( 
+						initial, 
+						"listen", 
+						new String[] {"growl-left"});
+		
+		assertTrue(
+				solver.getActionForBelief(nextBelief).contentEquals("listen"));
+		
+		nextBelief = 
+				p1.beliefUpdate( 
+						nextBelief, 
+						"listen", 
+						new String[] {"growl-left"});
+		
+		assertTrue(
+				solver.getActionForBelief(nextBelief).contentEquals("open-right"));
+		
+		nextBelief = 
+				p1.beliefUpdate( 
+						nextBelief, 
+						"open-right", 
+						new String[] {"growl-left"});
+		
+		assertTrue(
+				solver.getActionForBelief(nextBelief).contentEquals("listen"));
+	}
 }

@@ -230,7 +230,7 @@ public class CyberDeceptionSimulationRunner extends Executable {
 					if (mergeThreshold > 0.0)
 						ipomdp = new IPOMDP(parser, lookAhead, simLength, mergeThreshold);
 					
-					else ipomdp = new IPOMDP(parser, lookAhead, simLength);
+					else ipomdp = new IPOMDP(parser, lookAhead, simLength, "/tmp/");
 					
 					Random rng = new Random();
 					

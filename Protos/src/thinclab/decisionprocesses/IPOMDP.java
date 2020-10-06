@@ -77,6 +77,7 @@ public class IPOMDP extends POMDP {
 	public List<BaseSolver> lowerLevelSolutions = new ArrayList<BaseSolver>();
 	public String lowerLevelGuessForAi = null;
 	public double lowerLevelAiProb = 0.0;
+	public String mjStorageDir = null;
 	
 	public HashMap<String, Double> lowerLevelAiDist = new HashMap<String, Double>();
 	
@@ -158,6 +159,18 @@ public class IPOMDP extends POMDP {
 
 		LOGGER.info("Initializing IPOMDP from parser.");
 		
+		this.initiailizeIPOMDP(parsedFrame, mjlookAhead, mjSearchDepth);
+	}
+	
+	public IPOMDP(
+			IPOMDPParser parsedFrame, int mjlookAhead, int mjSearchDepth, String savedMjDir) {
+		/*
+		 * Initialize from a IPOMDPParser object
+		 */
+		
+
+		LOGGER.info("Initializing IPOMDP from parser.");
+		this.mjStorageDir = savedMjDir;
 		this.initiailizeIPOMDP(parsedFrame, mjlookAhead, mjSearchDepth);
 	}
 	
@@ -539,15 +552,40 @@ public class IPOMDP extends POMDP {
 				
 				/* For solving the POMDP at lowest level, set the globals */
 				mj.setGlobals();
+				OfflineSymbolicPerseus solver = null;
 				
-				OfflineSymbolicPerseus solver = 
-						new OfflineSymbolicPerseus(
-								(POMDP) mj, 
-								new SSGABeliefExpansion((POMDP) mj, this.mjSearchDepth, 50), 
-								15, 100);
+				/* try loading any cached version of the solver */
+				try {
+					solver = 
+							(OfflineSymbolicPerseus) OfflineSymbolicPerseus.load(
+									this.mjStorageDir + "/" + mj.level + "_" + mj.frameID + ".solver");
+					LOGGER.info("Solver loaded.");
+				} 
 				
-				/* modification for new solver API */
-				solver.solve();
+				catch (Exception e) {
+					LOGGER.error("While loading cached solver: " + e);
+					solver = null;
+				}
+				
+				if (solver == null) {
+					solver = 
+							new OfflineSymbolicPerseus(
+									(POMDP) mj, 
+									new SSGABeliefExpansion((POMDP) mj, this.mjSearchDepth, 50), 
+									15, 100);
+					
+					solver.solve();
+					
+					/* save solved mj */
+					try {
+						solver.save(this.mjStorageDir + "/" + mj.level + "_" + mj.frameID + ".solver");
+					} 
+					
+					catch (Exception e) {
+						LOGGER.error("While saving solver: " + e);
+					}
+				}
+				
 				LOGGER.debug("Solved lower frame " + mj);
 				solver.expansionStrategy.clearMem();
 				

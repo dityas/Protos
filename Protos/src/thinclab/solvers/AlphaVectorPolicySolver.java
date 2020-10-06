@@ -7,6 +7,12 @@
  */
 package thinclab.solvers;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.List;
 
 import org.apache.commons.collections15.buffer.CircularFifoBuffer;
@@ -332,5 +338,42 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 	
 	public int getBestAlphaIndex(DD belief) {
 		return DecisionProcess.getBestAlphaIndex(this.f, belief, this.getAlphaVectors());
+	}
+	
+	// -----------------------------------------------------------------------------------------
+	
+	public void save(String storageDir) throws FileNotFoundException, IOException {
+		/*
+		 * Serialize solver object
+		 */
+		FileOutputStream f_out;
+		// save to disk
+		// Use a FileOutputStream to send data to a file
+		// called myobject.data.
+		f_out = 
+				new FileOutputStream(
+						storageDir + "/" + this.getFramework().level + "_" + 
+								this.getFramework().frameID + ".solver");
+
+		// Use an ObjectOutputStream to send object data to the
+		// FileOutputStream for writing to disk.
+		ObjectOutputStream obj_out = new ObjectOutputStream(f_out);
+
+		// Pass our object to the ObjectOutputStream's
+		// writeObject() method to cause it to be written out
+		// to disk.
+		obj_out.writeObject(this);
+		obj_out.flush();
+		obj_out.close();
+	}
+	
+	public static AlphaVectorPolicySolver load(String filename) throws FileNotFoundException,
+			IOException, ClassNotFoundException {
+		
+		ObjectInputStream input = new ObjectInputStream(new FileInputStream(filename));
+		AlphaVectorPolicySolver solver = (AlphaVectorPolicySolver) input.readObject();
+		
+		input.close();
+		return solver;
 	}
 }
