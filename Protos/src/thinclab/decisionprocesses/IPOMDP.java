@@ -578,7 +578,7 @@ public class IPOMDP extends POMDP {
 					
 					/* save solved mj */
 					try {
-						solver.save(this.mjStorageDir + "/" + mj.level + "_" + mj.frameID + ".solver");
+						solver.save(this.mjStorageDir);
 					} 
 					
 					catch (Exception e) {
