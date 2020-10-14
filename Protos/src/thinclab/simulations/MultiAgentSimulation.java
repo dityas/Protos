@@ -419,10 +419,11 @@ public class MultiAgentSimulation extends Simulation {
 		
 		String[] actions = action.split("__");
 		
-		LOGGER.debug("Agent i took action " + actions[0] + ", agent j took action " + actions[1] 
-				+ " in state " + this.solver.f.toMap(this.states.get(this.states.size() - 1).toDD()));
-		
 		if (!(this.solver instanceof HumanAgentSolver)) {
+			
+			LOGGER.debug("Agent i took action " + actions[0] + ", agent j took action " + actions[1] 
+					+ " in state " + this.solver.f.toMap(this.states.get(this.states.size() - 1).toDD()));
+			
 			/* get next state */
 			DDTree nextState = this.getNextState(action).toDDTree();
 			this.states.add(nextState);
