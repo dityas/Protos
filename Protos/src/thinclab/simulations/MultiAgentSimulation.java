@@ -36,6 +36,7 @@ import thinclab.legacy.OP;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.BaseSolver;
+import thinclab.solvers.HumanAgentSolver;
 
 /*
  * @author adityas
@@ -80,11 +81,17 @@ public class MultiAgentSimulation extends Simulation {
 		
 		this.interactionOver = false;
 		this.solver = pomdpSolver;
-		this.jFrameID = pomdpSolver.f.frameID;
+		
+		if (!(this.solver instanceof HumanAgentSolver))
+			this.jFrameID = pomdpSolver.f.frameID;
+		else
+			this.jFrameID = -1;
+		
 		this.l1Solver = ipomdpSolver;
 		this.iterations = interactions;
 		
-		this.initializeState();
+		if (!(this.solver instanceof HumanAgentSolver))
+			this.initializeState();
 		
 		/*
 		 * Make init nodes
@@ -97,23 +104,28 @@ public class MultiAgentSimulation extends Simulation {
 		iNode.setsBelief(this.l1Solver.f.getBeliefString(this.l1Solver.f.getCurrentBelief()));
 		iNode.setId(this.currentPolicyNodeCounter++);
 		
-		/* make state node */
-		this.solver.f.setGlobals();
-		PolicyNode sNode = new PolicyNode();
-		sNode.setBelief(this.states.get(this.states.size() - 1).toDD());
-		sNode.setsBelief(this.solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
-		sNode.setId(this.currentPolicyNodeCounter++);
+		if (!(this.solver instanceof HumanAgentSolver)) {
+			/* make state node */
+			this.solver.f.setGlobals();
+			PolicyNode sNode = new PolicyNode();
+			sNode.setBelief(this.states.get(this.states.size() - 1).toDD());
+			sNode.setsBelief(this.solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
+			sNode.setId(this.currentPolicyNodeCounter++);
+			
+			/* make start policy node for j */
+			PolicyNode jNode = new PolicyNode();
+			jNode.setBelief(this.solver.f.getCurrentBelief());
+			jNode.setsBelief(this.solver.f.getBeliefString(this.solver.f.getCurrentBelief()));
+			jNode.setId(this.currentPolicyNodeCounter++);
+			
+			/* add to node map */
+			this.putPolicyNode(iNode.getId(), iNode);
+			this.putPolicyNode(sNode.getId(), sNode);
+			this.putPolicyNode(jNode.getId(), jNode);
+		}
 		
-		/* make start policy node for j */
-		PolicyNode jNode = new PolicyNode();
-		jNode.setBelief(this.solver.f.getCurrentBelief());
-		jNode.setsBelief(this.solver.f.getBeliefString(this.solver.f.getCurrentBelief()));
-		jNode.setId(this.currentPolicyNodeCounter++);
+		else this.putPolicyNode(iNode.getId(), iNode);
 		
-		/* add to node map */
-		this.putPolicyNode(iNode.getId(), iNode);
-		this.putPolicyNode(sNode.getId(), sNode);
-		this.putPolicyNode(jNode.getId(), jNode);
 	}
 	
 	public void setMjDotDir(String mjDotDir, int id) {
@@ -236,30 +248,39 @@ public class MultiAgentSimulation extends Simulation {
 			
 			// ---------------------------------------------------------------------------------
 			
-			/* record L0 belief */
-			this.solver.f.setGlobals();
-			DD currentL0Belief = this.getPolicyNode(currentNode + 2).getBelief();
-			String currentL0BeliefJson = this.solver.f.getBeliefString(currentL0Belief);
+			DD currentL0Belief = null;
+			String l0Action = "UNKNOWN";
+			DD currentState = null;
+			String stateJson = "{}";
+			String currentL0BeliefJson = "{}";
 			
-			this.l0BeliefSequence.add(this.solver.f.getBeliefString(currentL0Belief));
-			LOGGER.info("L0 belief is " 
-					+ this.l0BeliefSequence.get(this.l0BeliefSequence.size() - 1));
+			if (!(this.solver instanceof HumanAgentSolver)) {
+				/* record L0 belief */
+				this.solver.f.setGlobals();
+				currentL0Belief = this.getPolicyNode(currentNode + 2).getBelief();
+				currentL0BeliefJson = this.solver.f.getBeliefString(currentL0Belief);
+				
+				this.l0BeliefSequence.add(this.solver.f.getBeliefString(currentL0Belief));
+				LOGGER.info("L0 belief is " 
+						+ this.l0BeliefSequence.get(this.l0BeliefSequence.size() - 1));
+				
+				/* optimal action for L0 */
+				l0Action = this.solver.getActionForBelief(currentL0Belief);
+				this.getPolicyNode(currentNode + 2).setActName(l0Action);
 			
-			/* optimal action for L0 */
-			String l0Action = this.solver.getActionForBelief(currentL0Belief);
-			this.getPolicyNode(currentNode + 2).setActName(l0Action);
 			
-			// ----------------------------------------------------------------------------------
-			
-			/* record state */
-			DD currentState = this.states.get(this.states.size() - 1).toDD();
-			String stateJson = this.solver.f.getBeliefString(currentState);
-			
-			this.stateSequence.add(
-					this.solver.f.getBeliefString(currentState));
-			LOGGER.info("Real state is " + this.stateSequence.get(this.stateSequence.size() - 1));
-			
-			// ----------------------------------------------------------------------------------
+				// ----------------------------------------------------------------------------------
+				
+				/* record state */
+				currentState = this.states.get(this.states.size() - 1).toDD();
+				stateJson = this.solver.f.getBeliefString(currentState);
+				
+				this.stateSequence.add(
+						this.solver.f.getBeliefString(currentState));
+				LOGGER.info("Real state is " + this.stateSequence.get(this.stateSequence.size() - 1));
+				
+				// ----------------------------------------------------------------------------------
+			}
 			
 			/* take action */
 			String[][] obs = this.multiAgentEnvStep(l1Action + "__" + l0Action);
@@ -401,9 +422,11 @@ public class MultiAgentSimulation extends Simulation {
 		LOGGER.debug("Agent i took action " + actions[0] + ", agent j took action " + actions[1] 
 				+ " in state " + this.solver.f.toMap(this.states.get(this.states.size() - 1).toDD()));
 		
-		/* get next state */
-		DDTree nextState = this.getNextState(action).toDDTree();
-		this.states.add(nextState);
+		if (!(this.solver instanceof HumanAgentSolver)) {
+			/* get next state */
+			DDTree nextState = this.getNextState(action).toDDTree();
+			this.states.add(nextState);
+		}
 		
 		return this.doJointAction(action);
 	}
@@ -498,26 +521,30 @@ public class MultiAgentSimulation extends Simulation {
 		 * Sample observation from the state
 		 */
 		
-		this.solver.f.setGlobals();
-		String[] actions = action.split("__");
+		if (!(this.solver instanceof HumanAgentSolver)) {
+			this.solver.f.setGlobals();
+			String[] actions = action.split("__");
+			
+			/* get observation distribution */
+			DD obsDist = 
+					OP.addMultVarElim(
+							ArrayUtils.add(
+									this.solver.f.getOiForAction(actions[1]), 
+									OP.primeVars(
+											this.states.get(this.states.size() - 1).toDD(), 
+											this.solver.f.getNumVars())),
+							this.solver.f.getStateVarPrimeIndices());
+			
+			/* sample from distribution */
+			int[][] obsConfig = 
+					OP.sampleMultinomial(
+							obsDist, 
+							this.solver.f.getObsVarPrimeIndices());
+			
+			return POMDP.configToStrings(obsConfig);
+		}
 		
-		/* get observation distribution */
-		DD obsDist = 
-				OP.addMultVarElim(
-						ArrayUtils.add(
-								this.solver.f.getOiForAction(actions[1]), 
-								OP.primeVars(
-										this.states.get(this.states.size() - 1).toDD(), 
-										this.solver.f.getNumVars())),
-						this.solver.f.getStateVarPrimeIndices());
-		
-		/* sample from distribution */
-		int[][] obsConfig = 
-				OP.sampleMultinomial(
-						obsDist, 
-						this.solver.f.getObsVarPrimeIndices());
-		
-		return POMDP.configToStrings(obsConfig);
+		else return new String[] {"human agent obs"};
 	}
 	
 	@Override
