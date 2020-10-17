@@ -103,7 +103,7 @@ public class HumanAgentSimulation extends Simulation {
 		/* make state node */
 		PolicyNode sNode = new PolicyNode();
 		sNode.setBelief(this.states.get(this.states.size() - 1).toDD());
-		sNode.setsBelief(this.solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
+		sNode.setsBelief(this.l1Solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
 		sNode.setId(this.currentPolicyNodeCounter++);
 		
 		/* make start policy node for j */
