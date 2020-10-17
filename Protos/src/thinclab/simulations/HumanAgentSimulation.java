@@ -389,8 +389,7 @@ public class HumanAgentSimulation extends Simulation {
 		
 //		if (!(this.solver instanceof HumanAgentSolver)) {
 			
-		LOGGER.debug("Agent i took action " + actions[0] + ", agent j took action " + actions[1] 
-				+ " in state " + this.solver.f.toMap(this.states.get(this.states.size() - 1).toDD()));
+		LOGGER.debug("Agent i took action " + actions[0] + ", agent j took action " + actions[1]);
 		
 		/* get next state */
 		DDTree nextState = this.getNextState(action).toDDTree();
