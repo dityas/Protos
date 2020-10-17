@@ -65,5 +65,10 @@ public class HumanAgentSolver extends BaseSolver {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	public String getHumanAction() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

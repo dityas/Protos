@@ -24,6 +24,7 @@ import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.representations.policyrepresentations.PolicyTree;
 import thinclab.simulations.CyberDeceptionSimulation;
+import thinclab.simulations.CyberDeceptionSimulationWithHuman;
 import thinclab.simulations.StochasticSimulation;
 import thinclab.solvers.AlphaVectorPolicySolver;
 import thinclab.solvers.BaseSolver;
@@ -265,7 +266,7 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 					}
 					
 					/* store ref to agent J */
-					BaseSolver jSolver = new HumanAgentSolver();
+					HumanAgentSolver jSolver = new HumanAgentSolver();
 					
 					ipomdp.clearLowerLevelSolutions();
 					
@@ -311,8 +312,9 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 									BE, numRounds, backups);
 					}
 					
-					CyberDeceptionSimulation ss = 
-							new CyberDeceptionSimulation(solver, jSolver, simLength, ipAddr, 2004);
+					CyberDeceptionSimulationWithHuman ss = 
+							new CyberDeceptionSimulationWithHuman(
+									solver, jSolver, simLength, ipAddr, 2004);
 
 					ss.setMjDotDir(storageDir, i);
 					ss.runSimulation();
