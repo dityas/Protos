@@ -101,7 +101,6 @@ public class HumanAgentSimulation extends Simulation {
 		iNode.setId(this.currentPolicyNodeCounter++);
 		
 		/* make state node */
-		this.solver.f.setGlobals();
 		PolicyNode sNode = new PolicyNode();
 		sNode.setBelief(this.states.get(this.states.size() - 1).toDD());
 		sNode.setsBelief(this.solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
