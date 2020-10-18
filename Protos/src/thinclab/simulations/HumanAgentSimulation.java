@@ -573,10 +573,10 @@ public class HumanAgentSimulation extends Simulation {
 				nextStateDD,
 				-(this.l1Solver.f.getNumVars()));
 		
-		int[][] stateConfig = OP.sampleMultinomial(nextStateDD, this.solver.f.getStateVarIndices());
+		int[][] stateConfig = OP.sampleMultinomial(nextStateDD, this.l1Solver.f.getStateVarIndices());
 		DD state = Config.convert2dd(stateConfig);
 		
-		LOGGER.debug("State transitioned to " + this.solver.f.toMap(state));
+		LOGGER.debug("State transitioned to " + this.l1Solver.f.toMap(state));
 		
 		return state;
 	}
