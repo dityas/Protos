@@ -266,7 +266,7 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 					}
 					
 					/* store ref to agent J */
-					HumanAgentSolver jSolver = new HumanAgentSolver();
+					HumanAgentSolver jSolver = new HumanAgentSolver(ipomdp.Aj);
 					
 					ipomdp.clearLowerLevelSolutions();
 					

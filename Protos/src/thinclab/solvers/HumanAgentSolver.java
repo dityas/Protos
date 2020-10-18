@@ -7,6 +7,7 @@
  */
 package thinclab.solvers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -25,11 +26,13 @@ public class HumanAgentSolver extends BaseSolver {
 	
 	private static final long serialVersionUID = -4240111977003656558L;
 	private Scanner consoleReader;
+	public List<String> allowedActions = new ArrayList<String>();
 	
 	//------------------------------------------------------------------------------
 	
-	public HumanAgentSolver() {
+	public HumanAgentSolver(List<String> allowedActions) {
 		this.consoleReader = new Scanner(System.in);
+		this.allowedActions.addAll(allowedActions);
 	}
 	
 	//------------------------------------------------------------------------------
@@ -78,8 +81,20 @@ public class HumanAgentSolver extends BaseSolver {
 	
 	public String getHumanAction() {
 		System.out.println("---- HUMAN INPUT ----");
-		System.out.println(">>> ");
-		String humanAction = this.consoleReader.nextLine().toUpperCase();
+		
+		System.out.println("Allowed actions");
+		for (String action: this.allowedActions) {
+			System.out.println(action);
+		}
+		
+		String humanAction = "";
+		
+		while (!this.allowedActions.contains(humanAction)) {
+			System.out.print(">>> ");
+			humanAction = this.consoleReader.nextLine().toUpperCase();
+		}
+		
+		System.out.println("Performing action: " + humanAction);
 		System.out.println("---- END HUMAN INPUT AND WAIT NEXT ROUND ----");
 		return humanAction;
 	}
