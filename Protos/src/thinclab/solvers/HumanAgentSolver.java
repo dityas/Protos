@@ -8,6 +8,7 @@
 package thinclab.solvers;
 
 import java.util.List;
+import java.util.Scanner;
 
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
@@ -23,6 +24,15 @@ public class HumanAgentSolver extends BaseSolver {
 	 */
 	
 	private static final long serialVersionUID = -4240111977003656558L;
+	private Scanner consoleReader;
+	
+	//------------------------------------------------------------------------------
+	
+	public HumanAgentSolver() {
+		this.consoleReader = new Scanner(System.in);
+	}
+	
+	//------------------------------------------------------------------------------
 
 	@Override
 	public String getActionForBelief(DD belief) {
@@ -67,8 +77,11 @@ public class HumanAgentSolver extends BaseSolver {
 	}
 	
 	public String getHumanAction() {
-		// TODO Auto-generated method stub
-		return null;
+		System.out.println("---- HUMAN INPUT ----");
+		System.out.println(">>> ");
+		String humanAction = this.consoleReader.nextLine().toUpperCase();
+		System.out.println("---- END HUMAN INPUT AND WAIT NEXT ROUND ----");
+		return humanAction;
 	}
 
 }
