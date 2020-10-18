@@ -562,7 +562,7 @@ public class HumanAgentSimulation extends Simulation {
 		}
 
 		/* restrict transition to Aj */
-		int[] actVal = new int[] {this.solver.f.getActions().indexOf(actions[1]) + 1};
+		int[] actVal = new int[] {((IPOMDP) this.l1Solver.f).Aj.indexOf(actions[1]) + 1};
 		int[] actVarConfig = new int[] {((IPOMDP) this.l1Solver.f).AjStartIndex};
 		int[][] actConfig = IPOMDP.stackArray(actVarConfig, actVal); 
 		
