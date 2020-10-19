@@ -9,6 +9,7 @@ package thinclab.belief;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -546,6 +547,9 @@ public class IBeliefOps extends BeliefOperations {
 		/* Factor the belief state into individual variables */
 		DD[] fbs = new DD[DPRef.thetaVarPosition];
 		for (int varId = 0; varId < fbs.length; varId++) {
+			
+			if (!Arrays.asList(belief.getVarSet()).contains(varId))
+				continue;
 			
 			fbs[varId] = OP.addMultVarElim(belief,
 					ArrayUtils.remove(
