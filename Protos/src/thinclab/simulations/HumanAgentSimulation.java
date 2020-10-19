@@ -114,11 +114,6 @@ public class HumanAgentSimulation extends Simulation {
 		
 		/* add to node map */
 		this.putPolicyNode(iNode.getId(), iNode);
-		this.putPolicyNode(sNode.getId(), sNode);
-		this.putPolicyNode(jNode.getId(), jNode);
-//		}
-//		
-//		else this.putPolicyNode(iNode.getId(), iNode);
 		
 	}
 	
@@ -240,23 +235,23 @@ public class HumanAgentSimulation extends Simulation {
 			DD currentL0Belief = null;
 			String currentL0BeliefJson = "{}";
 			
-			this.l0BeliefSequence.add(currentL0BeliefJson);
-			LOGGER.info("L0 belief is " 
-					+ this.l0BeliefSequence.get(this.l0BeliefSequence.size() - 1));
+//			this.l0BeliefSequence.add(currentL0BeliefJson);
+//			LOGGER.info("L0 belief is " 
+//					+ this.l0BeliefSequence.get(this.l0BeliefSequence.size() - 1));
 			
 			/* optimal action for L0 */
 			String l0Action = ((HumanAgentSolver) this.solver).getHumanAction();
-			this.getPolicyNode(currentNode + 2).setActName(l0Action);
+//			this.getPolicyNode(currentNode + 2).setActName(l0Action);
 		
 			// ----------------------------------------------------------------------------------
 			
 			/* record state */
-			DD currentState = this.states.get(this.states.size() - 1).toDD();
-			String stateJson = this.l1Solver.f.getBeliefString(currentState);
-			
-			this.stateSequence.add(
-					this.l1Solver.f.getBeliefString(currentState));
-			LOGGER.info("Real state is " + this.stateSequence.get(this.stateSequence.size() - 1));
+//			DD currentState = this.states.get(this.states.size() - 1).toDD();
+//			String stateJson = this.l1Solver.f.getBeliefString(currentState);
+//			
+//			this.stateSequence.add(
+//					this.l1Solver.f.getBeliefString(currentState));
+//			LOGGER.info("Real state is " + this.stateSequence.get(this.stateSequence.size() - 1));
 			
 			// ----------------------------------------------------------------------------------
 //			}
@@ -296,23 +291,23 @@ public class HumanAgentSimulation extends Simulation {
 			this.putPolicyNode(nextINode.getId(), nextINode);
 			
 			/* make state node here to maintain currentPolicyNodeCounter order */
-			PolicyNode nextStateNode = new PolicyNode();
-			nextStateNode.setId(this.currentPolicyNodeCounter++);
-			
-			// --------------------------------------------------------------------------------------
-			
-			double l0DiscountedReward = Double.NaN;
-			
-			this.l0ExpectedReward.add(l0DiscountedReward);
-			LOGGER.info("Agent j's expected reward is " 
-					+ this.l0ExpectedReward.get(
-							this.l0ExpectedReward.size() - 1));
+//			PolicyNode nextStateNode = new PolicyNode();
+//			nextStateNode.setId(this.currentPolicyNodeCounter++);
+//			
+//			// --------------------------------------------------------------------------------------
+//			
+//			double l0DiscountedReward = Double.NaN;
+//			
+//			this.l0ExpectedReward.add(l0DiscountedReward);
+//			LOGGER.info("Agent j's expected reward is " 
+//					+ this.l0ExpectedReward.get(
+//							this.l0ExpectedReward.size() - 1));
 			
 			/* summarize the interaction */
 			if (this.summaryWriter != null) {
 				this.summarizeInteraction(
 						this.states.size(),
-						stateJson,
+						"{}",
 						currentL1BeliefJson, 
 						currentL0BeliefJson, 
 						l1Action, 
@@ -320,30 +315,30 @@ public class HumanAgentSimulation extends Simulation {
 						obs[0],
 						obs[1],
 						l1DiscountedReward,
-						l0DiscountedReward);
+						Double.NaN);
 			}
 			
-			/* make policy node for next belief of agent j */
-			PolicyNode nextJNode = new PolicyNode();
-			nextJNode.setBelief(null);
-			nextJNode.setsBelief("{}");
-			nextJNode.setId(this.currentPolicyNodeCounter++);
-			this.putPolicyNode(nextJNode.getId(), nextJNode);
-			
-			/* populate next state node */
-			nextStateNode.setBelief(this.states.get(this.states.size() - 1).toDD());
-			nextStateNode.setsBelief("{}");
-			this.putPolicyNode(nextStateNode.getId(), nextStateNode);
+//			/* make policy node for next belief of agent j */
+//			PolicyNode nextJNode = new PolicyNode();
+//			nextJNode.setBelief(null);
+//			nextJNode.setsBelief("{}");
+//			nextJNode.setId(this.currentPolicyNodeCounter++);
+//			this.putPolicyNode(nextJNode.getId(), nextJNode);
+//			
+//			/* populate next state node */
+//			nextStateNode.setBelief(this.states.get(this.states.size() - 1).toDD());
+//			nextStateNode.setsBelief("{}");
+//			this.putPolicyNode(nextStateNode.getId(), nextStateNode);
 			
 			// -------------------------------------------------------------------------------------
 			
 			/* make path */
 			this.putEdge(currentNode, Arrays.asList(obs[0]), nextINode.getId());
-			this.putEdge(
-					currentNode + 1, 
-					Arrays.asList(new String[] {l1Action, l0Action}), 
-					nextStateNode.getId());
-			this.putEdge(currentNode + 2, Arrays.asList(obs[1]), nextJNode.getId());
+//			this.putEdge(
+//					currentNode + 1, 
+//					Arrays.asList(new String[] {l1Action, l0Action}), 
+//					nextStateNode.getId());
+//			this.putEdge(currentNode + 2, Arrays.asList(obs[1]), nextJNode.getId());
 			
 			if (this.interactionOver) return -1;
 			
