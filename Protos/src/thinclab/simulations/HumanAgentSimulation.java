@@ -387,8 +387,8 @@ public class HumanAgentSimulation extends Simulation {
 		LOGGER.debug("Agent i took action " + actions[0] + ", agent j took action " + actions[1]);
 		
 		/* get next state */
-		DDTree nextState = this.getNextState(action).toDDTree();
-		this.states.add(nextState);
+//		DDTree nextState = this.getNextState(action).toDDTree();
+//		this.states.add(nextState);
 //		}
 		
 		return this.doJointAction(action);
