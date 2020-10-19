@@ -548,8 +548,8 @@ public class IBeliefOps extends BeliefOperations {
 		DD[] fbs = new DD[DPRef.thetaVarPosition];
 		for (int varId = 0; varId < fbs.length; varId++) {
 			
-			if (!Arrays.asList(belief.getVarSet()).contains(varId))
-				continue;
+//			if (!Arrays.asList(belief.getVarSet()).contains(varId))
+//				continue;
 			
 			fbs[varId] = OP.addMultVarElim(belief,
 					ArrayUtils.remove(
