@@ -304,19 +304,20 @@ public class HumanAgentSimulation extends Simulation {
 //							this.l0ExpectedReward.size() - 1));
 			
 			/* summarize the interaction */
-			if (this.summaryWriter != null) {
-				this.summarizeInteraction(
-						this.states.size(),
-						"{}",
-						currentL1BeliefJson, 
-						currentL0BeliefJson, 
-						l1Action, 
-						l0Action,
-						obs[0],
-						obs[1],
-						l1DiscountedReward,
-						Double.NaN);
-			}
+//			if (this.summaryWriter != null) {
+//				this.summarizeInteraction(
+//						this.states.size(),
+//						"{}",
+//						currentL1BeliefJson, 
+//						currentL0BeliefJson, 
+//						l1Action, 
+//						l0Action,
+//						obs[0],
+//						obs[1],
+//						l1DiscountedReward,
+//						Double.NaN);
+//			}
+			((HumanAgentSolver) this.solver).showObservation(String.join("\r\n", obs[1]));
 			
 //			/* make policy node for next belief of agent j */
 //			PolicyNode nextJNode = new PolicyNode();

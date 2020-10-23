@@ -79,6 +79,15 @@ public class HumanAgentSolver extends BaseSolver {
 		return null;
 	}
 	
+	public void showObservation(String observation) {
+		/*
+		 * Print observation from performing previous action to stdout
+		 */
+		System.out.println("---- OUTPUT ----");
+		System.out.println(observation);
+		System.out.println("---- END OUTPUT ----");
+	}
+	
 	public String getHumanAction() {
 		System.out.println("---- HUMAN INPUT ----");
 		
