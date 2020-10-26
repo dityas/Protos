@@ -258,6 +258,7 @@ public class HumanAgentSimulation extends Simulation {
 			
 			/* take action */
 			String[][] obs = this.multiAgentEnvStep(l1Action + "__" + l0Action);
+			((HumanAgentSolver) this.solver).showObservation(String.join("\r\n", obs[1]));
 			
 			/* record action and obs */
 			this.l0ActionSequence.add(l0Action);
@@ -317,7 +318,6 @@ public class HumanAgentSimulation extends Simulation {
 //						l1DiscountedReward,
 //						Double.NaN);
 //			}
-			((HumanAgentSolver) this.solver).showObservation(String.join("\r\n", obs[1]));
 			
 //			/* make policy node for next belief of agent j */
 //			PolicyNode nextJNode = new PolicyNode();

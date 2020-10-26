@@ -35,6 +35,7 @@ import thinclab.solvers.OnlineInteractiveSymbolicPerseus;
 import thinclab.solvers.RandomActionPolicySolver;
 import thinclab.solvers.basiccyberdeceptionsolvers.ReactiveSolver;
 import thinclab.utils.CustomConfigurationFactory;
+import thinclab.utils.HumanAgentInteractionLoggingConfigurationFactory;
 import thinclab.utils.NextBelStateCache;
 
 /*
@@ -151,9 +152,10 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 			
 			/* if log file is given, initialize logging accordingly */
 			if (line.hasOption("l"))
-				CustomConfigurationFactory.setLogFileName(storageDir + "/solver.log");
+				HumanAgentInteractionLoggingConfigurationFactory.setLogFileName(
+						storageDir + "/solver.log");
 			
-			CustomConfigurationFactory.initializeLogging();
+			HumanAgentInteractionLoggingConfigurationFactory.initializeLogging();
 			LOGGER = Logger.getLogger(RunSimulations.class);
 			
 			/* set domain file */
