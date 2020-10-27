@@ -96,7 +96,7 @@ public class HumanAgentInteractionLoggingConfigurationFactory extends Configurat
          */
         builder.add(
         		builder.newRootLogger(Level.ALL)
-        			.add(builder.newAppenderRef("Stdout"))
+//        			.add(builder.newAppenderRef("Stdout"))
         			.add(builder.newAppenderRef("log")));
         
         return builder.build();

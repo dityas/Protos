@@ -409,6 +409,9 @@ public class HumanAgentSimulation extends Simulation {
 		obs[0] = l1Obs;
 		obs[1] = l0Obs;
 		
+		if (jointAction.split("__")[1].contentEquals("EXIT"))
+			this.endSimulation();
+		
 		return obs;
 	}
 	
@@ -589,6 +592,8 @@ public class HumanAgentSimulation extends Simulation {
 		int previousNode = 0;
 		
 		for (int i = 0; i < this.iterations; i++) {
+			System.out.println("Running actions on environment and setting up things. This may"
+					+ "take a while...");
 			int nextNode = this.step(previousNode);
 			if (nextNode == -1) break;
 			
