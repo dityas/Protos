@@ -134,7 +134,7 @@ public class HumanAgentSimulation extends Simulation {
 	}
 	
 	public void endSimulation() {
-		this.interactionOver = false;
+		this.interactionOver = true;
 	}
 	
 	// ----------------------------------------------------------------------------------------
@@ -241,6 +241,8 @@ public class HumanAgentSimulation extends Simulation {
 			
 			/* optimal action for L0 */
 			String l0Action = ((HumanAgentSolver) this.solver).getHumanAction();
+			if (l0Action.contentEquals("EXIT"))
+				this.endSimulation();
 //			this.getPolicyNode(currentNode + 2).setActName(l0Action);
 		
 			// ----------------------------------------------------------------------------------
@@ -259,6 +261,8 @@ public class HumanAgentSimulation extends Simulation {
 			/* take action */
 			String[][] obs = this.multiAgentEnvStep(l1Action + "__" + l0Action);
 			((HumanAgentSolver) this.solver).showObservation(String.join("\r\n", obs[1]));
+			System.out.println("Running actions and preparing environment for next step."
+					+ " This may take a while...");
 			
 			/* record action and obs */
 			this.l0ActionSequence.add(l0Action);
@@ -408,9 +412,6 @@ public class HumanAgentSimulation extends Simulation {
 		String[][] obs = new String[2][];
 		obs[0] = l1Obs;
 		obs[1] = l0Obs;
-		
-		if (jointAction.split("__")[1].contentEquals("EXIT"))
-			this.endSimulation();
 		
 		return obs;
 	}
