@@ -8,6 +8,7 @@
 package thinclab.solvers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
@@ -30,9 +31,9 @@ public class HumanAgentSolver extends BaseSolver {
 	
 	//------------------------------------------------------------------------------
 	
-	public HumanAgentSolver(List<String> allowedActions) {
+	public HumanAgentSolver(HashMap<String, String> humanActionstoPOMDPActionsMap) {
 		this.consoleReader = new Scanner(System.in);
-		this.allowedActions.addAll(allowedActions);
+		this.allowedActions.addAll(humanActionstoPOMDPActionsMap.keySet());
 	}
 	
 	//------------------------------------------------------------------------------

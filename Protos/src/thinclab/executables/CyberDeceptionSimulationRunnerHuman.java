@@ -7,6 +7,7 @@
  */
 package thinclab.executables;
 
+import java.util.HashMap;
 import java.util.Random;
 
 import org.apache.commons.cli.CommandLine;
@@ -268,7 +269,26 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 					}
 					
 					/* store ref to agent J */
-					HumanAgentSolver jSolver = new HumanAgentSolver(ipomdp.Aj);
+					HashMap<String, String> humanActionsToPOMDPActions = 
+							new HashMap<String, String>();
+					
+					humanActionsToPOMDPActions.put("WHOAMI", "CHECK_ROOT");
+					humanActionsToPOMDPActions.put("CHECK_ROOT", "CHECK_ROOT");
+					humanActionsToPOMDPActions.put("FS_CONFIG_HOME", "FILE_RECON_CDATA");
+					humanActionsToPOMDPActions.put("FS_CONFIG_ROOT", "FILE_RECON_CDATA");
+					humanActionsToPOMDPActions.put("FS_SECRET_HOME", "FILE_RECON_SDATA");
+					humanActionsToPOMDPActions.put("FS_SECRET_ROOT", "FILE_RECON_SDATA");
+					humanActionsToPOMDPActions.put("MANIPULATE_DATA", "MANIPULATE_DATA");
+					humanActionsToPOMDPActions.put("ADD_USER", "PERSIST");
+					humanActionsToPOMDPActions.put("EDIT_BASHRC", "PERSIST");
+					humanActionsToPOMDPActions.put("CHECK_OFS_EXPLOIT", "VULN_RECON");
+					humanActionsToPOMDPActions.put("CHECK_VSFTPD_EXPLOIT", "VULN_RECON");
+					humanActionsToPOMDPActions.put("OFS_EXPLOIT", "PRIV_ESC");
+					humanActionsToPOMDPActions.put("VSFTPD_EXPLOIT", "PRIV_ESC");
+					humanActionsToPOMDPActions.put("EXIT", "EXIT");
+					humanActionsToPOMDPActions.put("START_EXFIL", "START_EXFIL");
+					
+					HumanAgentSolver jSolver = new HumanAgentSolver(humanActionsToPOMDPActions);
 					
 					ipomdp.clearLowerLevelSolutions();
 					
