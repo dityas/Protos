@@ -261,6 +261,7 @@ public class HumanAgentSimulation extends Simulation {
 //			}
 			
 			/* take action */
+			Runtime.getRuntime().exec(new String[] {"clear"});
 			String[][] obs = this.multiAgentEnvStep(l1Action + "__" + l0Action);
 			((HumanAgentSolver) this.solver).showObservation(String.join("\r\n", obs[1]));
 			System.out.println("Running actions and preparing environment for next step."
