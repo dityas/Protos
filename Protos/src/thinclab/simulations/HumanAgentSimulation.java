@@ -241,8 +241,10 @@ public class HumanAgentSimulation extends Simulation {
 			
 			/* optimal action for L0 */
 			String l0Action = ((HumanAgentSolver) this.solver).getHumanAction();
-			if (l0Action.contentEquals("EXIT"))
+			if (l0Action.contentEquals("EXIT")) {
+				System.out.println("Ending simulation...");
 				this.endSimulation();
+			}
 //			this.getPolicyNode(currentNode + 2).setActName(l0Action);
 		
 			// ----------------------------------------------------------------------------------

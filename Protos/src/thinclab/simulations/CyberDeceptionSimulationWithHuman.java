@@ -64,6 +64,7 @@ public class CyberDeceptionSimulationWithHuman extends HumanAgentSimulation {
 		
 		for (int i = 0; i < this.iterations; i++) {
 			int nextNode = this.step(previousNode);
+			System.out.println("Step end returned " + nextNode);
 			if (nextNode == -1) break;
 			
 			previousNode = nextNode;
