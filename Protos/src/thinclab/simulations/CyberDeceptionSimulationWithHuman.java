@@ -93,6 +93,8 @@ public class CyberDeceptionSimulationWithHuman extends HumanAgentSimulation {
 	@Override
 	public String[][] doJointAction(String jointAction) {
 		
+		System.out.println("Joint action is: " + jointAction);
+		
 		this.defEnvConnector.sendAction(this.mapL1Action(jointAction));
 		this.attEnvConnector.sendAction(jointAction.split("__")[1]);
 		
