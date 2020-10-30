@@ -28,12 +28,16 @@ public class HumanAgentSolver extends BaseSolver {
 	private static final long serialVersionUID = -4240111977003656558L;
 	private Scanner consoleReader;
 	public List<String> allowedActions = new ArrayList<String>();
+	public HashMap<String, String> helpStringsMap = new HashMap<String, String>();
 	
 	//------------------------------------------------------------------------------
 	
-	public HumanAgentSolver(HashMap<String, String> humanActionstoPOMDPActionsMap) {
+	public HumanAgentSolver(
+			HashMap<String, String> humanActionstoPOMDPActionsMap,
+			HashMap<String, String> helpStringsMap) {
 		this.consoleReader = new Scanner(System.in);
 		this.allowedActions.addAll(humanActionstoPOMDPActionsMap.keySet());
+		this.helpStringsMap.putAll(helpStringsMap);
 	}
 	
 	//------------------------------------------------------------------------------
@@ -94,7 +98,7 @@ public class HumanAgentSolver extends BaseSolver {
 		
 		System.out.println("Allowed actions");
 		for (String action: this.allowedActions) {
-			System.out.println(action);
+			System.out.println(action + " -- " + this.helpStringsMap.get(action));
 		}
 		
 		String humanAction = "";

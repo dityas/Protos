@@ -64,7 +64,7 @@ public class CyberDeceptionSimulationWithHuman extends HumanAgentSimulation {
 		
 		for (int i = 0; i < this.iterations; i++) {
 			int nextNode = this.step(previousNode);
-			System.out.println("Step end returned " + nextNode);
+//			System.out.println("Step end returned " + nextNode);
 			if (nextNode == -1) break;
 			
 			previousNode = nextNode;
@@ -94,7 +94,7 @@ public class CyberDeceptionSimulationWithHuman extends HumanAgentSimulation {
 	@Override
 	public String[][] doJointAction(String jointAction) {
 		
-		System.out.println("Joint action is: " + jointAction);
+//		System.out.println("Joint action is: " + jointAction);
 		
 		this.defEnvConnector.sendAction(this.mapL1Action(jointAction));
 		this.attEnvConnector.sendAction(jointAction.split("__")[1]);
