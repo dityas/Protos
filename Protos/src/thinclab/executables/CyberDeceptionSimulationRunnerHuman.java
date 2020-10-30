@@ -278,40 +278,42 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 					
 					/* actions */
 					humanActionsToPOMDPActions.put("WHOAMI", "CHECK_ROOT");
-					humanActionsToPOMDPActions.put("CHECK_ROOT", "CHECK_ROOT");
-					humanActionsToPOMDPActions.put("FS_CONFIG_HOME", "FILE_RECON_CDATA");
-					humanActionsToPOMDPActions.put("FS_CONFIG_ROOT", "FILE_RECON_CDATA");
-					humanActionsToPOMDPActions.put("FS_SECRET_HOME", "FILE_RECON_SDATA");
-					humanActionsToPOMDPActions.put("FS_SECRET_ROOT", "FILE_RECON_SDATA");
-					humanActionsToPOMDPActions.put("MANIPULATE_DATA", "MANIPULATE_DATA");
+//					humanActionsToPOMDPActions.put("CHECK_ROOT", "CHECK_ROOT");
+					humanActionsToPOMDPActions.put("FIND_SEC_CONFIG_HOMEDIR", "FILE_RECON_CDATA");
+					humanActionsToPOMDPActions.put("FIND_SEC_CONFIG_ROOTDIR", "FILE_RECON_CDATA");
+					humanActionsToPOMDPActions.put("FIND_SECRET_FILE_HOMEDIR", "FILE_RECON_SDATA");
+					humanActionsToPOMDPActions.put("FIND_SECRET_FILE_ROOTDIR", "FILE_RECON_SDATA");
+					humanActionsToPOMDPActions.put("MANIPULATE_SEC_CONFIG", "MANIPULATE_DATA");
 					humanActionsToPOMDPActions.put("ADD_USER", "PERSIST");
 					humanActionsToPOMDPActions.put("EDIT_BASHRC", "PERSIST");
 					humanActionsToPOMDPActions.put("CHECK_KERNEL_VERSION", "VULN_RECON");
 					humanActionsToPOMDPActions.put("CHECK_PS", "VULN_RECON");
-					humanActionsToPOMDPActions.put("OFS_EXPLOIT", "PRIV_ESC");
-					humanActionsToPOMDPActions.put("VSFTPD_EXPLOIT", "PRIV_ESC");
+					humanActionsToPOMDPActions.put("RUN_OFS_EXPLOIT", "PRIV_ESC");
+					humanActionsToPOMDPActions.put("RUN_VSFTPD_EXPLOIT", "PRIV_ESC");
 					humanActionsToPOMDPActions.put("EXIT", "EXIT");
-					humanActionsToPOMDPActions.put("START_EXFIL", "START_EXFIL");
+					humanActionsToPOMDPActions.put("DOWNLOAD_SECRET_FILE", "START_EXFIL");
 					
 					/* help strings */
 					HashMap<String, String> helpStrings = 
 							new HashMap<String, String>();
 					
 					helpStrings.put("WHOAMI", "show current user");
-					helpStrings.put("CHECK_ROOT", "same as whoami");
-					helpStrings.put("FS_CONFIG_HOME", "look for secret_config.txt in /home");
-					helpStrings.put("FS_CONFIG_ROOT", "look for secret_config.txt in /root");
-					helpStrings.put("FS_SECRET_HOME", "look for secret.txt in /home");
-					helpStrings.put("FS_SECRET_ROOT", "look for secret.txt in /root");
-					helpStrings.put("MANIPULATE_DATA", "manipulate secret_config.txt");
+//					helpStrings.put("CHECK_ROOT", "same as whoami");
+					helpStrings.put("FIND_SEC_CONFIG_HOMEDIR", "look for secret_config.txt in /home");
+					helpStrings.put("FIND_SEC_CONFIG_ROOTDIR", "look for secret_config.txt in /root");
+					helpStrings.put("FIND_SECRET_FILE_HOMEDIR", "look for secret.txt in /home");
+					helpStrings.put("FIND_SECRET_FILE_ROOTDIR", "look for secret.txt in /root");
+					helpStrings.put("MANIPULATE_SEC_CONFIG", "manipulate secret_config.txt");
 					helpStrings.put("ADD_USER", "create new user");
 					helpStrings.put("EDIT_BASHRC", "persist through bashrc");
 					helpStrings.put("CHECK_KERNEL_VERSION", "check kernel version for ofs exploit");
 					helpStrings.put("CHECK_PS", "check running processes ");
-					helpStrings.put("OFS_EXPLOIT", "run OFS exploit");
-					helpStrings.put("VSFTPD_EXPLOIT", "run VSFTPD exploit");
+					helpStrings.put("RUN_OFS_EXPLOIT", "run OFS exploit");
+					helpStrings.put("RUN_VSFTPD_EXPLOIT", "run VSFTPD exploit");
 					helpStrings.put("EXIT", "stop attacker agent. (This will end the interaction.)");
-					helpStrings.put("START_EXFIL", "download secret.txt from target computer");
+					helpStrings.put("DOWNLOAD_SECRET_FILE",
+							"download secret.txt from target computer (will only download"
+							+ "if the file has been found).");
 					
 					HumanAgentSolver jSolver = 
 							new HumanAgentSolver(humanActionsToPOMDPActions, helpStrings);

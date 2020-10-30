@@ -96,9 +96,9 @@ public class HumanAgentSolver extends BaseSolver {
 	public String getHumanAction() {
 		System.out.println("---- HUMAN INPUT ----");
 		
-		System.out.println("Allowed actions");
+		System.out.println("Allowed actions (Case insensitive)");
 		for (String action: this.allowedActions) {
-			System.out.println(action + " -- " + this.helpStringsMap.get(action));
+			System.out.println(action.toLowerCase() + " -- " + this.helpStringsMap.get(action));
 		}
 		
 		String humanAction = "";
