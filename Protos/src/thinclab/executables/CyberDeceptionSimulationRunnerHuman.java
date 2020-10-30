@@ -212,6 +212,10 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 				/* set NextBelState Caching */
 				NextBelStateCache.useCache();
 				
+				new ProcessBuilder("clear").inheritIO().start().waitFor();
+				System.out.println("Starting session...");
+				System.out.println("Please be patient. This will take around 15 mins...");
+				
 				LOGGER.info("Simulating IPOMDP...");
 				
 				int simRounds = new Integer(line.getOptionValue("y"));
@@ -339,9 +343,6 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 									solver, jSolver, simLength, ipAddr, 2004);
 
 					ss.setMjDotDir(storageDir, i);
-					new ProcessBuilder("clear").inheritIO().start().waitFor();
-					
-					System.out.println("Starting session...");
 					ss.runSimulation();
 					
 					ss.logToFile(storageDir + "/" + "sim" + i + ".json");
