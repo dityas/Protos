@@ -339,7 +339,10 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 									solver, jSolver, simLength, ipAddr, 2004);
 
 					ss.setMjDotDir(storageDir, i);
-					Runtime.getRuntime().exec("clear");
+					
+					Process p = Runtime.getRuntime().exec("clear");
+					p.wait();
+					
 					System.out.println("Starting session...");
 					ss.runSimulation();
 					
