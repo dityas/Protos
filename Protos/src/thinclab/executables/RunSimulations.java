@@ -192,6 +192,9 @@ public class RunSimulations extends Executable {
 					PolicyGraph G = new PolicyGraph((AlphaVectorPolicySolver) solver, simLength);
 					G.makeGraph();
 					G.computeEU();
+					G.writeDotFile(
+							storageDir, 
+							"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
 					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
