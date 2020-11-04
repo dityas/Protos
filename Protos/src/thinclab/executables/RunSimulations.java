@@ -188,6 +188,11 @@ public class RunSimulations extends Executable {
 					T.writeDotFile(storageDir, "policy_tree" + i);
 					T.writeJSONFile(storageDir, "policy_tree" + i);
 					
+					/* make policy graph */
+					PolicyGraph G = new PolicyGraph((AlphaVectorPolicySolver) solver, simLength);
+					G.makeGraph();
+					G.computeEU();
+					
 					StochasticSimulation ss = new StochasticSimulation(solver, simLength);
 					ss.runSimulation();
 					ss.logToFile(storageDir + "/" + "sim" + i + ".json");
