@@ -308,8 +308,10 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 					helpStrings.put("EDIT_BASHRC", "persist through bashrc");
 					helpStrings.put("CHECK_KERNEL_VERSION", "check kernel version for ofs exploit");
 					helpStrings.put("CHECK_PS", "check running processes ");
-					helpStrings.put("RUN_OFS_EXPLOIT", "run OFS exploit");
-					helpStrings.put("RUN_VSFTPD_EXPLOIT", "run VSFTPD exploit");
+					helpStrings.put("RUN_OFS_EXPLOIT", "run OFS exploit (only works on kernel version "
+							+ "3.13.0)");
+					helpStrings.put("RUN_VSFTPD_EXPLOIT", "run VSFTPD exploit (only works if process "
+							+ "'vsftpd' is running)");
 					helpStrings.put("EXIT", "stop attacker agent. (This will end the interaction.)");
 					helpStrings.put("DOWNLOAD_SECRET_FILE",
 							"download secret.txt from target computer (will only download"

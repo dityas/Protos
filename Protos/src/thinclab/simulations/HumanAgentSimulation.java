@@ -262,7 +262,9 @@ public class HumanAgentSimulation extends Simulation {
 			
 			/* take action */
 			new ProcessBuilder("clear").inheritIO().start().waitFor();
+			System.out.println("Running action on target... May take a minute or two...");
 			String[][] obs = this.multiAgentEnvStep(l1Action + "__" + l0Action);
+			new ProcessBuilder("clear").inheritIO().start().waitFor();
 			((HumanAgentSolver) this.solver).showObservation(String.join("\r\n", obs[1]));
 			System.out.println("Preparing environment for next step."
 					+ " This may take a while...");
