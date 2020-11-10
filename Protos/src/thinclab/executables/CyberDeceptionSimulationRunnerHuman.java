@@ -373,6 +373,8 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 					
 					ss.logToFile(storageDir + "/" + "sim" + i + ".json");
 					ss.writeDotFile(storageDir, "sim" + i);
+					
+					System.out.println("Engagement terminated. Thank you for your time.");
 				}
 			}
 			
