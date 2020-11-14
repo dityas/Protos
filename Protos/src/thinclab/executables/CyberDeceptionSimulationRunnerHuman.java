@@ -214,7 +214,7 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 				
 				new ProcessBuilder("clear").inheritIO().start().waitFor();
 				System.out.println("Starting session...");
-				System.out.println("Please be patient. This will take around 15 mins...");
+				System.out.println("Please be patient. This will take around 20 mins...");
 				
 				LOGGER.info("Simulating IPOMDP...");
 				
@@ -297,24 +297,55 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 					HashMap<String, String> helpStrings = 
 							new HashMap<String, String>();
 					
-					helpStrings.put("WHOAMI", "show current user");
+					helpStrings.put(
+							"WHOAMI", 
+							"\t\t\t show current user");
 //					helpStrings.put("CHECK_ROOT", "same as whoami");
-					helpStrings.put("FIND_SEC_CONFIG_HOMEDIR", "look for secret_config.txt in /home");
-					helpStrings.put("FIND_SEC_CONFIG_ROOTDIR", "look for secret_config.txt in /root");
-					helpStrings.put("FIND_SECRET_FILE_HOMEDIR", "look for secret.txt in /home");
-					helpStrings.put("FIND_SECRET_FILE_ROOTDIR", "look for secret.txt in /root");
-					helpStrings.put("MANIPULATE_SEC_CONFIG", "manipulate secret_config.txt");
-					helpStrings.put("ADD_USER", "create new user");
-					helpStrings.put("EDIT_BASHRC", "persist through bashrc");
-					helpStrings.put("CHECK_KERNEL_VERSION", "check kernel version for ofs exploit");
-					helpStrings.put("CHECK_PS", "check running processes ");
-					helpStrings.put("RUN_OFS_EXPLOIT", "run OFS exploit (only works on kernel version "
+					helpStrings.put(
+							"FIND_SEC_CONFIG_HOMEDIR", 
+							" look for secret_config.txt (NOT secret.txt) in /home. "
+							+ "Same as running 'find /home -name secret_config.txt'");
+					helpStrings.put(
+							"FIND_SEC_CONFIG_ROOTDIR", 
+							" look for secret_config.txt (NOT secret.txt) in /root. "
+							+ "Same as running 'find /root -name secret_config.txt'");
+					helpStrings.put(
+							"FIND_SECRET_FILE_HOMEDIR", 
+							" look for secret.txt (NOT secret_config.txt) in /home. "
+							+ "Same as running 'find /home -name secret.txt'");
+					helpStrings.put(
+							"FIND_SECRET_FILE_ROOTDIR", 
+							" look for secret.txt (NOT secret_config.txt) in /root. "
+							+ "Same as running 'find /root -name secret.txt'");
+					helpStrings.put(
+							"MANIPULATE_SEC_CONFIG", 
+							"\t manipulate secret_config.txt");
+					helpStrings.put(
+							"ADD_USER", 
+							"\t\t create new user");
+					helpStrings.put(
+							"EDIT_BASHRC", 
+							"\t\t persist through bashrc");
+					helpStrings.put(
+							"CHECK_KERNEL_VERSION", 
+							"\t check kernel version for ofs exploit");
+					helpStrings.put(
+							"CHECK_PS", 
+							"\t\t check running processes ");
+					helpStrings.put(
+							"RUN_OFS_EXPLOIT", 
+							"\t run OFS exploit (only works on kernel version "
 							+ "3.13.0)");
-					helpStrings.put("RUN_VSFTPD_EXPLOIT", "run VSFTPD exploit (only works if process "
+					helpStrings.put(
+							"RUN_VSFTPD_EXPLOIT", 
+							" run VSFTPD exploit (only works if process "
 							+ "'vsftpd' is running)");
-					helpStrings.put("EXIT", "stop attacker agent. (This will end the interaction.)");
-					helpStrings.put("DOWNLOAD_SECRET_FILE",
-							"download secret.txt from target computer (will only download"
+					helpStrings.put(
+							"EXIT", 
+							"\t\t\t stop attacker agent. (To conclude the engagement.)");
+					helpStrings.put(
+							"DOWNLOAD_SECRET_FILE",
+							"\t download secret.txt from target computer (will only download"
 							+ "if the file has been found).");
 					
 					HumanAgentSolver jSolver = 
