@@ -319,13 +319,14 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 							+ "Same as running 'find /root -name secret.txt'");
 					helpStrings.put(
 							"MANIPULATE_SEC_CONFIG", 
-							"\t manipulate secret_config.txt");
+							"\t manipulate secret_config.txt"
+							+ "(will only work if secret_config.txt has been found.)");
 					helpStrings.put(
 							"ADD_USER", 
-							"\t\t create new user");
+							"\t\t create new sudo user. (Will only be successful if you are root)");
 					helpStrings.put(
 							"EDIT_BASHRC", 
-							"\t\t persist through bashrc");
+							"\t\t persist through root's bashrc. (Will only be successful if you are root)");
 					helpStrings.put(
 							"CHECK_KERNEL_VERSION", 
 							"\t check kernel version for ofs exploit");
@@ -335,11 +336,13 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 					helpStrings.put(
 							"RUN_OFS_EXPLOIT", 
 							"\t run OFS exploit (only works on kernel version "
-							+ "3.13.0)");
+							+ "3.13.0). "
+							+ "IF SUCCESSFUL THIS ACTION ELEVATES YOUR PRIVILEGES TO ROOT");
 					helpStrings.put(
 							"RUN_VSFTPD_EXPLOIT", 
 							" run VSFTPD exploit (only works if process "
-							+ "'vsftpd' is running)");
+							+ "'vsftpd' is running). "
+							+ "IF SUCCESSFUL THIS ACTION ELEVATES YOUR PRIVILEGES TO ROOT");
 					helpStrings.put(
 							"EXIT", 
 							"\t\t\t stop attacker agent. (To conclude the engagement.)");
