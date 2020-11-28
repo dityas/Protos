@@ -7,6 +7,7 @@
  */
 package thinclab.executables;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -238,15 +239,17 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 					
 					IPOMDP ipomdp = null;
 					
-					try {
+					if (new File(storageDir + "/ipomdp.obj").exists()) {
+						try {
+							
+							ipomdp = IPOMDP.loadIPOMDP(storageDir + "/ipomdp.obj");
+							LOGGER.info("IPOMDP loaded from " + storageDir + "/ipomdp.obj");
+						} 
 						
-						ipomdp = IPOMDP.loadIPOMDP(storageDir + "/ipomdp.obj");
-						LOGGER.info("IPOMDP loaded from " + storageDir + "/ipomdp.obj");
-					} 
-					
-					catch (Exception e) {
-						LOGGER.error("Could not load IPOMDP from " + storageDir);
-						ipomdp = null;
+						catch (Exception e) {
+							LOGGER.error("Could not load IPOMDP from " + storageDir);
+							ipomdp = null;
+						}
 					}
 					
 					if (ipomdp == null) {
