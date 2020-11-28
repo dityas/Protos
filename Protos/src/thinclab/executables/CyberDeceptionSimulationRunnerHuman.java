@@ -261,7 +261,7 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 						
 						// Save the IPOMDP
 						IPOMDP.saveIPOMDP(ipomdp, storageDir + "/ipomdp.obj");
-						
+						ipomdp = IPOMDP.loadIPOMDP(storageDir + "/ipomdp.obj");
 					}
 					
 					Random rng = new Random();
