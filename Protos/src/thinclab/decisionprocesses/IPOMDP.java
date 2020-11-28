@@ -2145,12 +2145,22 @@ public class IPOMDP extends POMDP {
 	 * Serialization functions
 	 */
 	
+	public void prepareForSerialization() {
+		/*
+		 * Close DB connections and release unserializables
+		 */
+		this.multiFrameMJ.releaseStorage();
+	}
+	
 	public static void saveIPOMDP(IPOMDP ipomdp, String filename) {
 		/*
 		 * Serializes the IPOMDP object and saves it to the given filename.
 		 */
 		
 		try {
+			
+			ipomdp.prepareForSerialization();
+			
 			ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(filename));
 			
 			objOut.writeObject(ipomdp);
@@ -2176,6 +2186,8 @@ public class IPOMDP extends POMDP {
 			ObjectInputStream objIn = new ObjectInputStream(new FileInputStream(filename));
 			IPOMDP ipomdp = (IPOMDP) objIn.readObject();
 			objIn.close();
+			
+			ipomdp.multiFrameMJ.acquireStorage();
 			
 			LOGGER.info("Loaded IPOMDP from " + filename);
 			

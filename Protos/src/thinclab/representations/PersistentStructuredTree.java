@@ -23,11 +23,20 @@ import thinclab.utils.MjDB;
  */
 public class PersistentStructuredTree extends StructuredTree implements Serializable {
 
-	private MjDB DB = new MjDB();
+	private MjDB DB;
 	
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = Logger.getLogger(PersistentStructuredTree.class);
 	private static final long serialVersionUID = 3354440539923303241L;
+	
+	// ----------------------------------------------------------------------------------------
+	
+	public PersistentStructuredTree(int frameNo, String storageDir) {
+		
+		if (storageDir != null) this.DB = new MjDB(frameNo, storageDir + "/mjdb-" + frameNo + ".db");
+		else this.DB = new MjDB(frameNo);
+		
+	}
 	
 	// ----------------------------------------------------------------------------------------
 	
@@ -137,5 +146,13 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 	}
 	
 	// ----------------------------------------------------------------------------------------
+	
+	public void releaseStorage() {
+		this.DB.releaseDB();
+	}
+	
+	public void acquireStorage() {
+		this.DB.acquireDB();
+	}
 
 }

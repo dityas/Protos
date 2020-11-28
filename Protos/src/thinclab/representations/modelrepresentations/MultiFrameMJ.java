@@ -381,4 +381,18 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		 */
 		return Integer.valueOf(modelLabel.split("/")[1].split("_")[0]);
 	}
+	
+	// ---------------------------------------------------------------------------------------
+	
+	public void releaseStorage() {
+		
+		for (int frameID : this.MJs.keySet())
+			this.MJs.get(frameID).releaseStorage();
+	}
+	
+	public void acquireStorage() {
+		
+		for (int frameID : this.MJs.keySet())
+			this.MJs.get(frameID).acquireStorage();
+	}
 }

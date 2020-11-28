@@ -917,31 +917,34 @@ class TestIPOMDP {
 		
 	}
 	
-//	@Test
-//	void testIPOMDPSerialization() 
-//			throws Exception {
-//		LOGGER.info("Running testIPOMDPSerialization()");
-//		
-//		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
-//		parser.parseDomain();
-//		
-//		/* Initialize IPOMDP */
-//		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
-//		
-//		tigerL1IPOMDP.step(
-//				tigerL1IPOMDP.getInitialBeliefs().get(0), 
-//				"listen", 
-//				new String[] {"growl-left", "silence"});
-//		
-//		IPOMDP.saveIPOMDP(tigerL1IPOMDP, "/tmp/tigerIPOMDP.obj");
-//		
-//		IPOMDP ipomdp = IPOMDP.loadIPOMDP("/tmp/tigerIPOMDP.obj");
-//		
-//		ipomdp.step(
-//				ipomdp.getInitialBeliefs().get(0), 
-//				"listen", 
-//				new String[] {"growl-left", "silence"});
-//	}
+	@Test
+	void testIPOMDPSerialization() 
+			throws Exception {
+		LOGGER.info("Running testIPOMDPSerialization()");
+		
+		Global.storagDir = "/tmp/";
+		NextBelStateCache.useCache(Global.storagDir);
+		
+		IPOMDPParser parser = new IPOMDPParser(this.l1DomainFile);
+		parser.parseDomain();
+		
+		/* Initialize IPOMDP */
+		IPOMDP tigerL1IPOMDP = new IPOMDP(parser, 3, 20);
+		
+		tigerL1IPOMDP.step(
+				tigerL1IPOMDP.getInitialBeliefs().get(0), 
+				"listen", 
+				new String[] {"growl-left", "silence"});
+		
+		IPOMDP.saveIPOMDP(tigerL1IPOMDP, "/tmp/tigerIPOMDP.obj");
+		
+		IPOMDP ipomdp = IPOMDP.loadIPOMDP("/tmp/tigerIPOMDP.obj");
+		
+		ipomdp.step(
+				ipomdp.getInitialBeliefs().get(0), 
+				"listen", 
+				new String[] {"growl-left", "silence"});
+	}
 	
 	@Test
 	void testBeliefToJSON() {

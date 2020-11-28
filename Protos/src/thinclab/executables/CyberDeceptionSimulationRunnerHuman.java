@@ -21,6 +21,7 @@ import thinclab.belief.SSGABeliefExpansion;
 import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
+import thinclab.legacy.Global;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.representations.policyrepresentations.PolicyTree;
@@ -210,7 +211,8 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 			else if (line.hasOption("i")) {
 				
 				/* set NextBelState Caching */
-				NextBelStateCache.useCache();
+				NextBelStateCache.useCache(storageDir);
+				Global.storagDir = storageDir;
 				
 				new ProcessBuilder("clear").inheritIO().start().waitFor();
 				System.out.println("Starting session...");
@@ -234,12 +236,30 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 					IPOMDPParser parser = new IPOMDPParser(domainFile);
 					parser.parseDomain();
 					
-					IPOMDP ipomdp;
+					IPOMDP ipomdp = null;
 					
-					if (mergeThreshold > 0.0)
-						ipomdp = new IPOMDP(parser, lookAhead, simLength, mergeThreshold);
+					try {
+						
+						ipomdp = IPOMDP.loadIPOMDP(storageDir + "/ipomdp.obj");
+						LOGGER.info("IPOMDP loaded from " + storageDir + "/ipomdp.obj");
+					} 
 					
-					else ipomdp = new IPOMDP(parser, lookAhead, simLength, "/tmp/");
+					catch (Exception e) {
+						LOGGER.error("Could not load IPOMDP from " + storageDir);
+						ipomdp = null;
+					}
+					
+					if (ipomdp == null) {
+					
+						if (mergeThreshold > 0.0)
+							ipomdp = new IPOMDP(parser, lookAhead, simLength, mergeThreshold);
+						
+						else ipomdp = new IPOMDP(parser, lookAhead, simLength, "/tmp/");
+						
+						// Save the IPOMDP
+						IPOMDP.saveIPOMDP(ipomdp, storageDir + "/ipomdp.obj");
+						
+					}
 					
 					Random rng = new Random();
 					

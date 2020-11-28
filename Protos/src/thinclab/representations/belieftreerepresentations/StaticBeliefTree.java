@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 import thinclab.representations.PersistentStructuredTree;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.solvers.BaseSolver;
@@ -42,6 +43,8 @@ public class StaticBeliefTree extends PersistentStructuredTree {
 	
 	public StaticBeliefTree(DecisionProcess f, int maxH) {
 		
+		super(f.frameID, Global.storagDir);
+		
 		/* set attributes */
 		this.f = f;
 		
@@ -62,7 +65,7 @@ public class StaticBeliefTree extends PersistentStructuredTree {
 	}
 	
 	public StaticBeliefTree() {
-		
+		super(-1, null);
 	}
 	
 	// -------------------------------------------------------------------------------------

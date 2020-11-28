@@ -5,6 +5,7 @@ import java.util.*;
 import org.apache.log4j.Logger;
 
 import java.lang.ref.*;
+import java.sql.Connection;
 
 //class CacheMap extends LinkedHashMap {
 //    public int maxCapacity;
@@ -25,6 +26,9 @@ import java.lang.ref.*;
 //}
 
 public class Global {
+	
+	public static String storagDir = null;
+	
     public static int[] varDomSize = null;
     //public static int[] varDomSize = {2,11,9,3,4,5,11,2,6,2,2,2,2,6,2,11,9,3,4,5,11,2,6,2,2,2,2,6};
     //public static int[] varDomSize = {2,11,9,3,4,5,11,2,6,2,2,2,2,6,2,11,9,3,4,5,11,2,6,2,2,2,2,6,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3};
@@ -62,6 +66,16 @@ public class Global {
     
     // random number generator
     public static Random random = new Random();
+    
+    // --------------------------------------------------------------------------
+    /*
+     * Cache DB stuff
+     */
+    
+    public static HashMap<Integer, Connection> MjDBConnections = 
+    		new HashMap<Integer, Connection>();
+    
+    // --------------------------------------------------------------------------
     
     private static final Logger LOGGER = Logger.getLogger(Global.class);
 

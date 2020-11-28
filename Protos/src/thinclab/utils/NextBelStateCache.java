@@ -144,6 +144,11 @@ public class NextBelStateCache {
 		NextBelStateCache.DB = new CacheDB();
 	}
 	
+	public static void useCache(String storageDir) {
+		NextBelStateCache.USE_CACHE = true;
+		NextBelStateCache.DB = new CacheDB(storageDir + "/nz_cache.db");
+	}
+	
 	public static boolean cachingAllowed() {
 		return NextBelStateCache.USE_CACHE;
 	}

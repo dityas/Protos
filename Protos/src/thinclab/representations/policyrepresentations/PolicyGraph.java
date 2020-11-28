@@ -51,6 +51,8 @@ public class PolicyGraph extends PersistentStructuredTree {
 	// ------------------------------------------------------------------------------------
 
 	public PolicyGraph(AlphaVectorPolicySolver solver, int maxT) {
+		
+		super(-1, null);
 
 		/* set solver reference */
 		this.solver = solver;
