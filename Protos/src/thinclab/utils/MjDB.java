@@ -108,6 +108,8 @@ public class MjDB implements Serializable {
 					frameNo, 
 					mjDbConnection);
 			
+			LOGGER.info("DB Connection established to DB " + this.tempFile);
+			
 //			this.storageConn = 
 //					DriverManager.getConnection("jdbc:sqlite:" 
 //							+ this.tempFile.getAbsolutePath());
