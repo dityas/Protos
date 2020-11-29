@@ -52,7 +52,7 @@ public class PolicyGraph extends PersistentStructuredTree {
 
 	public PolicyGraph(AlphaVectorPolicySolver solver, int maxT) {
 		
-		super(-10);
+		super(100 + solver.f.frameID);
 
 		/* set solver reference */
 		this.solver = solver;
