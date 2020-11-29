@@ -46,7 +46,7 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 			this.DB = new MjDB(frameNo, Global.storagDir + "/mjdb-" + frameNo + ".db");
 		}
 		
-		else this.DB = new MjDB(frameNo);
+		else this.DB = new MjDB(frameNo, Global.storagDir + "/mjdb-" + frameNo + ".db");
 		
 	}
 	
