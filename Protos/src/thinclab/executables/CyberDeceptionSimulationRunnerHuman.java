@@ -144,7 +144,7 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 		opt.addOption("m", "merge", true, "For MJ merge threshold");
 		
 		/* merge threshold */
-		opt.addOption("I", "exit-on-init", true, "Exit after IPOMDP is initialized and serialized");
+		opt.addOption("I", "exit-on-init", false, "Exit after IPOMDP is initialized and serialized");
 		
 		CommandLine line = null;
 
