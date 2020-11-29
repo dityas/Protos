@@ -54,7 +54,8 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 	
 	@Override
 	public PolicyNode getPolicyNode(int id) {
-		this.DB.printTables();
+//		this.DB.printTables();
+		System.out.println("Node is " + this.DB.getNode(id));
 		return this.DB.getNode(id);
 	}
 	
