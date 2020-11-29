@@ -367,7 +367,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		 * Note that this method only returns the string representation and not the actual
 		 * usable belief
 		 */
-		
+		System.out.println("Node is " + node);
 		int frame = IPOMDP.getFrameIDFromVarName(node);
 		
 		return this.MJs.get(frame).getPolicyNode(MJ.getNodeId(node)).getsBelief();
