@@ -716,9 +716,9 @@ public class MjDB implements Serializable {
 			/* node table */
 			ResultSet nodeRes = this.getNodeTable();
 			
-			LOGGER.debug("Nodes Table:");
+			System.out.println("Nodes Table:");
 			while(nodeRes.next()) {
-				LOGGER.debug("ID: " + nodeRes.getInt("belief_id") 
+				System.out.println("ID: " + nodeRes.getInt("belief_id") 
 					+ " T: " + nodeRes.getInt("time_step") 
 					+ " NODE: " + nodeRes.getBytes("policy_node"));
 			}
@@ -726,9 +726,9 @@ public class MjDB implements Serializable {
 			/* edges table */
 			ResultSet edgesRes = this.getEdgesTable();
 			
-			LOGGER.debug("Edges Table:");
+			System.out.println("Edges Table:");
 			while(edgesRes.next()) {
-				LOGGER.debug("ID: " + edgesRes.getInt("edge") 
+				System.out.println("ID: " + edgesRes.getInt("edge") 
 					+ " SRC: " + edgesRes.getInt("src_id")
 					+ " LABEL: " + edgesRes.getString("label")
 					+ " DEST: " + edgesRes.getInt("dest_id"));
