@@ -217,6 +217,7 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 				/* set NextBelState Caching */
 				NextBelStateCache.useCache(storageDir);
 				Global.storagDir = storageDir;
+				Global.showProgressBar = true;
 				
 				new ProcessBuilder("clear").inheritIO().start().waitFor();
 				System.out.println("Starting session...");

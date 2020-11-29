@@ -240,6 +240,16 @@ public class HumanAgentSimulation extends Simulation {
 //					+ this.l0BeliefSequence.get(this.l0BeliefSequence.size() - 1));
 			
 			/* optimal action for L0 */
+			/* Show history first */
+			System.out.println("==== HISTORY ====");
+			
+			for (int i = 0; i < this.l0ActionSequence.size(); i++) {
+				System.out.println("Action: " + this.l0ActionSequence.get(i));
+				System.out.println("Obs: " + String.join("\r\n", this.l0ObsSequence.get(i)));
+			}
+			
+			System.out.println("==== END HISTORY ====\r\n");
+			
 			String l0Action = ((HumanAgentSolver) this.solver).getHumanAction();
 			if (l0Action.contentEquals("EXIT")) {
 				System.out.println("Ending simulation...");

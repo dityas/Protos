@@ -28,6 +28,7 @@ import java.sql.Connection;
 public class Global {
 	
 	public static String storagDir = null;
+	public static boolean showProgressBar = false;
 	
     public static int[] varDomSize = null;
     //public static int[] varDomSize = {2,11,9,3,4,5,11,2,6,2,2,2,2,6,2,11,9,3,4,5,11,2,6,2,2,2,2,6};
@@ -327,5 +328,24 @@ public class Global {
 	    i += 1;
 	}
 	return hashCodeCollection;
+    }
+    
+    public static void printProgressBar(int currentStep, int totalSteps) {
+    	/* 
+    	 * Build a progress bar to show progress for backups and all that
+    	 */
+    	String bar = "";
+    	int singleBlockSteps = totalSteps / 10;
+    	int bars = currentStep / singleBlockSteps;
+    	
+    	for (int i = 0; i < 10; i++) {
+    		
+    		if (i <= bars)
+    			bar += "#";
+    		else bar += " ";
+    	}
+    	
+    	System.out.print("\rProgress: |" + bar + "|" + bars + "%");
+    	if (bars == 10) System.out.println();
     }
 }
