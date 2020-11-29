@@ -43,7 +43,7 @@ public class StaticBeliefTree extends PersistentStructuredTree {
 	
 	public StaticBeliefTree(DecisionProcess f, int maxH) {
 		
-		super(f.frameID, Global.storagDir);
+		super(f.frameID);
 		
 		/* set attributes */
 		this.f = f;
@@ -65,7 +65,7 @@ public class StaticBeliefTree extends PersistentStructuredTree {
 	}
 	
 	public StaticBeliefTree() {
-		super(-1, null);
+		super(-1);
 	}
 	
 	// -------------------------------------------------------------------------------------
