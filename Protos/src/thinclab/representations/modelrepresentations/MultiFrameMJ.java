@@ -386,8 +386,10 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 	
 	public void releaseStorage() {
 		
-		for (int frameID : this.MJs.keySet())
+		for (int frameID : this.MJs.keySet()) {
+			this.MJs.get(frameID).commitChanges();
 			this.MJs.get(frameID).releaseStorage();
+		}
 	}
 	
 	public void acquireStorage() {
