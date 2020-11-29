@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 
 import thinclab.legacy.Global;
+import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.representations.policyrepresentations.PolicyNode;
 import thinclab.representations.policyrepresentations.PolicyTree;
 import thinclab.utils.MjDB;
@@ -35,8 +36,15 @@ public class PersistentStructuredTree extends StructuredTree implements Serializ
 	
 	public PersistentStructuredTree(int frameNo) {
 		
-		if (Global.storagDir != null && !(this instanceof PolicyTree)) 
+		if (this instanceof PolicyTree) {
+			frameNo += 10;
 			this.DB = new MjDB(frameNo, Global.storagDir + "/mjdb-" + frameNo + ".db");
+		}
+		
+		else if (this instanceof PolicyGraph) {
+			frameNo += 100;
+			this.DB = new MjDB(frameNo, Global.storagDir + "/mjdb-" + frameNo + ".db");
+		}
 		
 		else this.DB = new MjDB(frameNo);
 		

@@ -258,41 +258,41 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 							ipomdp = new IPOMDP(parser, lookAhead, simLength, mergeThreshold);
 						
 						else ipomdp = new IPOMDP(parser, lookAhead, simLength, "/tmp/");
+					
+						Random rng = new Random();
+						
+						int frameSample = rng.nextInt(ipomdp.lowerLevelSolutions.size());
+						
+						for (BaseSolver solver : ipomdp.lowerLevelSolutions) {
+							
+							/* set context */
+							solver.f.setGlobals();
+							
+							/* make policy graph */
+							PolicyGraph G = new PolicyGraph((AlphaVectorPolicySolver) solver, 5);
+							G.makeGraph();
+							G.computeEU();
+							
+							PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, 5);
+							T.buildTree();
+							
+							/* store policy graph solution */
+							G.writeDotFile(
+									storageDir, 
+									"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
+							
+							T.writeDotFile(
+									storageDir, 
+									"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
+							
+							G.writeJSONFile(
+									storageDir, 
+									"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
+						}
 						
 						// Save the IPOMDP
 						IPOMDP.saveIPOMDP(ipomdp, storageDir + "/ipomdp.obj");
 						ipomdp = IPOMDP.loadIPOMDP(storageDir + "/ipomdp.obj");
-					}
-					
-					Random rng = new Random();
-					
-					int frameSample = rng.nextInt(ipomdp.lowerLevelSolutions.size());
-					
-					for (BaseSolver solver : ipomdp.lowerLevelSolutions) {
-						
-						/* set context */
-						solver.f.setGlobals();
-						
-						/* make policy graph */
-						PolicyGraph G = new PolicyGraph((AlphaVectorPolicySolver) solver, 5);
-						G.makeGraph();
-						G.computeEU();
-						
-						PolicyTree T = new PolicyTree((AlphaVectorPolicySolver) solver, 5);
-						T.buildTree();
-						
-						/* store policy graph solution */
-						G.writeDotFile(
-								storageDir, 
-								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
-						
-						T.writeDotFile(
-								storageDir, 
-								"policy_tree_frame_" + T.solver.f.frameID + "_" + i);
-						
-						G.writeJSONFile(
-								storageDir, 
-								"policy_graph_frame_" + G.solver.f.frameID + "_" + i);
 					}
 					
 					/* store ref to agent J */
