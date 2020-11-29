@@ -2157,6 +2157,8 @@ public class IPOMDP extends POMDP {
 		 * Serializes the IPOMDP object and saves it to the given filename.
 		 */
 		
+		LOGGER.info("Attempting to save IPOMDP in " + filename);
+		
 		try {
 			
 			ipomdp.prepareForSerialization();
@@ -2181,6 +2183,8 @@ public class IPOMDP extends POMDP {
 		/*
 		 * Load the serialized IPOMDP object from the given file
 		 */
+		
+		LOGGER.info("Attempting to load IPOMDP from " + filename);
 		
 		try {
 			ObjectInputStream objIn = new ObjectInputStream(new FileInputStream(filename));
