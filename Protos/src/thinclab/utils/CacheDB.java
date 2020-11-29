@@ -70,6 +70,7 @@ public class CacheDB {
 			
 			if (this.dbFileName != null) {
 				tempFile = new File(this.dbFileName);
+				tempFile.deleteOnExit();
 			}
 			
 			else

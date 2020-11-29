@@ -143,6 +143,9 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 		/* merge threshold */
 		opt.addOption("m", "merge", true, "For MJ merge threshold");
 		
+		/* merge threshold */
+		opt.addOption("I", "exit-on-init", true, "Exit after IPOMDP is initialized and serialized");
+		
 		CommandLine line = null;
 
 		try {
@@ -292,6 +295,12 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 						
 						// Save the IPOMDP
 						IPOMDP.saveIPOMDP(ipomdp, storageDir + "/ipomdp.obj");
+						
+						if (line.hasOption('I')) {
+							LOGGER.info("IPOMDP initialized and serialized. Exiting...");
+							System.exit(0);
+						}
+						
 						ipomdp = IPOMDP.loadIPOMDP(storageDir + "/ipomdp.obj");
 					}
 					
