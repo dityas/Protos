@@ -7,6 +7,7 @@
  */
 package thinclab.solvers;
 
+import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -94,6 +95,7 @@ public class HumanAgentSolver extends BaseSolver {
 	}
 	
 	public String getHumanAction() {
+		Toolkit.getDefaultToolkit().beep();
 		System.out.println("---- HUMAN INPUT ----\r\n");
 		
 		System.out.println("Allowed actions (Case insensitive)\r\n");

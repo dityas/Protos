@@ -346,7 +346,7 @@ public class Global {
     		else bar += " ";
     	}
     	
-    	System.out.print("\rProgress: |" + bar + "|" + singleBlockSteps * bars + "%, Rounds: " + totalRounds + " ");
+    	System.out.print("\rProgress: |" + bar + "|" + singleBlockSteps * bars + "%, Max. rounds: " + totalRounds + " ");
     	if (bars == numBars) System.out.println();
     }
     
