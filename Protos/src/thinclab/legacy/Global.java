@@ -330,22 +330,27 @@ public class Global {
 	return hashCodeCollection;
     }
     
-    public static void printProgressBar(int currentStep, int totalSteps) {
+    public static void printProgressBar(int currentStep, int totalSteps, int totalRounds) {
     	/* 
     	 * Build a progress bar to show progress for backups and all that
     	 */
+    	int numBars = 20;
     	String bar = "";
-    	int singleBlockSteps = totalSteps / 10;
+    	int singleBlockSteps = totalSteps / numBars;
     	int bars = currentStep / singleBlockSteps;
     	
-    	for (int i = 0; i < 10; i++) {
+    	for (int i = 0; i < numBars; i++) {
     		
-    		if (i <= bars)
-    			bar += "#";
+    		if (i < bars)
+    			bar += "*";
     		else bar += " ";
     	}
     	
-    	System.out.print("\rProgress: |" + bar + "|" + bars + "%");
-    	if (bars == 10) System.out.println();
+    	System.out.print("\rProgress: |" + bar + "|" + singleBlockSteps * bars + "%, Rounds: " + totalRounds + " ");
+    	if (bars == numBars) System.out.println();
+    }
+    
+    public static void printProgressBarConvergence() {
+    	System.out.println("Converged.");
     }
 }

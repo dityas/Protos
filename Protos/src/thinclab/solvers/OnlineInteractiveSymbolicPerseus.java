@@ -366,7 +366,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					+ " \tAPPROX. CONV PATIENCE: " + this.numSimilar
 					+ " \tNON DEC ERROR PATIENCE: " + this.errorPatience);
 			
-			if (Global.showProgressBar) Global.printProgressBar(stepId, this.dpBackups);
+			if (Global.showProgressBar) Global.printProgressBar(stepId, this.dpBackups, this.maxRounds);
 			
 			/* report diagnostics on exec times */
 			Diagnostics.reportDiagnostics();
@@ -429,7 +429,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			
 		}
 		
-		if (Global.showProgressBar) System.out.println();
+		if (Global.showProgressBar) Global.printProgressBarConvergence();
 
 	}
 	
