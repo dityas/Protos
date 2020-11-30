@@ -278,7 +278,7 @@ public class HumanAgentSimulation extends Simulation {
 			new ProcessBuilder("clear").inheritIO().start().waitFor();
 			((HumanAgentSolver) this.solver).showObservation(String.join("\r\n", obs[1]));
 			System.out.println("Preparing environment for next step."
-					+ " This may take a while...");
+					+ " This will take around 5 mins...");
 			
 			/* record action and obs */
 			this.l0ActionSequence.add(l0Action);
@@ -612,10 +612,11 @@ public class HumanAgentSimulation extends Simulation {
 			int nextNode = this.step(previousNode);
 			if (nextNode == -1) break;
 			
-			previousNode = nextNode;
+			previousNode = nextNode;	
 		}
 		
 		this.logResults();
+//		this.logToFile(fileName);
 	}
 	
 	// ---------------------------------------------------------------------------------------------
@@ -673,22 +674,22 @@ public class HumanAgentSimulation extends Simulation {
 								this.l1BeliefSequence.get(i), 
 								JsonObject.class));
 				
-				/* write belief of j */
-				record.add(
-						"beliefJ", 
-						gsonHandler.fromJson(
-								this.l0BeliefSequence.get(i), 
-								JsonObject.class));
+//				/* write belief of j */
+//				record.add(
+//						"beliefJ", 
+//						gsonHandler.fromJson(
+//								this.l0BeliefSequence.get(i), 
+//								JsonObject.class));
 				
-				/* write state */
-				record.add(
-						"state", 
-						gsonHandler.fromJson(
-								this.stateSequence.get(i), 
-								JsonObject.class));
+//				/* write state */
+//				record.add(
+//						"state", 
+//						gsonHandler.fromJson(
+//								this.stateSequence.get(i), 
+//								JsonObject.class));
 				
 				/* ThetaJ */
-				record.add("Theta_j", new JsonPrimitive(this.jFrameID));
+//				record.add("Theta_j", new JsonPrimitive(this.jFrameID));
 				
 				/* write action of i */
 				record.add("Ai", new JsonPrimitive(this.l1ActionSequence.get(i)));
@@ -702,13 +703,13 @@ public class HumanAgentSimulation extends Simulation {
 				/* write observations of j */
 				record.add("Oj", new JsonPrimitive(this.l0ObsSequence.get(i)));
 				
-				/* write rewards of i */
-				record.add("ERi", 
-						new JsonPrimitive(this.l1ExpectedReward.get(i)));				
-				
-				/* write rewards of j */
-				record.add("ERj", 
-						new JsonPrimitive(this.l0ExpectedReward.get(i)));				
+//				/* write rewards of i */
+//				record.add("ERi", 
+//						new JsonPrimitive(this.l1ExpectedReward.get(i)));				
+//				
+//				/* write rewards of j */
+//				record.add("ERj", 
+//						new JsonPrimitive(this.l0ExpectedReward.get(i)));				
 				
 				recordsArray.add(record);
 			}

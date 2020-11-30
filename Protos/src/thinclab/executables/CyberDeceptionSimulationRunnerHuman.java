@@ -221,7 +221,7 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 				
 				new ProcessBuilder("clear").inheritIO().start().waitFor();
 				System.out.println("Starting session...");
-				System.out.println("Please be patient. This will take around 20 mins...");
+				System.out.println("Please be patient. This will take around 10 mins...");
 				
 				LOGGER.info("Simulating IPOMDP...");
 				
