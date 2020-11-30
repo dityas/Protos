@@ -8,12 +8,15 @@
 package thinclab.solvers;
 
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 
 /*
  * @author adityas
@@ -51,6 +54,27 @@ public class DefaultActionPolicySolver extends BaseSolver {
 
 	@Override
 	public String getActionForBelief(DD belief) {
+		
+		Random rng = new Random();
+		int barLength = rng.nextInt(50);
+		
+		if (Global.showProgressBar) {
+			for (int i = 0; i < barLength; i ++) {
+				
+				Global.printProgressBar(i, 100, 5);
+				
+				try {
+					TimeUnit.SECONDS.sleep(1);
+				} 
+				
+				catch (InterruptedException e) {
+					LOGGER.error("Error while sleeping.");
+				}
+			}
+			
+			Global.printProgressBarConvergence();
+		}
+		
 		return this.defaultAction;
 	}
 
