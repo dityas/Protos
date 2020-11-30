@@ -96,7 +96,7 @@ public class HumanAgentSolver extends BaseSolver {
 	
 	public String getHumanAction() {
 		Toolkit.getDefaultToolkit().beep();
-		System.out.println("---- HUMAN INPUT ----\r\n");
+		System.out.println("\r\n---- HUMAN INPUT ----\r\n");
 		
 		System.out.println("Allowed actions (Case insensitive)\r\n");
 		for (String action: this.allowedActions) {
@@ -106,7 +106,7 @@ public class HumanAgentSolver extends BaseSolver {
 		String humanAction = "";
 		
 		while (!this.allowedActions.contains(humanAction)) {
-			System.out.print(">>> ");
+			System.out.print("\r\n>>> ");
 			humanAction = this.consoleReader.nextLine().toUpperCase();
 		}
 		

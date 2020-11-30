@@ -241,14 +241,15 @@ public class HumanAgentSimulation extends Simulation {
 			
 			/* optimal action for L0 */
 			/* Show history first */
-			System.out.println("==== HISTORY ====");
+			System.out.println("\r\n==== HISTORY ====\r\n");
 			
 			for (int i = 0; i < this.l0ActionSequence.size(); i++) {
-				System.out.println("Action: " + this.l0ActionSequence.get(i));
-				System.out.println("Obs: " + String.join("\r\n", this.l0ObsSequence.get(i)));
+				System.out.println("Step: " + i + " Action: " + this.l0ActionSequence.get(i));
+				System.out.println("Step: " + i + " Obs: " + String.join("\r\n", this.l0ObsSequence.get(i)));
+				System.out.println();
 			}
 			
-			System.out.println("==== END HISTORY ====\r\n");
+			System.out.println("\r\n==== END HISTORY ====\r\n");
 			
 			String l0Action = ((HumanAgentSolver) this.solver).getHumanAction();
 			if (l0Action.contentEquals("EXIT")) {
