@@ -334,7 +334,7 @@ public class Global {
     	/* 
     	 * Build a progress bar to show progress for backups and all that
     	 */
-    	int numBars = 20;
+    	int numBars = 50;
     	String bar = "";
     	int singleBlockSteps = totalSteps / numBars;
     	int bars = currentStep / singleBlockSteps;
