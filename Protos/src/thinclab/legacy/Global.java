@@ -351,6 +351,6 @@ public class Global {
     }
     
     public static void printProgressBarConvergence() {
-    	System.out.println("\rProgress: 100% Converged. Solving next round");
+    	System.out.println("\rProgress: 100% Converged. Solving next round.\t\t\t\t\t\t\t\t\t");
     }
 }
