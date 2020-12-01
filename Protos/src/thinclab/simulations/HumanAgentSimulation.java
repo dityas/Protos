@@ -662,7 +662,7 @@ public class HumanAgentSimulation extends Simulation {
 			
 			JsonArray recordsArray = new JsonArray();
 			
-			for (int i = 0; i < this.stateSequence.size(); i++) {
+			for (int i = 0; i < this.l1BeliefSequence.size(); i++) {
 				
 				/* init a new record */
 				JsonObject record = new JsonObject();
