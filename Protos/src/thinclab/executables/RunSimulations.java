@@ -21,6 +21,7 @@ import thinclab.belief.SparseFullBeliefExpansion;
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.MAPOMDP;
 import thinclab.decisionprocesses.POMDP;
+import thinclab.legacy.Global;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.representations.policyrepresentations.PolicyGraph;
 import thinclab.representations.policyrepresentations.PolicyTree;
@@ -208,7 +209,9 @@ public class RunSimulations extends Executable {
 			else if (line.hasOption("i")) {
 				
 				/* set NextBelState Caching */
-				NextBelStateCache.useCache();
+//				NextBelStateCache.useCache();
+				NextBelStateCache.useCache(storageDir);
+				Global.storagDir = storageDir;
 				
 				LOGGER.info("Simulating IPOMDP...");
 				
