@@ -165,7 +165,9 @@ public class RunSimulations extends Executable {
 			/* conditional plan and policy graph */
 			if (line.hasOption("p")) {
 				LOGGER.info("Simulating POMDP...");
-				NextBelStateCache.useCache();
+//				NextBelStateCache.useCache();
+				NextBelStateCache.useCache(storageDir);
+				Global.storagDir = storageDir;
 				
 				int rounds = new Integer(line.getOptionValue("r"));
 				int simRounds = new Integer(line.getOptionValue("y"));
