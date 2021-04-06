@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Random;
 
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
@@ -21,6 +22,8 @@ import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
+import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.solvers.OfflineSymbolicPerseus;
@@ -48,45 +51,8 @@ class TestDDOps {
 		
 		CustomConfigurationFactory.initializeLogging();
 		LOGGER = Logger.getLogger(TestDDOps.class);
-		
-		if (!setUpDone) {
+		Global.clearHashtables();
 			
-			pomdp = new POMDP("/home/adityas/UGA/THINCLab/DomainFiles/attacker_l0.txt");
-			
-			OfflineSymbolicPerseus solver = 
-					OfflineSymbolicPerseus.createSolverWithSSGAExpansion(
-							this.pomdp, 
-							100, 
-							1, 
-							10, 
-							100);
-			
-			solver.solve();
-			
-			/*
-			 * Initial belief
-			 */
-//			this.initBelief = pomdp.initialBelState;
-//			Global.clearHashtables();
-//			
-//			/* Belief after NOP on Init and getting none obs */
-//			this.bNOPNoneFromInit = 
-//					Belief.beliefUpdate(
-//							pomdp, 
-//							pomdp.initialBelState, 5, new String[] {"none"});
-//			Global.clearHashtables();
-//			
-//			/* Belief after PRIV_ESC on init belief and getting success */
-//			this.bPRIVFromInit = Belief.beliefUpdate(pomdp, pomdp.initialBelState, 1, new String[] {"success"});
-//			Global.clearHashtables();
-//			
-//			/* Belief after PRIV_ESC on bPREVFromInit belief and getting success */
-//			this.bFILEFromInit = Belief.beliefUpdate(pomdp, pomdp.initialBelState,
-//									pomdp.getActions().indexOf("FILE_RECON"), 
-//									new String[] {"data_c"});
-//			Global.clearHashtables();
-			
-		}
 	}
 
 	@AfterEach
@@ -201,6 +167,158 @@ class TestDDOps {
 			LOGGER.debug(OP.maxAll(OP.abs(OP.sub(joint, currentBelief))));
 		}
 		
+	}
+	
+	@Test
+	public void testDDCreationBenchmarks() {
+		
+		Global.clearHashtables();
+		Global.varNames = new String[] {"A", "B", "C"};
+		Global.valNames = new String[][] {{"a1", "a2"}, {"b1", "b2", "b3"}, {"c1", "c2"}};
+		Global.varDomSize = new int[] {2, 3, 2};
+		
+		DD a = DDnode.myNew(1, new DD[] {DD.one, DD.zero});
+		
+		LOGGER.debug("Initialized " + a);
+		
+		LOGGER.debug("Running a few measurements and tests.");
+        Random rand = new Random();
+        long then = System.currentTimeMillis();
+
+        for (int i = 0; i < 100000; i++) {
+        	a = DDnode.myNew(1, new DD[] {DDleaf.myNew(rand.nextDouble()), DDleaf.myNew(rand.nextDouble())});
+        }
+
+        long now = System.currentTimeMillis();
+        LOGGER.info("Simple 2 child ADD creation for took: " + ((now - then) / 100000.0));
+        LOGGER.info("Global Nodes Caches contains: " + (Global.nodeHashtable.size() + Global.leafHashtable.size()) + " nodes.");
+        LOGGER.info("Total mem: " + (Runtime.getRuntime().totalMemory() / 1000000));
+        LOGGER.info("Free mem: " + (Runtime.getRuntime().freeMemory() / 1000000));
+        LOGGER.info("Max mem: " + (Runtime.getRuntime().maxMemory() / 1000000));
+        
+        // New test
+        Global.clearHashtables();
+        LOGGER.debug("Running measurements for repeated nodes.");
+        rand = new Random();
+        then = System.currentTimeMillis();
+
+        for (int i = 0; i < 100000; i++) {
+        	a = DDnode.myNew(1, new DD[] {DD.one, DD.one});
+        }
+
+        now = System.currentTimeMillis();
+        LOGGER.info("Simple 2 child ADD creation for took: " + ((now - then) / 100000.0));
+        LOGGER.info("Global Nodes Caches contains: " + (Global.nodeHashtable.size() + Global.leafHashtable.size()) + " nodes.");
+        
+        // Test restrict operation
+        DDMaker ddMaker = new DDMaker();
+        ddMaker.addVariable("A", new String[] {"a1", "a2"});
+        ddMaker.addVariable("B", new String[] {"b1", "b2", "b3"});
+        ddMaker.addVariable("C", new String[] {"c1", "c2"});
+        ddMaker.primeVariables();
+        
+        DD b = ddMaker.getDDTreeFromSequence(
+        			new String[] {"A", "B"},
+        			new String[][] {
+        					{"a1", "b1", "1.0"},
+        					{"a1", "b2", "0.0"},
+        					{"a1", "b3", "0.0"},
+        					{"a2", "b1", "0.33"},
+        					{"a2", "b2", "0.33"},
+        					{"a2", "b3", "0.34"}
+        			}).toDD();
+        
+        LOGGER.info("Made 2 variable DD " + b);
+        
+        DD res = OP.restrict(b, new int[][] {{2}, {3}});
+        LOGGER.info("Result of restrict is " + res);
+        
+        LOGGER.info("Checking larger restrict operation");
+        DD c = ddMaker.getDDTreeFromSequence(
+        			new String[] {"A", "B", "C"},
+        			new String[][] {
+        					{"a1", "b1", "c1", "0.5"},
+        					{"a1", "b1", "c2", "0.5"},
+        					{"a1", "b2", "c1", "0.33"},
+        					{"a1", "b2", "c2", "0.67"},
+        					{"a1", "b3", "c1", "0.25"},
+        					{"a1", "b3", "c2", "0.75"},
+        					{"a2", "b1", "c1", "1.0"},
+        					{"a2", "b1", "c2", "0.0"},
+        					{"a2", "b2", "c1", "0.0"},
+        					{"a2", "b2", "c2", "1.0"},
+        					{"a2", "b3", "c1", "1.0"},
+        					{"a2", "b3", "c2", "0.0"}
+        			}).toDD();
+
+        LOGGER.debug("DD C is " + c);
+        DD resA1 = OP.restrict(c, new int[][] {{1}, {1}});
+        LOGGER.debug("Restricting A=a1 gives " + resA1);
+        DD resA2 = OP.restrict(c, new int[][] {{1}, {2}});
+        LOGGER.debug("Restricting A=a2 gives " + resA2);
+        
+	}
+	
+	@Test
+	public void testAdditionTimes() {
+        
+        LOGGER.debug("Checking avg. time for 3 variable addition");
+        Global.clearHashtables();
+		Global.varNames = new String[] {"A", "B", "C"};
+		Global.valNames = new String[][] {{"a1", "a2"}, {"b1", "b2", "b3"}, {"c1", "c2"}};
+		Global.varDomSize = new int[] {2, 3, 2};
+
+        DDMaker ddMaker = new DDMaker();
+        ddMaker.addVariable("A", new String[] {"a1", "a2"});
+        ddMaker.addVariable("B", new String[] {"b1", "b2", "b3"});
+        ddMaker.addVariable("C", new String[] {"c1", "c2"});
+        ddMaker.primeVariables();
+        
+        long then = System.currentTimeMillis();
+
+        for (int i = 0; i < 10000; i++) {
+        	
+        	DD c1 = ddMaker.getDDTreeFromSequence(
+        			new String[] {"A", "B", "C"},
+        			new String[][] {
+        					{"a1", "b1", "c1", "0.5"},
+        					{"a1", "b1", "c2", "0.5"},
+        					{"a1", "b2", "c1", "0.33"},
+        					{"a1", "b2", "c2", "0.67"},
+        					{"a1", "b3", "c1", "0.25"},
+        					{"a1", "b3", "c2", "0.75"},
+        					{"a2", "b1", "c1", "1.0"},
+        					{"a2", "b1", "c2", "0.0"},
+        					{"a2", "b2", "c1", "0.0"},
+        					{"a2", "b2", "c2", "1.0"},
+        					{"a2", "b3", "c1", "1.0"},
+        					{"a2", "b3", "c2", "0.0"}
+        			}).toDD();
+        	
+        	DD c2 = ddMaker.getDDTreeFromSequence(
+        			new String[] {"A", "B", "C"},
+        			new String[][] {
+        					{"a1", "b1", "c1", "0.5"},
+        					{"a1", "b1", "c2", "0.5"},
+        					{"a1", "b2", "c1", "0.33"},
+        					{"a1", "b2", "c2", "0.67"},
+        					{"a1", "b3", "c1", "0.25"},
+        					{"a1", "b3", "c2", "0.75"},
+        					{"a2", "b1", "c1", "1.0"},
+        					{"a2", "b1", "c2", "0.0"},
+        					{"a2", "b2", "c1", "0.0"},
+        					{"a2", "b2", "c2", "1.0"},
+        					{"a2", "b3", "c1", "1.0"},
+        					{"a2", "b3", "c2", "0.0"}
+        			}).toDD();
+        	
+        	DD c3 = OP.add(c1, c2);
+        }
+
+        long now = System.currentTimeMillis();
+        LOGGER.info("Simple 2 child ADD creation for took: " + ((now - then) / 100000.0));
+        LOGGER.info("Global Nodes Caches contains: " + (Global.nodeHashtable.size() + Global.leafHashtable.size()) + " nodes.");
+	
 	}
 	
 }
