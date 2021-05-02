@@ -87,6 +87,7 @@ public class IPOMDP extends POMDP {
 	public MJ Mj;
 	public MultiFrameMJ multiFrameMJ;
 	public double mjMergeThreshold = 0;
+	public float ajRandomization = -1.0f;
 	
 	/*
 	 * We will need to know the varIndex for the opponentModel statevar to replace it after
@@ -158,6 +159,17 @@ public class IPOMDP extends POMDP {
 
 		LOGGER.info("Initializing IPOMDP from parser.");
 		
+		this.initiailizeIPOMDP(parsedFrame, mjlookAhead, mjSearchDepth);
+	}
+	
+	public IPOMDP(IPOMDPParser parsedFrame, int mjlookAhead, int mjSearchDepth, float ajRandom) {
+		/*
+		 * Initialize from a IPOMDPParser object
+		 */
+		
+
+		LOGGER.info("Initializing IPOMDP from parser.");
+		this.ajRandomization = ajRandom;
 		this.initiailizeIPOMDP(parsedFrame, mjlookAhead, mjSearchDepth);
 	}
 	
@@ -914,6 +926,8 @@ public class IPOMDP extends POMDP {
 			
 		for (String oj : omegaJList) {
 			
+			LOGGER.debug("Setting " + oj);
+
 			/* Make DD of all Aj */
 			DDTree ajDDTree = 
 					this.ddMaker.getDDTreeFromSequence(new String[] {"Theta_j", "A_j"});
@@ -1248,8 +1262,11 @@ public class IPOMDP extends POMDP {
 		LOGGER.debug("Reinitializing Mj dependents according to new Mj");
 		
 		/* rebuild  P(Aj | Mj) */
-		this.currentAjGivenMj = this.multiFrameMJ.getAjGivenMj(this.ddMaker, this.Aj);
-		LOGGER.debug("f(Aj, Mj) for all Ajs for current look ahead horizon initialized");
+		if (this.ajRandomization < 0.0 || this.ajRandomization > 1.0)
+			this.currentAjGivenMj = this.multiFrameMJ.getAjGivenMj(this.ddMaker, this.Aj);
+		
+		else this.currentAjGivenMj = this.multiFrameMJ.getAjGivenMj(this.ddMaker, this.Aj, this.ajRandomization);
+		LOGGER.debug("f(Aj, Mj) for all Ajs for current look ahead horizon initialized: " + this.currentAjGivenMj.toDDTree().toSPUDD());
 		
 		/* rebuild  P(Thetaj | Mj) */
 		this.currentThetajGivenMj = this.multiFrameMJ.getThetajGivenMj(this.ddMaker, this.ThetaJ);

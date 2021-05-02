@@ -120,8 +120,12 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 
 		return new StateVar("M_j", index, nodeNames);
 	}
-
+	
 	public DD getAjGivenMj(DDMaker ddMaker, List<String> Aj) {
+		return this.getAjGivenMj(ddMaker, Aj, 0.0f);
+	}
+
+	public DD getAjGivenMj(DDMaker ddMaker, List<String> Aj, float p) {
 		/*
 		 * Returns the factor P(Aj | Mj) as triples of (mj, aj, probability)
 		 * 
@@ -138,6 +142,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 
 				/* Get optimal action at node */
 				String optimal_action = this.MJs.get(frameID).getPolicyNode(node).getActName();
+//				int oNode = this.MJs.get(frameID).
 				
 				/*
 				 * For aj depending on mj, P(OPT(Aj) at mj | mj) = 1
@@ -154,11 +159,11 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 
 					/* Give 99% prob for performing optimal action */
 					if (optimal_action.contentEquals(aj))
-						triple.add("1.0");
+						triple.add(Double.toString(p));
 
 					/* small but finite probability for non optimal behavior */
 					else
-						triple.add("0.0"); /* 0 probability for non optimal actions */
+						triple.add(Double.toString((1.0 - p) / (double) (Aj.size() - 1))); /* 0 probability for non optimal actions */
 
 					triples.add(triple.toArray(new String[triple.size()]));
 				}
