@@ -115,17 +115,20 @@ public class PrivacyPreservingAgent extends Executable {
 			int simRounds = new Integer(line.getOptionValue("y"));
 //			int simLength = new Integer(line.getOptionValue("x"));
 			int mainAgentFrame = Integer.parseInt(line.getOptionValue("i"));
-			float prob = Float.parseFloat(line.getOptionValue("p"));
+			float prob = 0.0f;
 			
-			float[] probs = new float[] {0.01f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
+			float[] probs = new float[] {0.01f, 0.05f, 0.1f, 0.15f, 0.2f, 0.25f, 0.3f, 0.35f, 0.4f, 0.45f, 0.5f};
 			
+			// Run single shot game
 			for (float p : probs) {
 				
 				prob = p;
 				
+				storageDir = "./single_shot_game/";
+				
 				String storageSubDir = "prob_" + p;
 				File storage = new File(storageDir + "/" + storageSubDir + "/");
-				storage.mkdir();
+				storage.mkdirs();
 				
 				/* run simulation for simRounds */
 				for (int i = 0; i < simRounds; i++) {
@@ -165,14 +168,66 @@ public class PrivacyPreservingAgent extends Executable {
 									ipomdp, 
 									BE, numRounds, backups);
 					
-	//				StochasticSimulation ss = new StochasticSimulation(solver, 10);
-	//				ss.runSimulation();
-	//				ss.logToFile(storageDir + "/" + "sim" + i + ".json");
-	//				ss.writeDotFile(storageDir, "sim" + i);
+					MultiAgentSimulation ss = new MultiAgentSimulation(iSolver, solver, 2);
+					
+					ss.runSimulation();
+					
+					ss.logToFile(storage.getPath() + "/" + "sim" + i + ".json");
+					ss.writeDotFile(storage.getPath(), "sim" + i);
+				}
+			}
+			
+			// Run repeated game
+			for (float p : probs) {
+				
+				prob = p;
+				
+				storageDir = "./repeated_game/";
+				
+				String storageSubDir = "prob_" + p;
+				File storage = new File(storageDir + "/" + storageSubDir + "/");
+				storage.mkdirs();
+				
+				/* run simulation for simRounds */
+				for (int i = 0; i < simRounds; i++) {
+					
+					LOGGER.info("Starting simulation round " + i);
+					
+					/* initialize IPOMDP parser */
+					IPOMDPParser parser = new IPOMDPParser(domainFile);
+					parser.parseDomain();
+					
+					// Make list of all frames
+					List<DecisionProcess> frameList = new ArrayList<>();
+					
+					for (ParseSPUDD parsedFrame : parser.childFrames) {
+						
+						POMDP pomdp = new POMDP();
+						pomdp.initializeFromParsers(parsedFrame);
+						
+						frameList.add(pomdp);
+					}
+					
+					BaseSolver solver = new RandomizedResponsePrivacySolver(frameList, mainAgentFrame, 1.0f - prob, rounds, backups);
+					solver.solve();
+					
+					// Init Observer
+					
+					IPOMDPParser iParser = new IPOMDPParser(domainFile);
+					iParser.parseDomain();
+					
+					IPOMDP ipomdp = new IPOMDP(iParser, lookAhead, 10, 1.0f - prob);
+					
+					BeliefRegionExpansionStrategy BE = new SSGABeliefExpansion(ipomdp, 30);
+					int numRounds = 5;
+					
+					BaseSolver iSolver = 
+							new OnlineInteractiveSymbolicPerseus(
+									ipomdp, 
+									BE, numRounds, backups);
 					
 					MultiAgentSimulation ss = new MultiAgentSimulation(iSolver, solver, 5);
 					
-	//				ss.setMjDotDir(storageDir, i);
 					ss.runSimulation();
 					
 					ss.logToFile(storage.getPath() + "/" + "sim" + i + ".json");
