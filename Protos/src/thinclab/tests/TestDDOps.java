@@ -321,4 +321,41 @@ class TestDDOps {
 	
 	}
 	
+	@Test
+	public void checkDifferentVariableOPs() {
+		
+		LOGGER.debug("Checking avg. time for 3 variable addition");
+        Global.clearHashtables();
+		Global.varNames = new String[] {"A", "B", "C"};
+		Global.valNames = new String[][] {{"a1", "a2"}, {"b1", "b2", "b3"}, {"c1", "c2"}};
+		Global.varDomSize = new int[] {2, 3, 2};
+
+        DDMaker ddMaker = new DDMaker();
+        ddMaker.addVariable("A", new String[] {"a1", "a2"});
+        ddMaker.addVariable("B", new String[] {"b1", "b2", "b3"});
+        ddMaker.addVariable("C", new String[] {"c1", "c2"});
+        ddMaker.primeVariables();
+        
+        DD a = 
+        		ddMaker.getDDTreeFromSequence(
+        				new String[] {"A"},
+        				new String[][] {
+        					{"a1", "1.509"},
+        					{"a2", "0.789870"}
+        				}).toDD();
+        
+        DD b = 
+        		ddMaker.getDDTreeFromSequence(
+        				new String[] {"C"},
+        				new String[][] {
+        					{"c1", "2.8907"},
+        					{"c2", "1.5"}
+        				}).toDD();
+        
+        DD c = OP.add(a, b);
+        
+        LOGGER.debug(c.toDDTree().toString());
+
+	}
+	
 }
