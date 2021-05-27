@@ -13,6 +13,7 @@ import java.util.HashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import cern.colt.Arrays;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
@@ -50,6 +51,60 @@ public class BeliefOps extends BeliefOperations {
 	}
 	
 	// --------------------------------------------------------------------------------------
+	
+	public DD biasedBeliefUpdate(
+			DD prior, String action, String[] obsnames) throws ZeroProbabilityObsException {
+		
+		// Get POMDP reference
+		POMDP DPRef = this.getPOMDP();
+		
+		int actId = DPRef.getActions().indexOf(action);
+		
+		if (obsnames.length != DPRef.nObsVars) return null;
+		
+		int[] obsvals = new int[obsnames.length];
+		
+		for (int o = 0; o < obsnames.length; o++) {
+			obsvals[o] = DPRef.findObservationByName(o, obsnames[o]) + 1;
+			
+			if (obsvals[o] < 0) return null;
+		}
+		
+		int[][] obsVals = POMDP.stackArray(DPRef.primeObsIndices, obsvals);
+		DD[] restrictedObsFn = OP.restrictN(DPRef.actions[actId].obsFn, obsVals);
+		
+		DD nextBelState = OP.addMultVarElim(
+				POMDP.concatenateArray(prior, 
+						DPRef.actions[actId].transFn, new DD[] {}), 
+				DPRef.varIndices);
+		
+		DD[] pred = this.factorBelief(nextBelState);
+		System.out.println("preds are: " + Arrays.toString(pred));
+		
+		double weight = 1.0 / 1.0 + OP.l2NormSq(pred, restrictedObsFn);
+		System.out.println("Weight is: " + weight);
+
+		System.out.println("Evidence is: " + Arrays.toString(restrictedObsFn));
+		DD[] weightedEvidence = OP.pow(restrictedObsFn, weight);
+		System.out.println("Weighted evidence is: " 
+				+ Arrays.toString(weightedEvidence));
+		nextBelState = OP.multN(ArrayUtils.addAll(pred, weightedEvidence));
+		
+		nextBelState = OP.primeVars(nextBelState, -DPRef.nVars);
+		DD obsProb = OP.addMultVarElim(nextBelState, DPRef.varIndices);
+		
+		if (obsProb.getVal() < 1e-8) {
+			throw new ZeroProbabilityObsException(
+					"OBSERVATION " + obsnames + " is zero probability");
+		}
+		
+		nextBelState = OP.div(nextBelState,
+				OP.addMultVarElim(nextBelState, 
+						DPRef.varIndices));
+		
+		return nextBelState;
+
+	}
 	
 	@Override
 	public DD beliefUpdate(
