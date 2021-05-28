@@ -24,7 +24,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.legacy.Global;
 import thinclab.representations.policyrepresentations.PolicyNode;
@@ -45,7 +46,7 @@ public class MjDB implements Serializable {
 	//	public Connection storageConn;
 	private int frameNo = -1;
 	private File tempFile;
-	private static final Logger LOGGER = Logger.getLogger(MjDB.class);
+	private static final Logger LOGGER = LogManager.getLogger(MjDB.class);
 	
 	// ---------------------------------------------------------------------------------
 	

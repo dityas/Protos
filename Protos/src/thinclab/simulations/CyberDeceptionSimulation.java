@@ -9,7 +9,8 @@ package thinclab.simulations;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.solvers.BaseSolver;
 
@@ -30,7 +31,7 @@ public class CyberDeceptionSimulation extends MultiAgentSimulation {
 	private CyberDeceptionEnvironmentConnector controllerConnector;
 	
 	private static final long serialVersionUID = 9022031217500704107L;
-	private static final Logger LOGGER = Logger.getLogger(CyberDeceptionSimulation.class);
+	private static final Logger LOGGER = LogManager.getLogger(CyberDeceptionSimulation.class);
 	
 	// ---------------------------------------------------------------------------------------------
 	

@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.legacy.Global;
 
@@ -45,7 +46,7 @@ public class Diagnostics {
 	/* for counting Cache hits */
 	public static int CACHE_HITS = 0;
 	
-	private static final Logger LOGGER = Logger.getLogger(Diagnostics.class);
+	private static final Logger LOGGER = LogManager.getLogger(Diagnostics.class);
 	
 	// --------------------------------------------------------------------------------------
 	

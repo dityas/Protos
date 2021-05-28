@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.ddinterface.DDTree;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -33,7 +34,7 @@ public class ConditionalPlanGraph extends ConditionalPlanTree {
 	HashMap<DDTree, Integer> nodeDDTreeMap = new HashMap<DDTree, Integer>();
 	
 	private static final long serialVersionUID = 5003289336030260915L;
-	private static final Logger LOGGER = Logger.getLogger(ConditionalPlanGraph.class);
+	private static final Logger LOGGER = LogManager.getLogger(ConditionalPlanGraph.class);
 
 	// ---------------------------------------------------------------------------
 	

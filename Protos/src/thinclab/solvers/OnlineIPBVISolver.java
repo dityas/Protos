@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.decisionprocesses.DecisionProcess;
@@ -46,7 +47,7 @@ public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 	/* IPBVI hyper params */
 	int dpBackups;
 
-	private static final Logger LOGGER = Logger.getLogger(OnlineIPBVISolver.class);
+	private static final Logger LOGGER = LogManager.getLogger(OnlineIPBVISolver.class);
 
 	// -----------------------------------------------------------------------------------------
 

@@ -18,7 +18,8 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
@@ -46,7 +47,7 @@ public class MJ extends OptimalDynamicBeliefTree {
 	/* keep track of root time step */
 	int T = 0;
 	
-	private static final Logger LOGGER = Logger.getLogger(MJ.class);
+	private static final Logger LOGGER = LogManager.getLogger(MJ.class);
 	
 	// ------------------------------------------------------------------------------------
 	

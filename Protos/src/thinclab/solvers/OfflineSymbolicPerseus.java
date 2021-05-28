@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
@@ -34,52 +35,46 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 	/*
 	 * Jesse Hoey's symbolic perseus for POMDPs
 	 */
-	
+
 	private static final long serialVersionUID = 3643319647660633983L;
-	private static final Logger LOGGER = Logger.getLogger(OfflineSymbolicPerseus.class);
-	
+	private static final Logger LOGGER = LogManager.getLogger(OfflineSymbolicPerseus.class);
+
 	private PolicyCache pCache;
-	
+
 	public int[] bestPolicy = null;
 	public DD[] bestAlphaVectors = null;
 	public double bestBellmanError = Double.MAX_VALUE;
-	
+
 	// -------------------------------------------------------------------------------------
-	
-	public OfflineSymbolicPerseus(
-			POMDP pomdp, 
-			BeliefRegionExpansionStrategy be,
-			int numRounds,
-			int numDpBackups) {
-		
+
+	public OfflineSymbolicPerseus(POMDP pomdp, BeliefRegionExpansionStrategy be, int numRounds, int numDpBackups) {
+
 		/* call super */
 		super(pomdp, be, numRounds, numDpBackups);
-		
-		LOGGER.info("OfflineSymbolicPerseus initialized for " + this.numRounds + " rounds and "
-				+ this.numDpBackups + " backup iterations");
+
+		LOGGER.info("OfflineSymbolicPerseus initialized for " + this.numRounds + " rounds and " + this.numDpBackups
+				+ " backup iterations");
 	}
-	
+
 	// ----------------------------------------------------------------------------------------
-	
+
 	@Override
 	public void solveForBeliefs(List<DD> beliefs) {
-		
+
 		/*
 		 * Use online PBVI to get solution for given beliefs
 		 */
 
 		LOGGER.debug("Solving for " + beliefs.size() + " belief points.");
 
-		
 		this.pCache = new PolicyCache(5);
 
 		/* try running IPBVI */
 		try {
 			this.pCache.resetOscillationTracking();
 			this.SymbolicPerseus(30, 0, this.numDpBackups, beliefs.stream().toArray(DD[]::new));
-			
-			LOGGER.info("Using alpha vectors from back iteration with bellman error " 
-					+ this.bestBellmanError);
+
+			LOGGER.info("Using alpha vectors from back iteration with bellman error " + this.bestBellmanError);
 			this.alphaVectors = this.bestAlphaVectors;
 			this.policy = this.bestPolicy;
 			this.bestBellmanError = Double.POSITIVE_INFINITY;
@@ -90,18 +85,14 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-		
+
 		/* save memory */
 		this.pCache = null;
 		Global.clearHashtables();
 	}
-	
-	public void SymbolicPerseus(
-			int maxAlpha, 
-			int firstStep,
-			int nSteps,
-			DD[] belRegion) {
-		
+
+	public void SymbolicPerseus(int maxAlpha, int firstStep, int nSteps, DD[] belRegion) {
+
 		double bellmanErr;
 		double[] onezero = { 0 };
 		double steptolerance;
@@ -111,9 +102,8 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		bellmanErr = 20 * this.p.tolerance;
 
 		/* compute point based values using current alpha vectors */
-		currentPointBasedValues = OP.dotProduct(belRegion,
-				alphaVectors, this.f.getStateVarIndices());
-		
+		currentPointBasedValues = OP.dotProduct(belRegion, alphaVectors, this.f.getStateVarIndices());
+
 		DD[] primedV;
 		double maxAbsVal = 0;
 
@@ -125,25 +115,19 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			for (int i = 0; i < alphaVectors.length; i++) {
 				primedV[i] = OP.primeVars(alphaVectors[i], this.p.nVars);
 			}
-			
-			maxAbsVal = 
-					Math.max(
-							OP.maxabs(
-									ArrayUtils.addAll(
-											OP.maxAllN(alphaVectors), 
-											OP.minAllN(alphaVectors))), 
-							1e-10);
+
+			maxAbsVal = Math.max(OP.maxabs(ArrayUtils.addAll(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))),
+					1e-10);
 
 			/* could be one more than the maximum number at most */
 			newAlphaVectors = new AlphaVector[maxAlphaSetSize + 1];
 			newPointBasedValues = new double[belRegion.length][maxAlphaSetSize + 1];
 			numNewAlphaVectors = 0;
-			
+
 			int count = 0;
 			int choice;
 			int nDpBackups = 0;
-			RandomPermutation permutedIds = 
-					new RandomPermutation(Global.random, belRegion.length, false);
+			RandomPermutation permutedIds = new RandomPermutation(Global.random, belRegion.length, false);
 
 			AlphaVector newVector;
 			double[] newValues;
@@ -153,98 +137,84 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			double improvement;
 
 			/*
-			 * we allow the number of new alpha vectors to get one bigger than the 
-			 * maximum allowed size, since we may be able to cull more than one alpha 
-			 * vector when trimming, bringing us back below the cutoff
+			 * we allow the number of new alpha vectors to get one bigger than the maximum
+			 * allowed size, since we may be able to cull more than one alpha vector when
+			 * trimming, bringing us back below the cutoff
 			 */
 			int numUsed = 0;
-			
+
 			while (numNewAlphaVectors < maxAlphaSetSize && !permutedIds.isempty()) {
-				
+
 				if (nDpBackups >= 2 * alphaVectors.length) {
-					
+
 					this.computeMaxMinImprovement(belRegion.length);
-					if (bestImprovement > this.p.tolerance 
-							&& bestImprovement > -2 * worstDecline) 
+					if (bestImprovement > this.p.tolerance && bestImprovement > -2 * worstDecline)
 						break;
 				}
-				
+
 				count = count + 1;
 
 				if (numNewAlphaVectors == 0) {
 					choice = 0;
-				} 
-				
+				}
+
 				else {
 
-					maxcurrpbv = OP.getMax(currentPointBasedValues,
-							permutedIds.permutation);
-					maxnewpbv = OP.getMax(newPointBasedValues,
-							numNewAlphaVectors, permutedIds.permutation);
-					permutedIds.getNewDoneIds(maxcurrpbv, maxnewpbv,
-							steptolerance);
-					diff = permutedIds.getDiffs(maxcurrpbv, maxnewpbv,
-							steptolerance);
-					
+					maxcurrpbv = OP.getMax(currentPointBasedValues, permutedIds.permutation);
+					maxnewpbv = OP.getMax(newPointBasedValues, numNewAlphaVectors, permutedIds.permutation);
+					permutedIds.getNewDoneIds(maxcurrpbv, maxnewpbv, steptolerance);
+					diff = permutedIds.getDiffs(maxcurrpbv, maxnewpbv, steptolerance);
+
 					if (permutedIds.isempty())
 						break;
-					
+
 					choice = OP.sampleMultinomial(diff);
 				}
 
 				int i = permutedIds.getSetDone(choice);
 
-				if (numNewAlphaVectors < 1
-						|| (OP.max(newPointBasedValues[i], numNewAlphaVectors)
-								- OP.max(currentPointBasedValues[i]) < steptolerance)) {
-					
+				if (numNewAlphaVectors < 1 || (OP.max(newPointBasedValues[i], numNewAlphaVectors)
+						- OP.max(currentPointBasedValues[i]) < steptolerance)) {
+
 					long beforeBackup = System.nanoTime();
-					
+
 					/* perform the backup operation */
-					newVector = 
-							AlphaVector.dpBackup(
-									this.p, 
-									belRegion[i], 
-									primedV, 
-									maxAbsVal, 
-									this.alphaVectors.length);
-					
+					newVector = AlphaVector.dpBackup(this.p, belRegion[i], primedV, maxAbsVal,
+							this.alphaVectors.length);
+
 					long afterBackup = System.nanoTime();
-					
+
 					/* record backup computation time */
 					Diagnostics.BACKUP_TIME.add((afterBackup - beforeBackup));
-					
+
 					numUsed += 1;
-					newVector.alphaVector = OP.approximate(
-							newVector.alphaVector, bellmanErr * (1 - this.p.discFact)
-									/ 2.0, onezero);
+					newVector.alphaVector = OP.approximate(newVector.alphaVector,
+							bellmanErr * (1 - this.p.discFact) / 2.0, onezero);
 					newVector.setWitness(i);
-	
+
 					/* merge and trim */
-					newValues = OP.dotProduct(belRegion,
-							newVector.alphaVector, this.f.getStateVarIndices());
-	
+					newValues = OP.dotProduct(belRegion, newVector.alphaVector, this.f.getStateVarIndices());
+
 					if (numNewAlphaVectors < 1) {
 						improvement = Double.POSITIVE_INFINITY;
-					} 
-					
-					else {
-						improvement = OP.max(OP.sub(newValues, OP.getMax(
-								newPointBasedValues, numNewAlphaVectors)));
 					}
-	
+
+					else {
+						improvement = OP.max(OP.sub(newValues, OP.getMax(newPointBasedValues, numNewAlphaVectors)));
+					}
+
 					if (improvement > this.p.tolerance) {
-	
+
 						for (int belid = 0; belid < belRegion.length; belid++)
 							newPointBasedValues[belid][numNewAlphaVectors] = newValues[belid];
-	
+
 						newAlphaVectors[numNewAlphaVectors] = newVector;
 						numNewAlphaVectors++;
 					}
-					
+
 				}
 			}
-			
+
 			this.computeMaxMinImprovement(belRegion.length);
 
 			/* save data and copy over new to old */
@@ -257,7 +227,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 				uniquePolicy[j] = false;
 
 			for (int j = 0; j < numNewAlphaVectors; j++) {
-				
+
 				alphaVectors[j] = newAlphaVectors[j].alphaVector;
 				policy[j] = newAlphaVectors[j].actId;
 				policyvalue[j] = newAlphaVectors[j].value;
@@ -265,47 +235,42 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			}
 
 			for (int j = 0; j < belRegion.length; j++) {
-				System.arraycopy(newPointBasedValues[j], 0,
-						currentPointBasedValues[j], 0, numNewAlphaVectors);
+				System.arraycopy(newPointBasedValues[j], 0, currentPointBasedValues[j], 0, numNewAlphaVectors);
 			}
 
 			bellmanErr = Math.min(10, Math.max(bestImprovement, -worstDecline));
 			float errorVar = this.getErrorVariance((float) bellmanErr);
-			
-			LOGGER.info("STEP: " + stepId 
-					+ " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr)
-					+ " \tUSED/BELIEF POINTS: " + numUsed + "/" + belRegion.length
-					+ " \tA VECTORS: " + alphaVectors.length);
-			
+
+			LOGGER.info("STEP: " + stepId + " \tB ERROR: " + String.format(Locale.US, "%.03f", bellmanErr)
+					+ " \tUSED/BELIEF POINTS: " + numUsed + "/" + belRegion.length + " \tA VECTORS: "
+					+ alphaVectors.length);
+
 			/* report diagnostics on exec times */
 			Diagnostics.reportDiagnostics();
 			Diagnostics.reportCacheSizes();
-			
+
 			if (bellmanErr < this.bestBellmanError) {
 				this.bestBellmanError = bellmanErr;
-				
+
 				this.bestAlphaVectors = new DD[this.alphaVectors.length];
-				System.arraycopy(
-						this.alphaVectors, 0, this.bestAlphaVectors, 0, this.bestAlphaVectors.length);
-				
+				System.arraycopy(this.alphaVectors, 0, this.bestAlphaVectors, 0, this.bestAlphaVectors.length);
+
 				this.bestPolicy = new int[this.policy.length];
 				System.arraycopy(this.policy, 0, this.bestPolicy, 0, this.policy.length);
 			}
-			
-			this.pCache.cachePolicy(
-					this.alphaVectors.length, 
-					this.alphaVectors, this.policy);
-			
+
+			this.pCache.cachePolicy(this.alphaVectors.length, this.alphaVectors, this.policy);
+
 			if (this.pCache.isOscillating(String.format(Locale.US, "%.05f", bellmanErr))) {
 				LOGGER.warn("BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
 				break;
 			}
-			
+
 			if (bellmanErr < 0.001) {
 				LOGGER.warn("BELLMAN ERROR LESS THAN 0.01. PROBABLY CONVERGED.");
 				break;
 			}
-			
+
 			if (stepId > 10 && errorVar < 0.00001) {
 				LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
@@ -314,21 +279,14 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		}
 
 	}
-	
-	public static OfflineSymbolicPerseus createSolverWithSSGAExpansion(
-			DecisionProcess DP,
-			int searchDepth,
-			int searchIterations,
-			int rounds,
-			int backups) {
+
+	public static OfflineSymbolicPerseus createSolverWithSSGAExpansion(DecisionProcess DP, int searchDepth,
+			int searchIterations, int rounds, int backups) {
 		/*
 		 * Creates a Offline Symbolic Perseus Solver with given params
 		 */
-		
-		return new OfflineSymbolicPerseus(
-				(POMDP) DP, 
-				new SSGABeliefExpansion((POMDP) DP, searchDepth, searchIterations), 
-				rounds, 
-				backups);
+
+		return new OfflineSymbolicPerseus((POMDP) DP,
+				new SSGABeliefExpansion((POMDP) DP, searchDepth, searchIterations), rounds, backups);
 	}
 }

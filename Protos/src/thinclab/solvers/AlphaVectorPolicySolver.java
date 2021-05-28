@@ -15,8 +15,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
 
-import org.apache.commons.collections15.buffer.CircularFifoBuffer;
-import org.apache.log4j.Logger;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
@@ -44,7 +45,7 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 	public BeliefRegionExpansionStrategy expansionStrategy;
 	
 	PolicyCache pCache = new PolicyCache(5);
-	CircularFifoBuffer<Float> bErrorVals = new CircularFifoBuffer<Float>(5);
+	CircularFifoQueue<Float> bErrorVals = new CircularFifoQueue<Float>(5);
 	
 	/* for checking used beliefs and num alpha vectors */
 	float minError = Float.POSITIVE_INFINITY;
@@ -69,7 +70,7 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 	public DD[] bestAlphaVectors = null;
 	public double bestBellmanError = Double.MAX_VALUE;
 	
-	private static Logger LOGGER = Logger.getLogger(AlphaVectorPolicySolver.class);
+	private static Logger LOGGER = LogManager.getLogger(AlphaVectorPolicySolver.class);
 	
 	// --------------------------------------------------------------------------------------
 	

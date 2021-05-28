@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
@@ -38,7 +39,7 @@ public class NextBelStateCache {
 	
 	private static HashMap<DD, Integer> BELIEF_ID_MAP = new HashMap<DD, Integer>();
 	
-	private static Logger LOGGER = Logger.getLogger(NextBelStateCache.class);
+	private static Logger LOGGER = LogManager.getLogger(NextBelStateCache.class);
 	
 	// -------------------------------------------------------------------------------------
 	

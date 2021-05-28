@@ -14,7 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -41,21 +42,21 @@ import thinclab.solvers.BaseSolver;
  *
  */
 public class Simulation extends StructuredTree {
-	
+
 	/*
 	 * Base class for defining simulations
 	 * 
-	 * All simulations should generally be able to write dot files representing the simulation
-	 * trace and the beliefs of the decision process as it was stepping through it. All simulations
-	 * should also record some stats about the expected reward at each state and the cumulative
-	 * reward.
+	 * All simulations should generally be able to write dot files representing the
+	 * simulation trace and the beliefs of the decision process as it was stepping
+	 * through it. All simulations should also record some stats about the expected
+	 * reward at each state and the cumulative reward.
 	 * 
-	 * The sub classing from structured tree is done because it already has the data structures to
-	 * store any arbitrary path through the conditional plan and write dot files. So we'll just 
-	 * use that and extend it
+	 * The sub classing from structured tree is done because it already has the data
+	 * structures to store any arbitrary path through the conditional plan and write
+	 * dot files. So we'll just use that and extend it
 	 * 
 	 */
-	
+
 	/* some lists for storing run stats */
 	List<String> stateSequence = new ArrayList<String>();
 	List<String> beliefSequence = new ArrayList<String>();
@@ -65,355 +66,313 @@ public class Simulation extends StructuredTree {
 	List<Double> trueRewardSequence = new ArrayList<Double>();
 	List<Double> cumulativeRewardSequence = new ArrayList<Double>();
 	List<Double> trueCumulativeReward = new ArrayList<Double>();
-	
+
 	/* record actual state */
 	List<DDTree> states = new ArrayList<DDTree>();
-	
+
 	/* simulation attribs */
 	public BaseSolver solver;
 	public int iterations;
-	
+
 	private static final long serialVersionUID = 4431341545771143166L;
-	private static final Logger LOGGER = Logger.getLogger(Simulation.class);
-	
+	private static final Logger LOGGER = LogManager.getLogger(Simulation.class);
+
 	// ------------------------------------------------------------------------------------------
-	
+
 	public Simulation(BaseSolver solver, int iterations) {
 		/*
 		 * Set solver instance and simulation iterations
 		 */
 		this.solver = solver;
 		this.iterations = iterations;
-		
+
 		this.initializeState();
 	}
-	
-	public Simulation() {}
-	
+
+	public Simulation() {
+	}
+
 	// ------------------------------------------------------------------------------------------
-	
+
 	public void initializeState() {
-		
+
 		/*
 		 * Sample state from one of the agents initial belief
 		 */
-		
+
 		this.solver.f.setGlobals();
-		
+
 		DD belief = this.solver.f.getCurrentBelief();
-		
+
 		/* sample state from initial belief */
 		int[][] stateConfig = OP.sampleMultinomial(belief, this.solver.f.getStateVarIndices());
-		
+
 		DD state = Config.convert2dd(stateConfig);
 		this.states.add(state.toDDTree());
-		
+
 		LOGGER.debug("Initial state sampled. Set to " + this.solver.f.toMap(state));
 	}
-	
+
 	public int step(int currentNode) {
-		
+
 		try {
-			
+
 			/* solve current step if solver is online */
 			DD currentBelief = this.getPolicyNode(currentNode).getBelief();
 			DD currentState = this.states.get(this.states.size() - 1).toDD();
-			
+
 			/* record the step */
 			this.beliefSequence.add(solver.f.getBeliefString(currentBelief));
 			LOGGER.info("At belief " + this.beliefSequence.get(this.beliefSequence.size() - 1));
-			
-			this.stateSequence.add(
-					solver.f.getBeliefString(currentState));
+
+			this.stateSequence.add(solver.f.getBeliefString(currentState));
 			LOGGER.info("Real state is " + this.stateSequence.get(this.stateSequence.size() - 1));
-			
+
 			if (solver instanceof AlphaVectorPolicySolver)
 				((AlphaVectorPolicySolver) solver).solveCurrentStep();
-			
+
 			/* optimal action */
 			String action = solver.getActionForBelief(currentBelief);
 			this.getPolicyNode(currentNode).setActName(action);
-			
+
 			/* take action */
 			String[] obs = this.envStep(action);
-			
+
 			if (this.solver instanceof AlphaVectorPolicySolver) {
 				DD[] aVecs = ((AlphaVectorPolicySolver) this.solver).getAlphaVectors();
 				int[] policy = ((AlphaVectorPolicySolver) this.solver).getPolicy();
-				
+
 				for (int v = 0; v < aVecs.length; v++) {
-					LOGGER.info("For A vec. " + v + " representing action " 
-							+ this.solver.f.getActions().get(policy[v]));
-					LOGGER.info("Reward is: " + 
-							OP.dotProduct(
-									currentBelief, 
-									aVecs[v], this.solver.f.getStateVarIndices()));
+					LOGGER.info(
+							"For A vec. " + v + " representing action " + this.solver.f.getActions().get(policy[v]));
+					LOGGER.info(
+							"Reward is: " + OP.dotProduct(currentBelief, aVecs[v], this.solver.f.getStateVarIndices()));
 				}
 			}
-			
+
 			/* record action and obs */
 			this.actionSequence.add(action);
 			this.obsSequence.add(Arrays.toString(obs));
-			
+
 			/* compute reward */
-			double reward = 
-					OP.factoredExpectationSparse(
-							solver.f.factorBelief(currentBelief), 
-							solver.f.getRewardFunctionForAction(action));
-			
-			double realReward = 
-					OP.factoredExpectationSparse(
-							solver.f.factorBelief(currentState), 
-							solver.f.getRewardFunctionForAction(action));
-			
+			double reward = OP.factoredExpectationSparse(solver.f.factorBelief(currentBelief),
+					solver.f.getRewardFunctionForAction(action));
+
+			double realReward = OP.factoredExpectationSparse(solver.f.factorBelief(currentState),
+					solver.f.getRewardFunctionForAction(action));
+
 			this.immediateRewardSequence.add(reward);
-			LOGGER.info("Immediate expected reward is " 
-					+ this.immediateRewardSequence.get(
-							this.immediateRewardSequence.size() - 1));
-			
+			LOGGER.info("Immediate expected reward is "
+					+ this.immediateRewardSequence.get(this.immediateRewardSequence.size() - 1));
+
 			this.trueRewardSequence.add(realReward);
-			LOGGER.info("Immediate True reward is " 
-					+ this.trueRewardSequence.get(
-							this.trueRewardSequence.size() - 1));
-			
+			LOGGER.info("Immediate True reward is " + this.trueRewardSequence.get(this.trueRewardSequence.size() - 1));
+
 			double lastReward = 0.0;
 			double lastTrueReward = 0.0;
-			
+
 			if (this.cumulativeRewardSequence.size() > 0) {
-				lastReward = 
-					this.cumulativeRewardSequence.get(this.cumulativeRewardSequence.size() - 1);
-				
-				lastTrueReward = 
-						this.trueCumulativeReward.get(this.trueCumulativeReward.size() - 1);
+				lastReward = this.cumulativeRewardSequence.get(this.cumulativeRewardSequence.size() - 1);
+
+				lastTrueReward = this.trueCumulativeReward.get(this.trueCumulativeReward.size() - 1);
 			}
-			
+
 			this.cumulativeRewardSequence.add(lastReward + reward);
 			LOGGER.info("Cumulative reward is " + (lastReward + reward));
-			
+
 			this.trueCumulativeReward.add(lastTrueReward + realReward);
 			LOGGER.info("True reward so far is " + (lastTrueReward + realReward));
-			
+
 			if (solver instanceof AlphaVectorPolicySolver)
 				((AlphaVectorPolicySolver) solver).nextStep(action, Arrays.asList(obs));
-			
+
 			else
 				solver.f.step(currentBelief, action, obs);
-			
+
 			/* make policy node for next belief */
 			PolicyNode nextNode = new PolicyNode();
 			nextNode.setBelief(solver.f.getCurrentBelief());
 			nextNode.setsBelief(solver.f.getBeliefString(solver.f.getCurrentBelief()));
 			nextNode.setId(this.currentPolicyNodeCounter++);
 			this.putPolicyNode(nextNode.getId(), nextNode);
-			
+
 			/* make next state node */
 			PolicyNode nextStateNode = new PolicyNode();
 			nextStateNode.setBelief(this.states.get(this.states.size() - 1).toDD());
-			nextStateNode.setsBelief(
-					solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
+			nextStateNode.setsBelief(solver.f.getBeliefString(this.states.get(this.states.size() - 1).toDD()));
 			nextStateNode.setId(this.currentPolicyNodeCounter++);
 			this.putPolicyNode(nextStateNode.getId(), nextStateNode);
-			
+
 			/* make path */
 			this.putEdge(currentNode, Arrays.asList(obs), nextNode.getId());
 			this.putEdge(currentNode + 1, Arrays.asList(obs), nextStateNode.getId());
 //			this.edgeMap.get(currentNode).put(Arrays.asList(obs), nextNode.getId());
-			
+
 			return nextNode.getId();
 		}
-		
+
 		catch (ZeroProbabilityObsException o) {
 			return -1;
 		}
-		
+
 		catch (Exception e) {
 			LOGGER.error("While running belief update " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
-			
+
 			return -1;
 		}
 	}
-	
+
 	// ---------------------------------------------------------------------------------------------
-	
+
 	public String[] getObservation(String action) {
 		/*
 		 * Sample observation from the state
 		 */
-		
+
 		/* get observation distribution */
-		
-		DD obsDist = 
-				OP.addMultVarElim(
-						ArrayUtils.add(
-								this.solver.f.getOiForAction(action), 
-								OP.primeVars(
-										this.states.get(this.states.size() - 1).toDD(), 
-										this.solver.f.getNumVars())),
-						this.solver.f.getStateVarPrimeIndices());
-		
+
+		DD obsDist = OP.addMultVarElim(
+				ArrayUtils.add(this.solver.f.getOiForAction(action),
+						OP.primeVars(this.states.get(this.states.size() - 1).toDD(), this.solver.f.getNumVars())),
+				this.solver.f.getStateVarPrimeIndices());
+
 		/* sample from distribution */
-		int[][] obsConfig = 
-				OP.sampleMultinomial(
-						obsDist, 
-						this.solver.f.getObsVarPrimeIndices());
-		
+		int[][] obsConfig = OP.sampleMultinomial(obsDist, this.solver.f.getObsVarPrimeIndices());
+
 		return POMDP.configToStrings(obsConfig);
 	}
-	
+
 	public DD getNextState(String action) {
 		/*
 		 * Computes next state from current state and given action
 		 */
 		DD currentState = this.states.get(this.states.size() - 1).toDD();
-		
+
 		/* first make state transition based on action */
 		DD[] Ti = this.solver.f.getTiForAction(action);
-		DD nextStateDD = 
-				OP.addMultVarElim(
-						ArrayUtils.add(Ti, currentState), 
-						this.solver.f.getStateVarIndices());
-		nextStateDD = OP.primeVars(
-				nextStateDD, 
+		DD nextStateDD = OP.addMultVarElim(ArrayUtils.add(Ti, currentState), this.solver.f.getStateVarIndices());
+		nextStateDD = OP.primeVars(nextStateDD,
 				-(this.solver.f.getStateVarIndices().length + this.solver.f.getObsVarIndices().length));
-		
+
 		int[][] stateConfig = OP.sampleMultinomial(nextStateDD, this.solver.f.getStateVarIndices());
 		DD state = Config.convert2dd(stateConfig);
 		LOGGER.debug("State transitioned to " + this.solver.f.toMap(state));
-		
+
 		return state;
 	}
-	
+
 	public String[] envStep(String action) {
-		
+
 		/*
 		 * Simulate single step of interaction
 		 */
 
-		LOGGER.debug("Taking action " + action 
-				+ " in state " + this.solver.f.toMap(this.states.get(this.states.size() - 1).toDD()));
-		
+		LOGGER.debug("Taking action " + action + " in state "
+				+ this.solver.f.toMap(this.states.get(this.states.size() - 1).toDD()));
+
 		/* get next state */
 		DDTree nextState = this.getNextState(action).toDDTree();
 		this.states.add(nextState);
-		
+
 		String[] obs = this.getObservation(action);
 		LOGGER.debug("Observation sampled from state is " + Arrays.toString(obs));
-		
+
 		return obs;
 	}
-	
+
 	public String[] act(DecisionProcess DP, DD belief, String action) {
 		/*
 		 * Sample observation based on observation probabilities
 		 */
-		
+
 		/* sample observation */
 		DD obsDist = DP.getObsDist(belief, action);
 		int[] obsIndices = null;
-		
+
 		if (DP.getType().contentEquals("IPOMDP"))
 			obsIndices = ((IPOMDP) DP).obsIVarPrimeIndices;
-		
-		else obsIndices = ((POMDP) DP).primeObsIndices;
-		
+
+		else
+			obsIndices = ((POMDP) DP).primeObsIndices;
+
 		int[][] obsConfig = OP.sampleMultinomial(obsDist, obsIndices);
 		String[] obs = new String[obsConfig[0].length];
-		for (int varI = 0; varI < obsConfig[0].length; varI ++) {
+		for (int varI = 0; varI < obsConfig[0].length; varI++) {
 			obs[varI] = Global.valNames[obsConfig[0][varI] - 1][obsConfig[1][varI] - 1];
 		}
-		
+
 		return obs;
 	}
-	
+
 	// ---------------------------------------------------------------------------------------------
-	
+
 	public void logResults() {
 		/*
 		 * Writes all results to the logger
 		 */
-		
+
 		LOGGER.info("Sim results:");
-		LOGGER.info("belief, state, action, obs, immediate R, True immediate R, "
-				+ "cumulative R, True cumulative R");
-		
+		LOGGER.info("belief, state, action, obs, immediate R, True immediate R, " + "cumulative R, True cumulative R");
+
 		for (int i = 0; i < this.beliefSequence.size(); i++) {
-			LOGGER.info("\"" + this.beliefSequence.get(i).replace("\"", "\\\"") + "\"" + ", "
-					+ "\"" + this.stateSequence.get(i).replace("\"", "\\\"") + "\"" + ", "
-					+ this.actionSequence.get(i) + ", "
-					+ "\"" + this.obsSequence.get(i) + "\"" + ", "
-					+ this.immediateRewardSequence.get(i) + ", "
-					+ this.trueRewardSequence.get(i) + ", "
-					+ this.cumulativeRewardSequence.get(i) + ", "
+			LOGGER.info("\"" + this.beliefSequence.get(i).replace("\"", "\\\"") + "\"" + ", " + "\""
+					+ this.stateSequence.get(i).replace("\"", "\\\"") + "\"" + ", " + this.actionSequence.get(i) + ", "
+					+ "\"" + this.obsSequence.get(i) + "\"" + ", " + this.immediateRewardSequence.get(i) + ", "
+					+ this.trueRewardSequence.get(i) + ", " + this.cumulativeRewardSequence.get(i) + ", "
 					+ this.trueCumulativeReward.get(i));
 		}
 	}
-	
+
 	public void logToFile(String fileName) {
 		/*
 		 * Writes simulation results to csv file
 		 */
-		
+
 		try {
 			PrintWriter writer = new PrintWriter(new FileOutputStream(fileName));
 			LOGGER.debug("Writing sim results to file " + fileName);
-			
+
 			/* initialize JSON handler */
-			Gson gsonHandler = 
-					new GsonBuilder()
-						.setPrettyPrinting()
-						.disableHtmlEscaping()
-						.create();
-			
+			Gson gsonHandler = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+
 			JsonArray recordsArray = new JsonArray();
-			
+
 			for (int i = 0; i < this.beliefSequence.size(); i++) {
-				
+
 				/* init a new record */
 				JsonObject record = new JsonObject();
-				
+
 				/* write belief */
-				record.add(
-						"belief", 
-						gsonHandler.fromJson(
-								this.beliefSequence.get(i), 
-								JsonObject.class));
-				
+				record.add("belief", gsonHandler.fromJson(this.beliefSequence.get(i), JsonObject.class));
+
 				/* write state */
-				record.add(
-						"state", 
-						gsonHandler.fromJson(
-								this.stateSequence.get(i), 
-								JsonObject.class));
-				
+				record.add("state", gsonHandler.fromJson(this.stateSequence.get(i), JsonObject.class));
+
 				/* write action */
 				record.add("action", new JsonPrimitive(this.actionSequence.get(i)));
-				
+
 				/* write observations */
 				record.add("obs", new JsonPrimitive(this.obsSequence.get(i)));
-				
+
 				/* write expected rewards */
-				record.add("immediate R", 
-						new JsonPrimitive(this.immediateRewardSequence.get(i)));				
-				record.add("cumulative R", 
-						new JsonPrimitive(this.cumulativeRewardSequence.get(i)));
-				
+				record.add("immediate R", new JsonPrimitive(this.immediateRewardSequence.get(i)));
+				record.add("cumulative R", new JsonPrimitive(this.cumulativeRewardSequence.get(i)));
+
 				/* write true rewards */
-				record.add("true immediate R", 
-						new JsonPrimitive(this.trueRewardSequence.get(i)));				
-				record.add("true cumulative R", 
-						new JsonPrimitive(this.trueCumulativeReward.get(i)));
-				
+				record.add("true immediate R", new JsonPrimitive(this.trueRewardSequence.get(i)));
+				record.add("true cumulative R", new JsonPrimitive(this.trueCumulativeReward.get(i)));
+
 				recordsArray.add(record);
 			}
-			
+
 			writer.println(gsonHandler.toJson(recordsArray));
 			writer.flush();
 			writer.close();
-			
+
 		}
-		
+
 		catch (Exception e) {
 			LOGGER.error("While writing results to JSON file: " + e.getMessage());
 			e.printStackTrace();

@@ -12,7 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -42,7 +43,7 @@ public class PolicyTree extends StaticBeliefTree {
 	public double MEU = Double.NEGATIVE_INFINITY;
 	
 	private static final long serialVersionUID = -3134912845660452376L;
-	private static final Logger LOGGER = Logger.getLogger(PolicyTree.class);
+	private static final Logger LOGGER = LogManager.getLogger(PolicyTree.class);
 	
 	// -------------------------------------------------------------------------------------
 	

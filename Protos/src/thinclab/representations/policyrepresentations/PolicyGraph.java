@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -46,7 +47,7 @@ public class PolicyGraph extends PersistentStructuredTree {
 	public double MEU = Double.NEGATIVE_INFINITY;
 	public int maxT;
 
-	private static final Logger LOGGER = Logger.getLogger(PolicyGraph.class);
+	private static final Logger LOGGER = LogManager.getLogger(PolicyGraph.class);
 
 	// ------------------------------------------------------------------------------------
 
