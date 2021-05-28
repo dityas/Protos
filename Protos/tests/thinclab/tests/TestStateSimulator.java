@@ -7,7 +7,8 @@
  */
 package thinclab.tests;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,7 @@ class TestStateSimulator {
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
-		LOGGER = Logger.getLogger(TestStateSimulator.class);
+		LOGGER = LogManager.getLogger(TestStateSimulator.class);
 		this.l1DomainFileM = "/home/adityas/git/repository/Protos/domains/tiger.L1multiple_new_parser.txt";
 //		this.l0DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.enemy.txt";

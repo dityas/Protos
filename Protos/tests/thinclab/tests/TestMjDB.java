@@ -9,7 +9,8 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ class TestMjDB {
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
-		LOGGER = Logger.getLogger(TestBenchmarkNZPrimeStorage.class);
+		LOGGER = LogManager.getLogger(TestBenchmarkNZPrimeStorage.class);
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 	}
 

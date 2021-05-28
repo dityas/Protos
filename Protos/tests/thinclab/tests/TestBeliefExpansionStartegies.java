@@ -12,7 +12,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ class TestBeliefExpansionStartegies {
 		
 		CustomConfigurationFactory.initializeLogging();
 		
-		LOGGER = Logger.getLogger(TestBeliefExpansionStartegies.class);
+		LOGGER = LogManager.getLogger(TestBeliefExpansionStartegies.class);
 		this.tigerDom = 
 				"/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
 		

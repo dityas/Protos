@@ -9,7 +9,8 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,12 +25,12 @@ import thinclab.utils.CustomConfigurationFactory;
 class TestParseSPUDD {
 
 	public String l1DomainFile;
-	private Logger LOGGER = null;
+	private Logger LOGGER;
 	
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
-		LOGGER = Logger.getLogger(TestParseSPUDD.class);
+		LOGGER = LogManager.getLogger(TestParseSPUDD.class);
 		this.l1DomainFile = 
 				"/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt";
 	}

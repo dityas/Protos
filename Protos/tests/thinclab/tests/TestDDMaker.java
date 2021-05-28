@@ -2,7 +2,8 @@ package thinclab.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ class TestDDMaker {
 	void setUp() throws Exception {
 		
 		CustomConfigurationFactory.initializeLogging();
-		LOGGER = Logger.getLogger(TestDDMaker.class);
+		LOGGER = LogManager.getLogger(TestDDMaker.class);
 		
 		this.ddmaker = new DDMaker();
 		this.ddmaker.addVariable("SESSION_PRIVS", new String[] {"user", "admin"});

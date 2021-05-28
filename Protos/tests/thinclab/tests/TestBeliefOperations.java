@@ -14,7 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ class TestBeliefOperations {
 	void setUp() throws Exception {
 		
 		CustomConfigurationFactory.initializeLogging();
-		LOGGER = Logger.getLogger(TestBeliefOperations.class);
+		LOGGER = LogManager.getLogger(TestBeliefOperations.class);
 		
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 		this.l1DomainMultipleFrames =

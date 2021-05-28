@@ -11,7 +11,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ class TestRepresentations {
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
-		LOGGER = Logger.getLogger(TestRepresentations.class);
+		LOGGER = LogManager.getLogger(TestRepresentations.class);
 		
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 		this.multiJDomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";

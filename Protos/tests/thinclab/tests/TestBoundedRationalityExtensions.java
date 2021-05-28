@@ -7,9 +7,8 @@
  */
 package thinclab.tests;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,17 +23,15 @@ import thinclab.utils.CustomConfigurationFactory;
  *
  */
 class TestBoundedRationalityExtensions {
-	
+
 	private static Logger LOGGER;
 	public POMDP pomdp;
 
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
-		LOGGER = Logger.getLogger(TestBoundedRationalityExtensions.class);
-		this.pomdp = 
-				new POMDP(
-						"/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
+		LOGGER = LogManager.getLogger(TestBoundedRationalityExtensions.class);
+		this.pomdp = new POMDP("/home/adityas/git/repository/Protos/domains/tiger.95.SPUDD.txt");
 	}
 
 	@AfterEach
@@ -44,12 +41,12 @@ class TestBoundedRationalityExtensions {
 	@Test
 	void testInit() {
 		LOGGER.info("Starting tests");
-		
+
 		LOGGER.debug("O for action listen: ");
 		for (DD OiA : this.pomdp.getOiForAction("listen")) {
 			LOGGER.debug(OiA.toDDTree().toString());
 		}
-		
+
 		LOGGER.debug("Testing how exponents work");
 		for (DD OiA : this.pomdp.getOiForAction("listen")) {
 			LOGGER.debug(OP.exp(OiA).toDDTree().toString());

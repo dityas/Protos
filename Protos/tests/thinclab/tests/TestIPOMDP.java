@@ -15,7 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ class TestIPOMDP {
 	@BeforeEach
 	void setUp() throws Exception {
 		CustomConfigurationFactory.initializeLogging();
-		LOGGER = Logger.getLogger(TestIPOMDP.class);
+		LOGGER = LogManager.getLogger(TestIPOMDP.class);
 		this.l1DomainFile = "/home/adityas/git/repository/Protos/domains/tiger.L1.txt";
 	}
 
