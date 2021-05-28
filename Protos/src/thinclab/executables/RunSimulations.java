@@ -13,7 +13,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
@@ -151,7 +152,7 @@ public class RunSimulations extends Executable {
 				CustomConfigurationFactory.setLogFileName(storageDir + "/solver.log");
 			
 			CustomConfigurationFactory.initializeLogging();
-			LOGGER = Logger.getLogger(RunSimulations.class);
+			LOGGER = LogManager.getLogger(RunSimulations.class);
 			
 			/* set domain file */
 			String domainFile = line.getOptionValue("d");

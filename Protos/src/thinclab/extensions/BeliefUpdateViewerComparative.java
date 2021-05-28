@@ -14,7 +14,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.belief.BeliefOps;
 import thinclab.decisionprocesses.POMDP;
@@ -31,7 +32,7 @@ public class BeliefUpdateViewerComparative {
 	 */
 	
 	private static Logger LOGGER = 
-			Logger.getLogger(BeliefUpdateViewerComparative.class);
+			LogManager.getLogger(BeliefUpdateViewerComparative.class);
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
