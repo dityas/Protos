@@ -7,11 +7,13 @@
  */
 package thinclab.belief;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -32,7 +34,7 @@ public class BeliefOps extends BeliefOperations {
 	
 	private static final long serialVersionUID = 8420140973547035341L;
 	
-	private static final Logger LOGGER = Logger.getLogger(BeliefOps.class);
+	private static final Logger LOGGER = LogManager.getLogger(BeliefOps.class); 
 	
 	// -----------------------------------------------------------------------------------
 	
@@ -261,13 +263,13 @@ public class BeliefOps extends BeliefOperations {
 			
 			if (varChildren == null) {
 				for (int i=0; i < DPRef.stateVars[varId].arity; i++) {
-					childVals.put(Global.valNames[varId][i], new Float(fbs[varId].getVal()));
+					childVals.put(Global.valNames[varId][i], Float.valueOf((float) fbs[varId].getVal()));
 				}
 			}
 			
 			else {
 				for (int i=0; i < DPRef.stateVars[varId].arity; i++) {
-					childVals.put(Global.valNames[varId][i], new Float(varChildren[i].getVal()));
+					childVals.put(Global.valNames[varId][i], Float.valueOf((float) varChildren[i].getVal()));
 				}
 			}
 			

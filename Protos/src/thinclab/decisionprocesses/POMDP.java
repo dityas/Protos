@@ -10,7 +10,8 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -94,7 +95,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 	
 	public ParseSPUDD parser;
 	
-	private static final Logger LOGGER = Logger.getLogger(POMDP.class);
+	private static final Logger LOGGER = LogManager.getLogger(POMDP.class);
 	
 	// ---------------------------------------------------------------------
 	/*
