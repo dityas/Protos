@@ -3,3 +3,4 @@ bin/
 target/
 /test.log
 /test.obj
+.gradle
