@@ -1,0 +1,553 @@
+(variables 
+   (apos1 apos1_0 apos1_1 apos1_2 apos1_3 )
+   (wpos wpos_0 wpos_1 wpos_2 wpos_3 )
+)
+(observations 
+   (aloc aloc_0 aloc_1 aloc_2 aloc_3 )
+   (coll coll_0 coll_1 )
+)
+init (apos1 
+          (apos1_0
+           (wpos 
+                    (wpos_0 (0)) 
+                    (wpos_1 (-0.11111111111111110000)) 
+                    (wpos_2 (-0.11111111111111110000)) 
+                    (wpos_3 (-0.11111111111111110000)) 
+           )
+       ) 
+          (apos1_1
+           (wpos 
+                    (wpos_0 (-0.11111111111111110000)) 
+                    (wpos_1 (0)) 
+                    (wpos_2 (-0.11111111111111110000)) 
+                    (wpos_3 (-0.11111111111111110000)) 
+           )
+       ) 
+          (apos1_2
+           (wpos 
+                    (wpos_0 (-0.11111111111111110000)) 
+                    (wpos_1 (-0.11111111111111110000)) 
+                    (wpos_2 (0)) 
+                    (wpos_3 (-0.11111111111111110000)) 
+           )
+       ) 
+          (apos1_3
+           (wpos 
+                    (wpos_0 (-0.11111111111111110000)) 
+                    (wpos_1 (-0.11111111111111110000)) 
+                    (wpos_2 (-0.11111111111111110000)) 
+                    (wpos_3 (0)) 
+           )
+       ) 
+   )
+     
+dd wumpusb (apos1 
+          (apos1_0
+           (wpos 
+              (wpos_0
+                    (wpos' 
+                          (wpos_0 (0.60000)) 
+                          (wpos_1 (0.20000)) 
+                          (wpos_2 (0.0)) 
+                          (wpos_3 (0.0)) 
+                  )
+                ) 
+              (wpos_1
+                    (wpos' 
+                          (wpos_0 (0.20000)) 
+                          (wpos_1 (0.40000)) 
+                          (wpos_2 (0.20000)) 
+                          (wpos_3 (0.0)) 
+                  )
+                ) 
+              (wpos_2
+                    (wpos' 
+                          (wpos_0 (0.0)) 
+                          (wpos_1 (0.20000)) 
+                          (wpos_2 (0.40000)) 
+                          (wpos_3 (0.20000)) 
+                  )
+                ) 
+              (wpos_3
+                    (wpos' 
+                          (wpos_0 (0.0)) 
+                          (wpos_1 (0.0)) 
+                          (wpos_2 (0.20000)) 
+                          (wpos_3 (0.40000)) 
+                  )
+                ) 
+           )
+       ) 
+          (apos1_1
+           (wpos 
+              (wpos_0
+                    (wpos' 
+                          (wpos_0 (0.60000)) 
+                          (wpos_1 (0.20000)) 
+                          (wpos_2 (0.0)) 
+                          (wpos_3 (0.0)) 
+                  )
+                ) 
+              (wpos_1
+                    (wpos' 
+                          (wpos_0 (0.20000)) 
+                          (wpos_1 (0.40000)) 
+                          (wpos_2 (0.20000)) 
+                          (wpos_3 (0.0)) 
+                  )
+                ) 
+              (wpos_2
+                    (wpos' 
+                          (wpos_0 (0.0)) 
+                          (wpos_1 (0.20000)) 
+                          (wpos_2 (0.40000)) 
+                          (wpos_3 (0.20000)) 
+                  )
+                ) 
+              (wpos_3
+                    (wpos' 
+                          (wpos_0 (0.0)) 
+                          (wpos_1 (0.0)) 
+                          (wpos_2 (0.20000)) 
+                          (wpos_3 (0.40000)) 
+                  )
+                ) 
+           )
+       ) 
+          (apos1_2
+           (wpos 
+              (wpos_0
+                    (wpos' 
+                          (wpos_0 (0.60000)) 
+                          (wpos_1 (0.20000)) 
+                          (wpos_2 (0.0)) 
+                          (wpos_3 (0.0)) 
+                  )
+                ) 
+              (wpos_1
+                    (wpos' 
+                          (wpos_0 (0.20000)) 
+                          (wpos_1 (0.40000)) 
+                          (wpos_2 (0.20000)) 
+                          (wpos_3 (0.0)) 
+                  )
+                ) 
+              (wpos_2
+                    (wpos' 
+                          (wpos_0 (0.0)) 
+                          (wpos_1 (0.20000)) 
+                          (wpos_2 (0.40000)) 
+                          (wpos_3 (0.20000)) 
+                  )
+                ) 
+              (wpos_3
+                    (wpos' 
+                          (wpos_0 (0.0)) 
+                          (wpos_1 (0.0)) 
+                          (wpos_2 (0.20000)) 
+                          (wpos_3 (0.40000)) 
+                  )
+                ) 
+           )
+       ) 
+          (apos1_3
+           (wpos 
+              (wpos_0
+                    (wpos' 
+                          (wpos_0 (0.60000)) 
+                          (wpos_1 (0.20000)) 
+                          (wpos_2 (0.0)) 
+                          (wpos_3 (0.0)) 
+                  )
+                ) 
+              (wpos_1
+                    (wpos' 
+                          (wpos_0 (0.20000)) 
+                          (wpos_1 (0.40000)) 
+                          (wpos_2 (0.20000)) 
+                          (wpos_3 (0.0)) 
+                  )
+                ) 
+              (wpos_2
+                    (wpos' 
+                          (wpos_0 (0.0)) 
+                          (wpos_1 (0.20000)) 
+                          (wpos_2 (0.40000)) 
+                          (wpos_3 (0.20000)) 
+                  )
+                ) 
+              (wpos_3
+                    (wpos' 
+                          (wpos_0 (0.0)) 
+                          (wpos_1 (0.0)) 
+                          (wpos_2 (0.20000)) 
+                          (wpos_3 (0.40000)) 
+                  )
+                ) 
+           )
+       ) 
+   )
+     
+ enddd
+dd ldd (apos1' 
+           (apos1_0
+            (aloc' 
+                       (aloc_0 (1.0)) 
+                       (aloc_1 (0.0)) 
+                       (aloc_2 (0.0)) 
+                       (aloc_3 (0.0)) 
+            )
+        ) 
+           (apos1_1
+            (aloc' 
+                       (aloc_0 (0.0)) 
+                       (aloc_1 (1.0)) 
+                       (aloc_2 (0.0)) 
+                       (aloc_3 (0.0)) 
+            )
+        ) 
+           (apos1_2
+            (aloc' 
+                       (aloc_0 (0.0)) 
+                       (aloc_1 (0.0)) 
+                       (aloc_2 (1.0)) 
+                       (aloc_3 (0.0)) 
+            )
+        ) 
+           (apos1_3
+            (aloc' 
+                       (aloc_0 (0.0)) 
+                       (aloc_1 (0.0)) 
+                       (aloc_2 (0.0)) 
+                       (aloc_3 (1.0)) 
+            )
+        ) 
+   )
+      
+ enddd
+dd sensingdd (apos1' 
+           (apos1_0
+            (wpos' 
+                (wpos_0
+                       (coll' 
+                            (coll_0 (0.0)) 
+                            (coll_1 (1.0)) 
+                    )
+                 ) 
+                (wpos_1
+                       (coll' 
+                            (coll_0 (0.0)) 
+                            (coll_1 (1.0)) 
+                    )
+                 ) 
+                (wpos_2
+                       (coll' 
+                            (coll_0 (1.0)) 
+                            (coll_1 (0.0)) 
+                    )
+                 ) 
+                (wpos_3
+                       (coll' 
+                            (coll_0 (1.0)) 
+                            (coll_1 (0.0)) 
+                    )
+                 ) 
+            )
+        ) 
+           (apos1_1
+            (wpos' 
+                (wpos_0
+                       (coll' 
+                            (coll_0 (0.0)) 
+                            (coll_1 (1.0)) 
+                    )
+                 ) 
+                (wpos_1
+                       (coll' 
+                            (coll_0 (0.0)) 
+                            (coll_1 (1.0)) 
+                    )
+                 ) 
+                (wpos_2
+                       (coll' 
+                            (coll_0 (0.0)) 
+                            (coll_1 (1.0)) 
+                    )
+                 ) 
+                (wpos_3
+                       (coll' 
+                            (coll_0 (1.0)) 
+                            (coll_1 (0.0)) 
+                    )
+                 ) 
+            )
+        ) 
+           (apos1_2
+            (wpos' 
+                (wpos_0
+                       (coll' 
+                            (coll_0 (1.0)) 
+                            (coll_1 (0.0)) 
+                    )
+                 ) 
+                (wpos_1
+                       (coll' 
+                            (coll_0 (0.0)) 
+                            (coll_1 (1.0)) 
+                    )
+                 ) 
+                (wpos_2
+                       (coll' 
+                            (coll_0 (0.0)) 
+                            (coll_1 (1.0)) 
+                    )
+                 ) 
+                (wpos_3
+                       (coll' 
+                            (coll_0 (0.0)) 
+                            (coll_1 (1.0)) 
+                    )
+                 ) 
+            )
+        ) 
+           (apos1_3
+            (wpos' 
+                (wpos_0
+                       (coll' 
+                            (coll_0 (1.0)) 
+                            (coll_1 (0.0)) 
+                    )
+                 ) 
+                (wpos_1
+                       (coll' 
+                            (coll_0 (1.0)) 
+                            (coll_1 (0.0)) 
+                    )
+                 ) 
+                (wpos_2
+                       (coll' 
+                            (coll_0 (0.0)) 
+                            (coll_1 (1.0)) 
+                    )
+                 ) 
+                (wpos_3
+                       (coll' 
+                            (coll_0 (0.0)) 
+                            (coll_1 (1.0)) 
+                    )
+                 ) 
+            )
+        ) 
+   )
+      
+ enddd
+action north
+  apos1  (apos1 
+          (apos1_0
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (1.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+          (apos1_1
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (1.0)) 
+           )
+         ) 
+          (apos1_2
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (1.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+          (apos1_3
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (1.0)) 
+           )
+         ) 
+   )
+     
+  wpos (wumpusb)
+ observe
+  aloc (ldd)
+  coll (sensingdd)
+ endobserve
+ cost (1.00000000000000000000)
+endaction
+action south
+  apos1  (apos1 
+          (apos1_0
+           (apos1' 
+                        (apos1_0 (1.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+          (apos1_1
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (1.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+          (apos1_2
+           (apos1' 
+                        (apos1_0 (1.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+          (apos1_3
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (1.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+   )
+     
+  wpos (wumpusb)
+ observe
+  aloc (ldd)
+  coll (sensingdd)
+ endobserve
+ cost (1.00000000000000000000)
+endaction
+action east
+  apos1  (apos1 
+          (apos1_0
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (1.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+          (apos1_1
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (1.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+          (apos1_2
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (1.0)) 
+           )
+         ) 
+          (apos1_3
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (1.0)) 
+           )
+         ) 
+   )
+     
+  wpos (wumpusb)
+ observe
+  aloc (ldd)
+  coll (sensingdd)
+ endobserve
+ cost (1.00000000000000000000)
+endaction
+action west
+  apos1  (apos1 
+          (apos1_0
+           (apos1' 
+                        (apos1_0 (1.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+          (apos1_1
+           (apos1' 
+                        (apos1_0 (1.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (0.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+          (apos1_2
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (1.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+          (apos1_3
+           (apos1' 
+                        (apos1_0 (0.0)) 
+                        (apos1_1 (0.0)) 
+                        (apos1_2 (1.0)) 
+                        (apos1_3 (0.0)) 
+           )
+         ) 
+   )
+     
+  wpos (wumpusb)
+ observe
+  aloc (ldd)
+  coll (sensingdd)
+ endobserve
+ cost (1.00000000000000000000)
+endaction
+reward
+ (apos1 
+          (apos1_0
+           (wpos 
+                    (wpos_0 (10.0)) 
+                    (wpos_1 (0.0)) 
+                    (wpos_2 (0.0)) 
+                    (wpos_3 (0.0)) 
+           )
+       ) 
+          (apos1_1
+           (wpos 
+                    (wpos_0 (0.0)) 
+                    (wpos_1 (10.0)) 
+                    (wpos_2 (0.0)) 
+                    (wpos_3 (0.0)) 
+           )
+       ) 
+          (apos1_2
+           (wpos 
+                    (wpos_0 (0.0)) 
+                    (wpos_1 (0.0)) 
+                    (wpos_2 (10.0)) 
+                    (wpos_3 (0.0)) 
+           )
+       ) 
+          (apos1_3
+           (wpos 
+                    (wpos_0 (0.0)) 
+                    (wpos_1 (0.0)) 
+                    (wpos_2 (0.0)) 
+                    (wpos_3 (10.0)) 
+           )
+       ) 
+   )
+     
+discount 0.94999998807907100000
+tolerance 0.00001000000000000000
