@@ -82,7 +82,7 @@ public class BeliefOps extends BeliefOperations {
 		DD[] pred = this.factorBelief(nextBelState);
 		System.out.println("preds are: " + Arrays.toString(pred));
 		
-		double weight = 1.0 / 1.0 + OP.l2NormSq(pred, restrictedObsFn);
+		float weight = 1.0f / 1.0f + OP.l2NormSq(pred, restrictedObsFn);
 		System.out.println("Weight is: " + weight);
 
 		System.out.println("Evidence is: " + Arrays.toString(restrictedObsFn));

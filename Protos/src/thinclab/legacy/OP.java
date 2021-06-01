@@ -26,7 +26,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.add(dd1.getChildren()[i], dd2);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.addHashtable.put(pair, result);
 			return result;
 		}
@@ -47,7 +47,7 @@ public class OP {
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				children[i] = OP.add(dd2.getChildren()[i], dd1);
 			}
-			DD result = DDnode.myNew(dd2.getVar(), children);
+			DD result = DDnode.getDD(dd2.getVar(), children);
 			Global.addHashtable.put(pair, result);
 			return result;
 		}
@@ -65,16 +65,16 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.add(dd1.getChildren()[i], dd2.getChildren()[i]);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.addHashtable.put(pair, result);
 			return result;
 		}
 
 		// dd1 and dd2 are leaves
 		else {
-			double newVal = dd1.getVal() + dd2.getVal();
+			float newVal = dd1.getVal() + dd2.getVal();
 			int[][] newConfig = Config.merge(dd1.getConfig(), dd2.getConfig());
-			return DDleaf.myNew(newVal, newConfig);
+			return DDleaf.getDD(newVal, newConfig);
 		}
 	}
 
@@ -124,7 +124,7 @@ public class OP {
 			if (dd.getVal() >= 0)
 				return dd;
 			else
-				return DDleaf.myNew(-dd.getVal(), dd.getConfig());
+				return DDleaf.getDD(-dd.getVal(), dd.getConfig());
 		}
 
 		// dd is a node
@@ -134,7 +134,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.abs(dd.getChildren()[i]);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -145,7 +145,7 @@ public class OP {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.myNew(-dd.getVal(), dd.getConfig());
+			return DDleaf.getDD(-dd.getVal(), dd.getConfig());
 
 		// dd is a node
 		else {
@@ -154,18 +154,18 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.neg(dd.getChildren()[i]);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
-	
-    //////////////////////////////////////////////////////
+
+	//////////////////////////////////////////////////////
 	// e to the power DD
 	//////////////////////////////////////////////////////
 	public static DD exp(DD dd) {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.myNew(Math.exp(dd.getVal()), dd.getConfig());
+			return DDleaf.getDD((float) Math.exp(dd.getVal()), dd.getConfig());
 
 		// dd is a node
 		else {
@@ -174,18 +174,18 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.exp(dd.getChildren()[i]);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
-	
+
 	//////////////////////////////////////////////////////
 	// pointwise power of a DD
 	//////////////////////////////////////////////////////
-	public static DD pow(DD dd, double pow) {
+	public static DD pow(DD dd, float pow) {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.myNew(Math.pow(dd.getVal(), pow), dd.getConfig());
+			return DDleaf.getDD((float) Math.pow(dd.getVal(), pow), dd.getConfig());
 
 		// dd is a node
 		else {
@@ -194,16 +194,16 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.pow(dd.getChildren()[i], pow);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
-	
-	public static DD[] pow(DD[] dds, double pow) {
-		
+
+	public static DD[] pow(DD[] dds, float pow) {
+
 		DD[] newdds = new DD[dds.length];
-		for (int i = 0 ; i < dds.length; i++)
+		for (int i = 0; i < dds.length; i++)
 			newdds[i] = OP.pow(dds[i], pow);
-		
+
 		return newdds;
 	}
 
@@ -212,11 +212,11 @@ public class OP {
 	////////////////////////////////////////////////////// in value iteration)
 	//////////////////////////////////////////////////////
 	public static DD primeVars(DD dd, int n) {
-		HashMap hashtable = new HashMap();
+		HashMap<DD, DD> hashtable = new HashMap<>();
 		return primeVars(dd, n, hashtable);
 	}
 
-	public static DD primeVars(DD dd, int n, HashMap hashtable) {
+	public static DD primeVars(DD dd, int n, HashMap<DD, DD> hashtable) {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
@@ -233,7 +233,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.primeVars(dd.getChildren()[i], n);
 			}
-			result = DDnode.myNew(dd.getVar() + n, children);
+			result = DDnode.getDD(dd.getVar() + n, children);
 			hashtable.put(dd, result);
 			return result;
 		}
@@ -282,14 +282,14 @@ public class OP {
 				int[][] restMapping = Config.removeIth(varMapping, idx);
 				for (int i = 0; i < children.length; i++)
 					children[i] = OP.swapVarsNoReordering(dd.getChildren()[i], restMapping);
-				return DDnode.myNew(varMapping[1][idx], children);
+				return DDnode.getDD(varMapping[1][idx], children);
 			}
 
 			// root is not swapped
 			else {
 				for (int i = 0; i < children.length; i++)
 					children[i] = OP.swapVarsNoReordering(dd.getChildren()[i], varMapping);
-				return DDnode.myNew(dd.getVar(), children);
+				return DDnode.getDD(dd.getVar(), children);
 			}
 		}
 	}
@@ -317,7 +317,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.mult(dd1.getChildren()[i], dd2);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.multHashtable.put(pair, result);
 			return result;
 		}
@@ -340,7 +340,7 @@ public class OP {
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				children[i] = OP.mult(dd2.getChildren()[i], dd1);
 			}
-			DD result = DDnode.myNew(dd2.getVar(), children);
+			DD result = DDnode.getDD(dd2.getVar(), children);
 			Global.multHashtable.put(pair, result);
 			return result;
 		}
@@ -358,16 +358,16 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.mult(dd1.getChildren()[i], dd2.getChildren()[i]);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.multHashtable.put(pair, result);
 			return result;
 		}
 
 		// dd1 and dd2 are leaves
 		else {
-			double newVal = dd1.getVal() * dd2.getVal();
+			float newVal = dd1.getVal() * dd2.getVal();
 			int[][] newConfig = Config.merge(dd1.getConfig(), dd2.getConfig());
-			return DDleaf.myNew(newVal, newConfig);
+			return DDleaf.getDD(newVal, newConfig);
 		}
 	}
 
@@ -393,9 +393,9 @@ public class OP {
 		return dd;
 	}
 
-	public static DD multN(Collection dds) {
+	public static DD multN(Collection<DD> dds) {
 		DD ddProd = DD.one;
-		Iterator ddIterator = dds.iterator();
+		Iterator<DD> ddIterator = dds.iterator();
 		while (ddIterator.hasNext()) {
 			DD dd = (DD) ddIterator.next();
 			ddProd = OP.mult(ddProd, dd);
@@ -410,7 +410,7 @@ public class OP {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.myNew(1 / dd.getVal(), dd.getConfig());
+			return DDleaf.getDD(1 / dd.getVal(), dd.getConfig());
 
 		// dd is a node
 		else {
@@ -419,19 +419,19 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.inv(dd.getChildren()[i]);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
 	//////////////////////////////////////////////////////
 	// replace val1 with val2 in a DD
 	//////////////////////////////////////////////////////
-	public static DD replace(DD dd, double val1, double val2) {
+	public static DD replace(DD dd, float val1, float val2) {
 
 		// dd is a leaf
 		if (dd.getVar() == 0) {
 			if (dd.getVal() == val1)
-				return DDleaf.myNew(val2, dd.getConfig());
+				return DDleaf.getDD(val2, dd.getConfig());
 			else
 				return dd;
 		}
@@ -443,7 +443,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.replace(dd.getChildren()[i], val1, val2);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -452,15 +452,15 @@ public class OP {
 	//////////////////////////////////////////////////////
 	public static DD addout(DD dd, int var) {
 
-		HashMap hashtable = new HashMap();
+		HashMap<DD, DD> hashtable = new HashMap<>();
 		return addout(dd, var, hashtable);
 	}
 
-	public static DD addout(DD dd, int var, HashMap hashtable) {
+	public static DD addout(DD dd, int var, HashMap<DD, DD> hashtable) {
 
 		// it's a leaf
 		if (dd.getVar() == 0) {
-			return DDleaf.myNew(Global.varDomSize[var - 1] * dd.getVal(), dd.getConfig());
+			return DDleaf.getDD(Global.varDomSize[var - 1] * dd.getVal(), dd.getConfig());
 		}
 
 		DD result = (DD) hashtable.get(dd);
@@ -480,7 +480,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.addout(dd.getChildren()[i], var);
 			}
-			result = DDnode.myNew(dd.getVar(), children);
+			result = DDnode.getDD(dd.getVar(), children);
 		}
 
 		// store result
@@ -494,11 +494,11 @@ public class OP {
 	public static int selectVarGreedily(DD[] ddArray, int[] vars) {
 
 		// estimate cost of eliminating each var
-		double bestSize = Double.POSITIVE_INFINITY;
+		float bestSize = Float.POSITIVE_INFINITY;
 		int bestVar = 0;
 		for (int i = 0; i < vars.length; i++) {
 			int[] newVarSet = new int[0];
-			double sizeEstimate = 1;
+			float sizeEstimate = 1;
 			int nAffectedDds = 0;
 			for (int ddId = 0; ddId < ddArray.length; ddId++) {
 				if (ddArray[ddId] == null)
@@ -518,7 +518,7 @@ public class OP {
 
 			// compute sizeUpperBound:
 			// sizeUpperBound = min(sizeEstimate, prod(varDomSize(newScope)));
-			double sizeUpperBound = 1;
+			float sizeUpperBound = 1;
 			for (int j = 0; j < newVarSet.length; j++) {
 				sizeUpperBound *= Global.varDomSize[newVarSet[j] - 1];
 				if (sizeUpperBound >= sizeEstimate)
@@ -539,7 +539,7 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// dotProductNoMem (Set container, don't store results)
 	//////////////////////////////////////////////////////
-	public static double dotProductNoMem(DD dd1, DD dd2, SortedSet<Integer> vars) {
+	public static float dotProductNoMem(DD dd1, DD dd2, SortedSet<Integer> vars) {
 
 		// should cache results to speed up things a little
 
@@ -554,8 +554,8 @@ public class OP {
 			// if (storedResult != null) return storedResult;
 
 			SortedSet<Integer> remainingVars = new TreeSet<Integer>(vars);
-			remainingVars.remove(new Integer(dd1.getVar()));
-			double dp = 0;
+			remainingVars.remove(Integer.valueOf(dd1.getVar()));
+			float dp = 0;
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				dp += OP.dotProductNoMem(dd1.getChildren()[i], dd2, remainingVars);
 			}
@@ -574,8 +574,8 @@ public class OP {
 			// if (storedResult != null) return storedResult;
 
 			SortedSet<Integer> remainingVars = new TreeSet<Integer>(vars);
-			remainingVars.remove(new Integer(dd2.getVar()));
-			double dp = 0;
+			remainingVars.remove(Integer.valueOf(dd2.getVar()));
+			float dp = 0;
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				dp += OP.dotProductNoMem(dd2.getChildren()[i], dd1, remainingVars);
 			}
@@ -594,8 +594,8 @@ public class OP {
 			// if (storedResult != null) return storedResult;
 
 			SortedSet<Integer> remainingVars = new TreeSet<Integer>(vars);
-			remainingVars.remove(new Integer(dd1.getVar()));
-			double dp = 0;
+			remainingVars.remove(Integer.valueOf(dd1.getVar()));
+			float dp = 0;
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				dp += OP.dotProductNoMem(dd1.getChildren()[i], dd2.getChildren()[i], remainingVars);
 			}
@@ -608,8 +608,8 @@ public class OP {
 
 		// dd1 and dd2 are leaves
 		else {
-			double result = dd1.getVal() * dd2.getVal();
-			Iterator varIterator = vars.iterator();
+			float result = dd1.getVal() * dd2.getVal();
+			Iterator<Integer> varIterator = vars.iterator();
 			while (varIterator.hasNext()) {
 				Integer var = (Integer) varIterator.next();
 				result *= Global.varDomSize[var.intValue() - 1];
@@ -621,8 +621,8 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// dotProduct2 (My set, store results)
 	//////////////////////////////////////////////////////
-	public static double[][] dotProductLeafPrune(DD[] dd1Array, DD[] dd2Array, int[] vars) {
-		double[][] results = new double[dd1Array.length][dd2Array.length];
+	public static float[][] dotProductLeafPrune(DD[] dd1Array, DD[] dd2Array, int[] vars) {
+		float[][] results = new float[dd1Array.length][dd2Array.length];
 		for (int i = 0; i < dd1Array.length; i++) {
 			for (int j = 0; j < dd2Array.length; j++) {
 				results[i][j] = dotProductLeafPrune(dd1Array[i], dd2Array[j], vars);
@@ -631,30 +631,30 @@ public class OP {
 		return results;
 	}
 
-	public static double[] dotProductLeafPrune(DD dd1, DD[] dd2Array, int[] vars) {
-		double[] results = new double[dd2Array.length];
+	public static float[] dotProductLeafPrune(DD dd1, DD[] dd2Array, int[] vars) {
+		float[] results = new float[dd2Array.length];
 		for (int i = 0; i < dd2Array.length; i++) {
 			results[i] = dotProductLeafPrune(dd1, dd2Array[i], vars);
 		}
 		return results;
 	}
 
-	public static double[] dotProductLeafPrune(DD[] dd1Array, DD dd2, int[] vars) {
-		double[] results = new double[dd1Array.length];
+	public static float[] dotProductLeafPrune(DD[] dd1Array, DD dd2, int[] vars) {
+		float[] results = new float[dd1Array.length];
 		for (int i = 0; i < dd1Array.length; i++) {
 			results[i] = dotProductLeafPrune(dd1Array[i], dd2, vars);
 		}
 		return results;
 	}
 
-	public static double dotProductLeafPrune(DD dd1, DD dd2, int[] vars) {
+	public static float dotProductLeafPrune(DD dd1, DD dd2, int[] vars) {
 
 		// dd1 is a leaf
 		if (dd1.getVar() == 0) {
-			double dd1Val = dd1.getVal();
+			float dd1Val = dd1.getVal();
 			if (dd1Val == 0)
 				return 0;
-			double dd2Sum = dd2.getSum();
+			float dd2Sum = dd2.getSum();
 			if (dd2Sum == 0)
 				return 0;
 			int[] remainingVars = MySet.diff(vars, dd2.getVarSet());
@@ -666,10 +666,10 @@ public class OP {
 
 		// dd2 is a leaf
 		if (dd2.getVar() == 0) {
-			double dd2Val = dd2.getVal();
+			float dd2Val = dd2.getVal();
 			if (dd2Val == 0)
 				return 0;
-			double dd1Sum = dd1.getSum();
+			float dd1Sum = dd1.getSum();
 			if (dd1Sum == 0)
 				return 0;
 			int[] remainingVars = MySet.diff(vars, dd1.getVarSet());
@@ -685,10 +685,10 @@ public class OP {
 			TripletSet triplet = new TripletSet(dd1, dd2, vars);
 			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
-				return storedResult.doubleValue();
+				return storedResult.floatValue();
 
 			int[] remainingVars = MySet.remove(vars, dd1.getVar());
-			double dp = 0;
+			float dp = 0;
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				dp += OP.dotProductLeafPrune(dd1.getChildren()[i], dd2.getChildren()[i], remainingVars);
 			}
@@ -702,10 +702,10 @@ public class OP {
 			TripletSet triplet = new TripletSet(dd1, dd2, vars);
 			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
-				return storedResult.doubleValue();
+				return storedResult.floatValue();
 
 			int[] remainingVars = MySet.remove(vars, dd1.getVar());
-			double dp = 0;
+			float dp = 0;
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				dp += OP.dotProductLeafPrune(dd1.getChildren()[i], dd2, remainingVars);
 			}
@@ -719,10 +719,10 @@ public class OP {
 			TripletSet triplet = new TripletSet(dd1, dd2, vars);
 			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
-				return storedResult.doubleValue();
+				return storedResult.floatValue();
 
 			int[] remainingVars = MySet.remove(vars, dd2.getVar());
-			double dp = 0;
+			float dp = 0;
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				dp += OP.dotProductLeafPrune(dd1, dd2.getChildren()[i], remainingVars);
 			}
@@ -740,7 +740,7 @@ public class OP {
 		 * (dd1VarSet[ptr1] > dd2VarSet[ptr2]) ptr1--; else ptr2--; }
 		 * 
 		 * // there is a common variable if (commonVar > 0) { int[] remainingVars =
-		 * MySet.remove(vars,commonVar); double dp = 0; int[][] config = new int[2][1];
+		 * MySet.remove(vars,commonVar); float dp = 0; int[][] config = new int[2][1];
 		 * config[0][0] = commonVar; for (int i=0; i<Global.varDomSize[commonVar-1];
 		 * i++) { config[1][0] = i+1; dp +=
 		 * OP.dotProductLeafPrune(OP.restrictOrdered(dd1,config),OP.restrictOrdered(dd2,
@@ -758,8 +758,8 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// dotProduct (My set, store results)
 	//////////////////////////////////////////////////////
-	public static double[][] dotProduct(DD[] dd1Array, DD[] dd2Array, int[] vars) {
-		double[][] results = new double[dd1Array.length][dd2Array.length];
+	public static float[][] dotProduct(DD[] dd1Array, DD[] dd2Array, int[] vars) {
+		float[][] results = new float[dd1Array.length][dd2Array.length];
 		for (int i = 0; i < dd1Array.length; i++) {
 			for (int j = 0; j < dd2Array.length; j++) {
 				results[i][j] = dotProduct(dd1Array[i], dd2Array[j], vars);
@@ -768,23 +768,23 @@ public class OP {
 		return results;
 	}
 
-	public static double[] dotProduct(DD dd1, DD[] dd2Array, int[] vars) {
-		double[] results = new double[dd2Array.length];
+	public static float[] dotProduct(DD dd1, DD[] dd2Array, int[] vars) {
+		float[] results = new float[dd2Array.length];
 		for (int i = 0; i < dd2Array.length; i++) {
 			results[i] = dotProduct(dd1, dd2Array[i], vars);
 		}
 		return results;
 	}
 
-	public static double[] dotProduct(DD[] dd1Array, DD dd2, int[] vars) {
-		double[] results = new double[dd1Array.length];
+	public static float[] dotProduct(DD[] dd1Array, DD dd2, int[] vars) {
+		float[] results = new float[dd1Array.length];
 		for (int i = 0; i < dd1Array.length; i++) {
 			results[i] = dotProduct(dd1Array[i], dd2, vars);
 		}
 		return results;
 	}
 
-	public static double dotProduct(DD dd1, DD dd2, int[] vars) {
+	public static float dotProduct(DD dd1, DD dd2, int[] vars) {
 
 		if ((dd1.getVar() == 0 && dd1.getVal() == 0) || (dd2.getVar() == 0 && dd2.getVal() == 0))
 			return 0;
@@ -795,10 +795,10 @@ public class OP {
 			TripletSet triplet = new TripletSet(dd1, dd2, vars);
 			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
-				return storedResult.doubleValue();
+				return storedResult.floatValue();
 
 			int[] remainingVars = MySet.remove(vars, dd1.getVar());
-			double dp = 0;
+			float dp = 0;
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				dp += OP.dotProduct(dd1.getChildren()[i], dd2, remainingVars);
 			}
@@ -812,10 +812,10 @@ public class OP {
 			TripletSet triplet = new TripletSet(dd1, dd2, vars);
 			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
-				return storedResult.doubleValue();
+				return storedResult.floatValue();
 
 			int[] remainingVars = MySet.remove(vars, dd2.getVar());
-			double dp = 0;
+			float dp = 0;
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				dp += OP.dotProduct(dd2.getChildren()[i], dd1, remainingVars);
 			}
@@ -829,10 +829,10 @@ public class OP {
 			TripletSet triplet = new TripletSet(dd1, dd2, vars);
 			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
-				return storedResult.doubleValue();
+				return storedResult.floatValue();
 
 			int[] remainingVars = MySet.remove(vars, dd1.getVar());
-			double dp = 0;
+			float dp = 0;
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				dp += OP.dotProduct(dd1.getChildren()[i], dd2.getChildren()[i], remainingVars);
 			}
@@ -842,7 +842,7 @@ public class OP {
 
 		// dd1 and dd2 are leaves
 		else {
-			double result = dd1.getVal() * dd2.getVal();
+			float result = dd1.getVal() * dd2.getVal();
 			for (int i = 0; i < vars.length; i++) {
 				result *= Global.varDomSize[vars[i] - 1];
 			}
@@ -853,8 +853,8 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// dotProductNoMem (My set, don't store results)
 	//////////////////////////////////////////////////////
-	public static double[][] dotProductNoMem(DD[] dd1Array, DD[] dd2Array, int[] vars) {
-		double[][] results = new double[dd1Array.length][dd2Array.length];
+	public static float[][] dotProductNoMem(DD[] dd1Array, DD[] dd2Array, int[] vars) {
+		float[][] results = new float[dd1Array.length][dd2Array.length];
 		for (int i = 0; i < dd1Array.length; i++) {
 			for (int j = 0; j < dd2Array.length; j++) {
 				results[i][j] = dotProductNoMem(dd1Array[i], dd2Array[j], vars);
@@ -863,23 +863,23 @@ public class OP {
 		return results;
 	}
 
-	public static double[] dotProductNoMem(DD dd1, DD[] dd2Array, int[] vars) {
-		double[] results = new double[dd2Array.length];
+	public static float[] dotProductNoMem(DD dd1, DD[] dd2Array, int[] vars) {
+		float[] results = new float[dd2Array.length];
 		for (int i = 0; i < dd2Array.length; i++) {
 			results[i] = dotProductNoMem(dd1, dd2Array[i], vars);
 		}
 		return results;
 	}
 
-	public static double[] dotProductNoMem(DD[] dd1Array, DD dd2, int[] vars) {
-		double[] results = new double[dd1Array.length];
+	public static float[] dotProductNoMem(DD[] dd1Array, DD dd2, int[] vars) {
+		float[] results = new float[dd1Array.length];
 		for (int i = 0; i < dd1Array.length; i++) {
 			results[i] = dotProductNoMem(dd1Array[i], dd2, vars);
 		}
 		return results;
 	}
 
-	public static double dotProductNoMem(DD dd1, DD dd2, int[] vars) {
+	public static float dotProductNoMem(DD dd1, DD dd2, int[] vars) {
 
 		// should cache results to speed up things a little
 
@@ -890,7 +890,7 @@ public class OP {
 		if (dd1.getVar() > dd2.getVar()) {
 
 			int[] remainingVars = MySet.remove(vars, dd1.getVar());
-			double dp = 0;
+			float dp = 0;
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				dp += OP.dotProductNoMem(dd1.getChildren()[i], dd2, remainingVars);
 			}
@@ -901,7 +901,7 @@ public class OP {
 		else if (dd2.getVar() > dd1.getVar()) {
 
 			int[] remainingVars = MySet.remove(vars, dd2.getVar());
-			double dp = 0;
+			float dp = 0;
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				dp += OP.dotProductNoMem(dd2.getChildren()[i], dd1, remainingVars);
 			}
@@ -912,7 +912,7 @@ public class OP {
 		else if (dd1.getVar() > 0) {
 
 			int[] remainingVars = MySet.remove(vars, dd1.getVar());
-			double dp = 0;
+			float dp = 0;
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				dp += OP.dotProductNoMem(dd1.getChildren()[i], dd2.getChildren()[i], remainingVars);
 			}
@@ -921,7 +921,7 @@ public class OP {
 
 		// dd1 and dd2 are leaves
 		else {
-			double result = dd1.getVal() * dd2.getVal();
+			float result = dd1.getVal() * dd2.getVal();
 			for (int i = 0; i < vars.length; i++) {
 				result *= Global.varDomSize[vars[i] - 1];
 			}
@@ -932,7 +932,7 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// factoredExpectation
 	//////////////////////////////////////////////////////
-	public static double factoredExpectationSparse(DD[] factDist, DD dd) {
+	public static float factoredExpectationSparse(DD[] factDist, DD dd) {
 
 		DD[] factDistArray = new DD[Global.varDomSize.length + 1];
 		for (int i = 0; i < factDist.length; i++) {
@@ -943,7 +943,7 @@ public class OP {
 		return factoredExpectationSparse(factDistArray, dd, hashtable);
 	}
 
-	public static double factoredExpectationSparse(DD[] factDistArray, DD dd, HashMap hashtable) {
+	public static float factoredExpectationSparse(DD[] factDistArray, DD dd, HashMap hashtable) {
 
 		// it's a leaf
 		int varId = dd.getVar();
@@ -954,10 +954,10 @@ public class OP {
 		else {
 			Double storedResult = (Double) hashtable.get(dd);
 			if (storedResult != null)
-				return storedResult.doubleValue();
+				return storedResult.floatValue();
 
 			DD[] children = dd.getChildren();
-			double result = 0;
+			float result = 0;
 
 			if (factDistArray[varId] != null) {
 				DD[] scalingConstants = factDistArray[varId].getChildren();
@@ -978,9 +978,9 @@ public class OP {
 		}
 	}
 
-	public static double[][] factoredExpectationSparse(DD[][] factDist, DD[] ddArray) {
+	public static float[][] factoredExpectationSparse(DD[][] factDist, DD[] ddArray) {
 
-		double[][] results = new double[factDist.length][ddArray.length];
+		float[][] results = new float[factDist.length][ddArray.length];
 		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			for (int j = 0; j < factDist[i].length; j++) {
@@ -996,9 +996,9 @@ public class OP {
 		return results;
 	}
 
-	public static double[] factoredExpectationSparse(DD[][] factDist, DD dd) {
+	public static float[] factoredExpectationSparse(DD[][] factDist, DD dd) {
 
-		double[] results = new double[factDist.length];
+		float[] results = new float[factDist.length];
 		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			for (int j = 0; j < factDist[i].length; j++) {
@@ -1011,7 +1011,7 @@ public class OP {
 		return results;
 	}
 
-	public static double factoredExpectationSparseNoMem(DD[] factDist, DD dd) {
+	public static float factoredExpectationSparseNoMem(DD[] factDist, DD dd) {
 
 		DD[] factDistArray = new DD[Global.varDomSize.length + 1];
 		for (int i = 0; i < factDist.length; i++) {
@@ -1021,7 +1021,7 @@ public class OP {
 		return factoredExpectationSparseNoMemRecursive(factDistArray, dd);
 	}
 
-	public static double factoredExpectationSparseNoMemRecursive(DD[] factDistArray, DD dd) {
+	public static float factoredExpectationSparseNoMemRecursive(DD[] factDistArray, DD dd) {
 
 		// it's a leaf
 		int varId = dd.getVar();
@@ -1031,7 +1031,7 @@ public class OP {
 		// it's a node
 		else {
 			DD[] children = dd.getChildren();
-			double result = 0;
+			float result = 0;
 
 			if (factDistArray[varId] != null) {
 				DD[] scalingConstants = factDistArray[varId].getChildren();
@@ -1051,9 +1051,9 @@ public class OP {
 		}
 	}
 
-	public static double[][] factoredExpectationSparseNoMem(DD[][] factDist, DD[] ddArray) {
+	public static float[][] factoredExpectationSparseNoMem(DD[][] factDist, DD[] ddArray) {
 
-		double[][] results = new double[factDist.length][ddArray.length];
+		float[][] results = new float[factDist.length][ddArray.length];
 		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			for (int j = 0; j < factDist[i].length; j++) {
@@ -1068,23 +1068,23 @@ public class OP {
 		return results;
 	}
 
-	public static double[] factoredExpectationSparseNoMem(DD[] factDist, DD[] ddArray) {
+	public static float[] factoredExpectationSparseNoMem(DD[] factDist, DD[] ddArray) {
 
 		DD[] factDistArray = new DD[Global.varDomSize.length + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			factDistArray[factDist[i].getVar()] = factDist[i];
 		}
 
-		double[] results = new double[ddArray.length];
+		float[] results = new float[ddArray.length];
 		for (int j = 0; j < ddArray.length; j++) {
 			results[j] = factoredExpectationSparseNoMemRecursive(factDistArray, ddArray[j]);
 		}
 		return results;
 	}
 
-	public static double[] factoredExpectationSparseNoMem(DD[][] factDist, DD dd) {
+	public static float[] factoredExpectationSparseNoMem(DD[][] factDist, DD dd) {
 
-		double[] results = new double[factDist.length];
+		float[] results = new float[factDist.length];
 		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			for (int j = 0; j < factDist[i].length; j++) {
@@ -1095,18 +1095,18 @@ public class OP {
 		return results;
 	}
 
-	public static double[][] factoredExpectationSparseParallel(DD[][] factDist, DD[] ddArray) {
+	public static float[][] factoredExpectationSparseParallel(DD[][] factDist, DD[] ddArray) {
 
-		double[][] results = new double[factDist.length][ddArray.length];
+		float[][] results = new float[factDist.length][ddArray.length];
 		for (int i = 0; i < ddArray.length; i++) {
-			double[] temp = factoredExpectationSparseParallel(factDist, ddArray[i]);
+			float[] temp = factoredExpectationSparseParallel(factDist, ddArray[i]);
 			for (int j = 0; j < temp.length; j++)
 				results[j][i] = temp[j];
 		}
 		return results;
 	}
 
-	public static double[] factoredExpectationSparseParallel(DD[][] factDist, DD dd) {
+	public static float[] factoredExpectationSparseParallel(DD[][] factDist, DD dd) {
 
 		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
 		for (int i = 0; i < factDist.length; i++) {
@@ -1118,14 +1118,14 @@ public class OP {
 		return factoredExpectationSparseParallelRecursive(factDistArray, dd);
 	}
 
-	public static double[] factoredExpectationSparseParallelRecursive(DD[][] factDistArray, DD dd) {
+	public static float[] factoredExpectationSparseParallelRecursive(DD[][] factDistArray, DD dd) {
 
-		double[] result = new double[factDistArray.length];
+		float[] result = new float[factDistArray.length];
 		int varId = dd.getVar();
 
 		// it's a leaf
 		if (varId == 0) {
-			double value = dd.getVal();
+			float value = dd.getVal();
 			for (int i = 0; i < factDistArray.length; i++)
 				result[i] = value;
 		}
@@ -1155,7 +1155,7 @@ public class OP {
 					}
 
 					// aggregate results for each child
-					double[] childResult = factoredExpectationSparseParallelRecursive(childFactDistArray,
+					float[] childResult = factoredExpectationSparseParallelRecursive(childFactDistArray,
 							children[childId]);
 					for (int id = 0; id < nnzDist; id++) {
 						if (childFactDistArray[id][varId] == null)
@@ -1171,18 +1171,18 @@ public class OP {
 		return result;
 	}
 
-	public static double[][] factoredExpectationSparseParallel2(DD[][] factDist, DD[] ddArray) {
+	public static float[][] factoredExpectationSparseParallel2(DD[][] factDist, DD[] ddArray) {
 
-		double[][] results = new double[factDist.length][ddArray.length];
+		float[][] results = new float[factDist.length][ddArray.length];
 		for (int i = 0; i < ddArray.length; i++) {
-			double[] temp = factoredExpectationSparseParallel2(factDist, ddArray[i]);
+			float[] temp = factoredExpectationSparseParallel2(factDist, ddArray[i]);
 			for (int j = 0; j < temp.length; j++)
 				results[j][i] = temp[j];
 		}
 		return results;
 	}
 
-	public static double[] factoredExpectationSparseParallel2(DD[][] factDist, DD dd) {
+	public static float[] factoredExpectationSparseParallel2(DD[][] factDist, DD dd) {
 
 		DD[][][] factDistArray = new DD[factDist[1].length + 1][factDist.length][];
 		int varId = dd.getVar();
@@ -1193,19 +1193,19 @@ public class OP {
 			}
 		}
 		int[][] nnzIds = new int[factDist[1].length + 1][factDist.length];
-		double[][] results = new double[factDist[1].length + 1][factDist.length];
+		float[][] results = new float[factDist[1].length + 1][factDist.length];
 
 		return factoredExpectationSparseParallel2(factDistArray, dd, factDist.length, nnzIds, results);
 	}
 
-	public static double[] factoredExpectationSparseParallel2(DD[][][] factDistArray, DD dd, int nnzDists,
-			int[][] nnzIds, double[][] results) {
+	public static float[] factoredExpectationSparseParallel2(DD[][][] factDistArray, DD dd, int nnzDists,
+			int[][] nnzIds, float[][] results) {
 
 		int varId = dd.getVar();
 
 		// it's a leaf
 		if (varId == 0) {
-			double value = dd.getVal();
+			float value = dd.getVal();
 			for (int i = 0; i < nnzDists; i++)
 				results[0][i] = value;
 		}
@@ -1236,7 +1236,7 @@ public class OP {
 				if (nnzChildDists > 0) {
 
 					// aggregate results for each child
-					double[] childResults = factoredExpectationSparseParallel2(factDistArray, children[childId],
+					float[] childResults = factoredExpectationSparseParallel2(factDistArray, children[childId],
 							nnzChildDists, nnzIds, results);
 					for (int id = 0; id < nnzChildDists; id++) {
 						if (factDistArray[childVarId][id][varId] == null)
@@ -1252,73 +1252,73 @@ public class OP {
 		return results[varId];
 	}
 
-	public static double[] factoredExpectationParallel(DD[][] factDist, DD dd) {
+//	public static float[] factoredExpectationParallel(DD[][] factDist, DD dd) {
+//
+//		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
+//		for (int i = 0; i < factDist.length; i++) {
+//			for (int j = 0; j < factDist[i].length; j++) {
+//				factDistArray[i][factDist[i][j].getVar()] = factDist[i][j];
+//			}
+//		}
+//		HashMap hashtable = new HashMap();
+//
+//		return factoredExpectationParallel(factDistArray, dd, hashtable);
+//	}
 
-		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
-		for (int i = 0; i < factDist.length; i++) {
-			for (int j = 0; j < factDist[i].length; j++) {
-				factDistArray[i][factDist[i][j].getVar()] = factDist[i][j];
-			}
-		}
-		HashMap hashtable = new HashMap();
-
-		return factoredExpectationParallel(factDistArray, dd, hashtable);
-	}
-
-	public static double[] factoredExpectationParallel(DD[][] factDistArray, DD dd, HashMap hashtable) {
-
-		// it's a leaf
-		if (dd.getVar() == 0) {
-			double value = dd.getVal();
-			double[] result = new double[factDistArray.length];
-			for (int i = 0; i < factDistArray.length; i++) {
-				result[i] = value;
-			}
-			return result;
-		}
-
-		// it's a node
-		else {
-			MyDoubleArray storedResult = (MyDoubleArray) hashtable.get(dd);
-			if (storedResult != null)
-				return storedResult.doubleArray;
-
-			DD[] children = dd.getChildren();
-			double[] result = new double[factDistArray.length];
-
-			// compute children results
-			double[][] childrenResults = new double[children.length][];
-			double[] childResult = new double[factDistArray.length];
-			for (int childId = 0; childId < children.length; childId++) {
-				childrenResults[childId] = childResult;
-				for (int i = 0; i < factDistArray.length; i++) {
-					if (factDistArray[i][dd.getVar()] == null
-							|| factDistArray[i][dd.getVar()].getChildren()[childId].getVal() != 0) {
-						childrenResults[childId] = OP.factoredExpectationParallel(factDistArray, children[childId],
-								hashtable);
-						break;
-					}
-				}
-			}
-
-			// aggregate children results
-			for (int i = 0; i < factDistArray.length; i++) {
-				if (factDistArray[i][dd.getVar()] != null) {
-					DD[] scalingConstants = factDistArray[i][dd.getVar()].getChildren();
-					for (int childId = 0; childId < children.length; childId++) {
-						result[i] += scalingConstants[childId].getVal() * childrenResults[childId][i];
-					}
-				} else {
-					for (int childId = 0; childId < children.length; childId++) {
-						result[i] += 1.0 / children.length * childrenResults[childId][i];
-					}
-				}
-			}
-
-			hashtable.put(dd, new MyDoubleArray(result));
-			return result;
-		}
-	}
+//	public static float[] factoredExpectationParallel(DD[][] factDistArray, DD dd, HashMap hashtable) {
+//
+//		// it's a leaf
+//		if (dd.getVar() == 0) {
+//			float value = dd.getVal();
+//			float[] result = new float[factDistArray.length];
+//			for (int i = 0; i < factDistArray.length; i++) {
+//				result[i] = value;
+//			}
+//			return result;
+//		}
+//
+//		// it's a node
+//		else {
+//			MyDoubleArray storedResult = (MyDoubleArray) hashtable.get(dd);
+//			if (storedResult != null)
+//				return storedResult.floatArray;
+//
+//			DD[] children = dd.getChildren();
+//			float[] result = new float[factDistArray.length];
+//
+//			// compute children results
+//			float[][] childrenResults = new float[children.length][];
+//			float[] childResult = new float[factDistArray.length];
+//			for (int childId = 0; childId < children.length; childId++) {
+//				childrenResults[childId] = childResult;
+//				for (int i = 0; i < factDistArray.length; i++) {
+//					if (factDistArray[i][dd.getVar()] == null
+//							|| factDistArray[i][dd.getVar()].getChildren()[childId].getVal() != 0) {
+//						childrenResults[childId] = OP.factoredExpectationParallel(factDistArray, children[childId],
+//								hashtable);
+//						break;
+//					}
+//				}
+//			}
+//
+//			// aggregate children results
+//			for (int i = 0; i < factDistArray.length; i++) {
+//				if (factDistArray[i][dd.getVar()] != null) {
+//					DD[] scalingConstants = factDistArray[i][dd.getVar()].getChildren();
+//					for (int childId = 0; childId < children.length; childId++) {
+//						result[i] += scalingConstants[childId].getVal() * childrenResults[childId][i];
+//					}
+//				} else {
+//					for (int childId = 0; childId < children.length; childId++) {
+//						result[i] += 1.0 / children.length * childrenResults[childId][i];
+//					}
+//				}
+//			}
+//
+//			hashtable.put(dd, new MyDoubleArray(result));
+//			return result;
+//		}
+//	}
 
 	//////////////////////////////////////////////////////
 	// addMultarElim (summout variables from a product of DDs using variable
@@ -1345,7 +1345,7 @@ public class OP {
 						DD[] children = dds[ddId].getChildren();
 						int valId = -1;
 						for (int childId = 0; childId < children.length; childId++) {
-							double value = children[childId].getVal();
+							float value = children[childId].getVal();
 							if (value == 1 && !deterministic) {
 								deterministic = true;
 								valId = childId + 1;
@@ -1467,7 +1467,7 @@ public class OP {
 					DD[] restrictedDds = OP.restrictOrderedN(dds, config);
 					newChildren[i] = OP.addMultCutSet(restrictedDds, children[i], vars);
 				}
-				return DDnode.myNew(dd.getVar(), newChildren);
+				return DDnode.getDD(dd.getVar(), newChildren);
 			}
 		}
 	}
@@ -1477,7 +1477,7 @@ public class OP {
 	// if parity < 0, is dd wherever dd <= val, and 0 elsewhere
 	// if parity ==0, is dd wherever dd == val, and 0 elsewhere
 	//////////////////////////////////////////////////////
-	public static DD threshold(DD dd, double val, int parity) {
+	public static DD threshold(DD dd, float val, int parity) {
 
 		// dd is a leaf
 		if (dd.getVar() == 0) {
@@ -1498,7 +1498,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.threshold(dd.getChildren()[i], val, parity);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -1523,7 +1523,7 @@ public class OP {
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				children[i] = OP.max(dd1, dd2.getChildren()[i], config);
 			}
-			DD result = DDnode.myNew(dd2.getVar(), children);
+			DD result = DDnode.getDD(dd2.getVar(), children);
 			Global.maxHashtable.put(triplet, result);
 			return result;
 		}
@@ -1541,7 +1541,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.max(dd1.getChildren()[i], dd2, config);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.maxHashtable.put(triplet, result);
 			return result;
 		}
@@ -1559,7 +1559,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.max(dd1.getChildren()[i], dd2.getChildren()[i], config);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.maxHashtable.put(triplet, result);
 			return result;
 		}
@@ -1568,7 +1568,7 @@ public class OP {
 		else {
 			if (dd1.getVal() < dd2.getVal()) {
 				int[][] newConfig = Config.merge(config, dd2.getConfig());
-				return DDleaf.myNew(dd2.getVal(), newConfig);
+				return DDleaf.getDD(dd2.getVal(), newConfig);
 			} else {
 				return dd1;
 			}
@@ -1612,7 +1612,7 @@ public class OP {
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				children[i] = OP.min(dd1, dd2.getChildren()[i], config);
 			}
-			DD result = DDnode.myNew(dd2.getVar(), children);
+			DD result = DDnode.getDD(dd2.getVar(), children);
 			Global.minHashtable.put(triplet, result);
 			return result;
 		}
@@ -1630,7 +1630,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.min(dd2, dd1.getChildren()[i], config);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.minHashtable.put(triplet, result);
 			return result;
 		}
@@ -1648,7 +1648,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.min(dd1.getChildren()[i], dd2.getChildren()[i], config);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.minHashtable.put(triplet, result);
 			return result;
 		}
@@ -1657,7 +1657,7 @@ public class OP {
 		else {
 			if (dd1.getVal() > dd2.getVal()) {
 				int[][] newConfig = Config.merge(config, dd2.getConfig());
-				return DDleaf.myNew(dd2.getVal(), newConfig);
+				return DDleaf.getDD(dd2.getVal(), newConfig);
 			} else {
 				return dd1;
 			}
@@ -1667,12 +1667,12 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// maxNormDiff
 	//////////////////////////////////////////////////////
-	public static boolean maxNormDiff(DD dd1, DD dd2, double threshold) {
-		HashMap hashtable = new HashMap();
+	public static boolean maxNormDiff(DD dd1, DD dd2, float threshold) {
+		HashMap<Pair, Boolean> hashtable = new HashMap<>();
 		return OP.maxNormDiff(dd1, dd2, threshold, hashtable);
 	}
 
-	public static boolean maxNormDiff(DD dd1, DD dd2, double threshold, HashMap hashtable) {
+	public static boolean maxNormDiff(DD dd1, DD dd2, float threshold, HashMap<Pair, Boolean> hashtable) {
 
 		// dd1 precedes dd2
 		if (dd1.getVar() > dd2.getVar()) {
@@ -1691,7 +1691,7 @@ public class OP {
 				}
 			}
 
-			hashtable.put(pair, new Boolean(result));
+			hashtable.put(pair, Boolean.valueOf(result));
 			return result;
 		}
 
@@ -1712,7 +1712,7 @@ public class OP {
 				}
 			}
 
-			hashtable.put(pair, new Boolean(result));
+			hashtable.put(pair, Boolean.valueOf(result));
 			return result;
 		}
 
@@ -1734,13 +1734,13 @@ public class OP {
 				}
 			}
 
-			hashtable.put(pair, new Boolean(result));
+			hashtable.put(pair, Boolean.valueOf(result));
 			return result;
 		}
 
 		// dd1 and dd2 are leaves
 		else {
-			double diff = dd1.getVal() - dd2.getVal();
+			float diff = dd1.getVal() - dd2.getVal();
 			if (-threshold <= diff && diff <= threshold)
 				return true;
 			else
@@ -1748,41 +1748,54 @@ public class OP {
 		}
 	}
 
-	public static double[] getMax(double[][] pbv, int len) {
-		double[] mv = new double[pbv.length];
+	public static float[] getMax(float[][] pbv, int len) {
+		
+		float[] mv = new float[pbv.length];
+		
 		for (int i = 0; i < pbv.length; i++)
 			mv[i] = OP.max(pbv[i], len);
+		
 		return mv;
 	}
 
-	public static double[] getMax(double[][] pbv, int len, int[] pids) {
-		double[] mv = new double[pids.length];
+	public static float[] getMax(float[][] pbv, int len, int[] pids) {
+		
+		float[] mv = new float[pids.length];
+		
 		for (int i = 0; i < pids.length; i++)
 			mv[i] = OP.max(pbv[pids[i]], len);
+		
 		return mv;
 	}
 
-	public static double[] getMax(double[][] pbv, int[] pids) {
-		double[] mv = new double[pids.length];
+	public static float[] getMax(float[][] pbv, int[] pids) {
+		
+		float[] mv = new float[pids.length];
+		
 		for (int i = 0; i < pids.length; i++)
 			mv[i] = OP.max(pbv[pids[i]]);
+		
 		return mv;
 	}
 
-	public static double[] sub(double[] t1, double[] t2) {
-		double[] t = new double[t1.length];
+	public static float[] sub(float[] t1, float[] t2) {
+		
+		float[] t = new float[t1.length];
+		
 		for (int i = 0; i < t1.length; i++)
 			t[i] = t1[i] - t2[i];
+		
 		return t;
-
 	}
 
-	public static double max(double[] t) {
+	public static float max(float[] t) {
 		return max(t, t.length);
-	}// end method max
+	}
 
-	public static double max(double[] t, int len) {
-		double maximum = 0;
+	public static float max(float[] t, int len) {
+		
+		float maximum = 0;
+		
 		if (len > 0) {
 			maximum = t[0]; // start with the first value
 			for (int i = 1; i < len; i++) {
@@ -1791,62 +1804,75 @@ public class OP {
 				}
 			}
 		}
+		
 		return maximum;
-	}// end method max
+	}
 
-	public static double maxabs(double[] t) {
-		double maximum = Math.abs(t[0]); // start with the first value
-		double tt;
+	public static float maxabs(float[] t) {
+		
+		float maximum = Math.abs(t[0]); // start with the first value
+		float tt;
+		
 		for (int i = 1; i < t.length; i++) {
 			tt = Math.abs(t[i]);
 			if (tt > maximum) {
 				maximum = tt; // new maximum
 			}
 		}
+		
 		return maximum;
-	}// end method max
+	}
 
 	//////////////////////////////////////////////////////
 	// maxAll (find leaf with maximum value)
 	//////////////////////////////////////////////////////
 
-	public static double[] maxAllN(DD[] dds) {
+	public static float[] maxAllN(DD[] dds) {
 
-		double[] results = new double[dds.length];
+		float[] results = new float[dds.length];
+		
 		for (int i = 0; i < dds.length; i++)
 			results[i] = OP.maxAll(dds[i]);
+		
 		return results;
 	}
 
-	public static double maxAllN(DD dd) {
-		HashMap hashtable = new HashMap();
+	public static float maxAllN(DD dd) {
+		
+		HashMap<DD, Float> hashtable = new HashMap<>();
 		return maxAll(dd, hashtable);
 	}
 
-	public static double maxAll(DD dd) {
-		HashMap hashtable = new HashMap();
+	public static float maxAll(DD dd) {
+		HashMap<DD, Float> hashtable = new HashMap<>();
 		return maxAll(dd, hashtable);
 	}
 
-	public static double maxAll(DD dd, HashMap hashtable) {
+	public static float maxAll(DD dd, HashMap<DD, Float> hashtable) {
 
-		Double storedResult = (Double) hashtable.get(dd);
+		Float storedResult = (Float) hashtable.get(dd);
+		
 		if (storedResult != null)
-			return storedResult.doubleValue();
+			return storedResult.floatValue();
 
 		// it's a leaf
-		double result = Double.NEGATIVE_INFINITY;
+		float result = Float.NEGATIVE_INFINITY;
+		
 		if (dd.getVar() == 0)
 			result = dd.getVal();
+		
 		else {
+			
 			DD[] children = dd.getChildren();
+			
 			for (int i = 0; i < children.length; i++) {
-				double maxVal = OP.maxAll(children[i], hashtable);
+				float maxVal = OP.maxAll(children[i], hashtable);
 				if (result < maxVal)
 					result = maxVal;
 			}
 		}
-		hashtable.put(dd, new Double(result));
+		
+		hashtable.put(dd, Float.valueOf(result));
 		return result;
 	}
 
@@ -1854,43 +1880,53 @@ public class OP {
 	// minAll (find leaf with minimum value)
 	//////////////////////////////////////////////////////
 
-	public static double[] minAllN(DD[] dds) {
+	public static float[] minAllN(DD[] dds) {
 
-		double[] results = new double[dds.length];
+		float[] results = new float[dds.length];
 		for (int i = 0; i < dds.length; i++)
 			results[i] = OP.minAll(dds[i]);
 		return results;
 	}
 
-	public static double minAllN(DD dd) {
-		HashMap hashtable = new HashMap();
+	public static float minAllN(DD dd) {
+		
+		HashMap<DD, Float> hashtable = new HashMap<>();
 		return minAll(dd, hashtable);
 	}
 
-	public static double minAll(DD dd) {
-		HashMap hashtable = new HashMap();
+	public static float minAll(DD dd) {
+		
+		HashMap<DD, Float> hashtable = new HashMap<>();
 		return minAll(dd, hashtable);
 	}
 
-	public static double minAll(DD dd, HashMap hashtable) {
+	public static float minAll(DD dd, HashMap<DD, Float> hashtable) {
 
-		Double storedResult = (Double) hashtable.get(dd);
+		Float storedResult = (Float) hashtable.get(dd);
+		
 		if (storedResult != null)
-			return storedResult.doubleValue();
+			return storedResult.floatValue();
 
 		// it's a leaf
-		double result = Double.POSITIVE_INFINITY;
+		float result = Float.POSITIVE_INFINITY;
+		
 		if (dd.getVar() == 0)
 			result = dd.getVal();
+		
 		else {
+			
 			DD[] children = dd.getChildren();
+			
 			for (int i = 0; i < children.length; i++) {
-				double minVal = OP.minAll(children[i], hashtable);
+				
+				float minVal = OP.minAll(children[i], hashtable);
+				
 				if (result > minVal)
 					result = minVal;
 			}
 		}
-		hashtable.put(dd, new Double(result));
+		
+		hashtable.put(dd, result);
 		return result;
 	}
 
@@ -1924,7 +1960,7 @@ public class OP {
 		for (int i = 0; i < dd.getChildren().length; i++) {
 			children[i] = OP.restrict(dd.getChildren()[i], config);
 		}
-		return DDnode.myNew(dd.getVar(), children);
+		return DDnode.getDD(dd.getVar(), children);
 	}
 
 	//////////////////////////////////////////////////////
@@ -1961,13 +1997,13 @@ public class OP {
 		for (int i = 0; i < children.length; i++) {
 			children[i] = OP.restrict(dd.getChildren()[i], config);
 		}
-		return DDnode.myNew(variable, children);
+		return DDnode.getDD(variable, children);
 	}
 
 	//////////////////////////////////////////////////////
 	// evaluate a DD for some configuration of variables
 	//////////////////////////////////////////////////////
-	public static double eval(DD dd, int[][] config) {
+	public static float eval(DD dd, int[][] config) {
 		return OP.restrictOrdered(dd, config).getVal();
 	}
 
@@ -2008,19 +2044,19 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// evaluate N DDs
 	//////////////////////////////////////////////////////
-	public static double[] evalN(DD[] dds, int[][] config) {
+	public static float[] evalN(DD[] dds, int[][] config) {
 
 		DD[] restrictedDds = OP.restrictN(dds, config);
 
-		double[] values = new double[dds.length];
+		float[] values = new float[dds.length];
 		for (int i = 0; i < dds.length; i++) {
 			values[i] = restrictedDds[i].getVal();
 		}
 		return values;
 	}
 
-	public static double[] evalN(DD dd, int[][] config) {
-		double[] values = new double[1];
+	public static float[] evalN(DD dd, int[][] config) {
+		float[] values = new float[1];
 		values[0] = OP.restrict(dd, config).getVal();
 		return values;
 	}
@@ -2038,7 +2074,7 @@ public class OP {
 		// root is variable that must be eliminated
 		if (dd.getVar() == var) {
 			// have to collapse all children into a new node
-			DD newDD = DDleaf.myNew(Double.NEGATIVE_INFINITY);
+			DD newDD = DDleaf.myNew(Float.NEGATIVE_INFINITY);
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				int[][] config = new int[2][1];
 				config[0][0] = dd.getVar();
@@ -2055,7 +2091,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.maxout(dd.getChildren()[i], var);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -2072,7 +2108,7 @@ public class OP {
 		// root is variable that must be eliminated
 		if (dd.getVar() == var) {
 			// have to collapse all children into a new node
-			DD newDD = DDleaf.myNew(Double.POSITIVE_INFINITY);
+			DD newDD = DDleaf.myNew(Float.POSITIVE_INFINITY);
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				int[][] config = new int[2][1];
 				config[0][0] = dd.getVar();
@@ -2089,7 +2125,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.minout(dd.getChildren()[i], var);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -2213,7 +2249,7 @@ public class OP {
 					DD restDd = OP.restrict(dd, config);
 					newChildren[i] = OP.orderLast(restDd, varId);
 				}
-				return DDnode.myNew(rootVarId, newChildren);
+				return DDnode.getDD(rootVarId, newChildren);
 			}
 		}
 
@@ -2223,7 +2259,7 @@ public class OP {
 			for (int i = 0; i < children.length; i++) {
 				newChildren[i] = OP.orderLast(children[i], varId);
 			}
-			return DDnode.myNew(dd.getVar(), newChildren);
+			return DDnode.getDD(dd.getVar(), newChildren);
 		}
 	}
 
@@ -2247,7 +2283,7 @@ public class OP {
 			DD restDd = OP.restrict(dd, config);
 			children[i] = OP.reorder(restDd);
 		}
-		return DDnode.myNew(highestVar, children);
+		return DDnode.getDD(highestVar, children);
 	}
 
 	//////////////////////////////////////////////////////
@@ -2267,7 +2303,7 @@ public class OP {
 			for (int i = 0; i < children.length; i++) {
 				children[i] = OP.extractConfig(dd.getChildren()[i], vars);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 
 	}
@@ -2291,7 +2327,7 @@ public class OP {
 			for (int i = 0; i < children.length; i++) {
 				children[i] = OP.clearConfig(dd.getChildren()[i]);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -2540,13 +2576,13 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// sampleMultinomial
 	//////////////////////////////////////////////////////
-	public static int sampleMultinomial(double[] pdist) {
-		double thesum = 0.0;
+	public static int sampleMultinomial(float[] pdist) {
+		float thesum = 0.0f;
 		int i = 0;
 		for (i = 0; i < pdist.length; i++)
 			thesum += pdist[i];
-		double ssum = 0.0;
-		double r = Global.random.nextDouble();
+		float ssum = 0.0f;
+		float r = Global.random.nextFloat();
 		// System.out.println("r is "+r);
 		i = 0;
 		while (ssum < r && i < pdist.length)
@@ -2586,13 +2622,13 @@ public class OP {
 
 		// it's a node
 		else {
-			double sum = 0;
+			float sum = 0;
 			DD[] children = dd.getChildren();
 			for (int childId = 0; childId < children.length; childId++) {
 				sum += children[childId].getVal();
 			}
 
-			double randomVal = Global.random.nextDouble() * sum;
+			float randomVal = Global.random.nextFloat() * sum;
 			sum = 0;
 			for (int childId = 0; childId < children.length; childId++) {
 				sum += children[childId].getVal();
@@ -2672,14 +2708,14 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// enumerateLeaves
 	//////////////////////////////////////////////////////
-	public static double[] enumerateLeaves(DD dd) {
-		double[] leaves = new double[dd.getNumLeaves()];
+	public static float[] enumerateLeaves(DD dd) {
+		float[] leaves = new float[dd.getNumLeaves()];
 		int[] ptr = new int[1];
 		ptr[0] = 0;
 		return OP.enumerateLeaves(dd, leaves, ptr);
 	}
 
-	public static double[] enumerateLeaves(DD dd, double[] leaves, int[] ptr) {
+	public static float[] enumerateLeaves(DD dd, float[] leaves, int[] ptr) {
 
 		// it's a leaf
 		if (dd.getVar() == 0) {
@@ -2855,13 +2891,13 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// approximateAll
 	//////////////////////////////////////////////////////
-	public static DD approximateAll(DD dd, double tolerance) {
+	public static DD approximateAll(DD dd, float tolerance) {
 
-		HashMap hashtable = new HashMap();
-		double[] leafTable = new double[OP.nLeaves(dd)];
+		HashMap<DD, DD> hashtable = new HashMap<>();
+		float[] leafTable = new float[OP.nLeaves(dd)];
 		DD[] nodeTable = new DD[OP.nNodes(dd)];
-		double[] maxTable = new double[nodeTable.length];
-		double[] minTable = new double[nodeTable.length];
+		float[] maxTable = new float[nodeTable.length];
+		float[] minTable = new float[nodeTable.length];
 		int[] nLeavesPtr = new int[1];
 		int[] nNodesPtr = new int[1];
 		nLeavesPtr[0] = 0;
@@ -2870,8 +2906,8 @@ public class OP {
 				minTable);
 	}
 
-	public static DD approximateAll(DD dd, double tolerance, HashMap hashtable, double[] leafTable, DD[] nodeTable,
-			int[] nLeavesPtr, int[] nNodesPtr, double[] maxTable, double[] minTable) {
+	public static DD approximateAll(DD dd, float tolerance, HashMap<DD, DD> hashtable, float[] leafTable,
+			DD[] nodeTable, int[] nLeavesPtr, int[] nNodesPtr, float[] maxTable, float[] minTable) {
 
 		// lookup apprDd
 		DD apprDd = (DD) hashtable.get(dd);
@@ -2879,12 +2915,12 @@ public class OP {
 			return apprDd;
 
 		// compute min and max values of dd
-		double minVal = OP.minAll(dd);
-		double maxVal = OP.maxAll(dd);
+		float minVal = OP.minAll(dd);
+		float maxVal = OP.maxAll(dd);
 
 		// dd can be approximated by a leaf
 		if (maxVal - minVal <= 2 * tolerance) {
-			double val = (maxVal + minVal) / 2;
+			float val = (maxVal + minVal) / 2;
 
 			// binary search
 			int ubId = nLeavesPtr[0];
@@ -2900,9 +2936,9 @@ public class OP {
 			middleId = ubId;
 
 			// find closest value
-			double ubVal = Double.POSITIVE_INFINITY;
-			double lbVal = Double.NEGATIVE_INFINITY;
-			double closestVal;
+			float ubVal = Float.POSITIVE_INFINITY;
+			float lbVal = Float.NEGATIVE_INFINITY;
+			float closestVal;
 			if (lbId >= 0)
 				lbVal = leafTable[lbId];
 			if (ubId < nLeavesPtr[0])
@@ -2960,7 +2996,7 @@ public class OP {
 				newChildren[i] = OP.approximateAll(children[i], tolerance, hashtable, leafTable, nodeTable, nLeavesPtr,
 						nNodesPtr, maxTable, minTable);
 			}
-			apprDd = DDnode.myNew(dd.getVar(), newChildren);
+			apprDd = DDnode.getDD(dd.getVar(), newChildren);
 
 			// insert apprDd in nodeTable
 			for (int i = nNodesPtr[0]; i > id; i--) {
@@ -2982,28 +3018,29 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// approximate
 	//////////////////////////////////////////////////////
-	public static DD approximate(DD dd, double tolerance) {
+	public static DD approximate(DD dd, float tolerance) {
 
-		HashMap hashtable = new HashMap();
-		double[] leafValues = new double[OP.nLeaves(dd) + 2];
-		// leafValues[0] = 0;
-		// leafValues[1] = 1;
+		HashMap<DD, DD> hashtable = new HashMap<>();
+		float[] leafValues = new float[OP.nLeaves(dd) + 2];
+		
 		int[] nLeavesPtr = new int[1];
 		nLeavesPtr[0] = 0;
-		// nLeavesPtr[0] = 2;
+		
 		return OP.approximate(dd, tolerance, hashtable, leafValues, nLeavesPtr);
 	}
 
-	public static DD approximate(DD dd, double tolerance, double prescribedLeafVal) {
-		double[] prescribedLeafValues = new double[1];
+	public static DD approximate(DD dd, float tolerance, float prescribedLeafVal) {
+		
+		float[] prescribedLeafValues = new float[1];
 		prescribedLeafValues[0] = prescribedLeafVal;
+		
 		return approximate(dd, tolerance, prescribedLeafValues);
 	}
 
-	public static DD approximate(DD dd, double tolerance, double[] prescribedLeafValues) {
+	public static DD approximate(DD dd, float tolerance, float[] prescribedLeafValues) {
 
-		HashMap hashtable = new HashMap();
-		double[] leafValues = new double[OP.nLeaves(dd) + prescribedLeafValues.length];
+		HashMap<DD, DD> hashtable = new HashMap<>();
+		float[] leafValues = new float[OP.nLeaves(dd) + prescribedLeafValues.length];
 		for (int i = 0; i < prescribedLeafValues.length; i++) {
 			leafValues[i] = prescribedLeafValues[i];
 		}
@@ -3012,7 +3049,7 @@ public class OP {
 		return OP.approximate(dd, tolerance, hashtable, leafValues, nLeavesPtr);
 	}
 
-	public static DD approximate(DD dd, double tolerance, HashMap hashtable, double[] leafValues, int[] nLeavesPtr) {
+	public static DD approximate(DD dd, float tolerance, HashMap<DD, DD> hashtable, float[] leafValues, int[] nLeavesPtr) {
 
 		// lookup apprDd
 		DD apprDd = (DD) hashtable.get(dd);
@@ -3021,7 +3058,7 @@ public class OP {
 
 		// it's a leaf
 		if (dd.getVar() == 0) {
-			double val = dd.getVal();
+			float val = dd.getVal();
 
 			// binary search
 			int ubId = nLeavesPtr[0];
@@ -3037,9 +3074,10 @@ public class OP {
 			middleId = ubId;
 
 			// find closest value
-			double ubVal = Double.POSITIVE_INFINITY;
-			double lbVal = Double.NEGATIVE_INFINITY;
-			double closestVal;
+			float ubVal = Float.POSITIVE_INFINITY;
+			float lbVal = Float.NEGATIVE_INFINITY;
+			float closestVal;
+			
 			if (lbId >= 0)
 				lbVal = leafValues[lbId];
 			if (ubId < nLeavesPtr[0])
@@ -3065,6 +3103,7 @@ public class OP {
 
 			// store apprDd
 			hashtable.put(dd, apprDd);
+			
 			return apprDd;
 		}
 
@@ -3075,7 +3114,7 @@ public class OP {
 			for (int i = 0; i < children.length; i++) {
 				newChildren[i] = OP.approximate(children[i], tolerance, hashtable, leafValues, nLeavesPtr);
 			}
-			apprDd = DDnode.myNew(dd.getVar(), newChildren);
+			apprDd = DDnode.getDD(dd.getVar(), newChildren);
 			hashtable.put(dd, apprDd);
 			return apprDd;
 		}
@@ -3086,11 +3125,11 @@ public class OP {
 	//////////////////////////////////////////////////////
 	public static DD findLeaf(DD dd, DD leaf) {
 
-		HashMap hashtable = new HashMap();
+		HashMap<DD, DD> hashtable = new HashMap<>();
 		return OP.findLeaf(dd, leaf, hashtable);
 	}
 
-	public static DD findLeaf(DD dd, DD leaf, HashMap hashtable) {
+	public static DD findLeaf(DD dd, DD leaf, HashMap<DD, DD> hashtable) {
 
 		// it's a leaf
 		if (dd.getVar() == 0) {
@@ -3113,7 +3152,7 @@ public class OP {
 			for (int i = 0; i < newChildren.length; i++) {
 				newChildren[i] = OP.findLeaf(children[i], leaf, hashtable);
 			}
-			result = DDnode.myNew(dd.getVar(), newChildren);
+			result = DDnode.getDD(dd.getVar(), newChildren);
 			hashtable.put(dd, result);
 			return result;
 		}
@@ -3122,24 +3161,24 @@ public class OP {
 	//////////////////////////////////////////////////////
 	// convert2array
 	//////////////////////////////////////////////////////
-	public static double[] convert2array(DD dd) {
+	public static float[] convert2array(DD dd) {
 
 		int[] varList = dd.getVarSet();
 		return convert2array(dd, varList);
 	}
 
-	public static double[][] convert2array(DD[] ddArray, int[] varList) {
+	public static float[][] convert2array(DD[] ddArray, int[] varList) {
 
-		double[][] results = new double[ddArray.length][];
+		float[][] results = new float[ddArray.length][];
 		for (int id = 0; id < ddArray.length; id++) {
 			results[id] = convert2array(ddArray[id], varList);
 		}
 		return results;
 	}
 
-	public static double[] convert2array(DD dd, int[] varList) {
+	public static float[] convert2array(DD dd, int[] varList) {
 
-		// double check that varList contains all the variables in the tree...
+		// float check that varList contains all the variables in the tree...
 		int[] diffSet = MySet.diff(dd.getVarSet(), varList);
 		if (diffSet != null && diffSet.length >= 1) {
 			throw new Error("varList does not contain all the variables in the tree\n");
@@ -3151,12 +3190,12 @@ public class OP {
 			arrayLength *= Global.varDomSize[varList[i] - 1];
 		}
 
-		double[] result = new double[arrayLength];
+		float[] result = new float[arrayLength];
 		convert2arrayRecursive(dd, varList, 0, result, 0);
 		return result;
 	}
 
-	public static int convert2arrayRecursive(DD dd, int[] varList, int varListIndex, double[] array, int arrayIndex) {
+	public static int convert2arrayRecursive(DD dd, int[] varList, int varListIndex, float[] array, int arrayIndex) {
 
 		if (varListIndex == varList.length) {
 			array[arrayIndex] = dd.getVal();
@@ -3186,68 +3225,78 @@ public class OP {
 	// marginals
 	//////////////////////////////////////////////////////
 	public static DD[] marginals(DD[] cpts, int[] margIds, int[] summoutIds) {
+		
 		int[] otherVars = new int[margIds.length + summoutIds.length - 1];
+		
 		for (int i = 0; i < margIds.length - 1; i++)
 			otherVars[i] = margIds[i + 1];
+		
 		for (int i = 0; i < summoutIds.length; i++)
 			otherVars[i + margIds.length - 1] = summoutIds[i];
 
-		double[] zero = new double[1];
+		float[] zero = new float[1];
 		zero[0] = 0;
 		DD[] arrayMargs = new DD[margIds.length + 1];
+		
 		for (int i = 0; i < margIds.length; i++) {
+			
 			if (i >= 1)
 				otherVars[i - 1] = margIds[i - 1];
+			
 			arrayMargs[i] = OP.addMultVarElim(cpts, otherVars);
-			arrayMargs[i] = OP.approximate(arrayMargs[i], 1e-6, zero);
+			arrayMargs[i] = OP.approximate(arrayMargs[i], 1e-6f, zero);
 		}
+		
 		arrayMargs[arrayMargs.length - 1] = OP.addout(arrayMargs[0], margIds[0]);
 		DD normalizationFactor = OP.replace(arrayMargs[arrayMargs.length - 1], 0, 1);
+		
 		for (int i = 0; i < margIds.length; i++) {
 			arrayMargs[i] = OP.div(arrayMargs[i], normalizationFactor);
 		}
+		
 		return arrayMargs;
 	}
-	
+
 	// ---------------------------------------------------------------------------
 	// L2 norm
-	
-	public static double l2NormSq(DD add1, DD add2) {
-		
-		double norm = Double.NaN;
-		
-		if (add1.getVar() == add2.getVar() || 
-				add1 instanceof DDleaf || add2 instanceof DDleaf) {
-			
-			DD diff = OP.pow(OP.sub(add1, add2), 2.0);
-			norm = 0.0;
-			
+
+	public static float l2NormSq(DD add1, DD add2) {
+
+		float norm = Float.NaN;
+
+		if (add1.getVar() == add2.getVar() || add1 instanceof DDleaf || add2 instanceof DDleaf) {
+
+			DD diff = OP.pow(OP.sub(add1, add2), 2.0f);
+			norm = 0.0f;
+
 			if (diff.getChildren() != null) {
 				for (DD child : diff.getChildren()) {
-					if (child != null) norm += child.getVal();
+					if (child != null)
+						norm += child.getVal();
 				}
 			}
-			
-			else norm = diff.getVal();
+
+			else
+				norm = diff.getVal();
 		}
-		
+
 		return norm;
 	}
 
-	public static double l2NormSq(DD[] add1, DD[] add2) {
-		
-		double norm = Double.NaN;
-		double len = add1.length;
-		
+	public static float l2NormSq(DD[] add1, DD[] add2) {
+
+		float norm = Float.NaN;
+		float len = add1.length;
+
 		if (add1.length == add2.length) {
 			norm = 0;
-			
+
 			for (int i = 0; i < len; i++)
 				norm += OP.l2NormSq(add1[i], add2[0]);
-			
+
 			norm = norm / len;
 		}
-		
+
 		return norm;
 	}
 

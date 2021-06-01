@@ -69,8 +69,8 @@ public class ReactiveSolver extends BaseSolver {
 	}
 
 	@Override
-	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
-		return 0.0;
+	public float evaluatePolicy(int trials, int evalDepth, boolean verbose) {
+		return 0.0f;
 	}
 
 	@Override

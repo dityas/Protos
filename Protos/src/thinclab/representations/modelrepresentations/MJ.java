@@ -212,7 +212,7 @@ public class MJ extends OptimalDynamicBeliefTree {
 			if (IPOMDP.getFrameIDFromVarName(child) != this.solver.f.frameID) {
 				
 				try {
-					tree.setDDAt(child, new DDTreeLeaf(0.0));
+					tree.setDDAt(child, new DDTreeLeaf(0.0f));
 				} 
 				
 				catch (Exception e) {
@@ -235,7 +235,7 @@ public class MJ extends OptimalDynamicBeliefTree {
 						
 						independentsFactor.setDDAt(
 								childT, 
-								new DDTreeLeaf(0.0));
+								new DDTreeLeaf(0.0f));
 					}
 				}
 			} 
@@ -270,7 +270,7 @@ public class MJ extends OptimalDynamicBeliefTree {
 			for (int node : roots) {
 				
 				try {
-					beliefMj.setValueAt("m" + node, (1.0 / roots.size()));
+					beliefMj.setValueAt("m" + node, (1.0f / roots.size()));
 				} 
 				
 				catch (Exception e) {

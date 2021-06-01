@@ -228,10 +228,10 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 				
 				int simRounds = new Integer(line.getOptionValue("y"));
 				int simLength = new Integer(line.getOptionValue("x"));
-				double mergeThreshold = 0.0;
+				float mergeThreshold = 0.0f;
 				
 				if (line.hasOption("m"))
-					mergeThreshold = new Double(line.getOptionValue("m"));
+					mergeThreshold = Float.valueOf(line.getOptionValue("m"));
 				
 				/* run simulation for simRounds */
 				for (int i = 0; i < simRounds; i++) {

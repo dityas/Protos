@@ -277,7 +277,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 				for (int node : roots) {
 
 					try {
-						beliefMj.setValueAt(MJ.makeModelLabelFromNodeId(node, frameID), (1.0 / mjCount));
+						beliefMj.setValueAt(MJ.makeModelLabelFromNodeId(node, frameID), (1.0f / mjCount));
 					}
 
 					catch (Exception e) {

@@ -95,7 +95,7 @@ public class DefaultActionPolicySolver extends BaseSolver {
 	}
 
 	@Override
-	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
+	public float evaluatePolicy(int trials, int evalDepth, boolean verbose) {
 		return this.f.evaluateDefaultPolicy(this.defaultAction, trials, evalDepth, verbose);
 	}
 

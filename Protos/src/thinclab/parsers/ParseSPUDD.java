@@ -386,11 +386,11 @@ public class ParseSPUDD implements Serializable {
 				}
 
 				LOGGER.debug("Making child " + Global.valNames[varId][i]);
-				children[i] = DDnode.myNew(varId + 1, grandChildren);
+				children[i] = DDnode.getDD(varId + 1, grandChildren);
 
 			}
 
-			DD dd = DDnode.myNew(varId + 1 + Global.varNames.length / 2, children);
+			DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
 			existingDds.put(ddName, dd);
 		}
 
@@ -409,17 +409,17 @@ public class ParseSPUDD implements Serializable {
 				for (int j = 0; j < Global.varDomSize[varId]; j++) {
 
 					if (i == j)
-						grandChildren[j] = DDleaf.myNew(0.95);
+						grandChildren[j] = DDleaf.myNew(0.95f);
 					else
-						grandChildren[j] = DDleaf.myNew(0.05 / (Global.varDomSize[varId] - 1));
+						grandChildren[j] = DDleaf.myNew(0.05f / (Global.varDomSize[varId] - 1));
 				}
 
 				LOGGER.debug("Making child " + Global.valNames[varId][i]);
-				children[i] = DDnode.myNew(varId + 1, grandChildren);
+				children[i] = DDnode.getDD(varId + 1, grandChildren);
 
 			}
 
-			DD dd = DDnode.myNew(varId + 1 + Global.varNames.length / 2, children);
+			DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
 			existingDds.put(ddName, dd);
 		}
 
@@ -438,17 +438,17 @@ public class ParseSPUDD implements Serializable {
 				for (int j = 0; j < Global.varDomSize[varId]; j++) {
 
 					if (i == j)
-						grandChildren[j] = DDleaf.myNew(0.99);
+						grandChildren[j] = DDleaf.myNew(0.99f);
 					else
-						grandChildren[j] = DDleaf.myNew(0.01 / (Global.varDomSize[varId] - 1));
+						grandChildren[j] = DDleaf.myNew(0.01f / (Global.varDomSize[varId] - 1));
 				}
 
 				LOGGER.debug("Making child " + Global.valNames[varId][i]);
-				children[i] = DDnode.myNew(varId + 1, grandChildren);
+				children[i] = DDnode.getDD(varId + 1, grandChildren);
 
 			}
 
-			DD dd = DDnode.myNew(varId + 1 + Global.varNames.length / 2, children);
+			DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
 			existingDds.put(ddName, dd);
 		}
 
@@ -463,7 +463,7 @@ public class ParseSPUDD implements Serializable {
 					else
 						children[i] = DD.zero;
 				}
-				DD dd = DDnode.myNew(varId + 1 + Global.varNames.length / 2, children);
+				DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
 				existingDds.put(ddName, dd);
 			}
 		}
@@ -565,13 +565,13 @@ public class ParseSPUDD implements Serializable {
 							else
 								error("Expected ')' or '('");
 						}
-						dd = DDnode.myNew(varId + 1, children);
+						dd = DDnode.getDD(varId + 1, children);
 					}
 				}
 
 				// parse leaf node
 				else if (StreamTokenizer.TT_NUMBER == stream.ttype) {
-					dd = DDleaf.myNew(stream.nval);
+					dd = DDleaf.myNew((float) stream.nval);
 					if (stream.nextToken() != ')')
 						error("Expected ')'");
 				}
@@ -697,7 +697,7 @@ public class ParseSPUDD implements Serializable {
 						double theval = computeSigmoid(sigparams);
 						// System.out.println("computing sigmoid with "+sigparams[0]+" "+sigparams[1]+"
 						// "+sigparams[2]+" has value "+theval);
-						dd = DDleaf.myNew(theval);
+						dd = DDleaf.myNew((float) theval);
 					}
 				}
 
@@ -858,7 +858,7 @@ public class ParseSPUDD implements Serializable {
 		try {
 			if (stream.nextToken() != StreamTokenizer.TT_NUMBER)
 				error("Expected a number");
-			discount = DDleaf.myNew(stream.nval);
+			discount = DDleaf.myNew((float) stream.nval);
 		} catch (IOException e) {
 			System.out.println("Error: IOException\n");
 			// System.exit(1);
@@ -869,7 +869,7 @@ public class ParseSPUDD implements Serializable {
 		try {
 			if (stream.nextToken() != StreamTokenizer.TT_NUMBER)
 				error("Expected a number");
-			horizon = DDleaf.myNew(stream.nval);
+			horizon = DDleaf.myNew((float) stream.nval);
 		} catch (IOException e) {
 			System.out.println("Error: IOException\n");
 			// System.exit(1);
@@ -880,7 +880,7 @@ public class ParseSPUDD implements Serializable {
 		try {
 			if (stream.nextToken() != StreamTokenizer.TT_NUMBER)
 				error("Expected a number");
-			tolerance = DDleaf.myNew(stream.nval);
+			tolerance = DDleaf.myNew((float) stream.nval);
 		} catch (IOException e) {
 			System.out.println("Error: IOException\n");
 			// System.exit(1);

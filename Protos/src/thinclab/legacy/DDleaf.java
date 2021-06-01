@@ -1,7 +1,5 @@
 package thinclab.legacy;
 
-import java.util.*;
-
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import thinclab.ddinterface.DDTree;
@@ -11,63 +9,66 @@ import java.lang.ref.*;
 import java.io.*;
 
 public class DDleaf extends DD {
-	private double val;
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2608205879751348514L;
+	private float val;
 	private int[][] config;
-	
+
 	/* precomputed hash, this may be a bad idea */
 	private int hash;
 
-	private DDleaf(double val) {
+	private DDleaf(float val) {
 		this.val = val;
 		this.var = 0;
 		this.config = null;
-		
+
 		this.precomputeHash();
 	}
 
-	private DDleaf(double val, int[][] config) {
+	private DDleaf(float val, int[][] config) {
 		this.val = val;
 		this.var = 0;
 		this.config = config;
-		
+
 		this.precomputeHash();
 	}
-	
+
 	private void precomputeHash() {
 		/*
 		 * Precomputes the hash code to avoid repeated computations and save time.
 		 * 
-		 * This could be dangerous if the object attributes are changed in between 
+		 * This could be dangerous if the object attributes are changed in between
 		 */
-		
-		this.hash = 
-				new HashCodeBuilder()
-					.append(this.val)
-					.append(Config.hashCode(this.config)).toHashCode();
+
+		this.hash = new HashCodeBuilder().append(this.val).append(Config.hashCode(this.config)).toHashCode();
 	}
 
-	public static DD myNew(double val) {
+	public static DD myNew(float val) {
 
 		// create new leaf
 		DDleaf leaf = new DDleaf(val);
 
 		// try to lookup leaf in leafHashtable
-		WeakReference storedLeaf = (WeakReference) Global.leafHashtable.get(leaf);
+		WeakReference<DD> weakReference = (WeakReference<DD>) Global.leafHashtable.get(leaf);
+		WeakReference<DD> storedLeaf = weakReference;
 		if (storedLeaf != null)
 			return (DDleaf) storedLeaf.get();
-		
+
 		// store leaf in leafHashtable
 		Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf));
 		return leaf;
 	}
 
-	public static DD myNew(double val, int[][] config) {
+	public static DD getDD(float val, int[][] config) {
 
 		// create new leaf
 		DDleaf leaf = new DDleaf(val, config);
 
 		// try to lookup leaf in leafHashtable
-		WeakReference storedLeaf = (WeakReference) Global.leafHashtable.get(leaf);
+		WeakReference<DD> storedLeaf = (WeakReference<DD>) Global.leafHashtable.get(leaf);
 		if (storedLeaf != null)
 			return (DDleaf) storedLeaf.get();
 
@@ -84,11 +85,11 @@ public class DDleaf extends DD {
 		return new int[0];
 	}
 
-	public double getSum() {
+	public float getSum() {
 		return val;
 	}
 
-	public double getVal() {
+	public float getVal() {
 		return val;
 	}
 
@@ -119,12 +120,12 @@ public class DDleaf extends DD {
 	public int hashCode() {
 //		Double valD = new Double(val);
 //		return valD.hashCode() + Config.hashCode(config);
-		
+
 		return this.hash;
 	}
 
 	public DD store() {
-		return DDleaf.myNew(val, config);
+		return DDleaf.getDD(val, config);
 	}
 
 	public void display(String space) {

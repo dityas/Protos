@@ -163,7 +163,7 @@ public class DDTree implements Serializable {
 		else throw new Exception(this.varName + " does not contain child " + childName);
 	}
 	
-	public void setValueAt(String childName, double val) throws Exception {
+	public void setValueAt(String childName, float val) throws Exception {
 		/*
 		 * Sets the value of the leaf at childName to param val
 		 */
@@ -242,7 +242,7 @@ public class DDTree implements Serializable {
 		 * varIndex should always be incremented by 1 because the global
 		 * arrays use Matlab-like indices.
 		 */
-		return DDnode.myNew(varIndex + 1, children);
+		return DDnode.getDD(varIndex + 1, children);
 	}
 	
 	// ----------------------------------------------------------------------------------

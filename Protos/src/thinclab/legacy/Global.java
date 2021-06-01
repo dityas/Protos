@@ -22,8 +22,8 @@ public class Global {
 	public static int CONTEXT_FRAME_ID;
 
 	// hash tables
-	public static CacheMap leafHashtable = new CacheMap();
-	public static CacheMap nodeHashtable = new CacheMap();
+	public static TypedCacheMap<DD, WeakReference<DD>> leafHashtable = new TypedCacheMap<>();
+	public static TypedCacheMap<DD, WeakReference<DD>> nodeHashtable = new TypedCacheMap<>();
 	public static TypedCacheMap<Pair, DD> addHashtable = new TypedCacheMap<Pair, DD>();
 	public static TypedCacheMap<Pair, DD> multHashtable = new TypedCacheMap<Pair, DD>();
 	public static CacheMap maxHashtable = new CacheMap();
@@ -53,97 +53,7 @@ public class Global {
 	// --------------------------------------------------------------------------
 
 	private static final Logger LOGGER = LogManager.getLogger(Global.class);
-
-	public static void main(String args[]) {
-
-		/*
-		 * HashMap config = new HashMap(); config.put(new Integer(1), new Integer(1));
-		 * config.put(new Integer(4), new Integer(3)); int[][] config2 = new int[2][2];
-		 * config2[0][0] = 1; config2[1][0] = 1; config2[0][1] = 4; config2[1][1] = 3;
-		 * int[][] config3 = Config.clone(config2); config3 = Config.add(config3,2,1);
-		 * config3 = Config.add(config3,2,1); int[][] config4 =
-		 * Config.merge(config3,config2); System.out.println(config.hashCode());
-		 * System.out.println(config.toString());
-		 * System.out.println(Config.hashCode(config4));
-		 * System.out.println(Config.toString(config2));
-		 * System.out.println(Config.toString(config3));
-		 * System.out.println(Config.toString(config4));
-		 * System.out.println(Config.equals(config2,config3)); return;
-		 */
-
-		// int N = Integer.parseInt(args[0]);
-		// int iter = Integer.parseInt(args[1]);
-		int N = 100;
-		int iter = 1;
-
-		Random numberGenerator = new Random(10101);
-
-		for (long j = 0; j < iter; j++) {
-
-			DD dd1 = DDleaf.myNew(numberGenerator.nextDouble());
-			for (int i = 1; i <= N; i++) {
-				DD[] children = new DD[3];
-				if (numberGenerator.nextInt(2) == 0) {
-					children[0] = DDleaf.myNew(numberGenerator.nextDouble());
-					children[1] = dd1;
-					children[2] = dd1;
-				} else {
-					children[0] = dd1;
-					children[1] = dd1;
-					children[2] = DDleaf.myNew(numberGenerator.nextDouble());
-				}
-				dd1 = DDnode.myNew(i, children);
-			}
-
-			DD dd2 = DDleaf.myNew(numberGenerator.nextDouble());
-			for (int i = 1; i <= N; i++) {
-				DD[] children = new DD[3];
-				if (numberGenerator.nextInt(2) == 0) {
-					children[0] = DDleaf.myNew(numberGenerator.nextDouble());
-					children[1] = dd2;
-					children[2] = dd2;
-				} else {
-					children[0] = dd2;
-					children[1] = dd2;
-					children[2] = DDleaf.myNew(numberGenerator.nextDouble());
-				}
-				dd2 = DDnode.myNew(i, children);
-			}
-
-			DD[] ddArray = new DD[2];
-			ddArray[0] = dd1;
-			ddArray[1] = dd2;
-			// for (int i=0; i<100; i++) {
-			// ddArray[i] = dd1;
-			// }
-
-			int[] varSet = new int[N];
-			int[][] config = new int[2][N];
-			for (int i = 1; i <= N; i++) {
-				varSet[i - 1] = i;
-				config[0][i - 1] = i;
-				config[1][i - 1] = i % 2 + 1;
-			}
-
-			// System.out.println("dd1.display");
-			// dd1.display();
-			Global.multHashtable.clear();
-			Global.addHashtable.clear();
-			Global.leafHashtable.clear();
-			Global.nodeHashtable.clear();
-			for (int k = 0; k < 10000; k++) {
-				DD dd1r = OP.restrict(dd1, config);
-				DD dd2r = OP.restrict(dd2, config);
-			}
-		}
-		Global.dotProductHashtable.clear();
-		Global.multHashtable.clear();
-		Global.addHashtable.clear();
-		Global.leafHashtable.clear();
-		Global.nodeHashtable.clear();
-		System.out.println("done");
-	}
-
+	
 	public static void setVarDomSize(int[] newVarDomSize) {
 		Global.varDomSize = newVarDomSize;
 	}
@@ -198,8 +108,8 @@ public class Global {
 
 		LOGGER.warn("Clearing caches. This will reduce performance");
 
-		Global.leafHashtable = new CacheMap();
-		Global.nodeHashtable = new CacheMap();
+		Global.leafHashtable = new TypedCacheMap<>();
+		Global.nodeHashtable = new TypedCacheMap<>();
 		Global.addHashtable = new TypedCacheMap<Pair, DD>();
 		Global.multHashtable = new TypedCacheMap<Pair, DD>();
 		Global.maxHashtable = new CacheMap();

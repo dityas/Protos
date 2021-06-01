@@ -68,7 +68,7 @@ public class HumanAgentSolver extends BaseSolver {
 	}
 
 	@Override
-	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
+	public float evaluatePolicy(int trials, int evalDepth, boolean verbose) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

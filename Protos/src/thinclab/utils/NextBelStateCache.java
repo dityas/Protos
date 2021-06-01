@@ -76,7 +76,7 @@ public class NextBelStateCache {
 					/* compute NextBelState */
 					HashMap<String, NextBelState> computedState = 
 							NextBelState.oneStepNZPrimeBelStates(
-									ipomdp, belief, true, 1e-8);
+									ipomdp, belief, true, 1e-8f);
 					
 					NextBelStateCache.cacheNZPrime(belief, computedState);
 					
@@ -95,7 +95,7 @@ public class NextBelStateCache {
 					/* compute NextBelState */
 					HashMap<String, NextBelState> computedState = 
 							NextBelState.oneStepNZPrimeBelStates(
-									ipomdp, belief, true, 1e-8);
+									ipomdp, belief, true, 1e-8f);
 					
 					if (NextBelStateCache.NEXT_BELSTATE_CACHE.size() 
 							>= NextBelStateCache.CACHE_LIMIT) {

@@ -37,10 +37,10 @@ public class OfflinePBVISolver extends AlphaVectorPolicySolver {
 	private static final long serialVersionUID = -8890386097993230541L;
 
 	/* Variables to hold point based values */
-	double[][] currentPointBasedValues;
-	double[][] newPointBasedValues;
-	double bestImprovement;
-	double worstDecline;
+	float[][] currentPointBasedValues;
+	float[][] newPointBasedValues;
+	float bestImprovement;
+	float worstDecline;
 
 	/* maintain a reference to the POMDP */
 	POMDP p;
@@ -153,23 +153,23 @@ public class OfflinePBVISolver extends AlphaVectorPolicySolver {
 	@SuppressWarnings("unused")
 	public void PBVI(int maxAlpha, int firstStep, int nSteps, DD[][] belRegion) {
 
-		double bellmanErr;
-		double[] onezero = { 0 };
-		double steptolerance;
+		float bellmanErr;
+		float[] onezero = { 0 };
+		float steptolerance;
 
 		int maxAlphaSetSize = maxAlpha;
 
-		bellmanErr = 20 * this.p.tolerance;
+		bellmanErr = (float) (20 * this.p.tolerance);
 
 		/* compute point based values using current alpha vectors */
 		currentPointBasedValues = OP.factoredExpectationSparse(belRegion, alphaVectors);
 
 		DD[] primedV;
-		double maxAbsVal = 0;
+		float maxAbsVal = 0;
 
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 
-			steptolerance = this.p.tolerance;
+			steptolerance = (float) this.p.tolerance;
 
 			primedV = new DD[alphaVectors.length];
 			for (int i = 0; i < alphaVectors.length; i++) {
@@ -177,16 +177,16 @@ public class OfflinePBVISolver extends AlphaVectorPolicySolver {
 			}
 
 			maxAbsVal = Math.max(OP.maxabs(ArrayUtils.addAll(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))),
-					1e-10);
+					1e-10f);
 
 			/* could be one more than the maximum number at most */
 			newAlphaVectors = new AlphaVector[maxAlphaSetSize + 1];
-			newPointBasedValues = new double[belRegion.length][maxAlphaSetSize + 1];
+			newPointBasedValues = new float[belRegion.length][maxAlphaSetSize + 1];
 			numNewAlphaVectors = 0;
 
 			AlphaVector newVector;
-			double[] newValues;
-			double improvement;
+			float[] newValues;
+			float improvement;
 
 			/*
 			 * we allow the number of new alpha vectors to get one bigger than the maximum
@@ -200,7 +200,7 @@ public class OfflinePBVISolver extends AlphaVectorPolicySolver {
 				newVector = AlphaVector.dpBackup(this.p, belRegion[i], primedV, maxAbsVal, this.alphaVectors.length);
 
 				numUsed += 1;
-				newVector.alphaVector = OP.approximate(newVector.alphaVector, bellmanErr * (1 - this.p.discFact) / 2.0,
+				newVector.alphaVector = OP.approximate(newVector.alphaVector, (float) (bellmanErr * (1 - this.p.discFact) / 2.0f),
 						onezero);
 				newVector.setWitness(i);
 
@@ -208,7 +208,7 @@ public class OfflinePBVISolver extends AlphaVectorPolicySolver {
 				newValues = OP.factoredExpectationSparseNoMem(belRegion, newVector.alphaVector);
 
 				if (numNewAlphaVectors < 1) {
-					improvement = Double.POSITIVE_INFINITY;
+					improvement = Float.POSITIVE_INFINITY;
 				}
 
 				else {
@@ -230,10 +230,10 @@ public class OfflinePBVISolver extends AlphaVectorPolicySolver {
 
 			/* save data and copy over new to old */
 			alphaVectors = new DD[numNewAlphaVectors];
-			currentPointBasedValues = new double[newPointBasedValues.length][numNewAlphaVectors];
+			currentPointBasedValues = new float[newPointBasedValues.length][numNewAlphaVectors];
 
 			policy = new int[numNewAlphaVectors];
-			policyvalue = new double[numNewAlphaVectors];
+			policyvalue = new float[numNewAlphaVectors];
 			for (int j = 0; j < this.p.nActions; j++)
 				uniquePolicy[j] = false;
 
@@ -275,9 +275,9 @@ public class OfflinePBVISolver extends AlphaVectorPolicySolver {
 
 	public void computeMaxMinImprovement(int belRegionSize) {
 
-		double imp;
-		this.bestImprovement = Double.NEGATIVE_INFINITY;
-		this.worstDecline = Double.POSITIVE_INFINITY;
+		float imp;
+		this.bestImprovement = Float.NEGATIVE_INFINITY;
+		this.worstDecline = Float.POSITIVE_INFINITY;
 
 		for (int j = 0; j < belRegionSize; j++) {
 			/*
