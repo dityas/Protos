@@ -46,7 +46,7 @@ public class DDleaf extends DD {
 		this.hash = new HashCodeBuilder().append(this.val).append(Config.hashCode(this.config)).toHashCode();
 	}
 
-	public static DD myNew(float val) {
+	public static DD getDD(float val) {
 
 		// create new leaf
 		DDleaf leaf = new DDleaf(val);

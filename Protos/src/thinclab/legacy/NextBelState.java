@@ -267,7 +267,7 @@ public class NextBelState implements Serializable {
 				DD[] factoredNextBel = ipomdp.factorBelief(nextBelief);
 				factoredNextBel = OP.primeVarsN(factoredNextBel, ipomdp.S.size() + ipomdp.Omega.size());
 
-				factoredNextBel = ArrayUtils.add(factoredNextBel, DDleaf.myNew(obsProbs[o]));
+				factoredNextBel = ArrayUtils.add(factoredNextBel, DDleaf.getDD(obsProbs[o]));
 
 				nextBelStatesForAct.add(factoredNextBel);
 			}
@@ -473,7 +473,7 @@ public class NextBelState implements Serializable {
 				DD[] factoredNextBel = pomdp.factorBelief(nextBelief);
 				factoredNextBel = OP.primeVarsN(factoredNextBel, pomdp.getNumVars());
 
-				factoredNextBel = ArrayUtils.add(factoredNextBel, DDleaf.myNew(obsProbs[o]));
+				factoredNextBel = ArrayUtils.add(factoredNextBel, DDleaf.getDD(obsProbs[o]));
 
 				nextBelStatesForAct.add(factoredNextBel);
 			}

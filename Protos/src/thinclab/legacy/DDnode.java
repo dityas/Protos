@@ -9,7 +9,6 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 
 import java.lang.ref.*;
-import java.io.*;
 
 public class DDnode extends DD {
 	/**
@@ -168,74 +167,6 @@ public class DDnode extends DD {
 		}
 		
 		return sum;
-	}
-
-	public void display(String space) {
-		if (Global.varNames == null) {
-			System.out.println(space + "var: " + Integer.toString(var) + "  " + MySet.toString(varSet));
-		} else {
-			System.out.println(space + Global.varNames[var - 1] + "  " + MySet.toString(varSet));
-		}
-
-		space = space + "   ";
-		if (Global.valNames == null) {
-			for (int i = 0; i < children.length; i++) {
-				children[i].display(space);
-			}
-		} else {
-			for (int i = 0; i < children.length; i++) {
-				children[i].display(space, Global.valNames[var - 1][i] + ": ");
-			}
-		}
-	}
-
-	public void display(String space, String prefix) {
-		if (Global.varNames == null) {
-			System.out.println(space + prefix + "var: " + Integer.toString(var) + "  " + MySet.toString(varSet));
-		} else {
-			System.out.println(space + prefix + Global.varNames[var - 1] + "  " + MySet.toString(varSet));
-		}
-
-		space = space + "   ";
-		if (Global.valNames == null) {
-			for (int i = 0; i < children.length; i++) {
-				children[i].display(space);
-			}
-		} else {
-			for (int i = 0; i < children.length; i++) {
-				children[i].display(space, Global.valNames[var - 1][i] + ": ");
-			}
-		}
-	}
-
-	public void printSpuddDD(PrintStream ps) {
-		ps.print("(" + Global.varNames[var - 1] + "\n");
-
-		for (int i = 0; i < children.length; i++) {
-			ps.print("  (" + Global.valNames[var - 1][i]);
-			children[i].printSpuddDD(ps);
-			ps.print(")");
-		}
-		ps.print(")\n");
-	}
-
-	public void printDotDD(PrintStream ps) {
-		ps.println("digraph \"DD\" {");
-		ps.println("size = \"7.5,10\"\nratio=0.5;\ncenter = true;\nedge [dir = none];");
-		printDotDD(ps, "r");
-		ps.println("}");
-	}
-
-	public void printDotDD(PrintStream ps, String name) {
-
-		ps.println("{rank = same; node [shape=ellipse, style=filled, color=cornflowerblue];\"" + name + "\" [label=\""
-				+ Global.varNames[var - 1] + "\"];}");
-		String newname;
-		for (int i = 0; i < children.length; i++) {
-			newname = name + "c" + i;
-			children[i].printDotDD(ps, newname);
-			ps.println("\"" + name + "\" -> \"" + newname + "\" [label = \"" + Global.valNames[var - 1][i] + "\"];");
-		}
 	}
 
 	// ---------------------------------------------------------------------------------------

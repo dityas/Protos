@@ -2074,7 +2074,7 @@ public class OP {
 		// root is variable that must be eliminated
 		if (dd.getVar() == var) {
 			// have to collapse all children into a new node
-			DD newDD = DDleaf.myNew(Float.NEGATIVE_INFINITY);
+			DD newDD = DDleaf.getDD(Float.NEGATIVE_INFINITY);
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				int[][] config = new int[2][1];
 				config[0][0] = dd.getVar();
@@ -2108,7 +2108,7 @@ public class OP {
 		// root is variable that must be eliminated
 		if (dd.getVar() == var) {
 			// have to collapse all children into a new node
-			DD newDD = DDleaf.myNew(Float.POSITIVE_INFINITY);
+			DD newDD = DDleaf.getDD(Float.POSITIVE_INFINITY);
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				int[][] config = new int[2][1];
 				config[0][0] = dd.getVar();
@@ -2318,7 +2318,7 @@ public class OP {
 			if (dd.getConfig() == null)
 				return dd;
 			else
-				return DDleaf.myNew(dd.getVal());
+				return DDleaf.getDD(dd.getVal());
 		}
 
 		// dd is a node
@@ -2328,54 +2328,6 @@ public class OP {
 				children[i] = OP.clearConfig(dd.getChildren()[i]);
 			}
 			return DDnode.getDD(dd.getVar(), children);
-		}
-	}
-
-	//////////////////////////////////////////////////////
-	// printPolicySpuddFormat
-	//////////////////////////////////////////////////////
-
-	public static void printPolicySpuddFormat(String filename, DD[] valuef, int[] pol) {
-		FileOutputStream fos = null;
-		PrintStream ps = null;
-		try {
-			fos = new FileOutputStream(filename, true);
-			ps = new PrintStream(fos);
-		} catch (FileNotFoundException e) {
-			System.out.println("Error: file not found\n");
-			System.exit(1);
-		}
-
-		for (int avec = 0; avec < valuef.length; avec++) {
-			ps.print("dd " + pol[avec] + "\n");
-			valuef[avec].printSpuddDD(ps);
-			ps.print("\n enddd\n");
-		}
-
-		try {
-			fos.close();
-		} catch (IOException e) {
-		}
-	}
-
-	public static void printPolicySpuddFormat(String filename, DD avec, int pol) {
-		FileOutputStream fos = null;
-		PrintStream ps = null;
-		try {
-			fos = new FileOutputStream(filename, true);
-			ps = new PrintStream(fos);
-		} catch (FileNotFoundException e) {
-			System.out.println("Error: file not found\n");
-			System.exit(1);
-		}
-
-		ps.print("dd " + pol + "\n");
-		avec.printSpuddDD(ps);
-		ps.print("\n enddd\n");
-
-		try {
-			fos.close();
-		} catch (IOException e) {
 		}
 	}
 
@@ -2950,7 +2902,7 @@ public class OP {
 
 			// replace node
 			if (maxVal - closestVal <= tolerance && closestVal - minVal <= tolerance) {
-				apprDd = DDleaf.myNew(closestVal);
+				apprDd = DDleaf.getDD(closestVal);
 				// System.out.println("nEdges(dd) = " + nEdges(dd) + " nEdges(apprDd) = " +
 				// nEdges(apprDd));
 			}
@@ -2962,7 +2914,7 @@ public class OP {
 				}
 				leafTable[middleId] = val;
 				nLeavesPtr[0] += 1;
-				apprDd = DDleaf.myNew(val);
+				apprDd = DDleaf.getDD(val);
 			}
 
 			// store apprDd
@@ -3089,7 +3041,7 @@ public class OP {
 
 			// replace node
 			if (val - closestVal <= tolerance && closestVal - val <= tolerance)
-				apprDd = DDleaf.myNew(closestVal);
+				apprDd = DDleaf.getDD(closestVal);
 
 			// insert val in leafValues
 			else {

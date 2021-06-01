@@ -92,6 +92,6 @@ public class DDTreeLeaf extends DDTree {
 		/*
 		 * Overrides the DDTree implementation to convert leaves
 		 */
-		return DDleaf.myNew(this.val);
+		return DDleaf.getDD(this.val);
 	}
 }

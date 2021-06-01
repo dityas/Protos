@@ -58,16 +58,17 @@ public class DDTree implements Serializable {
 		/*
 		 * Returns tree as SPUDD string
 		 */
-		String spuddOut = prefix + "(" + varName + "\r\n";
+		StringBuilder builder = new StringBuilder(100);
+		builder.append(prefix).append("(").append(varName).append("\r\n");
 		
 		for (Entry<String, DDTree> entry : children.entrySet()) {
-			spuddOut += prefix + "\t(" + entry.getKey() + "\r\n" + prefix
-					+ entry.getValue().toSPUDD(prefix + "\t") + ")\r\n";
+			builder.append(prefix).append("\t(").append(entry.getKey()).append("\r\n").append(prefix)
+				   .append(entry.getValue().toSPUDD(prefix + "\t")).append(")\r\n");
 		}
 		
-		spuddOut +=  prefix + ")";
+		builder.append(prefix).append(")");
 		
-		return spuddOut;
+		return builder.toString();
 	}
 	
 	public String toSPUDD() {

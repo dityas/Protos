@@ -700,7 +700,7 @@ public class IPOMDP extends POMDP {
 					DD AiDist = null;
 					
 					if (this.lowerLevelAiDist.size() == 0)
-						AiDist = DDleaf.myNew(1.0f / this.getActions().size());
+						AiDist = DDleaf.getDD(1.0f / this.getActions().size());
 					
 					else {
 						DDTree aiDist = 

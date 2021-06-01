@@ -439,7 +439,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		/*
 		 *  make a DD version
 		 */
-		ddDiscFact = DDleaf.myNew((float) discFact);
+		ddDiscFact = DDleaf.getDD((float) discFact);
 	}
 	
 	public void initializeAdjunctsFromParser(ParseSPUDD parserObj) {

@@ -179,7 +179,7 @@ public class Config {
 
 	if (config == null) return DD.one;
 
-	DD dd = DDleaf.myNew(value);
+	DD dd = DDleaf.getDD(value);
 	for (int i=0; i<config[0].length; i++) {
 	    int arity = Global.varDomSize[config[0][i]-1];
 	    DD[] children = new DD[arity];

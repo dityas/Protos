@@ -409,9 +409,9 @@ public class ParseSPUDD implements Serializable {
 				for (int j = 0; j < Global.varDomSize[varId]; j++) {
 
 					if (i == j)
-						grandChildren[j] = DDleaf.myNew(0.95f);
+						grandChildren[j] = DDleaf.getDD(0.95f);
 					else
-						grandChildren[j] = DDleaf.myNew(0.05f / (Global.varDomSize[varId] - 1));
+						grandChildren[j] = DDleaf.getDD(0.05f / (Global.varDomSize[varId] - 1));
 				}
 
 				LOGGER.debug("Making child " + Global.valNames[varId][i]);
@@ -438,9 +438,9 @@ public class ParseSPUDD implements Serializable {
 				for (int j = 0; j < Global.varDomSize[varId]; j++) {
 
 					if (i == j)
-						grandChildren[j] = DDleaf.myNew(0.99f);
+						grandChildren[j] = DDleaf.getDD(0.99f);
 					else
-						grandChildren[j] = DDleaf.myNew(0.01f / (Global.varDomSize[varId] - 1));
+						grandChildren[j] = DDleaf.getDD(0.01f / (Global.varDomSize[varId] - 1));
 				}
 
 				LOGGER.debug("Making child " + Global.valNames[varId][i]);
@@ -571,7 +571,7 @@ public class ParseSPUDD implements Serializable {
 
 				// parse leaf node
 				else if (StreamTokenizer.TT_NUMBER == stream.ttype) {
-					dd = DDleaf.myNew((float) stream.nval);
+					dd = DDleaf.getDD((float) stream.nval);
 					if (stream.nextToken() != ')')
 						error("Expected ')'");
 				}
@@ -697,7 +697,7 @@ public class ParseSPUDD implements Serializable {
 						double theval = computeSigmoid(sigparams);
 						// System.out.println("computing sigmoid with "+sigparams[0]+" "+sigparams[1]+"
 						// "+sigparams[2]+" has value "+theval);
-						dd = DDleaf.myNew((float) theval);
+						dd = DDleaf.getDD((float) theval);
 					}
 				}
 
@@ -858,7 +858,7 @@ public class ParseSPUDD implements Serializable {
 		try {
 			if (stream.nextToken() != StreamTokenizer.TT_NUMBER)
 				error("Expected a number");
-			discount = DDleaf.myNew((float) stream.nval);
+			discount = DDleaf.getDD((float) stream.nval);
 		} catch (IOException e) {
 			System.out.println("Error: IOException\n");
 			// System.exit(1);
@@ -869,7 +869,7 @@ public class ParseSPUDD implements Serializable {
 		try {
 			if (stream.nextToken() != StreamTokenizer.TT_NUMBER)
 				error("Expected a number");
-			horizon = DDleaf.myNew((float) stream.nval);
+			horizon = DDleaf.getDD((float) stream.nval);
 		} catch (IOException e) {
 			System.out.println("Error: IOException\n");
 			// System.exit(1);
@@ -880,7 +880,7 @@ public class ParseSPUDD implements Serializable {
 		try {
 			if (stream.nextToken() != StreamTokenizer.TT_NUMBER)
 				error("Expected a number");
-			tolerance = DDleaf.myNew((float) stream.nval);
+			tolerance = DDleaf.getDD((float) stream.nval);
 		} catch (IOException e) {
 			System.out.println("Error: IOException\n");
 			// System.exit(1);

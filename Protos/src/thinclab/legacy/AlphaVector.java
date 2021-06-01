@@ -129,7 +129,7 @@ public class AlphaVector implements Serializable {
 				}
 
 				nextValFn = OP.add(nextValFn,
-						OP.multN(IPOMDP.concatenateArray(DDleaf.myNew((float) ipomdp.discFact), obsDd, primedV[alphaId])));
+						OP.multN(IPOMDP.concatenateArray(DDleaf.getDD((float) ipomdp.discFact), obsDd, primedV[alphaId])));
 			}
 		}
 
@@ -257,7 +257,7 @@ public class AlphaVector implements Serializable {
 				}
 
 				nextValFn = OP.add(nextValFn,
-						OP.multN(IPOMDP.concatenateArray(DDleaf.myNew((float) ipomdp.discFact), obsDd, primedV[alphaId])));
+						OP.multN(IPOMDP.concatenateArray(DDleaf.getDD((float) ipomdp.discFact), obsDd, primedV[alphaId])));
 			}
 		}
 
@@ -381,7 +381,7 @@ public class AlphaVector implements Serializable {
 				}
 
 				nextValFn = OP.add(nextValFn,
-						OP.multN(IPOMDP.concatenateArray(DDleaf.myNew((float) ipomdp.discFact), obsDd, primedV[alphaId])));
+						OP.multN(IPOMDP.concatenateArray(DDleaf.getDD((float) ipomdp.discFact), obsDd, primedV[alphaId])));
 			}
 		}
 
@@ -478,7 +478,7 @@ public class AlphaVector implements Serializable {
 					}
 				}
 
-				nextValFn = OP.add(nextValFn, OP.multN(ArrayUtils.addAll(new DD[] { DDleaf.myNew((float) pomdp.discFact) },
+				nextValFn = OP.add(nextValFn, OP.multN(ArrayUtils.addAll(new DD[] { DDleaf.getDD((float) pomdp.discFact) },
 						new DD[] { obsDd, primedV[alphaId] })));
 			}
 		}
@@ -581,7 +581,7 @@ public class AlphaVector implements Serializable {
 					}
 				}
 
-				nextValFn = OP.add(nextValFn, OP.multN(ArrayUtils.addAll(new DD[] { DDleaf.myNew((float) pomdp.discFact) },
+				nextValFn = OP.add(nextValFn, OP.multN(ArrayUtils.addAll(new DD[] { DDleaf.getDD((float) pomdp.discFact) },
 						new DD[] { obsDd, primedV[alphaId] })));
 			}
 		}
