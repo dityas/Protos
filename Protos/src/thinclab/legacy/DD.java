@@ -26,8 +26,8 @@ public abstract class DD implements Serializable {
 		return null;
 	} // should throw exception
 
-	public double getVal() {
-		return Double.NEGATIVE_INFINITY;
+	public float getVal() {
+		return Float.NEGATIVE_INFINITY;
 	} // should throw exception
 
 	public int[][] getConfig() {
@@ -59,7 +59,7 @@ public abstract class DD implements Serializable {
 	// abstract public SortedSet getScope();
 	abstract public int[] getVarSet();
 
-	abstract public double getSum();
+	abstract public float getSum();
 
 	abstract public DD store();
 

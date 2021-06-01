@@ -163,7 +163,7 @@ public class DDTree implements Serializable {
 		else throw new Exception(this.varName + " does not contain child " + childName);
 	}
 	
-	public void setValueAt(String childName, double val) throws Exception {
+	public void setValueAt(String childName, float val) throws Exception {
 		/*
 		 * Sets the value of the leaf at childName to param val
 		 */

@@ -12,11 +12,6 @@ public class Config {
     public static int hashCode(int[][] config) {
 
 	if (config == null) return 0;
-
-//	int hashCode = 0;
-//	for (int i=0; i<config[0].length; i++) {
-//	    hashCode += config[0][i] + config[1][i];
-//	}
 	
 	HashCodeBuilder builder = new HashCodeBuilder();
 	
@@ -180,7 +175,7 @@ public class Config {
     /////////////////////////////////////////////////////////
     // convert2dd
     /////////////////////////////////////////////////////////
-    public static DD convert2dd(int[][] config, double value) {
+    public static DD convert2dd(int[][] config, float value) {
 
 	if (config == null) return DD.one;
 

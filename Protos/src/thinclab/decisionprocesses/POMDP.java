@@ -66,7 +66,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 	public int[] primeObsIndices;
 	public int[] obsVarsArity;
 	public String[] varName;
-	public double discFact, tolerance, maxRewVal;
+	public float discFact, tolerance, maxRewVal;
 	public DD initialBelState;
 	public DD ddDiscFact;
 	public String[] adjunctNames;
@@ -84,14 +84,14 @@ public class POMDP extends DecisionProcess implements Serializable {
 	 */
 	public int[] policy;
 	public boolean[] uniquePolicy;
-	public double[] policyvalue;
+	public float[] policyvalue;
 	public DD[] alphaVectors;
 	public DD[] origAlphaVectors;
 
-	public double[][] currentPointBasedValues, newPointBasedValues;
+	public float[][] currentPointBasedValues, newPointBasedValues;
 	public AlphaVector[] newAlphaVectors;
 	public int numNewAlphaVectors;
-	public double bestImprovement, worstDecline;
+	public float bestImprovement, worstDecline;
 	
 	public ParseSPUDD parser;
 	
@@ -206,8 +206,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 		return d;
 	}
 
-	public static double[] concatenateArray(double[] a, double[] b) {
-		double[] d = new double[b.length + a.length];
+	public static float[] concatenateArray(float[] a, float[] b) {
+		float[] d = new float[b.length + a.length];
 		System.arraycopy(a, 0, d, 0, a.length);
 		System.arraycopy(b, 0, d, a.length, b.length);
 		return d;
@@ -407,8 +407,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 //		/*
 //		 * Max and Min reward
 //		 */
-//		double maxVal = Double.NEGATIVE_INFINITY;
-//		double minVal = Double.POSITIVE_INFINITY;
+//		float maxVal = Double.NEGATIVE_INFINITY;
+//		float minVal = Double.POSITIVE_INFINITY;
 //		
 //		for (int a = 0; a < nActions; a++) {
 //			maxVal = Math.max(maxVal, OP.maxAll(OP.addN(actions[a].rewFn)));
@@ -421,8 +421,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 //		 * Set Tolerance
 //		 */
 //		if (parserObj.tolerance == null) {
-//			double maxDiffRew = maxVal - minVal;
-//			double maxDiffVal = maxDiffRew / (1 - Math.min(0.95, discFact));
+//			float maxDiffRew = maxVal - minVal;
+//			float maxDiffVal = maxDiffRew / (1 - Math.min(0.95, discFact));
 //			tolerance = 1e-5 * maxDiffVal;
 //		} 
 //		
@@ -439,7 +439,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		/*
 		 *  make a DD version
 		 */
-		ddDiscFact = DDleaf.myNew(discFact);
+		ddDiscFact = DDleaf.myNew((float) discFact);
 	}
 	
 	public void initializeAdjunctsFromParser(ParseSPUDD parserObj) {
@@ -512,8 +512,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 		/*
 		 * Max and Min reward
 		 */
-		double maxVal = Double.NEGATIVE_INFINITY;
-		double minVal = Double.POSITIVE_INFINITY;
+		float maxVal = Float.NEGATIVE_INFINITY;
+		float minVal = Float.POSITIVE_INFINITY;
 		
 		for (int a = 0; a < nActions; a++) {
 			maxVal = Math.max(maxVal, OP.maxAll(OP.addN(actions[a].rewFn)));
@@ -525,9 +525,9 @@ public class POMDP extends DecisionProcess implements Serializable {
 		/*
 		 * Set Tolerance
 		 */
-		double maxDiffRew = maxVal - minVal;
-		double maxDiffVal = maxDiffRew / (1 - Math.min(0.95, discFact));
-		tolerance = 1e-5 * maxDiffVal;
+		float maxDiffRew = maxVal - minVal;
+		float maxDiffVal = maxDiffRew / (1 - Math.min(0.95f, discFact));
+		tolerance = 1e-5f * maxDiffVal;
 	}
 	
 	public void setAdjuncts() {
@@ -1116,7 +1116,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 	}
 	
 	@Override
-	public double evaluatePolicy(
+	public float evaluatePolicy(
 			DD[] alphaVectors, int[] policy, int trials, int evalDepth, boolean verbose) {
 		/*
 		 * Run given number of trials of evaluation upto the given depth and return
@@ -1125,7 +1125,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 * ****** This is completely based on Hoey's evalPolicyStationary function
 		 */
 		
-		List<Double> rewards = new ArrayList<Double>();
+		List<Float> rewards = new ArrayList<Float>();
 		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
 		
 		try {
@@ -1135,8 +1135,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 			for (int n = 0; n < trials; n++) {
 				DD currentBelief = currentBeliefTree.toDD();
 				
-				double totalReward = 0.0;
-				double totalDiscount = 1.0;
+				float totalReward = 0.0f;
+				float totalDiscount = 1.0f;
 				
 				int[][] stateConfig = OP.sampleMultinomial(currentBelief, this.getStateVarIndices());
 				
@@ -1153,7 +1153,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 					}
 					
 					/* evaluate action */
-					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					float currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
 					totalReward = totalReward + (totalDiscount * currentReward);
 					totalDiscount = totalDiscount * this.discFact;
 					
@@ -1205,15 +1205,15 @@ public class POMDP extends DecisionProcess implements Serializable {
 			return -1;
 		}
 		
-		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		float avgReward = (float) rewards.stream().mapToDouble(r -> r).average().getAsDouble();
 		return avgReward;
 	}
 
 	@Override
-	public double evaluateDefaultPolicy(
+	public float evaluateDefaultPolicy(
 			String defaultAction, int trials, int evalDepth, boolean verbose) {
 		
-		List<Double> rewards = new ArrayList<Double>();
+		List<Float> rewards = new ArrayList<Float>();
 		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
 		
 		try {
@@ -1223,8 +1223,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 			for (int n = 0; n < trials; n++) {
 				DD currentBelief = currentBeliefTree.toDD();
 				
-				double totalReward = 0.0;
-				double totalDiscount = 1.0;
+				float totalReward = 0.0f;
+				float totalDiscount = 1.0f;
 				
 				int[][] stateConfig = OP.sampleMultinomial(currentBelief, this.getStateVarIndices());
 				
@@ -1239,7 +1239,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 					}
 					
 					/* evaluate action */
-					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					float currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
 					totalReward = totalReward + (totalDiscount * currentReward);
 					totalDiscount = totalDiscount * this.discFact;
 					
@@ -1291,14 +1291,14 @@ public class POMDP extends DecisionProcess implements Serializable {
 			return -1;
 		}
 		
-		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		float avgReward = (float) rewards.stream().mapToDouble(r -> r).average().getAsDouble();
 		return avgReward;
 	}
 
 	@Override
-	public double evaluateRandomPolicy(int trials, int evalDepth, boolean verbose) {
+	public float evaluateRandomPolicy(int trials, int evalDepth, boolean verbose) {
 		
-		List<Double> rewards = new ArrayList<Double>();
+		List<Float> rewards = new ArrayList<Float>();
 		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
 		
 		try {
@@ -1308,8 +1308,8 @@ public class POMDP extends DecisionProcess implements Serializable {
 			for (int n = 0; n < trials; n++) {
 				DD currentBelief = currentBeliefTree.toDD();
 				
-				double totalReward = 0.0;
-				double totalDiscount = 1.0;
+				float totalReward = 0.0f;
+				float totalDiscount = 1.0f;
 				
 				int[][] stateConfig = OP.sampleMultinomial(currentBelief, this.getStateVarIndices());
 				
@@ -1325,7 +1325,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 					}
 					
 					/* evaluate action */
-					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					float currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
 					totalReward = totalReward + (totalDiscount * currentReward);
 					totalDiscount = totalDiscount * this.discFact;
 					
@@ -1358,7 +1358,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 							+ " avg. reward is: " 
 							+ rewards.stream().mapToDouble(r -> r).average().orElse(Double.NaN));
 				
-				rewards.add(totalReward);
+				rewards.add((float) totalReward);
 			}
 			
 			Global.clearHashtables();
@@ -1377,7 +1377,7 @@ public class POMDP extends DecisionProcess implements Serializable {
 			return -1;
 		}
 		
-		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		float avgReward = (float) rewards.stream().mapToDouble(r -> r).average().getAsDouble();
 		return avgReward;
 	}
 }

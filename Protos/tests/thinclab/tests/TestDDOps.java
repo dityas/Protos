@@ -173,7 +173,7 @@ class TestDDOps {
 		long then = System.currentTimeMillis();
 
 		for (int i = 0; i < 100000; i++) {
-			a = DDnode.myNew(1, new DD[] { DDleaf.myNew(rand.nextDouble()), DDleaf.myNew(rand.nextDouble()) });
+			a = DDnode.myNew(1, new DD[] { DDleaf.myNew(rand.nextFloat()), DDleaf.myNew(rand.nextFloat()) });
 		}
 
 		long now = System.currentTimeMillis();

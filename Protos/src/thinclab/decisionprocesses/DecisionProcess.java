@@ -61,13 +61,13 @@ public abstract class DecisionProcess implements Serializable {
 	public abstract void setTi(String action, DD[] Ti);
 	public abstract int getNumVars();
 	
-	public abstract double evaluatePolicy(
+	public abstract float evaluatePolicy(
 			DD[] alphaVectors, int[] policy, int trials, int evalDepth, boolean verbose);
 	
-	public abstract double evaluateDefaultPolicy(
+	public abstract float evaluateDefaultPolicy(
 			String defaultAction, int trials, int evalDepth, boolean verbose);
 	
-	public abstract double evaluateRandomPolicy(int trials, int evalDepth, boolean verbose);
+	public abstract float evaluateRandomPolicy(int trials, int evalDepth, boolean verbose);
 	
 	// ---------------------------------------------------------------------------------
 	
@@ -141,8 +141,8 @@ public abstract class DecisionProcess implements Serializable {
 		 * Returns the index of the alpha vector with the max value
 		 */
 		
-		double bestVal = Double.NEGATIVE_INFINITY;
-		double val;
+		float bestVal = Float.NEGATIVE_INFINITY;
+		float val;
 		int bestAlphaId = 0;
 		
 		int[] varIndices = null;
@@ -156,7 +156,7 @@ public abstract class DecisionProcess implements Serializable {
 		else
 			varIndices = DP.getStateVarIndices();
 		
-		double[] values = new double[alphaVectors.length];
+		float[] values = new float[alphaVectors.length];
 		for (int alphaId = 0; alphaId < alphaVectors.length; alphaId++) {
 			
 			val = OP.dotProduct(belief, alphaVectors[alphaId], varIndices);

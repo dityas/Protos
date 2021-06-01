@@ -117,7 +117,7 @@ class TestOnlineSymbolicPerseus {
 			DD belief = tigerL1IPOMDP.getCurrentBelief();
 
 			HashMap<String, NextBelState> nextStates = NextBelState.oneStepNZPrimeBelStatesCached(tigerL1IPOMDP, belief,
-					false, 0.00000001);
+					false, 0.00000001f);
 
 			LOGGER.debug("Starting belief is " + belief.toDDTree());
 			LOGGER.debug("All possible combinations are " + tigerL1IPOMDP.getAllPossibleObservations());

@@ -76,7 +76,7 @@ class TestRepresentations {
 		parser = new IPOMDPParser(this.l1DomainFile);
 		parser.parseDomain();
 		
-		IPOMDP newIpomdp = new IPOMDP(parser, 5, 10, 0.01);
+		IPOMDP newIpomdp = new IPOMDP(parser, 5, 10, 0.01f);
 		
 		LOGGER.info("With merging");
 		for (MJ mj: newIpomdp.multiFrameMJ.MJs.values()) {

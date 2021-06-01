@@ -63,12 +63,12 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 	int numNewAlphaVectors;
 
 	public int[] policy;
-	double[] policyvalue;
+	float[] policyvalue;
 	boolean[] uniquePolicy;
 	
 	public int[] bestPolicy = null;
 	public DD[] bestAlphaVectors = null;
-	public double bestBellmanError = Double.MAX_VALUE;
+	public float bestBellmanError = Float.MAX_VALUE;
 	
 	private static Logger LOGGER = LogManager.getLogger(AlphaVectorPolicySolver.class);
 	
@@ -88,11 +88,11 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 	public boolean hasSolution() {return this.solverConverged;}
 	
 	@Override
-	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
+	public float evaluatePolicy(int trials, int evalDepth, boolean verbose) {
 		/*
 		 * Run policy evaluation for IPOMDPs
 		 */
-		return this.f.evaluatePolicy(
+		return (float) this.f.evaluatePolicy(
 				this.getAlphaVectors(), this.getPolicy(), trials, evalDepth, verbose);
 	}
 	
@@ -164,7 +164,7 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 		}
 		
 		this.expansionStrategy.clearMem();
-		this.bestBellmanError = Double.MAX_VALUE;
+		this.bestBellmanError = Float.MAX_VALUE;
 		NextBelStateCache.clearCache();
 	}
 	

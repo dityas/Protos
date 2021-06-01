@@ -16,11 +16,11 @@ public class DDnode extends DD {
 	 * 
 	 */
 	private static final long serialVersionUID = 8410391598527547020L;
-	// private SortedSet scope;
+	
 	private int[] varSet;
 	private int numLeaves;
 	private DD children[];
-	private double sum;
+	private float sum;
 
 	private int hash;
 
@@ -31,7 +31,7 @@ public class DDnode extends DD {
 		this.children = children;
 		this.varSet = null; // lazy temporary value
 		this.numLeaves = 0; // lazy temporary value
-		this.sum = Double.NaN; // lazy temporary value
+		this.sum = Float.NaN; // lazy temporary value
 
 		this.precomputeHash();
 	}
@@ -106,20 +106,17 @@ public class DDnode extends DD {
 
 	@Override
 	public int hashCode() {
-//		int hashCode = 0;
-//		for (int i=0; i<children.length; i++) {
-//		    hashCode += children[i].hashCode();
-//		}
-//		return hashCode + var;
-
 		return this.hash;
 	}
 
 	public DD store() {
+		
 		DD[] children = new DD[this.children.length];
+		
 		for (int i = 0; i < this.children.length; i++) {
 			children[i] = this.children[i].store();
 		}
+		
 		return DDnode.myNew(var, children);
 	}
 
@@ -128,28 +125,37 @@ public class DDnode extends DD {
 	}
 
 	public int[] getVarSet() {
+		
 		if (varSet == null) {
+			
 			varSet = new int[1];
 			varSet[0] = var;
+			
 			for (int childId = 0; childId < children.length; childId++) {
 				varSet = MySet.unionOrdered(children[childId].getVarSet(), varSet);
 			}
 		}
+		
 		return varSet;
 	}
 
 	public int getNumLeaves() {
+		
 		if (numLeaves == 0) {
 			for (int i = 0; i < children.length; i++) {
 				numLeaves = numLeaves + children[i].getNumLeaves();
 			}
 		}
+		
 		return numLeaves;
 	}
 
-	public double getSum() {
+	public float getSum() {
+		
 		if (sum == Double.NaN) {
+			
 			sum = 0;
+			
 			int[] childrenVars = MySet.remove(this.getVarSet(), var);
 			for (int i = 0; i < children.length; i++) {
 				int[] remainingVars = MySet.diff(childrenVars, children[i].getVarSet());
@@ -159,6 +165,7 @@ public class DDnode extends DD {
 				sum = sum + multiplicativeFactor * children[i].getSum();
 			}
 		}
+		
 		return sum;
 	}
 

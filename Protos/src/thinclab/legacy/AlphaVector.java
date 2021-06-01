@@ -21,12 +21,12 @@ public class AlphaVector implements Serializable {
 	private static final Logger LOGGER = LogManager.getLogger(AlphaVector.class);
 
 	public DD alphaVector;
-	public double value;
+	public float value;
 	public int actId;
 	public int witness;
 	public int[] obsStrat;
 
-	public AlphaVector(DD a, double v, int act, int[] os) {
+	public AlphaVector(DD a, float v, int act, int[] os) {
 		alphaVector = a;
 		value = v;
 		actId = act;
@@ -48,12 +48,12 @@ public class AlphaVector implements Serializable {
 	// ---------------------------------------------------------------------------------------
 
 	public static AlphaVector dpBackup(IPOMDP ipomdp, DD belState, DD[] factoredBelState, DD[] primedV,
-			double maxAbsVal, int numAlpha) throws ZeroProbabilityObsException, VariableNotFoundException {
+			float maxAbsVal, int numAlpha) throws ZeroProbabilityObsException, VariableNotFoundException {
 
 		HashMap<String, NextBelState> nextBelStates;
 
 		/* get next unnormalised belief states */
-		double smallestProb;
+		float smallestProb;
 
 		/* measure time constructing for NZ primes */
 		long beforeNZPrimes = System.nanoTime();
@@ -67,8 +67,8 @@ public class AlphaVector implements Serializable {
 		long afterNZPrimes = System.nanoTime();
 		Diagnostics.NZ_PRIME_TIME.add((afterNZPrimes - beforeNZPrimes));
 
-		double bestValue = Double.NEGATIVE_INFINITY;
-		double actValue;
+		float bestValue = Float.NEGATIVE_INFINITY;
+		float actValue;
 		String bestAction = null;
 
 		int nObservations = ipomdp.obsCombinations.size();
@@ -80,7 +80,7 @@ public class AlphaVector implements Serializable {
 
 		for (String Ai : ipomdp.getActions()) {
 
-			actValue = 0.0;
+			actValue = 0.0f;
 
 			/* compute immediate rewards */
 			actValue = actValue + OP.factoredExpectationSparseNoMem(factoredBelState, ipomdp.currentRi.get(Ai));
@@ -129,7 +129,7 @@ public class AlphaVector implements Serializable {
 				}
 
 				nextValFn = OP.add(nextValFn,
-						OP.multN(IPOMDP.concatenateArray(DDleaf.myNew(ipomdp.discFact), obsDd, primedV[alphaId])));
+						OP.multN(IPOMDP.concatenateArray(DDleaf.myNew((float) ipomdp.discFact), obsDd, primedV[alphaId])));
 			}
 		}
 
@@ -168,7 +168,7 @@ public class AlphaVector implements Serializable {
 	}
 
 	public static AlphaVector dpBackup2(IPOMDP ipomdp, DD belState, DD[] factoredBelState, DD[] primedV,
-			double maxAbsVal, int numAlpha) throws ZeroProbabilityObsException, VariableNotFoundException {
+			float maxAbsVal, int numAlpha) throws ZeroProbabilityObsException, VariableNotFoundException {
 
 		/*
 		 * A more efficient version of the backup
@@ -179,7 +179,7 @@ public class AlphaVector implements Serializable {
 		HashMap<String, NextBelState> nextBelStates;
 
 		/* get next unnormalised belief states */
-		double smallestProb;
+		float smallestProb;
 
 		/* measure time constructing for NZ primes */
 		long beforeNZPrimes = System.nanoTime();
@@ -193,8 +193,8 @@ public class AlphaVector implements Serializable {
 		long afterNZPrimes = System.nanoTime();
 		Diagnostics.NZ_PRIME_TIME.add((afterNZPrimes - beforeNZPrimes));
 
-		double bestValue = Double.NEGATIVE_INFINITY;
-		double actValue;
+		float bestValue = Float.NEGATIVE_INFINITY;
+		float actValue;
 		String bestAction = null;
 
 		int nObservations = ipomdp.obsCombinations.size();
@@ -206,7 +206,7 @@ public class AlphaVector implements Serializable {
 
 		for (String Ai : ipomdp.getActions()) {
 
-			actValue = 0.0;
+			actValue = 0.0f;
 
 			/* compute immediate rewards */
 			actValue = actValue + OP.factoredExpectationSparseNoMem(factoredBelState, ipomdp.currentRi.get(Ai));
@@ -257,7 +257,7 @@ public class AlphaVector implements Serializable {
 				}
 
 				nextValFn = OP.add(nextValFn,
-						OP.multN(IPOMDP.concatenateArray(DDleaf.myNew(ipomdp.discFact), obsDd, primedV[alphaId])));
+						OP.multN(IPOMDP.concatenateArray(DDleaf.myNew((float) ipomdp.discFact), obsDd, primedV[alphaId])));
 			}
 		}
 
@@ -292,7 +292,7 @@ public class AlphaVector implements Serializable {
 		return returnAlpha;
 	}
 
-	public static AlphaVector dpBackup2(IPOMDP ipomdp, DD belState, DD[] primedV, double maxAbsVal, int numAlpha)
+	public static AlphaVector dpBackup2(IPOMDP ipomdp, DD belState, DD[] primedV, float maxAbsVal, int numAlpha)
 			throws ZeroProbabilityObsException, VariableNotFoundException {
 
 		/*
@@ -304,7 +304,7 @@ public class AlphaVector implements Serializable {
 		int[] stateVarIndices = ArrayUtils.subarray(ipomdp.stateVarIndices, 0, ipomdp.thetaVarPosition);
 
 		/* get next unnormalised belief states */
-		double smallestProb;
+		float smallestProb;
 
 		/* measure time constructing for NZ primes */
 		long beforeNZPrimes = System.nanoTime();
@@ -318,8 +318,8 @@ public class AlphaVector implements Serializable {
 		long afterNZPrimes = System.nanoTime();
 		Diagnostics.NZ_PRIME_TIME.add((afterNZPrimes - beforeNZPrimes));
 
-		double bestValue = Double.NEGATIVE_INFINITY;
-		double actValue;
+		float bestValue = Float.NEGATIVE_INFINITY;
+		float actValue;
 		String bestAction = null;
 
 		int nObservations = ipomdp.obsCombinations.size();
@@ -331,7 +331,7 @@ public class AlphaVector implements Serializable {
 
 		for (String Ai : ipomdp.getActions()) {
 
-			actValue = 0.0;
+			actValue = 0.0f;
 
 			/* compute immediate rewards */
 			actValue = actValue + OP.dotProduct(belState, ipomdp.currentRi.get(Ai), stateVarIndices);
@@ -381,7 +381,7 @@ public class AlphaVector implements Serializable {
 				}
 
 				nextValFn = OP.add(nextValFn,
-						OP.multN(IPOMDP.concatenateArray(DDleaf.myNew(ipomdp.discFact), obsDd, primedV[alphaId])));
+						OP.multN(IPOMDP.concatenateArray(DDleaf.myNew((float) ipomdp.discFact), obsDd, primedV[alphaId])));
 			}
 		}
 
@@ -416,15 +416,15 @@ public class AlphaVector implements Serializable {
 		return returnAlpha;
 	}
 
-	public static AlphaVector dpBackup(POMDP pomdp, DD[] belState, DD[] primedV, double maxAbsVal, int numAlphas) {
+	public static AlphaVector dpBackup(POMDP pomdp, DD[] belState, DD[] primedV, float maxAbsVal, int numAlphas) {
 		/*
 		 * Backup operation for POMDPs
 		 */
 
 		NextBelState[] nextBelStates;
 
-		double smallestProb;
-		smallestProb = pomdp.tolerance / maxAbsVal;
+		float smallestProb;
+		smallestProb = (float) pomdp.tolerance / maxAbsVal;
 
 		nextBelStates = NextBelState.oneStepNZPrimeBelStates(pomdp, belState, true, smallestProb);
 
@@ -433,14 +433,14 @@ public class AlphaVector implements Serializable {
 			nextBelStates[actId].getObsVals(primedV);
 		}
 
-		double bestValue = Double.NEGATIVE_INFINITY;
-		double actValue;
+		float bestValue = Float.NEGATIVE_INFINITY;
+		float actValue;
 
 		int bestActId = 0;
 		int[] bestObsStrat = new int[pomdp.nObservations];
 
 		for (int actId = 0; actId < pomdp.nActions; actId++) {
-			actValue = 0.0;
+			actValue = 0.0f;
 
 			/* compute immediate rewards */
 			actValue = actValue + OP.factoredExpectationSparse(belState, pomdp.actions[actId].rewFn);
@@ -478,7 +478,7 @@ public class AlphaVector implements Serializable {
 					}
 				}
 
-				nextValFn = OP.add(nextValFn, OP.multN(ArrayUtils.addAll(new DD[] { DDleaf.myNew(pomdp.discFact) },
+				nextValFn = OP.add(nextValFn, OP.multN(ArrayUtils.addAll(new DD[] { DDleaf.myNew((float) pomdp.discFact) },
 						new DD[] { obsDd, primedV[alphaId] })));
 			}
 		}
@@ -498,17 +498,17 @@ public class AlphaVector implements Serializable {
 		return returnAlpha;
 	}
 
-	public static AlphaVector dpBackup(POMDP pomdp, DD belState, DD[] primedV, double maxAbsVal, int numAlphas) {
+	public static AlphaVector dpBackup(POMDP pomdp, DD belState, DD[] primedV, float maxAbsVal, int numAlphas) {
 		/*
 		 * Backup operation for POMDPs
 		 */
 
 		HashMap<String, NextBelState> nextBelStates = null;
 
-		double smallestProb;
+		float smallestProb;
 
 		long beforeNZPrimes = System.nanoTime();
-		smallestProb = pomdp.tolerance / maxAbsVal;
+		smallestProb = (float) pomdp.tolerance / maxAbsVal;
 
 		try {
 			nextBelStates = NextBelState.oneStepNZPrimeBelStatesCached(pomdp, belState, true, smallestProb);
@@ -528,8 +528,8 @@ public class AlphaVector implements Serializable {
 		long afterNZPrimes = System.nanoTime();
 		Diagnostics.NZ_PRIME_TIME.add((afterNZPrimes - beforeNZPrimes));
 
-		double bestValue = Double.NEGATIVE_INFINITY;
-		double actValue;
+		float bestValue = Float.NEGATIVE_INFINITY;
+		float actValue;
 
 		int bestActId = 0;
 		int[] bestObsStrat = new int[pomdp.nObservations];
@@ -537,7 +537,7 @@ public class AlphaVector implements Serializable {
 		long beforeR = System.nanoTime();
 
 		for (String action : pomdp.getActions()) {
-			actValue = 0.0;
+			actValue = 0.0f;
 
 			/* compute immediate rewards */
 			actValue = actValue
@@ -581,7 +581,7 @@ public class AlphaVector implements Serializable {
 					}
 				}
 
-				nextValFn = OP.add(nextValFn, OP.multN(ArrayUtils.addAll(new DD[] { DDleaf.myNew(pomdp.discFact) },
+				nextValFn = OP.add(nextValFn, OP.multN(ArrayUtils.addAll(new DD[] { DDleaf.myNew((float) pomdp.discFact) },
 						new DD[] { obsDd, primedV[alphaId] })));
 			}
 		}

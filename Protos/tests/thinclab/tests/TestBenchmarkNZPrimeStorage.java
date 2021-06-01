@@ -81,34 +81,34 @@ class TestBenchmarkNZPrimeStorage {
 		DD[][] fBeliefs = ipomdp.factorBeliefRegion(beliefs);
 		int[] vars = ArrayUtils.subarray(ipomdp.stateVarIndices, 0, ipomdp.thetaVarPosition);
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
-		double[][] opPBVs = null;
+		float[][] opPBVs = null;
 
 		for (int i = 0; i < 10; i++) {
 			long then = System.nanoTime();
 
 			opPBVs = OP.factoredExpectationSparseNoMem(fBeliefs, SP.alphaVectors);
-//			double[][] PBVs = OP.dotProduct(beliefsArray, SP.alphaVectors, vars);
+//			float[][] PBVs = OP.dotProduct(beliefsArray, SP.alphaVectors, vars);
 
 			long now = System.nanoTime();
 
-			times.add((double) (now - then) / 1000000);
+			times.add((float) (now - then) / 1000000);
 		}
 
 		LOGGER.debug("Factoring took " + times.stream().mapToDouble(a -> a).average().getAsDouble() + " msec");
 
-		List<Double> times2 = new ArrayList<Double>();
-		double[][] dotPBVs = null;
+		List<Float> times2 = new ArrayList<Float>();
+		float[][] dotPBVs = null;
 		for (int i = 0; i < 10; i++) {
 			long then = System.nanoTime();
 
-//			double[] PBVs = OP.factoredExpectationSparseNoMem(beliefsArray, SP.alphaVectors);
+//			float[] PBVs = OP.factoredExpectationSparseNoMem(beliefsArray, SP.alphaVectors);
 			dotPBVs = OP.dotProduct(beliefsArray, SP.alphaVectors, vars);
 
 			long now = System.nanoTime();
 
-			times2.add((double) (now - then) / 1000000);
+			times2.add((float) (now - then) / 1000000);
 		}
 
 		LOGGER.debug("Dot took " + times2.stream().mapToDouble(a -> a).average().getAsDouble() + " msec");
@@ -117,7 +117,7 @@ class TestBenchmarkNZPrimeStorage {
 
 		for (int i = 0; i < dotPBVs.length; i++) {
 			for (int j = 0; j < dotPBVs[i].length; j++) {
-				double diff = Math.abs(opPBVs[i][j] - dotPBVs[i][j]);
+				float diff = Math.abs(opPBVs[i][j] - dotPBVs[i][j]);
 				LOGGER.debug("Diff is " + diff);
 				assertTrue(diff < 1e-4);
 			}
@@ -142,34 +142,34 @@ class TestBenchmarkNZPrimeStorage {
 		DD[][] fBeliefs = pomdp.factorBeliefRegion(beliefs);
 		int[] vars = pomdp.getStateVarIndices();
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
-		double[][] opPBVs = null;
+		float[][] opPBVs = null;
 
 		for (int i = 0; i < 10; i++) {
 			long then = System.nanoTime();
 
 			opPBVs = OP.factoredExpectationSparseNoMem(fBeliefs, solver.alphaVectors);
-//			double[][] PBVs = OP.dotProduct(beliefsArray, SP.alphaVectors, vars);
+//			float[][] PBVs = OP.dotProduct(beliefsArray, SP.alphaVectors, vars);
 
 			long now = System.nanoTime();
 
-			times.add((double) (now - then) / 1000000);
+			times.add((float) (now - then) / 1000000);
 		}
 
 		LOGGER.debug("Factoring took " + times.stream().mapToDouble(a -> a).average().getAsDouble() + " msec");
 
-		List<Double> times2 = new ArrayList<Double>();
-		double[][] dotPBVs = null;
+		List<Float> times2 = new ArrayList<Float>();
+		float[][] dotPBVs = null;
 		for (int i = 0; i < 10; i++) {
 			long then = System.nanoTime();
 
-//			double[] PBVs = OP.factoredExpectationSparseNoMem(beliefsArray, SP.alphaVectors);
+//			float[] PBVs = OP.factoredExpectationSparseNoMem(beliefsArray, SP.alphaVectors);
 			dotPBVs = OP.dotProduct(beliefsArray, solver.alphaVectors, vars);
 
 			long now = System.nanoTime();
 
-			times2.add((double) (now - then) / 1000000);
+			times2.add((float) (now - then) / 1000000);
 		}
 
 		LOGGER.debug("Dot took " + times2.stream().mapToDouble(a -> a).average().getAsDouble() + " msec");
@@ -178,7 +178,7 @@ class TestBenchmarkNZPrimeStorage {
 
 		for (int i = 0; i < dotPBVs.length; i++) {
 			for (int j = 0; j < dotPBVs[i].length; j++) {
-				double diff = Math.abs(opPBVs[i][j] - dotPBVs[i][j]);
+				float diff = Math.abs(opPBVs[i][j] - dotPBVs[i][j]);
 				LOGGER.debug("Diff is " + diff);
 				assertTrue(diff < 1e-4);
 			}
@@ -206,17 +206,17 @@ class TestBenchmarkNZPrimeStorage {
 
 //		DD[] belief = ipomdp.factorBelief(ipomdp.getCurrentBelief());
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
 		for (int i = 0; i < 10; i++) {
 			long then = System.nanoTime();
 
 			HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStates(ipomdp, ipomdp.getCurrentBelief(),
-					false, 1e-8);
+					false, 1e-8f);
 
 			long now = System.nanoTime();
 
-			times.add((double) (now - then) / 1000000);
+			times.add((float) (now - then) / 1000000);
 		}
 
 		LOGGER.debug("That took " + times.stream().mapToDouble(a -> a).average().getAsDouble() + " msec");
@@ -241,14 +241,14 @@ class TestBenchmarkNZPrimeStorage {
 
 		long then1 = System.nanoTime();
 		/* compute real NextBelStates */
-		HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStates(ipomdp, belief, false, 1e-8);
+		HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStates(ipomdp, belief, false, 1e-8f);
 		long now1 = System.nanoTime();
 		LOGGER.debug("Original implementation took " + (now1 - then1) / 1000000 + " msecs.");
 
 		long then2 = System.nanoTime();
 		/* compute efficiently */
 		HashMap<String, NextBelState> b = NextBelState.oneStepNZPrimeBelStates2(ipomdp, ipomdp.getCurrentBelief(),
-				false, 1e-8);
+				false, 1e-8f);
 		long now2 = System.nanoTime();
 		LOGGER.debug("New implementation took " + (now2 - then2) / 1000000 + " msecs.");
 
@@ -263,7 +263,7 @@ class TestBenchmarkNZPrimeStorage {
 			for (int n = 0; n < aNZ.nextBelStates.length; n++) {
 				for (int s = 0; s < aNZ.nextBelStates[n].length; s++) {
 
-					double diff = OP.maxAll(OP.abs(OP.sub(aNZ.nextBelStates[n][s], bNZ.nextBelStates[n][s])));
+					float diff = OP.maxAll(OP.abs(OP.sub(aNZ.nextBelStates[n][s], bNZ.nextBelStates[n][s])));
 
 					LOGGER.debug("Diff is: " + diff);
 					assertTrue(diff < 1e-4);
@@ -289,7 +289,7 @@ class TestBenchmarkNZPrimeStorage {
 		long then1 = System.nanoTime();
 
 		/* compute real NextBelStates */
-		NextBelState[] a = NextBelState.oneStepNZPrimeBelStates(pomdp, belief, false, 1e-8);
+		NextBelState[] a = NextBelState.oneStepNZPrimeBelStates(pomdp, belief, false, 1e-8f);
 
 		long now1 = System.nanoTime();
 		LOGGER.debug("Original implementation took " + (now1 - then1) / 1000000 + " msecs.");
@@ -298,7 +298,7 @@ class TestBenchmarkNZPrimeStorage {
 
 		/* compute efficiently */
 		HashMap<String, NextBelState> b = NextBelState.oneStepNZPrimeBelStates(pomdp, pomdp.getCurrentBelief(), false,
-				1e-8);
+				1e-8f);
 
 		long now2 = System.nanoTime();
 
@@ -315,7 +315,7 @@ class TestBenchmarkNZPrimeStorage {
 			for (int n = 0; n < aNZ.nextBelStates.length; n++) {
 				for (int s = 0; s < aNZ.nextBelStates[n].length; s++) {
 
-					double diff = OP.maxAll(OP.abs(OP.sub(aNZ.nextBelStates[n][s], bNZ.nextBelStates[n][s])));
+					float diff = OP.maxAll(OP.abs(OP.sub(aNZ.nextBelStates[n][s], bNZ.nextBelStates[n][s])));
 
 					LOGGER.debug("Diff is: " + diff);
 					assertTrue(diff < 1e-4);
@@ -343,7 +343,7 @@ class TestBenchmarkNZPrimeStorage {
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
 		HashMap<String, DD[][]> nextBelStatesManual = new HashMap<String, DD[][]>();
 
@@ -356,7 +356,7 @@ class TestBenchmarkNZPrimeStorage {
 
 				List<List<String>> allObs = ipomdp.getAllPossibleObservations();
 				DD obsDist = ipomdp.getObsDist(ipomdp.getCurrentBelief(), act);
-				double[] obsProbs = OP.convert2array(obsDist, ipomdp.obsIVarPrimeIndices);
+				float[] obsProbs = OP.convert2array(obsDist, ipomdp.obsIVarPrimeIndices);
 
 				for (int o = 0; o < allObs.size(); o++) {
 
@@ -376,14 +376,14 @@ class TestBenchmarkNZPrimeStorage {
 
 			long now = System.nanoTime();
 
-			times.add((double) (now - then) / 1000000);
+			times.add((float) (now - then) / 1000000);
 		}
 
 		LOGGER.debug("That took " + times.stream().mapToDouble(a -> a).average().getAsDouble() + " msec");
 
 		/* compute real NextBelStates */
 		HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStates(ipomdp, ipomdp.getCurrentBelief(), false,
-				1e-8);
+				1e-8f);
 
 		LOGGER.debug("Checking for correctness");
 
@@ -395,7 +395,7 @@ class TestBenchmarkNZPrimeStorage {
 			for (int n = 0; n < aNZ.nextBelStates.length; n++) {
 				for (int s = 0; s < aNZ.nextBelStates[n].length; s++) {
 
-					double diff = OP.maxAll(OP.abs(OP.sub(aNZ.nextBelStates[n][s], bNZ[n][s])));
+					float diff = OP.maxAll(OP.abs(OP.sub(aNZ.nextBelStates[n][s], bNZ[n][s])));
 					LOGGER.debug("Diff is: " + diff);
 					assertTrue(diff < 1e-4);
 				}
@@ -422,9 +422,9 @@ class TestBenchmarkNZPrimeStorage {
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 
 		HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStates(ipomdp, ipomdp.getCurrentBelief(), false,
-				1e-8);
+				1e-8f);
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
 		for (int i = 0; i < 10; i++) {
 			long then = System.nanoTime();
@@ -439,7 +439,7 @@ class TestBenchmarkNZPrimeStorage {
 
 			long now = System.nanoTime();
 
-			times.add((double) (now - then) / 1000000);
+			times.add((float) (now - then) / 1000000);
 		}
 
 		LOGGER.debug("That took " + times.stream().mapToDouble(b -> b).average().getAsDouble() + " msec");
@@ -464,7 +464,7 @@ class TestBenchmarkNZPrimeStorage {
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 
 		HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStates(ipomdp, ipomdp.getCurrentBelief(), false,
-				1e-8);
+				1e-8f);
 
 		FileOutputStream fStream = new FileOutputStream("test.obj");
 		ObjectOutputStream oStream = new ObjectOutputStream(fStream);
@@ -474,7 +474,7 @@ class TestBenchmarkNZPrimeStorage {
 		fStream.close();
 		oStream.close();
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
 		for (int i = 0; i < 10; i++) {
 			long then = System.nanoTime();
@@ -489,7 +489,7 @@ class TestBenchmarkNZPrimeStorage {
 
 			long now = System.nanoTime();
 
-			times.add((double) (now - then) / 1000000);
+			times.add((float) (now - then) / 1000000);
 
 			for (String act : o.keySet())
 				LOGGER.debug(act + " " + o.get(act));
@@ -516,12 +516,12 @@ class TestBenchmarkNZPrimeStorage {
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 
 		HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStates(ipomdp, ipomdp.getCurrentBelief(), false,
-				1e-8);
+				1e-8f);
 
 		CacheDB db = new CacheDB();
 		db.insertNewNZPrime(1, a);
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
 		for (int i = 0; i < 10; i++) {
 			long then = System.nanoTime();
@@ -530,7 +530,7 @@ class TestBenchmarkNZPrimeStorage {
 
 			long now = System.nanoTime();
 
-			times.add((double) (now - then) / 1000000);
+			times.add((float) (now - then) / 1000000);
 
 			for (String act : b.keySet()) {
 				NextBelState an = a.get(act);
@@ -566,7 +566,7 @@ class TestBenchmarkNZPrimeStorage {
 //		ipomdp.step(ipomdp.getCurrentBelief(), "listen", new String[] {"growl-left", "silence"});
 
 		HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStates(ipomdp, ipomdp.getCurrentBelief(), false,
-				1e-8);
+				1e-8f);
 
 		CacheDB db = new CacheDB();
 		db.insertNewNZPrime(1, a);
@@ -622,7 +622,7 @@ class TestBenchmarkNZPrimeStorage {
 
 			LOGGER.debug("Checking " + ipomdp.toMapWithTheta(bel));
 
-			HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStates(ipomdp, bel, false, 1e-8);
+			HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStates(ipomdp, bel, false, 1e-8f);
 
 			HashMap<String, NextBelState> b = NextBelStateCache.getCachedEntry(bel);
 
@@ -672,14 +672,14 @@ class TestBenchmarkNZPrimeStorage {
 
 			long thenC = System.nanoTime();
 
-			HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStatesCached(ipomdp, bel, false, 1e-8);
+			HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStatesCached(ipomdp, bel, false, 1e-8f);
 
 			long nowC = System.nanoTime();
 
 			LOGGER.debug("Computing took " + (nowC - thenC) / 1000000 + " msecs");
 
 			long thenR = System.nanoTime();
-			HashMap<String, NextBelState> b = NextBelState.oneStepNZPrimeBelStatesCached(ipomdp, bel, false, 1e-8);
+			HashMap<String, NextBelState> b = NextBelState.oneStepNZPrimeBelStatesCached(ipomdp, bel, false, 1e-8f);
 
 			long nowR = System.nanoTime();
 			LOGGER.debug("Cache fetching took " + (nowR - thenR) / 1000000 + " msecs");
@@ -702,12 +702,12 @@ class TestBenchmarkNZPrimeStorage {
 
 			LOGGER.debug("Checking with older result");
 
-			HashMap<String, NextBelState> c = NextBelState.oneStepNZPrimeBelStates(ipomdp, bel, false, 1e-8);
+			HashMap<String, NextBelState> c = NextBelState.oneStepNZPrimeBelStates(ipomdp, bel, false, 1e-8f);
 
 //			b = 
 //					NextBelState.oneStepNZPrimeBelStates2(
 //							ipomdp, 
-//							bel, false, 1e-8);
+//							bel, false, 1e-8f);
 
 			for (String act : c.keySet()) {
 
@@ -716,7 +716,7 @@ class TestBenchmarkNZPrimeStorage {
 
 				for (int n = 0; n < cNZ.nextBelStates.length; n++) {
 					for (int s = 0; s < cNZ.nextBelStates[n].length; s++) {
-						double diff = OP.maxAll(OP.abs(OP.sub(cNZ.nextBelStates[n][s], bNZ.nextBelStates[n][s])));
+						float diff = OP.maxAll(OP.abs(OP.sub(cNZ.nextBelStates[n][s], bNZ.nextBelStates[n][s])));
 
 //						LOGGER.debug(OP.sub(
 //														cNZ.nextBelStates[n][s], 
@@ -763,14 +763,14 @@ class TestBenchmarkNZPrimeStorage {
 
 			long thenC = System.nanoTime();
 
-			HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStatesCached(pomdp, bel, false, 1e-8);
+			HashMap<String, NextBelState> a = NextBelState.oneStepNZPrimeBelStatesCached(pomdp, bel, false, 1e-8f);
 
 			long nowC = System.nanoTime();
 
 			LOGGER.debug("Computing took " + (nowC - thenC) / 1000000 + " msecs");
 
 			long thenR = System.nanoTime();
-			HashMap<String, NextBelState> b = NextBelState.oneStepNZPrimeBelStatesCached(pomdp, bel, false, 1e-8);
+			HashMap<String, NextBelState> b = NextBelState.oneStepNZPrimeBelStatesCached(pomdp, bel, false, 1e-8f);
 
 			long nowR = System.nanoTime();
 			LOGGER.debug("Cache fetching took " + (nowR - thenR) / 1000000 + " msecs");
@@ -793,12 +793,12 @@ class TestBenchmarkNZPrimeStorage {
 
 			LOGGER.debug("Checking with older result");
 
-			HashMap<String, NextBelState> c = NextBelState.oneStepNZPrimeBelStates(pomdp, bel, false, 1e-8);
+			HashMap<String, NextBelState> c = NextBelState.oneStepNZPrimeBelStates(pomdp, bel, false, 1e-8f);
 
 //			b = 
 //					NextBelState.oneStepNZPrimeBelStates2(
 //							ipomdp, 
-//							bel, false, 1e-8);
+//							bel, false, 1e-8f);
 
 			for (String act : c.keySet()) {
 
@@ -807,7 +807,7 @@ class TestBenchmarkNZPrimeStorage {
 
 				for (int n = 0; n < cNZ.nextBelStates.length; n++) {
 					for (int s = 0; s < cNZ.nextBelStates[n].length; s++) {
-						double diff = OP.maxAll(OP.abs(OP.sub(cNZ.nextBelStates[n][s], bNZ.nextBelStates[n][s])));
+						float diff = OP.maxAll(OP.abs(OP.sub(cNZ.nextBelStates[n][s], bNZ.nextBelStates[n][s])));
 
 //						LOGGER.debug(OP.sub(
 //														cNZ.nextBelStates[n][s], 

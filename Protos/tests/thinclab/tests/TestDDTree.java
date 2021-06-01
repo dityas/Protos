@@ -37,8 +37,8 @@ class TestDDTree {
 	void testTreeCreation() {
 		LOGGER.info("Running testTreeCreation()");
 		DDTree testTree = new DDTree("TestVar");
-		testTree.children.put("val1", new DDTreeLeaf(0.01));
-		testTree.children.put("val2", new DDTreeLeaf(0.99));
+		testTree.children.put("val1", new DDTreeLeaf(0.01f));
+		testTree.children.put("val2", new DDTreeLeaf(0.99f));
 
 		LOGGER.debug(testTree.toSPUDD());
 	}
@@ -47,8 +47,8 @@ class TestDDTree {
 	void testTreeCopy() {
 		LOGGER.info("Running testTreeCopy()");
 		DDTree testTree = new DDTree("TestVar");
-		testTree.children.put("val1", new DDTreeLeaf(0.01));
-		testTree.children.put("val2", new DDTreeLeaf(0.99));
+		testTree.children.put("val1", new DDTreeLeaf(0.01f));
+		testTree.children.put("val2", new DDTreeLeaf(0.99f));
 
 		DDTree copyTestTree = testTree.getCopy();
 
@@ -62,14 +62,14 @@ class TestDDTree {
 	void testTreeEquals() {
 		LOGGER.info("Running testTreeEquals()");
 		DDTree testTree1 = new DDTree("TestVar");
-		testTree1.children.put("val1", new DDTreeLeaf(0.01));
-		testTree1.children.put("val2", new DDTreeLeaf(0.99));
+		testTree1.children.put("val1", new DDTreeLeaf(0.01f));
+		testTree1.children.put("val2", new DDTreeLeaf(0.99f));
 
 		DDTree copyTestTree1 = testTree1.getCopy();
 
 		DDTree testTree2 = new DDTree("TestVarAnother");
-		testTree2.children.put("val1", new DDTreeLeaf(0.01));
-		testTree2.children.put("val2", new DDTreeLeaf(0.99));
+		testTree2.children.put("val1", new DDTreeLeaf(0.01f));
+		testTree2.children.put("val2", new DDTreeLeaf(0.99f));
 
 		assertTrue(testTree1.equals(copyTestTree1));
 		assertFalse(testTree1.equals(testTree2));
@@ -79,8 +79,8 @@ class TestDDTree {
 	void testNodeRefFetching() {
 		LOGGER.info("Running testNodeRefFetching()");
 		DDTree testTree1 = new DDTree("TestVar");
-		testTree1.children.put("val1", new DDTreeLeaf(0.01));
-		testTree1.children.put("val2", new DDTreeLeaf(0.99));
+		testTree1.children.put("val1", new DDTreeLeaf(0.01f));
+		testTree1.children.put("val2", new DDTreeLeaf(0.99f));
 
 		DDTree deepTestTree = new DDTree("DeepVar");
 		deepTestTree.children.put("val1", testTree1.getCopy());

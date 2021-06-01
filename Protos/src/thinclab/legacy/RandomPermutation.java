@@ -75,16 +75,16 @@ public class RandomPermutation implements Serializable {
 	System.out.println();
     }
 
-    public double [] getDiffs(double [] currv, double [] newv, double tol) {
-	double [] diffs = new double[currv.length];
+    public float [] getDiffs(float [] currv, float [] newv, float tol) {
+	float [] diffs = new float[currv.length];
 	for (int i=0; i<currv.length; i++) {
-	    diffs[i]=0.0;
+	    diffs[i]=0.0f;
 	    if (!dids[i]) 
 		diffs[i]=currv[i]-newv[i]+tol;
 	}
 	return diffs;
     }
-    public void getNewDoneIds(double [] currv, double [] newv, double tol) {
+    public void getNewDoneIds(float [] currv, float [] newv, float tol) {
 	int numkeep=0;
 	boolean[] newdids = new boolean[dids.length];
 	for (int i=0; i<currv.length; i++) {

@@ -220,7 +220,7 @@ public class RunSimulations extends Executable {
 				
 				int simRounds = new Integer(line.getOptionValue("y"));
 				int simLength = new Integer(line.getOptionValue("x"));
-				double mergeThreshold = 0.0;
+				float mergeThreshold = 0.0f;
 				
 				/* run simulation for simRounds */
 				for (int i = 0; i < simRounds; i++) {
@@ -234,7 +234,7 @@ public class RunSimulations extends Executable {
 					IPOMDP ipomdp;
 					
 					if (mergeThreshold > 0.0)
-						ipomdp = new IPOMDP(parser, lookAhead, simLength, 0.0);
+						ipomdp = new IPOMDP(parser, lookAhead, simLength, 0.0f);
 					
 					else ipomdp = new IPOMDP(parser, lookAhead, simLength);
 					

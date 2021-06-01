@@ -43,7 +43,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 	public int[] bestPolicy = null;
 	public DD[] bestAlphaVectors = null;
-	public double bestBellmanError = Double.MAX_VALUE;
+	public float bestBellmanError = Float.MAX_VALUE;
 
 	// -------------------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			LOGGER.info("Using alpha vectors from back iteration with bellman error " + this.bestBellmanError);
 			this.alphaVectors = this.bestAlphaVectors;
 			this.policy = this.bestPolicy;
-			this.bestBellmanError = Double.POSITIVE_INFINITY;
+			this.bestBellmanError = Float.POSITIVE_INFINITY;
 		}
 
 		catch (Exception e) {
@@ -93,9 +93,9 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 	public void SymbolicPerseus(int maxAlpha, int firstStep, int nSteps, DD[] belRegion) {
 
-		double bellmanErr;
-		double[] onezero = { 0 };
-		double steptolerance;
+		float bellmanErr;
+		float[] onezero = { 0 };
+		float steptolerance;
 
 		int maxAlphaSetSize = maxAlpha;
 
@@ -105,7 +105,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		currentPointBasedValues = OP.dotProduct(belRegion, alphaVectors, this.f.getStateVarIndices());
 
 		DD[] primedV;
-		double maxAbsVal = 0;
+		float maxAbsVal = 0;
 
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 
@@ -117,11 +117,11 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			}
 
 			maxAbsVal = Math.max(OP.maxabs(ArrayUtils.addAll(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))),
-					1e-10);
+					1e-10f);
 
 			/* could be one more than the maximum number at most */
 			newAlphaVectors = new AlphaVector[maxAlphaSetSize + 1];
-			newPointBasedValues = new double[belRegion.length][maxAlphaSetSize + 1];
+			newPointBasedValues = new float[belRegion.length][maxAlphaSetSize + 1];
 			numNewAlphaVectors = 0;
 
 			int count = 0;
@@ -130,11 +130,11 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			RandomPermutation permutedIds = new RandomPermutation(Global.random, belRegion.length, false);
 
 			AlphaVector newVector;
-			double[] newValues;
-			double[] diff = new double[belRegion.length];
-			double[] maxcurrpbv;
-			double[] maxnewpbv;
-			double improvement;
+			float[] newValues;
+			float[] diff = new float[belRegion.length];
+			float[] maxcurrpbv;
+			float[] maxnewpbv;
+			float improvement;
 
 			/*
 			 * we allow the number of new alpha vectors to get one bigger than the maximum
@@ -189,14 +189,14 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 					numUsed += 1;
 					newVector.alphaVector = OP.approximate(newVector.alphaVector,
-							bellmanErr * (1 - this.p.discFact) / 2.0, onezero);
+							(float) (bellmanErr * (1 - this.p.discFact) / 2.0), onezero);
 					newVector.setWitness(i);
 
 					/* merge and trim */
 					newValues = OP.dotProduct(belRegion, newVector.alphaVector, this.f.getStateVarIndices());
 
 					if (numNewAlphaVectors < 1) {
-						improvement = Double.POSITIVE_INFINITY;
+						improvement = Float.POSITIVE_INFINITY;
 					}
 
 					else {
@@ -219,10 +219,10 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 			/* save data and copy over new to old */
 			alphaVectors = new DD[numNewAlphaVectors];
-			currentPointBasedValues = new double[newPointBasedValues.length][numNewAlphaVectors];
+			currentPointBasedValues = new float[newPointBasedValues.length][numNewAlphaVectors];
 
 			policy = new int[numNewAlphaVectors];
-			policyvalue = new double[numNewAlphaVectors];
+			policyvalue = new float[numNewAlphaVectors];
 			for (int j = 0; j < this.p.nActions; j++)
 				uniquePolicy[j] = false;
 

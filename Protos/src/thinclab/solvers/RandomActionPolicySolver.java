@@ -62,7 +62,7 @@ public class RandomActionPolicySolver extends BaseSolver {
 	}
 
 	@Override
-	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
+	public float evaluatePolicy(int trials, int evalDepth, boolean verbose) {
 		return this.f.evaluateRandomPolicy(trials, evalDepth, verbose);
 	}
 

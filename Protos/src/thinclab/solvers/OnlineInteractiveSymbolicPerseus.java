@@ -77,7 +77,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			LOGGER.info("Using alpha vectors from backup iteration with bellman error " + this.bestBellmanError);
 			this.alphaVectors = this.bestAlphaVectors;
 			this.policy = this.bestPolicy;
-			this.bestBellmanError = Double.POSITIVE_INFINITY;
+			this.bestBellmanError = Float.POSITIVE_INFINITY;
 
 		}
 
@@ -91,8 +91,8 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 	public void boundedPerseusStartFromCurrent(int maxAlpha, int firstStep, int nSteps, DD[] unfactoredBeliefRegion,
 			boolean debug) throws ZeroProbabilityObsException, VariableNotFoundException {
 
-		double bellmanErr;
-		double steptolerance;
+		float bellmanErr;
+		float steptolerance;
 
 		int numBeliefs = unfactoredBeliefRegion.length;
 
@@ -100,7 +100,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				((IPOMDP) this.f).thetaVarPosition);
 
 		int maxAlphaSetSize = maxAlpha;
-		bellmanErr = 20 * this.ipomdp.tolerance;
+		bellmanErr = (float) (20 * this.ipomdp.tolerance);
 
 		this.currentPointBasedValues = OP.dotProduct(unfactoredBeliefRegion, this.alphaVectors, ipomdpVars);
 
@@ -119,7 +119,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 		}
 
 		DD[] primedV;
-		double maxAbsVal = 0;
+		float maxAbsVal = 0;
 
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 
@@ -142,7 +142,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 				LOGGER.debug("Ri : " + this.ipomdp.currentRi);
 			}
 
-			steptolerance = ipomdp.tolerance;
+			steptolerance = (float) ipomdp.tolerance;
 
 			primedV = new DD[this.alphaVectors.length];
 
@@ -152,7 +152,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 
 			maxAbsVal = Math.max(
 					OP.maxabs(IPOMDP.concatenateArray(OP.maxAllN(this.alphaVectors), OP.minAllN(this.alphaVectors))),
-					1e-10);
+					1e-10f);
 
 			int count = 0;
 			int choice;
@@ -161,15 +161,15 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			RandomPermutation permutedIds = new RandomPermutation(Global.random, numBeliefs, false);
 
 			this.newAlphaVectors = new AlphaVector[maxAlphaSetSize + 1];
-			this.newPointBasedValues = new double[numBeliefs][maxAlphaSetSize + 1];
+			this.newPointBasedValues = new float[numBeliefs][maxAlphaSetSize + 1];
 			this.numNewAlphaVectors = 0;
 
 			AlphaVector newVector;
-			double[] diff = new double[numBeliefs];
-			double[] maxcurrpbv;
-			double[] maxnewpbv;
-			double[] newValues;
-			double improvement;
+			float[] diff = new float[numBeliefs];
+			float[] maxcurrpbv;
+			float[] maxnewpbv;
+			float[] newValues;
+			float improvement;
 
 			/*
 			 * we allow the number of new alpha vectors to get one bigger than the maximum
@@ -239,7 +239,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					Diagnostics.BACKUP_TIME.add((afterBackup - beforeBackup));
 
 					newVector.alphaVector = OP.approximate(newVector.alphaVector,
-							bellmanErr * (1 - ipomdp.discFact) / 2.0, new double[] { 0 });
+							(float) (bellmanErr * (1 - ipomdp.discFact) / 2.0), new float[] { 0 });
 
 //					newVector.alphaVector = OP.approximate(newVector.alphaVector, 0.001);
 
@@ -251,7 +251,7 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 					newValues = OP.dotProduct(unfactoredBeliefRegion, newVector.alphaVector, ipomdpVars);
 
 					if (this.numNewAlphaVectors < 1)
-						improvement = Double.POSITIVE_INFINITY;
+						improvement = Float.POSITIVE_INFINITY;
 
 					else
 						improvement = OP
@@ -281,10 +281,10 @@ public class OnlineInteractiveSymbolicPerseus extends OnlineIPBVISolver {
 			 * save data and copy over new to old
 			 */
 			this.alphaVectors = new DD[this.numNewAlphaVectors];
-			this.currentPointBasedValues = new double[this.newPointBasedValues.length][this.numNewAlphaVectors];
+			this.currentPointBasedValues = new float[this.newPointBasedValues.length][this.numNewAlphaVectors];
 
 			this.policy = new int[this.numNewAlphaVectors];
-			this.policyvalue = new double[this.numNewAlphaVectors];
+			this.policyvalue = new float[this.numNewAlphaVectors];
 
 			for (int j = 0; j < ipomdp.Ai.size(); j++)
 				this.uniquePolicy[j] = false;

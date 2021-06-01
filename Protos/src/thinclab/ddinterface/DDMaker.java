@@ -130,7 +130,7 @@ public class DDMaker implements Serializable {
 				// Make children
 				for (int c=0; c < children.length; c++) {
 					if (previousTree == null) {
-						topTree.children.put(children[c], new DDTreeLeaf(0.0));
+						topTree.children.put(children[c], new DDTreeLeaf(0.0f));
 					}
 					
 					else {
@@ -196,7 +196,7 @@ public class DDMaker implements Serializable {
 				
 				try {
 					currentNode.setValueAt(currentRecord[currentRecord.length-2],
-									   	   Double.valueOf(currentRecord[currentRecord.length-1]));
+									   	   Float.valueOf(currentRecord[currentRecord.length-1]));
 				}
 				
 				catch (Exception e) {

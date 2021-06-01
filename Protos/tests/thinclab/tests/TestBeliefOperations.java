@@ -210,7 +210,7 @@ class TestBeliefOperations {
 		LOGGER.debug("Running OP.FactoredExpectationSparseParallel");
 		
 		long then1 = System.nanoTime();
-		double[][] PBVs1 = OP.factoredExpectationSparseParallel(factoredBeliefs, alphaVectors);
+		float[][] PBVs1 = OP.factoredExpectationSparseParallel(factoredBeliefs, alphaVectors);
 		long now1 = System.nanoTime();
 		
 		LOGGER.debug("That took " + (now1 - then1)/1000 + " us");
@@ -219,7 +219,7 @@ class TestBeliefOperations {
 		LOGGER.debug("Running OP.FactoredExpectationSparseParallel2");
 		
 		long then2 = System.nanoTime();
-		double[][] PBVs2 = OP.factoredExpectationSparseParallel2(factoredBeliefs, alphaVectors);
+		float[][] PBVs2 = OP.factoredExpectationSparseParallel2(factoredBeliefs, alphaVectors);
 		long now2 = System.nanoTime();
 		
 		LOGGER.debug("That took " + (now2 - then2)/1000 + " us");
@@ -228,7 +228,7 @@ class TestBeliefOperations {
 		LOGGER.debug("Running OP.FactoredExpectationSparse");
 		
 		long then = System.nanoTime();
-		double[][] PBVs = OP.factoredExpectationSparseNoMem(factoredBeliefs, alphaVectors);
+		float[][] PBVs = OP.factoredExpectationSparseNoMem(factoredBeliefs, alphaVectors);
 		long now = System.nanoTime();
 		
 		LOGGER.debug("That took " + (now - then)/1000 + " us");

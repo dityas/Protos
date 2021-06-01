@@ -101,12 +101,12 @@ class TestBenchmarkDPBackups {
 		}
 
 		/* compute maxAbsVal */
-		double maxAbsVal = Math
-				.max(OP.maxabs(IPOMDP.concatenateArray(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))), 1e-10);
+		float maxAbsVal = Math
+				.max(OP.maxabs(IPOMDP.concatenateArray(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))), 1e-10f);
 
 		DD[][] factoredBeliefs = ipomdp.factorBeliefRegion(exploredBeliefs);
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
 		/* do all those iterations of DP backup and check computation time */
 		for (int i = 0; i < exploredBeliefs.size(); i++) {
@@ -117,7 +117,7 @@ class TestBenchmarkDPBackups {
 					maxAbsVal, alphaVectors.length);
 
 			long now = System.nanoTime();
-			times.add((double) (now - then) / 1000000);
+			times.add((float) (now - then) / 1000000);
 		}
 
 		LOGGER.debug("DP backup took " + times.stream().mapToDouble(a -> a).average().getAsDouble() + " msec");
@@ -169,8 +169,8 @@ class TestBenchmarkDPBackups {
 		}
 
 		/* compute maxAbsVal */
-		double maxAbsVal = Math
-				.max(OP.maxabs(IPOMDP.concatenateArray(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))), 1e-10);
+		float maxAbsVal = Math
+				.max(OP.maxabs(IPOMDP.concatenateArray(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))), 1e-10f);
 
 		DD[][] factoredBeliefs = ipomdp.factorBeliefRegion(exploredBeliefs);
 
@@ -188,7 +188,7 @@ class TestBenchmarkDPBackups {
 			LOGGER.debug("New A Vec VAR SET is: " + Arrays.toString(vec2.alphaVector.getVarSet()));
 			LOGGER.debug("New A Vec is " + vec2.alphaVector.toDDTree());
 
-			double diff = OP.maxAll(OP.abs(OP.sub(vec1.alphaVector, vec2.alphaVector)));
+			float diff = OP.maxAll(OP.abs(OP.sub(vec1.alphaVector, vec2.alphaVector)));
 			LOGGER.debug("Diff is " + diff);
 			assertTrue(diff < 1e-8);
 		}
@@ -229,8 +229,8 @@ class TestBenchmarkDPBackups {
 		}
 
 		/* compute maxAbsVal */
-		double maxAbsVal = Math
-				.max(OP.maxabs(IPOMDP.concatenateArray(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))), 1e-10);
+		float maxAbsVal = Math
+				.max(OP.maxabs(IPOMDP.concatenateArray(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))), 1e-10f);
 
 		DD[][] factoredBeliefs = ipomdp.factorBeliefRegion(exploredBeliefs);
 
@@ -243,7 +243,7 @@ class TestBenchmarkDPBackups {
 			AlphaVector vec2 = AlphaVector.dpBackup2(ipomdp, exploredBeliefs.get(i), /* factoredBeliefs[i], */primedV,
 					maxAbsVal, alphaVectors.length);
 
-			double diff = OP.maxAll(OP.abs(OP.sub(vec1.alphaVector, vec2.alphaVector)));
+			float diff = OP.maxAll(OP.abs(OP.sub(vec1.alphaVector, vec2.alphaVector)));
 			LOGGER.debug("Diff is " + diff);
 			assertTrue(diff < 1e-8);
 		}
@@ -277,8 +277,8 @@ class TestBenchmarkDPBackups {
 		}
 
 		/* compute maxAbsVal */
-		double maxAbsVal = Math
-				.max(OP.maxabs(POMDP.concatenateArray(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))), 1e-10);
+		float maxAbsVal = Math
+				.max(OP.maxabs(POMDP.concatenateArray(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))), 1e-10f);
 
 		DD[][] factoredBeliefs = pomdp.factorBeliefRegion(exploredBeliefs);
 
@@ -290,7 +290,7 @@ class TestBenchmarkDPBackups {
 			AlphaVector vec2 = AlphaVector.dpBackup(pomdp, exploredBeliefs.get(i), primedV, maxAbsVal,
 					alphaVectors.length);
 
-			double diff = OP.maxAll(OP.abs(OP.sub(vec1.alphaVector, vec2.alphaVector)));
+			float diff = OP.maxAll(OP.abs(OP.sub(vec1.alphaVector, vec2.alphaVector)));
 			LOGGER.debug("Diff is " + diff);
 			assertTrue(diff < 1e-8);
 		}
@@ -326,12 +326,12 @@ class TestBenchmarkDPBackups {
 		}
 
 		/* compute maxAbsVal */
-		double maxAbsVal = Math
-				.max(OP.maxabs(IPOMDP.concatenateArray(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))), 1e-10);
+		float maxAbsVal = Math
+				.max(OP.maxabs(IPOMDP.concatenateArray(OP.maxAllN(alphaVectors), OP.minAllN(alphaVectors))), 1e-10f);
 
 		DD[][] factoredBeliefs = pomdp.factorBeliefRegion(exploredBeliefs);
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
 		/* do all those iterations of DP backup and check computation time */
 		for (int i = 0; i < exploredBeliefs.size(); i++) {
@@ -342,7 +342,7 @@ class TestBenchmarkDPBackups {
 					maxAbsVal, alphaVectors.length);
 
 			long now = System.nanoTime();
-			times.add((double) (now - then) / 1000000);
+			times.add((float) (now - then) / 1000000);
 		}
 
 		LOGGER.debug("DP backup took " + times.stream().mapToDouble(a -> a).average().getAsDouble() + " msec");
@@ -370,7 +370,7 @@ class TestBenchmarkDPBackups {
 		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj) contains "
 				+ ipomdp.currentTauXPAjGivenMjXPThetajGivenMj.getNumLeaves() + " DD nodes");
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
 		IBeliefOps belOps = (IBeliefOps) ipomdp.bOPs;
 
@@ -390,7 +390,7 @@ class TestBenchmarkDPBackups {
 					ipomdp.getAllPossibleObservations().get(o).stream().toArray(String[]::new));
 
 			long now = System.nanoTime();
-			times.add((double) (now - then) / 1000000);
+			times.add((float) (now - then) / 1000000);
 		}
 
 		LOGGER.debug(
@@ -418,7 +418,7 @@ class TestBenchmarkDPBackups {
 		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj) contains "
 				+ ipomdp.currentTauXPAjGivenMjXPThetajGivenMj.getNumLeaves() + " DD nodes");
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
 		IBeliefOps belOps = (IBeliefOps) ipomdp.bOPs;
 
@@ -436,7 +436,7 @@ class TestBenchmarkDPBackups {
 			DD obsDist = belOps.getObsDist2(ipomdp.getCurrentBelief(), ipomdp.getActions().get(a));
 
 			long now = System.nanoTime();
-			times.add((double) (now - then) / 1000000);
+			times.add((float) (now - then) / 1000000);
 		}
 
 		LOGGER.debug("Legacy obs dist computation took " + times.stream().mapToDouble(a -> a).average().getAsDouble()
@@ -464,7 +464,7 @@ class TestBenchmarkDPBackups {
 		LOGGER.debug("TAU x P(Aj | Mj) x P(Thetaj | Mj) contains "
 				+ ipomdp.currentTauXPAjGivenMjXPThetajGivenMj.getNumLeaves() + " DD nodes");
 
-		List<Double> times = new ArrayList<Double>();
+		List<Float> times = new ArrayList<Float>();
 
 		IBeliefOps belOps = (IBeliefOps) ipomdp.bOPs;
 
@@ -481,7 +481,7 @@ class TestBenchmarkDPBackups {
 
 			DD obsDist = belOps.getObsDist(ipomdp.getCurrentBelief(), ipomdp.getActions().get(a));
 
-			double diff = OP.maxAll(OP.abs(OP.sub(obsDist, obsDist2)));
+			float diff = OP.maxAll(OP.abs(OP.sub(obsDist, obsDist2)));
 			LOGGER.debug("Diff is: " + diff);
 			assertTrue(diff < 1e-8);
 		}
@@ -526,7 +526,7 @@ class TestBenchmarkDPBackups {
 			DD nextBel2 = belOps.beliefUpdate(ipomdp.getCurrentBelief(), ipomdp.getActions().get(a),
 					ipomdp.getAllPossibleObservations().get(o).stream().toArray(String[]::new));
 
-			double diff = OP.maxAll(OP.abs(OP.sub(nextBel1, nextBel2)));
+			float diff = OP.maxAll(OP.abs(OP.sub(nextBel1, nextBel2)));
 			LOGGER.debug("difference is: " + diff);
 			assertTrue(diff < 1e-8);
 

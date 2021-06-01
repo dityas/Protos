@@ -291,7 +291,7 @@ class TestBeliefExpansionStartegies {
 		for (String act: ipomdp.getActions()) {
 			LOGGER.debug("For action: " + act);
 			DD Vec = ipomdp.getRewardFunctionForAction(act);
-			double val = OP.dotProduct(Vec, belief, ipomdp.getStateVarIndices());
+			float val = OP.dotProduct(Vec, belief, ipomdp.getStateVarIndices());
 			LOGGER.debug("val is " + val);
 			LOGGER.debug("Ri is: " + Vec.toDDTree());
 		}
@@ -310,12 +310,12 @@ class TestBeliefExpansionStartegies {
 							ipomdp.getNumVars());
 		}
 		
-		double maxAbsVal = 
+		float maxAbsVal = 
 				Math.max(
 						OP.maxabs(
 								IPOMDP.concatenateArray(
 										OP.maxAllN(alphaVectors), 
-										OP.minAllN(alphaVectors))), 1e-10);
+										OP.minAllN(alphaVectors))), 1e-10f);
 		
 		AlphaVector newVector = 
 				AlphaVector.dpBackup2(
