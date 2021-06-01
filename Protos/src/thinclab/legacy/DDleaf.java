@@ -62,7 +62,7 @@ public class DDleaf extends DD {
 		return leaf;
 	}
 
-	public static DD myNew(float val, int[][] config) {
+	public static DD getDD(float val, int[][] config) {
 
 		// create new leaf
 		DDleaf leaf = new DDleaf(val, config);
@@ -125,7 +125,7 @@ public class DDleaf extends DD {
 	}
 
 	public DD store() {
-		return DDleaf.myNew(val, config);
+		return DDleaf.getDD(val, config);
 	}
 
 	public void display(String space) {

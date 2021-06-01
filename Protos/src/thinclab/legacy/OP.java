@@ -26,7 +26,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.add(dd1.getChildren()[i], dd2);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.addHashtable.put(pair, result);
 			return result;
 		}
@@ -47,7 +47,7 @@ public class OP {
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				children[i] = OP.add(dd2.getChildren()[i], dd1);
 			}
-			DD result = DDnode.myNew(dd2.getVar(), children);
+			DD result = DDnode.getDD(dd2.getVar(), children);
 			Global.addHashtable.put(pair, result);
 			return result;
 		}
@@ -65,7 +65,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.add(dd1.getChildren()[i], dd2.getChildren()[i]);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.addHashtable.put(pair, result);
 			return result;
 		}
@@ -74,7 +74,7 @@ public class OP {
 		else {
 			float newVal = dd1.getVal() + dd2.getVal();
 			int[][] newConfig = Config.merge(dd1.getConfig(), dd2.getConfig());
-			return DDleaf.myNew(newVal, newConfig);
+			return DDleaf.getDD(newVal, newConfig);
 		}
 	}
 
@@ -124,7 +124,7 @@ public class OP {
 			if (dd.getVal() >= 0)
 				return dd;
 			else
-				return DDleaf.myNew(-dd.getVal(), dd.getConfig());
+				return DDleaf.getDD(-dd.getVal(), dd.getConfig());
 		}
 
 		// dd is a node
@@ -134,7 +134,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.abs(dd.getChildren()[i]);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -145,7 +145,7 @@ public class OP {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.myNew(-dd.getVal(), dd.getConfig());
+			return DDleaf.getDD(-dd.getVal(), dd.getConfig());
 
 		// dd is a node
 		else {
@@ -154,7 +154,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.neg(dd.getChildren()[i]);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -165,7 +165,7 @@ public class OP {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.myNew((float) Math.exp(dd.getVal()), dd.getConfig());
+			return DDleaf.getDD((float) Math.exp(dd.getVal()), dd.getConfig());
 
 		// dd is a node
 		else {
@@ -174,7 +174,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.exp(dd.getChildren()[i]);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -185,7 +185,7 @@ public class OP {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.myNew((float) Math.pow(dd.getVal(), pow), dd.getConfig());
+			return DDleaf.getDD((float) Math.pow(dd.getVal(), pow), dd.getConfig());
 
 		// dd is a node
 		else {
@@ -194,7 +194,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.pow(dd.getChildren()[i], pow);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -233,7 +233,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.primeVars(dd.getChildren()[i], n);
 			}
-			result = DDnode.myNew(dd.getVar() + n, children);
+			result = DDnode.getDD(dd.getVar() + n, children);
 			hashtable.put(dd, result);
 			return result;
 		}
@@ -282,14 +282,14 @@ public class OP {
 				int[][] restMapping = Config.removeIth(varMapping, idx);
 				for (int i = 0; i < children.length; i++)
 					children[i] = OP.swapVarsNoReordering(dd.getChildren()[i], restMapping);
-				return DDnode.myNew(varMapping[1][idx], children);
+				return DDnode.getDD(varMapping[1][idx], children);
 			}
 
 			// root is not swapped
 			else {
 				for (int i = 0; i < children.length; i++)
 					children[i] = OP.swapVarsNoReordering(dd.getChildren()[i], varMapping);
-				return DDnode.myNew(dd.getVar(), children);
+				return DDnode.getDD(dd.getVar(), children);
 			}
 		}
 	}
@@ -317,7 +317,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.mult(dd1.getChildren()[i], dd2);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.multHashtable.put(pair, result);
 			return result;
 		}
@@ -340,7 +340,7 @@ public class OP {
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				children[i] = OP.mult(dd2.getChildren()[i], dd1);
 			}
-			DD result = DDnode.myNew(dd2.getVar(), children);
+			DD result = DDnode.getDD(dd2.getVar(), children);
 			Global.multHashtable.put(pair, result);
 			return result;
 		}
@@ -358,7 +358,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.mult(dd1.getChildren()[i], dd2.getChildren()[i]);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.multHashtable.put(pair, result);
 			return result;
 		}
@@ -367,7 +367,7 @@ public class OP {
 		else {
 			float newVal = dd1.getVal() * dd2.getVal();
 			int[][] newConfig = Config.merge(dd1.getConfig(), dd2.getConfig());
-			return DDleaf.myNew(newVal, newConfig);
+			return DDleaf.getDD(newVal, newConfig);
 		}
 	}
 
@@ -410,7 +410,7 @@ public class OP {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.myNew(1 / dd.getVal(), dd.getConfig());
+			return DDleaf.getDD(1 / dd.getVal(), dd.getConfig());
 
 		// dd is a node
 		else {
@@ -419,7 +419,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.inv(dd.getChildren()[i]);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -431,7 +431,7 @@ public class OP {
 		// dd is a leaf
 		if (dd.getVar() == 0) {
 			if (dd.getVal() == val1)
-				return DDleaf.myNew(val2, dd.getConfig());
+				return DDleaf.getDD(val2, dd.getConfig());
 			else
 				return dd;
 		}
@@ -443,7 +443,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.replace(dd.getChildren()[i], val1, val2);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -460,7 +460,7 @@ public class OP {
 
 		// it's a leaf
 		if (dd.getVar() == 0) {
-			return DDleaf.myNew(Global.varDomSize[var - 1] * dd.getVal(), dd.getConfig());
+			return DDleaf.getDD(Global.varDomSize[var - 1] * dd.getVal(), dd.getConfig());
 		}
 
 		DD result = (DD) hashtable.get(dd);
@@ -480,7 +480,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.addout(dd.getChildren()[i], var);
 			}
-			result = DDnode.myNew(dd.getVar(), children);
+			result = DDnode.getDD(dd.getVar(), children);
 		}
 
 		// store result
@@ -1467,7 +1467,7 @@ public class OP {
 					DD[] restrictedDds = OP.restrictOrderedN(dds, config);
 					newChildren[i] = OP.addMultCutSet(restrictedDds, children[i], vars);
 				}
-				return DDnode.myNew(dd.getVar(), newChildren);
+				return DDnode.getDD(dd.getVar(), newChildren);
 			}
 		}
 	}
@@ -1498,7 +1498,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.threshold(dd.getChildren()[i], val, parity);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -1523,7 +1523,7 @@ public class OP {
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				children[i] = OP.max(dd1, dd2.getChildren()[i], config);
 			}
-			DD result = DDnode.myNew(dd2.getVar(), children);
+			DD result = DDnode.getDD(dd2.getVar(), children);
 			Global.maxHashtable.put(triplet, result);
 			return result;
 		}
@@ -1541,7 +1541,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.max(dd1.getChildren()[i], dd2, config);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.maxHashtable.put(triplet, result);
 			return result;
 		}
@@ -1559,7 +1559,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.max(dd1.getChildren()[i], dd2.getChildren()[i], config);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.maxHashtable.put(triplet, result);
 			return result;
 		}
@@ -1568,7 +1568,7 @@ public class OP {
 		else {
 			if (dd1.getVal() < dd2.getVal()) {
 				int[][] newConfig = Config.merge(config, dd2.getConfig());
-				return DDleaf.myNew(dd2.getVal(), newConfig);
+				return DDleaf.getDD(dd2.getVal(), newConfig);
 			} else {
 				return dd1;
 			}
@@ -1612,7 +1612,7 @@ public class OP {
 			for (int i = 0; i < dd2.getChildren().length; i++) {
 				children[i] = OP.min(dd1, dd2.getChildren()[i], config);
 			}
-			DD result = DDnode.myNew(dd2.getVar(), children);
+			DD result = DDnode.getDD(dd2.getVar(), children);
 			Global.minHashtable.put(triplet, result);
 			return result;
 		}
@@ -1630,7 +1630,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.min(dd2, dd1.getChildren()[i], config);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.minHashtable.put(triplet, result);
 			return result;
 		}
@@ -1648,7 +1648,7 @@ public class OP {
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 				children[i] = OP.min(dd1.getChildren()[i], dd2.getChildren()[i], config);
 			}
-			DD result = DDnode.myNew(dd1.getVar(), children);
+			DD result = DDnode.getDD(dd1.getVar(), children);
 			Global.minHashtable.put(triplet, result);
 			return result;
 		}
@@ -1657,7 +1657,7 @@ public class OP {
 		else {
 			if (dd1.getVal() > dd2.getVal()) {
 				int[][] newConfig = Config.merge(config, dd2.getConfig());
-				return DDleaf.myNew(dd2.getVal(), newConfig);
+				return DDleaf.getDD(dd2.getVal(), newConfig);
 			} else {
 				return dd1;
 			}
@@ -1960,7 +1960,7 @@ public class OP {
 		for (int i = 0; i < dd.getChildren().length; i++) {
 			children[i] = OP.restrict(dd.getChildren()[i], config);
 		}
-		return DDnode.myNew(dd.getVar(), children);
+		return DDnode.getDD(dd.getVar(), children);
 	}
 
 	//////////////////////////////////////////////////////
@@ -1997,7 +1997,7 @@ public class OP {
 		for (int i = 0; i < children.length; i++) {
 			children[i] = OP.restrict(dd.getChildren()[i], config);
 		}
-		return DDnode.myNew(variable, children);
+		return DDnode.getDD(variable, children);
 	}
 
 	//////////////////////////////////////////////////////
@@ -2091,7 +2091,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.maxout(dd.getChildren()[i], var);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -2125,7 +2125,7 @@ public class OP {
 			for (int i = 0; i < dd.getChildren().length; i++) {
 				children[i] = OP.minout(dd.getChildren()[i], var);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -2249,7 +2249,7 @@ public class OP {
 					DD restDd = OP.restrict(dd, config);
 					newChildren[i] = OP.orderLast(restDd, varId);
 				}
-				return DDnode.myNew(rootVarId, newChildren);
+				return DDnode.getDD(rootVarId, newChildren);
 			}
 		}
 
@@ -2259,7 +2259,7 @@ public class OP {
 			for (int i = 0; i < children.length; i++) {
 				newChildren[i] = OP.orderLast(children[i], varId);
 			}
-			return DDnode.myNew(dd.getVar(), newChildren);
+			return DDnode.getDD(dd.getVar(), newChildren);
 		}
 	}
 
@@ -2283,7 +2283,7 @@ public class OP {
 			DD restDd = OP.restrict(dd, config);
 			children[i] = OP.reorder(restDd);
 		}
-		return DDnode.myNew(highestVar, children);
+		return DDnode.getDD(highestVar, children);
 	}
 
 	//////////////////////////////////////////////////////
@@ -2303,7 +2303,7 @@ public class OP {
 			for (int i = 0; i < children.length; i++) {
 				children[i] = OP.extractConfig(dd.getChildren()[i], vars);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 
 	}
@@ -2327,7 +2327,7 @@ public class OP {
 			for (int i = 0; i < children.length; i++) {
 				children[i] = OP.clearConfig(dd.getChildren()[i]);
 			}
-			return DDnode.myNew(dd.getVar(), children);
+			return DDnode.getDD(dd.getVar(), children);
 		}
 	}
 
@@ -2996,7 +2996,7 @@ public class OP {
 				newChildren[i] = OP.approximateAll(children[i], tolerance, hashtable, leafTable, nodeTable, nLeavesPtr,
 						nNodesPtr, maxTable, minTable);
 			}
-			apprDd = DDnode.myNew(dd.getVar(), newChildren);
+			apprDd = DDnode.getDD(dd.getVar(), newChildren);
 
 			// insert apprDd in nodeTable
 			for (int i = nNodesPtr[0]; i > id; i--) {
@@ -3114,7 +3114,7 @@ public class OP {
 			for (int i = 0; i < children.length; i++) {
 				newChildren[i] = OP.approximate(children[i], tolerance, hashtable, leafValues, nLeavesPtr);
 			}
-			apprDd = DDnode.myNew(dd.getVar(), newChildren);
+			apprDd = DDnode.getDD(dd.getVar(), newChildren);
 			hashtable.put(dd, apprDd);
 			return apprDd;
 		}
@@ -3152,7 +3152,7 @@ public class OP {
 			for (int i = 0; i < newChildren.length; i++) {
 				newChildren[i] = OP.findLeaf(children[i], leaf, hashtable);
 			}
-			result = DDnode.myNew(dd.getVar(), newChildren);
+			result = DDnode.getDD(dd.getVar(), newChildren);
 			hashtable.put(dd, result);
 			return result;
 		}

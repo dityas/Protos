@@ -61,16 +61,17 @@ public class DDnode extends DD {
 		this.hash = builder.toHashCode();
 	}
 
-	public static DD myNew(int var, DD[] children) {
+	public static DD getDD(int var, DD[] children) {
 
 		// try to aggregate children
 		boolean aggregate = true;
 		for (int i = 1; i < children.length; i++) {
-			if (children[0] != children[i]) {
+			if (!children[0].equals(children[i])) {
 				aggregate = false;
 				break;
 			}
 		}
+		
 		if (aggregate)
 			return children[0];
 
@@ -117,7 +118,7 @@ public class DDnode extends DD {
 			children[i] = this.children[i].store();
 		}
 		
-		return DDnode.myNew(var, children);
+		return DDnode.getDD(var, children);
 	}
 
 	public DD[] getChildren() {

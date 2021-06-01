@@ -187,7 +187,7 @@ public class Config {
 		if (j+1 == config[1][i]) children[j] = DD.one;
 		else children[j] = DD.zero;
 	    }
-	    dd = OP.mult(dd,DDnode.myNew(config[0][i],children));
+	    dd = OP.mult(dd,DDnode.getDD(config[0][i],children));
 	}
 	return dd;
     }

@@ -386,11 +386,11 @@ public class ParseSPUDD implements Serializable {
 				}
 
 				LOGGER.debug("Making child " + Global.valNames[varId][i]);
-				children[i] = DDnode.myNew(varId + 1, grandChildren);
+				children[i] = DDnode.getDD(varId + 1, grandChildren);
 
 			}
 
-			DD dd = DDnode.myNew(varId + 1 + Global.varNames.length / 2, children);
+			DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
 			existingDds.put(ddName, dd);
 		}
 
@@ -415,11 +415,11 @@ public class ParseSPUDD implements Serializable {
 				}
 
 				LOGGER.debug("Making child " + Global.valNames[varId][i]);
-				children[i] = DDnode.myNew(varId + 1, grandChildren);
+				children[i] = DDnode.getDD(varId + 1, grandChildren);
 
 			}
 
-			DD dd = DDnode.myNew(varId + 1 + Global.varNames.length / 2, children);
+			DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
 			existingDds.put(ddName, dd);
 		}
 
@@ -444,11 +444,11 @@ public class ParseSPUDD implements Serializable {
 				}
 
 				LOGGER.debug("Making child " + Global.valNames[varId][i]);
-				children[i] = DDnode.myNew(varId + 1, grandChildren);
+				children[i] = DDnode.getDD(varId + 1, grandChildren);
 
 			}
 
-			DD dd = DDnode.myNew(varId + 1 + Global.varNames.length / 2, children);
+			DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
 			existingDds.put(ddName, dd);
 		}
 
@@ -463,7 +463,7 @@ public class ParseSPUDD implements Serializable {
 					else
 						children[i] = DD.zero;
 				}
-				DD dd = DDnode.myNew(varId + 1 + Global.varNames.length / 2, children);
+				DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
 				existingDds.put(ddName, dd);
 			}
 		}
@@ -565,7 +565,7 @@ public class ParseSPUDD implements Serializable {
 							else
 								error("Expected ')' or '('");
 						}
-						dd = DDnode.myNew(varId + 1, children);
+						dd = DDnode.getDD(varId + 1, children);
 					}
 				}
 
