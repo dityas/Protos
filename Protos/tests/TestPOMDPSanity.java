@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.parsers.ParseSPUDD;
+import thinclab.solvers.BaseSolver;
+import thinclab.solvers.OfflineSymbolicPerseus;
 
 /*
  *	THINC Lab at UGA | Cyber Deception Group
@@ -42,6 +44,19 @@ class TestPOMDPSanity {
 
 		POMDP pomdp = new POMDP(
 				this.getClass().getClassLoader().getResource("test_domains/tiger.95.SPUDD.txt").getFile());
+	}
+	
+	@Test
+	void testPOMDPSoln() {
+		LOGGER.info("Checking if POMDPs can be solved.");
+
+		// ParseSPUDD parser = new ParseSPUDD("test_domains/tiger.95.SPUDD.txt");
+
+		POMDP pomdp = new POMDP(
+				this.getClass().getClassLoader().getResource("test_domains/tiger.95.SPUDD.txt").getFile());
+		
+		BaseSolver solver = OfflineSymbolicPerseus.createSolverWithSSGAExpansion(pomdp, 10, 30, 2, 100);
+		solver.solve();
 	}
 
 	@Test
