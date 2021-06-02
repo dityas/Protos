@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.decisionprocesses.POMDP;
+import thinclab.parsers.IPOMDPParser;
 import thinclab.parsers.ParseSPUDD;
 
 /*
@@ -22,7 +23,7 @@ import thinclab.parsers.ParseSPUDD;
  *
  */
 class TestPOMDPSanity {
-	
+
 	private static final Logger LOGGER = LogManager.getLogger(TestPOMDPSanity.class);
 
 	@BeforeEach
@@ -36,10 +37,22 @@ class TestPOMDPSanity {
 	@Test
 	void testPOMDPInit() {
 		LOGGER.info("Checking if POMDPs can be initialized.");
+
+		// ParseSPUDD parser = new ParseSPUDD("test_domains/tiger.95.SPUDD.txt");
+
+		POMDP pomdp = new POMDP(
+				this.getClass().getClassLoader().getResource("test_domains/tiger.95.SPUDD.txt").getFile());
+	}
+
+	@Test
+	void testIPOMDPInit() {
+
+		LOGGER.info("Checking if IPOMDPs can be initialized.");
+
+		IPOMDPParser parser = new IPOMDPParser(
+				this.getClass().getClassLoader().getResource("test_domains/tiger.L1multiple_new_parser.txt").getFile());
 		
-		//ParseSPUDD parser = new ParseSPUDD("test_domains/tiger.95.SPUDD.txt");
-		
-		POMDP pomdp = new POMDP(this.getClass().getClassLoader().getResource("test_domains/tiger.95.SPUDD.txt").getFile());
+		parser.parseDomain();
 	}
 
 }
