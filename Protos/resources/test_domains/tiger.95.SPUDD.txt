@@ -1,0 +1,47 @@
+
+(variables 
+ (tiger-location tiger-left tiger-right))
+
+(observations 
+ (growl growl-left growl-right))
+
+init (tiger-location (tiger-left (0.5)) (tiger-right (0.5)))
+
+action listen
+    tiger-location (SAMEtiger-location)
+    observe
+        growl (tiger-location' (tiger-left  (growl' (growl-left  (0.85))
+						    (growl-right (0.15))))
+			       (tiger-right (growl' (growl-left  (0.15))
+						    (growl-right (0.85)))))
+    endobserve
+    cost (1)
+endaction
+
+action open-left
+    tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
+    observe
+        growl (growl' (growl-left  (0.5))
+		      (growl-right (0.5)))
+    endobserve
+    cost (tiger-location (tiger-left  (100))
+			 (tiger-right (-10)))
+endaction
+
+action open-right
+    tiger-location (tiger-location' (tiger-left (0.5)) (tiger-right (0.5)))
+    observe
+        growl (growl' (growl-left  (0.5))
+		      (growl-right (0.5)))
+    endobserve
+    cost (tiger-location (tiger-left  (-10))
+			 (tiger-right (100)))
+endaction
+
+// discount factor
+discount  0.95
+
+// tolerance ??
+tolerance 0.001
+					   
+						   
