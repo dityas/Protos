@@ -25,14 +25,14 @@ sourceSets {
         }
         
         antlr {
-        	srcDirs = ['Protos/src']
+        	srcDirs = ['Protos/src/antlr']
         }
         
         resources {
             srcDirs = ['Protos/resources']
         }
     }
-    
+        
     test {
     	
     	java {
@@ -84,6 +84,7 @@ generateGrammarSource {
 	println "Running generateGrammarSource"
 	arguments += ['-package', 'thinclab.spuddx_parser']
 	//outputDirectory = new File("".toString())
+	outputDirectory = new File("Protos/src/thinclab/spuddx_parser")
 }
 
 compileJava.dependsOn generateGrammarSource

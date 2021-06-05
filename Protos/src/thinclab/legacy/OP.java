@@ -460,7 +460,7 @@ public class OP {
 
 		// it's a leaf
 		if (dd.getVar() == 0) {
-			return DDleaf.getDD(Global.varDomSize[var - 1] * dd.getVal(), dd.getConfig());
+			return DDleaf.getDD(Global.varDomSize.get(var - 1) * dd.getVal(), dd.getConfig());
 		}
 
 		DD result = (DD) hashtable.get(dd);
@@ -520,7 +520,7 @@ public class OP {
 			// sizeUpperBound = min(sizeEstimate, prod(varDomSize(newScope)));
 			float sizeUpperBound = 1;
 			for (int j = 0; j < newVarSet.length; j++) {
-				sizeUpperBound *= Global.varDomSize[newVarSet[j] - 1];
+				sizeUpperBound *= Global.varDomSize.get(newVarSet[j] - 1);
 				if (sizeUpperBound >= sizeEstimate)
 					break;
 			}
@@ -612,7 +612,7 @@ public class OP {
 			Iterator<Integer> varIterator = vars.iterator();
 			while (varIterator.hasNext()) {
 				Integer var = (Integer) varIterator.next();
-				result *= Global.varDomSize[var.intValue() - 1];
+				result *= Global.varDomSize.get(var.intValue() - 1);
 			}
 			return result;
 		}
@@ -660,7 +660,7 @@ public class OP {
 			int[] remainingVars = MySet.diff(vars, dd2.getVarSet());
 			int multiplicativeFactor = 1;
 			for (int j = 0; j < remainingVars.length; j++)
-				multiplicativeFactor *= Global.varDomSize[remainingVars[j] - 1];
+				multiplicativeFactor *= Global.varDomSize.get(remainingVars[j] - 1);
 			return dd1Val * multiplicativeFactor * dd2Sum;
 		}
 
@@ -675,7 +675,7 @@ public class OP {
 			int[] remainingVars = MySet.diff(vars, dd1.getVarSet());
 			int multiplicativeFactor = 1;
 			for (int j = 0; j < remainingVars.length; j++)
-				multiplicativeFactor *= Global.varDomSize[remainingVars[j] - 1];
+				multiplicativeFactor *= Global.varDomSize.get(remainingVars[j] - 1);
 			return dd2Val * multiplicativeFactor * dd1Sum;
 		}
 
@@ -741,7 +741,7 @@ public class OP {
 		 * 
 		 * // there is a common variable if (commonVar > 0) { int[] remainingVars =
 		 * MySet.remove(vars,commonVar); float dp = 0; int[][] config = new int[2][1];
-		 * config[0][0] = commonVar; for (int i=0; i<Global.varDomSize[commonVar-1];
+		 * config[0][0] = commonVar; for (int i=0; i<Global.varDomSize.get(commonVar-1];
 		 * i++) { config[1][0] = i+1; dp +=
 		 * OP.dotProductLeafPrune(OP.restrictOrdered(dd1,config),OP.restrictOrdered(dd2,
 		 * config),remainingVars); } return dp; }
@@ -749,7 +749,7 @@ public class OP {
 		 * // no common variable else { int[] remainingVars =
 		 * MySet.diff(MySet.diff(vars,dd1VarSet),dd2VarSet); int multiplicativeFactor =
 		 * 1; for (int j=0; j<remainingVars.length; j++) multiplicativeFactor *=
-		 * Global.varDomSize[remainingVars[j]-1]; return multiplicativeFactor *
+		 * Global.varDomSize.get(remainingVars[j]-1]; return multiplicativeFactor *
 		 * dd1.getSum() * dd2.getSum(); } }
 		 */
 
@@ -844,7 +844,7 @@ public class OP {
 		else {
 			float result = dd1.getVal() * dd2.getVal();
 			for (int i = 0; i < vars.length; i++) {
-				result *= Global.varDomSize[vars[i] - 1];
+				result *= Global.varDomSize.get(vars[i] - 1);
 			}
 			return result;
 		}
@@ -923,7 +923,7 @@ public class OP {
 		else {
 			float result = dd1.getVal() * dd2.getVal();
 			for (int i = 0; i < vars.length; i++) {
-				result *= Global.varDomSize[vars[i] - 1];
+				result *= Global.varDomSize.get(vars[i] - 1);
 			}
 			return result;
 		}
@@ -934,7 +934,7 @@ public class OP {
 	//////////////////////////////////////////////////////
 	public static float factoredExpectationSparse(DD[] factDist, DD dd) {
 
-		DD[] factDistArray = new DD[Global.varDomSize.length + 1];
+		DD[] factDistArray = new DD[Global.varDomSize.size() + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			factDistArray[factDist[i].getVar()] = factDist[i];
 		}
@@ -981,7 +981,7 @@ public class OP {
 	public static float[][] factoredExpectationSparse(DD[][] factDist, DD[] ddArray) {
 
 		float[][] results = new float[factDist.length][ddArray.length];
-		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
+		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.size() + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			for (int j = 0; j < factDist[i].length; j++) {
 				factDistArray[i][factDist[i][j].getVar()] = factDist[i][j];
@@ -999,7 +999,7 @@ public class OP {
 	public static float[] factoredExpectationSparse(DD[][] factDist, DD dd) {
 
 		float[] results = new float[factDist.length];
-		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
+		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.size() + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			for (int j = 0; j < factDist[i].length; j++) {
 				factDistArray[i][factDist[i][j].getVar()] = factDist[i][j];
@@ -1013,7 +1013,7 @@ public class OP {
 
 	public static float factoredExpectationSparseNoMem(DD[] factDist, DD dd) {
 
-		DD[] factDistArray = new DD[Global.varDomSize.length + 1];
+		DD[] factDistArray = new DD[Global.varDomSize.size() + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			factDistArray[factDist[i].getVar()] = factDist[i];
 		}
@@ -1054,7 +1054,7 @@ public class OP {
 	public static float[][] factoredExpectationSparseNoMem(DD[][] factDist, DD[] ddArray) {
 
 		float[][] results = new float[factDist.length][ddArray.length];
-		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
+		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.size() + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			for (int j = 0; j < factDist[i].length; j++) {
 				factDistArray[i][factDist[i][j].getVar()] = factDist[i][j];
@@ -1070,7 +1070,7 @@ public class OP {
 
 	public static float[] factoredExpectationSparseNoMem(DD[] factDist, DD[] ddArray) {
 
-		DD[] factDistArray = new DD[Global.varDomSize.length + 1];
+		DD[] factDistArray = new DD[Global.varDomSize.size() + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			factDistArray[factDist[i].getVar()] = factDist[i];
 		}
@@ -1085,7 +1085,7 @@ public class OP {
 	public static float[] factoredExpectationSparseNoMem(DD[][] factDist, DD dd) {
 
 		float[] results = new float[factDist.length];
-		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
+		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.size() + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			for (int j = 0; j < factDist[i].length; j++) {
 				factDistArray[i][factDist[i][j].getVar()] = factDist[i][j];
@@ -1108,7 +1108,7 @@ public class OP {
 
 	public static float[] factoredExpectationSparseParallel(DD[][] factDist, DD dd) {
 
-		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
+		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.size() + 1];
 		for (int i = 0; i < factDist.length; i++) {
 			for (int j = 0; j < factDist[i].length; j++) {
 				factDistArray[i][factDist[i][j].getVar()] = factDist[i][j];
@@ -1254,7 +1254,7 @@ public class OP {
 
 //	public static float[] factoredExpectationParallel(DD[][] factDist, DD dd) {
 //
-//		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.length + 1];
+//		DD[][] factDistArray = new DD[factDist.length][Global.varDomSize.size() + 1];
 //		for (int i = 0; i < factDist.length; i++) {
 //			for (int j = 0; j < factDist[i].length; j++) {
 //				factDistArray[i][factDist[i][j].getVar()] = factDist[i][j];
@@ -2243,7 +2243,7 @@ public class OP {
 			else {
 				int[][] config = new int[2][1];
 				config[0][0] = rootVarId;
-				DD[] newChildren = new DD[Global.varDomSize[rootVarId - 1]];
+				DD[] newChildren = new DD[Global.varDomSize.get(rootVarId - 1)];
 				for (int i = 0; i < newChildren.length; i++) {
 					config[1][0] = i + 1;
 					DD restDd = OP.restrict(dd, config);
@@ -2277,8 +2277,8 @@ public class OP {
 		int highestVar = varSet[varSet.length - 1];
 		int[][] config = new int[2][1];
 		config[0][0] = highestVar;
-		DD[] children = new DD[Global.varDomSize[highestVar - 1]];
-		for (int i = 0; i < Global.varDomSize[highestVar - 1]; i++) {
+		DD[] children = new DD[Global.varDomSize.get(highestVar - 1)];
+		for (int i = 0; i < Global.varDomSize.get(highestVar - 1); i++) {
 			config[1][0] = i + 1;
 			DD restDd = OP.restrict(dd, config);
 			children[i] = OP.reorder(restDd);
@@ -2346,12 +2346,12 @@ public class OP {
 
 		// it's a node
 		else {
-			String string = Global.varNames[varId - 1] + " ";
-			indentation = indentation + Global.varNames[varId - 1].length() + 1;
+			String string = Global.varNames.get(varId - 1) + " ";
+			indentation = indentation + Global.varNames.get(varId - 1).length() + 1;
 			DD[] children = dd.getChildren();
 			for (int valId = 1; valId <= children.length; valId++) {
-				string += "(" + Global.valNames[varId - 1][valId - 1] + " (";
-				int newIndentation = indentation + Global.valNames[varId - 1][valId - 1].length() + 3;
+				string += "(" + Global.valNames.get(varId - 1).get(valId - 1) + " (";
+				int newIndentation = indentation + Global.valNames.get(varId - 1).get(valId - 1).length() + 3;
 				string += OP.displaySpuddFormat(children[valId - 1], newIndentation);
 				string += "))";
 				if (valId != children.length) {
@@ -2375,9 +2375,9 @@ public class OP {
 				return Double.toString(dd.getVal());
 			else {
 				String string = new String();
-				for (int valId = 1; valId <= Global.varDomSize[primedVarId - 1]; valId++) {
+				for (int valId = 1; valId <= Global.varDomSize.get(primedVarId - 1); valId++) {
 					string += OP.displaySpuddFormat(dd, indentation, 0);
-					if (valId != Global.varDomSize[primedVarId - 1])
+					if (valId != Global.varDomSize.get(primedVarId - 1))
 						string += " ";
 				}
 				return string;
@@ -2386,12 +2386,12 @@ public class OP {
 
 		// it's a node with regular variable
 		else if (varId % 2 == 1) {
-			String string = Global.varNames[varId - 1] + " ";
-			indentation = indentation + Global.varNames[varId - 1].length() + 1;
+			String string = Global.varNames.get(varId - 1) + " ";
+			indentation = indentation + Global.varNames.get(varId - 1).length() + 1;
 			DD[] children = dd.getChildren();
 			for (int valId = 1; valId <= children.length; valId++) {
-				string += "(" + Global.valNames[varId - 1][valId - 1] + " (";
-				int newIndentation = indentation + Global.valNames[varId - 1][valId - 1].length() + 3;
+				string += "(" + Global.valNames.get(varId - 1).get(valId - 1) + " (";
+				int newIndentation = indentation + Global.valNames.get(varId - 1).get(valId - 1).length() + 3;
 				string += OP.displaySpuddFormat(children[valId - 1], newIndentation, primedVarId);
 				string += "))";
 				if (valId != children.length) {
@@ -2420,12 +2420,12 @@ public class OP {
 
 		// its a node with a primed variable id that needs to be printed
 		else {
-			String string = Global.varNames[varId - 2] + "' ";
-			indentation += Global.varNames[varId - 1].length();
+			String string = Global.varNames.get(varId - 2) + "' ";
+			indentation += Global.varNames.get(varId - 1).length();
 			DD[] children = dd.getChildren();
 			for (int valId = 1; valId <= children.length; valId++) {
-				string += "(" + Global.valNames[varId - 1][valId - 1] + " (";
-				int newIndentation = indentation + Global.valNames[varId - 1][valId - 1].length() + 3;
+				string += "(" + Global.valNames.get(varId - 1).get(valId - 1) + " (";
+				int newIndentation = indentation + Global.valNames.get(varId - 1).get(valId - 1).length() + 3;
 				string += OP.displaySpuddFormat(children[valId - 1], newIndentation, primedVarId);
 				string += "))";
 				if (valId != children.length) {
@@ -2468,9 +2468,9 @@ public class OP {
 			if (primedVarId == 0)
 				ps.print(dd.getVal());
 			else {
-				for (int valId = 1; valId <= Global.varDomSize[primedVarId - 1]; valId++) {
+				for (int valId = 1; valId <= Global.varDomSize.get(primedVarId - 1); valId++) {
 					OP.displaySpuddFormat(ps, dd, indentation, 0);
-					if (valId != Global.varDomSize[primedVarId - 1])
+					if (valId != Global.varDomSize.get(primedVarId - 1))
 						ps.print(" ");
 				}
 			}
@@ -2478,14 +2478,14 @@ public class OP {
 
 		// it's a node with regular variable
 		else if (varId % 2 == 1) {
-			ps.print(Global.varNames[varId - 1] + " ");
-			for (int i = 0; i < Global.varNames[varId - 1].length() + 1; i++)
+			ps.print(Global.varNames.get(varId - 1) + " ");
+			for (int i = 0; i < Global.varNames.get(varId - 1).length() + 1; i++)
 				indentation += " ";
 			DD[] children = dd.getChildren();
 			for (int valId = 1; valId <= children.length; valId++) {
-				ps.print("(" + Global.valNames[varId - 1][valId - 1] + " (");
+				ps.print("(" + Global.valNames.get(varId - 1).get(valId - 1) + " (");
 				String newIndentation = new String(indentation);
-				for (int i = 0; i < Global.valNames[varId - 1][valId - 1].length() + 3; i++)
+				for (int i = 0; i < Global.valNames.get(varId - 1).get(valId - 1).length() + 3; i++)
 					newIndentation += " ";
 				OP.displaySpuddFormat(ps, children[valId - 1], newIndentation, primedVarId);
 				ps.print("))");
@@ -2508,14 +2508,14 @@ public class OP {
 
 		// its a node with a primed variable id that needs to be printed
 		else {
-			ps.print(Global.varNames[varId - 2] + "' ");
-			for (int i = 0; i < Global.varNames[varId - 1].length(); i++)
+			ps.print(Global.varNames.get(varId - 2) + "' ");
+			for (int i = 0; i < Global.varNames.get(varId - 1).length(); i++)
 				indentation += " ";
 			DD[] children = dd.getChildren();
 			for (int valId = 1; valId <= children.length; valId++) {
-				ps.print("(" + Global.valNames[varId - 1][valId - 1] + " (");
+				ps.print("(" + Global.valNames.get(varId - 1).get(valId - 1) + " (");
 				String newIndentation = new String(indentation);
-				for (int i = 0; i < Global.valNames[varId - 1][valId - 1].length() + 3; i++)
+				for (int i = 0; i < Global.valNames.get(varId - 1).get(valId - 1).length() + 3; i++)
 					newIndentation += " ";
 				OP.displaySpuddFormat(ps, children[valId - 1], newIndentation, primedVarId);
 				ps.print("))");
@@ -2568,7 +2568,7 @@ public class OP {
 
 		// it's a leaf
 		if (dd.getVar() == 0) {
-			config[1][0] = Global.random.nextInt(Global.varDomSize[varId - 1]) + 1;
+			config[1][0] = Global.random.nextInt(Global.varDomSize.get(varId - 1)) + 1;
 			return config;
 		}
 
@@ -3139,7 +3139,7 @@ public class OP {
 
 		int arrayLength = 1;
 		for (int i = 0; i < varList.length; i++) {
-			arrayLength *= Global.varDomSize[varList[i] - 1];
+			arrayLength *= Global.varDomSize.get(varList[i] - 1);
 		}
 
 		float[] result = new float[arrayLength];
@@ -3157,7 +3157,7 @@ public class OP {
 		else {
 			int varId = dd.getVar();
 			if (varId < varList[varListIndex]) {
-				for (int i = 0; i < Global.varDomSize[varList[varListIndex] - 1]; i++) {
+				for (int i = 0; i < Global.varDomSize.get(varList[varListIndex] - 1); i++) {
 					arrayIndex = convert2arrayRecursive(dd, varList, varListIndex + 1, array, arrayIndex);
 				}
 			}

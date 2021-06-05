@@ -96,7 +96,7 @@ public abstract class DecisionProcess implements Serializable {
 		String[] vals = new String[config[0].length];
 		
 		for (int varI = 0; varI < config[0].length; varI ++) {
-			vals[varI] = Global.valNames[config[0][varI] - 1][config[1][varI] - 1];
+			vals[varI] = Global.valNames.get(config[0][varI] - 1).get(config[1][varI] - 1);
 		}
 		
 		return vals;
@@ -111,7 +111,7 @@ public abstract class DecisionProcess implements Serializable {
 		if (varName.contains("'")) 
 			varName = varName.substring(0, varName.length() - 1) + "_P";
 		
-		int varIndex = Arrays.asList(Global.varNames).indexOf(varName) + 1;
+		int varIndex = Global.varNames.indexOf(varName) + 1;
 		
 		if (varIndex == -1)
 			throw new VariableNotFoundException("Var " + varName + " does not exist");
@@ -123,11 +123,11 @@ public abstract class DecisionProcess implements Serializable {
 		/*
 		 * Gets the Global varName for the varIndex
 		 */
-		if (varIndex > Global.varNames.length) 
+		if (varIndex > Global.varNames.size()) 
 			throw new VariableNotFoundException("Can't find var for index " + varIndex);
 		
 		/* sub 1 from index to compensate for Matlab-like indexing in Globals */
-		String varName = Global.varNames[varIndex - 1];
+		String varName = Global.varNames.get(varIndex - 1);
 		
 		if (varName.length() > 2 && varName.substring(varName.length() - 2).contains("_P"))
 			return varName.substring(0, varName.length() - 2) + "'";

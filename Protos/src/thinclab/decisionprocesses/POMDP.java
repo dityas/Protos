@@ -587,32 +587,32 @@ public class POMDP extends DecisionProcess implements Serializable {
 		 */
 		
 		Global.clearHashtables();
-		Global.setVarDomSize(varDomSize);
-		Global.setVarNames(varName);
-
-		for (int i = 0; i < nStateVars; i++) {
-			Global.setValNames(
-					i + 1, 
-					stateVars[i].valNames);
-		}
-		
-		for (int i = 0; i < nObsVars; i++) {
-			Global.setValNames(
-					nStateVars + i + 1, 
-					obsVars[i].valNames);
-		}
-		
-		for (int i = 0; i < nStateVars; i++) {
-			Global.setValNames(
-					nVars + i + 1, 
-					stateVars[i].valNames);
-		}
-		
-		for (int i = 0; i < nObsVars; i++) {
-			Global.setValNames(
-					nVars + nStateVars + i + 1, 
-					obsVars[i].valNames);
-		}
+//		Global.setVarDomSize(varDomSize);
+//		Global.setVarNames(varName);
+//
+//		for (int i = 0; i < nStateVars; i++) {
+//			Global.setValNames(
+//					i + 1, 
+//					stateVars[i].valNames);
+//		}
+//		
+//		for (int i = 0; i < nObsVars; i++) {
+//			Global.setValNames(
+//					nStateVars + i + 1, 
+//					obsVars[i].valNames);
+//		}
+//		
+//		for (int i = 0; i < nStateVars; i++) {
+//			Global.setValNames(
+//					nVars + i + 1, 
+//					stateVars[i].valNames);
+//		}
+//		
+//		for (int i = 0; i < nObsVars; i++) {
+//			Global.setValNames(
+//					nVars + nStateVars + i + 1, 
+//					obsVars[i].valNames);
+//		}
 			
 	}
 	

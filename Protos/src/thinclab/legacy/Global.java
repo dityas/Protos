@@ -13,9 +13,9 @@ public class Global {
 	public static String storagDir = null;
 	public static boolean showProgressBar = false;
 
-	public static int[] varDomSize = null;
-	public static String[] varNames = null;
-	public static String[][] valNames = null;
+	public static List<Integer> varDomSize = new ArrayList<>(10);
+	public static List<String> varNames = new ArrayList<>(10);
+	public static List<List<String>> valNames = new ArrayList<>(10);
 
 	/* identify which frame and level has the current context */
 	public static int CONTEXT_LEVEL_ID;
@@ -53,34 +53,46 @@ public class Global {
 	// --------------------------------------------------------------------------
 
 	private static final Logger LOGGER = LogManager.getLogger(Global.class);
-	
-	public static void setVarDomSize(int[] newVarDomSize) {
-		Global.varDomSize = newVarDomSize;
+
+	public static void addVariable(String varName, List<String> valNames) {
+
+		if (Global.varNames.size() < 1)
+			Global.varNames.add("leaf");
+		
+		Global.varNames.add(varName);
+		Global.valNames.add(valNames);
+		Global.varDomSize.add(valNames.size());
+		
+		LOGGER.debug(String.format("Add var %s with values %s", varName, valNames));
 	}
 
-	public static void setVarNames(String[] newVarNames) {
-		Global.varNames = newVarNames;
-	}
+//	public static void setVarDomSize(int[] newVarDomSize) {
+//		Global.varDomSize = newVarDomSize;
+//	}
+
+//	public static void setVarNames(String[] newVarNames) {
+//		Global.varNames = newVarNames;
+//	}
 
 	public static void setSeed(long seed) {
 		random.setSeed(seed);
 	}
 
-	public static void setValNames(int varId, String[] newValNames) {
-		if (Global.valNames == null) {
-			Global.valNames = new String[varId][];
-			Global.valNames[varId - 1] = newValNames;
-		} else if (Global.valNames.length < varId) {
-			String[][] tempValNames = new String[varId][];
-			for (int i = 0; i < Global.valNames.length; i++) {
-				tempValNames[i] = Global.valNames[i];
-			}
-			tempValNames[varId - 1] = newValNames;
-			Global.valNames = tempValNames;
-		} else {
-			Global.valNames[varId - 1] = newValNames;
-		}
-	}
+//	public static void setValNames(int varId, String[] newValNames) {
+//		if (Global.valNames == null) {
+//			Global.valNames = new String[varId][];
+//			Global.valNames[varId - 1] = newValNames;
+//		} else if (Global.valNames.length < varId) {
+//			String[][] tempValNames = new String[varId][];
+//			for (int i = 0; i < Global.valNames.length; i++) {
+//				tempValNames[i] = Global.valNames[i];
+//			}
+//			tempValNames[varId - 1] = newValNames;
+//			Global.valNames = tempValNames;
+//		} else {
+//			Global.valNames[varId - 1] = newValNames;
+//		}
+//	}
 
 	public static void clearHashtables() {
 
@@ -120,18 +132,6 @@ public class Global {
 		Global.nNodesHashtable = new CacheMap();
 		Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
 		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
-	}
-
-	public static int[] getKeyHashCodeSet(HashMap hashMap) {
-		Set keySet = hashMap.keySet();
-		Iterator iterator = keySet.iterator();
-		int[] hashCodeCollection = new int[hashMap.size()];
-		int i = 0;
-		while (iterator.hasNext()) {
-			hashCodeCollection[i] = iterator.next().hashCode();
-			i += 1;
-		}
-		return hashCodeCollection;
 	}
 
 	public static void printProgressBar(int currentStep, int totalSteps, int totalRounds) {

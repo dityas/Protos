@@ -59,15 +59,15 @@ class TestPOMDPSanity {
 		solver.solve();
 	}
 
-	@Test
-	void testIPOMDPInit() {
-
-		LOGGER.info("Checking if IPOMDPs can be initialized.");
-
-		IPOMDPParser parser = new IPOMDPParser(
-				this.getClass().getClassLoader().getResource("test_domains/tiger.L1multiple_new_parser.txt").getFile());
-		
-		parser.parseDomain();
-	}
+//	@Test
+//	void testIPOMDPInit() {
+//
+//		LOGGER.info("Checking if IPOMDPs can be initialized.");
+//
+//		IPOMDPParser parser = new IPOMDPParser(
+//				this.getClass().getClassLoader().getResource("test_domains/tiger.L1multiple_new_parser.txt").getFile());
+//		
+//		parser.parseDomain();
+//	}
 
 }

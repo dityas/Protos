@@ -300,7 +300,7 @@ public class Simulation extends StructuredTree {
 		int[][] obsConfig = OP.sampleMultinomial(obsDist, obsIndices);
 		String[] obs = new String[obsConfig[0].length];
 		for (int varI = 0; varI < obsConfig[0].length; varI++) {
-			obs[varI] = Global.valNames[obsConfig[0][varI] - 1][obsConfig[1][varI] - 1];
+			obs[varI] = Global.valNames.get(obsConfig[0][varI] - 1).get(obsConfig[1][varI] - 1);
 		}
 
 		return obs;
