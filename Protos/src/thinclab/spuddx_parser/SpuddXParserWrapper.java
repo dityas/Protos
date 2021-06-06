@@ -84,6 +84,37 @@ public class SpuddXParserWrapper {
 		}
 	}
 	
+	private class ObsVarDeclVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
+		
+		@Override
+		public List<RandomVariable> visitObs_var_decl(SpuddXParser.Obs_var_declContext ctx) {
+			
+			var rvVisitor = new RvDeclVisitor();
+			
+			var obsVars = ctx.rv_decl().stream()
+									   .map(rvVisitor::visit)
+									   .collect(Collectors.toList());
+			
+			LOGGER.debug(String.format("Parsed obs variables %s", obsVars));
+			
+			return obsVars;
+		}
+	}
+	
+	private class DomainVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
+		
+		@Override
+		public List<RandomVariable> visitDomain(SpuddXParser.DomainContext ctx) {
+			
+			var sVars = new StateVarDeclVisitor().visit(ctx.state_var_decl());
+			var oVars = new ObsVarDeclVisitor().visit(ctx.obs_var_decl());
+			
+			sVars.addAll(oVars);
+			
+			return sVars;
+		}
+	}
+
 	// -------------------------------------------------------------------------
 
 	public SpuddXParserWrapper(String fileName) {
@@ -100,8 +131,8 @@ public class SpuddXParserWrapper {
 			
 			this.parser = new SpuddXParser(tokens);
 			
-			var sVars = new StateVarDeclVisitor();
-			var vars = sVars.visit(this.parser.domain());
+			var domainVisitor = new DomainVisitor();
+			var vars = domainVisitor.visit(this.parser.domain());
 			
 		}
 

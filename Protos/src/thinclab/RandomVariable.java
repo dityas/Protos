@@ -30,4 +30,14 @@ public class RandomVariable {
 	public List<String> getValNames() {
 		return this.valNames;
 	}
-}
+	
+	@Override
+	public String toString() {
+		
+		var builder = new StringBuilder();
+		builder.append(this.varName).append(" : ")
+			   .append(this.valNames);
+			   
+		return builder.toString();
+	}
+ }
