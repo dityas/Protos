@@ -42,8 +42,8 @@ class TestPOMDPSanity {
 
 		// ParseSPUDD parser = new ParseSPUDD("test_domains/tiger.95.SPUDD.txt");
 
-		POMDP pomdp = new POMDP(
-				this.getClass().getClassLoader().getResource("test_domains/tiger.95.SPUDD.txt").getFile());
+//		POMDP pomdp = new POMDP(
+//				this.getClass().getClassLoader().getResource("test_domains/tiger.95.SPUDD.txt").getFile());
 	}
 	
 	@Test
@@ -52,11 +52,11 @@ class TestPOMDPSanity {
 
 		// ParseSPUDD parser = new ParseSPUDD("test_domains/tiger.95.SPUDD.txt");
 
-		POMDP pomdp = new POMDP(
-				this.getClass().getClassLoader().getResource("test_domains/tiger.95.SPUDD.txt").getFile());
-		
-		BaseSolver solver = OfflineSymbolicPerseus.createSolverWithSSGAExpansion(pomdp, 10, 30, 2, 100);
-		solver.solve();
+//		POMDP pomdp = new POMDP(
+//				this.getClass().getClassLoader().getResource("test_domains/tiger.95.SPUDD.txt").getFile());
+//		
+//		BaseSolver solver = OfflineSymbolicPerseus.createSolverWithSSGAExpansion(pomdp, 10, 30, 2, 100);
+//		solver.solve();
 	}
 
 //	@Test

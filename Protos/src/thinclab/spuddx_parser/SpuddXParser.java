@@ -1,8 +1,5 @@
-// Generated from Spudd.g4 by ANTLR 4.5
+// Generated from SpuddX.g4 by ANTLR 4.5
 package thinclab.spuddx_parser;
-
-	package thinclab.spuddx_parser;
-
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -13,14 +10,14 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
-public class SpuddParser extends Parser {
+public class SpuddXParser extends Parser {
 	static { RuntimeMetaData.checkVersion("4.5", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		T__0=1, T__1=2, VARNAME=3, VARVAL=4, LPAREN=5, RPAREN=6;
+		T__0=1, T__1=2, VARNAME=3, VARVAL=4, LPAREN=5, RPAREN=6, WS=7;
 	public static final int
 		RULE_domain = 0, RULE_state_var_decl = 1, RULE_obs_var_decl = 2, RULE_rv_decl = 3, 
 		RULE_var_values = 4, RULE_var_value = 5;
@@ -32,7 +29,7 @@ public class SpuddParser extends Parser {
 		null, "'variables'", "'observations'", null, null, "'('", "')'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
-		null, null, null, "VARNAME", "VARVAL", "LPAREN", "RPAREN"
+		null, null, null, "VARNAME", "VARVAL", "LPAREN", "RPAREN", "WS"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -68,7 +65,7 @@ public class SpuddParser extends Parser {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "Spudd.g4"; }
+	public String getGrammarFileName() { return "SpuddX.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -79,7 +76,7 @@ public class SpuddParser extends Parser {
 	@Override
 	public ATN getATN() { return _ATN; }
 
-	public SpuddParser(TokenStream input) {
+	public SpuddXParser(TokenStream input) {
 		super(input);
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
@@ -90,18 +87,23 @@ public class SpuddParser extends Parser {
 		public Obs_var_declContext obs_var_decl() {
 			return getRuleContext(Obs_var_declContext.class,0);
 		}
-		public TerminalNode EOF() { return getToken(SpuddParser.EOF, 0); }
+		public TerminalNode EOF() { return getToken(SpuddXParser.EOF, 0); }
 		public DomainContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_domain; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).enterDomain(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).enterDomain(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).exitDomain(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).exitDomain(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SpuddXVisitor ) return ((SpuddXVisitor<? extends T>)visitor).visitDomain(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -131,22 +133,27 @@ public class SpuddParser extends Parser {
 	}
 
 	public static class State_var_declContext extends ParserRuleContext {
-		public TerminalNode LPAREN() { return getToken(SpuddParser.LPAREN, 0); }
+		public TerminalNode LPAREN() { return getToken(SpuddXParser.LPAREN, 0); }
 		public Rv_declContext rv_decl() {
 			return getRuleContext(Rv_declContext.class,0);
 		}
-		public TerminalNode RPAREN() { return getToken(SpuddParser.RPAREN, 0); }
+		public TerminalNode RPAREN() { return getToken(SpuddXParser.RPAREN, 0); }
 		public State_var_declContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_state_var_decl; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).enterState_var_decl(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).enterState_var_decl(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).exitState_var_decl(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).exitState_var_decl(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SpuddXVisitor ) return ((SpuddXVisitor<? extends T>)visitor).visitState_var_decl(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -178,22 +185,27 @@ public class SpuddParser extends Parser {
 	}
 
 	public static class Obs_var_declContext extends ParserRuleContext {
-		public TerminalNode LPAREN() { return getToken(SpuddParser.LPAREN, 0); }
+		public TerminalNode LPAREN() { return getToken(SpuddXParser.LPAREN, 0); }
 		public Rv_declContext rv_decl() {
 			return getRuleContext(Rv_declContext.class,0);
 		}
-		public TerminalNode RPAREN() { return getToken(SpuddParser.RPAREN, 0); }
+		public TerminalNode RPAREN() { return getToken(SpuddXParser.RPAREN, 0); }
 		public Obs_var_declContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_obs_var_decl; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).enterObs_var_decl(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).enterObs_var_decl(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).exitObs_var_decl(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).exitObs_var_decl(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SpuddXVisitor ) return ((SpuddXVisitor<? extends T>)visitor).visitObs_var_decl(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -225,23 +237,28 @@ public class SpuddParser extends Parser {
 	}
 
 	public static class Rv_declContext extends ParserRuleContext {
-		public TerminalNode LPAREN() { return getToken(SpuddParser.LPAREN, 0); }
-		public TerminalNode VARNAME() { return getToken(SpuddParser.VARNAME, 0); }
+		public TerminalNode LPAREN() { return getToken(SpuddXParser.LPAREN, 0); }
+		public TerminalNode VARNAME() { return getToken(SpuddXParser.VARNAME, 0); }
 		public Var_valuesContext var_values() {
 			return getRuleContext(Var_valuesContext.class,0);
 		}
-		public TerminalNode RPAREN() { return getToken(SpuddParser.RPAREN, 0); }
+		public TerminalNode RPAREN() { return getToken(SpuddXParser.RPAREN, 0); }
 		public Rv_declContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_rv_decl; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).enterRv_decl(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).enterRv_decl(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).exitRv_decl(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).exitRv_decl(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SpuddXVisitor ) return ((SpuddXVisitor<? extends T>)visitor).visitRv_decl(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -285,11 +302,16 @@ public class SpuddParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_var_values; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).enterVar_values(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).enterVar_values(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).exitVar_values(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).exitVar_values(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SpuddXVisitor ) return ((SpuddXVisitor<? extends T>)visitor).visitVar_values(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -329,18 +351,23 @@ public class SpuddParser extends Parser {
 	}
 
 	public static class Var_valueContext extends ParserRuleContext {
-		public TerminalNode VARVAL() { return getToken(SpuddParser.VARVAL, 0); }
+		public TerminalNode VARVAL() { return getToken(SpuddXParser.VARVAL, 0); }
 		public Var_valueContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_var_value; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).enterVar_value(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).enterVar_value(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddListener ) ((SpuddListener)listener).exitVar_value(this);
+			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).exitVar_value(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SpuddXVisitor ) return ((SpuddXVisitor<? extends T>)visitor).visitVar_value(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -366,7 +393,7 @@ public class SpuddParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\b*\4\2\t\2\4\3\t"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\t*\4\2\t\2\4\3\t"+
 		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\3\2\3\2\3\2\3\2\3\3\3\3\3\3\3\3\3\3"+
 		"\3\4\3\4\3\4\3\4\3\4\3\5\3\5\3\5\3\5\3\5\3\6\3\6\3\6\3\6\5\6&\n\6\3\7"+
 		"\3\7\3\7\2\2\b\2\4\6\b\n\f\2\2$\2\16\3\2\2\2\4\22\3\2\2\2\6\27\3\2\2\2"+

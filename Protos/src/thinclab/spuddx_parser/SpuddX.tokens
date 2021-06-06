@@ -4,6 +4,7 @@ VARNAME=3
 VARVAL=4
 LPAREN=5
 RPAREN=6
+WS=7
 'variables'=1
 'observations'=2
 '('=5

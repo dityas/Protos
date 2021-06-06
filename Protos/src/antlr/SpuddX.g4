@@ -1,8 +1,4 @@
-grammar Spudd;
-
-@header {
-	package thinclab.spuddx_parser;
-}
+grammar SpuddX;
 
 /*
 	Parser
@@ -25,7 +21,8 @@ var_values : var_value var_values
 var_value : VARVAL ;
 
 
-VARNAME: [A-Z][a-zA-Z0-9]+ ;
-VARVAL: [a-z][a-z0-9]+ ;
+VARNAME: [A-Z][a-zA-Z0-9_]* ;
+VARVAL: [a-z][a-z0-9_]+ ;
 LPAREN : '(' ;
 RPAREN : ')' ;
+WS : [ \t\r\n]+ -> skip ;

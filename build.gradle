@@ -82,7 +82,7 @@ dependencies {
 
 generateGrammarSource {
 	println "Running generateGrammarSource"
-	arguments += ['-package', 'thinclab.spuddx_parser']
+	arguments += ['-package', 'thinclab.spuddx_parser', '-visitor']
 	//outputDirectory = new File("".toString())
 	outputDirectory = new File("Protos/src/thinclab/spuddx_parser")
 }
