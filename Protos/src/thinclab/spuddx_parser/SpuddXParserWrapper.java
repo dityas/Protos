@@ -9,12 +9,16 @@ package thinclab.spuddx_parser;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import thinclab.RandomVariable;
 
 /*
  * @author adityas
@@ -30,18 +34,57 @@ public class SpuddXParserWrapper {
 	private String fileName;
 	private SpuddXParser parser;
 	
-	private static final Logger LOGGER = LogManager.getLogger(SpuddXParserWrapper.class);
+	private static final Logger LOGGER = 
+			LogManager.getLogger(SpuddXParserWrapper.class);
 
-	// ---------------------------------------------------------------
+	// -------------------------------------------------------------------------
 	// Implementation of ANTLR4 visitors
 
 	private class VarValueVisitor extends SpuddXBaseVisitor<String> {
 
 		@Override
 		public String visitVar_value(SpuddXParser.Var_valueContext ctx) {
-			return ctx.getText();
+			return ctx.VARVAL().getText();
 		}
 	}
+		
+	private class RvDeclVisitor extends SpuddXBaseVisitor<RandomVariable> {
+		
+		@Override
+		public RandomVariable visitRv_decl(SpuddXParser.Rv_declContext ctx) {
+			
+			var varValsVisitor = new VarValueVisitor();
+			
+			String varName = ctx.VARNAME().toString();
+			
+			List<String> valNames = ctx.var_value().stream()
+												   .map(varValsVisitor::visit)
+												   .collect(Collectors.toList());
+			
+			LOGGER.debug(String.format("Parsed RV %s: %s", varName, valNames));
+			
+			return new RandomVariable(varName, valNames);
+		}
+	}
+	
+	private class StateVarDeclVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
+		
+		@Override
+		public List<RandomVariable> visitState_var_decl(SpuddXParser.State_var_declContext ctx) {
+			
+			var rvVisitor = new RvDeclVisitor();
+			
+			var stateVars = ctx.rv_decl().stream()
+										 .map(rvVisitor::visit)
+										 .collect(Collectors.toList());
+			
+			LOGGER.debug(String.format("Parsed state variables %s", stateVars));
+			
+			return stateVars;
+		}
+	}
+	
+	// -------------------------------------------------------------------------
 
 	public SpuddXParserWrapper(String fileName) {
 		
@@ -57,6 +100,9 @@ public class SpuddXParserWrapper {
 			
 			this.parser = new SpuddXParser(tokens);
 			
+			var sVars = new StateVarDeclVisitor();
+			var vars = sVars.visit(this.parser.domain());
+			
 		}
 
 		catch (Exception e) {
@@ -65,11 +111,4 @@ public class SpuddXParserWrapper {
 			System.exit(-1);
 		}
 	}
-
-	public String parseVarValues() {
-		
-		VarValueVisitor visitor = new VarValueVisitor();
-		return visitor.visit(this.parser.domain());
-	}
-
 }

@@ -9,14 +9,11 @@ domain: state_var_decl
 		EOF 
 		;
 
-state_var_decl : LPAREN 'variables' rv_decl RPAREN ;
-obs_var_decl : LPAREN 'observations' rv_decl RPAREN ;
+state_var_decl : LPAREN 'variables' (rv_decl)+ RPAREN ;
+obs_var_decl : LPAREN 'observations' (rv_decl)+ RPAREN ;
 
-rv_decl : LPAREN VARNAME var_values RPAREN ;
-
-var_values : var_value var_values
-			|
-			;
+rv_decl : LPAREN VARNAME (var_value)+ RPAREN 
+		;
 			
 var_value : VARVAL ;
 

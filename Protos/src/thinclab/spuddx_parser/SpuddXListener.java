@@ -49,16 +49,6 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitRv_decl(SpuddXParser.Rv_declContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#var_values}.
-	 * @param ctx the parse tree
-	 */
-	void enterVar_values(SpuddXParser.Var_valuesContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#var_values}.
-	 * @param ctx the parse tree
-	 */
-	void exitVar_values(SpuddXParser.Var_valuesContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#var_value}.
 	 * @param ctx the parse tree
 	 */

@@ -27,11 +27,18 @@ import thinclab.spuddx_parser.SpuddXParserWrapper;
  *
  */
 class TestANTLRSpuddParser {
-	
+
 	private static final Logger LOGGER = LogManager.getLogger(TestANTLRSpuddParser.class);
+	
+	public String domainFile;
 
 	@BeforeEach
 	void setUp() throws Exception {
+		
+		this.domainFile = 
+				this.getClass().getClassLoader()
+					.getResource("test_domains/test_var_decls.spudd")
+					.getFile();
 	}
 
 	@AfterEach
@@ -40,38 +47,36 @@ class TestANTLRSpuddParser {
 
 	@Test
 	void testSimplePOMDPVarDeclsLexer() throws Exception {
-		
+
 		LOGGER.info("Running tests for simple POMDP parsing");
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_var_decls.spudd").getFile();
-		
+
 		LOGGER.info(String.format("Trying to parse file %s", domainFile));
-		
+
 		InputStream is = new FileInputStream(domainFile);
 		ANTLRInputStream antlrIs = new ANTLRInputStream(is);
-		
+
 		SpuddXLexer lexer = new SpuddXLexer(antlrIs);
-		
+
 		LOGGER.debug(String.format("Initialized lexer %s", lexer));
-		
+
 		var tokens = lexer.getAllTokens();
-		
+
 		LOGGER.debug(String.format("Tokens extracted: %s", tokens));
-		
+
 		assertNotNull(tokens);
 	}
-	
+
 	@Test
 	void testParserWrapperInit() throws Exception {
-		
+
 		LOGGER.info("Running Parser Wrapper init test");
-		
-		String domainFile = 
-				this.getClass().getClassLoader()
-							   .getResource("test_domains/test_var_decls.spudd")
-							   .getFile();
-		
+
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_var_decls.spudd").getFile();
+
 		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		
+
 		assertNotNull(parserWrapper);
 	}
+	
 }
