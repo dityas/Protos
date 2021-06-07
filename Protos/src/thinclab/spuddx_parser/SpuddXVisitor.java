@@ -72,12 +72,6 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitRv_decl(SpuddXParser.Rv_declContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#act_decl}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAct_decl(SpuddXParser.Act_declContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#var_value}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

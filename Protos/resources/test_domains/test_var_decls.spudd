@@ -10,3 +10,7 @@
 	(Creak left right)
 	(O open closed)
 )
+
+(actions
+	(Agent1 open_left open_right listen)
+)

@@ -33,9 +33,8 @@ public class SpuddXParserWrapper {
 
 	private String fileName;
 	private SpuddXParser parser;
-	
-	private static final Logger LOGGER = 
-			LogManager.getLogger(SpuddXParserWrapper.class);
+
+	private static final Logger LOGGER = LogManager.getLogger(SpuddXParserWrapper.class);
 
 	// -------------------------------------------------------------------------
 	// Implementation of ANTLR4 visitors
@@ -47,80 +46,108 @@ public class SpuddXParserWrapper {
 			return ctx.VARVAL().getText();
 		}
 	}
-		
+
 	private class RvDeclVisitor extends SpuddXBaseVisitor<RandomVariable> {
-		
+
 		@Override
 		public RandomVariable visitRv_decl(SpuddXParser.Rv_declContext ctx) {
-			
+
 			var varValsVisitor = new VarValueVisitor();
-			
+
 			String varName = ctx.VARNAME().toString();
-			
-			List<String> valNames = ctx.var_value().stream()
-												   .map(varValsVisitor::visit)
-												   .collect(Collectors.toList());
-			
+
+			List<String> valNames = ctx.var_value().stream().map(varValsVisitor::visit).collect(Collectors.toList());
+
 			LOGGER.debug(String.format("Parsed RV %s: %s", varName, valNames));
-			
+
 			return new RandomVariable(varName, valNames);
 		}
 	}
-	
+
 	private class StateVarDeclVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
-		
+
 		@Override
 		public List<RandomVariable> visitState_var_decl(SpuddXParser.State_var_declContext ctx) {
-			
+
 			var rvVisitor = new RvDeclVisitor();
-			
-			var stateVars = ctx.rv_decl().stream()
-										 .map(rvVisitor::visit)
-										 .collect(Collectors.toList());
-			
+
+			var stateVars = ctx.rv_decl().stream().map(rvVisitor::visit).collect(Collectors.toList());
+
 			LOGGER.debug(String.format("Parsed state variables %s", stateVars));
-			
+
 			return stateVars;
 		}
 	}
-	
+
 	private class ObsVarDeclVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
-		
+
 		@Override
 		public List<RandomVariable> visitObs_var_decl(SpuddXParser.Obs_var_declContext ctx) {
-			
+
 			var rvVisitor = new RvDeclVisitor();
-			
-			var obsVars = ctx.rv_decl().stream()
-									   .map(rvVisitor::visit)
-									   .collect(Collectors.toList());
-			
+
+			var obsVars = ctx.rv_decl().stream().map(rvVisitor::visit).collect(Collectors.toList());
+
 			LOGGER.debug(String.format("Parsed obs variables %s", obsVars));
-			
+
 			return obsVars;
 		}
 	}
-	
+
+	private class ActionsDeclVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
+
+		@Override
+		public List<RandomVariable> visitActions_decl(SpuddXParser.Actions_declContext ctx) {
+
+			var rvVisitor = new RvDeclVisitor();
+
+			var actVars = ctx.rv_decl().stream().map(rvVisitor::visit).collect(Collectors.toList());
+
+			LOGGER.debug(String.format("Parsed action variables %s", actVars));
+
+			return actVars;
+		}
+	}
+
 	private class DomainVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
-		
+
 		@Override
 		public List<RandomVariable> visitDomain(SpuddXParser.DomainContext ctx) {
-			
+
 			var sVars = new StateVarDeclVisitor().visit(ctx.state_var_decl());
 			var oVars = new ObsVarDeclVisitor().visit(ctx.obs_var_decl());
-			
+
 			sVars.addAll(oVars);
-			
+
 			return sVars;
 		}
+
+		// --------------------------------------------------------------------------
+		// Methods for parsing out individual components
+
+		public List<RandomVariable> getStateVarDecls(SpuddXParser.DomainContext ctx) {
+
+			return new StateVarDeclVisitor().visit(ctx.state_var_decl());
+		}
+
+		public List<RandomVariable> getObsVarDecls(SpuddXParser.DomainContext ctx) {
+
+			return new ObsVarDeclVisitor().visit(ctx.obs_var_decl());
+		}
+
+		public List<RandomVariable> getActionVarDecls(SpuddXParser.DomainContext ctx) {
+
+			return new ActionsDeclVisitor().visit(ctx.actions_decl());
+		}
+
 	}
 
 	// -------------------------------------------------------------------------
 
 	public SpuddXParserWrapper(String fileName) {
-		
+
 		this.fileName = fileName;
-		
+
 		try {
 
 			// Get tokens from lexer
@@ -128,18 +155,35 @@ public class SpuddXParserWrapper {
 			ANTLRInputStream antlrIs = new ANTLRInputStream(is);
 			SpuddXLexer lexer = new SpuddXLexer(antlrIs);
 			TokenStream tokens = new CommonTokenStream(lexer);
-			
+
 			this.parser = new SpuddXParser(tokens);
-			
-			var domainVisitor = new DomainVisitor();
-			var vars = domainVisitor.visit(this.parser.domain());
-			
+
 		}
 
 		catch (Exception e) {
-			LOGGER.error(String.format(
-					"Error while trying to parse %s: %s", this.fileName, e));
+			LOGGER.error(String.format("Error while trying to parse %s: %s", this.fileName, e));
 			System.exit(-1);
 		}
 	}
+
+	public List<RandomVariable> getStateVarDecls() {
+
+		var domainVisitor = new DomainVisitor();
+		return domainVisitor.getStateVarDecls(this.parser.domain());
+
+	}
+
+	public List<RandomVariable> getObsVarDecls() {
+		
+		var domainVisitor = new DomainVisitor();
+		return domainVisitor.getObsVarDecls(this.parser.domain());
+
+	}
+
+	public List<RandomVariable> getActionVarDecls() {
+		var domainVisitor = new DomainVisitor();
+		return domainVisitor.getActionVarDecls(this.parser.domain());
+
+	}
+
 }

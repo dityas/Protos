@@ -137,18 +137,6 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAct_decl(SpuddXParser.Act_declContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAct_decl(SpuddXParser.Act_declContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterVar_value(SpuddXParser.Var_valueContext ctx) { }
 	/**
 	 * {@inheritDoc}
