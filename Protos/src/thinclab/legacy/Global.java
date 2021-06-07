@@ -5,6 +5,8 @@ import java.util.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import thinclab.RandomVariable;
+
 import java.lang.ref.*;
 import java.sql.Connection;
 
@@ -65,34 +67,18 @@ public class Global {
 		
 		LOGGER.debug(String.format("Add var %s with values %s", varName, valNames));
 	}
-
-//	public static void setVarDomSize(int[] newVarDomSize) {
-//		Global.varDomSize = newVarDomSize;
-//	}
-
-//	public static void setVarNames(String[] newVarNames) {
-//		Global.varNames = newVarNames;
-//	}
+	
+	public static void populateFromRandomVariables(List<RandomVariable> vars) {
+		
+		vars.stream()
+			.forEach(v -> Global.addVariable(
+						v.getVarName(), 
+						v.getValNames()));
+	}
 
 	public static void setSeed(long seed) {
 		random.setSeed(seed);
 	}
-
-//	public static void setValNames(int varId, String[] newValNames) {
-//		if (Global.valNames == null) {
-//			Global.valNames = new String[varId][];
-//			Global.valNames[varId - 1] = newValNames;
-//		} else if (Global.valNames.length < varId) {
-//			String[][] tempValNames = new String[varId][];
-//			for (int i = 0; i < Global.valNames.length; i++) {
-//				tempValNames[i] = Global.valNames[i];
-//			}
-//			tempValNames[varId - 1] = newValNames;
-//			Global.valNames = tempValNames;
-//		} else {
-//			Global.valNames[varId - 1] = newValNames;
-//		}
-//	}
 
 	public static void clearHashtables() {
 

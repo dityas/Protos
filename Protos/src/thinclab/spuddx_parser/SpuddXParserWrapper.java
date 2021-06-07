@@ -168,6 +168,7 @@ public class SpuddXParserWrapper {
 
 	public List<RandomVariable> getStateVarDecls() {
 
+		this.parser.reset();
 		var domainVisitor = new DomainVisitor();
 		return domainVisitor.getStateVarDecls(this.parser.domain());
 
@@ -175,12 +176,15 @@ public class SpuddXParserWrapper {
 
 	public List<RandomVariable> getObsVarDecls() {
 		
+		this.parser.reset();
 		var domainVisitor = new DomainVisitor();
 		return domainVisitor.getObsVarDecls(this.parser.domain());
 
 	}
 
 	public List<RandomVariable> getActionVarDecls() {
+		
+		this.parser.reset();
 		var domainVisitor = new DomainVisitor();
 		return domainVisitor.getActionVarDecls(this.parser.domain());
 
