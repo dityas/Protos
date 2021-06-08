@@ -17,6 +17,7 @@ import cern.colt.Arrays;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.legacy.MySet;
 import thinclab.legacy.OP;
@@ -79,15 +80,15 @@ public class BeliefOps extends BeliefOperations {
 				DPRef.varIndices);
 		
 		DD[] pred = this.factorBelief(nextBelState);
-		System.out.println("preds are: " + Arrays.toString(pred));
+		//System.out.println("preds are: " + Arrays.toString(pred));
 		
-		double weight = 1.0 / 1.0 + OP.l2NormSq(pred, restrictedObsFn);
+		double weight = 1.0 / (1.0 + OP.l2NormSq(pred, restrictedObsFn));
 		System.out.println("Weight is: " + weight);
 
-		System.out.println("Evidence is: " + Arrays.toString(restrictedObsFn));
+		//System.out.println("Evidence is: " + Arrays.toString(restrictedObsFn));
 		DD[] weightedEvidence = OP.pow(restrictedObsFn, weight);
-		System.out.println("Weighted evidence is: " 
-				+ Arrays.toString(weightedEvidence));
+		//System.out.println("Weighted evidence is: " 
+		//		+ Arrays.toString(weightedEvidence));
 		nextBelState = OP.multN(ArrayUtils.addAll(pred, weightedEvidence));
 		
 		nextBelState = OP.primeVars(nextBelState, -DPRef.nVars);
@@ -105,6 +106,65 @@ public class BeliefOps extends BeliefOperations {
 		return nextBelState;
 
 	}
+	
+	public DD biasedBeliefUpdate2(
+			DD prior, String action, String[] obsnames) throws ZeroProbabilityObsException {
+		
+		// Get POMDP reference
+		POMDP DPRef = this.getPOMDP();
+		
+		int actId = DPRef.getActions().indexOf(action);
+		
+		if (obsnames.length != DPRef.nObsVars) return null;
+		
+		int[] obsvals = new int[obsnames.length];
+		
+		for (int o = 0; o < obsnames.length; o++) {
+			obsvals[o] = DPRef.findObservationByName(o, obsnames[o]) + 1;
+			
+			if (obsvals[o] < 0) return null;
+		}
+		
+		int[][] obsVals = POMDP.stackArray(DPRef.primeObsIndices, obsvals);
+		DD[] restrictedObsFn = OP.restrictN(DPRef.actions[actId].obsFn, obsVals);
+		
+		DD nextBelState = OP.addMultVarElim(
+				POMDP.concatenateArray(prior, 
+						DPRef.actions[actId].transFn, new DD[] {}), 
+				DPRef.varIndices);
+		
+		DD[] pred = this.factorBelief(nextBelState);
+		//System.out.println("preds are: " + Arrays.toString(pred));
+		
+		DD[] centroids = new DD[pred.length];
+		for (int i = 0; i < centroids.length; i++)
+			centroids[i] = DDleaf.myNew(1.0 / Global.varDomSize[i]); 
+		
+		double weight = 1.0 / (1.0 + OP.l2NormSq(pred, centroids));
+		System.out.println("Weight is: " + weight);
+
+		//System.out.println("Evidence is: " + Arrays.toString(restrictedObsFn));
+		DD[] weightedEvidence = OP.pow(restrictedObsFn, weight);
+		//System.out.println("Weighted evidence is: " 
+		//		+ Arrays.toString(weightedEvidence));
+		nextBelState = OP.multN(ArrayUtils.addAll(pred, weightedEvidence));
+		
+		nextBelState = OP.primeVars(nextBelState, -DPRef.nVars);
+		DD obsProb = OP.addMultVarElim(nextBelState, DPRef.varIndices);
+		
+		if (obsProb.getVal() < 1e-8) {
+			throw new ZeroProbabilityObsException(
+					"OBSERVATION " + obsnames + " is zero probability");
+		}
+		
+		nextBelState = OP.div(nextBelState,
+				OP.addMultVarElim(nextBelState, 
+						DPRef.varIndices));
+		
+		return nextBelState;
+
+	}
+
 	
 	@Override
 	public DD beliefUpdate(
