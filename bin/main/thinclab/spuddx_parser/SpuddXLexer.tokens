@@ -1,0 +1,16 @@
+T__0=1
+T__1=2
+T__2=3
+T__3=4
+VARNAME=5
+VARVAL=6
+FLOAT_NUM=7
+LPAREN=8
+RPAREN=9
+WS=10
+'variables'=1
+'observations'=2
+'actions'=3
+'dd'=4
+'('=8
+')'=9

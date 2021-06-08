@@ -1,0 +1,16 @@
+(variables
+	(A a1 a2 a3)
+	(B b1 b2)
+	(A_B ab1 ab2)
+	(TigerLocation tiger_left tiger_right)
+)
+
+(observations
+	(Growl growl_left growl_right)
+	(Creak left right)
+	(O open closed)
+)
+
+(actions
+	(Agent1 open_left open_right listen)
+)

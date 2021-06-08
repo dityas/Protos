@@ -1,0 +1,49 @@
+symbolicPerseusJava package
+
+written in part by 
+Jesse Hoey
+School of Computer Science
+University of Waterloo
+Waterloo, Ontario, Canada
+N2L 1Y4
+(519)-888-4567x37744
+jhoey@cs.uwaterloo.ca
+
+
+This code is an extension of the symbolicPerseus code written by:
+Pascal Poupart
+School of Computer Science
+University of Waterloo
+Waterloo, Ontario, Canada
+N2L 1Y4
+
+Poupart's symbolicPerseus package is available at 
+
+http://www.cs.uwaterloo.ca/~ppoupart/software.html#symbolicPerseus
+
+His version uses a compbination of Matlab and Java. The version in this package uses only Java.  
+
+This code is for research purposes only and comes with no guarantee.  
+
+the code can be tested on the simple coffee3po.dat example included with this distribution. Other domains available upon request or from Pascal's webpage. 
+
+To use:
+
+1. To compile
+> javac *java
+
+2. ensure your CLASSPATH includes ./
+
+
+3. To show a list of input options :
+> java Solver 
+
+4. To solve for a policy using 500 belief points and 2 rounds
+> java Solver coffee3po.dat -g -b 500 -r 2
+
+5. To simulate the policy for 100 rounds manually:
+> java Solver coffee3po.dat -i coffee3po.pomdp -s 100
+
+For larger domains, use the -Xmx and -Xms options to java
+
+Current version released December 14th, 2010.

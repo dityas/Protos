@@ -1,0 +1,52 @@
+p2021-06-07 23:51:30,645 [Test worker] INFO  TestANTLRSpuddParser - Running Parser Wrapper action var parse test
+ã2021-06-07 23:51:30,710 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV Agent1: [open_left, open_right, listen]
+ú2021-06-07 23:51:30,711 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed action variables [Agent1 : [open_left, open_right, listen]]
+m2021-06-07 23:51:30,724 [Test worker] INFO  TestANTLRSpuddParser - Running Parser Wrapper obs var parse test
+Ñ2021-06-07 23:51:30,728 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV Growl: [growl_left, growl_right]
+x2021-06-07 23:51:30,728 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV Creak: [left, right]
+u2021-06-07 23:51:30,729 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV O: [open, closed]
+Ω2021-06-07 23:51:30,729 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed obs variables [Growl : [growl_left, growl_right], Creak : [left, right], O : [open, closed]]
+x2021-06-07 23:51:30,734 [Test worker] INFO  TestANTLRSpuddParser - Running test for extracting globals from domain file
+s2021-06-07 23:51:30,738 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV A: [a1, a2, a3]
+o2021-06-07 23:51:30,738 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV B: [b1, b2]
+s2021-06-07 23:51:30,739 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV A_B: [ab1, ab2]
+å2021-06-07 23:51:30,740 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV TigerLocation: [tiger_left, tiger_right]
+Œ2021-06-07 23:51:30,740 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed state variables [A : [a1, a2, a3], B : [b1, b2], A_B : [ab1, ab2], TigerLocation : [tiger_left, tiger_right]]
+Ñ2021-06-07 23:51:30,741 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV Growl: [growl_left, growl_right]
+x2021-06-07 23:51:30,742 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV Creak: [left, right]
+u2021-06-07 23:51:30,743 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV O: [open, closed]
+Ω2021-06-07 23:51:30,744 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed obs variables [Growl : [growl_left, growl_right], Creak : [left, right], O : [open, closed]]
+ã2021-06-07 23:51:30,745 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV Agent1: [open_left, open_right, listen]
+ú2021-06-07 23:51:30,745 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed action variables [Agent1 : [open_left, open_right, listen]]
+≤2021-06-07 23:51:30,746 [Test worker] DEBUG TestANTLRSpuddParser - All parsed variables are [A : [a1, a2, a3], B : [b1, b2], A_B : [ab1, ab2], TigerLocation : [tiger_left, tiger_right], Growl : [growl_left, growl_right], Creak : [left, right], O : [open, closed], Agent1 : [open_left, open_right, listen]]
+ã2021-06-07 23:51:30,747 [Test worker] DEBUG TestANTLRSpuddParser - Primed variables are [A : [a1, a2, a3], B : [b1, b2], A_B : [ab1, ab2], TigerLocation : [tiger_left, tiger_right], Growl : [growl_left, growl_right], Creak : [left, right], O : [open, closed], Agent1 : [open_left, open_right, listen], A' : [a1, a2, a3], B' : [b1, b2], A_B' : [ab1, ab2], TigerLocation' : [tiger_left, tiger_right], Growl' : [growl_left, growl_right], Creak' : [left, right], O' : [open, closed], Agent1' : [open_left, open_right, listen]]
+h2021-06-07 23:51:30,750 [Test worker] DEBUG thinclab.legacy.Global - Add var A with values [a1, a2, a3]
+d2021-06-07 23:51:30,750 [Test worker] DEBUG thinclab.legacy.Global - Add var B with values [b1, b2]
+h2021-06-07 23:51:30,750 [Test worker] DEBUG thinclab.legacy.Global - Add var A_B with values [ab1, ab2]
+Å2021-06-07 23:51:30,751 [Test worker] DEBUG thinclab.legacy.Global - Add var TigerLocation with values [tiger_left, tiger_right]
+y2021-06-07 23:51:30,751 [Test worker] DEBUG thinclab.legacy.Global - Add var Growl with values [growl_left, growl_right]
+m2021-06-07 23:51:30,751 [Test worker] DEBUG thinclab.legacy.Global - Add var Creak with values [left, right]
+j2021-06-07 23:51:30,751 [Test worker] DEBUG thinclab.legacy.Global - Add var O with values [open, closed]
+Ä2021-06-07 23:51:30,752 [Test worker] DEBUG thinclab.legacy.Global - Add var Agent1 with values [open_left, open_right, listen]
+i2021-06-07 23:51:30,752 [Test worker] DEBUG thinclab.legacy.Global - Add var A' with values [a1, a2, a3]
+e2021-06-07 23:51:30,752 [Test worker] DEBUG thinclab.legacy.Global - Add var B' with values [b1, b2]
+i2021-06-07 23:51:30,753 [Test worker] DEBUG thinclab.legacy.Global - Add var A_B' with values [ab1, ab2]
+Ç2021-06-07 23:51:30,753 [Test worker] DEBUG thinclab.legacy.Global - Add var TigerLocation' with values [tiger_left, tiger_right]
+z2021-06-07 23:51:30,753 [Test worker] DEBUG thinclab.legacy.Global - Add var Growl' with values [growl_left, growl_right]
+n2021-06-07 23:51:30,754 [Test worker] DEBUG thinclab.legacy.Global - Add var Creak' with values [left, right]
+k2021-06-07 23:51:30,754 [Test worker] DEBUG thinclab.legacy.Global - Add var O' with values [open, closed]
+Å2021-06-07 23:51:30,754 [Test worker] DEBUG thinclab.legacy.Global - Add var Agent1' with values [open_left, open_right, listen]
+j2021-06-07 23:51:30,757 [Test worker] INFO  TestANTLRSpuddParser - Running tests for simple POMDP parsing
+≠2021-06-07 23:51:30,761 [Test worker] INFO  TestANTLRSpuddParser - Trying to parse file /home/adityas/Projects/Protos/build/resources/test/test_domains/test_var_decls.spudd
+Å2021-06-07 23:51:30,761 [Test worker] DEBUG TestANTLRSpuddParser - Initialized lexer thinclab.spuddx_parser.SpuddXLexer@61dd56fb
+´2021-06-07 23:51:30,763 [Test worker] DEBUG TestANTLRSpuddParser - Tokens extracted: [[@-1,0:0='(',<8>,1:0], [@-1,1:9='variables',<1>,1:1], [@-1,12:12='(',<8>,2:1], [@-1,13:13='A',<5>,2:2], [@-1,15:16='a1',<6>,2:4], [@-1,18:19='a2',<6>,2:7], [@-1,21:22='a3',<6>,2:10], [@-1,23:23=')',<9>,2:12], [@-1,26:26='(',<8>,3:1], [@-1,27:27='B',<5>,3:2], [@-1,29:30='b1',<6>,3:4], [@-1,32:33='b2',<6>,3:7], [@-1,34:34=')',<9>,3:9], [@-1,37:37='(',<8>,4:1], [@-1,38:40='A_B',<5>,4:2], [@-1,42:44='ab1',<6>,4:6], [@-1,46:48='ab2',<6>,4:10], [@-1,49:49=')',<9>,4:13], [@-1,52:52='(',<8>,5:1], [@-1,53:65='TigerLocation',<5>,5:2], [@-1,67:76='tiger_left',<6>,5:16], [@-1,78:88='tiger_right',<6>,5:27], [@-1,89:89=')',<9>,5:38], [@-1,91:91=')',<9>,6:0], [@-1,94:94='(',<8>,8:0], [@-1,95:106='observations',<2>,8:1], [@-1,109:109='(',<8>,9:1], [@-1,110:114='Growl',<5>,9:2], [@-1,116:125='growl_left',<6>,9:8], [@-1,127:137='growl_right',<6>,9:19], [@-1,138:138=')',<9>,9:30], [@-1,141:141='(',<8>,10:1], [@-1,142:146='Creak',<5>,10:2], [@-1,148:151='left',<6>,10:8], [@-1,153:157='right',<6>,10:13], [@-1,158:158=')',<9>,10:18], [@-1,161:161='(',<8>,11:1], [@-1,162:162='O',<5>,11:2], [@-1,164:167='open',<6>,11:4], [@-1,169:174='closed',<6>,11:9], [@-1,175:175=')',<9>,11:15], [@-1,177:177=')',<9>,12:0], [@-1,180:180='(',<8>,14:0], [@-1,181:187='actions',<3>,14:1], [@-1,190:190='(',<8>,15:1], [@-1,191:196='Agent1',<5>,15:2], [@-1,198:206='open_left',<6>,15:9], [@-1,208:217='open_right',<6>,15:19], [@-1,219:224='listen',<6>,15:30], [@-1,225:225=')',<9>,15:36], [@-1,227:227=')',<9>,16:0]]
+d2021-06-07 23:51:30,767 [Test worker] INFO  TestANTLRSpuddParser - Running Parser Wrapper init test
+o2021-06-07 23:51:30,770 [Test worker] INFO  TestANTLRSpuddParser - Running Parser Wrapper state var parse test
+s2021-06-07 23:51:30,771 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV A: [a1, a2, a3]
+o2021-06-07 23:51:30,772 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV B: [b1, b2]
+s2021-06-07 23:51:30,772 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV A_B: [ab1, ab2]
+å2021-06-07 23:51:30,772 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed RV TigerLocation: [tiger_left, tiger_right]
+Œ2021-06-07 23:51:30,773 [Test worker] DEBUG thinclab.spuddx_parser.SpuddXParserWrapper - Parsed state variables [A : [a1, a2, a3], B : [b1, b2], A_B : [ab1, ab2], TigerLocation : [tiger_left, tiger_right]]
+	e2021-06-07 23:51:30,779 [Test worker] INFO  TestPOMDPSanity - Checking if POMDPs can be initialized.
+	
+`2021-06-07 23:51:30,781 [Test worker] INFO  TestPOMDPSanity - Checking if POMDPs can be solved.
