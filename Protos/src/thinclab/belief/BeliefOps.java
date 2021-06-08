@@ -263,13 +263,13 @@ public class BeliefOps extends BeliefOperations {
 			
 			if (varChildren == null) {
 				for (int i=0; i < DPRef.stateVars[varId].arity; i++) {
-					childVals.put(Global.valNames[varId][i], Float.valueOf((float) fbs[varId].getVal()));
+					childVals.put(Global.valNames.get(varId).get(i), Float.valueOf((float) fbs[varId].getVal()));
 				}
 			}
 			
 			else {
 				for (int i=0; i < DPRef.stateVars[varId].arity; i++) {
-					childVals.put(Global.valNames[varId][i], Float.valueOf((float) varChildren[i].getVal()));
+					childVals.put(Global.valNames.get(varId).get(i), Float.valueOf((float) varChildren[i].getVal()));
 				}
 			}
 			

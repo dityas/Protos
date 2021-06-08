@@ -568,7 +568,7 @@ public class IBeliefOps extends BeliefOperations {
 			
 			if (varChildren == null) {
 				for (int i=0; i < DPRef.stateVars[varId].arity; i++) {
-					childVals.put(Global.valNames[varId][i], Float.valueOf((float) fbs[varId].getVal()));
+					childVals.put(Global.valNames.get(varId).get(i), Float.valueOf((float) fbs[varId].getVal()));
 				}
 			}
 			
@@ -577,7 +577,7 @@ public class IBeliefOps extends BeliefOperations {
 					if (varChildren[i].getVal() == 0.0)
 						continue;
 					
-					childVals.put(Global.valNames[varId][i], Float.valueOf((float) varChildren[i].getVal()));
+					childVals.put(Global.valNames.get(varId).get(i), Float.valueOf((float) varChildren[i].getVal()));
 				}
 			}
 			

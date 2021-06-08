@@ -24,13 +24,13 @@ public class ParseSPUDD implements Serializable {
 	public HashMap existingDds;
 	public StreamTokenizer stream;
 
-	public Vector<String> varNames;
-	public Vector<Vector> valNames;
-	public Vector<String> actNames;
-	public Vector<String> adjunctNames;
-	public Vector<DD[]> actTransitions;
-	public Vector<DD[]> actObserve;
-	public Vector<DD> actCosts;
+	public List<String> varNames;
+	public List<List<String>> valNames;
+	public List<String> actNames;
+	public List<String> adjunctNames;
+	public List<DD[]> actTransitions;
+	public List<DD[]> actObserve;
+	public List<DD> actCosts;
 	public List<DD> adjuncts = new ArrayList<DD>();
 	public DD reward;
 	public DD init;
@@ -75,14 +75,14 @@ public class ParseSPUDD implements Serializable {
 		 * constructors defined
 		 */
 		existingDds = new HashMap();
-		varNames = new Vector<String>();
-		valNames = new Vector<Vector>();
-		actNames = new Vector<String>();
-		actTransitions = new Vector<DD[]>();
-		actObserve = new Vector<DD[]>();
-		actCosts = new Vector<DD>();
-		adjuncts = new Vector<DD>();
-		adjunctNames = new Vector<String>();
+		varNames = new ArrayList<String>();
+		valNames = new ArrayList<>();
+		actNames = new ArrayList<String>();
+		actTransitions = new ArrayList<DD[]>();
+		actObserve = new ArrayList<DD[]>();
+		actCosts = new ArrayList<DD>();
+		adjuncts = new ArrayList<DD>();
+		adjunctNames = new ArrayList<String>();
 		discount = null;
 		tolerance = null;
 		horizon = null;
@@ -111,14 +111,14 @@ public class ParseSPUDD implements Serializable {
 
 	public ParseSPUDD(String fileName) {
 		existingDds = new HashMap();
-		varNames = new Vector<String>();
-		valNames = new Vector<Vector>();
-		actNames = new Vector<String>();
-		actTransitions = new Vector<DD[]>();
-		actObserve = new Vector<DD[]>();
-		actCosts = new Vector<DD>();
-		adjuncts = new Vector<DD>();
-		adjunctNames = new Vector<String>();
+		varNames = new ArrayList<String>();
+		valNames = new ArrayList<>();
+		actNames = new ArrayList<String>();
+		actTransitions = new ArrayList<DD[]>();
+		actObserve = new ArrayList<DD[]>();
+		actCosts = new ArrayList<DD>();
+		adjuncts = new ArrayList<DD>();
+		adjunctNames = new ArrayList<String>();
 		discount = null;
 		tolerance = null;
 		horizon = null;
@@ -246,23 +246,25 @@ public class ParseSPUDD implements Serializable {
 					error("Expected \"unnormalized\" or \"dd\" or \"action\" or \"reward\"");
 
 				case StreamTokenizer.TT_EOF:
+					
+					Global.addVariable("actions", actNames);
 
 					// set valNames for actions
-					String[] actNamesArray = new String[actNames.size()];
-
-					for (int actId = 0; actId < actNames.size(); actId++) {
-						actNamesArray[actId] = (String) actNames.get(actId);
-					}
-
-					Global.setValNames(Global.valNames.length + 1, actNamesArray);
-
-					// set varDomSize with extra action variable
-					int[] varDomSizeArray = new int[Global.varDomSize.length + 1];
-					for (int varId = 0; varId < Global.varDomSize.length; varId++) {
-						varDomSizeArray[varId] = Global.varDomSize[varId];
-					}
-					varDomSizeArray[varDomSizeArray.length - 1] = actNamesArray.length;
-					Global.setVarDomSize(varDomSizeArray);
+//					String[] actNamesArray = new String[actNames.size()];
+//
+//					for (int actId = 0; actId < actNames.size(); actId++) {
+//						actNamesArray[actId] = (String) actNames.get(actId);
+//					}
+//
+//					Global.setValNames(Global.valNames.size() + 1, actNamesArray);
+//
+//					// set varDomSize with extra action variable
+//					int[] varDomSizeArray = new int[Global.varDomSize.length + 1];
+//					for (int varId = 0; varId < Global.varDomSize.length; varId++) {
+//						varDomSizeArray[varId] = Global.varDomSize[varId];
+//					}
+//					varDomSizeArray[varDomSizeArray.length - 1] = actNamesArray.length;
+//					Global.setVarDomSize(varDomSizeArray);
 					this.populateDDTreeObjects();
 					return;
 				default:
@@ -294,7 +296,7 @@ public class ParseSPUDD implements Serializable {
 						error("Duplicate variable name");
 
 					varNames.add(stream.sval);
-					Vector<String> varValNames = new Vector<String>();
+					List<String> varValNames = new ArrayList<String>();
 
 					while (true) {
 
@@ -334,50 +336,62 @@ public class ParseSPUDD implements Serializable {
 		/*
 		 * Create prime variables
 		 */
-		Global.clearHashtables();
+//		Global.clearHashtables();
+		LOGGER.debug("Creating prime variables");
 		int nVars = varNames.size();
-		for (int i = 0; i < nVars; i++) {
-			varNames.add((String) varNames.get(i) + "'");
-			valNames.add((Vector) valNames.get(i));
-		}
+//		for (int i = 0; i < nVars; i++) {
+//			varNames.add((String) varNames.get(i) + "'");
+//			valNames.add((List) valNames.get(i));
+//		}
 
-		/*
-		 * Set Global.varNames
-		 */
-		String[] varNamesArray = new String[varNames.size() + 1];
+		// Prime all variables
+		var primedVarList = varNames.stream().map((s) -> s + "'").collect(Collectors.toList());
+		varNames.addAll(primedVarList);
+		// varNames.add("action");
+
+		// Duplicate variable values for primed variables
+		valNames.addAll(valNames);
+		
 		for (int i = 0; i < varNames.size(); i++)
-			varNamesArray[i] = (String) varNames.get(i);
-		varNamesArray[varNames.size()] = new String("action");
-		Global.setVarNames(varNamesArray);
+			Global.addVariable(varNames.get(i), valNames.get(i));
 
-		/*
-		 * Set Global.valNames and Global.varDomSize
-		 */
-		int[] varDomSize = new int[valNames.size()];
-		for (int i = 0; i < valNames.size(); i++) {
-			Vector varValNames = (Vector) valNames.get(i);
-			varDomSize[i] = varValNames.size();
-			String[] varValNamesArray = new String[varValNames.size()];
-			for (int j = 0; j < varValNames.size(); j++)
-				varValNamesArray[j] = (String) varValNames.get(j);
-			Global.setValNames(i + 1, varValNamesArray);
-		}
-
-		Global.setVarDomSize(varDomSize);
+//		/*
+//		 * Set Global.varNames
+//		 */
+//		String[] varNamesArray = new String[varNames.size() + 1];
+//		for (int i = 0; i < varNames.size(); i++)
+//			varNamesArray[i] = (String) varNames.get(i);
+//		varNamesArray[varNames.size()] = new String("action");
+//		Global.setVarNames(varNamesArray);
+//
+//		/*
+//		 * Set Global.valNames and Global.varDomSize
+//		 */
+//		int[] varDomSize = new int[valNames.size()];
+//		for (int i = 0; i < valNames.size(); i++) {
+//			List varValNames = (List) valNames.get(i);
+//			varDomSize[i] = varValNames.size();
+//			String[] varValNamesArray = new String[varValNames.size()];
+//			for (int j = 0; j < varValNames.size(); j++)
+//				varValNamesArray[j] = (String) varValNames.get(j);
+//			Global.setValNames(i + 1, varValNamesArray);
+//		}
+//
+//		Global.setVarDomSize(varDomSize);
 
 		// create SAMEvariable dds
-		for (int varId = 0; varId < Global.varNames.length / 2; varId++) {
+		for (int varId = 0; varId < Global.varNames.size() / 2; varId++) {
 
-			LOGGER.debug("Creating SAME DD for " + Global.varNames[varId]);
+			LOGGER.debug("Creating SAME DD for " + Global.varNames.get(varId));
 
-			String ddName = new String("SAME") + Global.varNames[varId];
-			DD[] children = new DD[Global.varDomSize[varId]];
+			String ddName = new String("SAME") + Global.varNames.get(varId);
+			DD[] children = new DD[Global.varDomSize.get(varId)];
 
-			for (int i = 0; i < Global.varDomSize[varId]; i++) {
+			for (int i = 0; i < Global.varDomSize.get(varId); i++) {
 
-				DD[] grandChildren = new DD[Global.varDomSize[varId]];
+				DD[] grandChildren = new DD[Global.varDomSize.get(varId)];
 
-				for (int j = 0; j < Global.varDomSize[varId]; j++) {
+				for (int j = 0; j < Global.varDomSize.get(varId); j++) {
 
 					if (i == j)
 						grandChildren[j] = DD.one;
@@ -385,85 +399,85 @@ public class ParseSPUDD implements Serializable {
 						grandChildren[j] = DD.zero;
 				}
 
-				LOGGER.debug("Making child " + Global.valNames[varId][i]);
+				LOGGER.debug("Making child " + Global.valNames.get(varId).get(i));
 				children[i] = DDnode.getDD(varId + 1, grandChildren);
 
 			}
 
-			DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
+			DD dd = DDnode.getDD(varId + 1 + Global.varNames.size() / 2, children);
 			existingDds.put(ddName, dd);
 		}
 
-		// create NOISYvariable dds
-		for (int varId = 0; varId < Global.varNames.length / 2; varId++) {
-
-			LOGGER.debug("Creating 5% noisy transition DD for " + Global.varNames[varId]);
-
-			String ddName = new String("NOISE5") + Global.varNames[varId];
-			DD[] children = new DD[Global.varDomSize[varId]];
-
-			for (int i = 0; i < Global.varDomSize[varId]; i++) {
-
-				DD[] grandChildren = new DD[Global.varDomSize[varId]];
-
-				for (int j = 0; j < Global.varDomSize[varId]; j++) {
-
-					if (i == j)
-						grandChildren[j] = DDleaf.getDD(0.95f);
-					else
-						grandChildren[j] = DDleaf.getDD(0.05f / (Global.varDomSize[varId] - 1));
-				}
-
-				LOGGER.debug("Making child " + Global.valNames[varId][i]);
-				children[i] = DDnode.getDD(varId + 1, grandChildren);
-
-			}
-
-			DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
-			existingDds.put(ddName, dd);
-		}
-
-		// create NOISYvariable dds
-		for (int varId = 0; varId < Global.varNames.length / 2; varId++) {
-
-			LOGGER.debug("Creating 1% noisy transition DD for " + Global.varNames[varId]);
-
-			String ddName = new String("NOISE1") + Global.varNames[varId];
-			DD[] children = new DD[Global.varDomSize[varId]];
-
-			for (int i = 0; i < Global.varDomSize[varId]; i++) {
-
-				DD[] grandChildren = new DD[Global.varDomSize[varId]];
-
-				for (int j = 0; j < Global.varDomSize[varId]; j++) {
-
-					if (i == j)
-						grandChildren[j] = DDleaf.getDD(0.99f);
-					else
-						grandChildren[j] = DDleaf.getDD(0.01f / (Global.varDomSize[varId] - 1));
-				}
-
-				LOGGER.debug("Making child " + Global.valNames[varId][i]);
-				children[i] = DDnode.getDD(varId + 1, grandChildren);
-
-			}
-
-			DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
-			existingDds.put(ddName, dd);
-		}
+//		// create NOISYvariable dds
+//		for (int varId = 0; varId < Global.varNames.length / 2; varId++) {
+//
+//			LOGGER.debug("Creating 5% noisy transition DD for " + Global.varNames[varId]);
+//
+//			String ddName = new String("NOISE5") + Global.varNames[varId];
+//			DD[] children = new DD[Global.varDomSize[varId]];
+//
+//			for (int i = 0; i < Global.varDomSize[varId]; i++) {
+//
+//				DD[] grandChildren = new DD[Global.varDomSize[varId]];
+//
+//				for (int j = 0; j < Global.varDomSize[varId]; j++) {
+//
+//					if (i == j)
+//						grandChildren[j] = DDleaf.getDD(0.95f);
+//					else
+//						grandChildren[j] = DDleaf.getDD(0.05f / (Global.varDomSize[varId] - 1));
+//				}
+//
+//				LOGGER.debug("Making child " + Global.valNames[varId][i]);
+//				children[i] = DDnode.getDD(varId + 1, grandChildren);
+//
+//			}
+//
+//			DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
+//			existingDds.put(ddName, dd);
+//		}
+//
+//		// create NOISYvariable dds
+//		for (int varId = 0; varId < Global.varNames.length / 2; varId++) {
+//
+//			LOGGER.debug("Creating 1% noisy transition DD for " + Global.varNames[varId]);
+//
+//			String ddName = new String("NOISE1") + Global.varNames[varId];
+//			DD[] children = new DD[Global.varDomSize[varId]];
+//
+//			for (int i = 0; i < Global.varDomSize[varId]; i++) {
+//
+//				DD[] grandChildren = new DD[Global.varDomSize[varId]];
+//
+//				for (int j = 0; j < Global.varDomSize[varId]; j++) {
+//
+//					if (i == j)
+//						grandChildren[j] = DDleaf.getDD(0.99f);
+//					else
+//						grandChildren[j] = DDleaf.getDD(0.01f / (Global.varDomSize[varId] - 1));
+//				}
+//
+//				LOGGER.debug("Making child " + Global.valNames[varId][i]);
+//				children[i] = DDnode.getDD(varId + 1, grandChildren);
+//
+//			}
+//
+//			DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
+//			existingDds.put(ddName, dd);
+//		}
 
 		// create variablevalue dds
-		for (int varId = 0; varId < Global.varNames.length / 2; varId++) {
-			for (int valId = 0; valId < Global.varDomSize[varId]; valId++) {
-				String ddName = Global.varNames[varId] + Global.valNames[varId][valId];
-				DD[] children = new DD[Global.varDomSize[varId]];
-				for (int i = 0; i < Global.varDomSize[varId]; i++) {
+		for (int varId = 0; varId < Global.varNames.size() / 2; varId++) {
+			for (int valId = 0; valId < Global.varDomSize.get(varId); valId++) {
+				String ddName = Global.varNames.get(varId) + Global.valNames.get(varId).get(valId);
+				DD[] children = new DD[Global.varDomSize.get(varId)];
+				for (int i = 0; i < Global.varDomSize.get(varId); i++) {
 					if (valId == i)
 						children[i] = DD.one;
 					else
 						children[i] = DD.zero;
 				}
-				DD dd = DDnode.getDD(varId + 1 + Global.varNames.length / 2, children);
+				DD dd = DDnode.getDD(varId + 1 + Global.varNames.size() / 2, children);
 				existingDds.put(ddName, dd);
 			}
 		}
@@ -478,7 +492,7 @@ public class ParseSPUDD implements Serializable {
 					if (varNames.contains(stream.sval))
 						error("Duplicate variable name");
 					varNames.add(stream.sval);
-					Vector<String> varValNames = new Vector<String>();
+					List<String> varValNames = new ArrayList<String>();
 					while (true) {
 						if (StreamTokenizer.TT_WORD == stream.nextToken()) {
 							if (varValNames.contains(stream.sval))
@@ -491,7 +505,8 @@ public class ParseSPUDD implements Serializable {
 					}
 					valNames.add(varValNames);
 					nObsVars++;
-					LOGGER.debug("Parsed " + varNames.lastElement() + " with values " + valNames.lastElement());
+					// LOGGER.debug("Parsed " + varNames.lastElement() + " with values " +
+					// valNames.lastElement());
 				} else if (stream.ttype == ')') {
 					break;
 				} else
@@ -544,11 +559,11 @@ public class ParseSPUDD implements Serializable {
 							error("Not an existing dd nor an existing variable");
 
 						// parse values
-						Vector varValNames = (Vector) valNames.get(varId);
+						List varValNames = (List) valNames.get(varId);
 						DD[] children = new DD[varValNames.size()];
 						for (int i = 0; i < children.length; i++)
 							children[i] = DD.zero;
-						Vector valNamesSoFar = new Vector();
+						List valNamesSoFar = new ArrayList();
 						while (true) {
 							if (stream.nextToken() == '(') {
 								stream.nextToken();
@@ -845,12 +860,18 @@ public class ParseSPUDD implements Serializable {
 	}
 
 	public void parseInit() {
+		
 		init = OP.reorder(parseDD());
 		int[] vars = new int[nStateVars];
+		
 		for (int i = 0; i < nStateVars; i++)
 			vars[i] = i + 1;
+		
 		DD[] dds = new DD[1];
 		dds[0] = init;
+		
+		LOGGER.debug("Summing out variables: " + Arrays.toString(vars));
+		
 		init = OP.div(init, OP.addMultVarElim(dds, vars));
 	}
 

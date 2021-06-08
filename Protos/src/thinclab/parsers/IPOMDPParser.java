@@ -419,24 +419,25 @@ public class IPOMDPParser extends ParseSPUDD {
 		LOGGER.info("Setting globals");
 		this.createPrimeVars();
 
-		String[] actNamesArray = new String[actNames.size()];
-
-		for (int actId = 0; actId < actNames.size(); actId++) {
-			actNamesArray[actId] = (String) actNames.get(actId);
-		}
-		Global.setValNames(Global.valNames.length + 1, actNamesArray);
-
-		/*
-		 * Set varDomSize with extra action variable
-		 */
-		int[] varDomSizeArray = new int[Global.varDomSize.length + 1];
-
-		for (int varId = 0; varId < Global.varDomSize.length; varId++) {
-			varDomSizeArray[varId] = Global.varDomSize[varId];
-		}
-
-		varDomSizeArray[varDomSizeArray.length - 1] = actNamesArray.length;
-		Global.setVarDomSize(varDomSizeArray);
+//		String[] actNamesArray = new String[actNames.size()];
+//
+//		for (int actId = 0; actId < actNames.size(); actId++) {
+//			actNamesArray[actId] = (String) actNames.get(actId);
+//		}
+//		Global.setValNames(Global.valNames.length + 1, actNamesArray);
+//
+//		/*
+//		 * Set varDomSize with extra action variable
+//		 */
+//		int[] varDomSizeArray = new int[Global.varDomSize.length + 1];
+//
+//		for (int varId = 0; varId < Global.varDomSize.length; varId++) {
+//			varDomSizeArray[varId] = Global.varDomSize[varId];
+//		}
+//
+//		varDomSizeArray[varDomSizeArray.length - 1] = actNamesArray.length;
+//		Global.setVarDomSize(varDomSizeArray);
+		Global.addVariable("action", actNames);
 	}
 
 	@Override

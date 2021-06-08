@@ -161,7 +161,7 @@ public class DDnode extends DD {
 				int[] remainingVars = MySet.diff(childrenVars, children[i].getVarSet());
 				int multiplicativeFactor = 1;
 				for (int j = 0; j < remainingVars.length; j++)
-					multiplicativeFactor *= Global.varDomSize[remainingVars[j] - 1];
+					multiplicativeFactor *= Global.varDomSize.get(remainingVars[j] - 1);
 				sum = sum + multiplicativeFactor * children[i].getSum();
 			}
 		}
@@ -183,10 +183,10 @@ public class DDnode extends DD {
 			ddTree = new DDTree(POMDP.getVarName(this.var));
 
 			/* Get children and add each to DDTree */
-			String[] valNames = Global.valNames[this.var - 1];
+			var valNames = Global.valNames.get(this.var - 1);
 
-			for (int c = 0; c < valNames.length; c++)
-				ddTree.addChild(valNames[c], this.children[c].toDDTree());
+			for (int c = 0; c < valNames.size(); c++)
+				ddTree.addChild(valNames.get(c), this.children[c].toDDTree());
 		}
 
 		catch (VariableNotFoundException e) {

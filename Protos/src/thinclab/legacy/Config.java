@@ -35,11 +35,11 @@ public class Config {
 	    if (Global.varNames == null) 
 		string += Integer.toString(config[0][i]) + new String("=");
 	    else
-		string += Global.varNames[config[0][i]-1] + new String("=");
+		string += Global.varNames.get(config[0][i]-1) + new String("=");
 	    if (Global.valNames == null) 
 		string += Integer.toString(config[1][i]);
 	    else
-		string += Global.valNames[config[0][i]-1][config[1][i]-1];
+		string += Global.valNames.get(config[0][i]-1).get(config[1][i]-1);
 
 	    //string += Integer.toString(config[0][i]) + new String("=") 
 	    //		 + Integer.toString(config[1][i]);
@@ -181,7 +181,7 @@ public class Config {
 
 	DD dd = DDleaf.getDD(value);
 	for (int i=0; i<config[0].length; i++) {
-	    int arity = Global.varDomSize[config[0][i]-1];
+	    int arity = Global.varDomSize.get(config[0][i]-1);
 	    DD[] children = new DD[arity];
 	    for (int j=0; j<arity; j++) {
 		if (j+1 == config[1][i]) children[j] = DD.one;

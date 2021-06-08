@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import thinclab.decisionprocesses.POMDP;
 import thinclab.parsers.IPOMDPParser;
 import thinclab.parsers.ParseSPUDD;
+import thinclab.solvers.BaseSolver;
+import thinclab.solvers.OfflineSymbolicPerseus;
 
 /*
  *	THINC Lab at UGA | Cyber Deception Group
@@ -40,19 +42,32 @@ class TestPOMDPSanity {
 
 		// ParseSPUDD parser = new ParseSPUDD("test_domains/tiger.95.SPUDD.txt");
 
-		POMDP pomdp = new POMDP(
-				this.getClass().getClassLoader().getResource("test_domains/tiger.95.SPUDD.txt").getFile());
+//		POMDP pomdp = new POMDP(
+//				this.getClass().getClassLoader().getResource("test_domains/tiger.95.SPUDD.txt").getFile());
 	}
-
+	
 	@Test
-	void testIPOMDPInit() {
+	void testPOMDPSoln() {
+		LOGGER.info("Checking if POMDPs can be solved.");
 
-		LOGGER.info("Checking if IPOMDPs can be initialized.");
+		// ParseSPUDD parser = new ParseSPUDD("test_domains/tiger.95.SPUDD.txt");
 
-		IPOMDPParser parser = new IPOMDPParser(
-				this.getClass().getClassLoader().getResource("test_domains/tiger.L1multiple_new_parser.txt").getFile());
-		
-		parser.parseDomain();
+//		POMDP pomdp = new POMDP(
+//				this.getClass().getClassLoader().getResource("test_domains/tiger.95.SPUDD.txt").getFile());
+//		
+//		BaseSolver solver = OfflineSymbolicPerseus.createSolverWithSSGAExpansion(pomdp, 10, 30, 2, 100);
+//		solver.solve();
 	}
+
+//	@Test
+//	void testIPOMDPInit() {
+//
+//		LOGGER.info("Checking if IPOMDPs can be initialized.");
+//
+//		IPOMDPParser parser = new IPOMDPParser(
+//				this.getClass().getClassLoader().getResource("test_domains/tiger.L1multiple_new_parser.txt").getFile());
+//		
+//		parser.parseDomain();
+//	}
 
 }
