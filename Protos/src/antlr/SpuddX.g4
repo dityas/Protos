@@ -7,7 +7,7 @@ grammar SpuddX;
 domain: state_var_decl
 		obs_var_decl
 		actions_decl
-		(dd_decl_block)?
+		(dd_decls)*
 		EOF 
 		;
 
@@ -15,7 +15,6 @@ state_var_decl : LPAREN 'variables' (rv_decl)+ RPAREN ;
 obs_var_decl : LPAREN 'observations' (rv_decl)+ RPAREN ;
 actions_decl : LPAREN 'actions' (rv_decl)+ RPAREN ;
 
-dd_decl_block : (dd_decls)+ ; 
 dd_decls : LPAREN 'dd' VARNAME dd_decl RPAREN ;
 dd_decl : LPAREN VARNAME (dd_child)+ RPAREN
 		| dd_leaf

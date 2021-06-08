@@ -36,12 +36,6 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitActions_decl(SpuddXParser.Actions_declContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#dd_decl_block}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDd_decl_block(SpuddXParser.Dd_decl_blockContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_decls}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

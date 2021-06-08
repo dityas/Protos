@@ -65,18 +65,6 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDd_decl_block(SpuddXParser.Dd_decl_blockContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDd_decl_block(SpuddXParser.Dd_decl_blockContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterDd_decls(SpuddXParser.Dd_declsContext ctx) { }
 	/**
 	 * {@inheritDoc}

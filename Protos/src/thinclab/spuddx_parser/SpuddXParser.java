@@ -21,11 +21,11 @@ public class SpuddXParser extends Parser {
 		RPAREN=9, WS=10;
 	public static final int
 		RULE_domain = 0, RULE_state_var_decl = 1, RULE_obs_var_decl = 2, RULE_actions_decl = 3, 
-		RULE_dd_decl_block = 4, RULE_dd_decls = 5, RULE_dd_decl = 6, RULE_dd_child = 7, 
-		RULE_dd_leaf = 8, RULE_rv_decl = 9, RULE_var_value = 10;
+		RULE_dd_decls = 4, RULE_dd_decl = 5, RULE_dd_child = 6, RULE_dd_leaf = 7, 
+		RULE_rv_decl = 8, RULE_var_value = 9;
 	public static final String[] ruleNames = {
-		"domain", "state_var_decl", "obs_var_decl", "actions_decl", "dd_decl_block", 
-		"dd_decls", "dd_decl", "dd_child", "dd_leaf", "rv_decl", "var_value"
+		"domain", "state_var_decl", "obs_var_decl", "actions_decl", "dd_decls", 
+		"dd_decl", "dd_child", "dd_leaf", "rv_decl", "var_value"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
@@ -96,8 +96,11 @@ public class SpuddXParser extends Parser {
 			return getRuleContext(Actions_declContext.class,0);
 		}
 		public TerminalNode EOF() { return getToken(SpuddXParser.EOF, 0); }
-		public Dd_decl_blockContext dd_decl_block() {
-			return getRuleContext(Dd_decl_blockContext.class,0);
+		public List<Dd_declsContext> dd_decls() {
+			return getRuleContexts(Dd_declsContext.class);
+		}
+		public Dd_declsContext dd_decls(int i) {
+			return getRuleContext(Dd_declsContext.class,i);
 		}
 		public DomainContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -125,22 +128,27 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(22);
+			setState(20);
 			state_var_decl();
-			setState(23);
+			setState(21);
 			obs_var_decl();
-			setState(24);
+			setState(22);
 			actions_decl();
 			setState(26);
+			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (_la==LPAREN) {
+			while (_la==LPAREN) {
 				{
-				setState(25);
-				dd_decl_block();
+				{
+				setState(23);
+				dd_decls();
 				}
+				}
+				setState(28);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
 			}
-
-			setState(28);
+			setState(29);
 			match(EOF);
 			}
 		}
@@ -190,25 +198,25 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(30);
-			match(LPAREN);
 			setState(31);
+			match(LPAREN);
+			setState(32);
 			match(T__0);
-			setState(33); 
+			setState(34); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(32);
+				setState(33);
 				rv_decl();
 				}
 				}
-				setState(35); 
+				setState(36); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==LPAREN );
-			setState(37);
+			setState(38);
 			match(RPAREN);
 			}
 		}
@@ -258,25 +266,25 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(39);
-			match(LPAREN);
 			setState(40);
+			match(LPAREN);
+			setState(41);
 			match(T__1);
-			setState(42); 
+			setState(43); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(41);
+				setState(42);
 				rv_decl();
 				}
 				}
-				setState(44); 
+				setState(45); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==LPAREN );
-			setState(46);
+			setState(47);
 			match(RPAREN);
 			}
 		}
@@ -326,86 +334,26 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(48);
-			match(LPAREN);
 			setState(49);
+			match(LPAREN);
+			setState(50);
 			match(T__2);
-			setState(51); 
+			setState(52); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(50);
+				setState(51);
 				rv_decl();
 				}
 				}
-				setState(53); 
+				setState(54); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==LPAREN );
-			setState(55);
+			setState(56);
 			match(RPAREN);
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-
-	public static class Dd_decl_blockContext extends ParserRuleContext {
-		public List<Dd_declsContext> dd_decls() {
-			return getRuleContexts(Dd_declsContext.class);
-		}
-		public Dd_declsContext dd_decls(int i) {
-			return getRuleContext(Dd_declsContext.class,i);
-		}
-		public Dd_decl_blockContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_dd_decl_block; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).enterDd_decl_block(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SpuddXListener ) ((SpuddXListener)listener).exitDd_decl_block(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SpuddXVisitor ) return ((SpuddXVisitor<? extends T>)visitor).visitDd_decl_block(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-
-	public final Dd_decl_blockContext dd_decl_block() throws RecognitionException {
-		Dd_decl_blockContext _localctx = new Dd_decl_blockContext(_ctx, getState());
-		enterRule(_localctx, 8, RULE_dd_decl_block);
-		int _la;
-		try {
-			enterOuterAlt(_localctx, 1);
-			{
-			setState(58); 
-			_errHandler.sync(this);
-			_la = _input.LA(1);
-			do {
-				{
-				{
-				setState(57);
-				dd_decls();
-				}
-				}
-				setState(60); 
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-			} while ( _la==LPAREN );
 			}
 		}
 		catch (RecognitionException re) {
@@ -447,19 +395,19 @@ public class SpuddXParser extends Parser {
 
 	public final Dd_declsContext dd_decls() throws RecognitionException {
 		Dd_declsContext _localctx = new Dd_declsContext(_ctx, getState());
-		enterRule(_localctx, 10, RULE_dd_decls);
+		enterRule(_localctx, 8, RULE_dd_decls);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(62);
+			setState(58);
 			match(LPAREN);
-			setState(63);
+			setState(59);
 			match(T__3);
-			setState(64);
+			setState(60);
 			match(VARNAME);
-			setState(65);
+			setState(61);
 			dd_decl();
-			setState(66);
+			setState(62);
 			match(RPAREN);
 			}
 		}
@@ -508,40 +456,40 @@ public class SpuddXParser extends Parser {
 
 	public final Dd_declContext dd_decl() throws RecognitionException {
 		Dd_declContext _localctx = new Dd_declContext(_ctx, getState());
-		enterRule(_localctx, 12, RULE_dd_decl);
+		enterRule(_localctx, 10, RULE_dd_decl);
 		int _la;
 		try {
-			setState(78);
+			setState(74);
 			switch (_input.LA(1)) {
 			case LPAREN:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(68);
+				setState(64);
 				match(LPAREN);
-				setState(69);
+				setState(65);
 				match(VARNAME);
-				setState(71); 
+				setState(67); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(70);
+					setState(66);
 					dd_child();
 					}
 					}
-					setState(73); 
+					setState(69); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				} while ( _la==LPAREN );
-				setState(75);
+				setState(71);
 				match(RPAREN);
 				}
 				break;
 			case FLOAT_NUM:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(77);
+				setState(73);
 				dd_leaf();
 				}
 				break;
@@ -588,17 +536,17 @@ public class SpuddXParser extends Parser {
 
 	public final Dd_childContext dd_child() throws RecognitionException {
 		Dd_childContext _localctx = new Dd_childContext(_ctx, getState());
-		enterRule(_localctx, 14, RULE_dd_child);
+		enterRule(_localctx, 12, RULE_dd_child);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(80);
+			setState(76);
 			match(LPAREN);
-			setState(81);
+			setState(77);
 			match(VARVAL);
-			setState(82);
+			setState(78);
 			dd_decl();
-			setState(83);
+			setState(79);
 			match(RPAREN);
 			}
 		}
@@ -636,11 +584,11 @@ public class SpuddXParser extends Parser {
 
 	public final Dd_leafContext dd_leaf() throws RecognitionException {
 		Dd_leafContext _localctx = new Dd_leafContext(_ctx, getState());
-		enterRule(_localctx, 16, RULE_dd_leaf);
+		enterRule(_localctx, 14, RULE_dd_leaf);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(85);
+			setState(81);
 			match(FLOAT_NUM);
 			}
 		}
@@ -686,30 +634,30 @@ public class SpuddXParser extends Parser {
 
 	public final Rv_declContext rv_decl() throws RecognitionException {
 		Rv_declContext _localctx = new Rv_declContext(_ctx, getState());
-		enterRule(_localctx, 18, RULE_rv_decl);
+		enterRule(_localctx, 16, RULE_rv_decl);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(87);
+			setState(83);
 			match(LPAREN);
-			setState(88);
+			setState(84);
 			match(VARNAME);
-			setState(90); 
+			setState(86); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(89);
+				setState(85);
 				var_value();
 				}
 				}
-				setState(92); 
+				setState(88); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==VARVAL );
-			setState(94);
+			setState(90);
 			match(RPAREN);
 			}
 		}
@@ -747,11 +695,11 @@ public class SpuddXParser extends Parser {
 
 	public final Var_valueContext var_value() throws RecognitionException {
 		Var_valueContext _localctx = new Var_valueContext(_ctx, getState());
-		enterRule(_localctx, 20, RULE_var_value);
+		enterRule(_localctx, 18, RULE_var_value);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(96);
+			setState(92);
 			match(VARVAL);
 			}
 		}
@@ -767,30 +715,29 @@ public class SpuddXParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\fe\4\2\t\2\4\3\t"+
-		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\4"+
-		"\f\t\f\3\2\3\2\3\2\3\2\5\2\35\n\2\3\2\3\2\3\3\3\3\3\3\6\3$\n\3\r\3\16"+
-		"\3%\3\3\3\3\3\4\3\4\3\4\6\4-\n\4\r\4\16\4.\3\4\3\4\3\5\3\5\3\5\6\5\66"+
-		"\n\5\r\5\16\5\67\3\5\3\5\3\6\6\6=\n\6\r\6\16\6>\3\7\3\7\3\7\3\7\3\7\3"+
-		"\7\3\b\3\b\3\b\6\bJ\n\b\r\b\16\bK\3\b\3\b\3\b\5\bQ\n\b\3\t\3\t\3\t\3\t"+
-		"\3\t\3\n\3\n\3\13\3\13\3\13\6\13]\n\13\r\13\16\13^\3\13\3\13\3\f\3\f\3"+
-		"\f\2\2\r\2\4\6\b\n\f\16\20\22\24\26\2\2a\2\30\3\2\2\2\4 \3\2\2\2\6)\3"+
-		"\2\2\2\b\62\3\2\2\2\n<\3\2\2\2\f@\3\2\2\2\16P\3\2\2\2\20R\3\2\2\2\22W"+
-		"\3\2\2\2\24Y\3\2\2\2\26b\3\2\2\2\30\31\5\4\3\2\31\32\5\6\4\2\32\34\5\b"+
-		"\5\2\33\35\5\n\6\2\34\33\3\2\2\2\34\35\3\2\2\2\35\36\3\2\2\2\36\37\7\2"+
-		"\2\3\37\3\3\2\2\2 !\7\n\2\2!#\7\3\2\2\"$\5\24\13\2#\"\3\2\2\2$%\3\2\2"+
-		"\2%#\3\2\2\2%&\3\2\2\2&\'\3\2\2\2\'(\7\13\2\2(\5\3\2\2\2)*\7\n\2\2*,\7"+
-		"\4\2\2+-\5\24\13\2,+\3\2\2\2-.\3\2\2\2.,\3\2\2\2./\3\2\2\2/\60\3\2\2\2"+
-		"\60\61\7\13\2\2\61\7\3\2\2\2\62\63\7\n\2\2\63\65\7\5\2\2\64\66\5\24\13"+
-		"\2\65\64\3\2\2\2\66\67\3\2\2\2\67\65\3\2\2\2\678\3\2\2\289\3\2\2\29:\7"+
-		"\13\2\2:\t\3\2\2\2;=\5\f\7\2<;\3\2\2\2=>\3\2\2\2><\3\2\2\2>?\3\2\2\2?"+
-		"\13\3\2\2\2@A\7\n\2\2AB\7\6\2\2BC\7\7\2\2CD\5\16\b\2DE\7\13\2\2E\r\3\2"+
-		"\2\2FG\7\n\2\2GI\7\7\2\2HJ\5\20\t\2IH\3\2\2\2JK\3\2\2\2KI\3\2\2\2KL\3"+
-		"\2\2\2LM\3\2\2\2MN\7\13\2\2NQ\3\2\2\2OQ\5\22\n\2PF\3\2\2\2PO\3\2\2\2Q"+
-		"\17\3\2\2\2RS\7\n\2\2ST\7\b\2\2TU\5\16\b\2UV\7\13\2\2V\21\3\2\2\2WX\7"+
-		"\t\2\2X\23\3\2\2\2YZ\7\n\2\2Z\\\7\7\2\2[]\5\26\f\2\\[\3\2\2\2]^\3\2\2"+
-		"\2^\\\3\2\2\2^_\3\2\2\2_`\3\2\2\2`a\7\13\2\2a\25\3\2\2\2bc\7\b\2\2c\27"+
-		"\3\2\2\2\n\34%.\67>KP^";
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\fa\4\2\t\2\4\3\t"+
+		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\3"+
+		"\2\3\2\3\2\3\2\7\2\33\n\2\f\2\16\2\36\13\2\3\2\3\2\3\3\3\3\3\3\6\3%\n"+
+		"\3\r\3\16\3&\3\3\3\3\3\4\3\4\3\4\6\4.\n\4\r\4\16\4/\3\4\3\4\3\5\3\5\3"+
+		"\5\6\5\67\n\5\r\5\16\58\3\5\3\5\3\6\3\6\3\6\3\6\3\6\3\6\3\7\3\7\3\7\6"+
+		"\7F\n\7\r\7\16\7G\3\7\3\7\3\7\5\7M\n\7\3\b\3\b\3\b\3\b\3\b\3\t\3\t\3\n"+
+		"\3\n\3\n\6\nY\n\n\r\n\16\nZ\3\n\3\n\3\13\3\13\3\13\2\2\f\2\4\6\b\n\f\16"+
+		"\20\22\24\2\2]\2\26\3\2\2\2\4!\3\2\2\2\6*\3\2\2\2\b\63\3\2\2\2\n<\3\2"+
+		"\2\2\fL\3\2\2\2\16N\3\2\2\2\20S\3\2\2\2\22U\3\2\2\2\24^\3\2\2\2\26\27"+
+		"\5\4\3\2\27\30\5\6\4\2\30\34\5\b\5\2\31\33\5\n\6\2\32\31\3\2\2\2\33\36"+
+		"\3\2\2\2\34\32\3\2\2\2\34\35\3\2\2\2\35\37\3\2\2\2\36\34\3\2\2\2\37 \7"+
+		"\2\2\3 \3\3\2\2\2!\"\7\n\2\2\"$\7\3\2\2#%\5\22\n\2$#\3\2\2\2%&\3\2\2\2"+
+		"&$\3\2\2\2&\'\3\2\2\2\'(\3\2\2\2()\7\13\2\2)\5\3\2\2\2*+\7\n\2\2+-\7\4"+
+		"\2\2,.\5\22\n\2-,\3\2\2\2./\3\2\2\2/-\3\2\2\2/\60\3\2\2\2\60\61\3\2\2"+
+		"\2\61\62\7\13\2\2\62\7\3\2\2\2\63\64\7\n\2\2\64\66\7\5\2\2\65\67\5\22"+
+		"\n\2\66\65\3\2\2\2\678\3\2\2\28\66\3\2\2\289\3\2\2\29:\3\2\2\2:;\7\13"+
+		"\2\2;\t\3\2\2\2<=\7\n\2\2=>\7\6\2\2>?\7\7\2\2?@\5\f\7\2@A\7\13\2\2A\13"+
+		"\3\2\2\2BC\7\n\2\2CE\7\7\2\2DF\5\16\b\2ED\3\2\2\2FG\3\2\2\2GE\3\2\2\2"+
+		"GH\3\2\2\2HI\3\2\2\2IJ\7\13\2\2JM\3\2\2\2KM\5\20\t\2LB\3\2\2\2LK\3\2\2"+
+		"\2M\r\3\2\2\2NO\7\n\2\2OP\7\b\2\2PQ\5\f\7\2QR\7\13\2\2R\17\3\2\2\2ST\7"+
+		"\t\2\2T\21\3\2\2\2UV\7\n\2\2VX\7\7\2\2WY\5\24\13\2XW\3\2\2\2YZ\3\2\2\2"+
+		"ZX\3\2\2\2Z[\3\2\2\2[\\\3\2\2\2\\]\7\13\2\2]\23\3\2\2\2^_\7\b\2\2_\25"+
+		"\3\2\2\2\t\34&/8GLZ";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

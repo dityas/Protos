@@ -9,7 +9,9 @@ package thinclab.spuddx_parser;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -19,6 +21,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.RandomVariable;
+import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
+import thinclab.legacy.DDnode;
+import thinclab.legacy.Global;
+import thinclab.utils.Tuple;
 
 /*
  * @author adityas
@@ -109,6 +116,87 @@ public class SpuddXParserWrapper {
 		}
 	}
 
+	private class DDLeafVisitor extends SpuddXBaseVisitor<Optional<DD>> {
+
+		@Override
+		public Optional<DD> visitDd_leaf(SpuddXParser.Dd_leafContext ctx) {
+
+			var leaf = Optional.ofNullable(
+						DDleaf.getDD(
+								Float.valueOf(
+										ctx.FLOAT_NUM()
+										   .getText())));
+
+			return leaf;
+		}
+	}
+	
+	private class DDChildVisitor extends SpuddXBaseVisitor<Tuple<String, Optional<DD>>> {
+				
+		@Override
+		public Tuple<String, Optional<DD>> visitDd_child(SpuddXParser.Dd_childContext ctx) {
+			
+			String childName = ctx.VARVAL().getText();
+			var childDD = new DDDeclVisitor().visit(ctx.dd_decl());
+			
+			return new Tuple<String, Optional<DD>>(childName, childDD);
+		}
+	}
+	
+	private class DDDeclVisitor extends SpuddXBaseVisitor<Optional<DD>> {
+		
+		@Override
+		public Optional<DD> visitDd_decl(SpuddXParser.Dd_declContext ctx) {
+			
+			if (ctx.dd_leaf().isEmpty()) {
+				
+				// Prepare root DD
+				String varName = ctx.VARNAME().getText();
+				int varIndex = Global.varNames.indexOf(varName);
+				var valNames = Global.valNames.get(varIndex);
+				
+				// Prepare children
+				var ddChildVisitor = new DDChildVisitor();
+				var childDDList = ctx.dd_child().stream()
+												.map(ddChildVisitor::visit)
+												.collect(Collectors.toList());
+				
+				// Check if
+				DD[] children = new DD[childDDList.size()];
+				for (var child : childDDList) {
+					int childIndex = valNames.indexOf(child.first());
+					
+					if (childIndex < 0 || child.second().isEmpty()) {
+						
+						LOGGER.error("Could not parse DD for child " + child.first());
+						return null;
+					}
+					
+					children[childIndex] = child.second().get();
+				}
+				
+				if (childDDList.size() != Global.varDomSize.get(varIndex))
+					LOGGER.error("Error while parsing DD");
+				
+				return Optional.ofNullable(DDnode.getDD(varIndex, children));
+			}
+			
+			else return new DDLeafVisitor().visit(ctx.dd_leaf());
+		}
+	}
+
+	private class DDDeclsVisitor extends SpuddXBaseVisitor<Tuple<String, Optional<DD>>> {
+
+		@Override
+		public Tuple<String, Optional<DD>> visitDd_decls(SpuddXParser.Dd_declsContext ctx) {
+
+			String ddName = ctx.VARNAME().getText();
+			var parsedDD = new DDDeclVisitor().visit(ctx.dd_decl());
+			
+			return new Tuple<String, Optional<DD>>(ddName, parsedDD);
+		}
+	}
+
 	private class DomainVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
 
 		@Override
@@ -138,6 +226,24 @@ public class SpuddXParserWrapper {
 		public List<RandomVariable> getActionVarDecls(SpuddXParser.DomainContext ctx) {
 
 			return new ActionsDeclVisitor().visit(ctx.actions_decl());
+		}
+		
+		public HashMap<String, DD> getDeclaredDDs(SpuddXParser.DomainContext ctx) {
+		
+			HashMap<String, DD> parsedDDs = new HashMap<>(10);
+			
+			if (!ctx.dd_decls().isEmpty()) {
+				
+				var declsVisitor = new DDDeclsVisitor();
+				ctx.dd_decls().stream()
+							  .map(declsVisitor::visit)
+							  .filter(t -> t.second().isPresent())
+							  .map(d -> new Tuple<String, DD>(d.first(), d.second().get()))
+							  .forEach(f -> parsedDDs.put(f.first(), f.second()));
+				
+			}
+			
+			return parsedDDs;
 		}
 
 	}
@@ -175,7 +281,7 @@ public class SpuddXParserWrapper {
 	}
 
 	public List<RandomVariable> getObsVarDecls() {
-		
+
 		this.parser.reset();
 		var domainVisitor = new DomainVisitor();
 		return domainVisitor.getObsVarDecls(this.parser.domain());
@@ -183,11 +289,18 @@ public class SpuddXParserWrapper {
 	}
 
 	public List<RandomVariable> getActionVarDecls() {
-		
+
 		this.parser.reset();
 		var domainVisitor = new DomainVisitor();
 		return domainVisitor.getActionVarDecls(this.parser.domain());
 
+	}
+	
+    public HashMap<String, DD> getDefinedDDs() {
+
+		this.parser.reset();
+		var domainVisitor = new DomainVisitor();
+		return domainVisitor.getDeclaredDDs(this.parser.domain());
 	}
 
 }
