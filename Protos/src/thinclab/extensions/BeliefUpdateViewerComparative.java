@@ -66,7 +66,7 @@ public class BeliefUpdateViewerComparative {
 				System.out.println("\r\n=== Step " + step + " ===");
 				System.out.println("Rational Belief: " + pomdp.bOPs.toMap(belief));
 				System.out.println("Biased Belief: " + pomdp.bOPs.toMap(bBelief));
-				System.out.println("Biased Belief (elementary): " + pomdp.bOPs.toMap(bBelief2));
+				//System.out.println("Biased Belief (elementary): " + pomdp.bOPs.toMap(bBelief2));
 
 				System.out.println("Available actions: " + pomdp.getActions());
 				System.out.print("Enter action: ");
@@ -85,8 +85,8 @@ public class BeliefUpdateViewerComparative {
 				bBelief = ((BeliefOps) pomdp.bOPs).biasedBeliefUpdate(bBelief, action,
 						allObs.get(obs).toArray(String[]::new));
 				
-				bBelief2 = ((BeliefOps) pomdp.bOPs).biasedBeliefUpdate2(bBelief2, action,
-						allObs.get(obs).toArray(String[]::new));
+				//bBelief2 = ((BeliefOps) pomdp.bOPs).biasedBeliefUpdate2(bBelief2, action,
+				//		allObs.get(obs).toArray(String[]::new));
 
 				step += 1;
 
