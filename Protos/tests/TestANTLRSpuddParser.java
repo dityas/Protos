@@ -215,5 +215,24 @@ class TestANTLRSpuddParser {
 		
 		assertTrue(allParsedVars.size() == allVars.size());
 	}
+	
+	@Test
+	void testDDParsingSimplePOMDP() throws Exception {
+		
+		LOGGER.info("Running test for extracting DDs from domain file");
+        
+		String domainFile = this.getClass().getClassLoader()
+								.getResource("test_domains/test_complete_domain.spudd").getFile();
+
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		
+		var allParsedVars = parserWrapper.getAllVarDecls();
+		LOGGER.debug("All parsed variables from allDecls call are " 
+				+ allParsedVars);
+		
+		var primedVars = RandomVariable.primeVariables(allParsedVars);
+		Global.populateFromRandomVariables(primedVars);
+
+	}
 
 }
