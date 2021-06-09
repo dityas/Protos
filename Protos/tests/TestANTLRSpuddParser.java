@@ -153,4 +153,67 @@ class TestANTLRSpuddParser {
 
 	}
 
+	@Test
+	void testSimplePOMDPDDDeclarations() throws Exception {
+
+		LOGGER.info("Running test for extracting globals from domain file");
+        
+		String domainFile = this.getClass().getClassLoader()
+								.getResource("test_domains/test_var_decls.spudd").getFile();
+
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		
+		// Get all random variables
+		var sVars = parserWrapper.getStateVarDecls();
+		var oVars = parserWrapper.getObsVarDecls();
+		var aVars = parserWrapper.getActionVarDecls();
+		
+		// Aggregate RVs and prepare for global init
+		List<RandomVariable> allVars = new ArrayList<>();
+		allVars.addAll(sVars);
+		allVars.addAll(oVars);
+		allVars.addAll(aVars);
+		
+		LOGGER.debug("All parsed variables are " + allVars);
+		
+		var allVarsPrimed = RandomVariable.primeVariables(allVars);
+		
+		LOGGER.debug("Primed variables are " + allVarsPrimed);
+		
+		Global.populateFromRandomVariables(allVarsPrimed);
+
+	}
+	
+	@Test
+	void testSimplePOMDPAllVarDecls() throws Exception {
+		
+		LOGGER.info("Running test for extracting globals from domain file");
+        
+		String domainFile = this.getClass().getClassLoader()
+								.getResource("test_domains/test_var_decls.spudd").getFile();
+
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		
+		// Get all random variables
+		var sVars = parserWrapper.getStateVarDecls();
+		var oVars = parserWrapper.getObsVarDecls();
+		var aVars = parserWrapper.getActionVarDecls();
+		
+		// Aggregate RVs and prepare for global init
+		List<RandomVariable> allVars = new ArrayList<>();
+		allVars.addAll(sVars);
+		allVars.addAll(oVars);
+		allVars.addAll(aVars);
+		
+		LOGGER.debug("All parsed variables are " + allVars);
+		
+		var allParsedVars = parserWrapper.getAllVarDecls();
+		
+		LOGGER.debug("All parsed variables from allDecls call are " 
+				+ allParsedVars);
+		
+		
+		assertTrue(allParsedVars.size() == allVars.size());
+	}
+
 }
