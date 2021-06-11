@@ -48,6 +48,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDd_decl(SpuddXParser.Dd_declContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#dd_ref}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDd_ref(SpuddXParser.Dd_refContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_child}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -71,6 +77,36 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitRv_decl(SpuddXParser.Rv_declContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#model_defs}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModel_defs(SpuddXParser.Model_defsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#bn_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBn_def(SpuddXParser.Bn_defContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#cpd}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCpd(SpuddXParser.CpdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#dd_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDd_name(SpuddXParser.Dd_nameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#variable_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVariable_name(SpuddXParser.Variable_nameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#var_value}.
 	 * @param ctx the parse tree

@@ -222,7 +222,7 @@ class TestANTLRSpuddParser {
 		LOGGER.info("Running test for extracting DDs from domain file");
         
 		String domainFile = this.getClass().getClassLoader()
-								.getResource("test_domains/test_complete_domain.spudd").getFile();
+								.getResource("test_domains/test_dd_decls.spudd").getFile();
 
 		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
 		
@@ -234,6 +234,7 @@ class TestANTLRSpuddParser {
 		Global.populateFromRandomVariables(primedVars);
 		
 		var DDs = parserWrapper.getDefinedDDs();
+		assertTrue(DDs.size() == 5);
 
 	}
 
