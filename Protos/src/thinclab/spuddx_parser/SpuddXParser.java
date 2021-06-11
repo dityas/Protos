@@ -89,13 +89,13 @@ public class SpuddXParser extends Parser {
 		public State_var_declContext state_var_decl() {
 			return getRuleContext(State_var_declContext.class,0);
 		}
+		public TerminalNode EOF() { return getToken(SpuddXParser.EOF, 0); }
 		public Obs_var_declContext obs_var_decl() {
 			return getRuleContext(Obs_var_declContext.class,0);
 		}
 		public Actions_declContext actions_decl() {
 			return getRuleContext(Actions_declContext.class,0);
 		}
-		public TerminalNode EOF() { return getToken(SpuddXParser.EOF, 0); }
 		public List<Dd_declsContext> dd_decls() {
 			return getRuleContexts(Dd_declsContext.class);
 		}
@@ -130,25 +130,39 @@ public class SpuddXParser extends Parser {
 			{
 			setState(22);
 			state_var_decl();
-			setState(23);
-			obs_var_decl();
 			setState(24);
-			actions_decl();
-			setState(28);
+			switch ( getInterpreter().adaptivePredict(_input,0,_ctx) ) {
+			case 1:
+				{
+				setState(23);
+				obs_var_decl();
+				}
+				break;
+			}
+			setState(27);
+			switch ( getInterpreter().adaptivePredict(_input,1,_ctx) ) {
+			case 1:
+				{
+				setState(26);
+				actions_decl();
+				}
+				break;
+			}
+			setState(32);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==LPAREN) {
 				{
 				{
-				setState(25);
+				setState(29);
 				dd_decls();
 				}
 				}
-				setState(30);
+				setState(34);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(31);
+			setState(35);
 			match(EOF);
 			}
 		}
@@ -198,25 +212,25 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(33);
+			setState(37);
 			match(LPAREN);
-			setState(34);
+			setState(38);
 			match(T__0);
-			setState(36); 
+			setState(40); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(35);
+				setState(39);
 				rv_decl();
 				}
 				}
-				setState(38); 
+				setState(42); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==LPAREN );
-			setState(40);
+			setState(44);
 			match(RPAREN);
 			}
 		}
@@ -266,25 +280,25 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(42);
+			setState(46);
 			match(LPAREN);
-			setState(43);
+			setState(47);
 			match(T__1);
-			setState(45); 
+			setState(49); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(44);
+				setState(48);
 				rv_decl();
 				}
 				}
-				setState(47); 
+				setState(51); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==LPAREN );
-			setState(49);
+			setState(53);
 			match(RPAREN);
 			}
 		}
@@ -334,25 +348,25 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(51);
+			setState(55);
 			match(LPAREN);
-			setState(52);
+			setState(56);
 			match(T__2);
-			setState(54); 
+			setState(58); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(53);
+				setState(57);
 				rv_decl();
 				}
 				}
-				setState(56); 
+				setState(60); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==LPAREN );
-			setState(58);
+			setState(62);
 			match(RPAREN);
 			}
 		}
@@ -399,15 +413,15 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(60);
-			match(LPAREN);
-			setState(61);
-			match(T__3);
-			setState(62);
-			match(VARVAL);
-			setState(63);
-			dd_decl();
 			setState(64);
+			match(LPAREN);
+			setState(65);
+			match(T__3);
+			setState(66);
+			match(VARVAL);
+			setState(67);
+			dd_decl();
+			setState(68);
 			match(RPAREN);
 			}
 		}
@@ -462,44 +476,44 @@ public class SpuddXParser extends Parser {
 		enterRule(_localctx, 10, RULE_dd_decl);
 		int _la;
 		try {
-			setState(77);
-			switch ( getInterpreter().adaptivePredict(_input,5,_ctx) ) {
+			setState(81);
+			switch ( getInterpreter().adaptivePredict(_input,7,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(66);
+				setState(70);
 				match(LPAREN);
-				setState(67);
+				setState(71);
 				match(VARNAME);
-				setState(69); 
+				setState(73); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(68);
+					setState(72);
 					dd_child();
 					}
 					}
-					setState(71); 
+					setState(75); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				} while ( _la==LPAREN );
-				setState(73);
+				setState(77);
 				match(RPAREN);
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(75);
+				setState(79);
 				dd_leaf();
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(76);
+				setState(80);
 				same_dd_decl();
 				}
 				break;
@@ -548,13 +562,13 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(79);
+			setState(83);
 			match(LPAREN);
-			setState(80);
+			setState(84);
 			match(VARVAL);
-			setState(81);
+			setState(85);
 			dd_decl();
-			setState(82);
+			setState(86);
 			match(RPAREN);
 			}
 		}
@@ -596,23 +610,23 @@ public class SpuddXParser extends Parser {
 		Dd_leafContext _localctx = new Dd_leafContext(_ctx, getState());
 		enterRule(_localctx, 14, RULE_dd_leaf);
 		try {
-			setState(88);
+			setState(92);
 			switch (_input.LA(1)) {
 			case FLOAT_NUM:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(84);
+				setState(88);
 				match(FLOAT_NUM);
 				}
 				break;
 			case LPAREN:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(85);
+				setState(89);
 				match(LPAREN);
-				setState(86);
+				setState(90);
 				match(FLOAT_NUM);
-				setState(87);
+				setState(91);
 				match(RPAREN);
 				}
 				break;
@@ -660,13 +674,13 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(90);
+			setState(94);
 			match(LPAREN);
-			setState(91);
+			setState(95);
 			match(T__4);
-			setState(92);
+			setState(96);
 			match(VARNAME);
-			setState(93);
+			setState(97);
 			match(RPAREN);
 			}
 		}
@@ -717,25 +731,25 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(95);
+			setState(99);
 			match(LPAREN);
-			setState(96);
+			setState(100);
 			match(VARNAME);
-			setState(98); 
+			setState(102); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(97);
+				setState(101);
 				var_value();
 				}
 				}
-				setState(100); 
+				setState(104); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==VARVAL );
-			setState(102);
+			setState(106);
 			match(RPAREN);
 			}
 		}
@@ -777,7 +791,7 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(104);
+			setState(108);
 			match(VARVAL);
 			}
 		}
@@ -793,32 +807,33 @@ public class SpuddXParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\rm\4\2\t\2\4\3\t"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\rq\4\2\t\2\4\3\t"+
 		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\4"+
-		"\f\t\f\3\2\3\2\3\2\3\2\7\2\35\n\2\f\2\16\2 \13\2\3\2\3\2\3\3\3\3\3\3\6"+
-		"\3\'\n\3\r\3\16\3(\3\3\3\3\3\4\3\4\3\4\6\4\60\n\4\r\4\16\4\61\3\4\3\4"+
-		"\3\5\3\5\3\5\6\59\n\5\r\5\16\5:\3\5\3\5\3\6\3\6\3\6\3\6\3\6\3\6\3\7\3"+
-		"\7\3\7\6\7H\n\7\r\7\16\7I\3\7\3\7\3\7\3\7\5\7P\n\7\3\b\3\b\3\b\3\b\3\b"+
-		"\3\t\3\t\3\t\3\t\5\t[\n\t\3\n\3\n\3\n\3\n\3\n\3\13\3\13\3\13\6\13e\n\13"+
-		"\r\13\16\13f\3\13\3\13\3\f\3\f\3\f\2\2\r\2\4\6\b\n\f\16\20\22\24\26\2"+
-		"\2j\2\30\3\2\2\2\4#\3\2\2\2\6,\3\2\2\2\b\65\3\2\2\2\n>\3\2\2\2\fO\3\2"+
-		"\2\2\16Q\3\2\2\2\20Z\3\2\2\2\22\\\3\2\2\2\24a\3\2\2\2\26j\3\2\2\2\30\31"+
-		"\5\4\3\2\31\32\5\6\4\2\32\36\5\b\5\2\33\35\5\n\6\2\34\33\3\2\2\2\35 \3"+
-		"\2\2\2\36\34\3\2\2\2\36\37\3\2\2\2\37!\3\2\2\2 \36\3\2\2\2!\"\7\2\2\3"+
-		"\"\3\3\2\2\2#$\7\13\2\2$&\7\3\2\2%\'\5\24\13\2&%\3\2\2\2\'(\3\2\2\2(&"+
-		"\3\2\2\2()\3\2\2\2)*\3\2\2\2*+\7\f\2\2+\5\3\2\2\2,-\7\13\2\2-/\7\4\2\2"+
-		".\60\5\24\13\2/.\3\2\2\2\60\61\3\2\2\2\61/\3\2\2\2\61\62\3\2\2\2\62\63"+
-		"\3\2\2\2\63\64\7\f\2\2\64\7\3\2\2\2\65\66\7\13\2\2\668\7\5\2\2\679\5\24"+
-		"\13\28\67\3\2\2\29:\3\2\2\2:8\3\2\2\2:;\3\2\2\2;<\3\2\2\2<=\7\f\2\2=\t"+
-		"\3\2\2\2>?\7\13\2\2?@\7\6\2\2@A\7\t\2\2AB\5\f\7\2BC\7\f\2\2C\13\3\2\2"+
-		"\2DE\7\13\2\2EG\7\b\2\2FH\5\16\b\2GF\3\2\2\2HI\3\2\2\2IG\3\2\2\2IJ\3\2"+
-		"\2\2JK\3\2\2\2KL\7\f\2\2LP\3\2\2\2MP\5\20\t\2NP\5\22\n\2OD\3\2\2\2OM\3"+
-		"\2\2\2ON\3\2\2\2P\r\3\2\2\2QR\7\13\2\2RS\7\t\2\2ST\5\f\7\2TU\7\f\2\2U"+
-		"\17\3\2\2\2V[\7\n\2\2WX\7\13\2\2XY\7\n\2\2Y[\7\f\2\2ZV\3\2\2\2ZW\3\2\2"+
-		"\2[\21\3\2\2\2\\]\7\13\2\2]^\7\7\2\2^_\7\b\2\2_`\7\f\2\2`\23\3\2\2\2a"+
-		"b\7\13\2\2bd\7\b\2\2ce\5\26\f\2dc\3\2\2\2ef\3\2\2\2fd\3\2\2\2fg\3\2\2"+
-		"\2gh\3\2\2\2hi\7\f\2\2i\25\3\2\2\2jk\7\t\2\2k\27\3\2\2\2\n\36(\61:IOZ"+
-		"f";
+		"\f\t\f\3\2\3\2\5\2\33\n\2\3\2\5\2\36\n\2\3\2\7\2!\n\2\f\2\16\2$\13\2\3"+
+		"\2\3\2\3\3\3\3\3\3\6\3+\n\3\r\3\16\3,\3\3\3\3\3\4\3\4\3\4\6\4\64\n\4\r"+
+		"\4\16\4\65\3\4\3\4\3\5\3\5\3\5\6\5=\n\5\r\5\16\5>\3\5\3\5\3\6\3\6\3\6"+
+		"\3\6\3\6\3\6\3\7\3\7\3\7\6\7L\n\7\r\7\16\7M\3\7\3\7\3\7\3\7\5\7T\n\7\3"+
+		"\b\3\b\3\b\3\b\3\b\3\t\3\t\3\t\3\t\5\t_\n\t\3\n\3\n\3\n\3\n\3\n\3\13\3"+
+		"\13\3\13\6\13i\n\13\r\13\16\13j\3\13\3\13\3\f\3\f\3\f\2\2\r\2\4\6\b\n"+
+		"\f\16\20\22\24\26\2\2p\2\30\3\2\2\2\4\'\3\2\2\2\6\60\3\2\2\2\b9\3\2\2"+
+		"\2\nB\3\2\2\2\fS\3\2\2\2\16U\3\2\2\2\20^\3\2\2\2\22`\3\2\2\2\24e\3\2\2"+
+		"\2\26n\3\2\2\2\30\32\5\4\3\2\31\33\5\6\4\2\32\31\3\2\2\2\32\33\3\2\2\2"+
+		"\33\35\3\2\2\2\34\36\5\b\5\2\35\34\3\2\2\2\35\36\3\2\2\2\36\"\3\2\2\2"+
+		"\37!\5\n\6\2 \37\3\2\2\2!$\3\2\2\2\" \3\2\2\2\"#\3\2\2\2#%\3\2\2\2$\""+
+		"\3\2\2\2%&\7\2\2\3&\3\3\2\2\2\'(\7\13\2\2(*\7\3\2\2)+\5\24\13\2*)\3\2"+
+		"\2\2+,\3\2\2\2,*\3\2\2\2,-\3\2\2\2-.\3\2\2\2./\7\f\2\2/\5\3\2\2\2\60\61"+
+		"\7\13\2\2\61\63\7\4\2\2\62\64\5\24\13\2\63\62\3\2\2\2\64\65\3\2\2\2\65"+
+		"\63\3\2\2\2\65\66\3\2\2\2\66\67\3\2\2\2\678\7\f\2\28\7\3\2\2\29:\7\13"+
+		"\2\2:<\7\5\2\2;=\5\24\13\2<;\3\2\2\2=>\3\2\2\2><\3\2\2\2>?\3\2\2\2?@\3"+
+		"\2\2\2@A\7\f\2\2A\t\3\2\2\2BC\7\13\2\2CD\7\6\2\2DE\7\t\2\2EF\5\f\7\2F"+
+		"G\7\f\2\2G\13\3\2\2\2HI\7\13\2\2IK\7\b\2\2JL\5\16\b\2KJ\3\2\2\2LM\3\2"+
+		"\2\2MK\3\2\2\2MN\3\2\2\2NO\3\2\2\2OP\7\f\2\2PT\3\2\2\2QT\5\20\t\2RT\5"+
+		"\22\n\2SH\3\2\2\2SQ\3\2\2\2SR\3\2\2\2T\r\3\2\2\2UV\7\13\2\2VW\7\t\2\2"+
+		"WX\5\f\7\2XY\7\f\2\2Y\17\3\2\2\2Z_\7\n\2\2[\\\7\13\2\2\\]\7\n\2\2]_\7"+
+		"\f\2\2^Z\3\2\2\2^[\3\2\2\2_\21\3\2\2\2`a\7\13\2\2ab\7\7\2\2bc\7\b\2\2"+
+		"cd\7\f\2\2d\23\3\2\2\2ef\7\13\2\2fh\7\b\2\2gi\5\26\f\2hg\3\2\2\2ij\3\2"+
+		"\2\2jh\3\2\2\2jk\3\2\2\2kl\3\2\2\2lm\7\f\2\2m\25\3\2\2\2no\7\t\2\2o\27"+
+		"\3\2\2\2\f\32\35\",\65>MS^j";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

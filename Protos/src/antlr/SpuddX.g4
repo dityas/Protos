@@ -5,8 +5,8 @@ grammar SpuddX;
 */
 
 domain: state_var_decl
-		obs_var_decl
-		actions_decl
+		(obs_var_decl)?
+		(actions_decl)?
 		(dd_decls)*
 		EOF 
 		;

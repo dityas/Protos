@@ -206,7 +206,7 @@ public class SpuddXParserWrapper {
 					LOGGER.error("Error while parsing DD");
 
 				return Optional.ofNullable(
-						OP.reorder(DDnode.getDD(varIndex, children)));
+						OP.reorder(DDnode.getDD(varIndex + 1, children)));
 			}
 		}
 	}
@@ -258,10 +258,17 @@ public class SpuddXParserWrapper {
 
 		public List<RandomVariable> getAllVariableDecls(SpuddXParser.DomainContext ctx) {
 
+			List<RandomVariable> obsVars = new ArrayList<>(5);
+			List<RandomVariable> actVars = new ArrayList<>(5);
+			
 			var stateVars = new StateVarDeclVisitor().visit(ctx.state_var_decl());
-			var obsVars = new ObsVarDeclVisitor().visit(ctx.obs_var_decl());
-			var actVars = new ActionsDeclVisitor().visit(ctx.actions_decl());
-
+			
+			if (ctx.obs_var_decl() != null)
+				obsVars.addAll(new ObsVarDeclVisitor().visit(ctx.obs_var_decl()));
+			
+			if (ctx.actions_decl() != null)
+				actVars.addAll(new ActionsDeclVisitor().visit(ctx.actions_decl()));
+			
 			List<RandomVariable> vars = 
 					new ArrayList<>((stateVars.size() 
 							+ obsVars.size() 

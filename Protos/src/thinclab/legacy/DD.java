@@ -51,4 +51,9 @@ public abstract class DD implements Serializable {
 	}
 	
 	abstract public DDTree toDDTree();
+	
+	public DD normalize() {
+		var norm = OP.addMultVarElim(this, this.getVarSet());
+		return OP.div(this, norm);
+	}
 }

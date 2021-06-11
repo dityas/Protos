@@ -15,7 +15,7 @@ public class DDnode extends DD {
 	 * 
 	 */
 	private static final long serialVersionUID = 8410391598527547020L;
-	
+
 	private int[] varSet;
 	private int numLeaves;
 	private DD children[];
@@ -59,41 +59,42 @@ public class DDnode extends DD {
 
 		this.hash = builder.toHashCode();
 	}
-	
+
 	public static DD getDDForChild(int var, int child) {
-	
+
 		DD[] childDDs = new DD[Global.varDomSize.get(var - 1)];
-		
+
 		for (int i = 0; i < childDDs.length; i++) {
-			
+
 			if (i == child)
 				childDDs[i] = DDleaf.getDD(1.0f);
-			
-			else childDDs[i] = DDleaf.getDD(0.0f);
+
+			else
+				childDDs[i] = DDleaf.getDD(0.0f);
 		}
-		
+
 		var dd = DDnode.getDD(var, childDDs);
-		
+
 		return dd;
 	}
-	
+
 	public static DD getDDForChild(String varName, String childName) {
-		
+
 		int varIndex = Global.varNames.indexOf(varName);
-		
+
 		if (varIndex < 0) {
 			LOGGER.error("Variable " + varName + " does not exist.");
 			System.exit(-1);
 		}
-		
+
 		int var = varIndex + 1;
 		int childIndex = Global.valNames.get(varIndex).indexOf(childName);
-		
+
 		if (childIndex < 0) {
 			LOGGER.error("Variable " + varName + " does not hold value " + childName);
 			System.exit(-1);
 		}
-		
+
 		return DDnode.getDDForChild(var, childIndex);
 	}
 
@@ -107,7 +108,7 @@ public class DDnode extends DD {
 				break;
 			}
 		}
-		
+
 		if (aggregate)
 			return children[0];
 
@@ -147,13 +148,13 @@ public class DDnode extends DD {
 	}
 
 	public DD store() {
-		
+
 		DD[] children = new DD[this.children.length];
-		
+
 		for (int i = 0; i < this.children.length; i++) {
 			children[i] = this.children[i].store();
 		}
-		
+
 		return DDnode.getDD(var, children);
 	}
 
@@ -162,37 +163,37 @@ public class DDnode extends DD {
 	}
 
 	public int[] getVarSet() {
-		
+
 		if (varSet == null) {
-			
+
 			varSet = new int[1];
 			varSet[0] = var;
-			
+
 			for (int childId = 0; childId < children.length; childId++) {
 				varSet = MySet.unionOrdered(children[childId].getVarSet(), varSet);
 			}
 		}
-		
+
 		return varSet;
 	}
 
 	public int getNumLeaves() {
-		
+
 		if (numLeaves == 0) {
 			for (int i = 0; i < children.length; i++) {
 				numLeaves = numLeaves + children[i].getNumLeaves();
 			}
 		}
-		
+
 		return numLeaves;
 	}
 
 	public float getSum() {
-		
+
 		if (sum == Double.NaN) {
-			
+
 			sum = 0;
-			
+
 			int[] childrenVars = MySet.remove(this.getVarSet(), var);
 			for (int i = 0; i < children.length; i++) {
 				int[] remainingVars = MySet.diff(childrenVars, children[i].getVarSet());
@@ -202,7 +203,7 @@ public class DDnode extends DD {
 				sum = sum + multiplicativeFactor * children[i].getSum();
 			}
 		}
-		
+
 		return sum;
 	}
 
@@ -215,23 +216,21 @@ public class DDnode extends DD {
 
 		DDTree ddTree = null;
 
-		try {
-			/* Make childless DDTree */
-			ddTree = new DDTree(POMDP.getVarName(this.var));
+		/* Make childless DDTree */
+		ddTree = new DDTree(Global.varNames.get(this.var - 1));
 
-			/* Get children and add each to DDTree */
-			var valNames = Global.valNames.get(this.var - 1);
+		/* Get children and add each to DDTree */
+		var valNames = Global.valNames.get(this.var - 1);
 
-			for (int c = 0; c < valNames.size(); c++)
-				ddTree.addChild(valNames.get(c), this.children[c].toDDTree());
-		}
-
-		catch (VariableNotFoundException e) {
-			System.out.println(e.getMessage());
-			System.exit(-1);
-		}
+		for (int c = 0; c < valNames.size(); c++)
+			ddTree.addChild(valNames.get(c), this.children[c].toDDTree());
 
 		/* Return DDTree obj */
 		return ddTree;
+	}
+
+	@Override
+	public String toString() {
+		return this.toDDTree().toString();
 	}
 }
