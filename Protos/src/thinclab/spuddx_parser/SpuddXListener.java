@@ -89,6 +89,16 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitDd_leaf(SpuddXParser.Dd_leafContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#same_dd_decl}.
+	 * @param ctx the parse tree
+	 */
+	void enterSame_dd_decl(SpuddXParser.Same_dd_declContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#same_dd_decl}.
+	 * @param ctx the parse tree
+	 */
+	void exitSame_dd_decl(SpuddXParser.Same_dd_declContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#rv_decl}.
 	 * @param ctx the parse tree
 	 */

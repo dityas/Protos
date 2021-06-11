@@ -74,6 +74,13 @@ public class SpuddXBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitSame_dd_decl(SpuddXParser.Same_dd_declContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitRv_decl(SpuddXParser.Rv_declContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}

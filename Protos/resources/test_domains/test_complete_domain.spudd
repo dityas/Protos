@@ -13,3 +13,48 @@
 (actions
 	(DefenderAgent deploy_decoy no_op move_critical_assets)
 )
+
+(dd host_type_all
+	(SAME HOST_TYPE)
+)
+
+(dd attacker_privs_all
+	(ATTACKER_PRIVS
+		
+		(none
+			(ATTACKER_PRIVS'
+				(none 	(0.8))
+				(user 	(0.15))
+				(local_admin 	(0.025))
+				(domain_admin 	(0.025))
+			)
+		)
+		
+		(user
+			(ATTACKER_PRIVS'
+				(none 	(0.0))
+				(user 	(0.8))
+				(local_admin 	(0.15))
+				(domain_admin 	(0.05))
+			)
+		)
+		
+		(local_admin
+			(ATTACKER_PRIVS'
+				(none 	(0.0))
+				(user 	(0.0))
+				(local_admin 	(0.8))
+				(domain_admin 	(0.2))
+			)
+		)
+		
+		(domain_admin
+			(ATTACKER_PRIVS'
+				(none 	(0.0))
+				(user 	(0.0))
+				(local_admin 	(0.0))
+				(domain_admin 	(1.0))
+			)
+		)
+	)
+)

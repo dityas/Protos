@@ -232,6 +232,8 @@ class TestANTLRSpuddParser {
 		
 		var primedVars = RandomVariable.primeVariables(allParsedVars);
 		Global.populateFromRandomVariables(primedVars);
+		
+		var DDs = parserWrapper.getDefinedDDs();
 
 	}
 

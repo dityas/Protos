@@ -26,6 +26,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
+import thinclab.legacy.OP;
 import thinclab.utils.Tuple;
 
 /*
@@ -139,13 +140,44 @@ public class SpuddXParserWrapper {
 			return new Tuple<String, Optional<DD>>(childName, childDD);
 		}
 	}
+	
+	private class SameDDDeclVisitor extends SpuddXBaseVisitor<Optional<DD>> {
+		
+		@Override
+		public Optional<DD> visitSame_dd_decl(SpuddXParser.Same_dd_declContext ctx) {
+		
+			String varName = ctx.VARNAME().getText();
+			int varIndex = Global.varNames.indexOf(varName);
+			int primedVarIndex = Global.varNames.indexOf(varName + "'");
+			
+			if (varIndex < 0 || primedVarIndex < 0) {
+				LOGGER.error("Variable " + varName + " or its prime does not exist");
+				return Optional.ofNullable(null);
+			}
+			
+			var children = Global.valNames.get(primedVarIndex)
+										  .stream()
+										  .map(c -> DDnode.getDDForChild(varName + "'", c))
+										  .toArray(DD[]::new);
+			
+			var dd = DDnode.getDD(varIndex + 1, children);
+			
+			return Optional.ofNullable(OP.reorder(dd));
+		}
+	}
 
 	private class DDDeclVisitor extends SpuddXBaseVisitor<Optional<DD>> {
 
 		@Override
 		public Optional<DD> visitDd_decl(SpuddXParser.Dd_declContext ctx) {
+			
+			if (ctx.dd_leaf() != null)
+				return new DDLeafVisitor().visit(ctx.dd_leaf());
+			
+			else if (ctx.same_dd_decl() != null)
+				return new SameDDDeclVisitor().visit(ctx.same_dd_decl());
 
-			if (ctx.dd_leaf().isEmpty()) {
+			else {
 
 				// Prepare root DD
 				String varName = ctx.VARNAME().getText();
@@ -173,11 +205,9 @@ public class SpuddXParserWrapper {
 				if (childDDList.size() != Global.varDomSize.get(varIndex))
 					LOGGER.error("Error while parsing DD");
 
-				return Optional.ofNullable(DDnode.getDD(varIndex, children));
+				return Optional.ofNullable(
+						OP.reorder(DDnode.getDD(varIndex, children)));
 			}
-
-			else
-				return new DDLeafVisitor().visit(ctx.dd_leaf());
 		}
 	}
 
@@ -186,9 +216,11 @@ public class SpuddXParserWrapper {
 		@Override
 		public Tuple<String, Optional<DD>> visitDd_decls(SpuddXParser.Dd_declsContext ctx) {
 
-			String ddName = ctx.VARNAME().getText();
+			String ddName = ctx.VARVAL().getText();
 			var parsedDD = new DDDeclVisitor().visit(ctx.dd_decl());
-
+		
+			LOGGER.debug(String.format("Parsed DD %s", parsedDD));
+			
 			return new Tuple<String, Optional<DD>>(ddName, parsedDD);
 		}
 	}

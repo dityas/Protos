@@ -23,7 +23,7 @@ public class DDnode extends DD {
 
 	private int hash;
 
-	private static final Logger logger = LogManager.getLogger(DDnode.class);
+	private static final Logger LOGGER = LogManager.getLogger(DDnode.class);
 
 	private DDnode(int var, DD children[]) {
 		this.var = var;
@@ -52,12 +52,49 @@ public class DDnode extends DD {
 				builder.append(this.children[i].hashCode());
 
 			else {
-				logger.error("Null child at " + i + " something might be seriously wrong.");
-				logger.error("Error causing DD is " + this.toDDTree());
+				LOGGER.error("Null child at " + i + " something might be seriously wrong.");
+				LOGGER.error("Error causing DD is " + this.toDDTree());
 			}
 		}
 
 		this.hash = builder.toHashCode();
+	}
+	
+	public static DD getDDForChild(int var, int child) {
+	
+		DD[] childDDs = new DD[Global.varDomSize.get(var - 1)];
+		
+		for (int i = 0; i < childDDs.length; i++) {
+			
+			if (i == child)
+				childDDs[i] = DDleaf.getDD(1.0f);
+			
+			else childDDs[i] = DDleaf.getDD(0.0f);
+		}
+		
+		var dd = DDnode.getDD(var, childDDs);
+		
+		return dd;
+	}
+	
+	public static DD getDDForChild(String varName, String childName) {
+		
+		int varIndex = Global.varNames.indexOf(varName);
+		
+		if (varIndex < 0) {
+			LOGGER.error("Variable " + varName + " does not exist.");
+			System.exit(-1);
+		}
+		
+		int var = varIndex + 1;
+		int childIndex = Global.valNames.get(varIndex).indexOf(childName);
+		
+		if (childIndex < 0) {
+			LOGGER.error("Variable " + varName + " does not hold value " + childName);
+			System.exit(-1);
+		}
+		
+		return DDnode.getDDForChild(var, childIndex);
 	}
 
 	public static DD getDD(int var, DD[] children) {

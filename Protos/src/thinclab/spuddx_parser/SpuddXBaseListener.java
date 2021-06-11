@@ -113,6 +113,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterSame_dd_decl(SpuddXParser.Same_dd_declContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSame_dd_decl(SpuddXParser.Same_dd_declContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterRv_decl(SpuddXParser.Rv_declContext ctx) { }
 	/**
 	 * {@inheritDoc}
