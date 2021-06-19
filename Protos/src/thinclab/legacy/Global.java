@@ -96,6 +96,15 @@ public class Global {
 
 		System.gc();
 	}
+	
+	public static void clearAll() {
+		
+		Global.varNames.clear();
+		Global.valNames.clear();
+		Global.varDomSize.clear();
+		
+		Global.clearHashtables();
+	}
 
 	public static void newHashtables() {
 		// Global.leafHashtable = new WeakHashMap();

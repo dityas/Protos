@@ -42,11 +42,68 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDd_decls(SpuddXParser.Dd_declsContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#dd_decl}.
+	 * Visit a parse tree produced by the {@code MultDivExpr}
+	 * labeled alternative in {@link SpuddXParser#dd_expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDd_decl(SpuddXParser.Dd_declContext ctx);
+	T visitMultDivExpr(SpuddXParser.MultDivExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code AtomicExpr}
+	 * labeled alternative in {@link SpuddXParser#dd_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAtomicExpr(SpuddXParser.AtomicExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code NegExpr}
+	 * labeled alternative in {@link SpuddXParser#dd_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNegExpr(SpuddXParser.NegExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ParenExpr}
+	 * labeled alternative in {@link SpuddXParser#dd_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParenExpr(SpuddXParser.ParenExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code AddSubExpr}
+	 * labeled alternative in {@link SpuddXParser#dd_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAddSubExpr(SpuddXParser.AddSubExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code DDDecl}
+	 * labeled alternative in {@link SpuddXParser#dd_decl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDDDecl(SpuddXParser.DDDeclContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code DDleaf}
+	 * labeled alternative in {@link SpuddXParser#dd_decl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDDleaf(SpuddXParser.DDleafContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code SameDD}
+	 * labeled alternative in {@link SpuddXParser#dd_decl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSameDD(SpuddXParser.SameDDContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code DDRef}
+	 * labeled alternative in {@link SpuddXParser#dd_decl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDDRef(SpuddXParser.DDRefContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_ref}.
 	 * @param ctx the parse tree
@@ -78,23 +135,29 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitRv_decl(SpuddXParser.Rv_declContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#model_defs}.
+	 * Visit a parse tree produced by {@link SpuddXParser#env_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitModel_defs(SpuddXParser.Model_defsContext ctx);
+	T visitEnv_def(SpuddXParser.Env_defContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#bn_def}.
+	 * Visit a parse tree produced by {@link SpuddXParser#actiondbn_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitBn_def(SpuddXParser.Bn_defContext ctx);
+	T visitActiondbn_def(SpuddXParser.Actiondbn_defContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#cpd}.
+	 * Visit a parse tree produced by {@link SpuddXParser#actions}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitCpd(SpuddXParser.CpdContext ctx);
+	T visitActions(SpuddXParser.ActionsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#cpd_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCpd_def(SpuddXParser.Cpd_defContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_name}.
 	 * @param ctx the parse tree

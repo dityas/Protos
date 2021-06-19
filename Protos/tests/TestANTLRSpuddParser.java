@@ -38,7 +38,8 @@ class TestANTLRSpuddParser {
 
 	@BeforeEach
 	void setUp() throws Exception {
-
+		
+		Global.clearAll();
 		this.domainFile = this.getClass().getClassLoader().getResource("test_domains/test_var_decls.spudd").getFile();
 	}
 
@@ -237,5 +238,44 @@ class TestANTLRSpuddParser {
 		assertTrue(DDs.size() == 5);
 
 	}
+	
+	@Test
+	void testDDExprsSimplePOMDP() throws Exception {
+		
+		LOGGER.info("Running test for DD expressions");
+        
+		String domainFile = this.getClass().getClassLoader()
+								.getResource("test_domains/test_dd_exprs.spudd").getFile();
 
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		
+		var allParsedVars = parserWrapper.getAllVarDecls();
+		
+		var primedVars = RandomVariable.primeVariables(allParsedVars);
+		Global.populateFromRandomVariables(primedVars);
+		
+		var DDs = parserWrapper.getDefinedDDs();
+		assertEquals(DDs.size(), 6);
+
+	}
+
+	@Test
+	void testEnvParsingSimplePOMDP() throws Exception {
+		
+		LOGGER.info("Running test for extracting environment from domain file");
+        
+		String domainFile = this.getClass().getClassLoader()
+								.getResource("test_domains/test_env_def.spudd").getFile();
+
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		
+		var allParsedVars = parserWrapper.getAllVarDecls();
+		
+		var primedVars = RandomVariable.primeVariables(allParsedVars);
+		Global.populateFromRandomVariables(primedVars);
+		
+		var DDs = parserWrapper.getDefinedDDs();
+		var env = parserWrapper.getEnv(DDs);
+		
+	}
 }

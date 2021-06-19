@@ -22,11 +22,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.RandomVariable;
+import thinclab.env.Environment;
+import thinclab.env.SamplingBasedPOEnvironment;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.models.ActionDBN;
 import thinclab.utils.Tuple;
 
 /*
@@ -117,20 +120,130 @@ public class SpuddXParserWrapper {
 		}
 	}
 
-	private class DDLeafVisitor extends SpuddXBaseVisitor<DD> {
+	private class DDParser extends SpuddXBaseVisitor<DD> {
+
+		private HashMap<String, DD> declaredDDs;
+
+		public DDParser(HashMap<String, DD> declaredDDs) {
+			super();
+			this.declaredDDs = declaredDDs;
+		}
 
 		@Override
-		public DD visitDd_leaf(SpuddXParser.Dd_leafContext ctx) {
+		public DD visitDDDecl(SpuddXParser.DDDeclContext ctx) {
 
-			var leaf = DDleaf.getDD(Float.valueOf(ctx.FLOAT_NUM().getText()));
-			return leaf;
+			// Prepare root DD
+			String varName = ctx.variable_name().IDENTIFIER().getText();
+			int varIndex = Global.varNames.indexOf(varName);
+			var valNames = Global.valNames.get(varIndex);
+
+			// Prepare children
+			var ddChildVisitor = new DDChildVisitor(this.declaredDDs);
+			var childDDList = ctx.dd_child().stream().map(ddChildVisitor::visit).collect(Collectors.toList());
+
+			// Check if
+			DD[] children = new DD[childDDList.size()];
+			for (var child : childDDList) {
+				int childIndex = valNames.indexOf(child.first());
+
+				if (childIndex < 0 || child.second() == null) {
+					LOGGER.error("Could not parse DD for child " + child.first());
+					System.exit(-1);
+				}
+
+				children[childIndex] = child.second();
+			}
+
+			if (childDDList.size() != Global.varDomSize.get(varIndex))
+				LOGGER.error("Error while parsing DD");
+
+			return OP.reorder(DDnode.getDD(varIndex + 1, children));
 		}
+		
+		@Override
+		public DD visitDDleaf(SpuddXParser.DDleafContext ctx) {
+			return DDleaf.getDD(Float.valueOf(ctx.dd_leaf().FLOAT_NUM().getText()));
+		}
+		
+		@Override
+		public DD visitSameDD(SpuddXParser.SameDDContext ctx) {
+			return ActionDBN.getSameTransitionDD(ctx.same_dd_decl().variable_name().getText());
+		}
+		
+		@Override
+		public DD visitDDRef(SpuddXParser.DDRefContext ctx) {
+			
+			String ddName = ctx.dd_ref().dd_name().IDENTIFIER().getText();
+			
+			if (this.declaredDDs.containsKey(ddName))
+				return this.declaredDDs.get(ddName);
+			
+			else {
+				LOGGER.error(String.format("DD named %s not defined.", ddName));
+				return null;
+			}
+		}
+		
+		@Override
+		public DD visitAtomicExpr(SpuddXParser.AtomicExprContext ctx) {
+			return this.visit(ctx.dd_decl());
+		}
+		
+		@Override
+		public DD visitParenExpr(SpuddXParser.ParenExprContext ctx) {
+			return this.visit(ctx.dd_expr());
+		}
+		
+		@Override
+		public DD visitMultDivExpr(SpuddXParser.MultDivExprContext ctx) {
+			
+			var left = this.visit(ctx.left);
+			var right = this.visit(ctx.right);
+			
+			if (ctx.op.getText().contentEquals("*"))
+				return OP.mult(left, right);
+			
+			else if (ctx.op.getText().contentEquals("/"))
+				return OP.div(left, right);
+			
+			else return null;			
+		}
+		
+		@Override
+		public DD visitAddSubExpr(SpuddXParser.AddSubExprContext ctx) {
+			
+			var left = this.visit(ctx.left);
+			var right = this.visit(ctx.right);
+			
+			if (ctx.op.getText().contentEquals("+"))
+				return OP.add(left, right);
+			
+			else if (ctx.op.getText().contentEquals("-"))
+				return OP.sub(left, right);
+			
+			else return null;			
+		}
+		
+		@Override
+		public DD visitNegExpr(SpuddXParser.NegExprContext ctx) {
+			
+			var term = this.visit(ctx.dd_expr());
+			
+			if (ctx.op.getText().contentEquals("+"))
+				return term;
+			
+			else if (ctx.op.getText().contentEquals("-"))
+				return OP.neg(term);
+			
+			else return null;
+		}
+		
 	}
 
 	private class DDChildVisitor extends SpuddXBaseVisitor<Tuple<String, DD>> {
 
 		public HashMap<String, DD> declaredDDs;
-		
+
 		public DDChildVisitor(HashMap<String, DD> declaredDDs) {
 			super();
 			this.declaredDDs = declaredDDs;
@@ -140,99 +253,13 @@ public class SpuddXParserWrapper {
 		public Tuple<String, DD> visitDd_child(SpuddXParser.Dd_childContext ctx) {
 
 			String childName = ctx.var_value().IDENTIFIER().getText();
-			var childDD = new DDDeclVisitor(this.declaredDDs).visit(ctx.dd_decl());
+			var childDD = new DDParser(this.declaredDDs).visit(ctx.dd_decl());
 
 			return new Tuple<String, DD>(childName, childDD);
 		}
 	}
 
-	private class SameDDDeclVisitor extends SpuddXBaseVisitor<DD> {
-
-		@Override
-		public DD visitSame_dd_decl(SpuddXParser.Same_dd_declContext ctx) {
-
-			String varName = ctx.variable_name().IDENTIFIER().getText();
-			int varIndex = Global.varNames.indexOf(varName);
-			int primedVarIndex = Global.varNames.indexOf(varName + "'");
-
-			if (varIndex < 0 || primedVarIndex < 0) {
-				LOGGER.error("Variable " + varName + " or its prime does not exist");
-				System.exit(-1);
-			}
-
-			var children = Global.valNames.get(primedVarIndex).stream().map(c -> DDnode.getDDForChild(varName + "'", c))
-					.toArray(DD[]::new);
-
-			var dd = DDnode.getDD(varIndex + 1, children);
-
-			return OP.reorder(dd);
-		}
-	}
-
-	private class DDDeclVisitor extends SpuddXBaseVisitor<DD> {
-
-		public HashMap<String, DD> declaredDDs;
-
-		public DDDeclVisitor(HashMap<String, DD> declaredDDs) {
-			super();
-			this.declaredDDs = declaredDDs;
-		}
-
-		@Override
-		public DD visitDd_decl(SpuddXParser.Dd_declContext ctx) {
-
-			if (ctx.dd_leaf() != null)
-				return new DDLeafVisitor().visit(ctx.dd_leaf());
-
-			else if (ctx.same_dd_decl() != null)
-				return new SameDDDeclVisitor().visit(ctx.same_dd_decl());
-			
-			else if (ctx.dd_ref() != null) {
-				
-				String ddName = ctx.dd_ref().dd_name().IDENTIFIER().getText();
-				
-				if (!this.declaredDDs.containsKey(ddName)) {
-					LOGGER.error(String.format("DD %s not declared previously.", ddName));
-					System.exit(-1);
-					return DDleaf.getDD(Float.NaN);
-				}
-					
-				
-				else return this.declaredDDs.get(ddName);
-			}
-
-			else {
-
-				// Prepare root DD
-				String varName = ctx.variable_name().IDENTIFIER().getText();
-				int varIndex = Global.varNames.indexOf(varName);
-				var valNames = Global.valNames.get(varIndex);
-
-				// Prepare children
-				var ddChildVisitor = new DDChildVisitor(this.declaredDDs);
-				var childDDList = ctx.dd_child().stream().map(ddChildVisitor::visit).collect(Collectors.toList());
-
-				// Check if
-				DD[] children = new DD[childDDList.size()];
-				for (var child : childDDList) {
-					int childIndex = valNames.indexOf(child.first());
-
-					if (childIndex < 0 || child.second() == null) {
-						LOGGER.error("Could not parse DD for child " + child.first());
-						System.exit(-1);
-					}
-
-					children[childIndex] = child.second();
-				}
-
-				if (childDDList.size() != Global.varDomSize.get(varIndex))
-					LOGGER.error("Error while parsing DD");
-
-				return OP.reorder(DDnode.getDD(varIndex + 1, children));
-			}
-		}
-	}
-
+	
 	private class DDDeclsVisitor extends SpuddXBaseVisitor<HashMap<String, DD>> {
 
 		public HashMap<String, DD> declaredDDs;
@@ -246,13 +273,90 @@ public class SpuddXParserWrapper {
 		public HashMap<String, DD> visitDd_decls(SpuddXParser.Dd_declsContext ctx) {
 
 			String ddName = ctx.dd_name().IDENTIFIER().getText();
-			var parsedDD = new DDDeclVisitor(this.declaredDDs).visit(ctx.dd_decl());
+			var parsedDD = new DDParser(this.declaredDDs).visit(ctx.dd_expr());
 
 			LOGGER.debug(String.format("Parsed DD %s - %s", ddName, parsedDD));
 			this.declaredDDs.put(ddName, OP.reorder(parsedDD));
 
 			return this.declaredDDs;
 		}
+	}
+
+	private class CPDDefVisitor extends SpuddXBaseVisitor<Tuple<String, DD>> {
+
+		private HashMap<String, DD> declaredDDs;
+
+		public CPDDefVisitor(HashMap<String, DD> declaredDDs) {
+			super();
+			this.declaredDDs = declaredDDs;
+		}
+
+		@Override
+		public Tuple<String, DD> visitCpd_def(SpuddXParser.Cpd_defContext ctx) {
+
+			String varName = ctx.variable_name().IDENTIFIER().getText();
+			DD dd = new DDParser(this.declaredDDs).visit(ctx.dd_decl());
+
+			return new Tuple<String, DD>(varName, dd);
+		}
+
+	}
+
+	private class ActionDBNDef extends SpuddXBaseVisitor<ActionDBN> {
+
+		private HashMap<String, DD> declaredDDs;
+
+		public ActionDBNDef(HashMap<String, DD> declaredDDs) {
+			super();
+			this.declaredDDs = declaredDDs;
+		}
+
+		public ActionDBN visitActiondbn_def(SpuddXParser.Actiondbn_defContext ctx) {
+
+			var actions = ctx.actions().IDENTIFIER().stream().map(i -> i.getText()).collect(Collectors.toList());
+
+			var cpdParser = new CPDDefVisitor(this.declaredDDs);
+			HashMap<String, DD> transitions = new HashMap<>(10);
+
+			ctx.cpd_def().stream().map(cpdParser::visit).forEach(t -> transitions.put(t.first(), t.second()));
+
+			DD[] transitionDDs = new DD[Global.varNames.size() / 2];
+			LOGGER.debug("Checking for " + Global.varNames);
+
+			for (int i = 0; i < transitionDDs.length; i++) {
+
+				if (transitions.containsKey(Global.varNames.get(i)))
+					transitionDDs[i] = transitions.get(Global.varNames.get(i));
+
+				else
+					transitionDDs[i] = ActionDBN.getSameTransitionDD(Global.varNames.get(i));
+			}
+
+			return new ActionDBN(actions, transitionDDs);
+		}
+	}
+
+	private class EnvDefVisitor extends SpuddXBaseVisitor<Environment> {
+
+		private HashMap<String, DD> declaredDDs;
+
+		public EnvDefVisitor(HashMap<String, DD> declaredDDs) {
+			super();
+			this.declaredDDs = declaredDDs;
+		}
+
+		@Override
+		public Environment visitEnv_def(SpuddXParser.Env_defContext ctx) {
+
+			var env = new SamplingBasedPOEnvironment();
+			var actionDBNVisitor = new ActionDBNDef(this.declaredDDs);
+
+			ctx.actiondbn_def().stream().map(actionDBNVisitor::visit)
+					.forEach(d -> env.addDynamicsForAction(d.jointActionSequence, d));
+
+			return env;
+		}
+
 	}
 
 	private class DomainVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
@@ -322,6 +426,16 @@ public class SpuddXParserWrapper {
 			return parsedDDs;
 		}
 
+		public Optional<Environment> getEnv(HashMap<String, DD> dds, SpuddXParser.DomainContext ctx) {
+
+			Environment env = null;
+
+			if (ctx.env_def() != null)
+				env = new EnvDefVisitor(dds).visit(ctx.env_def());
+
+			return Optional.ofNullable(env);
+		}
+
 	}
 
 	// -------------------------------------------------------------------------
@@ -379,16 +493,31 @@ public class SpuddXParserWrapper {
 		return domainVisitor.getAllVariableDecls(this.parser.domain());
 	}
 
-	public HashMap<String, DD> getDefinedDDs() {
+	private void checkVariables() {
 
 		if (Global.varNames.size() < 1) {
 			LOGGER.error("Global variables not yet set. Cannot parse DDs");
 			System.exit(-1);
 		}
 
+	}
+
+	public HashMap<String, DD> getDefinedDDs() {
+
+		this.checkVariables();
+
 		this.parser.reset();
 		var domainVisitor = new DomainVisitor();
 		return domainVisitor.getDeclaredDDs(this.parser.domain());
+	}
+
+	public Optional<Environment> getEnv(HashMap<String, DD> dds) {
+
+		this.checkVariables();
+
+		this.parser.reset();
+		var domainVisitor = new DomainVisitor();
+		return domainVisitor.getEnv(dds, this.parser.domain());
 	}
 
 }
