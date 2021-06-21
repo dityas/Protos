@@ -1,28 +1,19 @@
 (variables
-	(HOST_TYPE critical non_critical honeypot)
+	(HOST_HAS_DATA critical sensitive none)
 	(HOST_HAS_VULN yes no)
-	(DECOY_PLACED yes no)
 	(ATTACKER_PRIVS none user local_admin domain_admin)
 )
 
-(observations
-	(DECOY_HIT yes no)
-	(EVENT_RECOG login suspicious_recon sys_enumeration)
-)
-
-(agent pomdp Defender
+(model POMDP Defender
 	
 	(variables
-		(HOST_TYPE HOST_HAS_VULN DECOY_PLACED ATTACKER_PLACED)
+		(HOST_HAS_DATA HOST_HAS_VULN ATTACKER_PRIVS)
 	)
 	
 	(observations
-		(DECOY_HIT EVENT_RECOG)
+		(DATA_FOUND yes no)
+		(PRIVS none user local_admin domain_admin)
 	)
-	
-	(actions
-		()
-	)
-	
-	
+
+	(actions CHECK_PRIVS FILE_RECON VULN_RECON PRIV_ESC)
 )

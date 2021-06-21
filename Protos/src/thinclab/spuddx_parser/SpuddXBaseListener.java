@@ -29,37 +29,73 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterState_var_decl(SpuddXParser.State_var_declContext ctx) { }
+	@Override public void enterVar_decls(SpuddXParser.Var_declsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitState_var_decl(SpuddXParser.State_var_declContext ctx) { }
+	@Override public void exitVar_decls(SpuddXParser.Var_declsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterObs_var_decl(SpuddXParser.Obs_var_declContext ctx) { }
+	@Override public void enterModel_decl(SpuddXParser.Model_declContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitObs_var_decl(SpuddXParser.Obs_var_declContext ctx) { }
+	@Override public void exitModel_decl(SpuddXParser.Model_declContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterActions_decl(SpuddXParser.Actions_declContext ctx) { }
+	@Override public void enterPomdp_decl(SpuddXParser.Pomdp_declContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitActions_decl(SpuddXParser.Actions_declContext ctx) { }
+	@Override public void exitPomdp_decl(SpuddXParser.Pomdp_declContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterVar_list(SpuddXParser.Var_listContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVar_list(SpuddXParser.Var_listContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterActions_list(SpuddXParser.Actions_listContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitActions_list(SpuddXParser.Actions_listContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAgent_name(SpuddXParser.Agent_nameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAgent_name(SpuddXParser.Agent_nameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

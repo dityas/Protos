@@ -4,15 +4,27 @@ grammar SpuddX;
 	Parser
 */
 
-domain: (var_decls)+
+domain: var_decls
+		(model_decl)*
 		(dd_decls)*
 		(env_def)?
 		EOF 
 		;
 
-var_decls : LP 'variables' (rv_decl)+ RP ; 		# StateVarDecls
-		  | LP 'observations' (rv_decl)+ RP ;	# ObsVarDecls
-		  | LP 'actions' (rv_decl)+ RP ; 		# ActionVarDecls
+var_decls : LP 'variables' (rv_decl)+ RP ;
+
+model_decl : pomdp_decl
+		   ;
+		   
+pomdp_decl : LP 'model' POMDP agent_name
+			 var_list
+			 actions_list
+			 RP
+			;
+			
+var_list : LP 'variables' (IDENTIFIER)+ RP ;
+actions_list : RP 'actions' (IDENTIFIER)+ RP ;
+agent_name : IDENTIFIER ;
 
 dd_decls : LP 'dd' dd_name dd_expr RP ;
 
@@ -54,6 +66,7 @@ dd_name : IDENTIFIER;
 variable_name : IDENTIFIER;
 var_value : IDENTIFIER ;
 
+POMDP : 'POMDP' ;
 OP_ADD : '+' ;
 OP_SUB : '-' ;
 OP_MUL : '*' ;

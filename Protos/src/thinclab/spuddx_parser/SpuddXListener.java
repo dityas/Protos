@@ -19,35 +19,65 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitDomain(SpuddXParser.DomainContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#state_var_decl}.
+	 * Enter a parse tree produced by {@link SpuddXParser#var_decls}.
 	 * @param ctx the parse tree
 	 */
-	void enterState_var_decl(SpuddXParser.State_var_declContext ctx);
+	void enterVar_decls(SpuddXParser.Var_declsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#state_var_decl}.
+	 * Exit a parse tree produced by {@link SpuddXParser#var_decls}.
 	 * @param ctx the parse tree
 	 */
-	void exitState_var_decl(SpuddXParser.State_var_declContext ctx);
+	void exitVar_decls(SpuddXParser.Var_declsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#obs_var_decl}.
+	 * Enter a parse tree produced by {@link SpuddXParser#model_decl}.
 	 * @param ctx the parse tree
 	 */
-	void enterObs_var_decl(SpuddXParser.Obs_var_declContext ctx);
+	void enterModel_decl(SpuddXParser.Model_declContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#obs_var_decl}.
+	 * Exit a parse tree produced by {@link SpuddXParser#model_decl}.
 	 * @param ctx the parse tree
 	 */
-	void exitObs_var_decl(SpuddXParser.Obs_var_declContext ctx);
+	void exitModel_decl(SpuddXParser.Model_declContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#actions_decl}.
+	 * Enter a parse tree produced by {@link SpuddXParser#pomdp_decl}.
 	 * @param ctx the parse tree
 	 */
-	void enterActions_decl(SpuddXParser.Actions_declContext ctx);
+	void enterPomdp_decl(SpuddXParser.Pomdp_declContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#actions_decl}.
+	 * Exit a parse tree produced by {@link SpuddXParser#pomdp_decl}.
 	 * @param ctx the parse tree
 	 */
-	void exitActions_decl(SpuddXParser.Actions_declContext ctx);
+	void exitPomdp_decl(SpuddXParser.Pomdp_declContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#var_list}.
+	 * @param ctx the parse tree
+	 */
+	void enterVar_list(SpuddXParser.Var_listContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#var_list}.
+	 * @param ctx the parse tree
+	 */
+	void exitVar_list(SpuddXParser.Var_listContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#actions_list}.
+	 * @param ctx the parse tree
+	 */
+	void enterActions_list(SpuddXParser.Actions_listContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#actions_list}.
+	 * @param ctx the parse tree
+	 */
+	void exitActions_list(SpuddXParser.Actions_listContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#agent_name}.
+	 * @param ctx the parse tree
+	 */
+	void enterAgent_name(SpuddXParser.Agent_nameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#agent_name}.
+	 * @param ctx the parse tree
+	 */
+	void exitAgent_name(SpuddXParser.Agent_nameContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#dd_decls}.
 	 * @param ctx the parse tree
