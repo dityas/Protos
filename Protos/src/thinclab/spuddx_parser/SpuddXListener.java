@@ -29,26 +29,36 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitVar_decls(SpuddXParser.Var_declsContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#model_decl}.
+	 * @param ctx the parse tree
+	 */
+	void enterModel_decl(SpuddXParser.Model_declContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#model_decl}.
+	 * @param ctx the parse tree
+	 */
+	void exitModel_decl(SpuddXParser.Model_declContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code POMDPDef}
-	 * labeled alternative in {@link SpuddXParser#model_decl}.
+	 * labeled alternative in {@link SpuddXParser#model_def}.
 	 * @param ctx the parse tree
 	 */
 	void enterPOMDPDef(SpuddXParser.POMDPDefContext ctx);
 	/**
 	 * Exit a parse tree produced by the {@code POMDPDef}
-	 * labeled alternative in {@link SpuddXParser#model_decl}.
+	 * labeled alternative in {@link SpuddXParser#model_def}.
 	 * @param ctx the parse tree
 	 */
 	void exitPOMDPDef(SpuddXParser.POMDPDefContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code DBNDef}
-	 * labeled alternative in {@link SpuddXParser#model_decl}.
+	 * labeled alternative in {@link SpuddXParser#model_def}.
 	 * @param ctx the parse tree
 	 */
 	void enterDBNDef(SpuddXParser.DBNDefContext ctx);
 	/**
 	 * Exit a parse tree produced by the {@code DBNDef}
-	 * labeled alternative in {@link SpuddXParser#model_decl}.
+	 * labeled alternative in {@link SpuddXParser#model_def}.
 	 * @param ctx the parse tree
 	 */
 	void exitDBNDef(SpuddXParser.DBNDefContext ctx);
@@ -112,16 +122,6 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitActions_list(SpuddXParser.Actions_listContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#agent_name}.
-	 * @param ctx the parse tree
-	 */
-	void enterAgent_name(SpuddXParser.Agent_nameContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#agent_name}.
-	 * @param ctx the parse tree
-	 */
-	void exitAgent_name(SpuddXParser.Agent_nameContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#dd_decls}.
 	 * @param ctx the parse tree
@@ -325,15 +325,15 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitCpd_def(SpuddXParser.Cpd_defContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#dbn_name}.
+	 * Enter a parse tree produced by {@link SpuddXParser#model_name}.
 	 * @param ctx the parse tree
 	 */
-	void enterDbn_name(SpuddXParser.Dbn_nameContext ctx);
+	void enterModel_name(SpuddXParser.Model_nameContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#dbn_name}.
+	 * Exit a parse tree produced by {@link SpuddXParser#model_name}.
 	 * @param ctx the parse tree
 	 */
-	void exitDbn_name(SpuddXParser.Dbn_nameContext ctx);
+	void exitModel_name(SpuddXParser.Model_nameContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#dd_name}.
 	 * @param ctx the parse tree

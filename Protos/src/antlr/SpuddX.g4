@@ -12,11 +12,14 @@ domain: var_decls
 
 var_decls : LP 'variables' (rv_decl)+ RP ;
 
-model_decl : pomdp_def 		# POMDPDef
-		   | dbn_def 		# DBNDef
+model_decl : LP model_name model_def RP
 		   ;
 		   
-pomdp_def : LP POMDP agent_name
+model_def : pomdp_def 	# POMDPDef
+		  | dbn_def		# DBNDef
+		  ;
+		   
+pomdp_def : LP POMDP
 			states_list
 			obs_list
 			action_var
@@ -29,7 +32,6 @@ action_var 	: LP 'A' (variable_name)  RP ;
 			
 var_list : LP 'variables' (IDENTIFIER)+ RP ;
 actions_list : RP 'actions' (IDENTIFIER)+ RP ;
-agent_name : IDENTIFIER ;
 
 dd_decls : LP 'dd' dd_name dd_expr RP ;
 
@@ -61,15 +63,17 @@ same_dd_decl : LP 'SAME' variable_name RP;
 rv_decl : LP variable_name (var_value)+ RP 
 		;
 
-dbn_def : LP 'dbn' dbn_name (cpd_def)* RP ;
+dbn_def : LP DBN (cpd_def)* RP ;
 cpd_def : LP variable_name dd_expr RP ;
 
-dbn_name : IDENTIFIER ;
+
+model_name : IDENTIFIER ;
 dd_name : IDENTIFIER;
 variable_name : IDENTIFIER;
 var_value : IDENTIFIER ;
 
 POMDP : 'POMDP' | 'pomdp' ;
+DBN : 'DBN' | 'dbn' ;
 UNIFORM : 'uniform' | 'UNIFORM' ;
 OP_ADD : '+' ;
 OP_SUB : '-' ;

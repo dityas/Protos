@@ -22,7 +22,7 @@ import thinclab.utils.Tuple;
  * @author adityas
  *
  */
-public class ModelsParser extends SpuddXBaseVisitor<HashMap<String, Model>> {
+public class ModelsParser extends SpuddXBaseVisitor<Model> {
 
 	private HashMap<String, DD> declaredDDs;
 	private HashMap<String, Model> declaredModels;
@@ -47,9 +47,7 @@ public class ModelsParser extends SpuddXBaseVisitor<HashMap<String, Model>> {
 	}
 
 	@Override
-	public HashMap<String, Model> visitPOMDPDef(SpuddXParser.POMDPDefContext ctx) {
-
-		String modelName = ctx.pomdp_def().agent_name().getText();
+	public Model visitPOMDPDef(SpuddXParser.POMDPDefContext ctx) {
 
 		var S = ctx.pomdp_def().states_list().variable_name().stream().map(s -> s.getText())
 				.collect(Collectors.toList());
@@ -59,16 +57,12 @@ public class ModelsParser extends SpuddXBaseVisitor<HashMap<String, Model>> {
 		String A = ctx.pomdp_def().action_var().variable_name().getText();
 
 		var pomdp = new POMDP(S, O, A);
-		this.declaredModels.put(modelName, pomdp);
-		LOGGER.info(String.format("Parsed POMDP %s : %s", modelName, pomdp));
 
-		return this.declaredModels;
+		return pomdp;
 	}
 
 	@Override
-	public HashMap<String, Model> visitDBNDef(SpuddXParser.DBNDefContext ctx) {
-
-		String modelName = ctx.dbn_def().dbn_name().getText();
+	public Model visitDBNDef(SpuddXParser.DBNDefContext ctx) {
 
 		// Parse <varName, DD> tuples from (cpd_def)*
 		var cpds = ctx.dbn_def().cpd_def().stream()
@@ -80,16 +74,25 @@ public class ModelsParser extends SpuddXBaseVisitor<HashMap<String, Model>> {
 		DD[] dds = cpds.stream().map(t -> t.second()).toArray(DD[]::new);
 
 		var dbn = new DBN(vars, dds);
-		this.declaredModels.put(modelName, dbn);
-		LOGGER.info(String.format("Parsed DBN: %s : %s", modelName, dbn));
 
-		return this.declaredModels;
+		return dbn;
 	}
 
-	@Override
-	public HashMap<String, Model> visitDomain(SpuddXParser.DomainContext ctx) {
+	public HashMap<String, Model> getModels(SpuddXParser.DomainContext ctx) {
 
-		ctx.model_decl().stream().forEach(m -> this.visit(m));
+		ctx.model_decl().stream()
+				.forEach(m -> {
+					var name = m.model_name().getText();
+					
+					if (this.declaredModels.containsKey(name))
+						LOGGER.error(String.format("Model %s defined multiple times", name));
+					
+					else {
+						var model = this.visit(m.model_def());
+						LOGGER.info(String.format("Parsed new model %s", model));
+						this.declaredModels.put(name, model);
+					}
+				});
 
 		return this.declaredModels;
 	}

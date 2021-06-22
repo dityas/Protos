@@ -128,27 +128,31 @@
 	)
 ) 
 
-(dbn actionNoOp
+(actionNoOp
 	
-	(DATA_FOUND_OBS 	(DATA_FOUND_OBS' no))
-	(VULN_FOUND_OBS 	(VULN_FOUND_OBS' no))
-	(PRIVS_OBS 			(PRIVS_OBS' none))
+	(dbn	
+		(DATA_FOUND_OBS 	(DATA_FOUND_OBS' no))
+		(VULN_FOUND_OBS 	(VULN_FOUND_OBS' no))
+		(PRIVS_OBS 			(PRIVS_OBS' none))
+	)
 )
 
-(dbn actionFRCdata
-
-	(DATA_LOCATED 	(dataLocFRCData))
-
+(actionFRCdata
+	
+	(dbn
+		(DATA_LOCATED 	(dataLocFRCData))
+	)
 )
 
-(dbn actionFRSdata
+(actionFRSdata
 
-	(DATA_LOCATED 	(dataLocFRSData))
-
+	(dbn
+		(DATA_LOCATED 	(dataLocFRSData))
+	)
 )
 
-(dbn actionExit
-
+(actionExit
+	(dbn
+	
+	)
 )
-
-

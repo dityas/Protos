@@ -24,15 +24,21 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitVar_decls(SpuddXParser.Var_declsContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#model_decl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModel_decl(SpuddXParser.Model_declContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code POMDPDef}
-	 * labeled alternative in {@link SpuddXParser#model_decl}.
+	 * labeled alternative in {@link SpuddXParser#model_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitPOMDPDef(SpuddXParser.POMDPDefContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code DBNDef}
-	 * labeled alternative in {@link SpuddXParser#model_decl}.
+	 * labeled alternative in {@link SpuddXParser#model_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
@@ -73,12 +79,6 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitActions_list(SpuddXParser.Actions_listContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#agent_name}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAgent_name(SpuddXParser.Agent_nameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_decls}.
 	 * @param ctx the parse tree
@@ -199,11 +199,11 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCpd_def(SpuddXParser.Cpd_defContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#dbn_name}.
+	 * Visit a parse tree produced by {@link SpuddXParser#model_name}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDbn_name(SpuddXParser.Dbn_nameContext ctx);
+	T visitModel_name(SpuddXParser.Model_nameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_name}.
 	 * @param ctx the parse tree

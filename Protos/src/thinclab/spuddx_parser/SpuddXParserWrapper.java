@@ -11,7 +11,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -21,18 +20,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.RandomVariable;
-import thinclab.env.Environment;
-import thinclab.env.SamplingBasedPOEnvironment;
 import thinclab.legacy.DD;
-import thinclab.legacy.DDleaf;
-import thinclab.legacy.DDnode;
-import thinclab.legacy.Global;
-import thinclab.legacy.OP;
 import thinclab.models.DBN;
-import thinclab.models.DirectedGraphicalModel;
 import thinclab.models.Model;
 import thinclab.models.POMDP;
-import thinclab.utils.Tuple;
 
 /*
  * @author adityas
@@ -90,7 +81,7 @@ public class SpuddXParserWrapper {
 	public HashMap<String, Model> getModels(HashMap<String, DD> declDDs) {
 
 		this.parser.reset();
-		return new ModelsParser(declDDs).visit(this.parser.domain());
+		return new ModelsParser(declDDs).getModels(this.parser.domain());
 	}
 
 	public static HashMap<String, DBN> getDBNs(HashMap<String, Model> declModels) {

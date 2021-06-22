@@ -41,6 +41,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterModel_decl(SpuddXParser.Model_declContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitModel_decl(SpuddXParser.Model_declContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterPOMDPDef(SpuddXParser.POMDPDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -132,18 +144,6 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitActions_list(SpuddXParser.Actions_listContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterAgent_name(SpuddXParser.Agent_nameContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAgent_name(SpuddXParser.Agent_nameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -365,13 +365,13 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDbn_name(SpuddXParser.Dbn_nameContext ctx) { }
+	@Override public void enterModel_name(SpuddXParser.Model_nameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDbn_name(SpuddXParser.Dbn_nameContext ctx) { }
+	@Override public void exitModel_name(SpuddXParser.Model_nameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
