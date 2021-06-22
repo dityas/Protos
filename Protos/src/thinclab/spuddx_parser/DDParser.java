@@ -16,7 +16,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
-import thinclab.models.ActionDBN;
+import thinclab.models.DBN;
 
 /*
  * @author adityas
@@ -81,7 +81,7 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 	@Override
 	public DD visitSameDD(SpuddXParser.SameDDContext ctx) {
 
-		return ActionDBN.getSameTransitionDD(ctx.same_dd_decl().variable_name().getText());
+		return DBN.getSameTransitionDD(ctx.same_dd_decl().variable_name().getText());
 	}
 
 	@Override

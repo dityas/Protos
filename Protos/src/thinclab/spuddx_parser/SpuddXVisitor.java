@@ -24,17 +24,25 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitVar_decls(SpuddXParser.Var_declsContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#model_decl}.
+	 * Visit a parse tree produced by the {@code POMDPDef}
+	 * labeled alternative in {@link SpuddXParser#model_decl}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitModel_decl(SpuddXParser.Model_declContext ctx);
+	T visitPOMDPDef(SpuddXParser.POMDPDefContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#pomdp_decl}.
+	 * Visit a parse tree produced by the {@code DBNDef}
+	 * labeled alternative in {@link SpuddXParser#model_decl}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitPomdp_decl(SpuddXParser.Pomdp_declContext ctx);
+	T visitDBNDef(SpuddXParser.DBNDefContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#pomdp_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPomdp_def(SpuddXParser.Pomdp_defContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#var_list}.
 	 * @param ctx the parse tree
@@ -161,29 +169,23 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitRv_decl(SpuddXParser.Rv_declContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#env_def}.
+	 * Visit a parse tree produced by {@link SpuddXParser#dbn_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitEnv_def(SpuddXParser.Env_defContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#actiondbn_def}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitActiondbn_def(SpuddXParser.Actiondbn_defContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#actions}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitActions(SpuddXParser.ActionsContext ctx);
+	T visitDbn_def(SpuddXParser.Dbn_defContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#cpd_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitCpd_def(SpuddXParser.Cpd_defContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#dbn_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDbn_name(SpuddXParser.Dbn_nameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_name}.
 	 * @param ctx the parse tree

@@ -5,18 +5,18 @@ grammar SpuddX;
 */
 
 domain: var_decls
-		(model_decl)*
 		(dd_decls)*
-		(env_def)?
+		(model_decl)*
 		EOF 
 		;
 
 var_decls : LP 'variables' (rv_decl)+ RP ;
 
-model_decl : pomdp_decl
+model_decl : pomdp_def 		# POMDPDef
+		   | dbn_def 		# DBNDef
 		   ;
 		   
-pomdp_decl : LP 'model' POMDP agent_name
+pomdp_def : LP 'model' POMDP agent_name
 			 var_list
 			 actions_list
 			 RP
@@ -56,13 +56,10 @@ same_dd_decl : LP 'SAME' variable_name RP;
 rv_decl : LP variable_name (var_value)+ RP 
 		;
 
-env_def : LP 'env' (actiondbn_def)+ RP ;
+dbn_def : LP 'dbn' dbn_name (cpd_def)* RP ;
+cpd_def : LP variable_name dd_expr RP ;
 
-actiondbn_def : LP 'actiondbn' actions (cpd_def)* RP ;
-actions : (IDENTIFIER)+ ;
-
-cpd_def : LP variable_name dd_decl RP ;
-
+dbn_name : IDENTIFIER ;
 dd_name : IDENTIFIER;
 variable_name : IDENTIFIER;
 var_value : IDENTIFIER ;

@@ -14,7 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.legacy.DD;
-import thinclab.models.ActionDBN;
+import thinclab.models.DirectedGraphicalModel;
 
 /*
  * @author adityas
@@ -22,11 +22,11 @@ import thinclab.models.ActionDBN;
  */
 public class SamplingBasedPOEnvironment extends PartiallyObservableEnvironment {
 
-	private HashMap<List<String>, ActionDBN> dynamics = new HashMap<>(10);
+	private HashMap<List<String>, DirectedGraphicalModel> dynamics = new HashMap<>(10);
 	
 	private static final Logger LOGGER = LogManager.getLogger(SamplingBasedPOEnvironment.class);
 
-	public void addDynamicsForAction(List<String> actions, ActionDBN dbn) {
+	public void addDynamicsForAction(List<String> actions, DirectedGraphicalModel dbn) {
 		LOGGER.debug(String.format("Added dynamics for action %s", actions));
 		this.dynamics.put(actions, dbn);
 	}

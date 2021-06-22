@@ -28,7 +28,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
-import thinclab.models.ActionDBN;
+import thinclab.models.DirectedGraphicalModel;
 import thinclab.utils.Tuple;
 
 /*
@@ -68,7 +68,7 @@ public class SpuddXParserWrapper {
 
 	}
 
-	private class ActionDBNDef extends SpuddXBaseVisitor<ActionDBN> {
+	private class ActionDBNDef extends SpuddXBaseVisitor<DirectedGraphicalModel> {
 
 		private HashMap<String, DD> declaredDDs;
 
@@ -78,7 +78,7 @@ public class SpuddXParserWrapper {
 			this.declaredDDs = declaredDDs;
 		}
 
-		public ActionDBN visitActiondbn_def(SpuddXParser.Actiondbn_defContext ctx) {
+		public DirectedGraphicalModel visitActiondbn_def(SpuddXParser.Actiondbn_defContext ctx) {
 
 			var actions = ctx.actions().IDENTIFIER().stream().map(i -> i.getText()).collect(Collectors.toList());
 
@@ -96,10 +96,10 @@ public class SpuddXParserWrapper {
 					transitionDDs[i] = transitions.get(Global.varNames.get(i));
 
 				else
-					transitionDDs[i] = ActionDBN.getSameTransitionDD(Global.varNames.get(i));
+					transitionDDs[i] = DirectedGraphicalModel.getSameTransitionDD(Global.varNames.get(i));
 			}
 
-			return new ActionDBN(actions, transitionDDs);
+			return new DirectedGraphicalModel(actions, transitionDDs);
 		}
 	}
 
