@@ -63,6 +63,36 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitPomdp_def(SpuddXParser.Pomdp_defContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#states_list}.
+	 * @param ctx the parse tree
+	 */
+	void enterStates_list(SpuddXParser.States_listContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#states_list}.
+	 * @param ctx the parse tree
+	 */
+	void exitStates_list(SpuddXParser.States_listContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#obs_list}.
+	 * @param ctx the parse tree
+	 */
+	void enterObs_list(SpuddXParser.Obs_listContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#obs_list}.
+	 * @param ctx the parse tree
+	 */
+	void exitObs_list(SpuddXParser.Obs_listContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#action_var}.
+	 * @param ctx the parse tree
+	 */
+	void enterAction_var(SpuddXParser.Action_varContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#action_var}.
+	 * @param ctx the parse tree
+	 */
+	void exitAction_var(SpuddXParser.Action_varContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#var_list}.
 	 * @param ctx the parse tree
 	 */

@@ -44,6 +44,24 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPomdp_def(SpuddXParser.Pomdp_defContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#states_list}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStates_list(SpuddXParser.States_listContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#obs_list}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitObs_list(SpuddXParser.Obs_listContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#action_var}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAction_var(SpuddXParser.Action_varContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#var_list}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

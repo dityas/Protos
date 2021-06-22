@@ -16,11 +16,16 @@ model_decl : pomdp_def 		# POMDPDef
 		   | dbn_def 		# DBNDef
 		   ;
 		   
-pomdp_def : LP 'model' POMDP agent_name
-			 var_list
-			 actions_list
-			 RP
+pomdp_def : LP POMDP agent_name
+			states_list
+			obs_list
+			action_var
+			RP
 			;
+			
+states_list	: LP 'S' LP (variable_name)+ RP RP ;
+obs_list 	: LP 'O' LP (variable_name)+ RP RP ;
+action_var 	: LP 'A' (variable_name)  RP ;
 			
 var_list : LP 'variables' (IDENTIFIER)+ RP ;
 actions_list : RP 'actions' (IDENTIFIER)+ RP ;
@@ -64,7 +69,7 @@ dd_name : IDENTIFIER;
 variable_name : IDENTIFIER;
 var_value : IDENTIFIER ;
 
-POMDP : 'POMDP' ;
+POMDP : 'POMDP' | 'pomdp' ;
 UNIFORM : 'uniform' | 'UNIFORM' ;
 OP_ADD : '+' ;
 OP_SUB : '-' ;

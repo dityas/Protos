@@ -137,7 +137,24 @@ class TestANTLRSpuddParser {
 		Global.primeVarsAndInitGlobals(randomVars);
 		
 		var dds = parserWrapper.getDDs();
-		var dbns = parserWrapper.getDBNs(dds);
+		var dbns = SpuddXParserWrapper.getDBNs(parserWrapper.getModels(dds));
+	}
+
+	@Test
+	void testSimplePOMDPParsing() throws Exception {
+		
+		LOGGER.info("Running Parser Wrapper POMDP decls parse test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_complete_domain.spudd").getFile();
+
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		var randomVars = parserWrapper.getVariableDeclarations();
+
+		Global.primeVarsAndInitGlobals(randomVars);
+		
+		var dds = parserWrapper.getDDs();
+		var models = parserWrapper.getModels(dds);
+		var dbns = SpuddXParserWrapper.getDBNs(models);
+		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
 	}
 
 }

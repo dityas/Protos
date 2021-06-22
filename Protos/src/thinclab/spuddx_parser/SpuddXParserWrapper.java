@@ -31,6 +31,7 @@ import thinclab.legacy.OP;
 import thinclab.models.DBN;
 import thinclab.models.DirectedGraphicalModel;
 import thinclab.models.Model;
+import thinclab.models.POMDP;
 import thinclab.utils.Tuple;
 
 /*
@@ -48,7 +49,7 @@ public class SpuddXParserWrapper {
 	private SpuddXParser parser;
 
 	private static final Logger LOGGER = LogManager.getLogger(SpuddXParserWrapper.class);
-	
+
 	// -------------------------------------------------------------------------
 
 	public SpuddXParserWrapper(String fileName) {
@@ -73,23 +74,41 @@ public class SpuddXParserWrapper {
 			System.exit(-1);
 		}
 	}
-	
+
 	public List<RandomVariable> getVariableDeclarations() {
-		
+
 		this.parser.reset();
 		return new VariablesDeclarationVisitor().visit(this.parser.domain());
 	}
-	
+
 	public HashMap<String, DD> getDDs() {
-		
+
 		this.parser.reset();
 		return new DDParser(new HashMap<String, DD>()).getDDs(this.parser.domain());
 	}
-	
-	public HashMap<String, DBN> getDBNs(HashMap<String, DD> declDDs) {
-		
+
+	public HashMap<String, Model> getModels(HashMap<String, DD> declDDs) {
+
 		this.parser.reset();
-		return (HashMap<String, DBN>) new ModelsParser(declDDs, new HashMap<String, Model>(5)).getDBNs(this.parser.domain());
+		return new ModelsParser(declDDs).visit(this.parser.domain());
+	}
+
+	public static HashMap<String, DBN> getDBNs(HashMap<String, Model> declModels) {
+
+		// for all DBNs, convert <String, Model> to <String, DBN>
+		var dbns = declModels.entrySet().stream().filter(e -> e.getValue() instanceof DBN)
+				.collect(Collectors.toMap(e -> e.getKey(), e -> (DBN) e.getValue()));
+
+		return (HashMap<String, DBN>) dbns;
+	}
+
+	public static HashMap<String, POMDP> getPOMDPs(HashMap<String, Model> declModels) {
+
+		// for all POMDPs, convert <String, Model> to <String, POMDP>
+		var pomdps = declModels.entrySet().stream().filter(e -> e.getValue() instanceof POMDP)
+				.collect(Collectors.toMap(e -> e.getKey(), e -> (POMDP) e.getValue()));
+
+		return (HashMap<String, POMDP>) pomdps;
 	}
 
 }
