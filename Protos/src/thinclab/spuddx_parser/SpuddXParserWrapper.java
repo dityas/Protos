@@ -28,7 +28,9 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.models.DBN;
 import thinclab.models.DirectedGraphicalModel;
+import thinclab.models.Model;
 import thinclab.utils.Tuple;
 
 /*
@@ -47,86 +49,6 @@ public class SpuddXParserWrapper {
 
 	private static final Logger LOGGER = LogManager.getLogger(SpuddXParserWrapper.class);
 	
-	private class CPDDefVisitor extends SpuddXBaseVisitor<Tuple<String, DD>> {
-
-		private HashMap<String, DD> declaredDDs;
-
-		public CPDDefVisitor(HashMap<String, DD> declaredDDs) {
-
-			super();
-			this.declaredDDs = declaredDDs;
-		}
-
-		@Override
-		public Tuple<String, DD> visitCpd_def(SpuddXParser.Cpd_defContext ctx) {
-
-			String varName = ctx.variable_name().IDENTIFIER().getText();
-			DD dd = new DDParser(this.declaredDDs).visit(ctx.dd_decl());
-
-			return new Tuple<String, DD>(varName, dd);
-		}
-
-	}
-
-	private class ActionDBNDef extends SpuddXBaseVisitor<DirectedGraphicalModel> {
-
-		private HashMap<String, DD> declaredDDs;
-
-		public ActionDBNDef(HashMap<String, DD> declaredDDs) {
-
-			super();
-			this.declaredDDs = declaredDDs;
-		}
-
-		public DirectedGraphicalModel visitActiondbn_def(SpuddXParser.Actiondbn_defContext ctx) {
-
-			var actions = ctx.actions().IDENTIFIER().stream().map(i -> i.getText()).collect(Collectors.toList());
-
-			var cpdParser = new CPDDefVisitor(this.declaredDDs);
-			HashMap<String, DD> transitions = new HashMap<>(10);
-
-			ctx.cpd_def().stream().map(cpdParser::visit).forEach(t -> transitions.put(t.first(), t.second()));
-
-			DD[] transitionDDs = new DD[Global.varNames.size() / 2];
-			LOGGER.debug("Checking for " + Global.varNames);
-
-			for (int i = 0; i < transitionDDs.length; i++) {
-
-				if (transitions.containsKey(Global.varNames.get(i)))
-					transitionDDs[i] = transitions.get(Global.varNames.get(i));
-
-				else
-					transitionDDs[i] = DirectedGraphicalModel.getSameTransitionDD(Global.varNames.get(i));
-			}
-
-			return new DirectedGraphicalModel(actions, transitionDDs);
-		}
-	}
-
-	private class EnvDefVisitor extends SpuddXBaseVisitor<Environment> {
-
-		private HashMap<String, DD> declaredDDs;
-
-		public EnvDefVisitor(HashMap<String, DD> declaredDDs) {
-
-			super();
-			this.declaredDDs = declaredDDs;
-		}
-
-		@Override
-		public Environment visitEnv_def(SpuddXParser.Env_defContext ctx) {
-
-			var env = new SamplingBasedPOEnvironment();
-			var actionDBNVisitor = new ActionDBNDef(this.declaredDDs);
-
-			ctx.actiondbn_def().stream().map(actionDBNVisitor::visit)
-					.forEach(d -> env.addDynamicsForAction(d.jointActionSequence, d));
-
-			return env;
-		}
-
-	}
-
 	// -------------------------------------------------------------------------
 
 	public SpuddXParserWrapper(String fileName) {
@@ -162,6 +84,12 @@ public class SpuddXParserWrapper {
 		
 		this.parser.reset();
 		return new DDParser(new HashMap<String, DD>()).getDDs(this.parser.domain());
+	}
+	
+	public HashMap<String, DBN> getDBNs(HashMap<String, DD> declDDs) {
+		
+		this.parser.reset();
+		return (HashMap<String, DBN>) new ModelsParser(declDDs, new HashMap<String, Model>(5)).getDBNs(this.parser.domain());
 	}
 
 }

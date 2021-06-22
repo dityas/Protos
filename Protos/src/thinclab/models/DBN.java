@@ -7,6 +7,7 @@
  */
 package thinclab.models;
 
+import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
@@ -44,6 +45,18 @@ public class DBN extends DirectedGraphicalModel {
 		var dd = DDnode.getDD(varIndex + 1, children);
 
 		return OP.reorder(dd);
+	}
+	
+	@Override
+	public String toString() {
+		
+		var builder = new StringBuilder();
+		
+		IntStream.range(0, this.vars.length)
+			.forEach(i -> builder.append(Global.varNames.get(this.vars[i] - 1))
+					.append(" : ").append(this.cpds[i]).append("\r\n"));
+		
+		return builder.toString();
 	}
 
 }

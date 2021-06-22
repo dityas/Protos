@@ -124,5 +124,20 @@ class TestANTLRSpuddParser {
 		LOGGER.debug(dds);
 
 	}
+	
+	@Test
+	void testSimplePOMDPDBNDeclsParsing() throws Exception {
+		
+		LOGGER.info("Running Parser Wrapper DBN decls parse test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_dbn_def.spudd").getFile();
+
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		var randomVars = parserWrapper.getVariableDeclarations();
+
+		Global.primeVarsAndInitGlobals(randomVars);
+		
+		var dds = parserWrapper.getDDs();
+		var dbns = parserWrapper.getDBNs(dds);
+	}
 
 }

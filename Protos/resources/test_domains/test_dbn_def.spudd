@@ -1,0 +1,136 @@
+(variables
+	(HOST_HAS_DATA critical sensitive none)
+	(DATA_LOCATED critical sensitive none other)
+	(HOST_HAS_VULN yes no)
+	(ATTACKER_PRIVS none user admin)
+	(DATA_ACCESS_PRIVS user admin)
+	
+	(DATA_FOUND_OBS yes no)
+	(VULN_FOUND_OBS yes no)
+	(PRIVS_OBS user admin none)
+	
+	(Attacker_actions FRECON_SDATA FRECON_CDATA EXIT NO_OP)
+)
+
+(dd dataLocCData
+	(HOST_HAS_DATA'
+		(critical
+			(DATA_LOCATED'
+				(critical 	(0.9))
+				(sensitive 	(0.0))
+				(none 		(0.05))
+				(other 		(0.05))
+			)
+		)
+		
+		(sensitive
+			(DATA_LOCATED'
+				(critical 	(0.0))
+				(sensitive 	(0.5))
+				(none 		(0.25))
+				(other 		(0.25))
+			)
+		)
+		
+		(none
+			(DATA_LOCATED'
+				(critical 	(0.0))
+				(sensitive 	(0.0))
+				(none 		(0.5))
+				(other 		(0.5))
+			)
+		)
+	)
+)
+
+(dd dataLocSData
+	(HOST_HAS_DATA'
+		(critical
+			(DATA_LOCATED'
+				(critical 	(0.5))
+				(sensitive 	(0.0))
+				(none 		(0.25))
+				(other 		(0.25))
+			)
+		)
+		
+		(sensitive
+			(DATA_LOCATED'
+				(critical 	(0.0))
+				(sensitive 	(0.9))
+				(none 		(0.05))
+				(other 		(0.05))
+			)
+		)
+		
+		(none
+			(DATA_LOCATED'
+				(critical 	(0.0))
+				(sensitive 	(0.0))
+				(none 		(0.5))
+				(other 		(0.5))
+			)
+		)
+	)
+)
+
+(dd dataLocFRCData
+	(ATTACKER_PRIVS
+		(user
+			(DATA_ACCESS_PRIVS
+				(user 	(dataLocCData))
+				(admin 	
+					(DATA_LOCATED'
+						(critical 	(0.0))
+						(sensitive 	(0.0))
+						(none 		(0.5))
+						(other 		(0.5))
+					)
+				)
+			)
+		)
+		
+		(admin
+			(DATA_ACCESS_PRIVS
+				(user 	(dataLocCData))
+				(admin 	(dataLocCData))
+			)
+		)
+		
+		(none 	(DATA_LOCATED' none))
+	)
+)
+
+(dd dataLocFRSData
+	(ATTACKER_PRIVS
+		(user
+			(DATA_ACCESS_PRIVS
+				(user 	(dataLocSData))
+				(admin 	
+					(DATA_LOCATED'
+						(critical 	(0.0))
+						(sensitive 	(0.0))
+						(none 		(0.5))
+						(other 		(0.5))
+					)
+				)
+			)
+		)
+		
+		(admin
+			(DATA_ACCESS_PRIVS
+				(user 	(dataLocSData))
+				(admin 	(dataLocSData))
+			)
+		)
+		
+		(none 	(DATA_LOCATED' none))
+	)
+) 
+
+(dbn actionNoOp
+	
+	(DATA_FOUND_OBS 	(DATA_FOUND_OBS' no))
+	(VULN_FOUND_OBS 	(VULN_FOUND_OBS' no))
+
+)
