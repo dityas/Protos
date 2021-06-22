@@ -35,17 +35,18 @@ dd_expr : dd_decl 											# AtomicExpr
 		| left=dd_expr op=(OP_ADD | OP_SUB) right=dd_expr	# AddSubExpr
 		;
 		
-dd_decl : LP variable_name (dd_child)+ RP 	# DDDecl
-		| dd_leaf 							# DDleaf
-		| same_dd_decl						# SameDD
-		| dd_ref							# DDRef
+dd_decl : LP variable_name (LP var_value dd_expr RP)+ RP 	# DDDecl
+		| dd_leaf 											# DDleaf
+		| same_dd_decl										# SameDD
+		| dd_ref											# DDRef
+		| variable_name var_value 							# DDDeterministic
+		| variable_name UNIFORM 							# DDUniform
 		;
 		
 dd_ref : dd_name
 	   | LP dd_name RP
 	   ;
 
-dd_child : LP var_value dd_decl RP ;
 dd_leaf : FLOAT_NUM 
 		| LP FLOAT_NUM RP
 		;
@@ -67,6 +68,7 @@ variable_name : IDENTIFIER;
 var_value : IDENTIFIER ;
 
 POMDP : 'POMDP' ;
+UNIFORM : 'uniform' | 'UNIFORM' ;
 OP_ADD : '+' ;
 OP_SUB : '-' ;
 OP_MUL : '*' ;

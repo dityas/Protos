@@ -76,6 +76,12 @@ public class Global {
 	public static void setSeed(long seed) {
 		random.setSeed(seed);
 	}
+	
+	public static void primeVarsAndInitGlobals(List<RandomVariable> vars) {
+		
+		var primedVars = RandomVariable.primeVariables(vars);
+		Global.populateFromRandomVariables(primedVars);
+	}
 
 	public static void clearHashtables() {
 

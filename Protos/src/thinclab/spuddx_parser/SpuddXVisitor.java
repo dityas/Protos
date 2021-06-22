@@ -123,17 +123,25 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDDRef(SpuddXParser.DDRefContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code DDDeterministic}
+	 * labeled alternative in {@link SpuddXParser#dd_decl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDDDeterministic(SpuddXParser.DDDeterministicContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code DDUniform}
+	 * labeled alternative in {@link SpuddXParser#dd_decl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDDUniform(SpuddXParser.DDUniformContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_ref}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitDd_ref(SpuddXParser.Dd_refContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#dd_child}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDd_child(SpuddXParser.Dd_childContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_leaf}.
 	 * @param ctx the parse tree

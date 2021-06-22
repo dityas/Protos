@@ -46,184 +46,7 @@ public class SpuddXParserWrapper {
 	private SpuddXParser parser;
 
 	private static final Logger LOGGER = LogManager.getLogger(SpuddXParserWrapper.class);
-
-	// -------------------------------------------------------------------------
-	// Implementation of ANTLR4 visitors
-
-	private class DDParser extends SpuddXBaseVisitor<DD> {
-
-		private HashMap<String, DD> declaredDDs;
-
-		public DDParser(HashMap<String, DD> declaredDDs) {
-
-			super();
-			this.declaredDDs = declaredDDs;
-		}
-
-		@Override
-		public DD visitDDDecl(SpuddXParser.DDDeclContext ctx) {
-
-			// Prepare root DD
-			String varName = ctx.variable_name().IDENTIFIER().getText();
-			int varIndex = Global.varNames.indexOf(varName);
-			var valNames = Global.valNames.get(varIndex);
-
-			// Prepare children
-			var ddChildVisitor = new DDChildVisitor(this.declaredDDs);
-			var childDDList = ctx.dd_child().stream().map(ddChildVisitor::visit).collect(Collectors.toList());
-
-			// Check if
-			DD[] children = new DD[childDDList.size()];
-			for (var child : childDDList) {
-
-				int childIndex = valNames.indexOf(child.first());
-
-				if (childIndex < 0 || child.second() == null) {
-
-					LOGGER.error("Could not parse DD for child " + child.first());
-					System.exit(-1);
-				}
-
-				children[childIndex] = child.second();
-			}
-
-			if (childDDList.size() != Global.varDomSize.get(varIndex))
-				LOGGER.error("Error while parsing DD");
-
-			return OP.reorder(DDnode.getDD(varIndex + 1, children));
-		}
-
-		@Override
-		public DD visitDDleaf(SpuddXParser.DDleafContext ctx) {
-
-			return DDleaf.getDD(Float.valueOf(ctx.dd_leaf().FLOAT_NUM().getText()));
-		}
-
-		@Override
-		public DD visitSameDD(SpuddXParser.SameDDContext ctx) {
-
-			return ActionDBN.getSameTransitionDD(ctx.same_dd_decl().variable_name().getText());
-		}
-
-		@Override
-		public DD visitDDRef(SpuddXParser.DDRefContext ctx) {
-
-			String ddName = ctx.dd_ref().dd_name().IDENTIFIER().getText();
-
-			if (this.declaredDDs.containsKey(ddName))
-				return this.declaredDDs.get(ddName);
-
-			else {
-
-				LOGGER.error(String.format("DD named %s not defined.", ddName));
-				return null;
-			}
-		}
-
-		@Override
-		public DD visitAtomicExpr(SpuddXParser.AtomicExprContext ctx) {
-
-			return this.visit(ctx.dd_decl());
-		}
-
-		@Override
-		public DD visitParenExpr(SpuddXParser.ParenExprContext ctx) {
-
-			return this.visit(ctx.dd_expr());
-		}
-
-		@Override
-		public DD visitMultDivExpr(SpuddXParser.MultDivExprContext ctx) {
-
-			var left = this.visit(ctx.left);
-			var right = this.visit(ctx.right);
-
-			if (ctx.op.getText().contentEquals("*"))
-				return OP.mult(left, right);
-
-			else if (ctx.op.getText().contentEquals("/"))
-				return OP.div(left, right);
-
-			else
-				return null;
-		}
-
-		@Override
-		public DD visitAddSubExpr(SpuddXParser.AddSubExprContext ctx) {
-
-			var left = this.visit(ctx.left);
-			var right = this.visit(ctx.right);
-
-			if (ctx.op.getText().contentEquals("+"))
-				return OP.add(left, right);
-
-			else if (ctx.op.getText().contentEquals("-"))
-				return OP.sub(left, right);
-
-			else
-				return null;
-		}
-
-		@Override
-		public DD visitNegExpr(SpuddXParser.NegExprContext ctx) {
-
-			var term = this.visit(ctx.dd_expr());
-
-			if (ctx.op.getText().contentEquals("+"))
-				return term;
-
-			else if (ctx.op.getText().contentEquals("-"))
-				return OP.neg(term);
-
-			else
-				return null;
-		}
-
-	}
-
-	private class DDChildVisitor extends SpuddXBaseVisitor<Tuple<String, DD>> {
-
-		public HashMap<String, DD> declaredDDs;
-
-		public DDChildVisitor(HashMap<String, DD> declaredDDs) {
-
-			super();
-			this.declaredDDs = declaredDDs;
-		}
-
-		@Override
-		public Tuple<String, DD> visitDd_child(SpuddXParser.Dd_childContext ctx) {
-
-			String childName = ctx.var_value().IDENTIFIER().getText();
-			var childDD = new DDParser(this.declaredDDs).visit(ctx.dd_decl());
-
-			return new Tuple<String, DD>(childName, childDD);
-		}
-	}
-
-	private class DDDeclsVisitor extends SpuddXBaseVisitor<HashMap<String, DD>> {
-
-		public HashMap<String, DD> declaredDDs;
-
-		public DDDeclsVisitor(HashMap<String, DD> declaredDDs) {
-
-			super();
-			this.declaredDDs = declaredDDs;
-		}
-
-		@Override
-		public HashMap<String, DD> visitDd_decls(SpuddXParser.Dd_declsContext ctx) {
-
-			String ddName = ctx.dd_name().IDENTIFIER().getText();
-			var parsedDD = new DDParser(this.declaredDDs).visit(ctx.dd_expr());
-
-			LOGGER.debug(String.format("Parsed DD %s - %s", ddName, parsedDD));
-			this.declaredDDs.put(ddName, OP.reorder(parsedDD));
-
-			return this.declaredDDs;
-		}
-	}
-
+	
 	private class CPDDefVisitor extends SpuddXBaseVisitor<Tuple<String, DD>> {
 
 		private HashMap<String, DD> declaredDDs;
@@ -333,6 +156,12 @@ public class SpuddXParserWrapper {
 		
 		this.parser.reset();
 		return new VariablesDeclarationVisitor().visit(this.parser.domain());
+	}
+	
+	public HashMap<String, DD> getDDs() {
+		
+		this.parser.reset();
+		return new DDParser(new HashMap<String, DD>()).getDDs(this.parser.domain());
 	}
 
 }

@@ -97,6 +97,29 @@ public class DDnode extends DD {
 
 		return DDnode.getDDForChild(var, childIndex);
 	}
+	
+	public static DD getUniformDist(int var) {
+		
+		if (var < 1) {
+			LOGGER.error("Invalid varName/var while making uniform distribution");
+			return null;
+		}
+		
+		int numVals = Global.varDomSize.get(var - 1);
+		float prob = 1.0f / numVals;
+		
+		DD[] childDDs = new DD[numVals];
+		
+		for (int i = 0; i < numVals; i++) {
+			childDDs[i] = DDleaf.getDD(prob);
+		}
+		
+		return DDnode.getDD(var, childDDs);
+	}
+	
+	public static DD getUniformDist(String varName) {
+		return DDnode.getUniformDist(Global.varNames.indexOf(varName) + 1);
+	}
 
 	public static DD getDD(int var, DD[] children) {
 

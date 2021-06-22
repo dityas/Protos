@@ -197,6 +197,30 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitDDRef(SpuddXParser.DDRefContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code DDDeterministic}
+	 * labeled alternative in {@link SpuddXParser#dd_decl}.
+	 * @param ctx the parse tree
+	 */
+	void enterDDDeterministic(SpuddXParser.DDDeterministicContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code DDDeterministic}
+	 * labeled alternative in {@link SpuddXParser#dd_decl}.
+	 * @param ctx the parse tree
+	 */
+	void exitDDDeterministic(SpuddXParser.DDDeterministicContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code DDUniform}
+	 * labeled alternative in {@link SpuddXParser#dd_decl}.
+	 * @param ctx the parse tree
+	 */
+	void enterDDUniform(SpuddXParser.DDUniformContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code DDUniform}
+	 * labeled alternative in {@link SpuddXParser#dd_decl}.
+	 * @param ctx the parse tree
+	 */
+	void exitDDUniform(SpuddXParser.DDUniformContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#dd_ref}.
 	 * @param ctx the parse tree
 	 */
@@ -206,16 +230,6 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDd_ref(SpuddXParser.Dd_refContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#dd_child}.
-	 * @param ctx the parse tree
-	 */
-	void enterDd_child(SpuddXParser.Dd_childContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#dd_child}.
-	 * @param ctx the parse tree
-	 */
-	void exitDd_child(SpuddXParser.Dd_childContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#dd_leaf}.
 	 * @param ctx the parse tree

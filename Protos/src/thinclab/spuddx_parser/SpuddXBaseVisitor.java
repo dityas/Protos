@@ -137,14 +137,21 @@ public class SpuddXBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitDd_ref(SpuddXParser.Dd_refContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDDDeterministic(SpuddXParser.DDDeterministicContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitDd_child(SpuddXParser.Dd_childContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDDUniform(SpuddXParser.DDUniformContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitDd_ref(SpuddXParser.Dd_refContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

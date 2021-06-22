@@ -95,4 +95,34 @@ class TestANTLRSpuddParser {
 		assertTrue(randomVars.size() == 7);
 	}
 
+	@Test
+	void testSimplePOMDPDDParsing() throws Exception {
+
+		LOGGER.info("Running Parser Wrapper state var parse test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_var_decls.spudd").getFile();
+
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		var randomVars = parserWrapper.getVariableDeclarations();
+
+		assertTrue(randomVars.size() == 7);
+		
+		Global.primeVarsAndInitGlobals(randomVars);
+	}
+	
+	@Test
+	void testSimplePOMDPDDDeclsParsing() throws Exception {
+		
+		LOGGER.info("Running Parser Wrapper DD decls parse test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_dd_decls.spudd").getFile();
+
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		var randomVars = parserWrapper.getVariableDeclarations();
+
+		Global.primeVarsAndInitGlobals(randomVars);
+		
+		var dds = parserWrapper.getDDs();
+		LOGGER.debug(dds);
+
+	}
+
 }
