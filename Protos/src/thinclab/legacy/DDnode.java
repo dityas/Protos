@@ -262,20 +262,25 @@ public class DDnode extends DD {
 		/*
 		 * Returns tree as SPUDD string
 		 */
+		
+		var childNames = Global.valNames.get(this.var - 1);
+		
 		StringBuilder builder = new StringBuilder(100);
 		builder.append("  ".repeat(spaces))
 			.append("(").append(Global.varNames.get(this.var - 1));
 
-		for (var child : this.children) {
+		for (int i = 0; i < this.children.length; i++) {
 			
-			if (child instanceof DDleaf)
-				builder.append("\t")
-					.append(child.toSPUDD());
+			if (this.children[i] instanceof DDleaf)
+				builder.append("  (").append(childNames.get(i)).append(" ")
+					.append(this.children[i].toSPUDD()).append(")");
 			else
-				builder.append("\r\n").append(child.toSPUDD(spaces + 1));
+				builder.append("\r\n").append("  ".repeat(spaces + 1)).append("(")
+					.append(childNames.get(i)).append("\r\n")
+					.append(this.children[i].toSPUDD(spaces + 2)).append(")");
 		}
 
-		builder.append("  ".repeat(spaces)).append(")");
+		builder.append(")");
 
 		return builder.toString();
 	}
