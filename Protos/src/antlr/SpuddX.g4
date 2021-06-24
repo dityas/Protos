@@ -15,23 +15,26 @@ var_decls : LP 'variables' (rv_decl)+ RP ;
 model_decl : LP model_name model_def RP
 		   ;
 		   
-model_def : pomdp_def 	# POMDPDef
-		  | dbn_def		# DBNDef
+model_def : LP model_def RP 	# ModelDefParen
+		  | pomdp_def 			# POMDPDef
+		  | dbn_def				# DBNDef
+		  | variable_name 		# ModelRef
 		  ;
 		   
 pomdp_def : LP POMDP
 			states_list
 			obs_list
 			action_var
+			dynamics
 			RP
 			;
 			
 states_list	: LP 'S' LP (variable_name)+ RP RP ;
 obs_list 	: LP 'O' LP (variable_name)+ RP RP ;
 action_var 	: LP 'A' (variable_name)  RP ;
-			
-var_list : LP 'variables' (IDENTIFIER)+ RP ;
-actions_list : RP 'actions' (IDENTIFIER)+ RP ;
+
+dynamics : LP 'dynamics' (action_model)+ RP ;
+action_model : LP variable_name model_def RP ;
 
 dd_decls : LP 'dd' dd_name dd_expr RP ;
 

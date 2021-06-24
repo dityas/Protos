@@ -53,6 +53,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterModelDefParen(SpuddXParser.ModelDefParenContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitModelDefParen(SpuddXParser.ModelDefParenContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterPOMDPDef(SpuddXParser.POMDPDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -72,6 +84,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDBNDef(SpuddXParser.DBNDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterModelRef(SpuddXParser.ModelRefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitModelRef(SpuddXParser.ModelRefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -125,25 +149,25 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterVar_list(SpuddXParser.Var_listContext ctx) { }
+	@Override public void enterDynamics(SpuddXParser.DynamicsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitVar_list(SpuddXParser.Var_listContext ctx) { }
+	@Override public void exitDynamics(SpuddXParser.DynamicsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterActions_list(SpuddXParser.Actions_listContext ctx) { }
+	@Override public void enterAction_model(SpuddXParser.Action_modelContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitActions_list(SpuddXParser.Actions_listContext ctx) { }
+	@Override public void exitAction_model(SpuddXParser.Action_modelContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

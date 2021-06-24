@@ -161,7 +161,7 @@
 	
 	(pomdp
 		(S 	
-			(HOST_HAS_DATA DATA_LOCATED HOST_HAS_VULN ATTACKER_PRIVS DATA_ACCESS_PRIVS)
+			(DATA_ACCESS_PRIVS HOST_HAS_DATA DATA_LOCATED HOST_HAS_VULN ATTACKER_PRIVS)
 		)
 	
 		(O
@@ -169,5 +169,12 @@
 		)
 	
 		(A 	Attacker_actions)
+		
+		(dynamics
+			(NO_OP 			(actionNoOp))
+			(EXIT 			(actionExit))
+			(FRECON_SDATA 	(actionFRSdata))
+			(FRECON_CDATA 	(actionFRCdata))
+		)
 	)
 )

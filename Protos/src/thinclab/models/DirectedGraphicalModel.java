@@ -7,6 +7,7 @@
  */
 package thinclab.models;
 
+import java.util.HashMap;
 import thinclab.legacy.DD;
 
 /*
@@ -15,7 +16,6 @@ import thinclab.legacy.DD;
  */
 public abstract class DirectedGraphicalModel implements Model {
 
-	public int[] vars;
-	public DD[] cpds;
+	public HashMap<Integer, DD> cpds;
 
 }

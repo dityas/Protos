@@ -7,6 +7,7 @@
  */
 package thinclab.models;
 
+import java.util.HashMap;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,8 +24,7 @@ public class DBN extends DirectedGraphicalModel {
 
 	private static final Logger LOGGER = LogManager.getLogger(DBN.class);
 	
-	public DBN(int[] vars, DD[] cpds) {
-		this.vars = vars;
+	public DBN(HashMap<Integer, DD> cpds) {
 		this.cpds = cpds;
 	}
 	
@@ -52,9 +52,12 @@ public class DBN extends DirectedGraphicalModel {
 		
 		var builder = new StringBuilder();
 		
-		IntStream.range(0, this.vars.length)
-			.forEach(i -> builder.append(Global.varNames.get(this.vars[i] - 1))
-					.append(" : ").append(this.cpds[i]).append("\r\n"));
+		builder.append("DBN : [\r\n");
+		this.cpds.entrySet().stream()
+			.forEach(e -> builder.append(Global.varNames.get(e.getKey() - 1))
+					.append(" : ").append(e.getValue()).append("\r\n"));
+		
+		builder.append("]\r\n");
 		
 		return builder.toString();
 	}

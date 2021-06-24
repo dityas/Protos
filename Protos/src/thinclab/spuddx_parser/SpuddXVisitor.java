@@ -30,6 +30,13 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitModel_decl(SpuddXParser.Model_declContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code ModelDefParen}
+	 * labeled alternative in {@link SpuddXParser#model_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModelDefParen(SpuddXParser.ModelDefParenContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code POMDPDef}
 	 * labeled alternative in {@link SpuddXParser#model_def}.
 	 * @param ctx the parse tree
@@ -43,6 +50,13 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitDBNDef(SpuddXParser.DBNDefContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ModelRef}
+	 * labeled alternative in {@link SpuddXParser#model_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModelRef(SpuddXParser.ModelRefContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#pomdp_def}.
 	 * @param ctx the parse tree
@@ -68,17 +82,17 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAction_var(SpuddXParser.Action_varContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#var_list}.
+	 * Visit a parse tree produced by {@link SpuddXParser#dynamics}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitVar_list(SpuddXParser.Var_listContext ctx);
+	T visitDynamics(SpuddXParser.DynamicsContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#actions_list}.
+	 * Visit a parse tree produced by {@link SpuddXParser#action_model}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitActions_list(SpuddXParser.Actions_listContext ctx);
+	T visitAction_model(SpuddXParser.Action_modelContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_decls}.
 	 * @param ctx the parse tree

@@ -16,7 +16,6 @@ import thinclab.legacy.Global;
 import thinclab.models.DBN;
 import thinclab.models.Model;
 import thinclab.models.POMDP;
-import thinclab.utils.Tuple;
 
 /*
  * @author adityas
@@ -45,6 +44,11 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		this.declaredModels = declModels;
 		this.ddParser = new DDParser(this.declaredDDs);
 	}
+	
+	@Override 
+	public Model visitModelDefParen(SpuddXParser.ModelDefParenContext ctx) {
+		return this.visit(ctx.model_def());
+	}
 
 	@Override
 	public Model visitPOMDPDef(SpuddXParser.POMDPDefContext ctx) {
@@ -55,8 +59,15 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		var O = ctx.pomdp_def().obs_list().variable_name().stream().map(o -> o.getText()).collect(Collectors.toList());
 
 		String A = ctx.pomdp_def().action_var().variable_name().getText();
+		
+		HashMap<String, Model> dynamics = new HashMap<>(5);
+		ctx.pomdp_def().dynamics().action_model().stream()
+			.forEach(a ->
+				dynamics.put(a.variable_name().getText(), 
+						this.visit(a.model_def()))
+			);
 
-		var pomdp = new POMDP(S, O, A);
+		var pomdp = new POMDP(S, O, A, dynamics);
 
 		return pomdp;
 	}
@@ -64,20 +75,34 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 	@Override
 	public Model visitDBNDef(SpuddXParser.DBNDefContext ctx) {
 
-		// Parse <varName, DD> tuples from (cpd_def)*
-		var cpds = ctx.dbn_def().cpd_def().stream()
-				.map(d -> new Tuple<String, DD>(d.variable_name().getText(), this.ddParser.visit(d.dd_expr())))
-				.collect(Collectors.toList());
+		HashMap<Integer, DD> cpds = new HashMap<>(5);
+		
+		// <var, DD> hashmap entries from (cpd_def)*
+		ctx.dbn_def().cpd_def().stream()
+				.forEach(d -> 
+					cpds.put(Global.varNames.indexOf(d.variable_name().getText()) + 1, 
+							this.ddParser.visit(d.dd_expr())));
 
-		// Split into int[] and DD[] arrays for vars and dds
-		int[] vars = cpds.stream().mapToInt(t -> Global.varNames.indexOf(t.first()) + 1).toArray();
-		DD[] dds = cpds.stream().map(t -> t.second()).toArray(DD[]::new);
-
-		var dbn = new DBN(vars, dds);
+		var dbn = new DBN(cpds);
 
 		return dbn;
 	}
-
+	
+	@Override
+	public Model visitModelRef(SpuddXParser.ModelRefContext ctx) {
+		
+		var name = ctx.variable_name().getText();
+		
+		if (this.declaredModels.containsKey(name))
+			return this.declaredModels.get(name);
+		
+		else {
+			LOGGER.error(String.format("Model %s is not defined", name));
+			System.exit(-1);
+			return null;
+		}
+	}
+	
 	public HashMap<String, Model> getModels(SpuddXParser.DomainContext ctx) {
 
 		ctx.model_decl().stream()
