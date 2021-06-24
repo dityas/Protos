@@ -161,4 +161,24 @@ public class DDleaf extends DD {
 		 */
 		return new DDTreeLeaf(this.val);
 	}
+	
+	@Override
+	public String toString() {
+		return this.toSPUDD();
+	}
+	
+	@Override
+	public String toSPUDD() {
+		return this.toSPUDD(0);
+	}
+	
+	@Override
+	public String toSPUDD(int spaces) {
+		
+		var builder = new StringBuilder(10);
+		builder.append("  ".repeat(spaces)).append("(").append(this.val)
+			.append(")");
+		
+		return builder.toString();
+	}
 }

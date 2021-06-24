@@ -14,22 +14,27 @@ public abstract class DD implements Serializable {
 	private static final long serialVersionUID = 2478730562973454848L;
 
 	public int getVar() {
+
 		return var;
 	}
 
 	public int getAddress() {
+
 		return super.hashCode();
 	}
 
 	public DD[] getChildren() {
+
 		return null;
 	} // should throw exception
 
 	public float getVal() {
+
 		return Float.NEGATIVE_INFINITY;
 	} // should throw exception
 
 	public int[][] getConfig() {
+
 		return null;
 	} // should throw exception
 
@@ -43,16 +48,22 @@ public abstract class DD implements Serializable {
 	abstract public DD store();
 
 	public static DD cast(DDleaf leaf) {
+
 		return (DD) leaf;
 	}
 
 	public static DD cast(DDnode node) {
+
 		return (DD) node;
 	}
-	
+
 	abstract public DDTree toDDTree();
-	
+
+	abstract public String toSPUDD();
+	abstract public String toSPUDD(int spaces);
+
 	public DD normalize() {
+
 		var norm = OP.addMultVarElim(this, this.getVarSet());
 		return OP.div(this, norm);
 	}

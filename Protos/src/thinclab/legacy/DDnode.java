@@ -254,6 +254,35 @@ public class DDnode extends DD {
 
 	@Override
 	public String toString() {
-		return this.toDDTree().toString();
+		return this.toSPUDD();
 	}
+	
+	@Override
+	public String toSPUDD(int spaces) {
+		/*
+		 * Returns tree as SPUDD string
+		 */
+		StringBuilder builder = new StringBuilder(100);
+		builder.append("  ".repeat(spaces))
+			.append("(").append(Global.varNames.get(this.var - 1));
+
+		for (var child : this.children) {
+			
+			if (child instanceof DDleaf)
+				builder.append("\t")
+					.append(child.toSPUDD());
+			else
+				builder.append("\r\n").append(child.toSPUDD(spaces + 1));
+		}
+
+		builder.append("  ".repeat(spaces)).append(")");
+
+		return builder.toString();
+	}
+
+	@Override
+	public String toSPUDD() {
+		return this.toSPUDD(0);
+	}
+
 }
