@@ -94,6 +94,30 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAction_model(SpuddXParser.Action_modelContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#initial_belief}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitInitial_belief(SpuddXParser.Initial_beliefContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#reward}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReward(SpuddXParser.RewardContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#action_reward}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAction_reward(SpuddXParser.Action_rewardContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#discount}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDiscount(SpuddXParser.DiscountContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_decls}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -212,6 +236,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitCpd_def(SpuddXParser.Cpd_defContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#action_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAction_name(SpuddXParser.Action_nameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#model_name}.
 	 * @param ctx the parse tree

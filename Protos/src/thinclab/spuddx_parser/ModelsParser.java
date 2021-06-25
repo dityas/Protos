@@ -61,13 +61,24 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		String A = ctx.pomdp_def().action_var().variable_name().getText();
 		
 		HashMap<String, Model> dynamics = new HashMap<>(5);
+		HashMap<String, DD> R = new HashMap<>(5);
+		
 		ctx.pomdp_def().dynamics().action_model().stream()
 			.forEach(a ->
-				dynamics.put(a.variable_name().getText(), 
+				dynamics.put(a.action_name().getText(), 
 						this.visit(a.model_def()))
 			);
+		
+		ctx.pomdp_def().reward().action_reward().stream()
+			.forEach(ar -> {
+				R.put(ar.action_name().getText(), 
+						this.ddParser.visit(ar.dd_expr()));
+			});
+		
+		DD b = this.ddParser.visit(ctx.pomdp_def().initial_belief().dd_expr());
+		float discount = Float.valueOf(ctx.pomdp_def().discount().FLOAT_NUM().getText());
 
-		var pomdp = new POMDP(S, O, A, dynamics);
+		var pomdp = new POMDP(S, O, A, dynamics, R, b, discount);
 
 		return pomdp;
 	}

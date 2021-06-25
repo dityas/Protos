@@ -84,6 +84,13 @@ public class SpuddXParserWrapper {
 		return new ModelsParser(declDDs).getModels(this.parser.domain());
 	}
 
+	public HashMap<String, Model> getModels() {
+
+		this.parser.reset();
+		var declDDs = this.getDDs();
+		return new ModelsParser(declDDs).getModels(this.parser.domain());
+	}
+
 	public static HashMap<String, DBN> getDBNs(HashMap<String, Model> declModels) {
 
 		// for all DBNs, convert <String, Model> to <String, DBN>

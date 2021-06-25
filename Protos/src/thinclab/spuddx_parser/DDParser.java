@@ -95,6 +95,7 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 		else {
 
 			LOGGER.error(String.format("DD named %s not defined.", ddName));
+			System.exit(-1);
 			return null;
 		}
 	}

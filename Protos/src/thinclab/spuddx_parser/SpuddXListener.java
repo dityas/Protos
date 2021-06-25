@@ -147,6 +147,46 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitAction_model(SpuddXParser.Action_modelContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#initial_belief}.
+	 * @param ctx the parse tree
+	 */
+	void enterInitial_belief(SpuddXParser.Initial_beliefContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#initial_belief}.
+	 * @param ctx the parse tree
+	 */
+	void exitInitial_belief(SpuddXParser.Initial_beliefContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#reward}.
+	 * @param ctx the parse tree
+	 */
+	void enterReward(SpuddXParser.RewardContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#reward}.
+	 * @param ctx the parse tree
+	 */
+	void exitReward(SpuddXParser.RewardContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#action_reward}.
+	 * @param ctx the parse tree
+	 */
+	void enterAction_reward(SpuddXParser.Action_rewardContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#action_reward}.
+	 * @param ctx the parse tree
+	 */
+	void exitAction_reward(SpuddXParser.Action_rewardContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#discount}.
+	 * @param ctx the parse tree
+	 */
+	void enterDiscount(SpuddXParser.DiscountContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#discount}.
+	 * @param ctx the parse tree
+	 */
+	void exitDiscount(SpuddXParser.DiscountContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#dd_decls}.
 	 * @param ctx the parse tree
 	 */
@@ -348,6 +388,16 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCpd_def(SpuddXParser.Cpd_defContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#action_name}.
+	 * @param ctx the parse tree
+	 */
+	void enterAction_name(SpuddXParser.Action_nameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#action_name}.
+	 * @param ctx the parse tree
+	 */
+	void exitAction_name(SpuddXParser.Action_nameContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#model_name}.
 	 * @param ctx the parse tree

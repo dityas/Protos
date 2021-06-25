@@ -173,6 +173,54 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterInitial_belief(SpuddXParser.Initial_beliefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitInitial_belief(SpuddXParser.Initial_beliefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterReward(SpuddXParser.RewardContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitReward(SpuddXParser.RewardContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAction_reward(SpuddXParser.Action_rewardContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAction_reward(SpuddXParser.Action_rewardContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterDiscount(SpuddXParser.DiscountContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDiscount(SpuddXParser.DiscountContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterDd_decls(SpuddXParser.Dd_declsContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -384,6 +432,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitCpd_def(SpuddXParser.Cpd_defContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAction_name(SpuddXParser.Action_nameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAction_name(SpuddXParser.Action_nameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

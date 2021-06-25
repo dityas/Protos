@@ -12,7 +12,9 @@
 	(Attacker_actions FRECON_SDATA FRECON_CDATA EXIT NO_OP)
 )
 
-(dd dataLocCData
+(dataLocCData
+
+	(DD
 	(HOST_HAS_DATA'
 		(critical
 			(DATA_LOCATED'
@@ -40,10 +42,12 @@
 				(other 		(0.5))
 			)
 		)
-	)
+	))
 )
 
-(dd dataLocSData
+(dataLocSData
+
+	(DD
 	(HOST_HAS_DATA'
 		(critical
 			(DATA_LOCATED'
@@ -71,10 +75,12 @@
 				(other 		(0.5))
 			)
 		)
-	)
+	))
 )
 
-(dd dataLocFRCData
+(dataLocFRCData
+
+	(DD
 	(ATTACKER_PRIVS
 		(user
 			(DATA_ACCESS_PRIVS
@@ -98,10 +104,12 @@
 		)
 		
 		(none 	(DATA_LOCATED' none))
-	)
+	))
 )
 
-(dd dataLocFRSData
+(dataLocFRSData
+
+	(DD
 	(ATTACKER_PRIVS
 		(user
 			(DATA_ACCESS_PRIVS
@@ -125,7 +133,7 @@
 		)
 		
 		(none 	(DATA_LOCATED' none))
-	)
+	))
 ) 
 
 (actionNoOp

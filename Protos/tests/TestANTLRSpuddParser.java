@@ -47,6 +47,12 @@ class TestANTLRSpuddParser {
 	void tearDown() throws Exception {
 
 	}
+	
+	void printMemConsumption() throws Exception {
+		LOGGER.info(String.format("Total mem: %s", Runtime.getRuntime().totalMemory() / 1000000.0));
+		LOGGER.info(String.format("Free mem: %s", Runtime.getRuntime().freeMemory() / 1000000.0));
+		LOGGER.info(String.format("Max mem: %s", Runtime.getRuntime().maxMemory() / 1000000.0));
+	}
 
 	@Test
 	void testSimplePOMDPVarDeclsLexer() throws Exception {
@@ -68,6 +74,7 @@ class TestANTLRSpuddParser {
 		LOGGER.debug(String.format("Tokens extracted: %s", tokens));
 
 		assertNotNull(tokens);
+		printMemConsumption();
 	}
 
 	@Test
@@ -80,6 +87,7 @@ class TestANTLRSpuddParser {
 		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
 
 		assertNotNull(parserWrapper);
+		printMemConsumption();
 	}
 
 	@Test
@@ -93,6 +101,7 @@ class TestANTLRSpuddParser {
 		var randomVars = parserWrapper.getVariableDeclarations();
 
 		assertTrue(randomVars.size() == 7);
+		printMemConsumption();
 	}
 
 	@Test
@@ -107,6 +116,7 @@ class TestANTLRSpuddParser {
 		assertTrue(randomVars.size() == 7);
 		
 		Global.primeVarsAndInitGlobals(randomVars);
+		printMemConsumption();
 	}
 	
 	@Test
@@ -122,6 +132,7 @@ class TestANTLRSpuddParser {
 		
 		var dds = parserWrapper.getDDs();
 		LOGGER.debug(dds);
+		printMemConsumption();
 
 	}
 	
@@ -138,10 +149,14 @@ class TestANTLRSpuddParser {
 		
 		var dds = parserWrapper.getDDs();
 		var dbns = SpuddXParserWrapper.getDBNs(parserWrapper.getModels(dds));
+		printMemConsumption();
 	}
 
 	@Test
 	void testSimplePOMDPParsing() throws Exception {
+
+		System.gc();
+		printMemConsumption();
 		
 		LOGGER.info("Running Parser Wrapper POMDP decls parse test");
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_complete_domain.spudd").getFile();
@@ -151,10 +166,9 @@ class TestANTLRSpuddParser {
 
 		Global.primeVarsAndInitGlobals(randomVars);
 		
-		var dds = parserWrapper.getDDs();
-		var models = parserWrapper.getModels(dds);
-		var dbns = SpuddXParserWrapper.getDBNs(models);
+		var models = parserWrapper.getModels();
 		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
+		printMemConsumption();
 	}
 
 }

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 
@@ -27,6 +28,8 @@ public class POMDP implements Model {
 	public List<String> S;
 	public List<String> O;
 	public List<String> A;
+	public DD b;
+	public float discount;
 
 	public int[] Svars;
 	public int[] Ovars;
@@ -34,11 +37,13 @@ public class POMDP implements Model {
 
 	public HashMap<String, DD[]> TF = new HashMap<>(3);
 	public HashMap<String, DD[]> OF = new HashMap<>(3);
+	public HashMap<String, DD> R = new HashMap<>(3);
 
 	private static final Logger LOGGER = LogManager.getLogger(POMDP.class);
 
 	public POMDP(List<String> S, List<String> O, String A, 
-			HashMap<String, Model> dynamics) {
+			HashMap<String, Model> dynamics, HashMap<String, DD> R,
+			DD initialBelief, float discount) {
 
 		this.S = this.sortByVarOrdering(S, Global.varNames);
 		this.O = this.sortByVarOrdering(O, Global.varNames);
@@ -48,9 +53,29 @@ public class POMDP implements Model {
 		this.Ovars = this.O.stream().mapToInt(o -> Global.varNames.indexOf(o) + 1).toArray();
 		this.Avar = Global.varNames.indexOf(A) + 1;
 		
-		this.initializeDynamics((HashMap<String, DBN>) dynamics.entrySet().stream()
+		// take out DBNs from set of models
+		var dyn = new HashMap<String, DBN>(5);
+		dyn.putAll(dynamics.entrySet().stream()
 				.filter(e -> e.getValue() instanceof DBN)
 				.collect(Collectors.toMap(e -> e.getKey(), e -> (DBN) e.getValue())));
+	
+		// Populate dynamics for missing actions
+		Global.valNames.get(this.Avar - 1).stream().forEach(a -> {
+			if (!dyn.containsKey(a)) {
+				LOGGER.warn(String.format("Dynamics not defined for action %s. "
+						+ "Will apply with SAME transitions and random observations for that action", a));
+				dyn.put(a, new DBN(new HashMap<Integer, DD>(1)));
+			}
+		});
+	
+		this.initializeDynamics(dyn);
+		
+		this.R.putAll(R);
+		Global.valNames.get(this.Avar - 1).stream()
+			.filter(a -> !this.R.containsKey(a)).forEach(a -> this.R.put(a, DDleaf.getDD(0.0f)));
+		
+		this.b = initialBelief;
+		this.discount = discount;
 	}
 
 	protected DD[] getTransitionFunction(DBN dbn) {
@@ -128,6 +153,14 @@ public class POMDP implements Model {
 		builder.append("A var : ").append(this.Avar).append("\r\n");
 		builder.append("T funct. : ").append(this.TF).append("\r\n");
 		builder.append("O funct. : ").append(this.OF).append("\r\n");
+		
+		builder.append("R : ").append("\r\n");
+		this.R.forEach((a, r) -> builder.append("\t").append(a)
+				.append(" : ").append(r).append("\r\n"));
+		
+		builder.append("b : ").append(this.b).append("\r\n");
+		builder.append("discount : ").append(this.discount).append("\r\n");
+		
 		builder.append("]").append("\r\n");
 
 		return builder.toString();

@@ -26,6 +26,9 @@ pomdp_def : LP POMDP
 			obs_list
 			action_var
 			dynamics
+			initial_belief
+			reward
+			discount
 			RP
 			;
 			
@@ -34,9 +37,16 @@ obs_list 	: LP 'O' LP (variable_name)+ RP RP ;
 action_var 	: LP 'A' (variable_name)  RP ;
 
 dynamics : LP 'dynamics' (action_model)+ RP ;
-action_model : LP variable_name model_def RP ;
+action_model : LP action_name model_def RP ;
 
-dd_decls : LP 'dd' dd_name dd_expr RP ;
+initial_belief : LP 'b' dd_expr RP ;
+
+reward : LP 'R' (action_reward)+ RP ;
+action_reward : LP action_name dd_expr RP ;
+		  
+discount : LP 'discount' FLOAT_NUM RP ;
+
+dd_decls : LP dd_name LP DD dd_expr RP RP ;
 
 dd_expr : dd_decl 											# AtomicExpr
 		| op=(OP_ADD | OP_SUB) term=dd_expr 				# NegExpr
@@ -69,12 +79,13 @@ rv_decl : LP variable_name (var_value)+ RP
 dbn_def : LP DBN (cpd_def)* RP ;
 cpd_def : LP variable_name dd_expr RP ;
 
-
+action_name : IDENTIFIER ;
 model_name : IDENTIFIER ;
 dd_name : IDENTIFIER;
 variable_name : IDENTIFIER;
 var_value : IDENTIFIER ;
 
+DD : 'DD' | 'dd' ;
 POMDP : 'POMDP' | 'pomdp' ;
 DBN : 'DBN' | 'dbn' ;
 UNIFORM : 'uniform' | 'UNIFORM' ;
