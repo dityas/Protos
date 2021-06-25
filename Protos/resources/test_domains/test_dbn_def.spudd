@@ -9,18 +9,7 @@
 	(VULN_FOUND_OBS yes no)
 	(PRIVS_OBS user admin none)
 	
-	(Attacker_actions FRECON_SDATA FRECON_CDATA EXIT NO_OP EXFIL_DATA)
-)
-
-(initAttacker
-
-	(DD
-		(HOST_HAS_DATA 	UNIFORM)
-		* 	(DATA_LOCATED 	none)
-		* 	(HOST_HAS_VULN 	UNIFORM)
-		* 	(ATTACKER_PRIVS user)
-		* 	(DATA_ACCESS_PRIVS 	UNIFORM)
-	)
+	(Attacker_actions FRECON_SDATA FRECON_CDATA EXIT NO_OP)
 )
 
 (dataLocCData
@@ -53,12 +42,11 @@
 				(other 		(0.5))
 			)
 		)
-	)
-	)
+	))
 )
 
 (dataLocSData
-	
+
 	(DD
 	(HOST_HAS_DATA'
 		(critical
@@ -91,7 +79,7 @@
 )
 
 (dataLocFRCData
-	
+
 	(DD
 	(ATTACKER_PRIVS
 		(user
@@ -146,19 +134,7 @@
 		
 		(none 	(DATA_LOCATED' none))
 	))
-)
-
-(exfilReward
-	
-	(dd
-		(DATA_LOCATED
-			(critical 	(0.0))
-			(sensitive 	(10.0))
-			(none 		(0.0))
-			(other 		(0.0))
-		)
-	)
-)
+) 
 
 (actionNoOp
 	
@@ -170,14 +146,14 @@
 )
 
 (actionFRCdata
-
+	
 	(dbn
 		(DATA_LOCATED 	(dataLocFRCData))
 	)
 )
 
 (actionFRSdata
-	
+
 	(dbn
 		(DATA_LOCATED 	(dataLocFRSData))
 	)
@@ -186,39 +162,5 @@
 (actionExit
 	(dbn
 	
-	)
-)
-
-(attacker_agent
-	
-	(pomdp
-		(S 	
-			(DATA_ACCESS_PRIVS HOST_HAS_DATA DATA_LOCATED HOST_HAS_VULN ATTACKER_PRIVS)
-		)
-	
-		(O
-			(DATA_FOUND_OBS VULN_FOUND_OBS PRIVS_OBS)
-		)
-	
-		(A 	Attacker_actions)
-		
-		(dynamics
-			(NO_OP 			(actionNoOp))
-			(EXIT 			(actionExit))
-			(FRECON_SDATA 	(actionFRSdata))
-			(FRECON_CDATA 	(actionFRCdata))
-		)
-		
-		(b
-			(initAttacker)	
-		)
-		
-		(R
-			(FRECON_SDATA 	(1.0))
-			(FRECON_CDATA 	(1.0))
-			(EXFIL_DATA 	(exfilReward))
-		)
-		
-		(discount 0.9)	
 	)
 )

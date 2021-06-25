@@ -1,16 +1,10 @@
 (variables
-	(A a1 a2 a3)
-	(B b1 b2)
-	(A_B ab1 ab2)
-	(TigerLocation tiger_left tiger_right)
-)
-
-(observations
-	(Growl growl_left growl_right)
-	(Creak left right)
-	(O open closed)
-)
-
-(actions
-	(Agent1 open_left open_right listen)
+	(HOST_HAS_DATA critical sensitive none)
+	(HOST_HAS_VULN yes no)
+	(ATTACKER_PRIVS none user local_admin domain_admin)
+	(DATA_ACCESS_PRIVS user admin)
+	
+	(DATA_FOUND_OBS yes no)
+	(VULN_FOUND_OBS yes no)
+	(PRIVS_OBS user admin none)
 )

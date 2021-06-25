@@ -9,10 +9,8 @@ package thinclab.spuddx_parser;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -23,10 +21,9 @@ import org.apache.logging.log4j.Logger;
 
 import thinclab.RandomVariable;
 import thinclab.legacy.DD;
-import thinclab.legacy.DDleaf;
-import thinclab.legacy.DDnode;
-import thinclab.legacy.Global;
-import thinclab.utils.Tuple;
+import thinclab.models.DBN;
+import thinclab.models.Model;
+import thinclab.models.POMDP;
 
 /*
  * @author adityas
@@ -43,222 +40,6 @@ public class SpuddXParserWrapper {
 	private SpuddXParser parser;
 
 	private static final Logger LOGGER = LogManager.getLogger(SpuddXParserWrapper.class);
-
-	// -------------------------------------------------------------------------
-	// Implementation of ANTLR4 visitors
-
-	private class VarValueVisitor extends SpuddXBaseVisitor<String> {
-
-		@Override
-		public String visitVar_value(SpuddXParser.Var_valueContext ctx) {
-			return ctx.VARVAL().getText();
-		}
-	}
-
-	private class RvDeclVisitor extends SpuddXBaseVisitor<RandomVariable> {
-
-		@Override
-		public RandomVariable visitRv_decl(SpuddXParser.Rv_declContext ctx) {
-
-			var varValsVisitor = new VarValueVisitor();
-
-			String varName = ctx.VARNAME().toString();
-
-			List<String> valNames = ctx.var_value().stream().map(varValsVisitor::visit).collect(Collectors.toList());
-
-			LOGGER.debug(String.format("Parsed RV %s: %s", varName, valNames));
-
-			return new RandomVariable(varName, valNames);
-		}
-	}
-
-	private class StateVarDeclVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
-
-		@Override
-		public List<RandomVariable> visitState_var_decl(SpuddXParser.State_var_declContext ctx) {
-
-			var rvVisitor = new RvDeclVisitor();
-
-			var stateVars = ctx.rv_decl().stream().map(rvVisitor::visit).collect(Collectors.toList());
-
-			LOGGER.debug(String.format("Parsed state variables %s", stateVars));
-
-			return stateVars;
-		}
-	}
-
-	private class ObsVarDeclVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
-
-		@Override
-		public List<RandomVariable> visitObs_var_decl(SpuddXParser.Obs_var_declContext ctx) {
-
-			var rvVisitor = new RvDeclVisitor();
-
-			var obsVars = ctx.rv_decl().stream().map(rvVisitor::visit).collect(Collectors.toList());
-
-			LOGGER.debug(String.format("Parsed obs variables %s", obsVars));
-
-			return obsVars;
-		}
-	}
-
-	private class ActionsDeclVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
-
-		@Override
-		public List<RandomVariable> visitActions_decl(SpuddXParser.Actions_declContext ctx) {
-
-			var rvVisitor = new RvDeclVisitor();
-
-			var actVars = ctx.rv_decl().stream().map(rvVisitor::visit).collect(Collectors.toList());
-
-			LOGGER.debug(String.format("Parsed action variables %s", actVars));
-
-			return actVars;
-		}
-	}
-
-	private class DDLeafVisitor extends SpuddXBaseVisitor<Optional<DD>> {
-
-		@Override
-		public Optional<DD> visitDd_leaf(SpuddXParser.Dd_leafContext ctx) {
-
-			var leaf = Optional.ofNullable(DDleaf.getDD(Float.valueOf(ctx.FLOAT_NUM().getText())));
-
-			return leaf;
-		}
-	}
-
-	private class DDChildVisitor extends SpuddXBaseVisitor<Tuple<String, Optional<DD>>> {
-
-		@Override
-		public Tuple<String, Optional<DD>> visitDd_child(SpuddXParser.Dd_childContext ctx) {
-
-			String childName = ctx.VARVAL().getText();
-			var childDD = new DDDeclVisitor().visit(ctx.dd_decl());
-
-			return new Tuple<String, Optional<DD>>(childName, childDD);
-		}
-	}
-
-	private class DDDeclVisitor extends SpuddXBaseVisitor<Optional<DD>> {
-
-		@Override
-		public Optional<DD> visitDd_decl(SpuddXParser.Dd_declContext ctx) {
-
-			if (ctx.dd_leaf().isEmpty()) {
-
-				// Prepare root DD
-				String varName = ctx.VARNAME().getText();
-				int varIndex = Global.varNames.indexOf(varName);
-				var valNames = Global.valNames.get(varIndex);
-
-				// Prepare children
-				var ddChildVisitor = new DDChildVisitor();
-				var childDDList = ctx.dd_child().stream().map(ddChildVisitor::visit).collect(Collectors.toList());
-
-				// Check if
-				DD[] children = new DD[childDDList.size()];
-				for (var child : childDDList) {
-					int childIndex = valNames.indexOf(child.first());
-
-					if (childIndex < 0 || child.second().isEmpty()) {
-
-						LOGGER.error("Could not parse DD for child " + child.first());
-						return null;
-					}
-
-					children[childIndex] = child.second().get();
-				}
-
-				if (childDDList.size() != Global.varDomSize.get(varIndex))
-					LOGGER.error("Error while parsing DD");
-
-				return Optional.ofNullable(DDnode.getDD(varIndex, children));
-			}
-
-			else
-				return new DDLeafVisitor().visit(ctx.dd_leaf());
-		}
-	}
-
-	private class DDDeclsVisitor extends SpuddXBaseVisitor<Tuple<String, Optional<DD>>> {
-
-		@Override
-		public Tuple<String, Optional<DD>> visitDd_decls(SpuddXParser.Dd_declsContext ctx) {
-
-			String ddName = ctx.VARNAME().getText();
-			var parsedDD = new DDDeclVisitor().visit(ctx.dd_decl());
-
-			return new Tuple<String, Optional<DD>>(ddName, parsedDD);
-		}
-	}
-
-	private class DomainVisitor extends SpuddXBaseVisitor<List<RandomVariable>> {
-
-		@Override
-		public List<RandomVariable> visitDomain(SpuddXParser.DomainContext ctx) {
-
-			var sVars = new StateVarDeclVisitor().visit(ctx.state_var_decl());
-			var oVars = new ObsVarDeclVisitor().visit(ctx.obs_var_decl());
-
-			sVars.addAll(oVars);
-
-			return sVars;
-		}
-
-		// --------------------------------------------------------------------------
-		// Methods for parsing out individual components
-
-		public List<RandomVariable> getStateVarDecls(SpuddXParser.DomainContext ctx) {
-
-			return new StateVarDeclVisitor().visit(ctx.state_var_decl());
-		}
-
-		public List<RandomVariable> getObsVarDecls(SpuddXParser.DomainContext ctx) {
-
-			return new ObsVarDeclVisitor().visit(ctx.obs_var_decl());
-		}
-
-		public List<RandomVariable> getActionVarDecls(SpuddXParser.DomainContext ctx) {
-
-			return new ActionsDeclVisitor().visit(ctx.actions_decl());
-		}
-
-		public List<RandomVariable> getAllVariableDecls(SpuddXParser.DomainContext ctx) {
-
-			var stateVars = new StateVarDeclVisitor().visit(ctx.state_var_decl());
-			var obsVars = new ObsVarDeclVisitor().visit(ctx.obs_var_decl());
-			var actVars = new ActionsDeclVisitor().visit(ctx.actions_decl());
-
-			List<RandomVariable> vars = 
-					new ArrayList<>((stateVars.size() 
-							+ obsVars.size() 
-							+ actVars.size()) * 2);
-			
-			vars.addAll(stateVars);
-			vars.addAll(obsVars);
-			vars.addAll(actVars);
-			
-			return vars;
-		}
-
-		public HashMap<String, DD> getDeclaredDDs(SpuddXParser.DomainContext ctx) {
-
-			HashMap<String, DD> parsedDDs = new HashMap<>(10);
-
-			if (!ctx.dd_decls().isEmpty()) {
-
-				var declsVisitor = new DDDeclsVisitor();
-				ctx.dd_decls().stream().map(declsVisitor::visit).filter(t -> t.second().isPresent())
-						.map(d -> new Tuple<String, DD>(d.first(), d.second().get()))
-						.forEach(f -> parsedDDs.put(f.first(), f.second()));
-
-			}
-
-			return parsedDDs;
-		}
-
-	}
 
 	// -------------------------------------------------------------------------
 
@@ -279,52 +60,53 @@ public class SpuddXParserWrapper {
 		}
 
 		catch (Exception e) {
+
 			LOGGER.error(String.format("Error while trying to parse %s: %s", this.fileName, e));
 			System.exit(-1);
 		}
 	}
 
-	public List<RandomVariable> getStateVarDecls() {
+	public List<RandomVariable> getVariableDeclarations() {
 
 		this.parser.reset();
-		var domainVisitor = new DomainVisitor();
-		return domainVisitor.getStateVarDecls(this.parser.domain());
-
+		return new VariablesDeclarationVisitor().visit(this.parser.domain());
 	}
 
-	public List<RandomVariable> getObsVarDecls() {
+	public HashMap<String, DD> getDDs() {
 
 		this.parser.reset();
-		var domainVisitor = new DomainVisitor();
-		return domainVisitor.getObsVarDecls(this.parser.domain());
-
+		return new DDParser(new HashMap<String, DD>()).getDDs(this.parser.domain());
 	}
 
-	public List<RandomVariable> getActionVarDecls() {
+	public HashMap<String, Model> getModels(HashMap<String, DD> declDDs) {
 
 		this.parser.reset();
-		var domainVisitor = new DomainVisitor();
-		return domainVisitor.getActionVarDecls(this.parser.domain());
-
+		return new ModelsParser(declDDs).getModels(this.parser.domain());
 	}
 
-	public List<RandomVariable> getAllVarDecls() {
+	public HashMap<String, Model> getModels() {
 
 		this.parser.reset();
-		var domainVisitor = new DomainVisitor();
-		return domainVisitor.getAllVariableDecls(this.parser.domain());
+		var declDDs = this.getDDs();
+		return new ModelsParser(declDDs).getModels(this.parser.domain());
 	}
-	
-	public HashMap<String, DD> getDefinedDDs() {
-		
-		if (Global.varNames.size() < 1) {
-			LOGGER.error("Global variables not yet set. Cannot parse DDs");
-			System.exit(-1);
-		}
 
-		this.parser.reset();
-		var domainVisitor = new DomainVisitor();
-		return domainVisitor.getDeclaredDDs(this.parser.domain());
+	public static HashMap<String, DBN> getDBNs(HashMap<String, Model> declModels) {
+
+		// for all DBNs, convert <String, Model> to <String, DBN>
+		var dbns = declModels.entrySet().stream().filter(e -> e.getValue() instanceof DBN)
+				.collect(Collectors.toMap(e -> e.getKey(), e -> (DBN) e.getValue()));
+
+		return (HashMap<String, DBN>) dbns;
+	}
+
+	public static HashMap<String, POMDP> getPOMDPs(HashMap<String, Model> declModels) {
+
+		// for all POMDPs, convert <String, Model> to <String, POMDP>
+		var pomdps = declModels.entrySet().stream().filter(e -> e.getValue() instanceof POMDP)
+				.collect(Collectors.toMap(e -> e.getKey(), e -> (POMDP) e.getValue()));
+
+		return (HashMap<String, POMDP>) pomdps;
 	}
 
 }

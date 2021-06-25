@@ -18,6 +18,8 @@ public class Global {
 	public static List<Integer> varDomSize = new ArrayList<>(10);
 	public static List<String> varNames = new ArrayList<>(10);
 	public static List<List<String>> valNames = new ArrayList<>(10);
+	
+	public static int NUM_VARS = 0;
 
 	/* identify which frame and level has the current context */
 	public static int CONTEXT_LEVEL_ID;
@@ -63,6 +65,7 @@ public class Global {
 		Global.varDomSize.add(valNames.size());
 		
 		LOGGER.debug(String.format("Add var %s with values %s", varName, valNames));
+		Global.NUM_VARS += 1;
 	}
 	
 	public static void populateFromRandomVariables(List<RandomVariable> vars) {
@@ -75,6 +78,12 @@ public class Global {
 
 	public static void setSeed(long seed) {
 		random.setSeed(seed);
+	}
+	
+	public static void primeVarsAndInitGlobals(List<RandomVariable> vars) {
+		
+		var primedVars = RandomVariable.primeVariables(vars);
+		Global.populateFromRandomVariables(primedVars);
 	}
 
 	public static void clearHashtables() {
@@ -95,6 +104,15 @@ public class Global {
 		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
 
 		System.gc();
+	}
+	
+	public static void clearAll() {
+		
+		Global.varNames.clear();
+		Global.valNames.clear();
+		Global.varDomSize.clear();
+		
+		Global.clearHashtables();
 	}
 
 	public static void newHashtables() {

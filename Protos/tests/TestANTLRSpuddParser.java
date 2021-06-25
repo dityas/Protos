@@ -39,11 +39,19 @@ class TestANTLRSpuddParser {
 	@BeforeEach
 	void setUp() throws Exception {
 
+		Global.clearAll();
 		this.domainFile = this.getClass().getClassLoader().getResource("test_domains/test_var_decls.spudd").getFile();
 	}
 
 	@AfterEach
 	void tearDown() throws Exception {
+
+	}
+	
+	void printMemConsumption() throws Exception {
+		LOGGER.info(String.format("Total mem: %s", Runtime.getRuntime().totalMemory() / 1000000.0));
+		LOGGER.info(String.format("Free mem: %s", Runtime.getRuntime().freeMemory() / 1000000.0));
+		LOGGER.info(String.format("Max mem: %s", Runtime.getRuntime().maxMemory() / 1000000.0));
 	}
 
 	@Test
@@ -66,6 +74,7 @@ class TestANTLRSpuddParser {
 		LOGGER.debug(String.format("Tokens extracted: %s", tokens));
 
 		assertNotNull(tokens);
+		printMemConsumption();
 	}
 
 	@Test
@@ -78,142 +87,88 @@ class TestANTLRSpuddParser {
 		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
 
 		assertNotNull(parserWrapper);
+		printMemConsumption();
 	}
 
 	@Test
-	void testSimplePOMDPStateVarsParsing() throws Exception {
+	void testSimplePOMDPVarsParsing() throws Exception {
 
 		LOGGER.info("Running Parser Wrapper state var parse test");
 
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_var_decls.spudd").getFile();
 
 		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		var randomVars = parserWrapper.getVariableDeclarations();
 
-		var sVars = parserWrapper.getStateVarDecls();
-
-		assertTrue(sVars.size() > 0);
+		assertTrue(randomVars.size() == 7);
+		printMemConsumption();
 	}
 
 	@Test
-	void testSimplePOMDPObsVarsParsing() throws Exception {
+	void testSimplePOMDPDDParsing() throws Exception {
 
-		LOGGER.info("Running Parser Wrapper obs var parse test");
-
+		LOGGER.info("Running Parser Wrapper state var parse test");
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_var_decls.spudd").getFile();
 
 		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		var randomVars = parserWrapper.getVariableDeclarations();
 
-		var oVars = parserWrapper.getObsVarDecls();
-
-		assertTrue(oVars.size() > 0);
+		assertTrue(randomVars.size() == 7);
+		
+		Global.primeVarsAndInitGlobals(randomVars);
+		printMemConsumption();
 	}
-
+	
 	@Test
-	void testSimplePOMDPActionVarsParsing() throws Exception {
-
-		LOGGER.info("Running Parser Wrapper action var parse test");
-
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_var_decls.spudd").getFile();
+	void testSimplePOMDPDDDeclsParsing() throws Exception {
+		
+		LOGGER.info("Running Parser Wrapper DD decls parse test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_dd_decls.spudd").getFile();
 
 		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		var randomVars = parserWrapper.getVariableDeclarations();
 
-		var aVars = parserWrapper.getActionVarDecls();
-
-		assertTrue(aVars.size() > 0);
-	}
-
-	@Test
-	void testSimplePOMDPGlobalVariablesSetting() throws Exception {
-
-		LOGGER.info("Running test for extracting globals from domain file");
-        
-		String domainFile = this.getClass().getClassLoader()
-								.getResource("test_domains/test_var_decls.spudd").getFile();
-
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		Global.primeVarsAndInitGlobals(randomVars);
 		
-		// Get all random variables
-		var sVars = parserWrapper.getStateVarDecls();
-		var oVars = parserWrapper.getObsVarDecls();
-		var aVars = parserWrapper.getActionVarDecls();
-		
-		// Aggregate RVs and prepare for global init
-		List<RandomVariable> allVars = new ArrayList<>();
-		allVars.addAll(sVars);
-		allVars.addAll(oVars);
-		allVars.addAll(aVars);
-		
-		LOGGER.debug("All parsed variables are " + allVars);
-		
-		var allVarsPrimed = RandomVariable.primeVariables(allVars);
-		
-		LOGGER.debug("Primed variables are " + allVarsPrimed);
-		
-		Global.populateFromRandomVariables(allVarsPrimed);
-
-	}
-
-	@Test
-	void testSimplePOMDPDDDeclarations() throws Exception {
-
-		LOGGER.info("Running test for extracting globals from domain file");
-        
-		String domainFile = this.getClass().getClassLoader()
-								.getResource("test_domains/test_var_decls.spudd").getFile();
-
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		
-		// Get all random variables
-		var sVars = parserWrapper.getStateVarDecls();
-		var oVars = parserWrapper.getObsVarDecls();
-		var aVars = parserWrapper.getActionVarDecls();
-		
-		// Aggregate RVs and prepare for global init
-		List<RandomVariable> allVars = new ArrayList<>();
-		allVars.addAll(sVars);
-		allVars.addAll(oVars);
-		allVars.addAll(aVars);
-		
-		LOGGER.debug("All parsed variables are " + allVars);
-		
-		var allVarsPrimed = RandomVariable.primeVariables(allVars);
-		
-		LOGGER.debug("Primed variables are " + allVarsPrimed);
-		
-		Global.populateFromRandomVariables(allVarsPrimed);
+		var dds = parserWrapper.getDDs();
+		LOGGER.debug(dds);
+		printMemConsumption();
 
 	}
 	
 	@Test
-	void testSimplePOMDPAllVarDecls() throws Exception {
+	void testSimplePOMDPDBNDeclsParsing() throws Exception {
 		
-		LOGGER.info("Running test for extracting globals from domain file");
-        
-		String domainFile = this.getClass().getClassLoader()
-								.getResource("test_domains/test_var_decls.spudd").getFile();
+		LOGGER.info("Running Parser Wrapper DBN decls parse test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_dbn_def.spudd").getFile();
 
 		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		var randomVars = parserWrapper.getVariableDeclarations();
+
+		Global.primeVarsAndInitGlobals(randomVars);
 		
-		// Get all random variables
-		var sVars = parserWrapper.getStateVarDecls();
-		var oVars = parserWrapper.getObsVarDecls();
-		var aVars = parserWrapper.getActionVarDecls();
+		var dds = parserWrapper.getDDs();
+		var dbns = SpuddXParserWrapper.getDBNs(parserWrapper.getModels(dds));
+		printMemConsumption();
+	}
+
+	@Test
+	void testSimplePOMDPParsing() throws Exception {
+
+		System.gc();
+		printMemConsumption();
 		
-		// Aggregate RVs and prepare for global init
-		List<RandomVariable> allVars = new ArrayList<>();
-		allVars.addAll(sVars);
-		allVars.addAll(oVars);
-		allVars.addAll(aVars);
+		LOGGER.info("Running Parser Wrapper POMDP decls parse test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_complete_domain.spudd").getFile();
+
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		var randomVars = parserWrapper.getVariableDeclarations();
+
+		Global.primeVarsAndInitGlobals(randomVars);
 		
-		LOGGER.debug("All parsed variables are " + allVars);
-		
-		var allParsedVars = parserWrapper.getAllVarDecls();
-		
-		LOGGER.debug("All parsed variables from allDecls call are " 
-				+ allParsedVars);
-		
-		
-		assertTrue(allParsedVars.size() == allVars.size());
+		var models = parserWrapper.getModels();
+		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
+		printMemConsumption();
 	}
 
 }

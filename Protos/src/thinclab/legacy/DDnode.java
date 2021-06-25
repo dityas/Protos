@@ -15,7 +15,7 @@ public class DDnode extends DD {
 	 * 
 	 */
 	private static final long serialVersionUID = 8410391598527547020L;
-	
+
 	private int[] varSet;
 	private int numLeaves;
 	private DD children[];
@@ -23,7 +23,7 @@ public class DDnode extends DD {
 
 	private int hash;
 
-	private static final Logger logger = LogManager.getLogger(DDnode.class);
+	private static final Logger LOGGER = LogManager.getLogger(DDnode.class);
 
 	private DDnode(int var, DD children[]) {
 		this.var = var;
@@ -52,12 +52,73 @@ public class DDnode extends DD {
 				builder.append(this.children[i].hashCode());
 
 			else {
-				logger.error("Null child at " + i + " something might be seriously wrong.");
-				logger.error("Error causing DD is " + this.toDDTree());
+				LOGGER.error("Null child at " + i + " something might be seriously wrong.");
+				LOGGER.error("Error causing DD is " + this.toDDTree());
 			}
 		}
 
 		this.hash = builder.toHashCode();
+	}
+
+	public static DD getDDForChild(int var, int child) {
+
+		DD[] childDDs = new DD[Global.varDomSize.get(var - 1)];
+
+		for (int i = 0; i < childDDs.length; i++) {
+
+			if (i == child)
+				childDDs[i] = DDleaf.getDD(1.0f);
+
+			else
+				childDDs[i] = DDleaf.getDD(0.0f);
+		}
+
+		var dd = DDnode.getDD(var, childDDs);
+
+		return dd;
+	}
+
+	public static DD getDDForChild(String varName, String childName) {
+
+		int varIndex = Global.varNames.indexOf(varName);
+
+		if (varIndex < 0) {
+			LOGGER.error("Variable " + varName + " does not exist.");
+			System.exit(-1);
+		}
+
+		int var = varIndex + 1;
+		int childIndex = Global.valNames.get(varIndex).indexOf(childName);
+
+		if (childIndex < 0) {
+			LOGGER.error("Variable " + varName + " does not hold value " + childName);
+			System.exit(-1);
+		}
+
+		return DDnode.getDDForChild(var, childIndex);
+	}
+	
+	public static DD getUniformDist(int var) {
+		
+		if (var < 1) {
+			LOGGER.error("Invalid varName/var while making uniform distribution");
+			return null;
+		}
+		
+		int numVals = Global.varDomSize.get(var - 1);
+		float prob = 1.0f / numVals;
+		
+		DD[] childDDs = new DD[numVals];
+		
+		for (int i = 0; i < numVals; i++) {
+			childDDs[i] = DDleaf.getDD(prob);
+		}
+		
+		return DDnode.getDD(var, childDDs);
+	}
+	
+	public static DD getUniformDist(String varName) {
+		return DDnode.getUniformDist(Global.varNames.indexOf(varName) + 1);
 	}
 
 	public static DD getDD(int var, DD[] children) {
@@ -70,7 +131,7 @@ public class DDnode extends DD {
 				break;
 			}
 		}
-		
+
 		if (aggregate)
 			return children[0];
 
@@ -110,13 +171,13 @@ public class DDnode extends DD {
 	}
 
 	public DD store() {
-		
+
 		DD[] children = new DD[this.children.length];
-		
+
 		for (int i = 0; i < this.children.length; i++) {
 			children[i] = this.children[i].store();
 		}
-		
+
 		return DDnode.getDD(var, children);
 	}
 
@@ -125,37 +186,37 @@ public class DDnode extends DD {
 	}
 
 	public int[] getVarSet() {
-		
+
 		if (varSet == null) {
-			
+
 			varSet = new int[1];
 			varSet[0] = var;
-			
+
 			for (int childId = 0; childId < children.length; childId++) {
 				varSet = MySet.unionOrdered(children[childId].getVarSet(), varSet);
 			}
 		}
-		
+
 		return varSet;
 	}
 
 	public int getNumLeaves() {
-		
+
 		if (numLeaves == 0) {
 			for (int i = 0; i < children.length; i++) {
 				numLeaves = numLeaves + children[i].getNumLeaves();
 			}
 		}
-		
+
 		return numLeaves;
 	}
 
 	public float getSum() {
-		
+
 		if (sum == Double.NaN) {
-			
+
 			sum = 0;
-			
+
 			int[] childrenVars = MySet.remove(this.getVarSet(), var);
 			for (int i = 0; i < children.length; i++) {
 				int[] remainingVars = MySet.diff(childrenVars, children[i].getVarSet());
@@ -165,7 +226,7 @@ public class DDnode extends DD {
 				sum = sum + multiplicativeFactor * children[i].getSum();
 			}
 		}
-		
+
 		return sum;
 	}
 
@@ -178,23 +239,55 @@ public class DDnode extends DD {
 
 		DDTree ddTree = null;
 
-		try {
-			/* Make childless DDTree */
-			ddTree = new DDTree(POMDP.getVarName(this.var));
+		/* Make childless DDTree */
+		ddTree = new DDTree(Global.varNames.get(this.var - 1));
 
-			/* Get children and add each to DDTree */
-			var valNames = Global.valNames.get(this.var - 1);
+		/* Get children and add each to DDTree */
+		var valNames = Global.valNames.get(this.var - 1);
 
-			for (int c = 0; c < valNames.size(); c++)
-				ddTree.addChild(valNames.get(c), this.children[c].toDDTree());
-		}
-
-		catch (VariableNotFoundException e) {
-			System.out.println(e.getMessage());
-			System.exit(-1);
-		}
+		for (int c = 0; c < valNames.size(); c++)
+			ddTree.addChild(valNames.get(c), this.children[c].toDDTree());
 
 		/* Return DDTree obj */
 		return ddTree;
 	}
+
+	@Override
+	public String toString() {
+		return this.toSPUDD();
+	}
+	
+	@Override
+	public String toSPUDD(int spaces) {
+		/*
+		 * Returns tree as SPUDD string
+		 */
+		
+		var childNames = Global.valNames.get(this.var - 1);
+		
+		StringBuilder builder = new StringBuilder(100);
+		builder.append("  ".repeat(spaces))
+			.append("(").append(Global.varNames.get(this.var - 1));
+
+		for (int i = 0; i < this.children.length; i++) {
+			
+			if (this.children[i] instanceof DDleaf)
+				builder.append("  (").append(childNames.get(i)).append(" ")
+					.append(this.children[i].toSPUDD()).append(")");
+			else
+				builder.append("\r\n").append("  ".repeat(spaces + 1)).append("(")
+					.append(childNames.get(i)).append("\r\n")
+					.append(this.children[i].toSPUDD(spaces + 2)).append(")");
+		}
+
+		builder.append(")");
+
+		return builder.toString();
+	}
+
+	@Override
+	public String toSPUDD() {
+		return this.toSPUDD(0);
+	}
+
 }
