@@ -117,6 +117,8 @@ class TestANTLRSpuddParser {
 		
 		Global.primeVarsAndInitGlobals(randomVars);
 		printMemConsumption();
+		
+		assertTrue(Global.varNames.size() == 14);
 	}
 	
 	@Test
@@ -133,7 +135,9 @@ class TestANTLRSpuddParser {
 		var dds = parserWrapper.getDDs();
 		LOGGER.debug(dds);
 		printMemConsumption();
-
+		
+		assertTrue(dds.size() == 4);
+		
 	}
 	
 	@Test

@@ -88,6 +88,8 @@ public class SpuddXParserWrapper {
 
 		this.parser.reset();
 		var declDDs = this.getDDs();
+		
+		this.parser.reset();
 		return new ModelsParser(declDDs).getModels(this.parser.domain());
 	}
 

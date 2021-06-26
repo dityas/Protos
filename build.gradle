@@ -97,3 +97,14 @@ test {
     
     testLogging.exceptionFormat = 'full'
 }
+
+jar {
+
+	manifest {
+		attributes "Main-Class" : "thinclab.executables.ProtosLauncher"
+	}
+	
+	from {
+		configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+}
