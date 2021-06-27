@@ -78,19 +78,22 @@ public class SpuddXParserWrapper {
 		return new DDParser(new HashMap<String, DD>()).getDDs(this.parser.domain());
 	}
 
-	public HashMap<String, Model> getModels(HashMap<String, DD> declDDs) {
+	public HashMap<String, Model> getModels(DDParser ddParser) {
 
 		this.parser.reset();
-		return new ModelsParser(declDDs).getModels(this.parser.domain());
+		return new ModelsParser(ddParser).getModels(this.parser.domain());
 	}
 
 	public HashMap<String, Model> getModels() {
 
 		this.parser.reset();
-		var declDDs = this.getDDs();
+		var ddParser = new DDParser(new HashMap<String, DD>(10));
+		var declDDs = ddParser.getDDs(this.parser.domain());
+		
+		LOGGER.debug(String.format("Parsed DDs, %s", declDDs));
 		
 		this.parser.reset();
-		return new ModelsParser(declDDs).getModels(this.parser.domain());
+		return new ModelsParser(ddParser).getModels(this.parser.domain());
 	}
 
 	public static HashMap<String, DBN> getDBNs(HashMap<String, Model> declModels) {

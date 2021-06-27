@@ -49,9 +49,12 @@ class TestANTLRSpuddParser {
 	}
 	
 	void printMemConsumption() throws Exception {
-		LOGGER.info(String.format("Total mem: %s", Runtime.getRuntime().totalMemory() / 1000000.0));
-		LOGGER.info(String.format("Free mem: %s", Runtime.getRuntime().freeMemory() / 1000000.0));
-		LOGGER.info(String.format("Max mem: %s", Runtime.getRuntime().maxMemory() / 1000000.0));
+		
+		var total = Runtime.getRuntime().totalMemory() / 1000000.0;
+		var free = Runtime.getRuntime().freeMemory() / 1000000.0;
+		
+		LOGGER.info(String.format("Free mem: %s", free));
+		LOGGER.info(String.format("Used mem: %s", (total - free)));
 	}
 
 	@Test
@@ -151,8 +154,7 @@ class TestANTLRSpuddParser {
 
 		Global.primeVarsAndInitGlobals(randomVars);
 		
-		var dds = parserWrapper.getDDs();
-		var dbns = SpuddXParserWrapper.getDBNs(parserWrapper.getModels(dds));
+		var dbns = SpuddXParserWrapper.getDBNs(parserWrapper.getModels());
 		printMemConsumption();
 	}
 

@@ -23,30 +23,21 @@ import thinclab.models.POMDP;
  */
 public class ModelsParser extends SpuddXBaseVisitor<Model> {
 
-	private HashMap<String, DD> declaredDDs;
 	private HashMap<String, Model> declaredModels;
 	private DDParser ddParser;
 
 	private static final Logger LOGGER = LogManager.getLogger(ModelsParser.class);
 
-	public ModelsParser(HashMap<String, DD> declaredDDs) {
+	public ModelsParser(DDParser ddParser) {
 
 		super();
-		this.declaredDDs = declaredDDs;
 		this.declaredModels = new HashMap<String, Model>(5);
-		this.ddParser = new DDParser(this.declaredDDs);
+		this.ddParser = ddParser;
 	}
 
-	public ModelsParser(HashMap<String, DD> declDDs, HashMap<String, Model> declModels) {
-
-		super();
-		this.declaredDDs = declDDs;
-		this.declaredModels = declModels;
-		this.ddParser = new DDParser(this.declaredDDs);
-	}
-	
-	@Override 
+	@Override
 	public Model visitModelDefParen(SpuddXParser.ModelDefParenContext ctx) {
+
 		return this.visit(ctx.model_def());
 	}
 
@@ -59,22 +50,18 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		var O = ctx.pomdp_def().obs_list().variable_name().stream().map(o -> o.getText()).collect(Collectors.toList());
 
 		String A = ctx.pomdp_def().action_var().variable_name().getText();
-		
+
 		HashMap<String, Model> dynamics = new HashMap<>(5);
 		HashMap<String, DD> R = new HashMap<>(5);
-		
+
 		ctx.pomdp_def().dynamics().action_model().stream()
-			.forEach(a ->
-				dynamics.put(a.action_name().getText(), 
-						this.visit(a.model_def()))
-			);
-		
-		ctx.pomdp_def().reward().action_reward().stream()
-			.forEach(ar -> {
-				R.put(ar.action_name().getText(), 
-						this.ddParser.visit(ar.dd_expr()));
-			});
-		
+				.forEach(a -> dynamics.put(a.action_name().getText(), this.visit(a.model_def())));
+
+		ctx.pomdp_def().reward().action_reward().stream().forEach(ar -> {
+
+			R.put(ar.action_name().getText(), this.ddParser.visit(ar.dd_expr()));
+		});
+
 		DD b = this.ddParser.visit(ctx.pomdp_def().initial_belief().dd_expr());
 		float discount = Float.valueOf(ctx.pomdp_def().discount().FLOAT_NUM().getText());
 
@@ -87,48 +74,48 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 	public Model visitDBNDef(SpuddXParser.DBNDefContext ctx) {
 
 		HashMap<Integer, DD> cpds = new HashMap<>(5);
-		
+
 		// <var, DD> hashmap entries from (cpd_def)*
-		ctx.dbn_def().cpd_def().stream()
-				.forEach(d -> 
-					cpds.put(Global.varNames.indexOf(d.variable_name().getText()) + 1, 
-							this.ddParser.visit(d.dd_expr())));
+		ctx.dbn_def().cpd_def().stream().forEach(d -> cpds.put(Global.varNames.indexOf(d.variable_name().getText()) + 1,
+				this.ddParser.visit(d.dd_expr())));
 
 		var dbn = new DBN(cpds);
 
 		return dbn;
 	}
-	
+
 	@Override
 	public Model visitModelRef(SpuddXParser.ModelRefContext ctx) {
-		
+
 		var name = ctx.variable_name().getText();
-		
+
 		if (this.declaredModels.containsKey(name))
 			return this.declaredModels.get(name);
-		
+
 		else {
+
 			LOGGER.error(String.format("Model %s is not defined", name));
 			System.exit(-1);
 			return null;
 		}
 	}
-	
+
 	public HashMap<String, Model> getModels(SpuddXParser.DomainContext ctx) {
 
-		ctx.model_decl().stream()
-				.forEach(m -> {
-					var name = m.model_name().getText();
-					
-					if (this.declaredModels.containsKey(name))
-						LOGGER.error(String.format("Model %s defined multiple times", name));
-					
-					else {
-						var model = this.visit(m.model_def());
-						LOGGER.info(String.format("Parsed new model %s", model));
-						this.declaredModels.put(name, model);
-					}
-				});
+		ctx.model_decl().stream().forEach(m -> {
+
+			var name = m.model_name().getText();
+
+			if (this.declaredModels.containsKey(name))
+				LOGGER.error(String.format("Model %s defined multiple times", name));
+
+			else {
+
+				var model = this.visit(m.model_def());
+				LOGGER.info(String.format("Parsed new model %s", model));
+				this.declaredModels.put(name, model);
+			}
+		});
 
 		return this.declaredModels;
 	}

@@ -9,6 +9,7 @@ plugins {
     id 'java'
     id 'eclipse'
     id 'antlr'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
 repositories {
