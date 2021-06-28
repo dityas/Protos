@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
@@ -37,12 +38,11 @@ public class POMDP implements Model {
 
 	public HashMap<String, DD[]> TF = new HashMap<>(3);
 	public HashMap<String, DD[]> OF = new HashMap<>(3);
-	public HashMap<String, DD> R = new HashMap<>(3);
+	public final DD[] R;
 
 	private static final Logger LOGGER = LogManager.getLogger(POMDP.class);
 
-	public POMDP(List<String> S, List<String> O, String A, 
-			HashMap<String, Model> dynamics, HashMap<String, DD> R,
+	public POMDP(List<String> S, List<String> O, String A, HashMap<String, Model> dynamics, HashMap<String, DD> R,
 			DD initialBelief, float discount) {
 
 		this.S = this.sortByVarOrdering(S, Global.varNames);
@@ -52,28 +52,36 @@ public class POMDP implements Model {
 		this.Svars = this.S.stream().mapToInt(s -> Global.varNames.indexOf(s) + 1).toArray();
 		this.Ovars = this.O.stream().mapToInt(o -> Global.varNames.indexOf(o) + 1).toArray();
 		this.Avar = Global.varNames.indexOf(A) + 1;
-		
+
 		// take out DBNs from set of models
 		var dyn = new HashMap<String, DBN>(5);
-		dyn.putAll(dynamics.entrySet().stream()
-				.filter(e -> e.getValue() instanceof DBN)
+		dyn.putAll(dynamics.entrySet().stream().filter(e -> e.getValue() instanceof DBN)
 				.collect(Collectors.toMap(e -> e.getKey(), e -> (DBN) e.getValue())));
-	
+
 		// Populate dynamics for missing actions
 		Global.valNames.get(this.Avar - 1).stream().forEach(a -> {
+
 			if (!dyn.containsKey(a)) {
+
 				LOGGER.warn(String.format("Dynamics not defined for action %s. "
 						+ "Will apply with SAME transitions and random observations for that action", a));
 				dyn.put(a, new DBN(new HashMap<Integer, DD>(1)));
 			}
 		});
-	
+
 		this.initializeDynamics(dyn);
-		
-		this.R.putAll(R);
-		Global.valNames.get(this.Avar - 1).stream()
-			.filter(a -> !this.R.containsKey(a)).forEach(a -> this.R.put(a, DDleaf.getDD(0.0f)));
-		
+
+		// Initialized Rewards
+		this.R = IntStream.range(0, this.A.size()).boxed().map(i -> {
+
+			if (R.containsKey(this.A.get(i)))
+				return R.get(this.A.get(i));
+
+			else
+				return DD.zero;
+
+		}).toArray(DD[]::new);
+
 		this.b = initialBelief;
 		this.discount = discount;
 	}
@@ -153,14 +161,16 @@ public class POMDP implements Model {
 		builder.append("A var : ").append(this.Avar).append("\r\n");
 		builder.append("T funct. : ").append(this.TF).append("\r\n");
 		builder.append("O funct. : ").append(this.OF).append("\r\n");
-		
+
 		builder.append("R : ").append("\r\n");
-		this.R.forEach((a, r) -> builder.append("\t").append(a)
-				.append(" : ").append(r).append("\r\n"));
-		
+		IntStream.range(0, this.R.length).boxed()
+			.forEach(i -> builder.append("\t").append(i).append(" - ")
+					.append(this.A.get(i)).append(" : ").append(this.R[i]).append("\r\n"));
+		//this.R.forEach((a, r) -> builder.append("\t").append(a).append(" : ").append(r).append("\r\n"));
+
 		builder.append("b : ").append(this.b).append("\r\n");
 		builder.append("discount : ").append(this.discount).append("\r\n");
-		
+
 		builder.append("]").append("\r\n");
 
 		return builder.toString();

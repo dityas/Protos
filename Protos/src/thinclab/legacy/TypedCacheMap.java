@@ -36,6 +36,6 @@ public class TypedCacheMap<K, V>  extends ConcurrentHashMap<K, V> {
     }
 
 	protected boolean removeEldestEntry(Map.Entry<Pair, DD> eldest) {
-        return size() > maxCapacity;
+        return this.size() > this.maxCapacity;
     }
 }

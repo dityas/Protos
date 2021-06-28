@@ -26,10 +26,10 @@ public class Global {
 	public static int CONTEXT_FRAME_ID;
 
 	// hash tables
-	public static TypedCacheMap<DD, WeakReference<DD>> leafHashtable = new TypedCacheMap<>();
-	public static TypedCacheMap<DD, WeakReference<DD>> nodeHashtable = new TypedCacheMap<>();
-	public static TypedCacheMap<Pair, DD> addHashtable = new TypedCacheMap<Pair, DD>();
-	public static TypedCacheMap<Pair, DD> multHashtable = new TypedCacheMap<Pair, DD>();
+	public static TypedCacheMap<DD, WeakReference<DD>> leafHashtable = new TypedCacheMap<>(10000);
+	public static TypedCacheMap<DD, WeakReference<DD>> nodeHashtable = new TypedCacheMap<>(10000);
+	public static TypedCacheMap<Pair, DD> addHashtable = new TypedCacheMap<Pair, DD>(10000);
+	public static TypedCacheMap<Pair, DD> multHashtable = new TypedCacheMap<Pair, DD>(10000);
 	public static CacheMap maxHashtable = new CacheMap();
 	public static CacheMap minHashtable = new CacheMap();
 	public static CacheMap dotProductHashtable = new CacheMap();
@@ -133,6 +133,15 @@ public class Global {
 		Global.nNodesHashtable = new CacheMap();
 		Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
 		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
+	}
+	
+	public static void logCacheSizes() {
+		
+		LOGGER.debug(String.format("Nodes Cache: %s", Global.nodeHashtable.size()));
+		LOGGER.debug(String.format("Leaf Cache: %s", Global.leafHashtable.size()));
+		LOGGER.debug(String.format("Add Cache: %s", Global.addHashtable.size()));
+		LOGGER.debug(String.format("Mult Cache: %s", Global.multHashtable.size()));
+		
 	}
 
 	public static void printProgressBar(int currentStep, int totalSteps, int totalRounds) {

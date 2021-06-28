@@ -55,6 +55,7 @@ class TestANTLRSpuddParser {
 		
 		LOGGER.info(String.format("Free mem: %s", free));
 		LOGGER.info(String.format("Used mem: %s", (total - free)));
+		Global.logCacheSizes();
 	}
 
 	@Test
