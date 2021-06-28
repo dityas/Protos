@@ -95,7 +95,7 @@ OP_MUL : '*' ;
 OP_DIV : '/' ;
 
 IDENTIFIER: [_]?[a-zA-Z][a-zA-Z0-9_']* ;
-FLOAT_NUM: [0-9]*'.'[0-9]+ ;
+FLOAT_NUM: [0-9]*['.']?[0-9]+ ;
 
 LP : '(' ;
 RP : ')' ;

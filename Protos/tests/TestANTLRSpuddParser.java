@@ -47,12 +47,12 @@ class TestANTLRSpuddParser {
 	void tearDown() throws Exception {
 
 	}
-	
+
 	void printMemConsumption() throws Exception {
-		
+
 		var total = Runtime.getRuntime().totalMemory() / 1000000.0;
 		var free = Runtime.getRuntime().freeMemory() / 1000000.0;
-		
+
 		LOGGER.info(String.format("Free mem: %s", free));
 		LOGGER.info(String.format("Used mem: %s", (total - free)));
 		Global.logCacheSizes();
@@ -118,16 +118,16 @@ class TestANTLRSpuddParser {
 		var randomVars = parserWrapper.getVariableDeclarations();
 
 		assertTrue(randomVars.size() == 7);
-		
+
 		Global.primeVarsAndInitGlobals(randomVars);
 		printMemConsumption();
-		
+
 		assertTrue(Global.varNames.size() == 14);
 	}
-	
+
 	@Test
 	void testSimplePOMDPDDDeclsParsing() throws Exception {
-		
+
 		LOGGER.info("Running Parser Wrapper DD decls parse test");
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_dd_decls.spudd").getFile();
 
@@ -135,18 +135,18 @@ class TestANTLRSpuddParser {
 		var randomVars = parserWrapper.getVariableDeclarations();
 
 		Global.primeVarsAndInitGlobals(randomVars);
-		
+
 		var dds = parserWrapper.getDDs();
 		LOGGER.debug(dds);
 		printMemConsumption();
-		
+
 		assertTrue(dds.size() == 4);
-		
+
 	}
-	
+
 	@Test
 	void testSimplePOMDPDBNDeclsParsing() throws Exception {
-		
+
 		LOGGER.info("Running Parser Wrapper DBN decls parse test");
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_dbn_def.spudd").getFile();
 
@@ -154,7 +154,7 @@ class TestANTLRSpuddParser {
 		var randomVars = parserWrapper.getVariableDeclarations();
 
 		Global.primeVarsAndInitGlobals(randomVars);
-		
+
 		var dbns = SpuddXParserWrapper.getDBNs(parserWrapper.getModels());
 		printMemConsumption();
 	}
@@ -164,15 +164,36 @@ class TestANTLRSpuddParser {
 
 		System.gc();
 		printMemConsumption();
-		
+
 		LOGGER.info("Running Parser Wrapper POMDP decls parse test");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_complete_domain.spudd").getFile();
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_complete_domain.spudd")
+				.getFile();
 
 		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
 		var randomVars = parserWrapper.getVariableDeclarations();
 
 		Global.primeVarsAndInitGlobals(randomVars);
-		
+
+		var models = parserWrapper.getModels();
+		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
+		printMemConsumption();
+	}
+
+	@Test
+	void testTigerPOMDPParsing() throws Exception {
+
+		System.gc();
+		printMemConsumption();
+
+		LOGGER.info("Running Parser Wrapper Tiger Domain parse test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
+				.getFile();
+
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		var randomVars = parserWrapper.getVariableDeclarations();
+
+		Global.primeVarsAndInitGlobals(randomVars);
+
 		var models = parserWrapper.getModels();
 		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
 		printMemConsumption();

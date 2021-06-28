@@ -7,6 +7,7 @@
  */
 package thinclab.model_ops;
 
+import java.util.List;
 import thinclab.legacy.DD;
 import thinclab.models.Model;
 
@@ -17,5 +18,6 @@ import thinclab.models.Model;
 public interface BeliefUpdate<M extends Model> {
 	
 	public DD beliefUpdate(M model, DD b, int a, int[][] o); 
+	public DD beliefUpdate(M model, DD b, String a, List<String> o); 
 
 }
