@@ -111,7 +111,7 @@ public class Global {
 		Global.varNames.clear();
 		Global.valNames.clear();
 		Global.varDomSize.clear();
-		
+		Global.NUM_VARS = 0;
 		Global.clearHashtables();
 	}
 

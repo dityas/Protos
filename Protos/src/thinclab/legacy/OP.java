@@ -1,6 +1,8 @@
 package thinclab.legacy;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.io.*;
 
 public class OP {
@@ -3593,6 +3595,31 @@ public class OP {
 		}
 
 		return norm;
+	}
+	
+	public static <T> List<List<T>> cartesianProd(List<List<T>> a, List<List<T>> b) {
+	
+		var prod = a.stream()
+				.map(x -> b.stream()
+						.map(y -> Stream.concat(x.stream(), y.stream())
+								.collect(Collectors.toList()))
+						.collect(Collectors.toList()))
+				.flatMap(z -> z.stream())
+				.collect(Collectors.toList());
+		
+		return prod;
+	}
+	
+	public static <T> List<List<T>> cartesianProd(List<List<T>> sets) {
+		
+		var prod = sets.stream()
+				.map(s -> s.stream()
+						.map(t -> Collections.singletonList(t))
+						.collect(Collectors.toList()))
+				.reduce((x, y) -> OP.cartesianProd(x, y))
+				.orElse(new ArrayList<List<T>>(1));
+		
+		return prod;
 	}
 
 }

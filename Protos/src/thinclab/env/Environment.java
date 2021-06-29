@@ -7,7 +7,7 @@
  */
 package thinclab.env;
 
-import thinclab.legacy.DD;
+import java.util.List;
 
 /*
  * @author adityas
@@ -15,6 +15,9 @@ import thinclab.legacy.DD;
  */
 public interface Environment {
 
-	public DD stepStateless(DD previousState);
-	public DD step();
+	public int[] getObsForVars(int[] O);
+
+	public int[] getStateForVars(int[] S);
+
+	public void step(List<String> actions);
 }

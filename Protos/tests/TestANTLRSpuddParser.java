@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.stream.Collectors;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import thinclab.RandomVariable;
 import thinclab.legacy.Global;
+import thinclab.legacy.OP;
 import thinclab.spuddx_parser.SpuddXLexer;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
 
@@ -196,6 +197,37 @@ class TestANTLRSpuddParser {
 
 		var models = parserWrapper.getModels();
 		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
+		printMemConsumption();
+
+		var I = pomdps.get("agentI");
+		var obs = I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList());
+
+		LOGGER.debug(OP.cartesianProd(obs));
+	}
+
+	@Test
+	void testPOMDPObsCartesianSetGeneration() throws Exception {
+
+		System.gc();
+		printMemConsumption();
+
+		LOGGER.info("Running Parser Wrapper POMDP decls parse test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_complete_domain.spudd")
+				.getFile();
+
+		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
+		var randomVars = parserWrapper.getVariableDeclarations();
+
+		Global.primeVarsAndInitGlobals(randomVars);
+
+		var models = parserWrapper.getModels();
+		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
+		
+		var I = pomdps.get("attacker_agent");
+		var obs = I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList());
+		
+		LOGGER.debug(String.format("Obs: %s", obs));
+		LOGGER.debug(String.format("Cartesian prod of obs is: %s", OP.cartesianProd(obs)));
 		printMemConsumption();
 	}
 

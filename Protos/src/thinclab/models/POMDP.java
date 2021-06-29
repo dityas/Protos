@@ -122,7 +122,7 @@ public class POMDP implements Model {
 				Oa[i] = dbn.cpds.get(this.Ovars[i]);
 
 			else
-				Oa[i] = DDnode.getUniformDist(this.Ovars[i] + (Global.NUM_VARS / 2));
+				Oa[i] = DDnode.getUniformDist(this.Ovars[i] + (Global.varNames.size() / 2));
 		}
 
 		return Oa;

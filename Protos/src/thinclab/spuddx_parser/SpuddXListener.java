@@ -97,6 +97,26 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitPomdp_def(SpuddXParser.Pomdp_defContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#env_decl}.
+	 * @param ctx the parse tree
+	 */
+	void enterEnv_decl(SpuddXParser.Env_declContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#env_decl}.
+	 * @param ctx the parse tree
+	 */
+	void exitEnv_decl(SpuddXParser.Env_declContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#env_def}.
+	 * @param ctx the parse tree
+	 */
+	void enterEnv_def(SpuddXParser.Env_defContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#env_def}.
+	 * @param ctx the parse tree
+	 */
+	void exitEnv_def(SpuddXParser.Env_defContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#states_list}.
 	 * @param ctx the parse tree
 	 */
@@ -106,6 +126,16 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitStates_list(SpuddXParser.States_listContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#agents_list}.
+	 * @param ctx the parse tree
+	 */
+	void enterAgents_list(SpuddXParser.Agents_listContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#agents_list}.
+	 * @param ctx the parse tree
+	 */
+	void exitAgents_list(SpuddXParser.Agents_listContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#obs_list}.
 	 * @param ctx the parse tree
@@ -126,6 +156,16 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAction_var(SpuddXParser.Action_varContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#actions_list}.
+	 * @param ctx the parse tree
+	 */
+	void enterActions_list(SpuddXParser.Actions_listContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#actions_list}.
+	 * @param ctx the parse tree
+	 */
+	void exitActions_list(SpuddXParser.Actions_listContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#dynamics}.
 	 * @param ctx the parse tree
@@ -388,6 +428,16 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCpd_def(SpuddXParser.Cpd_defContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#env_name}.
+	 * @param ctx the parse tree
+	 */
+	void enterEnv_name(SpuddXParser.Env_nameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#env_name}.
+	 * @param ctx the parse tree
+	 */
+	void exitEnv_name(SpuddXParser.Env_nameContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#action_name}.
 	 * @param ctx the parse tree
