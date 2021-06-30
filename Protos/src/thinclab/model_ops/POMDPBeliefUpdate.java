@@ -38,20 +38,16 @@ public class POMDPBeliefUpdate implements BeliefUpdate<POMDP> {
 		System.arraycopy(model.TF[a], 0, dynamicsArray, 1, model.Svars.length);
 		System.arraycopy(OFao, 0, dynamicsArray, 1 + model.Svars.length, model.Ovars.length);
 
+		// Sumout[S] P(O'=o| S, A=a) x P(S'| S, A=a) x P(S)
 		DD nextBelState = OP.addMultVarElim(dynamicsArray, model.Svars);
 
 		nextBelState = OP.primeVars(nextBelState, -(Global.NUM_VARS / 2));
 		DD obsProb = OP.addMultVarElim(nextBelState, model.Svars);
-		
-		LOGGER.debug(String.format("Obs prob: %s", obsProb));
-		LOGGER.debug(String.format("next belief: %s", nextBelState));
 
 		if (obsProb.getVal() < 1e-8) return DDleaf.getDD(Float.NaN);
 
-		nextBelState = OP.div(nextBelState,
-				OP.addMultVarElim(nextBelState, model.Svars));
+		nextBelState = OP.div(nextBelState, obsProb);
 
-		LOGGER.debug(String.format("next belief: %s", nextBelState));
 		return nextBelState;
 	}
 
@@ -65,8 +61,6 @@ public class POMDPBeliefUpdate implements BeliefUpdate<POMDP> {
 			obs[0][i] = model.Ovars[i] + (Global.NUM_VARS / 2);
 			obs[1][i] = Global.valNames.get(model.Ovars[i] - 1).indexOf(o.get(i)) + 1;
 		});
-		
-		LOGGER.debug(String.format("obs coded to %s", Arrays.deepToString(obs)));
 		
 		return this.beliefUpdate(model, b, actIndex, obs);
 	}
