@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.model_ops;
+package thinclab.model_ops.belief_update;
 
 import java.util.List;
 import thinclab.legacy.DD;

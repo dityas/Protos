@@ -17,7 +17,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
-import thinclab.model_ops.POMDPBeliefUpdate;
+import thinclab.model_ops.belief_update.POMDPBeliefUpdate;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
 
 /*

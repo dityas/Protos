@@ -21,7 +21,7 @@ import thinclab.belief.BeliefOps;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
-import thinclab.model_ops.POMDPBeliefUpdate;
+import thinclab.model_ops.belief_update.POMDPBeliefUpdate;
 import thinclab.models.POMDP;
 import thinclab.spuddx_parser.ModelsParser;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
