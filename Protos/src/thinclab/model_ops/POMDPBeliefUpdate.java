@@ -7,7 +7,7 @@
  */
 package thinclab.model_ops;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
@@ -31,7 +31,6 @@ public class POMDPBeliefUpdate implements BeliefUpdate<POMDP> {
 
 		DD[] OFao = OP.restrictN(model.OF[a], o);
 		
-		
 		// concat b, TF and OF
 		DD[] dynamicsArray = new DD[1 + model.Svars.length + model.Ovars.length];
 		dynamicsArray[0] = b;
@@ -54,12 +53,12 @@ public class POMDPBeliefUpdate implements BeliefUpdate<POMDP> {
 	@Override
 	public DD beliefUpdate(POMDP model, DD b, String a, List<String> o) {
 
-		int actIndex = model.A.indexOf(a);
+		int actIndex = Collections.binarySearch(model.A, a);
 		int[][] obs = new int[2][model.Ovars.length];
 		
-		IntStream.range(0, o.size()).boxed().forEach(i -> {
+		IntStream.range(0, o.size()).forEach(i -> {
 			obs[0][i] = model.Ovars[i] + (Global.NUM_VARS / 2);
-			obs[1][i] = Global.valNames.get(model.Ovars[i] - 1).indexOf(o.get(i)) + 1;
+			obs[1][i] = Collections.binarySearch(Global.valNames.get(model.Ovars[i] - 1), o.get(i)) + 1;
 		});
 		
 		return this.beliefUpdate(model, b, actIndex, obs);
