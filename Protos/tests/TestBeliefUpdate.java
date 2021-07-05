@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -18,6 +19,7 @@ import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.model_ops.belief_update.POMDPBeliefUpdate;
+import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
 
 /*
@@ -80,11 +82,10 @@ class TestBeliefUpdate {
 		parserWrapper = null;
 
 		var I = pomdps.get("agentI");
-		
-		MutableNetwork<DD, List<String>> beliefGraph = NetworkBuilder.directed()
-				.allowsParallelEdges(true)
-				.allowsSelfLoops(true)
-				.build();
+		var obsVars = Arrays.stream(I.Ovars).mapToObj(i -> Global.valNames.get(i - 1)).collect(Collectors.toList());
+		obsVars.add(Global.valNames.get(I.Avar - 1));
+	
+		var beliefGraph = new ReachabilityGraph(OP.cartesianProd(obsVars));
 		beliefGraph.addNode(I.b);
 		
 		LOGGER.debug(String.format("Graph is %s", beliefGraph));
