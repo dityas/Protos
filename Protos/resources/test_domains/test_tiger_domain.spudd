@@ -1,0 +1,98 @@
+(variables
+	(TigerLoc TL TR)
+	
+	(Growl GL GR)
+	
+	(Agent_actions OL OR L)
+)
+
+(initLoc
+
+	(dd
+		(TigerLoc 	UNIFORM)
+	)
+)
+
+(openDoorDD
+	(dd
+		(TigerLoc' UNIFORM)
+	)
+)
+
+(growlObsDD
+	(dd
+		(TigerLoc'
+			(TL
+				(Growl'
+					(GL 	(0.85))
+					(GR 	(0.15))
+				)
+			)
+			
+			(TR
+				(Growl'
+					(GL 	(0.15))
+					(GR 	(0.85))
+				)
+			)
+		)
+	)
+)
+
+(actionOL
+	(dbn
+		(TigerLoc 	(openDoorDD))
+		(Growl 		(Growl' UNIFORM))
+	)
+)
+
+(actionOR
+	(actionOL)
+)
+
+(actionL
+	(dbn
+		(TigerLoc 	(SAME TigerLoc))
+		(Growl 		(growlObsDD))
+))
+
+(agentI
+	
+	(pomdp
+		(S 	
+			(TigerLoc)
+		)
+	
+		(O
+			(Growl)
+		)
+	
+		(A 	Agent_actions)
+		
+		(dynamics
+			(OL 	(actionOL))
+			(OR 	(actionOR))
+			(L 		(actionL))
+		)
+		
+		(b
+			(initLoc)	
+		)
+		
+		(R
+			(OL 	(TigerLoc
+						(TL 	(-100))
+						(TR 	(10))
+			))
+			
+			(OR		(TigerLoc
+						(TL 	(10))
+						(TR 	(-100))
+			))
+			
+			(L 		(1))
+		)
+		
+		(discount 0.9)	
+	)
+)

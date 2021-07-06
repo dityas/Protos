@@ -7,6 +7,7 @@ grammar SpuddX;
 domain: var_decls
 		(dd_decls)*
 		(model_decl)*
+		(env_decl)?
 		EOF 
 		;
 
@@ -32,9 +33,22 @@ pomdp_def : LP POMDP
 			RP
 			;
 			
+env_decl : LP env_name env_def RP ;
+
+env_def : LP ENV
+		  states_list
+		  obs_list
+		  actions_list
+		  agents_list
+		  dynamics
+		  RP
+		  ;
+			
 states_list	: LP 'S' LP (variable_name)+ RP RP ;
+agents_list : LP 'Agents' LP (variable_name)+ RP RP ;
 obs_list 	: LP 'O' LP (variable_name)+ RP RP ;
 action_var 	: LP 'A' (variable_name)  RP ;
+actions_list 	: LP 'A' LP (variable_name)+ RP RP ;
 
 dynamics : LP 'dynamics' (action_model)+ RP ;
 action_model : LP action_name model_def RP ;
@@ -79,12 +93,14 @@ rv_decl : LP variable_name (var_value)+ RP
 dbn_def : LP DBN (cpd_def)* RP ;
 cpd_def : LP variable_name dd_expr RP ;
 
+env_name : IDENTIFIER ;
 action_name : IDENTIFIER ;
 model_name : IDENTIFIER ;
 dd_name : IDENTIFIER;
 variable_name : IDENTIFIER;
 var_value : IDENTIFIER ;
 
+ENV : 'ENV' | 'env' ;
 DD : 'DD' | 'dd' ;
 POMDP : 'POMDP' | 'pomdp' ;
 DBN : 'DBN' | 'dbn' ;
@@ -95,7 +111,7 @@ OP_MUL : '*' ;
 OP_DIV : '/' ;
 
 IDENTIFIER: [_]?[a-zA-Z][a-zA-Z0-9_']* ;
-FLOAT_NUM: [0-9]*'.'[0-9]+ ;
+FLOAT_NUM: [0-9]*['.']?[0-9]+ ;
 
 LP : '(' ;
 RP : ')' ;

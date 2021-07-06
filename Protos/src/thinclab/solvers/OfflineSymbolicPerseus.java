@@ -71,6 +71,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 		/* try running IPBVI */
 		try {
+
 			this.pCache.resetOscillationTracking();
 			this.SymbolicPerseus(30, 0, this.numDpBackups, beliefs.stream().toArray(DD[]::new));
 
@@ -81,6 +82,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 		}
 
 		catch (Exception e) {
+
 			LOGGER.error("While running solver: " + e.getMessage());
 			e.printStackTrace();
 			System.exit(-1);
@@ -113,6 +115,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 
 			primedV = new DD[alphaVectors.length];
 			for (int i = 0; i < alphaVectors.length; i++) {
+
 				primedV[i] = OP.primeVars(alphaVectors[i], this.p.nVars);
 			}
 
@@ -155,6 +158,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 				count = count + 1;
 
 				if (numNewAlphaVectors == 0) {
+
 					choice = 0;
 				}
 
@@ -196,10 +200,12 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 					newValues = OP.dotProduct(belRegion, newVector.alphaVector, this.f.getStateVarIndices());
 
 					if (numNewAlphaVectors < 1) {
+
 						improvement = Float.POSITIVE_INFINITY;
 					}
 
 					else {
+
 						improvement = OP.max(OP.sub(newValues, OP.getMax(newPointBasedValues, numNewAlphaVectors)));
 					}
 
@@ -235,6 +241,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			}
 
 			for (int j = 0; j < belRegion.length; j++) {
+
 				System.arraycopy(newPointBasedValues[j], 0, currentPointBasedValues[j], 0, numNewAlphaVectors);
 			}
 
@@ -250,6 +257,7 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			Diagnostics.reportCacheSizes();
 
 			if (bellmanErr < this.bestBellmanError) {
+
 				this.bestBellmanError = bellmanErr;
 
 				this.bestAlphaVectors = new DD[this.alphaVectors.length];
@@ -262,16 +270,19 @@ public class OfflineSymbolicPerseus extends OfflinePBVISolver {
 			this.pCache.cachePolicy(this.alphaVectors.length, this.alphaVectors, this.policy);
 
 			if (this.pCache.isOscillating(String.format(Locale.US, "%.05f", bellmanErr))) {
+
 				LOGGER.warn("BELLMAN ERROR " + bellmanErr + " OSCILLATING. PROBABLY CONVERGED.");
 				break;
 			}
 
 			if (bellmanErr < 0.001) {
+
 				LOGGER.warn("BELLMAN ERROR LESS THAN 0.01. PROBABLY CONVERGED.");
 				break;
 			}
 
 			if (stepId > 10 && errorVar < 0.00001) {
+
 				LOGGER.warn("DECLARING APPROXIMATE CONVERGENCE AT ERROR: " + bellmanErr
 						+ " BECAUSE OF LOW ERROR VARIANCE " + errorVar);
 				break;

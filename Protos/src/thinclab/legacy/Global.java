@@ -60,6 +60,8 @@ public class Global {
 
 	public static void addVariable(String varName, List<String> valNames) {
 
+		Collections.sort(valNames);
+		
 		Global.varNames.add(varName);
 		Global.valNames.add(valNames);
 		Global.varDomSize.add(valNames.size());
@@ -111,7 +113,7 @@ public class Global {
 		Global.varNames.clear();
 		Global.valNames.clear();
 		Global.varDomSize.clear();
-		
+		Global.NUM_VARS = 0;
 		Global.clearHashtables();
 	}
 

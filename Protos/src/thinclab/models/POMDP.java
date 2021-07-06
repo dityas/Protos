@@ -16,7 +16,6 @@ import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
-import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 
@@ -26,18 +25,18 @@ import thinclab.legacy.Global;
  */
 public class POMDP implements Model {
 
-	public List<String> S;
-	public List<String> O;
-	public List<String> A;
-	public DD b;
-	public float discount;
+	public final List<String> S;
+	public final List<String> O;
+	public final List<String> A;
+	public final DD b;
+	public final float discount;
 
-	public int[] Svars;
-	public int[] Ovars;
-	public int Avar;
+	public final int[] Svars;
+	public final int[] Ovars;
+	public final int Avar;
 
-	public HashMap<String, DD[]> TF = new HashMap<>(3);
-	public HashMap<String, DD[]> OF = new HashMap<>(3);
+	public final DD[][] TF;
+	public final DD[][] OF;
 	public final DD[] R;
 
 	private static final Logger LOGGER = LogManager.getLogger(POMDP.class);
@@ -69,7 +68,18 @@ public class POMDP implements Model {
 			}
 		});
 
-		this.initializeDynamics(dyn);
+		// Initialize TF and OF
+		this.TF = new DD[this.A.size()][];
+		this.OF = new DD[this.A.size()][];
+
+		for (int i = 0; i < this.A.size(); i++) {
+
+			var tfa = this.getTransitionFunction(dyn.get(this.A.get(i)));
+			var ofa = this.getObsFunction(dyn.get(this.A.get(i)));
+
+			this.TF[i] = tfa;
+			this.OF[i] = ofa;
+		}
 
 		// Initialized Rewards
 		this.R = IntStream.range(0, this.A.size()).boxed().map(i -> {
@@ -112,29 +122,12 @@ public class POMDP implements Model {
 				Oa[i] = dbn.cpds.get(this.Ovars[i]);
 
 			else
-				Oa[i] = DDnode.getUniformDist(this.Ovars[i] + (Global.NUM_VARS / 2));
+				Oa[i] = DDnode.getUniformDist(this.Ovars[i] + (Global.varNames.size() / 2));
 		}
 
 		return Oa;
 	}
-
-	protected void initializeDynamics(HashMap<String, DBN> dynamics) {
-
-		dynamics.entrySet().stream().forEach(e -> {
-
-			if (!Global.valNames.get(this.Avar - 1).contains(e.getKey())) {
-
-				LOGGER.error(String.format("Unknown action %s", e.getKey()));
-				System.exit(-1);
-			}
-
-			this.TF.put(e.getKey(), this.getTransitionFunction(e.getValue()));
-			this.OF.put(e.getKey(), this.getObsFunction(e.getValue()));
-
-		});
-
-	}
-
+	
 	private List<String> sortByVarOrdering(List<String> varList, List<String> ordering) {
 
 		var unknownVar = varList.stream().filter(v -> ordering.indexOf(v) < 0).findFirst();
@@ -152,6 +145,7 @@ public class POMDP implements Model {
 	public String toString() {
 
 		var builder = new StringBuilder();
+		
 		builder.append("POMDP: [").append("\r\n");
 		builder.append("S : ").append(this.S).append("\r\n");
 		builder.append("S vars : ").append(Arrays.toString(this.Svars)).append("\r\n");
@@ -159,14 +153,20 @@ public class POMDP implements Model {
 		builder.append("O vars : ").append(Arrays.toString(this.Ovars)).append("\r\n");
 		builder.append("A : ").append(this.A).append("\r\n");
 		builder.append("A var : ").append(this.Avar).append("\r\n");
-		builder.append("T funct. : ").append(this.TF).append("\r\n");
-		builder.append("O funct. : ").append(this.OF).append("\r\n");
+		
+		builder.append("TF funct. : ").append("\r\n");
+		IntStream.range(0, this.TF.length).boxed().forEach(i -> builder.append("\t").append(i).append(" - ")
+				.append(this.A.get(i)).append(" : ").append(this.TF[i]).append("\r\n"));
+
+		builder.append("OF funct. : ").append(this.OF).append("\r\n");
+		IntStream.range(0, this.OF.length).boxed().forEach(i -> builder.append("\t").append(i).append(" - ")
+				.append(this.A.get(i)).append(" : ").append(this.OF[i]).append("\r\n"));
 
 		builder.append("R : ").append("\r\n");
-		IntStream.range(0, this.R.length).boxed()
-			.forEach(i -> builder.append("\t").append(i).append(" - ")
-					.append(this.A.get(i)).append(" : ").append(this.R[i]).append("\r\n"));
-		//this.R.forEach((a, r) -> builder.append("\t").append(a).append(" : ").append(r).append("\r\n"));
+		IntStream.range(0, this.R.length).boxed().forEach(i -> builder.append("\t").append(i).append(" - ")
+				.append(this.A.get(i)).append(" : ").append(this.R[i]).append("\r\n"));
+		// this.R.forEach((a, r) -> builder.append("\t").append(a).append(" :
+		// ").append(r).append("\r\n"));
 
 		builder.append("b : ").append(this.b).append("\r\n");
 		builder.append("discount : ").append(this.discount).append("\r\n");
