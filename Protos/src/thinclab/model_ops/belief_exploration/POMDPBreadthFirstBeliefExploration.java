@@ -7,7 +7,6 @@
  */
 package thinclab.model_ops.belief_exploration;
 
-import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.model_ops.belief_update.BeliefUpdate;
@@ -21,21 +20,18 @@ import thinclab.models.datastructures.ReachabilityGraph;
 public class POMDPBreadthFirstBeliefExploration implements ExplorationStrategy<POMDP> {
 
 	public final int maxB;
-	private final List<List<String>> aoEdges;
 
 	private static final Logger LOGGER = LogManager.getLogger(POMDPBreadthFirstBeliefExploration.class);
 
-	public POMDPBreadthFirstBeliefExploration(final List<List<String>> edges) {
+	public POMDPBreadthFirstBeliefExploration() {
 
 		this.maxB = 100;
-		this.aoEdges = edges;
 		LOGGER.info(String.format("Initialized POMDP breadth first belief explorer for max beliefs %s", this.maxB));
 	}
 
-	public POMDPBreadthFirstBeliefExploration(int maxB, final List<List<String>> edges) {
+	public POMDPBreadthFirstBeliefExploration(int maxB) {
 
 		this.maxB = maxB;
-		this.aoEdges = edges;
 		LOGGER.info(String.format("Initialized POMDP breadth first belief explorer for max beliefs %s", this.maxB));
 	}
 
@@ -44,7 +40,7 @@ public class POMDPBreadthFirstBeliefExploration implements ExplorationStrategy<P
 
 		RG.getChildren().stream().forEach(b -> {
 
-			aoEdges.stream().forEach(e -> {
+			RG.edgeIndexMap.keySet().stream().forEach(e -> {
 
 				if (RG.getNodeAtEdge(b, e).isEmpty() && RG.connections.size() < this.maxB) {
 

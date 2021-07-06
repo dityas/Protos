@@ -101,7 +101,7 @@ class TestBeliefUpdate {
 		beliefGraph.addNode(I.b);
 		
 		// Initialize belief exploration
-		var BE = new POMDPBreadthFirstBeliefExploration(20, aoSpace);
+		var BE = new POMDPBreadthFirstBeliefExploration(20);
 		
 		long then = System.nanoTime();
 		for (int i = 0; i < 20; i++)
@@ -111,6 +111,7 @@ class TestBeliefUpdate {
 		float T = (now - then) / 1000.0f;
 		LOGGER.debug(String.format("BFS expansion took %s us", T));
 		
+		assertTrue(beliefGraph.getAllNodes().size() <= 20);
 		LOGGER.debug(String.format("Graph is %s", beliefGraph));
 		printMemConsumption();
 	}
