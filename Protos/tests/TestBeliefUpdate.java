@@ -18,6 +18,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.model_ops.belief_exploration.POMDPBreadthFirstBeliefExploration;
 import thinclab.model_ops.belief_update.POMDPBeliefUpdate;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
@@ -69,11 +70,14 @@ class TestBeliefUpdate {
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
 				.getFile();
 
+		// Parse domain
 		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
 		var randomVars = parserWrapper.getVariableDeclarations();
 
+		// Initialize random variables
 		Global.primeVarsAndInitGlobals(randomVars);
 
+		// Get POMDP models
 		var models = parserWrapper.getModels();
 		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
 
@@ -81,12 +85,31 @@ class TestBeliefUpdate {
 		models = null;
 		parserWrapper = null;
 
+		// Get agent I
 		var I = pomdps.get("agentI");
+		
+		// Initialize belief update mechanism
+		var BU = new POMDPBeliefUpdate();
+		
+		// Make action observation space for agent I
 		var obsVars = Arrays.stream(I.Ovars).mapToObj(i -> Global.valNames.get(i - 1)).collect(Collectors.toList());
 		obsVars.add(Global.valNames.get(I.Avar - 1));
+		var aoSpace = OP.cartesianProd(obsVars);
 	
-		var beliefGraph = new ReachabilityGraph(OP.cartesianProd(obsVars));
+		// Make belief region for agent I
+		var beliefGraph = new ReachabilityGraph(aoSpace);
 		beliefGraph.addNode(I.b);
+		
+		// Initialize belief exploration
+		var BE = new POMDPBreadthFirstBeliefExploration(20, aoSpace);
+		
+		long then = System.nanoTime();
+		for (int i = 0; i < 20; i++)
+			beliefGraph = BE.expandRG(I, BU, beliefGraph);
+		
+		long now = System.nanoTime();
+		float T = (now - then) / 1000.0f;
+		LOGGER.debug(String.format("BFS expansion took %s us", T));
 		
 		LOGGER.debug(String.format("Graph is %s", beliefGraph));
 		printMemConsumption();

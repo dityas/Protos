@@ -7,11 +7,10 @@
  */
 package thinclab.models.datastructures;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /*
  * @author adityas
@@ -19,8 +18,8 @@ import java.util.Set;
  */
 public abstract class AbstractAOGraph<N, E> implements ActionObservationGraph<N, E> {
 
-	public HashMap<E, Integer> edgeIndexMap;
-	public HashMap<N, List<N>> connections;
+	public ConcurrentHashMap<E, Integer> edgeIndexMap;
+	public ConcurrentHashMap<N, ConcurrentHashMap<Integer, N>> connections;
 
 	@Override
 	public boolean addNode(N node) {
@@ -30,7 +29,7 @@ public abstract class AbstractAOGraph<N, E> implements ActionObservationGraph<N,
 
 		else {
 
-			this.connections.put(node, null);
+			this.connections.put(node, new ConcurrentHashMap<>());
 			return true;
 		}
 	}
@@ -39,9 +38,10 @@ public abstract class AbstractAOGraph<N, E> implements ActionObservationGraph<N,
 	public void addEdge(N parent, E edge, N child) {
 
 		if (this.addNode(parent) || this.connections.get(parent) == null)
-			this.connections.replace(parent, new ArrayList<>(this.edgeIndexMap.size()));
+			this.connections.replace(parent, new ConcurrentHashMap<>(this.edgeIndexMap.size()));
 
-		this.connections.get(parent).add(this.edgeIndexMap.get(edge), child);
+		this.addNode(child);
+		this.connections.get(parent).put(this.edgeIndexMap.get(edge), child);
 	}
 
 	@Override
@@ -56,8 +56,23 @@ public abstract class AbstractAOGraph<N, E> implements ActionObservationGraph<N,
 	}
 
 	@Override
-	public Set<N> getNodeSet() {
+	public Set<N> getParents() {
+
+		return this.connections.keySet().stream().filter(b -> this.connections.get(b).size() > 0)
+				.collect(Collectors.toSet());
+	}
+
+	@Override
+	public Set<N> getChildren() {
+
+		return this.connections.keySet().stream().filter(b -> this.connections.get(b).size() == 0)
+				.collect(Collectors.toSet());
+	}
+
+	@Override
+	public Set<N> getAllNodes() {
 
 		return this.connections.keySet();
 	}
+
 }

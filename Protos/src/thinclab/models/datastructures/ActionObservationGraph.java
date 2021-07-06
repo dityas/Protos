@@ -22,6 +22,10 @@ public interface ActionObservationGraph<N, E> {
 
 	public Optional<N> getNodeAtEdge(N parent, E edge);
 
-	public Set<N> getNodeSet();
+	public Set<N> getParents();
+
+	public Set<N> getChildren();
+
+	public Set<N> getAllNodes();
 
 }
