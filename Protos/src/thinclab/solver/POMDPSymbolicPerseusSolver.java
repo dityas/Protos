@@ -7,23 +7,25 @@
  */
 package thinclab.solver;
 
+import java.util.Collection;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
-import thinclab.model_ops.belief_exploration.POMDPBreadthFirstBeliefExploration;
+import thinclab.model_ops.belief_exploration.ExplorationStrategy;
 import thinclab.model_ops.belief_update.BeliefUpdate;
 import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
+import thinclab.utils.Tuple;
 
 /*
  * @author adityas
  *
  */
-public class POMDPSymbolicPerseusSolver
-		implements PBVIBasedSolver<POMDP, ReachabilityGraph, POMDPBreadthFirstBeliefExploration, AlphaVectorPolicy> {
+public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 
 	public final int backups;
 
@@ -41,9 +43,19 @@ public class POMDPSymbolicPerseusSolver
 		LOGGER.info(String.format("Initialized %s for %s backups", POMDPSymbolicPerseusSolver.class, this.backups));
 	}
 
+	protected Tuple<Integer, DD> backup(DD b) {
+
+		return null;
+	}
+	
+	protected void solverForBeliefs(Collection<DD> beliefRegion) {
+
+		
+	}
+
 	@Override
 	public AlphaVectorPolicy solve(POMDP m, BeliefUpdate<POMDP> BU, ReachabilityGraph RG,
-			POMDPBreadthFirstBeliefExploration ES) {
+			ExplorationStrategy<POMDP> ES) {
 
 		// expand reachability graph to generate beliefs
 		RG = ES.expandRG(m, BU, RG);
