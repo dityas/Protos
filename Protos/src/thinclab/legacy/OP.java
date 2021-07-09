@@ -2167,6 +2167,39 @@ public class OP {
 		return DDnode.getDD(dd.getVar(), children);
 	}
 
+	// same OP.restrict extended to collections and more managable var
+	// representations
+	public static DD restrict(DD dd, int[] vars, int[] vals) {
+
+		return null;
+	}
+
+	public static DD restrict(DD dd, List<Integer> vars, List<Integer> vals) {
+
+		if (dd.getVar() == 0)
+			return dd;
+
+		int varIndex = vars.indexOf(dd.getVar());
+		if (varIndex >= 0) {
+
+			vars.remove(varIndex);
+			int val = vals.remove(varIndex);
+
+			if (vars.size() == 0)
+				return dd.getChildren()[val - 1];
+
+			else
+				return OP.restrict(dd.getChildren()[val - 1], vars, vals);
+		}
+		
+		DD[] children = new DD[dd.getChildren().length];
+		for (int i = 0; i < children.length; i++) {
+			children[i] = OP.restrict(dd.getChildren()[i], vars, vals);
+		}
+
+		return DDnode.getDD(dd.getVar(), children);
+	}
+
 	//////////////////////////////////////////////////////
 	// restrictOrdered (faster restrict fn that assumes a variable ordering)
 	//////////////////////////////////////////////////////
@@ -3626,10 +3659,11 @@ public class OP {
 
 			return result;
 		}
-		
+
 		else {
-			return dds1.parallelStream()
-					.map(d1 -> dds2.parallelStream().map(d2 -> OP.dotProduct(d1, d2, vars)).collect(Collectors.toList()))
+
+			return dds1.parallelStream().map(
+					d1 -> dds2.parallelStream().map(d2 -> OP.dotProduct(d1, d2, vars)).collect(Collectors.toList()))
 					.collect(Collectors.toList());
 		}
 	}

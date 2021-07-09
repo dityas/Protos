@@ -7,8 +7,12 @@
  */
 package thinclab.solver;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
@@ -42,15 +46,68 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 		this.backups = 10;
 		LOGGER.info(String.format("Initialized %s for %s backups", POMDPSymbolicPerseusSolver.class, this.backups));
 	}
+	
+	// ---------------------------------------------------------------------------------------------------------
 
-	protected Tuple<Integer, DD> backup(DD b) {
+	protected DD[] GammaAOa(POMDP m, DD aPrime) {
+
+		/*
+		 * For a given \alpha(S) vector, compute
+		 * 
+		 * gaoa = Sumout[S'] P(O'|S', a) P(S'|S, a) \alpha(S') for each a in A
+		 */
+		DD[] factors = new DD[m.Svars.length + m.Ovars.length + 1];
+		DD[] GAOa = new DD[m.A.size()];
+
+		for (int a = 0; a < m.A.size(); a++) {
+
+			factors[0] = aPrime;
+			System.arraycopy(m.TF[a], 0, factors, 1, m.Svars.length);
+			System.arraycopy(m.OF[a], 0, factors, 1 + m.Svars.length, m.Ovars.length);
+
+			GAOa[a] = OP.addMultVarElim(factors, Arrays.stream(m.Svars).map(i -> i + (Global.NUM_VARS / 2)).toArray());
+		}
+
+		return GAOa;
+	}
+
+	protected List<DD[]> Gao(final POMDP m, final List<List<Integer>> ao, List<DD> aPrimes) {
+
+		var GAO = aPrimes.stream().parallel().map(aP -> this.GammaAOa(m, aP)).collect(Collectors.toList());
+		return GAO;
+	}
+
+	protected List<DD[]> Gab(final DD b, final List<List<Integer>> ao, final POMDP m, List<DD> aPrimes) {
+
+		var OvarsP = Arrays.stream(m.Ovars).map(o -> o + (Global.NUM_VARS / 2)).toArray();
+		var bestGammaAO = this.Gao(m, aPrimes).stream().parallel()
+				.map(gao -> IntStream.range(0, gao.length)
+						.mapToObj(i -> new Tuple<Integer, Float>(i, OP.dotProduct(b, gao[i], m.Svars)))
+						.collect(Collectors.toList()))
+				.collect(Collectors.toList());
+
+		LOGGER.debug(String.format("GammaAO is %s", bestGammaAO));
 
 		return null;
 	}
-	
-	protected void solverForBeliefs(Collection<DD> beliefRegion) {
 
-		
+	protected void backup(final DD b, final List<List<Integer>> ao, final POMDP m, List<DD> aVectors) {
+
+		// compute \alpha'(S)
+		var aPrimes = aVectors.stream().map(a -> OP.primeVars(a, (Global.NUM_VARS / 2))).collect(Collectors.toList());
+		var dummy = this.Gab(b, m, aPrimes);
+	}
+
+	protected void solveForBeliefs(final POMDP m, final List<List<Integer>> ao, List<DD> beliefRegion,
+			final List<DD> prevAVecs) {
+
+		while (beliefRegion.size() > 0) {
+
+			DD b = beliefRegion.remove(Global.random.nextInt(beliefRegion.size()));
+			backup(b, ao, m, prevAVecs);
+			break;
+		}
+
 	}
 
 	@Override
@@ -60,22 +117,20 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 		// expand reachability graph to generate beliefs
 		RG = ES.expandRG(m, BU, RG);
 
-		// get initial policy
-		var P = AlphaVectorPolicy.fromR(m.R);
+		// generate A x O values to compute \Gamma_{a, o}. Contrary to the usual
+		// cartesian product of values, here I used indices to pass to OP.restrict
+		var aoIndices = new ArrayList<List<Integer>>(m.Ovars.length + 1);
+		aoIndices.add(IntStream.range(0, m.A.size()).boxed().collect(Collectors.toList()));
+		aoIndices.addAll(Arrays.stream(m.Ovars).mapToObj(i -> IntStream.range(0, Global.valNames.get(i - 1).size())
+				.mapToObj(o -> o + 1).collect(Collectors.toList())).collect(Collectors.toList()));
 
-		// compute point based values
-		var PBVs = OP.dotProd(RG.getAllNodes(), P.aVecs.stream().map(a -> a.second()).collect(Collectors.toList()),
-				m.Svars);
+		var ao = OP.cartesianProd(aoIndices);
 
-		LOGGER.debug(String.format("PBVs are: %s", PBVs));
+		// get first set of alpha vectors
+		var alphas = AlphaVectorPolicy.fromR(m.R).aVecs.stream().map(a -> a.second()).collect(Collectors.toList());
 
-		for (int i = 0; i < this.backups; i++) {
-
-			// compute Vprime
-			var Vprime = P.aVecs.stream().map(a -> OP.primeVars(a.second(), (Global.NUM_VARS / 2)))
-					.collect(Collectors.toList());
-
-		}
+		// perform backups
+		this.solveForBeliefs(m, ao, new ArrayList<DD>(RG.getAllNodes()), alphas);
 
 		// TODO Auto-generated method stub
 		return null;
