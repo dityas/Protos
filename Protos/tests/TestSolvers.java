@@ -53,7 +53,7 @@ class TestSolvers {
 	}
 
 	@Test
-	void testTigerProblemSSGABeliefExploration() throws Exception {
+	void testBasicPOMDPPerseusSolver() throws Exception {
 
 		System.gc();
 

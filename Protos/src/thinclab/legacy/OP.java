@@ -2174,7 +2174,7 @@ public class OP {
 		return null;
 	}
 
-	public static DD restrict(DD dd, List<Integer> vars, List<Integer> vals) {
+	public static DD restrict(DD dd, final List<Integer> vars, final List<Integer> vals) {
 
 		if (dd.getVar() == 0)
 			return dd;
@@ -2182,22 +2182,38 @@ public class OP {
 		int varIndex = vars.indexOf(dd.getVar());
 		if (varIndex >= 0) {
 
-			vars.remove(varIndex);
-			int val = vals.remove(varIndex);
+			var vars_ = new ArrayList<>(vars);
+			var vals_ = new ArrayList<>(vals);
 
-			if (vars.size() == 0)
+			vars_.remove(varIndex);
+			int val = vals_.remove(varIndex);
+
+			if (vars_.size() == 0)
 				return dd.getChildren()[val - 1];
 
 			else
-				return OP.restrict(dd.getChildren()[val - 1], vars, vals);
+				return OP.restrict(dd.getChildren()[val - 1], vars_, vals_);
 		}
-		
+
 		DD[] children = new DD[dd.getChildren().length];
 		for (int i = 0; i < children.length; i++) {
+
 			children[i] = OP.restrict(dd.getChildren()[i], vars, vals);
 		}
 
 		return DDnode.getDD(dd.getVar(), children);
+	}
+
+	public static DD[] restrict(DD[] dds, final List<Integer> vars, final List<Integer> vals) {
+
+		DD[] result = new DD[dds.length];
+
+		for (int i = 0; i < result.length; i++) {
+
+			result[i] = OP.restrict(dds[i], vars, vals);
+		}
+
+		return result;
 	}
 
 	//////////////////////////////////////////////////////
