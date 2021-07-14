@@ -92,21 +92,14 @@ class TestSolvers {
 		beliefGraph.addNode(I.b);
 
 		// Initialize belief exploration
-		var BE = new POMDPBreadthFirstBeliefExploration(200);
-
-		for (int i = 0; i < 10; i++)
-			beliefGraph = BE.expandRG(I, BU, beliefGraph);
+		var BE = new POMDPBreadthFirstBeliefExploration(100);
 		
-		var solver = new POMDPSymbolicPerseusSolver();
+		var solver = new POMDPSymbolicPerseusSolver(100);
+		var policy = solver.solve(I, BU, beliefGraph, BE);
 		
-		long then = System.nanoTime();
-		solver.solve(I, BU, beliefGraph, BE);
-		long now = System.nanoTime();
+		assertTrue(policy.aVecs.size() == 5);
 		
-		float T = (now - then) / 1000.0f;
-		LOGGER.debug(String.format("solver took %s us", T));
-
-		LOGGER.debug(String.format("Graph contains %s nodes", beliefGraph.getAllNodes().size()));
+		LOGGER.debug(String.format("Solved policy is %s", policy));
 		printMemConsumption();
 	}
 }

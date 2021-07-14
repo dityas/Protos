@@ -3,6 +3,7 @@ package thinclab.legacy;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import thinclab.utils.Tuple;
 import java.io.*;
 
 public class OP {
@@ -752,7 +753,7 @@ public class OP {
 		if (dd1.getVar() == dd2.getVar()) {
 
 			TripletSet triplet = new TripletSet(dd1, dd2, vars);
-			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
+			Float storedResult = (Float) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
 				return storedResult.floatValue();
 
@@ -762,7 +763,7 @@ public class OP {
 
 				dp += OP.dotProductLeafPrune(dd1.getChildren()[i], dd2.getChildren()[i], remainingVars);
 			}
-			Global.dotProductHashtable.put(triplet, new Double(dp));
+			Global.dotProductHashtable.put(triplet, dp);
 			return dp;
 		}
 
@@ -770,7 +771,7 @@ public class OP {
 		if (dd1.getVar() > dd2.getVar()) {
 
 			TripletSet triplet = new TripletSet(dd1, dd2, vars);
-			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
+			Float storedResult = (Float) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
 				return storedResult.floatValue();
 
@@ -780,7 +781,7 @@ public class OP {
 
 				dp += OP.dotProductLeafPrune(dd1.getChildren()[i], dd2, remainingVars);
 			}
-			Global.dotProductHashtable.put(triplet, new Double(dp));
+			Global.dotProductHashtable.put(triplet, dp);
 			return dp;
 		}
 
@@ -788,7 +789,7 @@ public class OP {
 		else {
 
 			TripletSet triplet = new TripletSet(dd1, dd2, vars);
-			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
+			Float storedResult = (Float) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
 				return storedResult.floatValue();
 
@@ -798,7 +799,7 @@ public class OP {
 
 				dp += OP.dotProductLeafPrune(dd1, dd2.getChildren()[i], remainingVars);
 			}
-			Global.dotProductHashtable.put(triplet, new Double(dp));
+			Global.dotProductHashtable.put(triplet, dp);
 			return dp;
 		}
 
@@ -871,8 +872,8 @@ public class OP {
 		// dd1 precedes dd2
 		if (dd1.getVar() > dd2.getVar()) {
 
-			TripletSet triplet = new TripletSet(dd1, dd2, vars);
-			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
+			var triplet = new TripletSet(dd1, dd2, vars);
+			Float storedResult = (Float) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
 				return storedResult.floatValue();
 
@@ -882,7 +883,7 @@ public class OP {
 
 				dp += OP.dotProduct(dd1.getChildren()[i], dd2, remainingVars);
 			}
-			Global.dotProductHashtable.put(triplet, new Double(dp));
+			Global.dotProductHashtable.put(triplet, dp);
 			return dp;
 		}
 
@@ -890,7 +891,7 @@ public class OP {
 		else if (dd2.getVar() > dd1.getVar()) {
 
 			TripletSet triplet = new TripletSet(dd1, dd2, vars);
-			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
+			Float storedResult = (Float) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
 				return storedResult.floatValue();
 
@@ -900,7 +901,7 @@ public class OP {
 
 				dp += OP.dotProduct(dd2.getChildren()[i], dd1, remainingVars);
 			}
-			Global.dotProductHashtable.put(triplet, new Double(dp));
+			Global.dotProductHashtable.put(triplet, dp);
 			return dp;
 		}
 
@@ -908,7 +909,7 @@ public class OP {
 		else if (dd1.getVar() > 0) {
 
 			TripletSet triplet = new TripletSet(dd1, dd2, vars);
-			Double storedResult = (Double) Global.dotProductHashtable.get(triplet);
+			Float storedResult = (Float) Global.dotProductHashtable.get(triplet);
 			if (storedResult != null)
 				return storedResult.floatValue();
 
@@ -918,7 +919,7 @@ public class OP {
 
 				dp += OP.dotProduct(dd1.getChildren()[i], dd2.getChildren()[i], remainingVars);
 			}
-			Global.dotProductHashtable.put(triplet, new Double(dp));
+			Global.dotProductHashtable.put(triplet, new Float(dp));
 			return dp;
 		}
 
@@ -1076,7 +1077,7 @@ public class OP {
 							* OP.factoredExpectationSparse(factDistArray, children[i], hashtable);
 				}
 			}
-			hashtable.put(dd, new Double(result));
+			hashtable.put(dd, new Float(result));
 			return result;
 		}
 	}
@@ -3682,6 +3683,20 @@ public class OP {
 					d1 -> dds2.parallelStream().map(d2 -> OP.dotProduct(d1, d2, vars)).collect(Collectors.toList()))
 					.collect(Collectors.toList());
 		}
+	}
+	
+	public static float value_b(List<Tuple<Integer, DD>> Vn, DD b, int[] Svars) {
+		
+		float maxVal = Float.NEGATIVE_INFINITY;
+		
+		for (int i = 0; i < Vn.size(); i++) {
+			
+			float val = OP.dotProduct(b, Vn.get(i).second(), Svars);
+			
+			if (val > maxVal) maxVal = val;
+		}
+		
+		return maxVal;
 	}
 
 }

@@ -39,6 +39,11 @@ public class AlphaVectorPolicy implements Policy {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	@Override
+	public String toString() {
+		return aVecs.toString();
+	}
 
 	public static AlphaVectorPolicy fromR(DD[] R) {
 

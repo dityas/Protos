@@ -9,14 +9,9 @@ package thinclab.solver;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
@@ -37,6 +32,8 @@ import thinclab.utils.Tuple;
 public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 
 	public final int backups;
+
+	private int usedBeliefs = 0;
 
 	// Internal variables used during backup operations
 	// private List<Integer> _OvarsList;
@@ -61,7 +58,7 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 	// ---------------------------------------------------------------------------------------------------------
 
 	protected Tuple<Float, DD> Gaoi(POMDP m, final DD b, final int actIndex, final List<Integer> OPVars,
-			final List<List<Integer>> o, final List<DD> aPrimes) {
+			final List<List<Integer>> o, List<DD> aPrimes) {
 
 		/*
 		 * For a given \alpha(S) vector, compute
@@ -98,7 +95,7 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 				.orElseGet(() -> new Tuple<>(Float.NaN, DDleaf.getDD(Float.NaN)));
 	}
 
-	protected Tuple<Float, DD> Gab(final POMDP m, final DD b, List<DD> aPrimes) {
+	protected Tuple<Integer, DD> Gab(final POMDP m, final DD b, List<DD> aPrimes) {
 
 		// Compute indexes for primed observation variables to do perform addouts later
 		var OPVars = Arrays.stream(m.Ovars).boxed().map(o -> o + (Global.NUM_VARS / 2)).collect(Collectors.toList());
@@ -115,57 +112,108 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 		var Gao = actionStream.mapToObj(_a -> this.Gaoi(m, b, _a, OPVars, oList, aPrimes)).collect(Collectors.toList());
 		var Ga = Arrays.stream(m.R).map(r -> new Tuple<>(OP.dotProduct(b, r, m.Svars), r)).collect(Collectors.toList());
 
-		var gab = IntStream.range(0, m.A.size()).boxed().map(i -> new Tuple<>(Ga.get(i).first() + Gao.get(i).first(),
-				OP.add(Ga.get(i).second(), Gao.get(i).second())));
-		
-		return gab.reduce((a1, a2) -> a1.first() >= a2.first() ? a1 : a2).orElseGet(() -> new Tuple<>(Float.NaN, DDleaf.getDD(Float.NaN)));
+		// compute best Ga + Gao and construct \alpha vector
+		int bestA = -1;
+		float bestVal = Float.NEGATIVE_INFINITY;
+		DD bestAlpha = DDleaf.getDD(Float.NaN);
+
+		for (int i = 0; i < m.A.size(); i++) {
+
+			var val = Ga.get(i).first() + Gao.get(i).first();
+			if (val > bestVal) {
+
+				bestA = i;
+				bestVal = val;
+				bestAlpha = OP.add(Ga.get(i).second(), Gao.get(i).second());
+			}
+		}
+
+		return new Tuple<>(bestA, bestAlpha);
 	}
 
-	protected void backup(final POMDP m, final DD b, List<DD> aVectors) {
+	protected Tuple<Integer, DD> backup(final POMDP m, final DD b, List<DD> aVectors) {
 
 		// compute \alpha'(S)
-		LOGGER.debug(String.format("Belief is %s", b));
 		var aPrimes = aVectors.stream().map(a -> OP.primeVars(a, (Global.NUM_VARS / 2))).collect(Collectors.toList());
-		var newAlpha = this.Gab(m, b, aPrimes);
-		LOGGER.debug(String.format("new alpha is %s", newAlpha));
+		return this.Gab(m, b, aPrimes);
 	}
 
-	protected void solveForBeliefs(final POMDP m, final List<List<Integer>> ao, List<DD> beliefRegion,
-			final List<DD> prevAVecs) {
+	protected List<Tuple<Integer, DD>> solveForBeliefs(final POMDP m, List<DD> beliefRegion,
+			List<Tuple<Integer, DD>> prevAVecs) {
+
+		List<Tuple<Integer, DD>> newVn = new ArrayList<>(10);
+		this.usedBeliefs = 0;
 
 		while (beliefRegion.size() > 0) {
 
 			DD b = beliefRegion.remove(Global.random.nextInt(beliefRegion.size()));
-			backup(m, b, prevAVecs);
-			//backup(m, b, prevAVecs);
-			break;
+			var newAlpha = backup(m, b, prevAVecs.stream().map(a -> a.second()).collect(Collectors.toList()));
+
+			// Construct V_{n+1}(b)
+			var Vnb = prevAVecs.stream()
+					.map(a -> new Tuple<Float, Tuple<Integer, DD>>(OP.dotProduct(b, a.second(), m.Svars), a))
+					.reduce((v1, v2) -> v1.first() >= v2.first() ? v1 : v2)
+					.orElseGet(() -> new Tuple<>(Float.NaN, new Tuple<>(-1, DDleaf.getDD(Float.NaN))));
+
+			var newAlphab = OP.dotProduct(b, newAlpha.second(), m.Svars);
+
+			// If new \alpha.b > Vn(b) add it to new V
+			if (newAlphab > Vnb.first())
+				newVn.add(newAlpha);
+
+			else
+				newVn.add(Vnb.second());
+
+			beliefRegion = beliefRegion.stream()
+					.filter(_b -> OP.value_b(prevAVecs, _b, m.Svars) > OP.value_b(newVn, _b, m.Svars))
+					.collect(Collectors.toList());
+
+			this.usedBeliefs++;
 		}
 
+		return newVn;
 	}
 
 	@Override
 	public AlphaVectorPolicy solve(POMDP m, BeliefUpdate<POMDP> BU, ReachabilityGraph RG,
 			ExplorationStrategy<POMDP> ES) {
 
-		// expand reachability graph to generate beliefs
-		RG = ES.expandRG(m, BU, RG);
 
-		// generate A x O values to compute \Gamma_{a, o}. Contrary to the usual
-		// cartesian product of values, here I used indices to pass to OP.restrict
-		var aoIndices = new ArrayList<List<Integer>>(m.Ovars.length + 1);
-		aoIndices.add(IntStream.range(0, m.A.size()).boxed().collect(Collectors.toList()));
-		aoIndices.addAll(Arrays.stream(m.Ovars).mapToObj(i -> IntStream.range(0, Global.valNames.get(i - 1).size())
-				.mapToObj(o -> o + 1).collect(Collectors.toList())).collect(Collectors.toList()));
+		List<Tuple<Integer, DD>> Vn = AlphaVectorPolicy.fromR(m.R).aVecs;
 
-		var ao = OP.cartesianProd(aoIndices); // .stream().map(p -> p.stream().toArray()).collect(Collectors.toList());
+		for (int i = 0; i < this.backups; i++) {
 
-		// get first set of alpha vectors
-		var alphas = AlphaVectorPolicy.fromR(m.R).aVecs.stream().map(a -> a.second()).collect(Collectors.toList());
+			// expand reachability graph to grenerate new belief points
+			//if (i % 10 == 0)
+			RG = ES.expandRG(m, BU, RG);
+			
+			var beliefRegion = new ArrayList<DD>(RG.getAllNodes());
+			
+			long then = System.nanoTime();
 
-		// perform backups
-		this.solveForBeliefs(m, ao, new ArrayList<DD>(RG.getAllNodes()), alphas);
+			// perform backups
+			var newVn = this.solveForBeliefs(m, new ArrayList<DD>(beliefRegion), Vn);
+			
+			float backupT = (System.nanoTime() - then) / 1000;
+			float bellmanError = beliefRegion.stream()
+					.map(_b -> Math.abs(OP.value_b(Vn, _b, m.Svars) - OP.value_b(newVn, _b, m.Svars)))
+					.reduce((v1, v2) -> v1 > v2 ? v1 : v2).orElseGet(() -> Float.NaN);
+
+			// prepare for next iter
+			Vn.clear();
+			Vn.addAll(newVn);
+
+			LOGGER.info(String.format("iter: %s | bell err: %.5f | time: %s usec | num vectors: %s | beliefs used: %s/%s", i,
+					bellmanError, backupT, newVn.size(), this.usedBeliefs, beliefRegion.size()));
+			
+			if (bellmanError < 0.001 && i > 5) {
+				
+				LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));
+				break;
+			}
+		}
 
 		// TODO Auto-generated method stub
-		return null;
+		return new AlphaVectorPolicy(Vn);
 	}
 }
