@@ -36,8 +36,7 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 	private int usedBeliefs = 0;
 
 	// Internal variables used during backup operations
-	// private List<Integer> _OvarsList;
-	// private List<List<Integer>> _ao;
+	private int[] SPVars = null;
 
 	// -------------------------------------------------------------------------------------------------------
 
@@ -66,7 +65,6 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 		 * g_{ao}i = \Sum_{S'} P(O'|S', a) P(S'|S, a) \alpha(S') for each a in A
 		 */
 
-		var SPVars = Arrays.stream(m.Svars).map(s -> s + (Global.NUM_VARS / 2)).toArray();
 
 		DD[] factors = new DD[m.Svars.length + m.Ovars.length + 1];
 		List<Tuple<Float, DD>> Gaoi = new ArrayList<>(o.size());
@@ -83,7 +81,7 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 				System.arraycopy(OP.restrict(m.OF[actIndex], OPVars, o.get(obs)), 0, factors, 1 + m.Svars.length,
 						m.Ovars.length);
 
-				DD gaoi = OP.mult(DDleaf.getDD(m.discount), OP.addMultVarElim(factors, SPVars));
+				DD gaoi = OP.mult(DDleaf.getDD(m.discount), OP.addMultVarElim(factors, this.SPVars));
 				_Gaoi.add(new Tuple<Float, DD>(OP.dotProduct(b, gaoi, m.Svars), gaoi));
 			}
 
@@ -97,7 +95,7 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 
 	protected Tuple<Integer, DD> Gab(final POMDP m, final DD b, List<DD> aPrimes) {
 
-		// Compute indexes for primed observation variables to do perform addouts later
+		// Compute indexes for primed observation variables to perform addouts later
 		var OPVars = Arrays.stream(m.Ovars).boxed().map(o -> o + (Global.NUM_VARS / 2)).collect(Collectors.toList());
 		var oList = OP.cartesianProd(Arrays.stream(m.Ovars).mapToObj(
 				o -> IntStream.range(1, Global.valNames.get(o - 1).size() + 1).boxed().collect(Collectors.toList()))
@@ -177,7 +175,9 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 	@Override
 	public AlphaVectorPolicy solve(POMDP m, BeliefUpdate<POMDP> BU, ReachabilityGraph RG,
 			ExplorationStrategy<POMDP> ES) {
-
+		
+		// Prepare primed var indices and all that to avoid wasting time on it during backups
+		this.SPVars = Arrays.stream(m.Svars).map(s -> s + (Global.NUM_VARS / 2)).toArray();
 
 		List<Tuple<Integer, DD>> Vn = AlphaVectorPolicy.fromR(m.R).aVecs;
 
@@ -194,7 +194,7 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 			// perform backups
 			var newVn = this.solveForBeliefs(m, new ArrayList<DD>(beliefRegion), Vn);
 			
-			float backupT = (System.nanoTime() - then) / 1000;
+			float backupT = (System.nanoTime() - then) / 1000000.0f;
 			float bellmanError = beliefRegion.stream()
 					.map(_b -> Math.abs(OP.value_b(Vn, _b, m.Svars) - OP.value_b(newVn, _b, m.Svars)))
 					.reduce((v1, v2) -> v1 > v2 ? v1 : v2).orElseGet(() -> Float.NaN);
@@ -203,7 +203,7 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 			Vn.clear();
 			Vn.addAll(newVn);
 
-			LOGGER.info(String.format("iter: %s | bell err: %.5f | time: %s usec | num vectors: %s | beliefs used: %s/%s", i,
+			LOGGER.info(String.format("iter: %s | bell err: %.5f | time: %.3f msec | num vectors: %s | beliefs used: %s/%s", i,
 					bellmanError, backupT, newVn.size(), this.usedBeliefs, beliefRegion.size()));
 			
 			if (bellmanError < 0.001 && i > 5) {
