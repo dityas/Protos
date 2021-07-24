@@ -18,11 +18,11 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDomain(SpuddXParser.DomainContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#var_decls}.
+	 * Visit a parse tree produced by {@link SpuddXParser#var_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitVar_decls(SpuddXParser.Var_declsContext ctx);
+	T visitVar_def(SpuddXParser.Var_defContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#model_decl}.
 	 * @param ctx the parse tree
@@ -142,11 +142,11 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDiscount(SpuddXParser.DiscountContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#dd_decls}.
+	 * Visit a parse tree produced by {@link SpuddXParser#dd_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDd_decls(SpuddXParser.Dd_declsContext ctx);
+	T visitDd_def(SpuddXParser.Dd_defContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code MultDivExpr}
 	 * labeled alternative in {@link SpuddXParser#dd_expr}.
@@ -243,12 +243,6 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitSame_dd_decl(SpuddXParser.Same_dd_declContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#rv_decl}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRv_decl(SpuddXParser.Rv_declContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dbn_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -285,11 +279,11 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDd_name(SpuddXParser.Dd_nameContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#variable_name}.
+	 * Visit a parse tree produced by {@link SpuddXParser#var_name}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitVariable_name(SpuddXParser.Variable_nameContext ctx);
+	T visitVar_name(SpuddXParser.Var_nameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#var_value}.
 	 * @param ctx the parse tree

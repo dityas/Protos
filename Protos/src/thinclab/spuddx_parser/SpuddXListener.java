@@ -19,15 +19,15 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitDomain(SpuddXParser.DomainContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#var_decls}.
+	 * Enter a parse tree produced by {@link SpuddXParser#var_def}.
 	 * @param ctx the parse tree
 	 */
-	void enterVar_decls(SpuddXParser.Var_declsContext ctx);
+	void enterVar_def(SpuddXParser.Var_defContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#var_decls}.
+	 * Exit a parse tree produced by {@link SpuddXParser#var_def}.
 	 * @param ctx the parse tree
 	 */
-	void exitVar_decls(SpuddXParser.Var_declsContext ctx);
+	void exitVar_def(SpuddXParser.Var_defContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#model_decl}.
 	 * @param ctx the parse tree
@@ -227,15 +227,15 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitDiscount(SpuddXParser.DiscountContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#dd_decls}.
+	 * Enter a parse tree produced by {@link SpuddXParser#dd_def}.
 	 * @param ctx the parse tree
 	 */
-	void enterDd_decls(SpuddXParser.Dd_declsContext ctx);
+	void enterDd_def(SpuddXParser.Dd_defContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#dd_decls}.
+	 * Exit a parse tree produced by {@link SpuddXParser#dd_def}.
 	 * @param ctx the parse tree
 	 */
-	void exitDd_decls(SpuddXParser.Dd_declsContext ctx);
+	void exitDd_def(SpuddXParser.Dd_defContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code MultDivExpr}
 	 * labeled alternative in {@link SpuddXParser#dd_expr}.
@@ -399,16 +399,6 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitSame_dd_decl(SpuddXParser.Same_dd_declContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#rv_decl}.
-	 * @param ctx the parse tree
-	 */
-	void enterRv_decl(SpuddXParser.Rv_declContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#rv_decl}.
-	 * @param ctx the parse tree
-	 */
-	void exitRv_decl(SpuddXParser.Rv_declContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#dbn_def}.
 	 * @param ctx the parse tree
 	 */
@@ -469,15 +459,15 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitDd_name(SpuddXParser.Dd_nameContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#variable_name}.
+	 * Enter a parse tree produced by {@link SpuddXParser#var_name}.
 	 * @param ctx the parse tree
 	 */
-	void enterVariable_name(SpuddXParser.Variable_nameContext ctx);
+	void enterVar_name(SpuddXParser.Var_nameContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#variable_name}.
+	 * Exit a parse tree produced by {@link SpuddXParser#var_name}.
 	 * @param ctx the parse tree
 	 */
-	void exitVariable_name(SpuddXParser.Variable_nameContext ctx);
+	void exitVar_name(SpuddXParser.Var_nameContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#var_value}.
 	 * @param ctx the parse tree

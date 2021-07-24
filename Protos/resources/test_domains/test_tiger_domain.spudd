@@ -1,26 +1,18 @@
-(variables
-	(TigerLoc TL TR)
+(defvar TigerLoc (TL TR))
 	
-	(Growl GL GR)
+(defvar Growl (GL GR))
 	
-	(Agent_actions OL OR L)
-)
+(defvar Agent_actions (OL OR L))
 
-(initLoc
-
-	(dd
+(defdd initLoc
 		(TigerLoc 	UNIFORM)
-	)
 )
 
-(openDoorDD
-	(dd
+(defdd openDoorDD
 		(TigerLoc' UNIFORM)
-	)
 )
 
-(growlObsDD
-	(dd
+(defdd growlObsDD
 		(TigerLoc'
 			(TL
 				(Growl'
@@ -36,7 +28,6 @@
 				)
 			)
 		)
-	)
 )
 
 (actionOL

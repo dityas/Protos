@@ -37,7 +37,7 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 	public DD visitDDDecl(SpuddXParser.DDDeclContext ctx) {
 
 		// Prepare root DD
-		String varName = ctx.variable_name().IDENTIFIER().getText();
+		String varName = ctx.var_name().IDENTIFIER().getText();
 		int varIndex = Global.varNames.indexOf(varName);
 		var valNames = Global.valNames.get(varIndex);
 
@@ -81,7 +81,7 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 	@Override
 	public DD visitSameDD(SpuddXParser.SameDDContext ctx) {
 
-		return DBN.getSameTransitionDD(ctx.same_dd_decl().variable_name().getText());
+		return DBN.getSameTransitionDD(ctx.same_dd_decl().var_name().getText());
 	}
 
 	@Override
@@ -102,12 +102,12 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 	
 	@Override
 	public DD visitDDDeterministic(SpuddXParser.DDDeterministicContext ctx) {
-		return DDnode.getDDForChild(ctx.variable_name().getText(), ctx.var_value().getText());
+		return DDnode.getDDForChild(ctx.var_name().getText(), ctx.var_value().getText());
 	}
 	
 	@Override
 	public DD visitDDUniform(SpuddXParser.DDUniformContext ctx) {
-		return DDnode.getUniformDist(ctx.variable_name().getText());
+		return DDnode.getUniformDist(ctx.var_name().getText());
 	}
 
 	@Override
@@ -173,8 +173,8 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 	
 	public HashMap<String, DD> getDDs(SpuddXParser.DomainContext ctx) {
 		
-		if (ctx.dd_decls() != null) {
-			ctx.dd_decls().stream()
+		if (ctx.dd_def() != null) {
+			ctx.dd_def().stream()
 				.forEach(d -> this.declaredDDs.put(
 							d.dd_name().IDENTIFIER().getText(), 
 							this.visit(d.dd_expr())));

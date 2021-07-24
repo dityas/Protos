@@ -44,12 +44,12 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 	@Override
 	public Model visitPOMDPDef(SpuddXParser.POMDPDefContext ctx) {
 
-		var S = ctx.pomdp_def().states_list().variable_name().stream().map(s -> s.getText())
+		var S = ctx.pomdp_def().states_list().var_name().stream().map(s -> s.getText())
 				.collect(Collectors.toList());
 
-		var O = ctx.pomdp_def().obs_list().variable_name().stream().map(o -> o.getText()).collect(Collectors.toList());
+		var O = ctx.pomdp_def().obs_list().var_name().stream().map(o -> o.getText()).collect(Collectors.toList());
 
-		String A = ctx.pomdp_def().action_var().variable_name().getText();
+		String A = ctx.pomdp_def().action_var().var_name().getText();
 
 		HashMap<String, Model> dynamics = new HashMap<>(5);
 		HashMap<String, DD> R = new HashMap<>(5);
@@ -76,7 +76,7 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		HashMap<Integer, DD> cpds = new HashMap<>(5);
 
 		// <var, DD> hashmap entries from (cpd_def)*
-		ctx.dbn_def().cpd_def().stream().forEach(d -> cpds.put(Global.varNames.indexOf(d.variable_name().getText()) + 1,
+		ctx.dbn_def().cpd_def().stream().forEach(d -> cpds.put(Global.varNames.indexOf(d.var_name().getText()) + 1,
 				this.ddParser.visit(d.dd_expr())));
 
 		var dbn = new DBN(cpds);
@@ -87,7 +87,7 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 	@Override
 	public Model visitModelRef(SpuddXParser.ModelRefContext ctx) {
 
-		var name = ctx.variable_name().getText();
+		var name = ctx.var_name().getText();
 
 		if (this.declaredModels.containsKey(name))
 			return this.declaredModels.get(name);

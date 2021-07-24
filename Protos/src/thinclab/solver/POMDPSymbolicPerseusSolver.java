@@ -213,7 +213,6 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 			}
 		}
 
-		// TODO Auto-generated method stub
 		return new AlphaVectorPolicy(Vn);
 	}
 }

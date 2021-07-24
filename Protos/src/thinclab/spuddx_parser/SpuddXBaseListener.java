@@ -29,13 +29,13 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterVar_decls(SpuddXParser.Var_declsContext ctx) { }
+	@Override public void enterVar_def(SpuddXParser.Var_defContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitVar_decls(SpuddXParser.Var_declsContext ctx) { }
+	@Override public void exitVar_def(SpuddXParser.Var_defContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -269,13 +269,13 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDd_decls(SpuddXParser.Dd_declsContext ctx) { }
+	@Override public void enterDd_def(SpuddXParser.Dd_defContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDd_decls(SpuddXParser.Dd_declsContext ctx) { }
+	@Override public void exitDd_def(SpuddXParser.Dd_defContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -449,18 +449,6 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterRv_decl(SpuddXParser.Rv_declContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitRv_decl(SpuddXParser.Rv_declContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterDbn_def(SpuddXParser.Dbn_defContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -533,13 +521,13 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterVariable_name(SpuddXParser.Variable_nameContext ctx) { }
+	@Override public void enterVar_name(SpuddXParser.Var_nameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitVariable_name(SpuddXParser.Variable_nameContext ctx) { }
+	@Override public void exitVar_name(SpuddXParser.Var_nameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
