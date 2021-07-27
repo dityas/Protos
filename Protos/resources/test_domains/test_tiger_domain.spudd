@@ -30,60 +30,51 @@
 		)
 )
 
-(actionOL
-	(dbn
-		(TigerLoc 	(openDoorDD))
-		(Growl 		(Growl' UNIFORM))
-	)
+(defdbn actionOpenAny
+	(TigerLoc 	(openDoorDD))
+	(Growl 		(Growl' UNIFORM))
 )
 
-(actionOR
-	(actionOL)
+(defdbn actionL
+	(TigerLoc 	(SAME TigerLoc))
+	(Growl 		(growlObsDD))
 )
 
-(actionL
-	(dbn
-		(TigerLoc 	(SAME TigerLoc))
-		(Growl 		(growlObsDD))
-))
+(defpomdp agentI
 
-(agentI
-	
-	(pomdp
-		(S 	
-			(TigerLoc)
-		)
-	
-		(O
-			(Growl)
-		)
-	
-		(A 	Agent_actions)
-		
-		(dynamics
-			(OL 	(actionOL))
-			(OR 	(actionOR))
-			(L 		(actionL))
-		)
-		
-		(b
-			(initLoc)	
-		)
-		
-		(R
-			(OL 	(TigerLoc
-						(TL 	(-100))
-						(TR 	(10))
-			))
-			
-			(OR		(TigerLoc
-						(TL 	(10))
-						(TR 	(-100))
-			))
-			
-			(L 		(-1))
-		)
-		
-		(discount 0.9)	
-	)
+    (S 	
+        (TigerLoc)
+    )
+
+    (O
+        (Growl)
+    )
+
+    (A 	Agent_actions)
+        
+    (dynamics
+        (OL 	(actionOpenAny))
+        (OR 	(actionOpenAny))
+        (L 		(actionL))
+    )
+        
+    (b
+        (initLoc)	
+    )
+        
+    (R
+        (OL 	(TigerLoc 
+                    (TL 	(-100))
+                    (TR 	(10))
+        ))
+        
+        (OR		(TigerLoc
+                    (TL 	(10))
+                    (TR 	(-100))
+        ))
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)	
 )

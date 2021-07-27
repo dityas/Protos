@@ -185,25 +185,13 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterActionRef(SpuddXParser.ActionRefContext ctx) { }
+	@Override public void enterAction_model(SpuddXParser.Action_modelContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitActionRef(SpuddXParser.ActionRefContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterActionDef(SpuddXParser.ActionDefContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitActionDef(SpuddXParser.ActionDefContext ctx) { }
+	@Override public void exitAction_model(SpuddXParser.Action_modelContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

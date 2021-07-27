@@ -101,19 +101,11 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDynamics(SpuddXParser.DynamicsContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code ActionRef}
-	 * labeled alternative in {@link SpuddXParser#action_model}.
+	 * Visit a parse tree produced by {@link SpuddXParser#action_model}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitActionRef(SpuddXParser.ActionRefContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code ActionDef}
-	 * labeled alternative in {@link SpuddXParser#action_model}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitActionDef(SpuddXParser.ActionDefContext ctx);
+	T visitAction_model(SpuddXParser.Action_modelContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#initial_belief}.
 	 * @param ctx the parse tree

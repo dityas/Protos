@@ -159,29 +159,15 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitDynamics(SpuddXParser.DynamicsContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ActionRef}
-	 * labeled alternative in {@link SpuddXParser#action_model}.
+	 * Enter a parse tree produced by {@link SpuddXParser#action_model}.
 	 * @param ctx the parse tree
 	 */
-	void enterActionRef(SpuddXParser.ActionRefContext ctx);
+	void enterAction_model(SpuddXParser.Action_modelContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code ActionRef}
-	 * labeled alternative in {@link SpuddXParser#action_model}.
+	 * Exit a parse tree produced by {@link SpuddXParser#action_model}.
 	 * @param ctx the parse tree
 	 */
-	void exitActionRef(SpuddXParser.ActionRefContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code ActionDef}
-	 * labeled alternative in {@link SpuddXParser#action_model}.
-	 * @param ctx the parse tree
-	 */
-	void enterActionDef(SpuddXParser.ActionDefContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code ActionDef}
-	 * labeled alternative in {@link SpuddXParser#action_model}.
-	 * @param ctx the parse tree
-	 */
-	void exitActionDef(SpuddXParser.ActionDefContext ctx);
+	void exitAction_model(SpuddXParser.Action_modelContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#initial_belief}.
 	 * @param ctx the parse tree

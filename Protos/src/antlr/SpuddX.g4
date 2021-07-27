@@ -36,9 +36,7 @@ action_var 	: LP 'A' (var_name)  RP ;
 actions_list 	: LP 'A' LP (var_name)+ RP RP ;
 
 dynamics : LP 'dynamics' (action_model)+ RP ;
-action_model : LP action_name model_name RP 	# ActionRef 
-			 | LP action_name dbn_def RP 		# ActionDef
-			 ;
+action_model : LP action_name all_def RP ;
 
 initial_belief : LP 'b' dd_expr RP ;
 

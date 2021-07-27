@@ -158,7 +158,7 @@ class TestANTLRSpuddParser {
 		var models = parserWrapper.getModels();
 		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
 		printMemConsumption();
-	}
+	}*/
 
 	@Test
 	void testTigerPOMDPParsing() throws Exception {
@@ -170,21 +170,13 @@ class TestANTLRSpuddParser {
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
 				.getFile();
 
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		var randomVars = parserWrapper.getVariableDeclarations();
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
 
-		Global.primeVarsAndInitGlobals(randomVars);
-
-		var models = parserWrapper.getModels();
-		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
 		printMemConsumption();
-
-		var I = pomdps.get("agentI");
-		var obs = I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList());
-
-		LOGGER.debug(OP.cartesianProd(obs));
 	}
-
+	
+	/*
 	@Test
 	void testPOMDPObsCartesianSetGeneration() throws Exception {
 
