@@ -66,6 +66,7 @@ public class SpuddXParserWrapper {
 		}
 	}
 
+	/*
 	public List<RandomVariable> getVariableDeclarations() {
 
 		this.parser.reset();
@@ -113,5 +114,5 @@ public class SpuddXParserWrapper {
 
 		return (HashMap<String, POMDP>) pomdps;
 	}
-
+	*/
 }

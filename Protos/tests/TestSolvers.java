@@ -52,6 +52,7 @@ class TestSolvers {
 		Global.logCacheSizes();
 	}
 
+	/*
 	@Test
 	void testBasicPOMDPPerseusSolver() throws Exception {
 
@@ -102,4 +103,5 @@ class TestSolvers {
 		LOGGER.debug(String.format("Solved policy is %s", policy));
 		printMemConsumption();
 	}
+	*/
 }

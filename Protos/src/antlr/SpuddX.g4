@@ -4,25 +4,22 @@ grammar SpuddX;
 	Parser
 */
 
-domain: (var_def)+
-		(dd_def)*
-		(model_decl)*
-		(env_decl)?
+domain: var_defs
+		(all_def)*
 		EOF 
 		;
 
+var_defs : (var_def)+ ;
 var_def : LP 'defvar' var_name LP (var_value)+ RP RP ;
-
-model_decl : LP model_name model_def RP
-		   ;
 		   
-model_def : LP model_def RP 	# ModelDefParen
-		  | pomdp_def 			# POMDPDef
-		  | dbn_def				# DBNDef
-		  | var_name 			# ModelRef
-		  ;
+all_def : model_name			# PreDefModel
+		| dd_def 				# DDDef
+		| pomdp_def 			# POMDPDef
+		| dbn_def				# DBNDef
+		| LP all_def RP 		# OtherDefParen
+		;
 		   
-pomdp_def : LP POMDP
+pomdp_def : LP 'defpomdp' model_name
 			states_list
 			obs_list
 			action_var
@@ -33,25 +30,15 @@ pomdp_def : LP POMDP
 			RP
 			;
 			
-env_decl : LP env_name env_def RP ;
-
-env_def : LP ENV
-		  states_list
-		  obs_list
-		  actions_list
-		  agents_list
-		  dynamics
-		  RP
-		  ;
-			
 states_list	: LP 'S' LP (var_name)+ RP RP ;
-agents_list : LP 'Agents' LP (var_name)+ RP RP ;
 obs_list 	: LP 'O' LP (var_name)+ RP RP ;
 action_var 	: LP 'A' (var_name)  RP ;
 actions_list 	: LP 'A' LP (var_name)+ RP RP ;
 
 dynamics : LP 'dynamics' (action_model)+ RP ;
-action_model : LP action_name model_def RP ;
+action_model : LP action_name model_name RP 	# ActionRef 
+			 | LP action_name dbn_def RP 		# ActionDef
+			 ;
 
 initial_belief : LP 'b' dd_expr RP ;
 
@@ -87,7 +74,7 @@ dd_leaf : FLOAT_NUM
 		
 same_dd_decl : LP 'SAME' var_name RP;
 
-dbn_def : LP DBN (cpd_def)* RP ;
+dbn_def : LP 'defdbn' model_name (cpd_def)* RP ;
 cpd_def : LP var_name dd_expr RP ;
 
 env_name : IDENTIFIER ;

@@ -51,7 +51,6 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 			System.exit(-1);
 		}
 
-		// Check if
 		DD[] children = new DD[childDDList.size()];
 		for (int i = 0; i < childNames.size(); i++) {
 
@@ -60,6 +59,9 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 			if (childIndex < 0 || childDDList.get(i) == null) {
 
 				LOGGER.error("Could not parse DD for child " + childNames.get(i));
+				LOGGER.debug(String.format("Child index is %s, childNames are %s", childIndex, childNames));
+				LOGGER.debug(String.format("Child DDs are %s", childDDList));
+				LOGGER.debug(String.format("Parsed DDs are %s", this.declaredDDs));
 				System.exit(-1);
 			}
 
@@ -169,17 +171,4 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 			return null;
 	}
 	
-	// -----------------------------------------------------------------------------
-	
-	public HashMap<String, DD> getDDs(SpuddXParser.DomainContext ctx) {
-		
-		if (ctx.dd_def() != null) {
-			ctx.dd_def().stream()
-				.forEach(d -> this.declaredDDs.put(
-							d.dd_name().IDENTIFIER().getText(), 
-							this.visit(d.dd_expr())));
-		}
-			
-		return this.declaredDDs;
-	}
 }

@@ -34,10 +34,4 @@ public class VarDefVisitor extends SpuddXBaseVisitor<RandomVariable> {
 		return rv;
 	}
 
-	public List<RandomVariable> getVars(SpuddXParser.DomainContext ctx) {
-
-		var randVars = ctx.var_def().stream().map(this::visit).collect(Collectors.toList());
-		return randVars;
-	}
-
 }

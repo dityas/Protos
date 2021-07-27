@@ -35,6 +35,7 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		this.ddParser = ddParser;
 	}
 
+	/*
 	@Override
 	public Model visitModelDefParen(SpuddXParser.ModelDefParenContext ctx) {
 
@@ -68,7 +69,7 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		var pomdp = new POMDP(S, O, A, dynamics, R, b, discount);
 
 		return pomdp;
-	}
+	}*/
 
 	@Override
 	public Model visitDBNDef(SpuddXParser.DBNDefContext ctx) {
@@ -84,6 +85,7 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		return dbn;
 	}
 
+	/*
 	@Override
 	public Model visitModelRef(SpuddXParser.ModelRefContext ctx) {
 
@@ -119,4 +121,6 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 
 		return this.declaredModels;
 	}
+	*/
 }
+

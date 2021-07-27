@@ -18,45 +18,52 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDomain(SpuddXParser.DomainContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#var_defs}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVar_defs(SpuddXParser.Var_defsContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#var_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitVar_def(SpuddXParser.Var_defContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#model_decl}.
+	 * Visit a parse tree produced by the {@code PreDefModel}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitModel_decl(SpuddXParser.Model_declContext ctx);
+	T visitPreDefModel(SpuddXParser.PreDefModelContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code ModelDefParen}
-	 * labeled alternative in {@link SpuddXParser#model_def}.
+	 * Visit a parse tree produced by the {@code DDDef}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitModelDefParen(SpuddXParser.ModelDefParenContext ctx);
+	T visitDDDef(SpuddXParser.DDDefContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code POMDPDef}
-	 * labeled alternative in {@link SpuddXParser#model_def}.
+	 * labeled alternative in {@link SpuddXParser#all_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitPOMDPDef(SpuddXParser.POMDPDefContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code DBNDef}
-	 * labeled alternative in {@link SpuddXParser#model_def}.
+	 * labeled alternative in {@link SpuddXParser#all_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitDBNDef(SpuddXParser.DBNDefContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code ModelRef}
-	 * labeled alternative in {@link SpuddXParser#model_def}.
+	 * Visit a parse tree produced by the {@code OtherDefParen}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitModelRef(SpuddXParser.ModelRefContext ctx);
+	T visitOtherDefParen(SpuddXParser.OtherDefParenContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#pomdp_def}.
 	 * @param ctx the parse tree
@@ -64,29 +71,11 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPomdp_def(SpuddXParser.Pomdp_defContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#env_decl}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitEnv_decl(SpuddXParser.Env_declContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#env_def}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitEnv_def(SpuddXParser.Env_defContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#states_list}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitStates_list(SpuddXParser.States_listContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#agents_list}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAgents_list(SpuddXParser.Agents_listContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#obs_list}.
 	 * @param ctx the parse tree
@@ -112,11 +101,19 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDynamics(SpuddXParser.DynamicsContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#action_model}.
+	 * Visit a parse tree produced by the {@code ActionRef}
+	 * labeled alternative in {@link SpuddXParser#action_model}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitAction_model(SpuddXParser.Action_modelContext ctx);
+	T visitActionRef(SpuddXParser.ActionRefContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ActionDef}
+	 * labeled alternative in {@link SpuddXParser#action_model}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitActionDef(SpuddXParser.ActionDefContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#initial_belief}.
 	 * @param ctx the parse tree

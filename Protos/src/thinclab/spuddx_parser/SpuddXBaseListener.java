@@ -29,6 +29,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterVar_defs(SpuddXParser.Var_defsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVar_defs(SpuddXParser.Var_defsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterVar_def(SpuddXParser.Var_defContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -41,25 +53,25 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterModel_decl(SpuddXParser.Model_declContext ctx) { }
+	@Override public void enterPreDefModel(SpuddXParser.PreDefModelContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitModel_decl(SpuddXParser.Model_declContext ctx) { }
+	@Override public void exitPreDefModel(SpuddXParser.PreDefModelContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterModelDefParen(SpuddXParser.ModelDefParenContext ctx) { }
+	@Override public void enterDDDef(SpuddXParser.DDDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitModelDefParen(SpuddXParser.ModelDefParenContext ctx) { }
+	@Override public void exitDDDef(SpuddXParser.DDDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -89,13 +101,13 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterModelRef(SpuddXParser.ModelRefContext ctx) { }
+	@Override public void enterOtherDefParen(SpuddXParser.OtherDefParenContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitModelRef(SpuddXParser.ModelRefContext ctx) { }
+	@Override public void exitOtherDefParen(SpuddXParser.OtherDefParenContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -113,30 +125,6 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterEnv_decl(SpuddXParser.Env_declContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitEnv_decl(SpuddXParser.Env_declContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterEnv_def(SpuddXParser.Env_defContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitEnv_def(SpuddXParser.Env_defContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterStates_list(SpuddXParser.States_listContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -144,18 +132,6 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitStates_list(SpuddXParser.States_listContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterAgents_list(SpuddXParser.Agents_listContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAgents_list(SpuddXParser.Agents_listContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -209,13 +185,25 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAction_model(SpuddXParser.Action_modelContext ctx) { }
+	@Override public void enterActionRef(SpuddXParser.ActionRefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitAction_model(SpuddXParser.Action_modelContext ctx) { }
+	@Override public void exitActionRef(SpuddXParser.ActionRefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterActionDef(SpuddXParser.ActionDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitActionDef(SpuddXParser.ActionDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
