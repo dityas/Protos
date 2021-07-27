@@ -10,6 +10,7 @@ package thinclab.spuddx_parser;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -21,13 +22,9 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.DBN;
 import thinclab.models.Model;
-import thinclab.models.POMDP;
 import thinclab.spuddx_parser.SpuddXParser.DBNDefContext;
 import thinclab.spuddx_parser.SpuddXParser.DDDefContext;
-import thinclab.spuddx_parser.SpuddXParser.Dbn_defContext;
 import thinclab.spuddx_parser.SpuddXParser.POMDPDefContext;
-import thinclab.spuddx_parser.SpuddXParser.Pomdp_defContext;
-import thinclab.spuddx_parser.SpuddXParser.PreDefModelContext;
 import thinclab.spuddx_parser.SpuddXParser.Var_defsContext;
 
 /*
@@ -46,7 +43,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 	// parsed Models
 	private HashMap<String, Model> models = new HashMap<>(10);
-	private ModelsParser modelParser = new ModelsParser(this.ddParser);
+	private ModelsParser modelParser = new ModelsParser(this.ddParser, this.models);
 
 	// visitor for parsing variable definitions
 	private VarDefVisitor varVisitor = new VarDefVisitor();
@@ -116,7 +113,13 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 	public void enterDBNDef(DBNDefContext ctx) {
 
 		String modelName = ctx.dbn_def().model_name().IDENTIFIER().getText();
-		DBN dbn = this.parseDBN(ctx);
+		Model dbn = this.modelParser.visit(ctx);
+
+		if (!(dbn instanceof DBN)) {
+
+			LOGGER.error(String.format("%s should be a DBN but is %s", modelName, dbn.getClass().getTypeName()));
+			System.exit(-1);
+		}
 
 		this.models.put(modelName, dbn);
 		LOGGER.debug(String.format("Parsed DBN %s", modelName));
@@ -138,89 +141,13 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 	// ----------------------------------------------------------------------------------------
 
-	public DBN parseDBN(DBNDefContext ctx) {
-
-		return this.parseDBN(ctx.dbn_def());
-	}
-
-	public DBN parseDBN(Dbn_defContext ctx) {
-
-		HashMap<Integer, DD> cpds = new HashMap<>(5);
-
-		// <var, DD> hashmap entries from (cpd_def)*
-		ctx.cpd_def().stream().forEach(
-				d -> cpds.put(Global.varNames.indexOf(d.var_name().getText()) + 1, this.ddParser.visit(d.dd_expr())));
-
-		var dbn = new DBN(cpds);
-		return dbn;
-	}
-
-	public POMDP parsePOMDP(POMDPDefContext ctx) {
-
-		return this.parsePOMDP(ctx.pomdp_def());
-	}
-
-	public POMDP parsePOMDP(Pomdp_defContext ctx) {
-
-		var S = ctx.states_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
-
-		var O = ctx.obs_list().var_name().stream().map(o -> o.getText()).collect(Collectors.toList());
-
-		String A = ctx.action_var().var_name().getText();
-
-		HashMap<String, Model> dynamics = new HashMap<>(5);
-		HashMap<String, DD> R = new HashMap<>(5);
-
-		ctx.dynamics().action_model().stream().forEach(a ->
-			{
-
-				String actionName = a.action_name().IDENTIFIER().getText();
-				DBN actModel = null;
-
-				// DBN reference is given
-				if (a.all_def() instanceof PreDefModelContext) {
-
-					String name = ((PreDefModelContext) a.all_def()).model_name().IDENTIFIER().getText();
-					Model model = this.models.get(name);
-
-					if (!(model instanceof DBN)) {
-
-						LOGGER.error(String.format("%s in POMDP is not of type DBN", name));
-						System.exit(-1);
-					}
-					actModel = (DBN) model;
-
-				}
-
-				// DBN is defined in place
-				else if (a.all_def() instanceof DBNDefContext)
-					actModel = this.parseDBN((DBNDefContext) a.all_def());
-
-				else {
-					LOGGER.error(String.format("Could not parse %s because it is not a DBN.", a.getText()));
-					System.exit(-1);
-				}
-
-				dynamics.put(actionName, actModel);
-			});
-
-		ctx.reward().action_reward().stream().forEach(ar ->
-			{
-
-				R.put(ar.action_name().getText(), this.ddParser.visit(ar.dd_expr()));
-			});
-
-		DD b = this.ddParser.visit(ctx.initial_belief().dd_expr());
-		float discount = Float.valueOf(ctx.discount().FLOAT_NUM().getText());
-
-		var pomdp = new POMDP(S, O, A, dynamics, R, b, discount);
-		return pomdp;
-	}
-
-	// ----------------------------------------------------------------------------------------
-
 	public HashMap<String, DD> getDDs() {
 
 		return this.dds;
+	}
+
+	public Optional<Model> getModel(String modelName) {
+
+		return Optional.ofNullable(this.models.get(modelName));
 	}
 }

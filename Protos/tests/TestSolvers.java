@@ -10,8 +10,10 @@ import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.model_ops.belief_exploration.POMDPBreadthFirstBeliefExploration;
 import thinclab.model_ops.belief_update.POMDPBeliefUpdate;
+import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.solver.POMDPSymbolicPerseusSolver;
+import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
 
 /*
@@ -52,7 +54,6 @@ class TestSolvers {
 		Global.logCacheSizes();
 	}
 
-	/*
 	@Test
 	void testBasicPOMDPPerseusSolver() throws Exception {
 
@@ -62,23 +63,16 @@ class TestSolvers {
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
 				.getFile();
 
-		// Parse domain
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		var randomVars = parserWrapper.getVariableDeclarations();
-
-		// Initialize random variables
-		Global.primeVarsAndInitGlobals(randomVars);
-
-		// Get POMDP models
-		var models = parserWrapper.getModels();
-		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
-
-		models.clear();
-		models = null;
-		parserWrapper = null;
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
 
 		// Get agent I
-		var I = pomdps.get("agentI");
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() -> {
+			LOGGER.error("Model not found");
+			System.exit(-1);
+			return null;
+		});
 
 		// Initialize belief update mechanism
 		var BU = new POMDPBeliefUpdate();
@@ -103,5 +97,4 @@ class TestSolvers {
 		LOGGER.debug(String.format("Solved policy is %s", policy));
 		printMemConsumption();
 	}
-	*/
 }

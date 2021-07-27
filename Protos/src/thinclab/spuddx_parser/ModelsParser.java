@@ -28,21 +28,19 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 
 	private static final Logger LOGGER = LogManager.getLogger(ModelsParser.class);
 
-	public ModelsParser(DDParser ddParser) {
+	public ModelsParser(DDParser ddParser, HashMap<String, Model> declaredModels) {
 
 		super();
-		this.declaredModels = new HashMap<String, Model>(5);
 		this.ddParser = ddParser;
+		this.declaredModels = declaredModels;
 	}
 
-	/*
 	@Override
-	public Model visitModelDefParen(SpuddXParser.ModelDefParenContext ctx) {
+	public Model visitOtherDefParen(SpuddXParser.OtherDefParenContext ctx) {
 
-		return this.visit(ctx.model_def());
-	}*/
-
-	/*
+		return this.visit(ctx.all_def());
+	}
+	
 	@Override
 	public Model visitPOMDPDef(SpuddXParser.POMDPDefContext ctx) {
 
@@ -57,7 +55,7 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		HashMap<String, DD> R = new HashMap<>(5);
 
 		ctx.pomdp_def().dynamics().action_model().stream()
-				.forEach(a -> dynamics.put(a.action_name().getText(), this.visit(a.model_def())));
+				.forEach(a -> dynamics.put(a.action_name().getText(), this.visit(a.all_def())));
 
 		ctx.pomdp_def().reward().action_reward().stream().forEach(ar -> {
 
@@ -86,11 +84,10 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		return dbn;
 	}
 
-	/*
 	@Override
-	public Model visitModelRef(SpuddXParser.ModelRefContext ctx) {
+	public Model visitPreDefModel(SpuddXParser.PreDefModelContext ctx) {
 
-		var name = ctx.var_name().getText();
+		var name = ctx.model_name().IDENTIFIER().getText();
 
 		if (this.declaredModels.containsKey(name))
 			return this.declaredModels.get(name);
@@ -102,26 +99,5 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 			return null;
 		}
 	}
-
-	public HashMap<String, Model> getModels(SpuddXParser.DomainContext ctx) {
-
-		ctx.model_decl().stream().forEach(m -> {
-
-			var name = m.model_name().getText();
-
-			if (this.declaredModels.containsKey(name))
-				LOGGER.error(String.format("Model %s defined multiple times", name));
-
-			else {
-
-				var model = this.visit(m.model_def());
-				LOGGER.info(String.format("Parsed new model %s", model));
-				this.declaredModels.put(name, model);
-			}
-		});
-
-		return this.declaredModels;
-	}
-	*/
 }
 
