@@ -37,7 +37,7 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 	public DD visitDDDecl(SpuddXParser.DDDeclContext ctx) {
 
 		// Prepare root DD
-		String varName = ctx.variable_name().IDENTIFIER().getText();
+		String varName = ctx.var_name().IDENTIFIER().getText();
 		int varIndex = Global.varNames.indexOf(varName);
 		var valNames = Global.valNames.get(varIndex);
 
@@ -51,7 +51,6 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 			System.exit(-1);
 		}
 
-		// Check if
 		DD[] children = new DD[childDDList.size()];
 		for (int i = 0; i < childNames.size(); i++) {
 
@@ -60,6 +59,9 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 			if (childIndex < 0 || childDDList.get(i) == null) {
 
 				LOGGER.error("Could not parse DD for child " + childNames.get(i));
+				LOGGER.debug(String.format("Child index is %s, childNames are %s", childIndex, childNames));
+				LOGGER.debug(String.format("Child DDs are %s", childDDList));
+				LOGGER.debug(String.format("Parsed DDs are %s", this.declaredDDs));
 				System.exit(-1);
 			}
 
@@ -81,7 +83,7 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 	@Override
 	public DD visitSameDD(SpuddXParser.SameDDContext ctx) {
 
-		return DBN.getSameTransitionDD(ctx.same_dd_decl().variable_name().getText());
+		return DBN.getSameTransitionDD(ctx.same_dd_decl().var_name().getText());
 	}
 
 	@Override
@@ -102,12 +104,12 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 	
 	@Override
 	public DD visitDDDeterministic(SpuddXParser.DDDeterministicContext ctx) {
-		return DDnode.getDDForChild(ctx.variable_name().getText(), ctx.var_value().getText());
+		return DDnode.getDDForChild(ctx.var_name().getText(), ctx.var_value().getText());
 	}
 	
 	@Override
 	public DD visitDDUniform(SpuddXParser.DDUniformContext ctx) {
-		return DDnode.getUniformDist(ctx.variable_name().getText());
+		return DDnode.getUniformDist(ctx.var_name().getText());
 	}
 
 	@Override
@@ -169,17 +171,4 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 			return null;
 	}
 	
-	// -----------------------------------------------------------------------------
-	
-	public HashMap<String, DD> getDDs(SpuddXParser.DomainContext ctx) {
-		
-		if (ctx.dd_decls() != null) {
-			ctx.dd_decls().stream()
-				.forEach(d -> this.declaredDDs.put(
-							d.dd_name().IDENTIFIER().getText(), 
-							this.visit(d.dd_expr())));
-		}
-			
-		return this.declaredDDs;
-	}
 }

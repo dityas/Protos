@@ -38,22 +38,26 @@ public class POMDPBreadthFirstBeliefExploration implements ExplorationStrategy<P
 	@Override
 	public ReachabilityGraph expandRG(POMDP m, BeliefUpdate<POMDP> BE, ReachabilityGraph RG) {
 
-		RG.getChildren().stream().forEach(b -> {
+		if (RG.connections.size() < this.maxB) {
 
-			RG.edgeIndexMap.keySet().stream().forEach(e -> {
+			RG.getChildren().stream().forEach(b ->
+				{
 
-				if (RG.getNodeAtEdge(b, e).isEmpty() && RG.connections.size() < this.maxB) {
+					RG.edgeIndexMap.keySet().stream().forEach(e ->
+						{
 
-					var a = e.get(e.size() - 1);
-					var o = e.subList(0, e.size() - 1);
+							if (RG.getNodeAtEdge(b, e).isEmpty() && RG.connections.size() < this.maxB) {
 
-					var bNext = BE.beliefUpdate(m, b, a, o);
+								var a = e.get(e.size() - 1);
+								var o = e.subList(0, e.size() - 1);
 
-					RG.addEdge(b, e, bNext);
-				}
+								var bNext = BE.beliefUpdate(m, b, a, o);
 
-			});
-		});
+								RG.addEdge(b, e, bNext);
+							}
+						});
+				});
+		}
 
 		return RG;
 	}

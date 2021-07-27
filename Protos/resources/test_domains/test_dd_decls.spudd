@@ -1,20 +1,17 @@
-(variables
-	(HOST_HAS_DATA critical sensitive none)
-	(DATA_LOCATED critical sensitive none other)
-	(HOST_HAS_VULN yes no)
-	(ATTACKER_PRIVS none user admin)
-	(DATA_ACCESS_PRIVS user admin)
+(defvar HOST_HAS_DATA (critical sensitive none))
+(defvar DATA_LOCATED (critical sensitive none other))
+(defvar HOST_HAS_VULN (yes no))
+(defvar ATTACKER_PRIVS (none user admin))
+(defvar DATA_ACCESS_PRIVS (user admin))
 	
-	(DATA_FOUND_OBS yes no)
-	(VULN_FOUND_OBS yes no)
-	(PRIVS_OBS user admin none)
+(defvar DATA_FOUND_OBS (yes no))
+(defvar VULN_FOUND_OBS (yes no))
+(defvar PRIVS_OBS (user admin none))
 	
-	(Attacker_actions FRECON_SDATA FRECON_CDATA EXIT NO_OP)
-)
+(defvar Attacker_actions (FRECON_SDATA FRECON_CDATA EXIT NO_OP))
 
-(dataLocCData
+(defdd dataLocCData
 
-	(DD
 	(HOST_HAS_DATA'
 		(critical
 			(DATA_LOCATED'
@@ -43,12 +40,10 @@
 			)
 		)
 	)
-	)
 )
 
-(dataLocSData
+(defdd dataLocSData
 
-	(DD
 	(HOST_HAS_DATA'
 		(critical
 			(DATA_LOCATED'
@@ -76,12 +71,11 @@
 				(other 		(0.5))
 			)
 		)
-	))
+	)
 )
 
-(dataLocFRCData
+(defdd dataLocFRCData
 
-	(DD
 	(ATTACKER_PRIVS
 		(user
 			(DATA_ACCESS_PRIVS
@@ -105,12 +99,11 @@
 		)
 		
 		(none 	(DATA_LOCATED' none))
-	))
+	)
 )
 
-(dataLocFRSData
+(defdd dataLocFRSData
 
-	(DD
 	(ATTACKER_PRIVS
 		(user
 			(DATA_ACCESS_PRIVS
@@ -134,5 +127,5 @@
 		)
 		
 		(none 	(DATA_LOCATED' none))
-	))
+	)
 ) 

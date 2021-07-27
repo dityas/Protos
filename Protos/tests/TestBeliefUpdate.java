@@ -60,7 +60,8 @@ class TestBeliefUpdate {
 		LOGGER.info(String.format("Used mem: %s", (total - free)));
 		Global.logCacheSizes();
 	}
-
+	
+	/*
 	@Test
 	void testTigerProblemSSGABeliefExploration() throws Exception {
 
@@ -217,5 +218,5 @@ class TestBeliefUpdate {
 				timeElapsed, avgTime));
 
 	}
-
+	*/
 }

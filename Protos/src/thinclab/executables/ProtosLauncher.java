@@ -22,11 +22,10 @@ public class ProtosLauncher {
 
 	public static void main(String[] args) throws Exception {
 
-		/* Parse CMD args */
 		CommandLineParser cliParser = new DefaultParser();
 		Options opt = new Options();
-
-		/* domain file */
+		
+		/*
 		opt.addOption("d", true, "path to the SPUDDX file");
 
 		CommandLine line = null;
@@ -48,6 +47,6 @@ public class ProtosLauncher {
 		parser = null;
 		
 		System.out.println(models);
+		*/
 	}
-
 }

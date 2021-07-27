@@ -10,9 +10,10 @@ import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.model_ops.belief_exploration.POMDPBreadthFirstBeliefExploration;
 import thinclab.model_ops.belief_update.POMDPBeliefUpdate;
+import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.solver.POMDPSymbolicPerseusSolver;
-import thinclab.spuddx_parser.SpuddXParserWrapper;
+import thinclab.spuddx_parser.SpuddXMainParser;
 
 /*
  *	THINC Lab at UGA | Cyber Deception Group
@@ -53,7 +54,7 @@ class TestSolvers {
 	}
 
 	@Test
-	void testTigerProblemSSGABeliefExploration() throws Exception {
+	void testBasicPOMDPPerseusSolver() throws Exception {
 
 		System.gc();
 
@@ -61,23 +62,16 @@ class TestSolvers {
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
 				.getFile();
 
-		// Parse domain
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		var randomVars = parserWrapper.getVariableDeclarations();
-
-		// Initialize random variables
-		Global.primeVarsAndInitGlobals(randomVars);
-
-		// Get POMDP models
-		var models = parserWrapper.getModels();
-		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
-
-		models.clear();
-		models = null;
-		parserWrapper = null;
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
 
 		// Get agent I
-		var I = pomdps.get("agentI");
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() -> {
+			LOGGER.error("Model not found");
+			System.exit(-1);
+			return null;
+		});
 
 		// Initialize belief update mechanism
 		var BU = new POMDPBeliefUpdate();
@@ -92,21 +86,14 @@ class TestSolvers {
 		beliefGraph.addNode(I.b);
 
 		// Initialize belief exploration
-		var BE = new POMDPBreadthFirstBeliefExploration(200);
-
-		for (int i = 0; i < 10; i++)
-			beliefGraph = BE.expandRG(I, BU, beliefGraph);
+		var BE = new POMDPBreadthFirstBeliefExploration(100);
 		
-		var solver = new POMDPSymbolicPerseusSolver();
+		var solver = new POMDPSymbolicPerseusSolver(100);
+		var policy = solver.solve(I, BU, beliefGraph, BE);
 		
-		long then = System.nanoTime();
-		solver.solve(I, BU, beliefGraph, BE);
-		long now = System.nanoTime();
+		assertTrue(policy.aVecs.size() == 5);
 		
-		float T = (now - then) / 1000.0f;
-		LOGGER.debug(String.format("solver took %s us", T));
-
-		LOGGER.debug(String.format("Graph contains %s nodes", beliefGraph.getAllNodes().size()));
+		LOGGER.debug(String.format("Solved policy is %s", policy));
 		printMemConsumption();
 	}
 }

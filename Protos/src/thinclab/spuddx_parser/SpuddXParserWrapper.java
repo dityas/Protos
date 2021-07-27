@@ -66,10 +66,11 @@ public class SpuddXParserWrapper {
 		}
 	}
 
+	/*
 	public List<RandomVariable> getVariableDeclarations() {
 
 		this.parser.reset();
-		return new VariablesDeclarationVisitor().visit(this.parser.domain());
+		return new VarDefVisitor().getVars(this.parser.domain());
 	}
 
 	public HashMap<String, DD> getDDs() {
@@ -113,5 +114,5 @@ public class SpuddXParserWrapper {
 
 		return (HashMap<String, POMDP>) pomdps;
 	}
-
+	*/
 }

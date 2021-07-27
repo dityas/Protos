@@ -51,7 +51,7 @@ public class BeliefUpdateViewerComparative {
 		CommandLine line = null;
 
 		try {
-
+			/*
 			line = cliParser.parse(opt, args);
 
 			// init POMDP object
@@ -113,7 +113,7 @@ public class BeliefUpdateViewerComparative {
 				step += 1;
 
 			}
-
+			*/
 		}
 
 		catch (Exception e) {

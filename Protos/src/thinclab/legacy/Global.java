@@ -32,7 +32,7 @@ public class Global {
 	public static TypedCacheMap<Pair, DD> multHashtable = new TypedCacheMap<Pair, DD>(10000);
 	public static CacheMap maxHashtable = new CacheMap();
 	public static CacheMap minHashtable = new CacheMap();
-	public static CacheMap dotProductHashtable = new CacheMap();
+	public static TypedCacheMap<TripletSet, Float> dotProductHashtable = new TypedCacheMap<>(10000);
 	public static CacheMap nEdgesHashtable = new CacheMap();
 	public static CacheMap nLeavesHashtable = new CacheMap();
 	public static CacheMap nNodesHashtable = new CacheMap();
@@ -123,13 +123,13 @@ public class Global {
 
 		LOGGER.warn("Clearing caches. This will reduce performance");
 
-		Global.leafHashtable = new TypedCacheMap<>();
-		Global.nodeHashtable = new TypedCacheMap<>();
-		Global.addHashtable = new TypedCacheMap<Pair, DD>();
-		Global.multHashtable = new TypedCacheMap<Pair, DD>();
+		Global.leafHashtable = new TypedCacheMap<>(10000);
+		Global.nodeHashtable = new TypedCacheMap<>(10000);
+		Global.addHashtable = new TypedCacheMap<Pair, DD>(10000);
+		Global.multHashtable = new TypedCacheMap<Pair, DD>(10000);
 		Global.maxHashtable = new CacheMap();
 		Global.minHashtable = new CacheMap();
-		Global.dotProductHashtable = new CacheMap();
+		Global.dotProductHashtable = new TypedCacheMap<>(10000);
 		Global.nEdgesHashtable = new CacheMap();
 		Global.nLeavesHashtable = new CacheMap();
 		Global.nNodesHashtable = new CacheMap();
@@ -143,6 +143,7 @@ public class Global {
 		LOGGER.debug(String.format("Leaf Cache: %s", Global.leafHashtable.size()));
 		LOGGER.debug(String.format("Add Cache: %s", Global.addHashtable.size()));
 		LOGGER.debug(String.format("Mult Cache: %s", Global.multHashtable.size()));
+		LOGGER.debug(String.format("Dot Product Cache: %s", Global.dotProductHashtable.size()));
 		
 	}
 
