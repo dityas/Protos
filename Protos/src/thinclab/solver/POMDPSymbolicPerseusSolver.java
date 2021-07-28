@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import thinclab.agent.BeliefBasedAgent;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.model_ops.belief_exploration.ExplorationStrategy;
-import thinclab.model_ops.belief_update.BeliefUpdate;
 import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
@@ -173,7 +173,7 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 	}
 
 	@Override
-	public AlphaVectorPolicy solve(POMDP m, BeliefUpdate<POMDP> BU, ReachabilityGraph RG,
+	public AlphaVectorPolicy solve(POMDP m, BeliefBasedAgent<POMDP> BU, ReachabilityGraph RG,
 			ExplorationStrategy<POMDP> ES) {
 		
 		// Prepare primed var indices and all that to avoid wasting time on it during backups

@@ -7,6 +7,7 @@
  */
 package thinclab.models.datastructures;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -14,7 +15,7 @@ import java.util.Set;
  * @author adityas
  *
  */
-public interface ActionObservationGraph<N, E> {
+public interface ActionObservationGraph<N, E extends List<?>> {
 
 	public boolean addNode(N node);
 

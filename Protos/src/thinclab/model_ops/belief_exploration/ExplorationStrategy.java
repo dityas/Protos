@@ -7,15 +7,14 @@
  */
 package thinclab.model_ops.belief_exploration;
 
-import thinclab.model_ops.belief_update.BeliefUpdate;
-import thinclab.models.Model;
-import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.agent.BeliefBasedAgent;
+import thinclab.models.datastructures.ActionObservationGraph;
 
 /*
  * @author adityas
  *
  */
-public interface ExplorationStrategy<M extends Model> {
+public interface ExplorationStrategy<A extends BeliefBasedAgent<?>, G extends ActionObservationGraph<?, ?>> {
 
-	public ReachabilityGraph expandRG(M m, BeliefUpdate<M> BE, ReachabilityGraph RG);
+	public G expandRG(A a, G RG);
 }

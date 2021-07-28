@@ -7,6 +7,7 @@
  */
 package thinclab.models.datastructures;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
  * @author adityas
  *
  */
-public abstract class AbstractAOGraph<N, E> implements ActionObservationGraph<N, E> {
+public abstract class AbstractAOGraph<N, E extends List<?>> implements ActionObservationGraph<N, E> {
 
 	public ConcurrentHashMap<E, Integer> edgeIndexMap;
 	public ConcurrentHashMap<N, ConcurrentHashMap<Integer, N>> connections;

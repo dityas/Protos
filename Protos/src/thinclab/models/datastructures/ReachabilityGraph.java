@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
+import thinclab.models.POMDP;
 
 /*
  * @author adityas
@@ -30,24 +31,37 @@ public class ReachabilityGraph extends AbstractAOGraph<DD, List<String>> {
 		LOGGER.info(String.format("Initialized reachability graph for action-observation space %s", AOSpace));
 	}
 
+	/*
+	public static ReachabilityGraph getReachabilityGraphFromPOMDP(POMDP pomdp) {
+
+		// Make action observation space for agent I
+		var obsVars = Arrays.stream(I.Ovars).mapToObj(i -> Global.valNames.get(i - 1)).collect(Collectors.toList());
+		obsVars.add(Global.valNames.get(I.Avar - 1));
+		var aoSpace = OP.cartesianProd(obsVars);
+
+		return null;
+	}*/
+
 	@Override
 	public String toString() {
 
 		var builder = new StringBuilder();
 		builder.append("Reachability Graph: [").append("\r\n").append("edges: {\r\n");
 
-		this.edgeIndexMap.entrySet().stream().forEach(e -> {
+		this.edgeIndexMap.entrySet().stream().forEach(e ->
+			{
 
-			builder.append("\t").append(e.getKey()).append(" -> ").append(e.getValue()).append("\r\n");
-		});
+				builder.append("\t").append(e.getKey()).append(" -> ").append(e.getValue()).append("\r\n");
+			});
 
 		builder.append("}\r\n");
 		builder.append("nodes: {\r\n");
 
-		this.connections.entrySet().stream().forEach(e -> {
+		this.connections.entrySet().stream().forEach(e ->
+			{
 
-			builder.append("\t").append(e.getKey()).append(" -> ").append(e.getValue()).append("\r\n");
-		});
+				builder.append("\t").append(e.getKey()).append(" -> ").append(e.getValue()).append("\r\n");
+			});
 
 		builder.append("}\r\n]");
 

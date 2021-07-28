@@ -15,15 +15,18 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import thinclab.agent.BeliefBasedAgent;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
+import thinclab.legacy.OP;
 
 /*
  * @author adityas
  *
  */
-public class POMDP implements Model {
+public class POMDP implements Model, BeliefBasedAgent<DD> {
 
 	public final List<String> S;
 	public final List<String> O;
@@ -165,8 +168,6 @@ public class POMDP implements Model {
 		builder.append("R : ").append("\r\n");
 		IntStream.range(0, this.R.length).boxed().forEach(i -> builder.append("\t").append(i).append(" - ")
 				.append(this.A.get(i)).append(" : ").append(this.R[i]).append("\r\n"));
-		// this.R.forEach((a, r) -> builder.append("\t").append(a).append(" :
-		// ").append(r).append("\r\n"));
 
 		builder.append("b : ").append(this.b).append("\r\n");
 		builder.append("discount : ").append(this.discount).append("\r\n");
@@ -174,6 +175,47 @@ public class POMDP implements Model {
 		builder.append("]").append("\r\n");
 
 		return builder.toString();
+	}
+	
+	// --------------------------------------------------------------------------------------
+	// Implementation of BeliefBasedAgent<DD>
+	
+	@Override
+	public DD beliefUpdate(DD b, int a, int[][] o) {
+		
+		DD[] OFao = OP.restrictN(this.OF[a], o);
+		
+		// concat b, TF and OF
+		DD[] dynamicsArray = new DD[1 + this.Svars.length + this.Ovars.length];
+		dynamicsArray[0] = b;
+		System.arraycopy(this.TF[a], 0, dynamicsArray, 1, this.Svars.length);
+		System.arraycopy(OFao, 0, dynamicsArray, 1 + this.Svars.length, this.Ovars.length);
+
+		// Sumout[S] P(O'=o| S, A=a) x P(S'| S, A=a) x P(S)
+		DD nextBelState = OP.addMultVarElim(dynamicsArray, this.Svars);
+
+		nextBelState = OP.primeVars(nextBelState, -(Global.NUM_VARS / 2));
+		DD obsProb = OP.addMultVarElim(nextBelState, this.Svars);
+
+		if (obsProb.getVal() < 1e-8) return DDleaf.getDD(Float.NaN);
+
+		nextBelState = OP.div(nextBelState, obsProb);
+
+		return nextBelState;
+	}
+
+	@Override
+	public DD beliefUpdate(DD b, String a, List<String> o) {
+
+		int actIndex = Collections.binarySearch(this.A, a);
+		int[][] obs = new int[2][this.Ovars.length];
+		
+		IntStream.range(0, o.size()).forEach(i -> {
+			obs[0][i] = this.Ovars[i] + (Global.NUM_VARS / 2);
+			obs[1][i] = Collections.binarySearch(Global.valNames.get(this.Ovars[i] - 1), o.get(i)) + 1;
+		});
+		
+		return this.beliefUpdate(b, actIndex, obs);
 	}
 
 }

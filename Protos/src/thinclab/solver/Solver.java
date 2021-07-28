@@ -7,11 +7,14 @@
  */
 package thinclab.solver;
 
+import thinclab.models.Model;
+import thinclab.policy.Policy;
 
 /*
  * @author adityas
  *
  */
-public interface Solver {
+public interface Solver<M extends Model, P extends Policy> {
 
+	public P solve(M m);
 }
