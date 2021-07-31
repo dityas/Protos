@@ -5,7 +5,7 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.agent;
+package thinclab.models;
 
 import java.util.List;
 
@@ -13,8 +13,10 @@ import java.util.List;
  * @author adityas
  *
  */
-public interface BeliefBasedAgent<B /* belief representation */> {
+public interface BeliefBasedModel<B> {
 	
+	public B b_i();
+
 	public B beliefUpdate(B b, int a, int[][] o); 
 	public B beliefUpdate(B b, String a, List<String> o); 
 

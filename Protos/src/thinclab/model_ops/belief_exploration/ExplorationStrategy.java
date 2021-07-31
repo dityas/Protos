@@ -7,14 +7,14 @@
  */
 package thinclab.model_ops.belief_exploration;
 
-import thinclab.agent.BeliefBasedAgent;
+import thinclab.models.BeliefBasedModel;
 import thinclab.models.datastructures.ActionObservationGraph;
 
 /*
  * @author adityas
  *
  */
-public interface ExplorationStrategy<A extends BeliefBasedAgent<?>, G extends ActionObservationGraph<?, ?>> {
+public interface ExplorationStrategy<A extends BeliefBasedModel<?>, G extends ActionObservationGraph<?, ?>> {
 
 	public G expandRG(A a, G RG);
 }

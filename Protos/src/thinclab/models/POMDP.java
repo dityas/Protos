@@ -15,18 +15,19 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import thinclab.agent.BeliefBasedAgent;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.solver.PBVISolvable;
+import thinclab.utils.Tuple;
 
 /*
  * @author adityas
  *
  */
-public class POMDP implements Model, BeliefBasedAgent<DD> {
+public class POMDP implements POSeqDecMakingModel<DD>, BeliefBasedModel<DD>, PBVISolvable {
 
 	public final List<String> S;
 	public final List<String> O;
@@ -61,15 +62,16 @@ public class POMDP implements Model, BeliefBasedAgent<DD> {
 				.collect(Collectors.toMap(e -> e.getKey(), e -> (DBN) e.getValue())));
 
 		// Populate dynamics for missing actions
-		Global.valNames.get(this.Avar - 1).stream().forEach(a -> {
+		Global.valNames.get(this.Avar - 1).stream().forEach(a ->
+			{
 
-			if (!dyn.containsKey(a)) {
+				if (!dyn.containsKey(a)) {
 
-				LOGGER.warn(String.format("Dynamics not defined for action %s. "
-						+ "Will apply with SAME transitions and random observations for that action", a));
-				dyn.put(a, new DBN(new HashMap<Integer, DD>(1)));
-			}
-		});
+					LOGGER.warn(String.format("Dynamics not defined for action %s. "
+							+ "Will apply with SAME transitions and random observations for that action", a));
+					dyn.put(a, new DBN(new HashMap<Integer, DD>(1)));
+				}
+			});
 
 		// Initialize TF and OF
 		this.TF = new DD[this.A.size()][];
@@ -85,15 +87,16 @@ public class POMDP implements Model, BeliefBasedAgent<DD> {
 		}
 
 		// Initialized Rewards
-		this.R = IntStream.range(0, this.A.size()).boxed().map(i -> {
+		this.R = IntStream.range(0, this.A.size()).boxed().map(i ->
+			{
 
-			if (R.containsKey(this.A.get(i)))
-				return R.get(this.A.get(i));
+				if (R.containsKey(this.A.get(i)))
+					return R.get(this.A.get(i));
 
-			else
-				return DD.zero;
+				else
+					return DD.zero;
 
-		}).toArray(DD[]::new);
+			}).toArray(DD[]::new);
 
 		this.b = initialBelief;
 		this.discount = discount;
@@ -130,7 +133,7 @@ public class POMDP implements Model, BeliefBasedAgent<DD> {
 
 		return Oa;
 	}
-	
+
 	private List<String> sortByVarOrdering(List<String> varList, List<String> ordering) {
 
 		var unknownVar = varList.stream().filter(v -> ordering.indexOf(v) < 0).findFirst();
@@ -148,7 +151,7 @@ public class POMDP implements Model, BeliefBasedAgent<DD> {
 	public String toString() {
 
 		var builder = new StringBuilder();
-		
+
 		builder.append("POMDP: [").append("\r\n");
 		builder.append("S : ").append(this.S).append("\r\n");
 		builder.append("S vars : ").append(Arrays.toString(this.Svars)).append("\r\n");
@@ -156,7 +159,7 @@ public class POMDP implements Model, BeliefBasedAgent<DD> {
 		builder.append("O vars : ").append(Arrays.toString(this.Ovars)).append("\r\n");
 		builder.append("A : ").append(this.A).append("\r\n");
 		builder.append("A var : ").append(this.Avar).append("\r\n");
-		
+
 		builder.append("TF funct. : ").append("\r\n");
 		IntStream.range(0, this.TF.length).boxed().forEach(i -> builder.append("\t").append(i).append(" - ")
 				.append(this.A.get(i)).append(" : ").append(this.TF[i]).append("\r\n"));
@@ -176,15 +179,15 @@ public class POMDP implements Model, BeliefBasedAgent<DD> {
 
 		return builder.toString();
 	}
-	
+
 	// --------------------------------------------------------------------------------------
 	// Implementation of BeliefBasedAgent<DD>
-	
+
 	@Override
 	public DD beliefUpdate(DD b, int a, int[][] o) {
-		
+
 		DD[] OFao = OP.restrictN(this.OF[a], o);
-		
+
 		// concat b, TF and OF
 		DD[] dynamicsArray = new DD[1 + this.Svars.length + this.Ovars.length];
 		dynamicsArray[0] = b;
@@ -197,7 +200,8 @@ public class POMDP implements Model, BeliefBasedAgent<DD> {
 		nextBelState = OP.primeVars(nextBelState, -(Global.NUM_VARS / 2));
 		DD obsProb = OP.addMultVarElim(nextBelState, this.Svars);
 
-		if (obsProb.getVal() < 1e-8) return DDleaf.getDD(Float.NaN);
+		if (obsProb.getVal() < 1e-8)
+			return DDleaf.getDD(Float.NaN);
 
 		nextBelState = OP.div(nextBelState, obsProb);
 
@@ -209,13 +213,88 @@ public class POMDP implements Model, BeliefBasedAgent<DD> {
 
 		int actIndex = Collections.binarySearch(this.A, a);
 		int[][] obs = new int[2][this.Ovars.length];
-		
-		IntStream.range(0, o.size()).forEach(i -> {
-			obs[0][i] = this.Ovars[i] + (Global.NUM_VARS / 2);
-			obs[1][i] = Collections.binarySearch(Global.valNames.get(this.Ovars[i] - 1), o.get(i)) + 1;
-		});
-		
+
+		IntStream.range(0, o.size()).forEach(i ->
+			{
+
+				obs[0][i] = this.Ovars[i] + (Global.NUM_VARS / 2);
+				obs[1][i] = Collections.binarySearch(Global.valNames.get(this.Ovars[i] - 1), o.get(i)) + 1;
+			});
+
 		return this.beliefUpdate(b, actIndex, obs);
+	}
+
+	// ----------------------------------------------------------------------------------------
+	// POSeqDecMakingModel implementations
+
+	@Override
+	public int[] i_S() {
+
+		return this.Svars;
+	}
+
+	@Override
+	public List<String> S() {
+
+		return this.S;
+	}
+
+	@Override
+	public DD b_i() {
+
+		return this.b;
+	}
+
+	@Override
+	public int[] i_Om() {
+
+		return this.Ovars;
+	}
+
+	@Override
+	public int i_A() {
+
+		return this.Avar;
+	}
+
+	@Override
+	public List<String> Om() {
+
+		return this.O;
+	}
+
+	@Override
+	public List<String> A() {
+
+		return this.A;
+	}
+
+	@Override
+	public DD[][] O() {
+
+		return this.OF;
+	}
+
+	@Override
+	public DD[][] T() {
+
+		return this.TF;
+	}
+
+	@Override
+	public DD[] R() {
+
+		return this.R;
+	}
+	
+	// ----------------------------------------------------------------------------------------
+	// PBVISolvable implementations
+
+	@Override
+	public Tuple<Float, DD> Gaoi(DD b, int a, List<DD> alphaPrimes) {
+
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

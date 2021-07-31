@@ -19,7 +19,7 @@ import thinclab.utils.Tuple;
  */
 public class AlphaVectorPolicy implements Policy {
 
-	public final List<Tuple<Integer, DD>> aVecs;
+	public List<Tuple<Integer, DD>> aVecs;
 
 	public AlphaVectorPolicy(List<Tuple<Integer, DD>> alphaVectors) {
 

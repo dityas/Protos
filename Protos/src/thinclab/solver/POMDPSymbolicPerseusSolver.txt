@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import thinclab.agent.BeliefBasedAgent;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
 import thinclab.model_ops.belief_exploration.ExplorationStrategy;
+import thinclab.models.BeliefBasedModel;
 import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
@@ -29,7 +29,7 @@ import thinclab.utils.Tuple;
  * @author adityas
  *
  */
-public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
+public class POMDPSymbolicPerseusSolver implements PBVISolvable<POMDP> {
 
 	public final int backups;
 
@@ -85,11 +85,11 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 				_Gaoi.add(new Tuple<Float, DD>(OP.dotProduct(b, gaoi, m.Svars), gaoi));
 			}
 
-			Gaoi.add(_Gaoi.stream().reduce((a1, a2) -> a1.first() > a2.first() ? a1 : a2)
+			Gaoi.add(_Gaoi.stream().reduce((a1, a2) -> a1._0() > a2._0() ? a1 : a2)
 					.orElseGet(() -> new Tuple<Float, DD>(Float.NaN, DDleaf.getDD(Float.NaN))));
 		}
 
-		return Gaoi.stream().reduce((t1, t2) -> new Tuple<>(t1.first() + t2.first(), OP.add(t1.second(), t2.second())))
+		return Gaoi.stream().reduce((t1, t2) -> new Tuple<>(t1._0() + t2._0(), OP.add(t1._1(), t2._1())))
 				.orElseGet(() -> new Tuple<>(Float.NaN, DDleaf.getDD(Float.NaN)));
 	}
 
@@ -117,12 +117,12 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 
 		for (int i = 0; i < m.A.size(); i++) {
 
-			var val = Ga.get(i).first() + Gao.get(i).first();
+			var val = Ga.get(i)._0() + Gao.get(i)._0();
 			if (val > bestVal) {
 
 				bestA = i;
 				bestVal = val;
-				bestAlpha = OP.add(Ga.get(i).second(), Gao.get(i).second());
+				bestAlpha = OP.add(Ga.get(i)._1(), Gao.get(i)._1());
 			}
 		}
 
@@ -145,22 +145,22 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 		while (beliefRegion.size() > 0) {
 
 			DD b = beliefRegion.remove(Global.random.nextInt(beliefRegion.size()));
-			var newAlpha = backup(m, b, prevAVecs.stream().map(a -> a.second()).collect(Collectors.toList()));
+			var newAlpha = backup(m, b, prevAVecs.stream().map(a -> a._1()).collect(Collectors.toList()));
 
 			// Construct V_{n+1}(b)
 			var Vnb = prevAVecs.stream()
-					.map(a -> new Tuple<Float, Tuple<Integer, DD>>(OP.dotProduct(b, a.second(), m.Svars), a))
-					.reduce((v1, v2) -> v1.first() >= v2.first() ? v1 : v2)
+					.map(a -> new Tuple<Float, Tuple<Integer, DD>>(OP.dotProduct(b, a._1(), m.Svars), a))
+					.reduce((v1, v2) -> v1._0() >= v2._0() ? v1 : v2)
 					.orElseGet(() -> new Tuple<>(Float.NaN, new Tuple<>(-1, DDleaf.getDD(Float.NaN))));
 
-			var newAlphab = OP.dotProduct(b, newAlpha.second(), m.Svars);
+			var newAlphab = OP.dotProduct(b, newAlpha._1(), m.Svars);
 
 			// If new \alpha.b > Vn(b) add it to new V
-			if (newAlphab > Vnb.first())
+			if (newAlphab > Vnb._0())
 				newVn.add(newAlpha);
 
 			else
-				newVn.add(Vnb.second());
+				newVn.add(Vnb._1());
 
 			beliefRegion = beliefRegion.stream()
 					.filter(_b -> OP.value_b(prevAVecs, _b, m.Svars) > OP.value_b(newVn, _b, m.Svars))
@@ -173,7 +173,7 @@ public class POMDPSymbolicPerseusSolver implements PBVIBasedSolver<POMDP> {
 	}
 
 	@Override
-	public AlphaVectorPolicy solve(POMDP m, BeliefBasedAgent<POMDP> BU, ReachabilityGraph RG,
+	public AlphaVectorPolicy solve(POMDP m, BeliefBasedModel<POMDP> BU, ReachabilityGraph RG,
 			ExplorationStrategy<POMDP> ES) {
 		
 		// Prepare primed var indices and all that to avoid wasting time on it during backups

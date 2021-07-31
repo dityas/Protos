@@ -13,30 +13,30 @@ package thinclab.utils;
  */
 public class Tuple<L, R> {
 
-	private L first;
-	private R second;
+	private final L _0;
+	private final R _1;
 
 	public Tuple(L first, R second) {
 
-		this.first = first;
-		this.second = second;
+		this._0 = first;
+		this._1 = second;
 	}
 
-	public L first() {
+	public L _0() {
 
-		return this.first;
+		return this._0;
 	}
 
-	public R second() {
+	public R _1() {
 
-		return this.second;
+		return this._1;
 	}
 
 	@Override
 	public String toString() {
 
 		var builder = new StringBuilder();
-		builder.append("(").append(this.first).append(", ").append(this.second).append(")");
+		builder.append("(").append(this._0).append(", ").append(this._1).append(")");
 		
 		return builder.toString();
 	}
