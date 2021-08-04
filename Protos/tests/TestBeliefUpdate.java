@@ -11,15 +11,11 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.google.common.graph.MutableNetwork;
-import com.google.common.graph.NetworkBuilder;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
-import thinclab.model_ops.belief_exploration.POMDPBreadthFirstBeliefExploration;
-import thinclab.model_ops.belief_update.POMDPBeliefUpdate;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
 

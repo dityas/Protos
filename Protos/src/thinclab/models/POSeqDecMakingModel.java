@@ -30,4 +30,12 @@ public interface POSeqDecMakingModel<R> extends Model {
 	public R[][] T();
 
 	public R[] R();
+
+	public R b_i();
+
+	// belief update implementations
+	public R beliefUpdate(R b, int a, int[][] o);
+
+	public R beliefUpdate(R b, String a, List<String> o);
+
 }

@@ -8,6 +8,7 @@
 package thinclab.models;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,6 +61,20 @@ public class DBN extends DirectedGraphicalModel {
 		builder.append("]\r\n");
 		
 		return builder.toString();
+	}
+
+	@Override
+	public int[] i_S() {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> S() {
+
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

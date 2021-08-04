@@ -2,11 +2,17 @@ package thinclab.legacy;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import thinclab.utils.Tuple;
 import java.io.*;
 
 public class OP {
+	
+	private static final Logger LOGGER = LogManager.getLogger(OP.class);
 
 	//////////////////////////////////////////////////////
 	// add 2 DDs
@@ -566,7 +572,6 @@ public class OP {
 
 			// # of affected DDs <= 1 or # of vars is <= 2
 			if (nAffectedDds <= 1 || newVarSet.length <= 2) {
-
 				return vars[i];
 			}
 
@@ -589,6 +594,49 @@ public class OP {
 				bestVar = vars[i];
 			}
 		}
+		
+		return bestVar;
+	}
+
+	public static int selectVarGreedily(Collection<DD> dds, List<Integer> vars) {
+
+		// estimate cost of eliminating each var
+		float bestSize = Float.POSITIVE_INFINITY;
+		int bestVar = 0;
+		for (int i = 0; i < vars.size(); i++) {
+
+			int var = vars.get(i);
+
+			var varSets = dds.stream().map(d -> new Tuple<>(d, d.getVars())).filter(s -> s._1().contains(var))
+					.collect(Collectors.toList());
+
+			float sizeEstimate = varSets.stream().map(t -> t._0().getNumLeaves()).reduce(1, (s1, s2) -> s1 * s2);
+			int nAffectedDds = (int) varSets.stream().count();
+
+			Set<Integer> newVarSet = new TreeSet<>();
+			varSets.forEach(t -> newVarSet.addAll(t._1()));
+
+			// # of affected DDs <= 1 or # of vars is <= 2
+			if (nAffectedDds <= 1 || newVarSet.size() <= 2) {
+				
+				return var;
+			}
+
+			// compute sizeUpperBound:
+			// sizeUpperBound = min(sizeEstimate, prod(varDomSize(newScope)));
+			float sizeUpperBound = newVarSet.stream().map(v -> Global.valNames.get(v - 1).size()).reduce(1,
+					(a, b) -> a * b);
+			if (sizeUpperBound < sizeEstimate)
+				sizeEstimate = sizeUpperBound;
+
+			// revise bestVar
+			if (sizeUpperBound < bestSize) {
+
+				bestSize = sizeUpperBound;
+				bestVar = var;
+			}
+		}
+		
 		return bestVar;
 	}
 
@@ -1554,7 +1602,7 @@ public class OP {
 
 		return OP.multN(dds);
 	}
-
+	
 	public static DD addMultVarElim(DD dd, int[] vars) {
 
 		DD[] dds = new DD[1];
@@ -2170,11 +2218,48 @@ public class OP {
 
 	// same OP.restrict extended to collections and more managable var
 	// representations
-	public static DD restrict(DD dd, int[] vars, int[] vals) {
+	public static DD restrict(DD dd, final int[] vars, final int[] vals) {
 
-		return null;
+		if (dd.getVar() == 0)
+			return dd;
+
+		int varIndex = ArrayUtils.indexOf(vars, dd.getVar());
+		if (varIndex >= 0) {
+
+			var _vars = ArrayUtils.remove(vars, varIndex);
+			int val = vals[varIndex];
+			var _vals = ArrayUtils.remove(vals, varIndex);
+
+			if (vars.length == 0)
+				return dd.getChildren()[val - 1];
+
+			else
+				return OP.restrict(dd.getChildren()[val - 1], _vars, _vals);
+		}
+
+		DD[] children = new DD[dd.getChildren().length];
+		for (int i = 0; i < children.length; i++) {
+
+			children[i] = OP.restrict(dd.getChildren()[i], vars, vals);
+		}
+
+		return DDnode.getDD(dd.getVar(), children);
 	}
 
+	public static DD[] restrict(DD[] dds, final int[] vars, final int[] vals) {
+
+		DD[] result = new DD[dds.length];
+
+		for (int i = 0; i < result.length; i++) {
+
+			result[i] = OP.restrict(dds[i], vars, vals);
+		}
+
+		return result;
+	}
+
+	// same OP.restrict extended to collections and more managable var
+	// representations
 	public static DD restrict(DD dd, final List<Integer> vars, final List<Integer> vals) {
 
 		if (dd.getVar() == 0)
@@ -2183,17 +2268,17 @@ public class OP {
 		int varIndex = vars.indexOf(dd.getVar());
 		if (varIndex >= 0) {
 
-			var vars_ = new ArrayList<>(vars);
-			var vals_ = new ArrayList<>(vals);
+			var _vars = new ArrayList<>(vars);
+			var _vals = new ArrayList<>(vals);
+			
+			int _var = _vars.remove(varIndex);
+			var _val = _vals.remove(varIndex);
 
-			vars_.remove(varIndex);
-			int val = vals_.remove(varIndex);
-
-			if (vars_.size() == 0)
-				return dd.getChildren()[val - 1];
+			if (_vars.size() == 0)
+				return dd.getChildren()[_val - 1];
 
 			else
-				return OP.restrict(dd.getChildren()[val - 1], vars_, vals_);
+				return OP.restrict(dd.getChildren()[_val - 1], _vars, _vals);
 		}
 
 		DD[] children = new DD[dd.getChildren().length];
@@ -3684,18 +3769,19 @@ public class OP {
 					.collect(Collectors.toList());
 		}
 	}
-	
+
 	public static float value_b(List<Tuple<Integer, DD>> Vn, DD b, int[] Svars) {
-		
+
 		float maxVal = Float.NEGATIVE_INFINITY;
-		
+
 		for (int i = 0; i < Vn.size(); i++) {
-			
-			float val = OP.dotProduct(b, Vn.get(i).second(), Svars);
-			
-			if (val > maxVal) maxVal = val;
+
+			float val = OP.dotProduct(b, Vn.get(i)._1(), Svars);
+
+			if (val > maxVal)
+				maxVal = val;
 		}
-		
+
 		return maxVal;
 	}
 
