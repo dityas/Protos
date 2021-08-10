@@ -1,7 +1,5 @@
 import static org.junit.jupiter.api.Assertions.*;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
@@ -9,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.legacy.OP;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;

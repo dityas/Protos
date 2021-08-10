@@ -16,7 +16,7 @@ import java.util.List;
 public interface Model {
 
 	// for now, Model is a type which has getters for state vars and their indices
-	public int[] i_S();
+	public List<Integer> i_S();
 
 	public List<String> S();
 }

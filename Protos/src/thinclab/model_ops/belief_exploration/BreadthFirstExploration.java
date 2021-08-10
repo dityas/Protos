@@ -8,6 +8,8 @@
 package thinclab.model_ops.belief_exploration;
 
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
 
@@ -15,13 +17,35 @@ import thinclab.models.datastructures.AbstractAOGraph;
  * @author adityas
  *
  */
-public class BreadthFirstExploration<B, A extends POSeqDecMakingModel<B>>
-		implements ExplorationStrategy<B, A> {
-	
-	@Override
-	public List<B> expandRG(List<B> bs, A a) {
+public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<B, Integer, List<Integer>>>
+		implements ExplorationStrategy<B, M, G> {
 
-		// TODO Auto-generated method stub
-		return null;
+	private final int maxB;
+	private static final Logger LOGGER = LogManager.getLogger(BreadthFirstExploration.class);
+
+	public BreadthFirstExploration(int maxCachedB) {
+
+		this.maxB = maxCachedB;
+	}
+
+	@Override
+	public G expand(G g, M m) {
+
+		if (g.getAllNodes().size() < maxB) {
+
+			g.getAllChildren().stream().forEach(b ->
+				{
+
+					g.edgeIndexMap.keySet().stream().forEach(t -> {
+						
+						if (g.getAllNodes().size() < maxB)
+							g.addEdge(b, t, m.beliefUpdate(b, t._0(), t._1()));
+					
+					});
+				});
+
+		}
+
+		return g;
 	}
 }

@@ -17,7 +17,7 @@ public interface POSeqDecMakingModel<R> extends Model {
 
 	// POSeqDecMakingModel is a typeclass which has getters for all constituents of
 	// the POMDP tuple
-	public int[] i_Om();
+	public List<Integer> i_Om();
 
 	public int i_A();
 
@@ -25,16 +25,16 @@ public interface POSeqDecMakingModel<R> extends Model {
 
 	public List<String> A();
 
-	public R[][] O();
+	public List<List<R>> O();
 
-	public R[][] T();
+	public List<List<R>> T();
 
-	public R[] R();
+	public List<R> R();
 
 	public R b_i();
 
 	// belief update implementations
-	public R beliefUpdate(R b, int a, int[][] o);
+	public R beliefUpdate(R b, int a, List<Integer> o);
 
 	public R beliefUpdate(R b, String a, List<String> o);
 

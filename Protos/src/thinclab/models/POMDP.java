@@ -8,20 +8,18 @@
 package thinclab.models;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
-import thinclab.legacy.OP;
 import thinclab.solver.PBVISolvable;
 import thinclab.utils.Tuple;
 
@@ -69,7 +67,7 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 		this.i_Om_p = this.i_Om.stream().map(i -> i + (Global.NUM_VARS / 2)).collect(Collectors.toList());
 
 		// all possible observations
-		this.oAll = OP.cartesianProd(i_Om.stream().map(
+		this.oAll = DDOP.cartesianProd(i_Om.stream().map(
 				o -> IntStream.range(1, Global.valNames.get(o - 1).size() + 1).boxed().collect(Collectors.toList()))
 				.collect(Collectors.toList()));
 
@@ -91,39 +89,33 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 			});
 
 		/*
-		// Initialize TF and OF
-		this.TF = new DD[this.A.size()][];
-		this.OF = new DD[this.A.size()][];
+		 * // Initialize TF and OF this.TF = new DD[this.A.size()][]; this.OF = new
+		 * DD[this.A.size()][];
+		 * 
+		 * for (int i = 0; i < this.A.size(); i++) {
+		 * 
+		 * var tfa = this.getTransitionFunction(dyn.get(this.A.get(i))); var ofa =
+		 * this.getObsFunction(dyn.get(this.A.get(i)));
+		 * 
+		 * this.TF[i] = tfa; this.OF[i] = ofa; }
+		 */
 
-		for (int i = 0; i < this.A.size(); i++) {
-
-			var tfa = this.getTransitionFunction(dyn.get(this.A.get(i)));
-			var ofa = this.getObsFunction(dyn.get(this.A.get(i)));
-
-			this.TF[i] = tfa;
-			this.OF[i] = ofa;
-		}
-		*/
-		
 		this.TF = this.A.stream().map(a -> this.getTransitionFunction(dyn.get(a))).collect(Collectors.toList());
 		this.OF = this.A.stream().map(a -> this.getObsFunction(dyn.get(a))).collect(Collectors.toList());
-		
+
 		/*
-		// Initialized Rewards
-		this.R = IntStream.range(0, this.A.size()).boxed().map(i ->
-			{
+		 * // Initialized Rewards this.R = IntStream.range(0,
+		 * this.A.size()).boxed().map(i -> {
+		 * 
+		 * if (R.containsKey(this.A.get(i))) return R.get(this.A.get(i));
+		 * 
+		 * else return DD.zero;
+		 * 
+		 * }).toArray(DD[]::new);
+		 */
 
-				if (R.containsKey(this.A.get(i)))
-					return R.get(this.A.get(i));
-
-				else
-					return DD.zero;
-
-			}).toArray(DD[]::new);
-		*/
-		
 		this.R = this.A.stream().map(a -> R.containsKey(a) ? R.get(a) : DD.zero).collect(Collectors.toList());
-		
+
 		this.b_i = initialBelief;
 		this.discount = discount;
 	}
@@ -147,23 +139,21 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 
 	protected List<DD> getObsFunction(DBN dbn) {
 
-		var Oa = i_S.stream()
+		var Oa = i_Om.stream()
 				.map(o -> dbn.cpds.containsKey(o) ? dbn.cpds.get(o) : DDnode.getUniformDist(o + (Global.NUM_VARS / 2)))
 				.collect(Collectors.toList());
-		
+
 		/*
-		DD[] Oa = new DD[this.i_Om.length];
+		 * DD[] Oa = new DD[this.i_Om.length];
+		 * 
+		 * for (int i = 0; i < Oa.length; i++) {
+		 * 
+		 * if (dbn.cpds.containsKey(i_Om[i])) Oa[i] = dbn.cpds.get(this.i_Om[i]);
+		 * 
+		 * else Oa[i] = DDnode.getUniformDist(this.i_Om[i] + (Global.varNames.size() /
+		 * 2)); }
+		 */
 
-		for (int i = 0; i < Oa.length; i++) {
-
-			if (dbn.cpds.containsKey(i_Om[i]))
-				Oa[i] = dbn.cpds.get(this.i_Om[i]);
-
-			else
-				Oa[i] = DDnode.getUniformDist(this.i_Om[i] + (Global.varNames.size() / 2));
-		}
-		*/
-		
 		return Oa;
 	}
 
@@ -211,26 +201,26 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 	// Implementation of BeliefBasedAgent<DD>
 
 	@Override
-	public DD beliefUpdate(DD b, int a, int[][] o) {
+	public DD beliefUpdate(DD b, int a, List<Integer> o) {
 
-		DD[] OFao = OP.restrictN(this.OF[a], o);
+		var OFao = DDOP.restrict(this.OF.get(a), i_Om_p, o);
 
 		// concat b, TF and OF
-		DD[] dynamicsArray = new DD[1 + this.i_S.length + this.i_Om.length];
-		dynamicsArray[0] = b;
-		System.arraycopy(this.TF[a], 0, dynamicsArray, 1, this.i_S.length);
-		System.arraycopy(OFao, 0, dynamicsArray, 1 + this.i_S.length, this.i_Om.length);
+		var dynamicsArray = new ArrayList<DD>(1 + i_S.size() + i_Om.size());
+		dynamicsArray.add(b);
+		dynamicsArray.addAll(TF.get(a));
+		dynamicsArray.addAll(OFao);
 
 		// Sumout[S] P(O'=o| S, A=a) x P(S'| S, A=a) x P(S)
-		DD nextBelState = OP.addMultVarElim(dynamicsArray, this.i_S);
+		DD nextBelState = DDOP.addMultVarElim(dynamicsArray, i_S);
 
-		nextBelState = OP.primeVars(nextBelState, -(Global.NUM_VARS / 2));
-		DD obsProb = OP.addMultVarElim(nextBelState, this.i_S);
+		nextBelState = DDOP.primeVars(nextBelState, -(Global.NUM_VARS / 2));
+		DD obsProb = DDOP.addMultVarElim(List.of(nextBelState), i_S);
 
 		if (obsProb.getVal() < 1e-8)
 			return DDleaf.getDD(Float.NaN);
 
-		nextBelState = OP.div(nextBelState, obsProb);
+		nextBelState = DDOP.div(nextBelState, obsProb);
 
 		return nextBelState;
 	}
@@ -239,14 +229,12 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 	public DD beliefUpdate(DD b, String a, List<String> o) {
 
 		int actIndex = Collections.binarySearch(this.A, a);
-		int[][] obs = new int[2][this.i_Om.length];
+		var obs = new ArrayList<Integer>(i_Om.size());
 
-		IntStream.range(0, o.size()).forEach(i ->
-			{
+		for (int i = 0; i < i_Om_p.size(); i++) {
 
-				obs[0][i] = this.i_Om[i] + (Global.NUM_VARS / 2);
-				obs[1][i] = Collections.binarySearch(Global.valNames.get(this.i_Om[i] - 1), o.get(i)) + 1;
-			});
+			obs.add(Collections.binarySearch(Global.valNames.get(i_Om.get(i) - 1), o.get(i)) + 1);
+		}
 
 		return this.beliefUpdate(b, actIndex, obs);
 	}
@@ -255,7 +243,7 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 	// POSeqDecMakingModel implementations
 
 	@Override
-	public int[] i_S() {
+	public List<Integer> i_S() {
 
 		return this.i_S;
 	}
@@ -273,7 +261,7 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 	}
 
 	@Override
-	public int[] i_Om() {
+	public List<Integer> i_Om() {
 
 		return this.i_Om;
 	}
@@ -297,19 +285,19 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 	}
 
 	@Override
-	public DD[][] O() {
+	public List<List<DD>> O() {
 
 		return this.OF;
 	}
 
 	@Override
-	public DD[][] T() {
+	public List<List<DD>> T() {
 
 		return this.TF;
 	}
 
 	@Override
-	public DD[] R() {
+	public List<DD> R() {
 
 		return this.R;
 	}
@@ -326,24 +314,25 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 
 			List<Tuple<Float, DD>> _Gaoi = new ArrayList<>();
 
-			var _factors = ArrayUtils.addAll(TF[a], OP.restrict(OF[a], i_Om_p, oAll.get(_o)));
-
 			for (int i = 0; i < alphaPrimes.size(); i++) {
 
-				var factors = ArrayUtils.add(_factors, alphaPrimes.get(i));
+				var _factors = new ArrayList<DD>(TF.get(a).size() + OF.get(a).size() + 1);
+				_factors.addAll(T().get(a));
+				_factors.addAll(DDOP.restrict(O().get(a), i_Om_p, oAll.get(_o)));
+				_factors.add(alphaPrimes.get(i));
 
-				DD gaoi = OP.mult(DDleaf.getDD(discount), OP.addMultVarElim(factors, i_S_p));
-				_Gaoi.add(new Tuple<>(OP.dotProduct(b, gaoi, i_S), gaoi));
+				DD gaoi = DDOP.mult(DDleaf.getDD(discount), DDOP.addMultVarElim(_factors, i_S_p));
+				_Gaoi.add(Tuple.of(DDOP.dotProduct(b, gaoi, i_S), gaoi));
 
 			}
 
-			Gaoi.add(_Gaoi.stream().reduce(new Tuple<>(Float.NEGATIVE_INFINITY, DDleaf.zero),
+			Gaoi.add(_Gaoi.stream().reduce(Tuple.of(Float.NEGATIVE_INFINITY, DDleaf.zero),
 					(a1, a2) -> a1._0() > a2._0() ? a1 : a2));
 
 		}
 
-		return Gaoi.stream().reduce(new Tuple<>(0f, DDleaf.zero),
-				(t1, t2) -> new Tuple<>(t1._0() + t2._0(), OP.add(t1._1(), t2._1())));
+		return Gaoi.stream().reduce(Tuple.of(0f, DDleaf.zero),
+				(t1, t2) -> Tuple.of(t1._0() + t2._0(), DDOP.add(t1._1(), t2._1())));
 	}
 
 }

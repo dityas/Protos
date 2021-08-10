@@ -1,14 +1,20 @@
 package thinclab.legacy;
 
-import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.RandomVariable;
-
-import java.lang.ref.*;
+import thinclab.utils.Tuple;
+import thinclab.utils.Tuple3;
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
 
 public class Global {
 
@@ -29,10 +35,13 @@ public class Global {
 	public static TypedCacheMap<DD, WeakReference<DD>> leafHashtable = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<DD, WeakReference<DD>> nodeHashtable = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<Pair, DD> addHashtable = new TypedCacheMap<Pair, DD>(10000);
+	public static TypedCacheMap<Tuple<DD, DD>, DD> addCache = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<Pair, DD> multHashtable = new TypedCacheMap<Pair, DD>(10000);
+	public static TypedCacheMap<Tuple<DD, DD>, DD> multCache = new TypedCacheMap<>(10000);
 	public static CacheMap maxHashtable = new CacheMap();
 	public static CacheMap minHashtable = new CacheMap();
 	public static TypedCacheMap<TripletSet, Float> dotProductHashtable = new TypedCacheMap<>(10000);
+	public static TypedCacheMap<Tuple3<DD, DD, HashSet<Integer>>, Float> dotProductCache = new TypedCacheMap<>(10000);
 	public static CacheMap nEdgesHashtable = new CacheMap();
 	public static CacheMap nLeavesHashtable = new CacheMap();
 	public static CacheMap nNodesHashtable = new CacheMap();
@@ -95,10 +104,13 @@ public class Global {
 		Global.leafHashtable.clear();
 		Global.nodeHashtable.clear();
 		Global.addHashtable.clear();
+		Global.addCache.clear();
 		Global.multHashtable.clear();
+		Global.multCache.clear();
 		Global.maxHashtable.clear();
 		Global.minHashtable.clear();
 		Global.dotProductHashtable.clear();
+		Global.dotProductCache.clear();
 		Global.nEdgesHashtable.clear();
 		Global.nLeavesHashtable.clear();
 		Global.nNodesHashtable.clear();
@@ -126,10 +138,13 @@ public class Global {
 		Global.leafHashtable = new TypedCacheMap<>(10000);
 		Global.nodeHashtable = new TypedCacheMap<>(10000);
 		Global.addHashtable = new TypedCacheMap<Pair, DD>(10000);
+		Global.addCache = new TypedCacheMap<>(10000);
 		Global.multHashtable = new TypedCacheMap<Pair, DD>(10000);
+		Global.multCache = new TypedCacheMap<>(10000);
 		Global.maxHashtable = new CacheMap();
 		Global.minHashtable = new CacheMap();
 		Global.dotProductHashtable = new TypedCacheMap<>(10000);
+		Global.dotProductCache = new TypedCacheMap<>(10000);
 		Global.nEdgesHashtable = new CacheMap();
 		Global.nLeavesHashtable = new CacheMap();
 		Global.nNodesHashtable = new CacheMap();
@@ -141,9 +156,9 @@ public class Global {
 		
 		LOGGER.debug(String.format("Nodes Cache: %s", Global.nodeHashtable.size()));
 		LOGGER.debug(String.format("Leaf Cache: %s", Global.leafHashtable.size()));
-		LOGGER.debug(String.format("Add Cache: %s", Global.addHashtable.size()));
-		LOGGER.debug(String.format("Mult Cache: %s", Global.multHashtable.size()));
-		LOGGER.debug(String.format("Dot Product Cache: %s", Global.dotProductHashtable.size()));
+		LOGGER.debug(String.format("Add Cache: %s", Global.addCache.size()));
+		LOGGER.debug(String.format("Mult Cache: %s", Global.multCache.size()));
+		LOGGER.debug(String.format("Dot Product Cache: %s", Global.dotProductCache.size()));
 		
 	}
 

@@ -7,6 +7,7 @@
  */
 package thinclab.policy;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -45,10 +46,10 @@ public class AlphaVectorPolicy implements Policy {
 		return aVecs.toString();
 	}
 
-	public static AlphaVectorPolicy fromR(DD[] R) {
+	public static AlphaVectorPolicy fromR(List<DD> R) {
 
 		return new AlphaVectorPolicy(
-				IntStream.range(0, R.length).mapToObj(i -> new Tuple<>(i, R[i])).collect(Collectors.toList()));
+				IntStream.range(0, R.size()).mapToObj(i -> Tuple.of(i, R.get(i))).collect(Collectors.toList()));
 	}
 
 }

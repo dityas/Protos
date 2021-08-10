@@ -8,22 +8,20 @@
 package thinclab.solver;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
-import thinclab.legacy.OP;
 import thinclab.model_ops.belief_exploration.ExplorationStrategy;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
-import thinclab.utils.Tuple3;
 
 /*
  * @author adityas
@@ -33,12 +31,12 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 		implements PointBasedSolver<M, AlphaVectorPolicy> {
 
 	public ReachabilityGraph RG;
-	public ExplorationStrategy<M, ReachabilityGraph> ES;
+	public ExplorationStrategy<DD, M, ReachabilityGraph> ES;
 	private int usedBeliefs = 0;
 
 	private static final Logger LOGGER = LogManager.getLogger(SymbolicPerseusSolver.class);
 
-	public SymbolicPerseusSolver(ReachabilityGraph RG, ExplorationStrategy<M, ReachabilityGraph> ES) {
+	public SymbolicPerseusSolver(ReachabilityGraph RG, ExplorationStrategy<DD, M, ReachabilityGraph> ES) {
 
 		this.RG = RG;
 		this.ES = ES;
@@ -49,14 +47,14 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 		// compute in parallel if there are multiple \alpha vectors and dimensionality
 		// is huge
 		var aStream = IntStream.range(0, m.A().size());
-		if (primedAVecs.size() > 2 && (m.i_S().length + m.i_Om().length) > 5)
+		if (primedAVecs.size() > 2 && (m.i_S().size() + m.i_Om().size()) > 5)
 			aStream = aStream.parallel();
 
 		// For each action and observation pair (a, o), and each \alpha(s'), compute the
 		// dot product for \Gamma_{a, o} with b and get the best \alpha. Sum across
 		// observations
 		var Gao = aStream.mapToObj(_a -> m.Gaoi(b, _a, primedAVecs)).collect(Collectors.toList());
-		var Ga = Arrays.stream(m.R()).map(r -> new Tuple<>(OP.dotProduct(b, r, m.i_S()), r))
+		var Ga = m.R().stream().map(r -> Tuple.of(DDOP.dotProduct(b, r, m.i_S()), r))
 				.collect(Collectors.toList());
 
 		// construct \alpha vector for best Ga + Gao
@@ -71,7 +69,7 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 
 				bestA = i;
 				bestVal = val;
-				bestAlpha = OP.add(Ga.get(i)._1(), Gao.get(i)._1());
+				bestAlpha = DDOP.add(Ga.get(i)._1(), Gao.get(i)._1());
 			}
 		}
 
@@ -80,7 +78,7 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 
 	protected Tuple<Integer, DD> backup(final M m, final DD b, List<DD> aVecs) {
 
-		var primedAVecs = aVecs.stream().map(a -> OP.primeVars(a, Global.NUM_VARS / 2)).collect(Collectors.toList());
+		var primedAVecs = aVecs.stream().map(a -> DDOP.primeVars(a, Global.NUM_VARS / 2)).collect(Collectors.toList());
 		return Gab(m, b, primedAVecs);
 	}
 
@@ -100,20 +98,20 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 
 			// Construct V_{n+1}(b)
 			var Vnb = Vn.aVecs.stream()
-					.map(a -> new Tuple3<Float, Integer, DD>(OP.dotProduct(b, a._1(), m.i_S()), a._0(), a._1()))
-					.reduce(new Tuple3<>(Float.NEGATIVE_INFINITY, -1, DDleaf.zero),
+					.map(a -> Tuple.of(DDOP.dotProduct(b, a._1(), m.i_S()), a._0(), a._1()))
+					.reduce(Tuple.of(Float.NEGATIVE_INFINITY, -1, DDleaf.zero),
 							(v1, v2) -> v1._0() >= v2._0() ? v1 : v2);
 
-			var newAlphab = OP.dotProduct(b, newAlpha._1(), m.i_S());
+			var newAlphab = DDOP.dotProduct(b, newAlpha._1(), m.i_S());
 
 			// If new \alpha.b > Vn(b) add it to new V
 			if (newAlphab > Vnb._0())
 				newVn.add(newAlpha);
 
 			else
-				newVn.add(new Tuple<>(Vnb._1(), Vnb._2()));
+				newVn.add(Tuple.of(Vnb._1(), Vnb._2()));
 
-			B = B.stream().filter(_b -> OP.value_b(Vn.aVecs, _b, m.i_S()) > OP.value_b(newVn, _b, m.i_S()))
+			B = B.stream().filter(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()) > DDOP.value_b(newVn, _b, m.i_S()))
 					.collect(Collectors.toList());
 
 			this.usedBeliefs++;
@@ -132,7 +130,7 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 		for (int i = 0; i < H; i++) {
 
 			// expand belief region
-			RG = ES.expandRG(m, RG);
+			RG = ES.expand(RG, m);
 			var B = new ArrayList<DD>(RG.getAllNodes());
 			long then = System.nanoTime();
 
@@ -141,7 +139,7 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 
 			float backupT = (System.nanoTime() - then) / 1000000.0f;
 			float bellmanError = B.stream()
-					.map(_b -> Math.abs(OP.value_b(Vn.aVecs, _b, m.i_S()) - OP.value_b(Vn_p.aVecs, _b, m.i_S())))
+					.map(_b -> Math.abs(DDOP.value_b(Vn.aVecs, _b, m.i_S()) - DDOP.value_b(Vn_p.aVecs, _b, m.i_S())))
 					.reduce(Float.NEGATIVE_INFINITY, (v1, v2) -> v1 > v2 ? v1 : v2);
 
 			// prepare for next iter

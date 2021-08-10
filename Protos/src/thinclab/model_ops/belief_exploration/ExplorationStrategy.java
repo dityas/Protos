@@ -7,16 +7,14 @@
  */
 package thinclab.model_ops.belief_exploration;
 
-import java.util.List;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
-import thinclab.models.datastructures.ActionObservationGraph;
 
 /*
  * @author adityas
  *
  */
-public interface ExplorationStrategy<B, A extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<B, List<?>>> {
+public interface ExplorationStrategy<B, A extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<?, ?, ?>> {
 
-	public List<B> expand(List<B> bs, A a);
+	public G expand(G g, A a);
 }

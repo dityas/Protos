@@ -26,7 +26,7 @@ public class Tuple<L, R> {
 		this._1 = second;
 
 		var builder = new HashCodeBuilder().append(_0).append(_1);
-		this.hash = builder.build();
+		this.hash = builder.toHashCode();
 	}
 
 	public L _0() {
@@ -70,5 +70,15 @@ public class Tuple<L, R> {
 			return false;
 
 		return true;
+	}
+	
+	public static <L, R> Tuple<L, R> of(L l, R r) {
+		
+		return new Tuple<L, R>(l, r);
+	}
+	
+	public static <A, B, C> Tuple3<A, B, C> of(A a, B b, C c) {
+		
+		return new Tuple3<A, B, C>(a, b, c);
 	}
 }
