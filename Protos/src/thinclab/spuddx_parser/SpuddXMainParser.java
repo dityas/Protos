@@ -22,8 +22,11 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.DBN;
 import thinclab.models.Model;
+import thinclab.models.POMDP;
+import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXParser.DBNDefContext;
 import thinclab.spuddx_parser.SpuddXParser.DDDefContext;
+import thinclab.spuddx_parser.SpuddXParser.PBVISolverDefContext;
 import thinclab.spuddx_parser.SpuddXParser.POMDPDefContext;
 import thinclab.spuddx_parser.SpuddXParser.Var_defsContext;
 
@@ -47,6 +50,9 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 	// visitor for parsing variable definitions
 	private VarDefVisitor varVisitor = new VarDefVisitor();
+
+	// solvers
+	private HashMap<String, SymbolicPerseusSolver<?>> solvers = new HashMap<>(5);
 
 	private String fileName;
 	private SpuddXParser parser;
@@ -139,6 +145,28 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		super.enterPOMDPDef(ctx);
 	}
 
+	@Override
+	public void enterPBVISolverDef(PBVISolverDefContext ctx) {
+
+		String name = ctx.pbvi_solv_def().solv_name().IDENTIFIER().getText();
+		String modelName = ctx.pbvi_solv_def().model_name().IDENTIFIER().getText();
+		var model = this.models.get(modelName);
+
+		if (model == null) {
+
+			LOGGER.error(String.format("Model %s for which solver %s is defined does not exist", modelName, name));
+			System.exit(-1);
+		}
+
+		if (model instanceof POMDP) {
+
+			SymbolicPerseusSolver<POMDP> solver = new SymbolicPerseusSolver<>();
+			
+			this.solvers.put(name, solver);
+			LOGGER.debug(String.format("Parsed solver %s for POMDP %s", name, modelName));
+		}
+	}
+
 	// ----------------------------------------------------------------------------------------
 
 	public HashMap<String, DD> getDDs() {
@@ -150,4 +178,10 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 		return Optional.ofNullable(this.models.get(modelName));
 	}
+
+	public Optional<SymbolicPerseusSolver<?>> getSolver(String name) {
+
+		return Optional.ofNullable(this.solvers.get(name));
+	}
+
 }

@@ -17,6 +17,7 @@ import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
+import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.model_ops.belief_exploration.ExplorationStrategy;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.ReachabilityGraph;
@@ -30,17 +31,9 @@ import thinclab.utils.Tuple;
 public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolvable>
 		implements PointBasedSolver<M, AlphaVectorPolicy> {
 
-	public ReachabilityGraph RG;
-	public ExplorationStrategy<DD, M, ReachabilityGraph> ES;
 	private int usedBeliefs = 0;
 
 	private static final Logger LOGGER = LogManager.getLogger(SymbolicPerseusSolver.class);
-
-	public SymbolicPerseusSolver(ReachabilityGraph RG, ExplorationStrategy<DD, M, ReachabilityGraph> ES) {
-
-		this.RG = RG;
-		this.ES = ES;
-	}
 
 	protected Tuple<Integer, DD> Gab(final M m, final DD b, List<DD> primedAVecs) {
 
@@ -54,8 +47,7 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 		// dot product for \Gamma_{a, o} with b and get the best \alpha. Sum across
 		// observations
 		var Gao = aStream.mapToObj(_a -> m.Gaoi(b, _a, primedAVecs)).collect(Collectors.toList());
-		var Ga = m.R().stream().map(r -> Tuple.of(DDOP.dotProduct(b, r, m.i_S()), r))
-				.collect(Collectors.toList());
+		var Ga = m.R().stream().map(r -> Tuple.of(DDOP.dotProduct(b, r, m.i_S()), r)).collect(Collectors.toList());
 
 		// construct \alpha vector for best Ga + Gao
 		int bestA = -1;
@@ -97,10 +89,8 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 			var newAlpha = backup(m, b, Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList()));
 
 			// Construct V_{n+1}(b)
-			var Vnb = Vn.aVecs.stream()
-					.map(a -> Tuple.of(DDOP.dotProduct(b, a._1(), m.i_S()), a._0(), a._1()))
-					.reduce(Tuple.of(Float.NEGATIVE_INFINITY, -1, DDleaf.zero),
-							(v1, v2) -> v1._0() >= v2._0() ? v1 : v2);
+			var Vnb = Vn.aVecs.stream().map(a -> Tuple.of(DDOP.dotProduct(b, a._1(), m.i_S()), a._0(), a._1())).reduce(
+					Tuple.of(Float.NEGATIVE_INFINITY, -1, DDleaf.zero), (v1, v2) -> v1._0() >= v2._0() ? v1 : v2);
 
 			var newAlphab = DDOP.dotProduct(b, newAlpha._1(), m.i_S());
 
@@ -121,16 +111,17 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 	}
 
 	@Override
-	public AlphaVectorPolicy solve(List<DD> bs, final M m, int H) {
+	public AlphaVectorPolicy solve(List<DD> bs, final M m, int I, int H, AlphaVectorPolicy Vn) {
 
-		// h = 0 value function
-		var Vn = AlphaVectorPolicy.fromR(m.R());
+		ReachabilityGraph RG = ReachabilityGraph.fromDecMakingModel(m);
+		ExplorationStrategy<DD, M, ReachabilityGraph, AlphaVectorPolicy> ES = new BreadthFirstExploration<>(100);
+		
 		bs.forEach(RG::addNode);
 
-		for (int i = 0; i < H; i++) {
+		for (int i = 0; i < I; i++) {
 
 			// expand belief region
-			RG = ES.expand(RG, m);
+			RG = ES.expand(RG, m, H, Vn);
 			var B = new ArrayList<DD>(RG.getAllNodes());
 			long then = System.nanoTime();
 
@@ -161,5 +152,4 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 		RG.removeAllNodes();
 		return Vn;
 	}
-
 }

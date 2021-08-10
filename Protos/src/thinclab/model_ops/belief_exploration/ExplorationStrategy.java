@@ -9,12 +9,13 @@ package thinclab.model_ops.belief_exploration;
 
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
+import thinclab.policy.Policy;
 
 /*
  * @author adityas
  *
  */
-public interface ExplorationStrategy<B, A extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<?, ?, ?>> {
+public interface ExplorationStrategy<B, A extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<?, ?, ?>, P extends Policy> {
 
-	public G expand(G g, A a);
+	public G expand(G g, A a, int T, P Vn);
 }

@@ -58,12 +58,25 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDBNDef(SpuddXParser.DBNDefContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code PBVISolverDef}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPBVISolverDef(SpuddXParser.PBVISolverDefContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code OtherDefParen}
 	 * labeled alternative in {@link SpuddXParser#all_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitOtherDefParen(SpuddXParser.OtherDefParenContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#pbvi_solv_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPbvi_solv_def(SpuddXParser.Pbvi_solv_defContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#pomdp_def}.
 	 * @param ctx the parse tree
@@ -279,4 +292,10 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitVar_value(SpuddXParser.Var_valueContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#solv_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSolv_name(SpuddXParser.Solv_nameContext ctx);
 }

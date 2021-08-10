@@ -12,15 +12,18 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
+import thinclab.policy.Policy;
 
 /*
  * @author adityas
  *
  */
-public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<B, Integer, List<Integer>>>
-		implements ExplorationStrategy<B, M, G> {
+public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<B, Integer, List<Integer>>, P extends Policy>
+		implements ExplorationStrategy<B, M, G, P> {
 
 	private final int maxB;
+	private boolean done = false;
+
 	private static final Logger LOGGER = LogManager.getLogger(BreadthFirstExploration.class);
 
 	public BreadthFirstExploration(int maxCachedB) {
@@ -29,23 +32,32 @@ public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G exte
 	}
 
 	@Override
-	public G expand(G g, M m) {
+	public G expand(G g, M m, int T, P Vn) {
 
-		if (g.getAllNodes().size() < maxB) {
+		if (g.getAllNodes().size() < maxB && !done) {
 
-			g.getAllChildren().stream().forEach(b ->
-				{
+			while (T > 0) {
 
-					g.edgeIndexMap.keySet().stream().forEach(t -> {
-						
-						if (g.getAllNodes().size() < maxB)
-							g.addEdge(b, t, m.beliefUpdate(b, t._0(), t._1()));
-					
+				g.getAllChildren().stream().forEach(b ->
+					{
+
+						g.edgeIndexMap.keySet().stream().forEach(_t ->
+							{
+
+								if (g.getAllNodes().size() < maxB) {
+
+									if (g.getNodeAtEdge(b, _t).isEmpty())
+										g.addEdge(b, _t, m.beliefUpdate(b, _t._0(), _t._1()));
+								}
+
+							});
 					});
-				});
-
+				
+				T--;
+			}
 		}
 
+		done = true;
 		return g;
 	}
 }

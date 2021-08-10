@@ -18,5 +18,5 @@ import thinclab.policy.Policy;
  */
 public interface PointBasedSolver<M extends POSeqDecMakingModel<DD>, P extends Policy> {
 
-	public P solve(List<DD> bs, final M m, int H);
+	public P solve(List<DD> bs, final M m, int I, int H, P Vn);
 }

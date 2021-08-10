@@ -101,6 +101,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterPBVISolverDef(SpuddXParser.PBVISolverDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPBVISolverDef(SpuddXParser.PBVISolverDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterOtherDefParen(SpuddXParser.OtherDefParenContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -108,6 +120,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitOtherDefParen(SpuddXParser.OtherDefParenContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPbvi_solv_def(SpuddXParser.Pbvi_solv_defContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPbvi_solv_def(SpuddXParser.Pbvi_solv_defContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -516,6 +540,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitVar_value(SpuddXParser.Var_valueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSolv_name(SpuddXParser.Solv_nameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSolv_name(SpuddXParser.Solv_nameContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

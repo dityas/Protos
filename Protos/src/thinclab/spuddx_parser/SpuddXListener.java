@@ -87,6 +87,18 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitDBNDef(SpuddXParser.DBNDefContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code PBVISolverDef}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
+	 * @param ctx the parse tree
+	 */
+	void enterPBVISolverDef(SpuddXParser.PBVISolverDefContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PBVISolverDef}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
+	 * @param ctx the parse tree
+	 */
+	void exitPBVISolverDef(SpuddXParser.PBVISolverDefContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code OtherDefParen}
 	 * labeled alternative in {@link SpuddXParser#all_def}.
 	 * @param ctx the parse tree
@@ -98,6 +110,16 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitOtherDefParen(SpuddXParser.OtherDefParenContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#pbvi_solv_def}.
+	 * @param ctx the parse tree
+	 */
+	void enterPbvi_solv_def(SpuddXParser.Pbvi_solv_defContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#pbvi_solv_def}.
+	 * @param ctx the parse tree
+	 */
+	void exitPbvi_solv_def(SpuddXParser.Pbvi_solv_defContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#pomdp_def}.
 	 * @param ctx the parse tree
@@ -460,4 +482,14 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitVar_value(SpuddXParser.Var_valueContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#solv_name}.
+	 * @param ctx the parse tree
+	 */
+	void enterSolv_name(SpuddXParser.Solv_nameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#solv_name}.
+	 * @param ctx the parse tree
+	 */
+	void exitSolv_name(SpuddXParser.Solv_nameContext ctx);
 }

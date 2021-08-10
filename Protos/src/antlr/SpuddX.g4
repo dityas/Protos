@@ -16,9 +16,12 @@ all_def : model_name			# PreDefModel
 		| dd_def 				# DDDef
 		| pomdp_def 			# POMDPDef
 		| dbn_def				# DBNDef
+		| pbvi_solv_def 		# PBVISolverDef
 		| LP all_def RP 		# OtherDefParen
 		;
-		   
+		  
+pbvi_solv_def : LP 'defpbvisolv' solv_name model_name RP;
+ 
 pomdp_def : LP 'defpomdp' model_name
 			states_list
 			obs_list
@@ -81,10 +84,12 @@ model_name : IDENTIFIER ;
 dd_name : IDENTIFIER;
 var_name : IDENTIFIER;
 var_value : IDENTIFIER ;
+solv_name : IDENTIFIER;
 
 ENV : 'ENV' | 'env' ;
 DD : 'DD' | 'dd' ;
 POMDP : 'POMDP' | 'pomdp' ;
+IPOMDP : 'IPOMDP' | 'ipomdp' ;
 DBN : 'DBN' | 'dbn' ;
 UNIFORM : 'uniform' | 'UNIFORM' ;
 OP_ADD : '+' ;

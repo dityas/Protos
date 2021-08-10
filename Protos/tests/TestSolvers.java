@@ -10,6 +10,7 @@ import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
 
@@ -71,8 +72,8 @@ class TestSolvers {
 			return null;
 		});
 		
-		var solver = new SymbolicPerseusSolver<POMDP>(ReachabilityGraph.fromDecMakingModel(I), new BreadthFirstExploration<DD, POMDP, ReachabilityGraph>(100));
-		var policy = solver.solve(List.of(I.b_i()), I, 100);
+		var solver = new SymbolicPerseusSolver<POMDP>();
+		var policy = solver.solve(List.of(I.b_i()), I, 100, 4, AlphaVectorPolicy.fromR(I.R()));
 		
 		assertTrue(policy.aVecs.size() == 5);
 		
