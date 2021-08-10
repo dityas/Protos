@@ -185,7 +185,7 @@ public class DDleaf extends DD {
 	}
 
 	@Override
-	public Set<Integer> getVars() {
+	public TreeSet<Integer> getVars() {
 
 		// TODO Auto-generated method stub
 		return new TreeSet<Integer>();

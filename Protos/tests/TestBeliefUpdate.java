@@ -16,7 +16,9 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
 
 /*
@@ -112,7 +114,7 @@ class TestBeliefUpdate {
 		LOGGER.debug(String.format("Graph is %s", beliefGraph));
 		printMemConsumption();
 	}
-
+	*/
 	@Test
 	void testSimpleTigerProblemBeliefUpdate() throws Exception {
 
@@ -122,24 +124,19 @@ class TestBeliefUpdate {
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
 				.getFile();
 
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		var randomVars = parserWrapper.getVariableDeclarations();
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
 
-		Global.primeVarsAndInitGlobals(randomVars);
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() -> {
+			LOGGER.error("Could not find POMDP agentI");
+			System.exit(-1);
+			return null;
+		});
 
-		var models = parserWrapper.getModels();
-		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
-
-		models.clear();
-		models = null;
-		parserWrapper = null;
 		System.gc();
 
-		var I = pomdps.get("agentI");
-		var BE = new POMDPBeliefUpdate();
-
-		DD initBelief = I.b;
-		DD bListenGL = BE.beliefUpdate(I, initBelief, "L", Collections.singletonList("GL"));
+		DD initBelief = I.b_i();
+		DD bListenGL = I.beliefUpdate(initBelief, "L", Collections.singletonList("GL"));
 
 		DD tl = DDleaf.getDD(0.85f);
 		DD tr = DDleaf.getDD(0.15f);
@@ -152,7 +149,7 @@ class TestBeliefUpdate {
 		printMemConsumption();
 		assertTrue(OP.abs(OP.sub(bListenGL, bPrime)).getVal() < 1e-8f);
 
-		DD bListenGR = BE.beliefUpdate(I, bListenGL, "L", Collections.singletonList("GR"));
+		DD bListenGR = I.beliefUpdate(bListenGL, "L", Collections.singletonList("GR"));
 
 		bPrime = DDleaf.getDD(0.5f);
 
@@ -164,7 +161,8 @@ class TestBeliefUpdate {
 		assertTrue(OP.abs(OP.sub(bListenGR, bPrime)).getVal() < 1e-8f);
 
 	}
-
+	
+	/*
 	@Test
 	void timeSimpleTigerProblemBeliefUpdate() throws Exception {
 

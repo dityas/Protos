@@ -31,5 +31,9 @@ public interface ActionObservationGraph<N, A, O> {
 	public Set<N> getAllChildren();
 
 	public Set<N> getAllNodes();
+	
+	public void removeNode(N node);
+	
+	public void removeAllNodes();
 
 }

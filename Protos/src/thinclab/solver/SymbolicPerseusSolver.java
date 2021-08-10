@@ -157,7 +157,8 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 			}
 
 		}
-		
+
+		RG.removeAllNodes();
 		return Vn;
 	}
 

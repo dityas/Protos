@@ -691,7 +691,6 @@ public class DDOP {
 
 				_results.add(DDOP.dotProduct(dds1.get(i), dds2.get(j), vars));
 			}
-
 			results.add(_results);
 		}
 
@@ -731,9 +730,9 @@ public class DDOP {
 
 		return prod;
 	}
-	
+
 	// -----------------------------------------------------------------------------------------------------------
-	
+
 	public static DD reorder(DD dd) {
 
 		// it's a leaf
@@ -742,7 +741,7 @@ public class DDOP {
 
 		// it's a node
 		var _vars = dd.getVars();
-		int highestVar = Collections.max(_vars);
+		int highestVar = _vars.last();
 		DD[] children = new DD[Global.valNames.get(highestVar - 1).size()];
 		for (int i = 0; i < children.length; i++) {
 
@@ -751,6 +750,5 @@ public class DDOP {
 		}
 		return DDnode.getDD(highestVar, children);
 	}
-
 
 }

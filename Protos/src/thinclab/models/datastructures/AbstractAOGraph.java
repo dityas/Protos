@@ -86,4 +86,16 @@ public abstract class AbstractAOGraph<N, A, O> implements ActionObservationGraph
 		return this.connections.keySet();
 	}
 
+	@Override
+	public void removeNode(N node) {
+
+		this.connections.remove(node);
+	}
+
+	@Override
+	public void removeAllNodes() {
+
+		this.connections.clear();
+	}
+
 }

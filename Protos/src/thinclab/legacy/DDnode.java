@@ -297,7 +297,7 @@ public class DDnode extends DD {
 	}
 
 	@Override
-	public Set<Integer> getVars() {
+	public TreeSet<Integer> getVars() {
 
 		var varSet = new TreeSet<Integer>(Collections.singleton(this.var));
 		Arrays.stream(this.children).forEach(c -> varSet.addAll(c.getVars()));
