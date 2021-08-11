@@ -7,7 +7,6 @@
  */
 package thinclab.policy;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -18,24 +17,24 @@ import thinclab.utils.Tuple;
  * @author adityas
  *
  */
-public class AlphaVectorPolicy implements Policy {
+public class AlphaVectorPolicy<B extends DD> implements Policy<B> {
 
-	public List<Tuple<Integer, DD>> aVecs;
+	public List<Tuple<Integer, B>> aVecs;
 
-	public AlphaVectorPolicy(List<Tuple<Integer, DD>> alphaVectors) {
+	public AlphaVectorPolicy(List<Tuple<Integer, B>> alphaVectors) {
 
 		this.aVecs = alphaVectors;
 	}
 
 	@Override
-	public int getBestActionIndex(DD belief) {
+	public int getBestActionIndex(B belief) {
 
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public String getBestAction(DD belief) {
+	public String getBestAction(B belief) {
 
 		// TODO Auto-generated method stub
 		return null;
@@ -46,9 +45,9 @@ public class AlphaVectorPolicy implements Policy {
 		return aVecs.toString();
 	}
 
-	public static AlphaVectorPolicy fromR(List<DD> R) {
+	public static <B extends DD> AlphaVectorPolicy<B> fromR(List<B> R) {
 
-		return new AlphaVectorPolicy(
+		return new AlphaVectorPolicy<B>(
 				IntStream.range(0, R.size()).mapToObj(i -> Tuple.of(i, R.get(i))).collect(Collectors.toList()));
 	}
 

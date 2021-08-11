@@ -17,7 +17,6 @@ import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
-import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.model_ops.belief_exploration.ExplorationStrategy;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.ReachabilityGraph;
@@ -29,7 +28,7 @@ import thinclab.utils.Tuple;
  *
  */
 public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolvable>
-		implements PointBasedSolver<M, AlphaVectorPolicy> {
+		implements PointBasedSolver<M, ReachabilityGraph, AlphaVectorPolicy<DD>> {
 
 	private int usedBeliefs = 0;
 
@@ -78,7 +77,7 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 	 * Perform backups and get the next value function for a given explored belief
 	 * region
 	 */
-	protected AlphaVectorPolicy solveForB(final M m, List<DD> B, AlphaVectorPolicy Vn) {
+	protected AlphaVectorPolicy<DD> solveForB(final M m, List<DD> B, AlphaVectorPolicy<DD> Vn) {
 
 		List<Tuple<Integer, DD>> newVn = new ArrayList<>(10);
 		this.usedBeliefs = 0;
@@ -107,14 +106,13 @@ public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolva
 			this.usedBeliefs++;
 		}
 
-		return new AlphaVectorPolicy(newVn);
+		return new AlphaVectorPolicy<DD>(newVn);
 	}
 
 	@Override
-	public AlphaVectorPolicy solve(List<DD> bs, final M m, int I, int H, AlphaVectorPolicy Vn) {
+	public AlphaVectorPolicy<DD> solve(List<DD> bs, final M m, int I, int H, ExplorationStrategy<DD, M, ReachabilityGraph, AlphaVectorPolicy<DD>> ES, AlphaVectorPolicy<DD> Vn) {
 
 		ReachabilityGraph RG = ReachabilityGraph.fromDecMakingModel(m);
-		ExplorationStrategy<DD, M, ReachabilityGraph, AlphaVectorPolicy> ES = new BreadthFirstExploration<>(100);
 		
 		bs.forEach(RG::addNode);
 

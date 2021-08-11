@@ -88,31 +88,8 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 				}
 			});
 
-		/*
-		 * // Initialize TF and OF this.TF = new DD[this.A.size()][]; this.OF = new
-		 * DD[this.A.size()][];
-		 * 
-		 * for (int i = 0; i < this.A.size(); i++) {
-		 * 
-		 * var tfa = this.getTransitionFunction(dyn.get(this.A.get(i))); var ofa =
-		 * this.getObsFunction(dyn.get(this.A.get(i)));
-		 * 
-		 * this.TF[i] = tfa; this.OF[i] = ofa; }
-		 */
-
 		this.TF = this.A.stream().map(a -> this.getTransitionFunction(dyn.get(a))).collect(Collectors.toList());
 		this.OF = this.A.stream().map(a -> this.getObsFunction(dyn.get(a))).collect(Collectors.toList());
-
-		/*
-		 * // Initialized Rewards this.R = IntStream.range(0,
-		 * this.A.size()).boxed().map(i -> {
-		 * 
-		 * if (R.containsKey(this.A.get(i))) return R.get(this.A.get(i));
-		 * 
-		 * else return DD.zero;
-		 * 
-		 * }).toArray(DD[]::new);
-		 */
 
 		this.R = this.A.stream().map(a -> R.containsKey(a) ? R.get(a) : DD.zero).collect(Collectors.toList());
 
@@ -125,15 +102,7 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 		var Ta = i_S.stream().map(
 				s -> dbn.cpds.containsKey(s) ? dbn.cpds.get(s) : DBN.getSameTransitionDD(Global.varNames.get(s - 1)))
 				.collect(Collectors.toList());
-		/*
-		 * DD[] Ta = new DD[this.i_S.length];
-		 * 
-		 * for (int i = 0; i < Ta.length; i++) {
-		 * 
-		 * if (dbn.cpds.containsKey(i_S[i])) Ta[i] = dbn.cpds.get(this.i_S[i]);
-		 * 
-		 * else Ta[i] = DBN.getSameTransitionDD(Global.varNames.get(this.i_S[i] - 1)); }
-		 */
+
 		return Ta;
 	}
 
@@ -142,17 +111,6 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 		var Oa = i_Om.stream()
 				.map(o -> dbn.cpds.containsKey(o) ? dbn.cpds.get(o) : DDnode.getUniformDist(o + (Global.NUM_VARS / 2)))
 				.collect(Collectors.toList());
-
-		/*
-		 * DD[] Oa = new DD[this.i_Om.length];
-		 * 
-		 * for (int i = 0; i < Oa.length; i++) {
-		 * 
-		 * if (dbn.cpds.containsKey(i_Om[i])) Oa[i] = dbn.cpds.get(this.i_Om[i]);
-		 * 
-		 * else Oa[i] = DDnode.getUniformDist(this.i_Om[i] + (Global.varNames.size() /
-		 * 2)); }
-		 */
 
 		return Oa;
 	}
@@ -239,6 +197,21 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 		return this.beliefUpdate(b, actIndex, obs);
 	}
 
+	@Override
+	public DD obsLikelihoods(DD b, int a) {
+
+		var dynamics = new ArrayList<DD>(1 + S().size() + Om().size());
+		dynamics.add(b);
+		dynamics.addAll(T().get(a));
+		dynamics.addAll(O().get(a));
+
+		var _vars = new ArrayList<Integer>(i_S().size() + i_S_p.size());
+		_vars.addAll(i_S);
+		_vars.addAll(i_S_p);
+
+		return DDOP.addMultVarElim(dynamics, _vars);
+	}
+
 	// ----------------------------------------------------------------------------------------
 	// POSeqDecMakingModel implementations
 
@@ -246,6 +219,18 @@ public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
 	public List<Integer> i_S() {
 
 		return this.i_S;
+	}
+
+	@Override
+	public List<Integer> i_S_p() {
+
+		return this.i_S_p;
+	}
+
+	@Override
+	public List<Integer> i_Om_p() {
+
+		return this.i_Om_p;
 	}
 
 	@Override

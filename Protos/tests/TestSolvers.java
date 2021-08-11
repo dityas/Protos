@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
+import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
@@ -73,7 +74,7 @@ class TestSolvers {
 		});
 		
 		var solver = new SymbolicPerseusSolver<POMDP>();
-		var policy = solver.solve(List.of(I.b_i()), I, 100, 4, AlphaVectorPolicy.fromR(I.R()));
+		var policy = solver.solve(List.of(I.b_i()), I, 100, 10, new SSGAExploration<>(0.1f), AlphaVectorPolicy.fromR(I.R()));
 		
 		assertTrue(policy.aVecs.size() == 5);
 		

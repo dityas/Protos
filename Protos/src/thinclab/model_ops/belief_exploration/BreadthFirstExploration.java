@@ -18,7 +18,7 @@ import thinclab.policy.Policy;
  * @author adityas
  *
  */
-public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<B, Integer, List<Integer>>, P extends Policy>
+public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<B, Integer, List<Integer>>, P extends Policy<B>>
 		implements ExplorationStrategy<B, M, G, P> {
 
 	private final int maxB;

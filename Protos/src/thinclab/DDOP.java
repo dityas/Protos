@@ -751,4 +751,98 @@ public class DDOP {
 		return DDnode.getDD(highestVar, children);
 	}
 
+	// -----------------------------------------------------------------------------------------------------------
+
+	public static int sampleIndex(List<Float> pdist) {
+
+		float thesum = 0.0f;
+		int i = 0;
+
+		for (i = 0; i < pdist.size(); i++)
+			thesum += pdist.get(i);
+
+		float ssum = 0.0f;
+		float r = Global.random.nextFloat();
+
+		i = 0;
+
+		while (ssum < r && i < pdist.size())
+			ssum += pdist.get(i++) / thesum;
+
+		return (i - 1);
+	}
+
+	public static Tuple<List<Integer>, List<Integer>> sample(List<DD> dd, List<Integer> varId) {
+		
+		var _vars = new ArrayList<>(varId);
+		var _dds = new ArrayList<>(dd);
+		var _varSamples = new ArrayList<Integer>(varId.size());
+		var _valSamples = new ArrayList<Integer>(varId.size());
+		
+		while (!_vars.isEmpty()) {
+			
+			int v = _vars.remove(0);
+			var sample = DDOP.sample(DDOP.addMultVarElim(_dds, _vars), v);
+			_dds = (ArrayList<DD>) DDOP.restrict(_dds, sample._0(), sample._1());
+			_varSamples.addAll(sample._0());
+			_valSamples.addAll(sample._1());
+		}
+			
+		return Tuple.of(_varSamples, _valSamples);
+	}
+
+	public static Tuple<List<Integer>, List<Integer>> sample(DD dd, int varId) {
+
+		// for variables
+		var _varList = new ArrayList<Integer>(1);
+		_varList.add(varId);
+
+		// for values
+		var _valList = new ArrayList<Integer>(1);
+
+		// it's a leaf
+		if (dd.getVar() == 0) {
+
+			_valList.add(Global.random.nextInt(Global.valNames.get(varId - 1).size()) + 1);
+			return Tuple.of(_varList, _valList);
+		}
+
+		// it's a node
+		else {
+
+			float sum = 0;
+			DD[] children = dd.getChildren();
+			for (int childId = 0; childId < children.length; childId++) {
+
+				sum += children[childId].getVal();
+			}
+
+			float randomVal = Global.random.nextFloat() * sum;
+			sum = 0;
+			for (int childId = 0; childId < children.length; childId++) {
+
+				sum += children[childId].getVal();
+				if (sum >= randomVal) {
+
+					_valList.add(childId + 1);
+					return Tuple.of(_varList, _valList);
+				}
+			}
+
+			// return last non-zero child
+			for (int childId = children.length - 1; childId >= 0; childId--) {
+
+				if (children[childId].getVal() > 0) {
+
+					_valList.add(childId + 1);
+					return Tuple.of(_varList, _valList);
+				}
+			}
+
+			// otherwise there is a bug
+			LOGGER.error("Bug in sample multinomial");
+			return null;
+		}
+	}
+
 }

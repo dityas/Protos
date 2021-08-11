@@ -19,6 +19,10 @@ public interface POSeqDecMakingModel<R> extends Model {
 	// the POMDP tuple
 	public List<Integer> i_Om();
 
+	public List<Integer> i_Om_p();
+
+	public List<Integer> i_S_p();
+
 	public int i_A();
 
 	public List<String> Om();
@@ -37,5 +41,7 @@ public interface POSeqDecMakingModel<R> extends Model {
 	public R beliefUpdate(R b, int a, List<Integer> o);
 
 	public R beliefUpdate(R b, String a, List<String> o);
+
+	public R obsLikelihoods(R b, int a);
 
 }

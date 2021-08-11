@@ -7,14 +7,13 @@
  */
 package thinclab.policy;
 
-import thinclab.legacy.DD;
-
 /*
  * @author adityas
  *
  */
-public interface Policy {
+public interface Policy<R> {
 
-	public int getBestActionIndex(DD belief);
-	public String getBestAction(DD belief);
+	public int getBestActionIndex(R belief);
+
+	public String getBestAction(R belief);
 }
