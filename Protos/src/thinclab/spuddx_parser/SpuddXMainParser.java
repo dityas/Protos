@@ -10,6 +10,7 @@ package thinclab.spuddx_parser;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -20,9 +21,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.DBN;
 import thinclab.models.Model;
 import thinclab.models.POMDP;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXParser.DBNDefContext;
 import thinclab.spuddx_parser.SpuddXParser.DDDefContext;
@@ -52,7 +55,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 	private VarDefVisitor varVisitor = new VarDefVisitor();
 
 	// solvers
-	private HashMap<String, SymbolicPerseusSolver<?>> solvers = new HashMap<>(5);
+	private HashMap<String, SymbolicPerseusSolver<POMDP>> pomdpSolvers = new HashMap<>(5);
 
 	private String fileName;
 	private SpuddXParser parser;
@@ -161,9 +164,12 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		if (model instanceof POMDP) {
 
 			SymbolicPerseusSolver<POMDP> solver = new SymbolicPerseusSolver<>();
+			var _model = (POMDP) model;
 			
-			this.solvers.put(name, solver);
+			this.pomdpSolvers.put(name, solver);
 			LOGGER.debug(String.format("Parsed solver %s for POMDP %s", name, modelName));
+			
+			this.pomdpSolvers.get(name).solve(List.of(_model.b_i()), _model, 100, 10, new SSGAExploration<>(0.1f), AlphaVectorPolicy.fromR(_model.R()));
 		}
 	}
 
@@ -178,10 +184,5 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 		return Optional.ofNullable(this.models.get(modelName));
 	}
-
-	public Optional<SymbolicPerseusSolver<?>> getSolver(String name) {
-
-		return Optional.ofNullable(this.solvers.get(name));
-	}
-
+	
 }

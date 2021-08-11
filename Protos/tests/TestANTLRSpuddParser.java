@@ -168,9 +168,6 @@ class TestANTLRSpuddParser {
 		var domainRunner = new SpuddXMainParser(domainFile);
 		domainRunner.run();
 		
-		var solver = domainRunner.getSolver("agentISolver");
-
-		assertTrue(solver.isPresent());
 		printMemConsumption();
 	}
 
