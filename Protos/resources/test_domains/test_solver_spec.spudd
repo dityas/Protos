@@ -76,4 +76,4 @@
     (discount 0.9)	
 )
 
-(defpbvisolv agentISolver agentI)
+(defpbvisolv pomdp agentISolver)

@@ -31,6 +31,8 @@ import thinclab.spuddx_parser.SpuddXParser.DBNDefContext;
 import thinclab.spuddx_parser.SpuddXParser.DDDefContext;
 import thinclab.spuddx_parser.SpuddXParser.PBVISolverDefContext;
 import thinclab.spuddx_parser.SpuddXParser.POMDPDefContext;
+import thinclab.spuddx_parser.SpuddXParser.SolvExprContext;
+//import thinclab.spuddx_parser.SpuddXParser.SolvExprContext;
 import thinclab.spuddx_parser.SpuddXParser.Var_defsContext;
 
 /*
@@ -152,24 +154,38 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 	public void enterPBVISolverDef(PBVISolverDefContext ctx) {
 
 		String name = ctx.pbvi_solv_def().solv_name().IDENTIFIER().getText();
-		String modelName = ctx.pbvi_solv_def().model_name().IDENTIFIER().getText();
-		var model = this.models.get(modelName);
 
-		if (model == null) {
-
-			LOGGER.error(String.format("Model %s for which solver %s is defined does not exist", modelName, name));
-			System.exit(-1);
-		}
-
-		if (model instanceof POMDP) {
+		if (ctx.pbvi_solv_def().POMDP() != null) {
 
 			SymbolicPerseusSolver<POMDP> solver = new SymbolicPerseusSolver<>();
-			var _model = (POMDP) model;
-			
+
 			this.pomdpSolvers.put(name, solver);
-			LOGGER.debug(String.format("Parsed solver %s for POMDP %s", name, modelName));
-			
-			this.pomdpSolvers.get(name).solve(List.of(_model.b_i()), _model, 100, 10, new SSGAExploration<>(0.1f), AlphaVectorPolicy.fromR(_model.R()));
+			LOGGER.debug(String.format("Parsed solver %s for POMDPs", name));
+		}
+	}
+
+	@Override
+	public void enterSolvExpr(SolvExprContext ctx) {
+
+		String solverName = ctx.solv_cmd().solv_name().getText();
+		String modelName = ctx.solv_cmd().model_name().getText();
+		int backups = Integer.valueOf(ctx.solv_cmd().backups().getText());
+		int expHorizon = Integer.valueOf(ctx.solv_cmd().exp_horizon().getText());
+
+		var model = this.models.get(modelName);
+		if (model instanceof POMDP) {
+
+			POMDP _model = (POMDP) model;
+
+			if (!this.pomdpSolvers.containsKey(solverName)) {
+
+				LOGGER.error(String.format("Solver %s for POMDP %s is not defined", solverName, modelName));
+				System.exit(-1);
+			}
+
+			SymbolicPerseusSolver<POMDP> solver = this.pomdpSolvers.get(solverName);
+			solver.solve(List.of(_model.b_i()), _model, backups, expHorizon, new SSGAExploration<>(0.1f),
+					AlphaVectorPolicy.fromR(_model.R()));
 		}
 	}
 
@@ -184,5 +200,5 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 		return Optional.ofNullable(this.models.get(modelName));
 	}
-	
+
 }

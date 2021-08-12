@@ -257,6 +257,51 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCpd_def(SpuddXParser.Cpd_defContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#exec_block}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExec_block(SpuddXParser.Exec_blockContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code DDExecExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDDExecExpr(SpuddXParser.DDExecExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code SolvExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSolvExpr(SpuddXParser.SolvExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ParenExecExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParenExecExpr(SpuddXParser.ParenExecExprContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#solv_cmd}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSolv_cmd(SpuddXParser.Solv_cmdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#backups}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBackups(SpuddXParser.BackupsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#exp_horizon}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExp_horizon(SpuddXParser.Exp_horizonContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#env_name}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

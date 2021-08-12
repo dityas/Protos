@@ -423,6 +423,82 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitCpd_def(SpuddXParser.Cpd_defContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#exec_block}.
+	 * @param ctx the parse tree
+	 */
+	void enterExec_block(SpuddXParser.Exec_blockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#exec_block}.
+	 * @param ctx the parse tree
+	 */
+	void exitExec_block(SpuddXParser.Exec_blockContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code DDExecExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterDDExecExpr(SpuddXParser.DDExecExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code DDExecExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitDDExecExpr(SpuddXParser.DDExecExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SolvExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterSolvExpr(SpuddXParser.SolvExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SolvExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitSolvExpr(SpuddXParser.SolvExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ParenExecExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterParenExecExpr(SpuddXParser.ParenExecExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ParenExecExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitParenExecExpr(SpuddXParser.ParenExecExprContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#solv_cmd}.
+	 * @param ctx the parse tree
+	 */
+	void enterSolv_cmd(SpuddXParser.Solv_cmdContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#solv_cmd}.
+	 * @param ctx the parse tree
+	 */
+	void exitSolv_cmd(SpuddXParser.Solv_cmdContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#backups}.
+	 * @param ctx the parse tree
+	 */
+	void enterBackups(SpuddXParser.BackupsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#backups}.
+	 * @param ctx the parse tree
+	 */
+	void exitBackups(SpuddXParser.BackupsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#exp_horizon}.
+	 * @param ctx the parse tree
+	 */
+	void enterExp_horizon(SpuddXParser.Exp_horizonContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#exp_horizon}.
+	 * @param ctx the parse tree
+	 */
+	void exitExp_horizon(SpuddXParser.Exp_horizonContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#env_name}.
 	 * @param ctx the parse tree
 	 */
