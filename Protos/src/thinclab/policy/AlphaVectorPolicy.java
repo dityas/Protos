@@ -17,24 +17,24 @@ import thinclab.utils.Tuple;
  * @author adityas
  *
  */
-public class AlphaVectorPolicy implements Policy {
+public class AlphaVectorPolicy<B extends DD> implements Policy<B> {
 
-	public final List<Tuple<Integer, DD>> aVecs;
+	public List<Tuple<Integer, B>> aVecs;
 
-	public AlphaVectorPolicy(List<Tuple<Integer, DD>> alphaVectors) {
+	public AlphaVectorPolicy(List<Tuple<Integer, B>> alphaVectors) {
 
 		this.aVecs = alphaVectors;
 	}
 
 	@Override
-	public int getBestActionIndex(DD belief) {
+	public int getBestActionIndex(B belief) {
 
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public String getBestAction(DD belief) {
+	public String getBestAction(B belief) {
 
 		// TODO Auto-generated method stub
 		return null;
@@ -45,10 +45,10 @@ public class AlphaVectorPolicy implements Policy {
 		return aVecs.toString();
 	}
 
-	public static AlphaVectorPolicy fromR(DD[] R) {
+	public static <B extends DD> AlphaVectorPolicy<B> fromR(List<B> R) {
 
-		return new AlphaVectorPolicy(
-				IntStream.range(0, R.length).mapToObj(i -> new Tuple<>(i, R[i])).collect(Collectors.toList()));
+		return new AlphaVectorPolicy<B>(
+				IntStream.range(0, R.size()).mapToObj(i -> Tuple.of(i, R.get(i))).collect(Collectors.toList()));
 	}
 
 }

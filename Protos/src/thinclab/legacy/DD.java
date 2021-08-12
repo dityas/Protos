@@ -1,7 +1,7 @@
 package thinclab.legacy;
 
 import java.io.Serializable;
-
+import java.util.TreeSet;
 import thinclab.ddinterface.DDTree;
 
 public abstract class DD implements Serializable {
@@ -42,6 +42,8 @@ public abstract class DD implements Serializable {
 
 	// abstract public SortedSet getScope();
 	abstract public int[] getVarSet();
+	
+	abstract public TreeSet<Integer> getVars();
 
 	abstract public float getSum();
 

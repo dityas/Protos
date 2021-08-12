@@ -89,7 +89,7 @@ class TestANTLRSpuddParser {
 		LOGGER.info("Running Parser Wrapper init test");
 
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_var_decls.spudd").getFile();
-		
+
 		var domainRunner = new SpuddXMainParser(domainFile);
 
 		assertNotNull(domainRunner);
@@ -105,9 +105,9 @@ class TestANTLRSpuddParser {
 
 		var domainRunner = new SpuddXMainParser(domainFile);
 		domainRunner.run();
-		
-		assertTrue(Global.varNames.size() == (7*2));
-		
+
+		assertTrue(Global.varNames.size() == (7 * 2));
+
 		printMemConsumption();
 	}
 
@@ -134,31 +134,10 @@ class TestANTLRSpuddParser {
 
 		var domainRunner = new SpuddXMainParser(domainFile);
 		domainRunner.run();
-		
+
 		printMemConsumption();
-		
+
 	}
-
-	/*
-	@Test
-	void testSimplePOMDPParsing() throws Exception {
-
-		System.gc();
-		printMemConsumption();
-
-		LOGGER.info("Running Parser Wrapper POMDP decls parse test");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_complete_domain.spudd")
-				.getFile();
-
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		var randomVars = parserWrapper.getVariableDeclarations();
-
-		Global.primeVarsAndInitGlobals(randomVars);
-
-		var models = parserWrapper.getModels();
-		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
-		printMemConsumption();
-	}*/
 
 	@Test
 	void testTigerPOMDPParsing() throws Exception {
@@ -175,32 +154,21 @@ class TestANTLRSpuddParser {
 
 		printMemConsumption();
 	}
-	
-	/*
+
 	@Test
-	void testPOMDPObsCartesianSetGeneration() throws Exception {
+	void testSolverDefInFile() throws Exception {
 
 		System.gc();
 		printMemConsumption();
 
-		LOGGER.info("Running Parser Wrapper POMDP decls parse test");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_complete_domain.spudd")
+		LOGGER.info("Running Parser Wrapper Tiger Domain parse test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_solver_spec.spudd")
 				.getFile();
 
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		var randomVars = parserWrapper.getVariableDeclarations();
-
-		Global.primeVarsAndInitGlobals(randomVars);
-
-		var models = parserWrapper.getModels();
-		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
 		
-		var I = pomdps.get("attacker_agent");
-		var obs = I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList());
-		
-		LOGGER.debug(String.format("Obs: %s", obs));
-		LOGGER.debug(String.format("Cartesian prod of obs is: %s", OP.cartesianProd(obs)));
 		printMemConsumption();
 	}
-*/
+
 }

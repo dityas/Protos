@@ -8,22 +8,15 @@
 package thinclab.models;
 
 import java.util.List;
-import com.google.common.graph.MutableNetwork;
-import com.google.common.graph.NetworkBuilder;
-import thinclab.legacy.DD;
 
 /*
  * @author adityas
  *
  */
 public interface Model {
-	
-	
-	default MutableNetwork<DD, List<String>> getEmptyReachabilityGraph() {
-		return NetworkBuilder
-				.directed()
-				.allowsParallelEdges(true)
-				.allowsSelfLoops(true)
-				.build();
-	}
+
+	// for now, Model is a type which has getters for state vars and their indices
+	public List<Integer> i_S();
+
+	public List<String> S();
 }

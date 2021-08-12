@@ -6,6 +6,8 @@ import thinclab.ddinterface.DDTree;
 import thinclab.ddinterface.DDTreeLeaf;
 
 import java.lang.ref.*;
+import java.util.Set;
+import java.util.TreeSet;
 import java.io.*;
 
 public class DDleaf extends DD {
@@ -180,5 +182,12 @@ public class DDleaf extends DD {
 			.append(")");
 		
 		return builder.toString();
+	}
+
+	@Override
+	public TreeSet<Integer> getVars() {
+
+		// TODO Auto-generated method stub
+		return new TreeSet<Integer>();
 	}
 }

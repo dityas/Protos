@@ -11,8 +11,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import thinclab.legacy.Global;
-import thinclab.spuddx_parser.SpuddXParserWrapper;
+import thinclab.spuddx_parser.SpuddXMainParser;
 
 /*
  * @author adityas
@@ -25,7 +24,6 @@ public class ProtosLauncher {
 		CommandLineParser cliParser = new DefaultParser();
 		Options opt = new Options();
 		
-		/*
 		opt.addOption("d", true, "path to the SPUDDX file");
 
 		CommandLine line = null;
@@ -34,19 +32,7 @@ public class ProtosLauncher {
 		String domainFile = line.getOptionValue("d");
 		
 		// Parse SPUDDX file
-		var parser = new SpuddXParserWrapper(domainFile);
-		
-		// Parser variable declarations and initialize random variables
-		var variables = parser.getVariableDeclarations();
-		Global.primeVarsAndInitGlobals(variables);
-		
-		// Parse model declarations
-		var models = parser.getModels();
-		
-		// Clean up
-		parser = null;
-		
-		System.out.println(models);
-		*/
+		var parser = new SpuddXMainParser(domainFile);
+		parser.run();
 	}
 }

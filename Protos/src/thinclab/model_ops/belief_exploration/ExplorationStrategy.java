@@ -7,15 +7,15 @@
  */
 package thinclab.model_ops.belief_exploration;
 
-import thinclab.model_ops.belief_update.BeliefUpdate;
-import thinclab.models.Model;
-import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.models.POSeqDecMakingModel;
+import thinclab.models.datastructures.AbstractAOGraph;
+import thinclab.policy.Policy;
 
 /*
  * @author adityas
  *
  */
-public interface ExplorationStrategy<M extends Model> {
+public interface ExplorationStrategy<B, A extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<?, ?, ?>, P extends Policy> {
 
-	public ReachabilityGraph expandRG(M m, BeliefUpdate<M> BE, ReachabilityGraph RG);
+	public G expand(G g, A a, int T, P Vn);
 }

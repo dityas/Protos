@@ -10,6 +10,7 @@ package thinclab.spuddx_parser;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -20,11 +21,18 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.DBN;
 import thinclab.models.Model;
+import thinclab.models.POMDP;
+import thinclab.policy.AlphaVectorPolicy;
+import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXParser.DBNDefContext;
 import thinclab.spuddx_parser.SpuddXParser.DDDefContext;
+import thinclab.spuddx_parser.SpuddXParser.PBVISolverDefContext;
 import thinclab.spuddx_parser.SpuddXParser.POMDPDefContext;
+import thinclab.spuddx_parser.SpuddXParser.SolvExprContext;
+//import thinclab.spuddx_parser.SpuddXParser.SolvExprContext;
 import thinclab.spuddx_parser.SpuddXParser.Var_defsContext;
 
 /*
@@ -47,6 +55,9 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 	// visitor for parsing variable definitions
 	private VarDefVisitor varVisitor = new VarDefVisitor();
+
+	// solvers
+	private HashMap<String, SymbolicPerseusSolver<POMDP>> pomdpSolvers = new HashMap<>(5);
 
 	private String fileName;
 	private SpuddXParser parser;
@@ -139,6 +150,45 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		super.enterPOMDPDef(ctx);
 	}
 
+	@Override
+	public void enterPBVISolverDef(PBVISolverDefContext ctx) {
+
+		String name = ctx.pbvi_solv_def().solv_name().IDENTIFIER().getText();
+
+		if (ctx.pbvi_solv_def().POMDP() != null) {
+
+			SymbolicPerseusSolver<POMDP> solver = new SymbolicPerseusSolver<>();
+
+			this.pomdpSolvers.put(name, solver);
+			LOGGER.debug(String.format("Parsed solver %s for POMDPs", name));
+		}
+	}
+
+	@Override
+	public void enterSolvExpr(SolvExprContext ctx) {
+
+		String solverName = ctx.solv_cmd().solv_name().getText();
+		String modelName = ctx.solv_cmd().model_name().getText();
+		int backups = Integer.valueOf(ctx.solv_cmd().backups().getText());
+		int expHorizon = Integer.valueOf(ctx.solv_cmd().exp_horizon().getText());
+
+		var model = this.models.get(modelName);
+		if (model instanceof POMDP) {
+
+			POMDP _model = (POMDP) model;
+
+			if (!this.pomdpSolvers.containsKey(solverName)) {
+
+				LOGGER.error(String.format("Solver %s for POMDP %s is not defined", solverName, modelName));
+				System.exit(-1);
+			}
+
+			SymbolicPerseusSolver<POMDP> solver = this.pomdpSolvers.get(solverName);
+			solver.solve(List.of(_model.b_i()), _model, backups, expHorizon, new SSGAExploration<>(0.1f),
+					AlphaVectorPolicy.fromR(_model.R()));
+		}
+	}
+
 	// ----------------------------------------------------------------------------------------
 
 	public HashMap<String, DD> getDDs() {
@@ -150,4 +200,5 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 		return Optional.ofNullable(this.models.get(modelName));
 	}
+
 }

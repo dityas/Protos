@@ -1,18 +1,18 @@
 import static org.junit.jupiter.api.Assertions.*;
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.legacy.OP;
-import thinclab.model_ops.belief_exploration.POMDPBreadthFirstBeliefExploration;
-import thinclab.model_ops.belief_update.POMDPBeliefUpdate;
+import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
+import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
-import thinclab.solver.POMDPSymbolicPerseusSolver;
+import thinclab.policy.AlphaVectorPolicy;
+import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
 
 /*
@@ -72,24 +72,9 @@ class TestSolvers {
 			System.exit(-1);
 			return null;
 		});
-
-		// Initialize belief update mechanism
-		var BU = new POMDPBeliefUpdate();
-
-		// Make action observation space for agent I
-		var obsVars = Arrays.stream(I.Ovars).mapToObj(i -> Global.valNames.get(i - 1)).collect(Collectors.toList());
-		obsVars.add(Global.valNames.get(I.Avar - 1));
-		var aoSpace = OP.cartesianProd(obsVars);
-
-		// Make belief region for agent I
-		var beliefGraph = new ReachabilityGraph(aoSpace);
-		beliefGraph.addNode(I.b);
-
-		// Initialize belief exploration
-		var BE = new POMDPBreadthFirstBeliefExploration(100);
 		
-		var solver = new POMDPSymbolicPerseusSolver(100);
-		var policy = solver.solve(I, BU, beliefGraph, BE);
+		var solver = new SymbolicPerseusSolver<POMDP>();
+		var policy = solver.solve(List.of(I.b_i()), I, 100, 10, new SSGAExploration<>(0.1f), AlphaVectorPolicy.fromR(I.R()));
 		
 		assertTrue(policy.aVecs.size() == 5);
 		

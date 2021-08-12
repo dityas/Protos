@@ -9,6 +9,12 @@ import thinclab.decisionprocesses.POMDP;
 import thinclab.exceptions.VariableNotFoundException;
 
 import java.lang.ref.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class DDnode extends DD {
 	/**
@@ -288,6 +294,15 @@ public class DDnode extends DD {
 	@Override
 	public String toSPUDD() {
 		return this.toSPUDD(0);
+	}
+
+	@Override
+	public TreeSet<Integer> getVars() {
+
+		var varSet = new TreeSet<Integer>(Collections.singleton(this.var));
+		Arrays.stream(this.children).forEach(c -> varSet.addAll(c.getVars()));
+		
+		return varSet;
 	}
 
 }

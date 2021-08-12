@@ -6,6 +6,7 @@ grammar SpuddX;
 
 domain: var_defs
 		(all_def)*
+		(exec_block)?
 		EOF 
 		;
 
@@ -16,9 +17,13 @@ all_def : model_name			# PreDefModel
 		| dd_def 				# DDDef
 		| pomdp_def 			# POMDPDef
 		| dbn_def				# DBNDef
+		| pbvi_solv_def 		# PBVISolverDef
 		| LP all_def RP 		# OtherDefParen
 		;
-		   
+		 
+ 
+pbvi_solv_def : LP 'defpbvisolv' type=(POMDP | IPOMDP) solv_name RP;
+
 pomdp_def : LP 'defpomdp' model_name
 			states_list
 			obs_list
@@ -75,16 +80,29 @@ same_dd_decl : LP 'SAME' var_name RP;
 dbn_def : LP 'defdbn' model_name (cpd_def)* RP ;
 cpd_def : LP var_name dd_expr RP ;
 
+exec_block : LP 'run' (exec_expr)* RP;
+exec_expr : dd_name '=' dd_expr 	# DDExecExpr
+		  | solv_cmd 				# SolvExpr
+		  | LP exec_expr RP 		# ParenExecExpr
+		  ;
+
+solv_cmd : 'solve' solv_name model_name backups exp_horizon;
+
+backups : FLOAT_NUM ;
+exp_horizon : FLOAT_NUM ;
+
 env_name : IDENTIFIER ;
 action_name : IDENTIFIER ;
 model_name : IDENTIFIER ;
 dd_name : IDENTIFIER;
 var_name : IDENTIFIER;
 var_value : IDENTIFIER ;
+solv_name : IDENTIFIER;
 
 ENV : 'ENV' | 'env' ;
 DD : 'DD' | 'dd' ;
 POMDP : 'POMDP' | 'pomdp' ;
+IPOMDP : 'IPOMDP' | 'ipomdp' ;
 DBN : 'DBN' | 'dbn' ;
 UNIFORM : 'uniform' | 'UNIFORM' ;
 OP_ADD : '+' ;
