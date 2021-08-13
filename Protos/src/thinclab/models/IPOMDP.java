@@ -10,6 +10,8 @@ package thinclab.models;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.datastructures.PBVISolvableFrameSolution;
@@ -31,6 +33,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public List<Tuple<Integer, PBVISolvablePOMDPBasedModel>> frames_j;
 	public List<PBVISolvableFrameSolution> frames_jSoln;
+	
+	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
 
 	public IPOMDP(List<String> S, List<String> O, String A, String Aj, String Mj, String Thetaj,
 			List<Tuple<String, Model>> frames_j, HashMap<String, Model> dynamics, HashMap<String, DD> R,
@@ -69,6 +73,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public void createIS() {
 		this.frames_jSoln.stream().parallel().forEach(f -> {
 			f.solve();
+			LOGGER.debug(String.format("mjs: %s", f.mjList()));
 		});
 	}
 

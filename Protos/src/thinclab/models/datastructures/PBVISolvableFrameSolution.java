@@ -10,8 +10,11 @@ package thinclab.models.datastructures;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
+import thinclab.utils.Tuple;
+import thinclab.utils.Tuple3;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import thinclab.legacy.DD;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.model_ops.belief_exploration.SSGAExploration;
@@ -51,9 +54,15 @@ public class PBVISolvableFrameSolution {
 				1000).expand(RG, m, H, Vn);
 
 		Vn = s.solve(b_is, m, 100, H, new SSGAExploration<>(0.1f), Vn);
-		
+
 		// set next beliefs
 		b_is = new ArrayList<>(RG.getChildren(b_is));
+	}
+
+	public List<Tuple3<Integer, DD, Integer>> mjList() {
+
+		return RG.getAllNodes().stream().map(d -> Tuple.of(frame, d, Vn.getBestActionIndex(d)))
+				.collect(Collectors.toList());
 	}
 
 }
