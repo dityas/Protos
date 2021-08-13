@@ -307,6 +307,16 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitDiscount(SpuddXParser.DiscountContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#reachability}.
+	 * @param ctx the parse tree
+	 */
+	void enterReachability(SpuddXParser.ReachabilityContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#reachability}.
+	 * @param ctx the parse tree
+	 */
+	void exitReachability(SpuddXParser.ReachabilityContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#dd_def}.
 	 * @param ctx the parse tree
 	 */

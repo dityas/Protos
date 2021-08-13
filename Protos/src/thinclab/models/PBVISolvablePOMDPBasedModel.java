@@ -127,13 +127,6 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 		return varList;
 	}
 
-	@Override
-	public Tuple<Float, DD> Gaoi(DD b, int a, List<DD> alphaPrimes) {
-
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	// ----------------------------------------------------------------------------------------
 	// POSeqDecMakingModel implementations
 

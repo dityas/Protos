@@ -113,8 +113,9 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 
 		DD b = this.ddParser.visit(ctx.ipomdp_def().initial_belief().dd_expr());
 		float discount = Float.valueOf(ctx.ipomdp_def().discount().FLOAT_NUM().getText());
+		int H = Integer.valueOf(ctx.ipomdp_def().reachability().FLOAT_NUM().getText());
 
-		var ipomdp = new IPOMDP(S, O, A, Aj, Mj, Thetaj, _frames, dynamics, R, b, discount);
+		var ipomdp = new IPOMDP(S, O, A, Aj, Mj, Thetaj, _frames, dynamics, R, b, discount, H);
 
 		return ipomdp;
 	}

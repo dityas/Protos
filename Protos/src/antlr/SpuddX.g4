@@ -49,6 +49,7 @@ ipomdp_def : LP 'defipomdp' model_name
              initial_belief
              reward
              discount
+             reachability
              RP
              ;
             
@@ -70,6 +71,7 @@ reward : LP 'R' (action_reward)+ RP ;
 action_reward : LP action_name dd_expr RP ;
 		  
 discount : LP 'discount' FLOAT_NUM RP ;
+reachability : LP 'H' FLOAT_NUM RP ;
 
 dd_def : LP 'defdd' dd_name dd_expr RP ;
 

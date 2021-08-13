@@ -189,6 +189,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDiscount(SpuddXParser.DiscountContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#reachability}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReachability(SpuddXParser.ReachabilityContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
