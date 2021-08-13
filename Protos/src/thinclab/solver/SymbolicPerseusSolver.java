@@ -18,7 +18,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.ExplorationStrategy;
-import thinclab.models.POSeqDecMakingModel;
+import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
@@ -27,7 +27,7 @@ import thinclab.utils.Tuple;
  * @author adityas
  *
  */
-public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolvable>
+public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		implements PointBasedSolver<M, ReachabilityGraph, AlphaVectorPolicy<DD>> {
 
 	private int usedBeliefs = 0;

@@ -31,7 +31,6 @@ pomdp_def : LP 'defpomdp' model_name
 			states_list
 			obs_list
 			action_var
-			action_j_var
 			dynamics
 			initial_belief
 			reward
@@ -39,10 +38,11 @@ pomdp_def : LP 'defpomdp' model_name
 			RP
 			;
 
-ipomdp_def : LP 'defpomdp' model_name
+ipomdp_def : LP 'defipomdp' model_name
              states_list
              obs_list
              action_var
+			 action_j_var
              dynamics
              initial_belief
              reward
@@ -53,6 +53,7 @@ ipomdp_def : LP 'defpomdp' model_name
 states_list	: LP 'S' LP (var_name)+ RP RP ;
 obs_list 	: LP 'O' LP (var_name)+ RP RP ;
 action_var 	: LP 'A' (var_name)  RP ;
+action_j_var 	: LP 'Aj' (var_name)  RP ;
 actions_list 	: LP 'A' LP (var_name)+ RP RP ;
 
 dynamics : LP 'dynamics' (action_model)+ RP ;

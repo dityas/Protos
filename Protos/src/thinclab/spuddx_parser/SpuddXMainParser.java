@@ -29,6 +29,7 @@ import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXParser.DBNDefContext;
 import thinclab.spuddx_parser.SpuddXParser.DDDefContext;
+import thinclab.spuddx_parser.SpuddXParser.IPOMDPDefContext;
 import thinclab.spuddx_parser.SpuddXParser.PBVISolverDefContext;
 import thinclab.spuddx_parser.SpuddXParser.POMDPDefContext;
 import thinclab.spuddx_parser.SpuddXParser.SolvExprContext;
@@ -142,12 +143,40 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 	public void enterPOMDPDef(POMDPDefContext ctx) {
 
 		String modelName = ctx.pomdp_def().model_name().IDENTIFIER().getText();
+
+		if (this.models.containsKey(modelName)) {
+
+			LOGGER.error(String.format("A model named %s has been defined previously.", modelName));
+			LOGGER.error(String.format("Error while parsing %s", ctx.getText()));
+			System.exit(-1);
+		}
+
 		Model pomdp = this.modelParser.visit(ctx);
 
 		this.models.put(modelName, pomdp);
 		LOGGER.debug(String.format("Parsed POMDP %s", modelName));
 
 		super.enterPOMDPDef(ctx);
+	}
+
+	@Override
+	public void enterIPOMDPDef(IPOMDPDefContext ctx) {
+
+		String modelName = ctx.ipomdp_def().model_name().IDENTIFIER().getText();
+		
+		if (this.models.containsKey(modelName)) {
+
+			LOGGER.error(String.format("A model named %s has been defined previously.", modelName));
+			LOGGER.error(String.format("Error while parsing %s", ctx.getText()));
+			System.exit(-1);
+		}
+
+		Model ipomdp = this.modelParser.visit(ctx);
+
+		this.models.put(modelName, ipomdp);
+		LOGGER.debug(String.format("Parsed IPOMDP %s", modelName));
+
+		super.enterIPOMDPDef(ctx);
 	}
 
 	@Override
@@ -162,6 +191,8 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 			this.pomdpSolvers.put(name, solver);
 			LOGGER.debug(String.format("Parsed solver %s for POMDPs", name));
 		}
+
+		super.enterPBVISolverDef(ctx);
 	}
 
 	@Override
@@ -187,6 +218,8 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 			solver.solve(List.of(_model.b_i()), _model, backups, expHorizon, new SSGAExploration<>(0.1f),
 					AlphaVectorPolicy.fromR(_model.R()));
 		}
+
+		super.enterSolvExpr(ctx);
 	}
 
 	// ----------------------------------------------------------------------------------------

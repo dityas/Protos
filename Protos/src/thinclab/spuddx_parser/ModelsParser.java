@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.DBN;
+import thinclab.models.IPOMDP;
 import thinclab.models.Model;
 import thinclab.models.POMDP;
 
@@ -68,6 +69,36 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		var pomdp = new POMDP(S, O, A, dynamics, R, b, discount);
 
 		return pomdp;
+	}
+
+	@Override
+	public Model visitIPOMDPDef(SpuddXParser.IPOMDPDefContext ctx) {
+
+		var S = ctx.ipomdp_def().states_list().var_name().stream().map(s -> s.getText())
+				.collect(Collectors.toList());
+
+		var O = ctx.ipomdp_def().obs_list().var_name().stream().map(o -> o.getText()).collect(Collectors.toList());
+
+		String A = ctx.ipomdp_def().action_var().var_name().getText();
+		String Aj = ctx.ipomdp_def().action_j_var().var_name().IDENTIFIER().getText();
+
+		HashMap<String, Model> dynamics = new HashMap<>(5);
+		HashMap<String, DD> R = new HashMap<>(5);
+
+		ctx.ipomdp_def().dynamics().action_model().stream()
+				.forEach(a -> dynamics.put(a.action_name().getText(), this.visit(a.all_def())));
+
+		ctx.ipomdp_def().reward().action_reward().stream().forEach(ar -> {
+
+			R.put(ar.action_name().getText(), this.ddParser.visit(ar.dd_expr()));
+		});
+
+		DD b = this.ddParser.visit(ctx.ipomdp_def().initial_belief().dd_expr());
+		float discount = Float.valueOf(ctx.ipomdp_def().discount().FLOAT_NUM().getText());
+
+		var ipomdp = new IPOMDP(S, O, A, Aj, dynamics, R, b, discount);
+
+		return ipomdp;
 	}
 
 	@Override

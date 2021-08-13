@@ -15,7 +15,7 @@ import thinclab.policy.Policy;
  * @author adityas
  *
  */
-public interface ExplorationStrategy<B, A extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<?, ?, ?>, P extends Policy> {
+public interface ExplorationStrategy<B, A extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<?, ?, ?>, P extends Policy<B>> {
 
 	public G expand(G g, A a, int T, P Vn);
 }

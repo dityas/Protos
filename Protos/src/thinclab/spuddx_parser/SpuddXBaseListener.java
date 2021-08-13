@@ -41,13 +41,25 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterVar_def(SpuddXParser.Var_defContext ctx) { }
+	@Override public void enterRVarDef(SpuddXParser.RVarDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitVar_def(SpuddXParser.Var_defContext ctx) { }
+	@Override public void exitRVarDef(SpuddXParser.RVarDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterModelVarDef(SpuddXParser.ModelVarDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitModelVarDef(SpuddXParser.ModelVarDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -84,6 +96,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitPOMDPDef(SpuddXParser.POMDPDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterIPOMDPDef(SpuddXParser.IPOMDPDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitIPOMDPDef(SpuddXParser.IPOMDPDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -149,6 +173,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterIpomdp_def(SpuddXParser.Ipomdp_defContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitIpomdp_def(SpuddXParser.Ipomdp_defContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterStates_list(SpuddXParser.States_listContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -180,6 +216,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitAction_var(SpuddXParser.Action_varContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAction_j_var(SpuddXParser.Action_j_varContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAction_j_var(SpuddXParser.Action_j_varContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

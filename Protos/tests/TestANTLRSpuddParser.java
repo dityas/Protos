@@ -167,8 +167,25 @@ class TestANTLRSpuddParser {
 
 		var domainRunner = new SpuddXMainParser(domainFile);
 		domainRunner.run();
-		
+
 		printMemConsumption();
+	}
+
+	@Test
+	void testIPOMDPL1Def() throws Exception {
+
+		System.gc();
+		printMemConsumption();
+
+		LOGGER.info("Running Parser Wrapper Tiger Domain parse test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd")
+				.getFile();
+
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		printMemConsumption();
+
 	}
 
 }

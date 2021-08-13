@@ -5,18 +5,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.ddinterface.DDTree;
-import thinclab.decisionprocesses.POMDP;
-import thinclab.exceptions.VariableNotFoundException;
 
 import java.lang.ref.*;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.TreeSet;
 
 public class DDnode extends DD {
+
 	/**
 	 * 
 	 */
@@ -32,6 +28,7 @@ public class DDnode extends DD {
 	private static final Logger LOGGER = LogManager.getLogger(DDnode.class);
 
 	private DDnode(int var, DD children[]) {
+
 		this.var = var;
 		this.children = children;
 		this.varSet = null; // lazy temporary value
@@ -58,6 +55,7 @@ public class DDnode extends DD {
 				builder.append(this.children[i].hashCode());
 
 			else {
+
 				LOGGER.error("Null child at " + i + " something might be seriously wrong.");
 				LOGGER.error("Error causing DD is " + this.toDDTree());
 			}
@@ -89,6 +87,7 @@ public class DDnode extends DD {
 		int varIndex = Global.varNames.indexOf(varName);
 
 		if (varIndex < 0) {
+
 			LOGGER.error("Variable " + varName + " does not exist.");
 			System.exit(-1);
 		}
@@ -97,33 +96,37 @@ public class DDnode extends DD {
 		int childIndex = Global.valNames.get(varIndex).indexOf(childName);
 
 		if (childIndex < 0) {
+
 			LOGGER.error("Variable " + varName + " does not hold value " + childName);
 			System.exit(-1);
 		}
 
 		return DDnode.getDDForChild(var, childIndex);
 	}
-	
+
 	public static DD getUniformDist(int var) {
-		
+
 		if (var < 1) {
+
 			LOGGER.error("Invalid varName/var while making uniform distribution");
 			return null;
 		}
-		
+
 		int numVals = Global.varDomSize.get(var - 1);
 		float prob = 1.0f / numVals;
-		
+
 		DD[] childDDs = new DD[numVals];
-		
+
 		for (int i = 0; i < numVals; i++) {
+
 			childDDs[i] = DDleaf.getDD(prob);
 		}
-		
+
 		return DDnode.getDD(var, childDDs);
 	}
-	
+
 	public static DD getUniformDist(String varName) {
+
 		return DDnode.getUniformDist(Global.varNames.indexOf(varName) + 1);
 	}
 
@@ -132,7 +135,9 @@ public class DDnode extends DD {
 		// try to aggregate children
 		boolean aggregate = true;
 		for (int i = 1; i < children.length; i++) {
+
 			if (!children[0].equals(children[i])) {
+
 				aggregate = false;
 				break;
 			}
@@ -164,6 +169,7 @@ public class DDnode extends DD {
 			return false;
 
 		for (int i = 0; i < children.length; i++) {
+
 			if (!children[i].equals(node.children[i]))
 				return false;
 		}
@@ -173,6 +179,7 @@ public class DDnode extends DD {
 
 	@Override
 	public int hashCode() {
+
 		return this.hash;
 	}
 
@@ -181,6 +188,7 @@ public class DDnode extends DD {
 		DD[] children = new DD[this.children.length];
 
 		for (int i = 0; i < this.children.length; i++) {
+
 			children[i] = this.children[i].store();
 		}
 
@@ -188,6 +196,7 @@ public class DDnode extends DD {
 	}
 
 	public DD[] getChildren() {
+
 		return children;
 	}
 
@@ -199,6 +208,7 @@ public class DDnode extends DD {
 			varSet[0] = var;
 
 			for (int childId = 0; childId < children.length; childId++) {
+
 				varSet = MySet.unionOrdered(children[childId].getVarSet(), varSet);
 			}
 		}
@@ -209,7 +219,9 @@ public class DDnode extends DD {
 	public int getNumLeaves() {
 
 		if (numLeaves == 0) {
+
 			for (int i = 0; i < children.length; i++) {
+
 				numLeaves = numLeaves + children[i].getNumLeaves();
 			}
 		}
@@ -225,6 +237,7 @@ public class DDnode extends DD {
 
 			int[] childrenVars = MySet.remove(this.getVarSet(), var);
 			for (int i = 0; i < children.length; i++) {
+
 				int[] remainingVars = MySet.diff(childrenVars, children[i].getVarSet());
 				int multiplicativeFactor = 1;
 				for (int j = 0; j < remainingVars.length; j++)
@@ -260,30 +273,29 @@ public class DDnode extends DD {
 
 	@Override
 	public String toString() {
+
 		return this.toSPUDD();
 	}
-	
+
 	@Override
 	public String toSPUDD(int spaces) {
 		/*
 		 * Returns tree as SPUDD string
 		 */
-		
+
 		var childNames = Global.valNames.get(this.var - 1);
-		
+
 		StringBuilder builder = new StringBuilder(100);
-		builder.append("  ".repeat(spaces))
-			.append("(").append(Global.varNames.get(this.var - 1));
+		builder.append("  ".repeat(spaces)).append("(").append(Global.varNames.get(this.var - 1));
 
 		for (int i = 0; i < this.children.length; i++) {
-			
+
 			if (this.children[i] instanceof DDleaf)
-				builder.append("  (").append(childNames.get(i)).append(" ")
-					.append(this.children[i].toSPUDD()).append(")");
+				builder.append("  (").append(childNames.get(i)).append(" ").append(this.children[i].toSPUDD())
+						.append(")");
 			else
-				builder.append("\r\n").append("  ".repeat(spaces + 1)).append("(")
-					.append(childNames.get(i)).append("\r\n")
-					.append(this.children[i].toSPUDD(spaces + 2)).append(")");
+				builder.append("\r\n").append("  ".repeat(spaces + 1)).append("(").append(childNames.get(i))
+						.append("\r\n").append(this.children[i].toSPUDD(spaces + 2)).append(")");
 		}
 
 		builder.append(")");
@@ -293,6 +305,7 @@ public class DDnode extends DD {
 
 	@Override
 	public String toSPUDD() {
+
 		return this.toSPUDD(0);
 	}
 
@@ -301,7 +314,7 @@ public class DDnode extends DD {
 
 		var varSet = new TreeSet<Integer>(Collections.singleton(this.var));
 		Arrays.stream(this.children).forEach(c -> varSet.addAll(c.getVars()));
-		
+
 		return varSet;
 	}
 

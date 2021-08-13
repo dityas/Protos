@@ -24,11 +24,19 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitVar_defs(SpuddXParser.Var_defsContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#var_def}.
+	 * Visit a parse tree produced by the {@code RVarDef}
+	 * labeled alternative in {@link SpuddXParser#var_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitVar_def(SpuddXParser.Var_defContext ctx);
+	T visitRVarDef(SpuddXParser.RVarDefContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ModelVarDef}
+	 * labeled alternative in {@link SpuddXParser#var_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModelVarDef(SpuddXParser.ModelVarDefContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code PreDefModel}
 	 * labeled alternative in {@link SpuddXParser#all_def}.
@@ -50,6 +58,13 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitPOMDPDef(SpuddXParser.POMDPDefContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code IPOMDPDef}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIPOMDPDef(SpuddXParser.IPOMDPDefContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code DBNDef}
 	 * labeled alternative in {@link SpuddXParser#all_def}.
@@ -84,6 +99,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPomdp_def(SpuddXParser.Pomdp_defContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#ipomdp_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIpomdp_def(SpuddXParser.Ipomdp_defContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#states_list}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -101,6 +122,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAction_var(SpuddXParser.Action_varContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#action_j_var}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAction_j_var(SpuddXParser.Action_j_varContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#actions_list}.
 	 * @param ctx the parse tree

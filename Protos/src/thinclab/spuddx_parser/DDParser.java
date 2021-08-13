@@ -25,7 +25,7 @@ import thinclab.models.DBN;
 public class DDParser extends SpuddXBaseVisitor<DD> {
 
 	private HashMap<String, DD> declaredDDs;
-	private static final Logger LOGGER = LogManager.getLogger(DDParser.class); 
+	private static final Logger LOGGER = LogManager.getLogger(DDParser.class);
 
 	public DDParser(HashMap<String, DD> declaredDDs) {
 
@@ -41,12 +41,19 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 		int varIndex = Global.varNames.indexOf(varName);
 		var valNames = Global.valNames.get(varIndex);
 
+		if (varIndex < 0) {
+
+			LOGGER.error(String.format("Variable %s not found in variables list %s", varName, Global.varNames));
+			LOGGER.error(String.format("While parsing %s", ctx.getText()));
+			System.exit(-1);
+		}
+
 		// Prepare children
-		var childNames = ctx.var_value().stream().map(v -> v.IDENTIFIER().getText()).collect(Collectors.toList()); 
+		var childNames = ctx.var_value().stream().map(v -> v.IDENTIFIER().getText()).collect(Collectors.toList());
 		var childDDList = ctx.dd_expr().stream().map(this::visit).collect(Collectors.toList());
-		
-		if (valNames.size() != childNames.size() &&
-				valNames.size() != childDDList.size()) {
+
+		if (valNames.size() != childNames.size() && valNames.size() != childDDList.size()) {
+
 			LOGGER.error(String.format("All children for %s not defined", varName));
 			System.exit(-1);
 		}
@@ -58,10 +65,9 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 
 			if (childIndex < 0 || childDDList.get(i) == null) {
 
-				LOGGER.error("Could not parse DD for child " + childNames.get(i));
+				LOGGER.error(String.format("Could not parse DD for child %s", childNames.get(i)));
 				LOGGER.debug(String.format("Child index is %s, childNames are %s", childIndex, childNames));
-				LOGGER.debug(String.format("Child DDs are %s", childDDList));
-				LOGGER.debug(String.format("Parsed DDs are %s", this.declaredDDs));
+				LOGGER.error(String.format("Error while parsing %s", ctx.getText()));
 				System.exit(-1);
 			}
 
@@ -101,15 +107,26 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 			return null;
 		}
 	}
-	
+
 	@Override
 	public DD visitDDDeterministic(SpuddXParser.DDDeterministicContext ctx) {
+
 		return DDnode.getDDForChild(ctx.var_name().getText(), ctx.var_value().getText());
 	}
-	
+
 	@Override
 	public DD visitDDUniform(SpuddXParser.DDUniformContext ctx) {
-		return DDnode.getUniformDist(ctx.var_name().getText());
+
+		var varName = ctx.var_name().IDENTIFIER().getText();
+		int varIndex = Global.varNames.indexOf(varName);
+
+		if (varIndex < 0) {
+
+			LOGGER.error(String.format("Could not find %s in %s while parsing %s", varName, Global.varNames, ctx.getText()));
+			System.exit(-1);
+		}
+
+		return DDnode.getUniformDist(varIndex + 1);
 	}
 
 	@Override
@@ -170,5 +187,5 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 		else
 			return null;
 	}
-	
+
 }
