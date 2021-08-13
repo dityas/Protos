@@ -11,11 +11,14 @@ domain: var_defs
 		;
 
 var_defs : (var_def)+ ;
-var_def : LP 'defvar' var_name LP (var_value)+ RP RP ;
+var_def : LP 'defvar' var_name LP (var_value)+ RP RP	# RVarDef
+		| LP 'defmodelvar' var_name RP 				  	# ModelVarDef
+		;
 		   
 all_def : model_name			# PreDefModel
 		| dd_def 				# DDDef
 		| pomdp_def 			# POMDPDef
+		| ipomdp_def 			# IPOMDPDef
 		| dbn_def				# DBNDef
 		| pbvi_solv_def 		# PBVISolverDef
 		| LP all_def RP 		# OtherDefParen
@@ -28,13 +31,25 @@ pomdp_def : LP 'defpomdp' model_name
 			states_list
 			obs_list
 			action_var
+			action_j_var
 			dynamics
 			initial_belief
 			reward
 			discount
 			RP
 			;
-			
+
+ipomdp_def : LP 'defpomdp' model_name
+             states_list
+             obs_list
+             action_var
+             dynamics
+             initial_belief
+             reward
+             discount
+             RP
+             ;
+            
 states_list	: LP 'S' LP (var_name)+ RP RP ;
 obs_list 	: LP 'O' LP (var_name)+ RP RP ;
 action_var 	: LP 'A' (var_name)  RP ;
