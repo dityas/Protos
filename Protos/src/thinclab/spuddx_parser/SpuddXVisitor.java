@@ -129,11 +129,29 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAction_j_var(SpuddXParser.Action_j_varContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#model_j_var}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModel_j_var(SpuddXParser.Model_j_varContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#actions_list}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitActions_list(SpuddXParser.Actions_listContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#frame_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFrame_def(SpuddXParser.Frame_defContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#frame_tuple}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFrame_tuple(SpuddXParser.Frame_tupleContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dynamics}.
 	 * @param ctx the parse tree

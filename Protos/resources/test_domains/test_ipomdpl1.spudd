@@ -3,6 +3,7 @@
 (defvar Agent_actions (OL OR L))
 (defvar Agentj_actions (OL OR L))
 (defvar Creak (CL CR SL))
+(defvar Frame_jl1 (frame1))
 (defmodelvar agent_j)
 
 (defdd initLoc
@@ -170,6 +171,10 @@
 
     (A 	Agent_actions)
     (Aj Agentj_actions)
+    (Mj agent_j)
+    (Thetaj Frame_jl1 	
+    	(frame1 agentJ)
+    )
         
     (dynamics
         (OL 	(actionIOpen))

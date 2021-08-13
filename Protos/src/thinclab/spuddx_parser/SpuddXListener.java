@@ -207,6 +207,16 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitAction_j_var(SpuddXParser.Action_j_varContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#model_j_var}.
+	 * @param ctx the parse tree
+	 */
+	void enterModel_j_var(SpuddXParser.Model_j_varContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#model_j_var}.
+	 * @param ctx the parse tree
+	 */
+	void exitModel_j_var(SpuddXParser.Model_j_varContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#actions_list}.
 	 * @param ctx the parse tree
 	 */
@@ -216,6 +226,26 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitActions_list(SpuddXParser.Actions_listContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#frame_def}.
+	 * @param ctx the parse tree
+	 */
+	void enterFrame_def(SpuddXParser.Frame_defContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#frame_def}.
+	 * @param ctx the parse tree
+	 */
+	void exitFrame_def(SpuddXParser.Frame_defContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#frame_tuple}.
+	 * @param ctx the parse tree
+	 */
+	void enterFrame_tuple(SpuddXParser.Frame_tupleContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#frame_tuple}.
+	 * @param ctx the parse tree
+	 */
+	void exitFrame_tuple(SpuddXParser.Frame_tupleContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#dynamics}.
 	 * @param ctx the parse tree

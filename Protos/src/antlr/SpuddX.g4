@@ -43,6 +43,8 @@ ipomdp_def : LP 'defipomdp' model_name
              obs_list
              action_var
 			 action_j_var
+			 model_j_var
+			 frame_def
              dynamics
              initial_belief
              reward
@@ -54,7 +56,10 @@ states_list	: LP 'S' LP (var_name)+ RP RP ;
 obs_list 	: LP 'O' LP (var_name)+ RP RP ;
 action_var 	: LP 'A' (var_name)  RP ;
 action_j_var 	: LP 'Aj' (var_name)  RP ;
+model_j_var 	: LP 'Mj' (var_name)  RP ;
 actions_list 	: LP 'A' LP (var_name)+ RP RP ;
+frame_def 	: LP 'Thetaj' var_name (frame_tuple)+ RP ;
+frame_tuple : LP var_value model_name RP ;
 
 dynamics : LP 'dynamics' (action_model)+ RP ;
 action_model : LP action_name all_def RP ;
