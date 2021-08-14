@@ -79,7 +79,18 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public void updateIS() {
 
 		createIS();
+		
+		// weird way to create initial belief the first time, but ok...
+		if (PAjMj == null) createFirstb_i();
+		
 		createPAjMj();
+	}
+	
+	public void createFirstb_i() {
+		
+		var b_js = frames_jSoln.stream().flatMap(f -> f.bMjList().stream()).collect(Collectors.toList());
+		
+		
 	}
 
 	public void createIS() {
@@ -118,6 +129,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var AjDDs = MjToOPTAj.stream().map(m -> m._1()).toArray(DD[]::new);
 		PAjMj = DDOP.reorder(DDnode.getDD(i_Mj, AjDDs));
 		LOGGER.debug(String.format("P(Aj|Mj) is %s", PAjMj));
+		LOGGER.debug(String.format("b(Mj) is %s", DDOP.addMultVarElim(List.of(b_i), i_S)));
 	}
 
 	@Override

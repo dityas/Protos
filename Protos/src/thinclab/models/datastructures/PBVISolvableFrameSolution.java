@@ -50,13 +50,11 @@ public class PBVISolvableFrameSolution {
 
 		RG = ReachabilityGraph.fromDecMakingModel(m);
 		b_is.stream().forEach(RG::addNode);
-		RG = new BreadthFirstExploration<DD, PBVISolvablePOMDPBasedModel, ReachabilityGraph, AlphaVectorPolicy>(
-				1000).expand(RG, m, H, Vn);
+		RG = new BreadthFirstExploration<DD, PBVISolvablePOMDPBasedModel, ReachabilityGraph, AlphaVectorPolicy>(1000)
+				.expand(RG, m, H, Vn);
 
 		Vn = s.solve(b_is, m, 100, H, new SSGAExploration<>(0.1f), Vn);
 
-		// set next beliefs
-		b_is = new ArrayList<>(RG.getChildren(b_is));
 	}
 
 	public List<Tuple<Integer, DD>> mjList() {
@@ -64,10 +62,21 @@ public class PBVISolvableFrameSolution {
 		return RG.getAllNodes().stream().map(d -> Tuple.of(frame, d)).collect(Collectors.toList());
 	}
 
+	public List<Tuple<Integer, DD>> bMjList() {
+
+		return b_is.stream().map(b -> Tuple.of(frame, b)).collect(Collectors.toList());
+	}
+
 	public Map<Tuple<Integer, DD>, Integer> mjToOPTAjMap() {
 
 		return RG.getAllNodes().stream().map(d -> Tuple.of(frame, d, Vn.getBestActionIndex(d, m.i_S())))
 				.collect(Collectors.toMap(t -> Tuple.of(t._0(), t._1()), t -> t._2()));
+	}
+
+	public void step() {
+
+		// set next beliefs
+		b_is = new ArrayList<>(RG.getChildren(b_is));
 	}
 
 }
