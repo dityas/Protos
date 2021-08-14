@@ -11,9 +11,9 @@ import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.utils.Tuple;
-import thinclab.utils.Tuple3;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import thinclab.legacy.DD;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
@@ -34,7 +34,7 @@ public class PBVISolvableFrameSolution {
 	public List<DD> b_is;
 	public PBVISolvablePOMDPBasedModel m;
 	public SymbolicPerseusSolver<PBVISolvablePOMDPBasedModel> s;
-	public AlphaVectorPolicy<DD> Vn;
+	public AlphaVectorPolicy Vn;
 
 	public PBVISolvableFrameSolution(int f, PBVISolvablePOMDPBasedModel _m, int H) {
 
@@ -50,7 +50,7 @@ public class PBVISolvableFrameSolution {
 
 		RG = ReachabilityGraph.fromDecMakingModel(m);
 		b_is.stream().forEach(RG::addNode);
-		RG = new BreadthFirstExploration<DD, PBVISolvablePOMDPBasedModel, ReachabilityGraph, AlphaVectorPolicy<DD>>(
+		RG = new BreadthFirstExploration<DD, PBVISolvablePOMDPBasedModel, ReachabilityGraph, AlphaVectorPolicy>(
 				1000).expand(RG, m, H, Vn);
 
 		Vn = s.solve(b_is, m, 100, H, new SSGAExploration<>(0.1f), Vn);
@@ -59,10 +59,15 @@ public class PBVISolvableFrameSolution {
 		b_is = new ArrayList<>(RG.getChildren(b_is));
 	}
 
-	public List<Tuple3<Integer, DD, Integer>> mjList() {
+	public List<Tuple<Integer, DD>> mjList() {
 
-		return RG.getAllNodes().stream().map(d -> Tuple.of(frame, d, Vn.getBestActionIndex(d)))
-				.collect(Collectors.toList());
+		return RG.getAllNodes().stream().map(d -> Tuple.of(frame, d)).collect(Collectors.toList());
+	}
+
+	public Map<Tuple<Integer, DD>, Integer> mjToOPTAjMap() {
+
+		return RG.getAllNodes().stream().map(d -> Tuple.of(frame, d, Vn.getBestActionIndex(d, m.i_S())))
+				.collect(Collectors.toMap(t -> Tuple.of(t._0(), t._1()), t -> t._2()));
 	}
 
 }

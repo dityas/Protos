@@ -157,6 +157,19 @@ public class DDnode extends DD {
 		return node;
 	}
 
+	public void setChild(int child, DD childDD) {
+
+		if (child >= children.length || child <= 0) {
+
+			LOGGER.error(
+					String.format("Child %s does not exist for variable values", child, Global.valNames.get(var - 1)));
+			System.exit(-1);
+		}
+		
+		children[child - 1] = childDD;
+
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 

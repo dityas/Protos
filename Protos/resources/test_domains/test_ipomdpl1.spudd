@@ -1,10 +1,10 @@
 (defvar TigerLoc (TL TR))
-(defvar Growl (GL GR))
+(defmodelvar agent_j)
+(defvar Frame_jl1 (frame1))
 (defvar Agent_actions (OL OR L))
 (defvar Agentj_actions (OL OR L))
+(defvar Growl (GL GR))
 (defvar Creak (CL CR SL))
-(defvar Frame_jl1 (frame1))
-(defmodelvar agent_j)
 
 (defdd initLoc
 		(TigerLoc 	UNIFORM)

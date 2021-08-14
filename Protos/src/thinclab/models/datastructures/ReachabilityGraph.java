@@ -33,7 +33,7 @@ public class ReachabilityGraph extends AbstractAOGraph<DD, Integer, List<Integer
 		this.edgeIndexMap = new ConcurrentHashMap<>(10);
 
 		AOSpace.stream().forEach(i -> this.edgeIndexMap.put(i, this.edgeIndexMap.size()));
-		LOGGER.info(String.format("Initialized reachability graph for action-observation space %s", AOSpace));
+		LOGGER.info(String.format("Initialized reachability graph for branching factor %s", AOSpace.size()));
 	}
 
 	public static ReachabilityGraph fromDecMakingModel(POSeqDecMakingModel<?> m) {

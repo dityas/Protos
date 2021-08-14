@@ -28,7 +28,7 @@ import thinclab.utils.Tuple;
  *
  */
 public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
-		implements PointBasedSolver<M, ReachabilityGraph, AlphaVectorPolicy<DD>> {
+		implements PointBasedSolver<M, ReachabilityGraph, AlphaVectorPolicy> {
 
 	private int usedBeliefs = 0;
 
@@ -77,7 +77,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 	 * Perform backups and get the next value function for a given explored belief
 	 * region
 	 */
-	protected AlphaVectorPolicy<DD> solveForB(final M m, List<DD> B, AlphaVectorPolicy<DD> Vn) {
+	protected AlphaVectorPolicy solveForB(final M m, List<DD> B, AlphaVectorPolicy Vn) {
 
 		List<Tuple<Integer, DD>> newVn = new ArrayList<>(10);
 		this.usedBeliefs = 0;
@@ -106,11 +106,11 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			this.usedBeliefs++;
 		}
 
-		return new AlphaVectorPolicy<DD>(newVn);
+		return new AlphaVectorPolicy(newVn);
 	}
 
 	@Override
-	public AlphaVectorPolicy<DD> solve(List<DD> bs, final M m, int I, int H, ExplorationStrategy<DD, M, ReachabilityGraph, AlphaVectorPolicy<DD>> ES, AlphaVectorPolicy<DD> Vn) {
+	public AlphaVectorPolicy solve(List<DD> bs, final M m, int I, int H, ExplorationStrategy<DD, M, ReachabilityGraph, AlphaVectorPolicy> ES, AlphaVectorPolicy Vn) {
 
 		ReachabilityGraph RG = ReachabilityGraph.fromDecMakingModel(m);
 		

@@ -712,6 +712,24 @@ public class DDOP {
 		return maxVal;
 	}
 
+	public static int bestAlphaIndex(List<Tuple<Integer, DD>> Vn, DD b, Collection<Integer> Svars) {
+
+		float maxVal = Float.NEGATIVE_INFINITY;
+		int bestIndex = -1;
+
+		for (int i = 0; i < Vn.size(); i++) {
+
+			float val = DDOP.dotProduct(b, Vn.get(i)._1(), Svars);
+
+			if (val > maxVal) {
+				maxVal = val;
+				bestIndex = i;
+			}
+		}
+
+		return bestIndex;
+	}
+
 	public static <T> List<List<T>> cartesianProd(List<List<T>> a, List<List<T>> b) {
 
 		var prod = a.stream()

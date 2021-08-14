@@ -10,6 +10,7 @@ package thinclab.policy;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.utils.Tuple;
 
@@ -17,37 +18,30 @@ import thinclab.utils.Tuple;
  * @author adityas
  *
  */
-public class AlphaVectorPolicy<B extends DD> implements Policy<B> {
+public class AlphaVectorPolicy implements Policy<DD> {
 
-	public List<Tuple<Integer, B>> aVecs;
+	public List<Tuple<Integer, DD>> aVecs;
 
-	public AlphaVectorPolicy(List<Tuple<Integer, B>> alphaVectors) {
+	public AlphaVectorPolicy(List<Tuple<Integer, DD>> alphaVectors) {
 
 		this.aVecs = alphaVectors;
 	}
 
 	@Override
-	public int getBestActionIndex(B belief) {
+	public int getBestActionIndex(DD belief, List<Integer> S) {
 
-		// TODO Auto-generated method stub
-		return 0;
+		int i = DDOP.bestAlphaIndex(aVecs, belief, S);
+		return aVecs.get(i)._0();
 	}
 
-	@Override
-	public String getBestAction(B belief) {
-
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
 	@Override
 	public String toString() {
 		return aVecs.toString();
 	}
 
-	public static <B extends DD> AlphaVectorPolicy<B> fromR(List<B> R) {
+	public static AlphaVectorPolicy fromR(List<DD> R) {
 
-		return new AlphaVectorPolicy<B>(
+		return new AlphaVectorPolicy(
 				IntStream.range(0, R.size()).mapToObj(i -> Tuple.of(i, R.get(i))).collect(Collectors.toList()));
 	}
 
