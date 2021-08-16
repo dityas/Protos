@@ -72,6 +72,12 @@ public class PBVISolvableFrameSolution {
 		return RG.getAllNodes().stream().map(d -> Tuple.of(frame, d, Vn.getBestActionIndex(d, m.i_S())))
 				.collect(Collectors.toMap(t -> Tuple.of(t._0(), t._1()), t -> t._2()));
 	}
+	
+	public void getTriples() {
+		
+		RG.getTriples();
+		
+	}
 
 	public void step() {
 

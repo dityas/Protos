@@ -15,8 +15,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
+import thinclab.legacy.OP;
 import thinclab.models.datastructures.PBVISolvableFrameSolution;
 import thinclab.utils.Tuple;
 
@@ -33,7 +35,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public final int i_Mj;
 	public final int i_Thetaj;
 	public final List<String> Thetaj;
-	
+
+	public final List<String> Om_j;
+
 	public DD PAjMj;
 
 	public List<Tuple<Integer, PBVISolvablePOMDPBasedModel>> frames_j;
@@ -68,6 +72,19 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				t -> Tuple.of(Global.valNames.get(i_Thetaj - 1).indexOf(t._0()), (PBVISolvablePOMDPBasedModel) t._1()))
 				.collect(Collectors.toList());
 
+		// verify and prepare Oj
+		var incorrectFrame = this.frames_j.stream().filter(f -> !f._1().Om().equals(this.frames_j.get(0)._1().Om()))
+				.findAny();
+		if (incorrectFrame.isPresent()) {
+
+			LOGGER.error(String.format(
+					"All frame should have the same set of observation variables. %s seems to be different.",
+					incorrectFrame.get()));
+			System.exit(-1);
+		}
+		
+		Om_j = this.frames_j.get(0)._1().Om();
+
 		// prepare structures for solving frames
 		this.frames_jSoln = this.frames_j.stream().map(f -> new PBVISolvableFrameSolution(f._0(), f._1(), H))
 				.collect(Collectors.toList());
@@ -79,18 +96,27 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public void updateIS() {
 
 		createIS();
-		
+
 		// weird way to create initial belief the first time, but ok...
-		if (PAjMj == null) createFirstb_i();
-		
+		if (PAjMj == null)
+			createFirstb_i();
+
 		createPAjMj();
+		
+		frames_jSoln.forEach(f -> f.getTriples());
 	}
-	
+
 	public void createFirstb_i() {
-		
-		var b_js = frames_jSoln.stream().flatMap(f -> f.bMjList().stream()).collect(Collectors.toList());
-		
-		
+
+		var b_js = frames_jSoln.stream().flatMap(f -> f.bMjList().stream().map(b -> mjMap.get(b)))
+				.collect(Collectors.toList());
+		var b_MjDD = b_js.stream()
+				.map(b -> DDOP.mult(DDleaf.getDD(1.0f / b_js.size()),
+						DDnode.getDDForChild(i_Mj,
+								Collections.binarySearch(Global.valNames.get(i_Mj - 1), b.toString()))))
+				.reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
+
+		b_i = OP.mult(b_i, b_MjDD);
 	}
 
 	public void createIS() {
@@ -111,25 +137,23 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		var sortedVals = mjMap.values().stream().map(i -> i.toString()).collect(Collectors.toList());
 		Collections.sort(sortedVals, (a, b) -> Integer.valueOf(a) - Integer.valueOf(b));
-		
+
 		Global.valNames.set(i_Mj - 1, sortedVals);
 		Global.varDomSize.set(i_Mj - 1, sortedVals.size());
-		
+
 		LOGGER.debug(String.format("Interactive state space has %s models", Global.valNames.get(i_Mj - 1).size()));
 	}
 
 	public void createPAjMj() {
 
 		var MjToOPTAj = frames_jSoln.stream().flatMap(f -> f.mjToOPTAjMap().entrySet().stream())
-				.map(e -> Tuple.of(mjMap.get(e.getKey()), DDnode.getDDForChild(i_Aj, e.getValue() + 1))).collect(Collectors.toList());
-		LOGGER.debug(String.format("P(Aj|Mj) is %s", MjToOPTAj));
-		
+				.map(e -> Tuple.of(mjMap.get(e.getKey()), DDnode.getDDForChild(i_Aj, e.getValue() + 1)))
+				.collect(Collectors.toList());
+
 		Collections.sort(MjToOPTAj, (a, b) -> a._0() - b._0());
-		
+
 		var AjDDs = MjToOPTAj.stream().map(m -> m._1()).toArray(DD[]::new);
 		PAjMj = DDOP.reorder(DDnode.getDD(i_Mj, AjDDs));
-		LOGGER.debug(String.format("P(Aj|Mj) is %s", PAjMj));
-		LOGGER.debug(String.format("b(Mj) is %s", DDOP.addMultVarElim(List.of(b_i), i_S)));
 	}
 
 	@Override

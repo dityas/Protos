@@ -7,6 +7,7 @@
  */
 package thinclab.models.datastructures;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.utils.Tuple;
+import thinclab.utils.Tuple3;
 
 /*
  * @author adityas
@@ -41,12 +43,36 @@ public class ReachabilityGraph extends AbstractAOGraph<DD, Integer, List<Integer
 		// Make action observation space for agent I
 		var obsVars = m.i_Om().stream().map(i -> IntStream.range(1, Global.valNames.get(i - 1).size() + 1)
 				.mapToObj(j -> j).collect(Collectors.toList())).collect(Collectors.toList());
-		
+
 		var oSpace = DDOP.cartesianProd(obsVars);
 		var aoSpace = IntStream.range(0, m.A().size()).mapToObj(i -> i)
 				.flatMap(i -> oSpace.stream().map(o -> Tuple.of(i, o))).collect(Collectors.toList());
 
 		return new ReachabilityGraph(aoSpace);
+	}
+
+	public List<Tuple3<DD, List<Integer>, DD>> getTriples() {
+
+		var triples = this.connections.entrySet().stream()
+				.flatMap(e -> this.edgeIndexMap.entrySet().stream().map(f -> {
+					
+					// for each edge, make a list of indices of child vals
+					var edge = new ArrayList<Integer>(f.getKey()._1().size() + 1);
+					edge.add(f.getKey()._0());
+					edge.addAll(f.getKey()._1());
+					
+					var mj_p = e.getValue().get(f.getValue());
+
+					// if it is a leaf node, loop it back
+					if (mj_p == null)
+						return Tuple.of(e.getKey(),(List<Integer>) edge, e.getKey());
+					
+					else
+						return Tuple.of(e.getKey(),(List<Integer>) edge, mj_p);
+				}))
+				.collect(Collectors.toList());
+		
+		return triples;
 	}
 
 	@Override

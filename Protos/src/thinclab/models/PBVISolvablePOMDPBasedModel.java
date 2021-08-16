@@ -19,7 +19,6 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.solver.PBVISolvable;
-import thinclab.utils.Tuple;
 
 /*
  * @author adityas
