@@ -5,11 +5,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.ddinterface.DDTree;
-
 import java.lang.ref.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.TreeSet;
+import java.util.stream.IntStream;
 
 public class DDnode extends DD {
 
@@ -62,6 +64,31 @@ public class DDnode extends DD {
 		}
 
 		this.hash = builder.toHashCode();
+	}
+
+	public static DD getDD(List<Integer> vars, List<Integer> vals, float val) {
+
+		if (vars.size() == 0 && vals.size() == 0)
+			return DDleaf.getDD(val);
+
+		else {
+
+			var _vars = new ArrayList<>(vars);
+			var _vals = new ArrayList<>(vals);
+
+			var _var = _vars.remove(0);
+			var _val = _vals.remove(0);
+
+			var childDDs = IntStream.range(0, Global.varDomSize.get(_var - 1))
+					.mapToObj(i -> i == (_val - 1) ? DDnode.getDD(_vars, _vals, val) : DDleaf.getDD(0.0f))
+					.toArray(DD[]::new);
+			
+			//LOGGER.debug(String.format("Childs are %s", Arrays.toString(childDDs)));
+
+			var dd = DDnode.getDD(_var, childDDs);
+			return dd;
+		}
+
 	}
 
 	public static DD getDDForChild(int var, int child) {
@@ -165,7 +192,7 @@ public class DDnode extends DD {
 					String.format("Child %s does not exist for variable values", child, Global.valNames.get(var - 1)));
 			System.exit(-1);
 		}
-		
+
 		children[child - 1] = childDD;
 
 	}

@@ -11,6 +11,7 @@ import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.utils.Tuple;
+import thinclab.utils.Tuple3;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -72,11 +73,11 @@ public class PBVISolvableFrameSolution {
 		return RG.getAllNodes().stream().map(d -> Tuple.of(frame, d, Vn.getBestActionIndex(d, m.i_S())))
 				.collect(Collectors.toMap(t -> Tuple.of(t._0(), t._1()), t -> t._2()));
 	}
-	
-	public void getTriples() {
-		
-		RG.getTriples();
-		
+
+	public List<Tuple3<Tuple<Integer, DD>, List<Integer>, Tuple<Integer, DD>>> getTriples() {
+
+		return RG.getTriples().stream().map(t -> Tuple.of(Tuple.of(frame, t._0()), t._1(), Tuple.of(frame, t._2())))
+				.collect(Collectors.toList());
 	}
 
 	public void step() {

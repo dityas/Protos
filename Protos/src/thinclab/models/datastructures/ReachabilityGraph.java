@@ -58,7 +58,7 @@ public class ReachabilityGraph extends AbstractAOGraph<DD, Integer, List<Integer
 					
 					// for each edge, make a list of indices of child vals
 					var edge = new ArrayList<Integer>(f.getKey()._1().size() + 1);
-					edge.add(f.getKey()._0());
+					edge.add(f.getKey()._0() + 1);
 					edge.addAll(f.getKey()._1());
 					
 					var mj_p = e.getValue().get(f.getValue());
