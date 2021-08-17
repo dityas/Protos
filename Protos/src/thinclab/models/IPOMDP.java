@@ -190,10 +190,10 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public void createPAjMj() {
 
 		var MjToOPTAj = framesjSoln.stream().flatMap(f -> f.mjToOPTAjMap().entrySet().stream())
-				.map(e -> Tuple.of(mjMap.k2v.get(e.getKey()), DDnode.getDDForChild(i_Aj, e.getValue() + 1)))
+				.map(e -> Tuple.of(mjMap.k2v.get(e.getKey()), DDnode.getDDForChild(i_Aj, e.getValue())))
 				.collect(Collectors.toList());
 		
-		MjToOPTAj.forEach(d -> LOGGER.debug(String.format("P(Aj|Mj) is %s", d)));
+		//MjToOPTAj.forEach(d -> LOGGER.debug(String.format("P(Aj|Mj) is %s, %s", mjMap.v2k.get(d._0()), d)));
 
 		Collections.sort(MjToOPTAj,
 				(a, b) -> Integer.valueOf(a._0().split("m")[1]) - Integer.valueOf(b._0().split("m")[1]));
@@ -273,15 +273,15 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		//vars.add(i_Thetaj);
 		
 		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), - (Global.NUM_VARS / 2));
-		var stateVars = new ArrayList<Integer>(S().size() + 2);
-		stateVars.addAll(i_S());
-		stateVars.add(i_Mj);
+		//var stateVars = new ArrayList<Integer>(S().size() + 2);
+		//stateVars.addAll(i_S());
+		//stateVars.add(i_Mj);
 		//stateVars.add(i_Thetaj);
 		
-		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
-		b_p = DDOP.div(b_p, prob);
+		//var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
+		//b_p = DDOP.div(b_p, prob);
 		
-		LOGGER.debug(String.format("Next belief is %s, P(o) is %s", b_p, prob));
+		LOGGER.debug(String.format("Next belief is %s", b_p));
 
 		return null;
 	}
