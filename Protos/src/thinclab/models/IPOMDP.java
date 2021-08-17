@@ -8,10 +8,12 @@
 package thinclab.models;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
@@ -39,16 +41,18 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public final int i_Thetaj;
 	public final List<String> Thetaj;
 
-	public final List<String> Om_j;
+	public final List<String> Omj;
 
-	public final List<Integer> i_Om_j;
-	public final List<Integer> i_Om_j_p;
+	public final List<Integer> i_Omj;
+	public final List<Integer> i_Omj_p;
+
+	public final List<List<DD>> Oj;
 
 	public DD PAjGivenMj;
 	public DD PMj_pGivenMjAjOj_p;
 
-	public List<Tuple<Integer, PBVISolvablePOMDPBasedModel>> frames_j;
-	public List<PBVISolvableFrameSolution> frames_jSoln;
+	public List<Tuple<Integer, PBVISolvablePOMDPBasedModel>> framesj;
+	public List<PBVISolvableFrameSolution> framesjSoln;
 
 	// public HashMap<Tuple<Integer, DD>, Integer> mjMap = new HashMap<>(1000);
 	public TwoWayMap<Tuple<Integer, DD>, String> mjMap = new TwoWayMap<>();
@@ -77,12 +81,12 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		this.H = H;
 
 		// initialize frames
-		this.frames_j = frames_j.stream().map(
+		this.framesj = frames_j.stream().map(
 				t -> Tuple.of(Global.valNames.get(i_Thetaj - 1).indexOf(t._0()), (PBVISolvablePOMDPBasedModel) t._1()))
 				.collect(Collectors.toList());
 
 		// verify and prepare Oj
-		var incorrectFrame = this.frames_j.stream().filter(f -> !f._1().Om().equals(this.frames_j.get(0)._1().Om()))
+		var incorrectFrame = this.framesj.stream().filter(f -> !f._1().Om().equals(this.framesj.get(0)._1().Om()))
 				.findAny();
 		if (incorrectFrame.isPresent()) {
 
@@ -92,16 +96,43 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			System.exit(-1);
 		}
 
-		Om_j = this.frames_j.get(0)._1().Om();
-		i_Om_j = this.frames_j.get(0)._1().i_Om();
-		i_Om_j_p = this.frames_j.get(0)._1().i_Om_p();
+		// prepare opponent's observations and obs functions
+		Omj = this.framesj.get(0)._1().Om();
+		i_Omj = this.framesj.get(0)._1().i_Om();
+		i_Omj_p = this.framesj.get(0)._1().i_Om_p();
+
+		var OjRestrictedAi = IntStream
+				.range(0, A().size()).mapToObj(i -> this.framesj.stream()
+						.map(f -> this.prepareOj_pGivenAjAiS_p(i, f._1().O())).collect(Collectors.toList()))
+				.collect(Collectors.toList());
+		
+		Oj = IntStream.range(0, A().size())
+				.mapToObj(i -> IntStream.range(0, Omj.size())
+						.mapToObj(o -> DDnode.getDD(i_Thetaj, IntStream.range(0, this.framesj.size())
+								.mapToObj(f -> OjRestrictedAi.get(i).get(f).get(o))
+								.toArray(DD[]::new)))
+						.collect(Collectors.toList()))
+				.collect(Collectors.toList());
 
 		// prepare structures for solving frames
-		this.frames_jSoln = this.frames_j.stream().map(f -> new PBVISolvableFrameSolution(f._0(), f._1(), H))
+		this.framesjSoln = this.framesj.stream().map(f -> new PBVISolvableFrameSolution(f._0(), f._1(), H))
 				.collect(Collectors.toList());
 
 		// create interactive state space using mjs
 		updateIS();
+	}
+
+	public List<DD> prepareOj_pGivenAjAiS_p(int ai, List<List<DD>> _Oj) {
+
+		var Oj_ = _Oj.stream().map(oja -> oja.stream().map(oj -> DDOP.restrict(oj, List.of(i_A), List.of(ai)))
+				.collect(Collectors.toList())).collect(Collectors.toList());
+
+		var Oj_pGivenAjAiS_p = IntStream.range(0, Omj.size())
+				.mapToObj(i -> DDnode.getDD(i_Aj,
+						IntStream.range(0, Aj.size()).mapToObj(j -> Oj_.get(j).get(i)).toArray(DD[]::new)))
+				.collect(Collectors.toList());
+
+		return Oj_pGivenAjAiS_p;
 	}
 
 	public void updateIS() {
@@ -118,7 +149,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createFirstb_i() {
 
-		var b_js = frames_jSoln.stream().flatMap(f -> f.bMjList().stream().map(b -> mjMap.k2v.get(b)))
+		var b_js = framesjSoln.stream().flatMap(f -> f.bMjList().stream().map(b -> mjMap.k2v.get(b)))
 				.collect(Collectors.toList());
 		var b_MjDD = b_js.stream()
 				.map(b -> DDOP.mult(DDleaf.getDD(1.0f / b_js.size()),
@@ -131,13 +162,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createIS() {
 
-		this.frames_jSoln.stream().parallel().forEach(f ->
+		this.framesjSoln.stream().parallel().forEach(f ->
 			{
 
 				f.solve();
 			});
 
-		var mjsList = this.frames_jSoln.stream().flatMap(f -> f.mjList().stream()).collect(Collectors.toList());
+		var mjsList = this.framesjSoln.stream().flatMap(f -> f.mjList().stream()).collect(Collectors.toList());
 
 		mjsList.stream().forEach(f ->
 			{
@@ -158,9 +189,11 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createPAjMj() {
 
-		var MjToOPTAj = frames_jSoln.stream().flatMap(f -> f.mjToOPTAjMap().entrySet().stream())
+		var MjToOPTAj = framesjSoln.stream().flatMap(f -> f.mjToOPTAjMap().entrySet().stream())
 				.map(e -> Tuple.of(mjMap.k2v.get(e.getKey()), DDnode.getDDForChild(i_Aj, e.getValue() + 1)))
 				.collect(Collectors.toList());
+		
+		MjToOPTAj.forEach(d -> LOGGER.debug(String.format("P(Aj|Mj) is %s", d)));
 
 		Collections.sort(MjToOPTAj,
 				(a, b) -> Integer.valueOf(a._0().split("m")[1]) - Integer.valueOf(b._0().split("m")[1]));
@@ -171,7 +204,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createPMj_pMjAjOj_p() {
 
-		var triples = frames_jSoln.stream().flatMap(f -> f.getTriples().stream())
+		var triples = framesjSoln.stream().flatMap(f -> f.getTriples().stream())
 				.map(f -> Tuple.of(mjMap.k2v.get(f._0()), f._1(), mjMap.k2v.get(f._2()))).map(t ->
 					{
 
@@ -185,10 +218,10 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 					})
 				.collect(Collectors.toList());
 
-		var varList = new ArrayList<Integer>(Om_j.size() + 2);
+		var varList = new ArrayList<Integer>(Omj.size() + 2);
 		varList.add(i_Mj);
 		varList.add(i_Aj);
-		varList.addAll(i_Om_j_p);
+		varList.addAll(i_Omj_p);
 		varList.add(i_Mj_p);
 
 		PMj_pGivenMjAjOj_p = triples.stream().map(t -> DDOP.reorder(DDnode.getDD(varList, t, 1.0f)))
@@ -215,7 +248,41 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	@Override
 	public DD beliefUpdate(DD b, int a, List<Integer> o) {
 
-		// TODO Auto-generated method stub
+		LOGGER.debug(String.format("Initial belief is %s", b));
+		
+		var Ofao = DDOP.restrict(O().get(a), i_Om_p, o);
+		
+		var factors = new ArrayList<DD>(S().size() + S().size() + Omj.size() + 3);
+		
+		factors.add(b);
+		factors.add(PAjGivenMj);
+		factors.add(PMj_pGivenMjAjOj_p);
+		factors.addAll(T().get(a));
+		factors.addAll(Oj.get(a));
+		factors.addAll(Ofao);
+		
+		LOGGER.debug(String.format("TF %s", T().get(a)));
+		LOGGER.debug(String.format("OFao %s", Ofao));
+		LOGGER.debug(String.format("P(Aj|Mj) %s", PAjGivenMj));
+		
+		var vars = new ArrayList<Integer>(factors.size());
+		vars.addAll(i_S());
+		vars.addAll(i_Omj_p);
+		vars.add(i_Aj);
+		vars.add(i_Mj);
+		//vars.add(i_Thetaj);
+		
+		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), - (Global.NUM_VARS / 2));
+		var stateVars = new ArrayList<Integer>(S().size() + 2);
+		stateVars.addAll(i_S());
+		stateVars.add(i_Mj);
+		//stateVars.add(i_Thetaj);
+		
+		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
+		b_p = DDOP.div(b_p, prob);
+		
+		LOGGER.debug(String.format("Next belief is %s, P(o) is %s", b_p, prob));
+
 		return null;
 	}
 

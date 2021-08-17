@@ -71,7 +71,7 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 				System.exit(-1);
 			}
 
-			children[childIndex] = childDDList.get(childIndex);
+			children[childIndex] = childDDList.get(i);
 		}
 
 		if (childDDList.size() != Global.varDomSize.get(varIndex))

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.RandomVariable;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.models.IPOMDP;
 import thinclab.spuddx_parser.SpuddXLexer;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
@@ -183,6 +184,33 @@ class TestANTLRSpuddParser {
 
 		var domainRunner = new SpuddXMainParser(domainFile);
 		domainRunner.run();
+
+		printMemConsumption();
+
+	}
+
+	@Test
+	void testIPOMDPL1BeliefUpdate() throws Exception {
+
+		System.gc();
+		printMemConsumption();
+
+		LOGGER.info("Testing L1 IPOMDP belief update");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd")
+				.getFile();
+
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+		
+		var I = domainRunner.getModel("agentI");
+		
+		if (I.isEmpty()) {
+			LOGGER.error(String.format("Could not find IPOMDP"));
+			System.exit(-1);
+		}
+		
+		var agent = (IPOMDP) I.get();
+		agent.beliefUpdate(agent.b_i(), 0, List.of(1, 3));
 
 		printMemConsumption();
 
