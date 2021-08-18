@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -525,6 +526,20 @@ public class DDOP {
 		return result;
 	}
 
+	public static List<DD> factors(final DD dd, final List<Integer> vars) {
+
+		var factordds = IntStream.range(0, vars.size()).mapToObj(i ->
+			{
+
+				var _vars = new ArrayList<>(vars);
+				_vars.remove(i);
+
+				return DDOP.addMultVarElim(List.of(dd), _vars);
+			}).collect(Collectors.toList());
+
+		return factordds;
+	}
+
 	// -------------------------------------------------------------------------------------------------
 	// restrict
 
@@ -722,6 +737,7 @@ public class DDOP {
 			float val = DDOP.dotProduct(b, Vn.get(i)._1(), Svars);
 
 			if (val > maxVal) {
+
 				maxVal = val;
 				bestIndex = i;
 			}
@@ -791,21 +807,21 @@ public class DDOP {
 	}
 
 	public static Tuple<List<Integer>, List<Integer>> sample(List<DD> dd, List<Integer> varId) {
-		
+
 		var _vars = new ArrayList<>(varId);
 		var _dds = new ArrayList<>(dd);
 		var _varSamples = new ArrayList<Integer>(varId.size());
 		var _valSamples = new ArrayList<Integer>(varId.size());
-		
+
 		while (!_vars.isEmpty()) {
-			
+
 			int v = _vars.remove(0);
 			var sample = DDOP.sample(DDOP.addMultVarElim(_dds, _vars), v);
 			_dds = (ArrayList<DD>) DDOP.restrict(_dds, sample._0(), sample._1());
 			_varSamples.addAll(sample._0());
 			_valSamples.addAll(sample._1());
 		}
-			
+
 		return Tuple.of(_varSamples, _valSamples);
 	}
 

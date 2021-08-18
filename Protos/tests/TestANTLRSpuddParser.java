@@ -1,22 +1,22 @@
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
+import thinclab.DDOP;
 import thinclab.RandomVariable;
+import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.legacy.OP;
+import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.models.IPOMDP;
+import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.spuddx_parser.SpuddXLexer;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
@@ -210,7 +210,18 @@ class TestANTLRSpuddParser {
 		}
 		
 		var agent = (IPOMDP) I.get();
-		agent.beliefUpdate(agent.b_i(), 0, List.of(1, 3));
+		
+		var RG = ReachabilityGraph.fromDecMakingModel(agent);
+		var ES = new BreadthFirstExploration<DD, IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(100);
+		
+		RG.addNode(agent.b_i());
+		
+		RG = ES.expand(RG, agent, agent.H, null);
+		
+		//var _vars = new ArrayList<>(agent.i_S());
+		//_vars.add(agent.i_Mj);
+		
+		//RG.getAllNodes().forEach(d -> LOGGER.debug(DDOP.factors(d, _vars)));
 
 		printMemConsumption();
 

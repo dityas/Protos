@@ -8,7 +8,6 @@
 package thinclab.models;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +20,6 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
-import thinclab.legacy.OP;
 import thinclab.models.datastructures.PBVISolvableFrameSolution;
 import thinclab.utils.Tuple;
 import thinclab.utils.TwoWayMap;
@@ -105,12 +103,14 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				.range(0, A().size()).mapToObj(i -> this.framesj.stream()
 						.map(f -> this.prepareOj_pGivenAjAiS_p(i, f._1().O())).collect(Collectors.toList()))
 				.collect(Collectors.toList());
-		
-		Oj = IntStream.range(0, A().size())
+
+		Oj = IntStream
+				.range(0,
+						A().size())
 				.mapToObj(i -> IntStream.range(0, Omj.size())
-						.mapToObj(o -> DDnode.getDD(i_Thetaj, IntStream.range(0, this.framesj.size())
-								.mapToObj(f -> OjRestrictedAi.get(i).get(f).get(o))
-								.toArray(DD[]::new)))
+						.mapToObj(o -> DDnode.getDD(i_Thetaj,
+								IntStream.range(0, this.framesj.size())
+										.mapToObj(f -> OjRestrictedAi.get(i).get(f).get(o)).toArray(DD[]::new)))
 						.collect(Collectors.toList()))
 				.collect(Collectors.toList());
 
@@ -128,8 +128,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				.collect(Collectors.toList())).collect(Collectors.toList());
 
 		var Oj_pGivenAjAiS_p = IntStream.range(0, Omj.size())
-				.mapToObj(i -> DDnode.getDD(i_Aj,
-						IntStream.range(0, Aj.size()).mapToObj(j -> Oj_.get(j).get(i)).toArray(DD[]::new)))
+				.mapToObj(i -> DDOP.reorder(DDnode.getDD(i_Aj,
+						IntStream.range(0, Aj.size()).mapToObj(j -> Oj_.get(j).get(i)).toArray(DD[]::new))))
 				.collect(Collectors.toList());
 
 		return Oj_pGivenAjAiS_p;
@@ -157,7 +157,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 								Collections.binarySearch(Global.valNames.get(i_Mj - 1), b.toString()))))
 				.reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
 
-		b_i = OP.mult(b_i, b_MjDD);
+		b_i = DDOP.reorder(DDOP.mult(b_i, b_MjDD));
 	}
 
 	public void createIS() {
@@ -192,8 +192,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var MjToOPTAj = framesjSoln.stream().flatMap(f -> f.mjToOPTAjMap().entrySet().stream())
 				.map(e -> Tuple.of(mjMap.k2v.get(e.getKey()), DDnode.getDDForChild(i_Aj, e.getValue())))
 				.collect(Collectors.toList());
-		
-		//MjToOPTAj.forEach(d -> LOGGER.debug(String.format("P(Aj|Mj) is %s, %s", mjMap.v2k.get(d._0()), d)));
+
+		// MjToOPTAj.forEach(d -> LOGGER.debug(String.format("P(Aj|Mj) is %s, %s",
+		// mjMap.v2k.get(d._0()), d)));
 
 		Collections.sort(MjToOPTAj,
 				(a, b) -> Integer.valueOf(a._0().split("m")[1]) - Integer.valueOf(b._0().split("m")[1]));
@@ -248,53 +249,83 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	@Override
 	public DD beliefUpdate(DD b, int a, List<Integer> o) {
 
-		LOGGER.debug(String.format("Initial belief is %s", b));
-		
 		var Ofao = DDOP.restrict(O().get(a), i_Om_p, o);
-		
+
 		var factors = new ArrayList<DD>(S().size() + S().size() + Omj.size() + 3);
-		
+
 		factors.add(b);
 		factors.add(PAjGivenMj);
 		factors.add(PMj_pGivenMjAjOj_p);
 		factors.addAll(T().get(a));
 		factors.addAll(Oj.get(a));
 		factors.addAll(Ofao);
-		
-		LOGGER.debug(String.format("TF %s", T().get(a)));
-		LOGGER.debug(String.format("OFao %s", Ofao));
-		LOGGER.debug(String.format("P(Aj|Mj) %s", PAjGivenMj));
-		
+
 		var vars = new ArrayList<Integer>(factors.size());
 		vars.addAll(i_S());
 		vars.addAll(i_Omj_p);
 		vars.add(i_Aj);
 		vars.add(i_Mj);
-		//vars.add(i_Thetaj);
-		
-		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), - (Global.NUM_VARS / 2));
-		//var stateVars = new ArrayList<Integer>(S().size() + 2);
-		//stateVars.addAll(i_S());
-		//stateVars.add(i_Mj);
-		//stateVars.add(i_Thetaj);
-		
-		//var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
-		//b_p = DDOP.div(b_p, prob);
-		
-		LOGGER.debug(String.format("Next belief is %s", b_p));
+		vars.add(i_Thetaj);
 
-		return null;
+		Collections.sort(vars);
+
+		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), -(Global.NUM_VARS / 2));
+		var stateVars = new ArrayList<Integer>(S().size() + 2);
+		stateVars.addAll(i_S());
+		stateVars.add(i_Mj);
+		stateVars.add(i_Thetaj);
+
+		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
+		b_p = DDOP.div(b_p, prob);
+
+		return b_p;
 	}
 
 	@Override
 	public DD beliefUpdate(DD b, String a, List<String> o) {
 
-		// TODO Auto-generated method stub
-		return null;
+		int actIndex = Collections.binarySearch(this.A, a);
+		var obs = new ArrayList<Integer>(i_Om.size());
+
+		for (int i = 0; i < i_Om_p.size(); i++) {
+
+			obs.add(Collections.binarySearch(Global.valNames.get(i_Om.get(i) - 1), o.get(i)) + 1);
+		}
+
+		return this.beliefUpdate(b, actIndex, obs);
+
 	}
 
 	@Override
 	public DD obsLikelihoods(DD b, int a) {
+
+		var factors = new ArrayList<DD>(S().size() + S().size() + Omj.size() + 3);
+
+		factors.add(b);
+		factors.add(PAjGivenMj);
+		factors.add(PMj_pGivenMjAjOj_p);
+		factors.addAll(T().get(a));
+		factors.addAll(Oj.get(a));
+
+		var vars = new ArrayList<Integer>(factors.size());
+		vars.addAll(i_S());
+		vars.addAll(i_Omj_p);
+		vars.add(i_Aj);
+		vars.add(i_Mj);
+		vars.add(i_Thetaj);
+
+		Collections.sort(vars);
+
+		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), -(Global.NUM_VARS / 2));
+		var stateVars = new ArrayList<Integer>(S().size() + 2);
+		stateVars.addAll(i_S());
+		stateVars.add(i_Mj);
+		stateVars.add(i_Thetaj);
+
+		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
+		b_p = DDOP.div(b_p, prob);
+
+		return b_p;
 
 		// TODO Auto-generated method stub
 		return null;
