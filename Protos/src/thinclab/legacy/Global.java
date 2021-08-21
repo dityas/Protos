@@ -38,6 +38,7 @@ public class Global {
 	public static TypedCacheMap<Tuple<DD, DD>, DD> addCache = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<Pair, DD> multHashtable = new TypedCacheMap<Pair, DD>(10000);
 	public static TypedCacheMap<Tuple<DD, DD>, DD> multCache = new TypedCacheMap<>(10000);
+	public static TypedCacheMap<Tuple<DD, Integer>, DD> addOutCache = new TypedCacheMap<>(10000);
 	public static CacheMap maxHashtable = new CacheMap();
 	public static CacheMap minHashtable = new CacheMap();
 	public static TypedCacheMap<TripletSet, Float> dotProductHashtable = new TypedCacheMap<>(10000);
@@ -107,6 +108,7 @@ public class Global {
 		Global.addCache.clear();
 		Global.multHashtable.clear();
 		Global.multCache.clear();
+		Global.addOutCache.clear();
 		Global.maxHashtable.clear();
 		Global.minHashtable.clear();
 		Global.dotProductHashtable.clear();
@@ -141,6 +143,7 @@ public class Global {
 		Global.addCache = new TypedCacheMap<>(10000);
 		Global.multHashtable = new TypedCacheMap<Pair, DD>(10000);
 		Global.multCache = new TypedCacheMap<>(10000);
+		Global.addOutCache = new TypedCacheMap<>(10000);
 		Global.maxHashtable = new CacheMap();
 		Global.minHashtable = new CacheMap();
 		Global.dotProductHashtable = new TypedCacheMap<>(10000);
@@ -159,6 +162,7 @@ public class Global {
 		LOGGER.debug(String.format("Add Cache: %s", Global.addCache.size()));
 		LOGGER.debug(String.format("Mult Cache: %s", Global.multCache.size()));
 		LOGGER.debug(String.format("Dot Product Cache: %s", Global.dotProductCache.size()));
+		LOGGER.debug(String.format("Add Out Cache: %s", Global.addOutCache.size()));
 		
 	}
 

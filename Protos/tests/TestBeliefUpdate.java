@@ -11,11 +11,13 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.models.IPOMDP;
 import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.spuddx_parser.SpuddXMainParser;
@@ -162,6 +164,33 @@ class TestBeliefUpdate {
 
 	}
 	
+	@Test
+	void testL1TigerProblemBeliefUpdates() throws Exception {
+
+		System.gc();
+
+		LOGGER.info("Running Single agent tiger domain belief update test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd")
+				.getFile();
+
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() -> {
+			LOGGER.error("Could not find IPOMDP agentI");
+			System.exit(-1);
+			return null;
+		});
+
+		System.gc();
+
+		DD initBelief = I.b_i();
+		var likelihoods = DDOP.factors(I.obsLikelihoods(initBelief, 0), I.i_Om_p());
+
+		LOGGER.debug(String.format("Initial belief: %s", initBelief));
+		LOGGER.debug(String.format("Likelihoods: %s", likelihoods));
+	}
+
 	/*
 	@Test
 	void timeSimpleTigerProblemBeliefUpdate() throws Exception {

@@ -26,12 +26,14 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 		implements ExplorationStrategy<DD, M, G, P> {
 
 	private final float e;
+	private final int maxB;
 
 	private static final Logger LOGGER = LogManager.getLogger(SSGAExploration.class);
 
 	public SSGAExploration(float explorationProb) {
 
 		this.e = explorationProb;
+		this.maxB = 100;
 		LOGGER.debug(String.format("Initialized SSGA exploration for exploration probability %s", e));
 	}
 
@@ -52,6 +54,9 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
 			DD b = m.b_i();
 			for (int i = 0; i < T; i++) {
+
+				if (g.getAllNodes().size() >= maxB)
+					break;
 
 				var usePolicy = DDOP.sampleIndex(List.of(e, Pa));
 				int a = -1;

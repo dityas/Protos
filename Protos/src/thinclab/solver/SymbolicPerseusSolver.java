@@ -21,6 +21,7 @@ import thinclab.model_ops.belief_exploration.ExplorationStrategy;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
+import thinclab.utils.Diagnostics;
 import thinclab.utils.Tuple;
 
 /*
@@ -39,14 +40,12 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		// compute in parallel if there are multiple \alpha vectors and dimensionality
 		// is huge
 		var aStream = IntStream.range(0, m.A().size());
-		if (primedAVecs.size() > 2 && (m.i_S().size() + m.i_Om().size()) > 5)
-			aStream = aStream.parallel();
 
 		// For each action and observation pair (a, o), and each \alpha(s'), compute the
 		// dot product for \Gamma_{a, o} with b and get the best \alpha. Sum across
 		// observations
 		var Gao = aStream.mapToObj(_a -> m.Gaoi(b, _a, primedAVecs)).collect(Collectors.toList());
-		var Ga = m.R().stream().map(r -> Tuple.of(DDOP.dotProduct(b, r, m.i_S()), r)).collect(Collectors.toList());
+		var Ga = m.R().stream().parallel().map(r -> Tuple.of(DDOP.dotProduct(b, r, m.i_S()), r)).collect(Collectors.toList());
 
 		// construct \alpha vector for best Ga + Gao
 		int bestA = -1;
@@ -69,7 +68,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 	protected Tuple<Integer, DD> backup(final M m, final DD b, List<DD> aVecs) {
 
-		var primedAVecs = aVecs.stream().map(a -> DDOP.primeVars(a, Global.NUM_VARS / 2)).collect(Collectors.toList());
+		var primedAVecs = aVecs.stream().parallel().map(a -> DDOP.primeVars(a, Global.NUM_VARS / 2)).collect(Collectors.toList());
 		return Gab(m, b, primedAVecs);
 	}
 
@@ -110,10 +109,11 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 	}
 
 	@Override
-	public AlphaVectorPolicy solve(List<DD> bs, final M m, int I, int H, ExplorationStrategy<DD, M, ReachabilityGraph, AlphaVectorPolicy> ES, AlphaVectorPolicy Vn) {
+	public AlphaVectorPolicy solve(List<DD> bs, final M m, int I, int H,
+			ExplorationStrategy<DD, M, ReachabilityGraph, AlphaVectorPolicy> ES, AlphaVectorPolicy Vn) {
 
 		ReachabilityGraph RG = ReachabilityGraph.fromDecMakingModel(m);
-		
+
 		bs.forEach(RG::addNode);
 
 		for (int i = 0; i < I; i++) {
@@ -127,7 +127,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			var Vn_p = solveForB(m, B, Vn);
 
 			float backupT = (System.nanoTime() - then) / 1000000.0f;
-			float bellmanError = B.stream()
+			float bellmanError = B.stream().parallel()
 					.map(_b -> Math.abs(DDOP.value_b(Vn.aVecs, _b, m.i_S()) - DDOP.value_b(Vn_p.aVecs, _b, m.i_S())))
 					.reduce(Float.NEGATIVE_INFINITY, (v1, v2) -> v1 > v2 ? v1 : v2);
 
@@ -138,7 +138,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			LOGGER.info(
 					String.format("iter: %s | bell err: %.5f | time: %.3f msec | num vectors: %s | beliefs used: %s/%s",
 							i, bellmanError, backupT, Vn_p.aVecs.size(), this.usedBeliefs, B.size()));
-
+			
 			if (bellmanError < 0.001 && i > 5) {
 
 				LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));

@@ -54,7 +54,7 @@ class TestAltOPs {
 	}
 
 	@Test
-	void testVarElimForCollections() throws Exception {
+	void testVarElimCaching() throws Exception {
 
 		LOGGER.info("Running tests for alternate implementations of OPs");
 	}

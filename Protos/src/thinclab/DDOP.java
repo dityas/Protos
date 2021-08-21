@@ -62,7 +62,7 @@ public class DDOP {
 			DD children[];
 			children = new DD[dd1.getChildren().length];
 			for (int i = 0; i < dd1.getChildren().length; i++) {
-
+				
 				children[i] = DDOP.mult(dd1.getChildren()[i], dd2);
 			}
 			DD result = DDnode.getDD(dd1.getVar(), children);
@@ -391,11 +391,11 @@ public class DDOP {
 		return bestVar;
 	}
 
-	public static DD addMultVarElim(final List<DD> dds, final List<Integer> vars) {
+	public static DD addMultVarElim(final Collection<DD> dds, final Collection<Integer> vars) {
 
 		var _vars = new HashSet<Integer>(vars);
 		var _dds = new ArrayList<DD>(dds);
-
+		
 		// check if any of the dds are zero
 		for (int i = 0; i < _dds.size(); i++) {
 
@@ -481,13 +481,23 @@ public class DDOP {
 		// multiply remaining trees and the newly added one; the resulting tree
 		// is now free of any variable that appeared in vars
 
-		return DDOP.mult(_dds);
+		var result = DDOP.mult(_dds);
+		
+		return result; 
 	}
 
 	public static DD addout(DD dd, int var) {
 
+		var cacheKey = Tuple.of(dd, var);
+		if (Global.addOutCache.containsKey(cacheKey))
+			return Global.addOutCache.get(cacheKey);
+		
 		HashMap<DD, DD> hashtable = new HashMap<>();
-		return addout(dd, var, hashtable);
+		var result = addout(dd, var, hashtable);
+		
+		Global.addOutCache.put(cacheKey, result);
+		
+		return result;
 	}
 
 	public static DD addout(DD dd, int var, HashMap<DD, DD> hashtable) {

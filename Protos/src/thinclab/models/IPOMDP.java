@@ -21,6 +21,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.models.datastructures.PBVISolvableFrameSolution;
+import thinclab.utils.Diagnostics;
 import thinclab.utils.Tuple;
 import thinclab.utils.TwoWayMap;
 
@@ -145,6 +146,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		createPAjMj();
 		createPMj_pMjAjOj_p();
+		
+		R = R.stream().map(ra -> DDOP.addMultVarElim(List.of(PAjGivenMj, ra), List.of(i_Aj))).collect(Collectors.toList());
 	}
 
 	public void createFirstb_i() {
@@ -305,6 +308,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		factors.add(PAjGivenMj);
 		factors.add(PMj_pGivenMjAjOj_p);
 		factors.addAll(T().get(a));
+		factors.addAll(O().get(a));
 		factors.addAll(Oj.get(a));
 
 		var vars = new ArrayList<Integer>(factors.size());
@@ -313,29 +317,60 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		vars.add(i_Aj);
 		vars.add(i_Mj);
 		vars.add(i_Thetaj);
+		vars.addAll(i_S_p());
+		vars.add(i_Mj_p);
 
 		Collections.sort(vars);
 
-		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), -(Global.NUM_VARS / 2));
-		var stateVars = new ArrayList<Integer>(S().size() + 2);
-		stateVars.addAll(i_S());
-		stateVars.add(i_Mj);
-		stateVars.add(i_Thetaj);
-
-		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
-		b_p = DDOP.div(b_p, prob);
-
-		return b_p;
-
-		// TODO Auto-generated method stub
-		return null;
+		return DDOP.addMultVarElim(factors, vars);
 	}
 
 	@Override
 	public Tuple<Float, DD> Gaoi(DD b, int a, List<DD> alphaPrimes) {
+		
+		List<Tuple<Float, DD>> Gaoi = new ArrayList<>(oAll.size());
 
-		// TODO Auto-generated method stub
-		return null;
+		for (int _o = 0; _o < oAll.size(); _o++) {
+
+			List<Tuple<Float, DD>> _Gaoi = new ArrayList<>();
+			
+			var restrictedObs = DDOP.restrict(O().get(a), i_Om_p, oAll.get(_o));
+
+			for (int i = 0; i < alphaPrimes.size(); i++) {
+
+				var _factors = new ArrayList<DD>(S().size() + Om().size() + Omj.size() + 3);
+				_factors.addAll(T().get(a));
+				_factors.addAll(restrictedObs);
+				_factors.addAll(Oj.get(a));
+				_factors.add(PAjGivenMj);
+				_factors.add(PMj_pGivenMjAjOj_p);
+				_factors.add(alphaPrimes.get(i));
+				
+				var _vars = new ArrayList<Integer>(i_S_p().size() + i_Omj_p.size() + 3);
+				_vars.addAll(i_S_p());
+				_vars.addAll(i_Omj_p);
+				_vars.add(i_Aj);
+				_vars.add(i_Mj_p);
+				
+				Collections.sort(_vars);
+				
+				var _prodVars = new ArrayList<Integer>(i_S().size() + 1);
+				_prodVars.addAll(i_S());
+				_prodVars.add(i_Mj);
+
+				DD gaoi = DDOP.mult(DDleaf.getDD(discount), DDOP.addMultVarElim(_factors, _vars));
+				_Gaoi.add(Tuple.of(DDOP.dotProduct(b, gaoi, _prodVars), gaoi));
+
+			}
+
+			Gaoi.add(_Gaoi.stream().reduce(Tuple.of(Float.NEGATIVE_INFINITY, DDleaf.zero),
+					(a1, a2) -> a1._0() > a2._0() ? a1 : a2));
+
+		}
+
+		return Gaoi.stream().reduce(Tuple.of(0f, DDleaf.zero),
+				(t1, t2) -> Tuple.of(t1._0() + t2._0(), DDOP.add(t1._1(), t2._1())));
+
 	}
 
 }
