@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
@@ -56,6 +57,37 @@ class TestSolvers {
 	}
 
 	@Test
+	void testPOMDPGaoi() throws Exception {
+
+		System.gc();
+
+		LOGGER.info("Running Single agent tiger domain belief exploration test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
+				.getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+
+		var g = ReachabilityGraph.fromDecMakingModel(I);
+		var _g = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(g, I, 5, null);
+		
+		IntStream.range(0, I.A().size()).forEach(i -> {
+			LOGGER.debug(String.format("backup for %s at %s is %s", I.A().get(i), I.b_i(), I.backup(I.b_i(), I.R(), _g)));
+		});
+		printMemConsumption();
+	}
+
+	@Test
 	void testBasicPOMDPPerseusSolver() throws Exception {
 
 		System.gc();
@@ -77,9 +109,12 @@ class TestSolvers {
 				return null;
 			});
 
+		var G = ReachabilityGraph.fromDecMakingModel(I);
+		G.addNode(I.b_i());
+		G = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(G, I, 5, null);
+		
 		var solver = new SymbolicPerseusSolver<POMDP>();
-		var policy = solver.solve(List.of(I.b_i()), I, 100, 10, new SSGAExploration<>(0.1f),
-				AlphaVectorPolicy.fromR(I.R()));
+		var policy = solver.solve(I, 100, 10, G, AlphaVectorPolicy.fromR(I.R()));
 
 		int bestAct = policy.getBestActionIndex(I.b_i(), I.i_S());
 
@@ -114,7 +149,7 @@ class TestSolvers {
 				return null;
 			});
 
-		LOGGER.debug(String.format("Gaoi for %s is %s", I.A().get(0), I.Gaoi(I.b_i(), 0, I.R())));
+		//LOGGER.debug(String.format("Gaoi for %s is %s", I.A().get(0), I.Gaoi(I.b_i(), 0, I.R())));
 
 		printMemConsumption();
 	}
@@ -139,7 +174,7 @@ class TestSolvers {
 				System.exit(-1);
 				return null;
 			});
-
+		/*
 		var solver = new SymbolicPerseusSolver<IPOMDP>();
 		var policy = solver.solve(List.of(I.b_i()), I, 100, I.H,
 				new SSGAExploration<IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(0.1f),
@@ -153,7 +188,7 @@ class TestSolvers {
 
 		LOGGER.debug(String.format("Solved policy is %s", policy));
 
-		printMemConsumption();
+		printMemConsumption(); */
 	}
 
 }

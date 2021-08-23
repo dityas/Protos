@@ -53,9 +53,9 @@ public class PBVISolvableFrameSolution {
 		b_is.stream().forEach(RG::addNode);
 		RG = new BreadthFirstExploration<DD, PBVISolvablePOMDPBasedModel, ReachabilityGraph, AlphaVectorPolicy>(1000)
 				.expand(RG, m, H, Vn);
-
+/*
 		Vn = s.solve(b_is, m, 100, H, new SSGAExploration<>(0.1f), Vn);
-
+*/
 	}
 
 	public List<Tuple<Integer, DD>> mjList() {

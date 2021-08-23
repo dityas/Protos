@@ -21,6 +21,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.models.datastructures.PBVISolvableFrameSolution;
+import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.utils.Diagnostics;
 import thinclab.utils.Tuple;
 import thinclab.utils.TwoWayMap;
@@ -72,6 +73,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		// opponent's model variable
 		this.i_Mj = Global.varNames.indexOf(Mj) + 1;
 		this.i_Mj_p = this.i_Mj + (Global.NUM_VARS / 2);
+		
+		this.i_S.add(i_Mj);
+		this.i_S_p.add(i_Mj_p);
 
 		// random variable for frame of the opponent
 		this.i_Thetaj = Global.varNames.indexOf(Thetaj) + 1;
@@ -267,7 +271,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		vars.addAll(i_S());
 		vars.addAll(i_Omj_p);
 		vars.add(i_Aj);
-		vars.add(i_Mj);
 		vars.add(i_Thetaj);
 
 		Collections.sort(vars);
@@ -275,7 +278,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), -(Global.NUM_VARS / 2));
 		var stateVars = new ArrayList<Integer>(S().size() + 2);
 		stateVars.addAll(i_S());
-		stateVars.add(i_Mj);
 		stateVars.add(i_Thetaj);
 
 		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
@@ -315,16 +317,14 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		vars.addAll(i_S());
 		vars.addAll(i_Omj_p);
 		vars.add(i_Aj);
-		vars.add(i_Mj);
 		vars.add(i_Thetaj);
 		vars.addAll(i_S_p());
-		vars.add(i_Mj_p);
 
 		Collections.sort(vars);
 
 		return DDOP.addMultVarElim(factors, vars);
 	}
-
+/*
 	@Override
 	public Tuple<Float, DD> Gaoi(DD b, int a, List<DD> alphaPrimes) {
 		
@@ -350,13 +350,11 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				_vars.addAll(i_S_p());
 				_vars.addAll(i_Omj_p);
 				_vars.add(i_Aj);
-				_vars.add(i_Mj_p);
 				
 				Collections.sort(_vars);
 				
 				var _prodVars = new ArrayList<Integer>(i_S().size() + 1);
 				_prodVars.addAll(i_S());
-				_prodVars.add(i_Mj);
 
 				DD gaoi = DDOP.mult(DDleaf.getDD(discount), DDOP.addMultVarElim(_factors, _vars));
 				_Gaoi.add(Tuple.of(DDOP.dotProduct(b, gaoi, _prodVars), gaoi));
@@ -368,9 +366,17 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		}
 
+		LOGGER.debug(String.format("Vars in Gaois are %s", Gaoi.stream().map(t -> t._1().getVars()).collect(Collectors.toList())));
 		return Gaoi.stream().reduce(Tuple.of(0f, DDleaf.zero),
 				(t1, t2) -> Tuple.of(t1._0() + t2._0(), DDOP.add(t1._1(), t2._1())));
 
 	}
+*/
 
+	@Override
+	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

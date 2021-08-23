@@ -214,9 +214,9 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 				System.exit(-1);
 			}
 
-			SymbolicPerseusSolver<POMDP> solver = this.pomdpSolvers.get(solverName);
+			SymbolicPerseusSolver<POMDP> solver = this.pomdpSolvers.get(solverName); /*
 			solver.solve(List.of(_model.b_i()), _model, backups, expHorizon, new SSGAExploration<>(0.1f),
-					AlphaVectorPolicy.fromR(_model.R()));
+					AlphaVectorPolicy.fromR(_model.R()));*/
 		}
 
 		super.enterSolvExpr(ctx);

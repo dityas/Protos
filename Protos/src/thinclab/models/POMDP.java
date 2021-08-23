@@ -11,12 +11,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
+import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.utils.Tuple;
 
 /*
@@ -120,34 +123,72 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 	// ----------------------------------------------------------------------------------------
 	// PBVISolvable implementations
 
-	@Override
-	public Tuple<Float, DD> Gaoi(DD b, int a, List<DD> alphaPrimes) {
+	public List<DD> Gaoi(final int a, final DD b, final List<DD> alphas, final ReachabilityGraph g) {
 
-		List<Tuple<Float, DD>> Gaoi = new ArrayList<>(oAll.size());
+		var gaoi = new ArrayList<DD>(oAll.size());
 
-		for (int _o = 0; _o < oAll.size(); _o++) {
+		for (int o = 0; o < oAll.size(); o++) {
 
-			List<Tuple<Float, DD>> _Gaoi = new ArrayList<>();
+			var _o = oAll.get(o);
+			var b_p = g.getNodeAtEdge(b, Tuple.of(a, _o)).orElseGet(() -> beliefUpdate(b, a, _o));
 
-			for (int i = 0; i < alphaPrimes.size(); i++) {
+			float bestVal = Float.NEGATIVE_INFINITY;
+			int bestAlpha = -1;
 
-				var _factors = new ArrayList<DD>(TF.get(a).size() + OF.get(a).size() + 1);
-				_factors.addAll(T().get(a));
-				_factors.addAll(DDOP.restrict(O().get(a), i_Om_p, oAll.get(_o)));
-				_factors.add(alphaPrimes.get(i));
+			for (int i = 0; i < alphas.size(); i++) {
 
-				DD gaoi = DDOP.mult(DDleaf.getDD(discount), DDOP.addMultVarElim(_factors, i_S_p));
-				_Gaoi.add(Tuple.of(DDOP.dotProduct(b, gaoi, i_S), gaoi));
+				float val = DDOP.dotProduct(b_p, alphas.get(i), i_S());
+
+				if (val >= bestVal) {
+
+					bestVal = val;
+					bestAlpha = i;
+
+				}
 
 			}
 
-			Gaoi.add(_Gaoi.stream().reduce(Tuple.of(Float.NEGATIVE_INFINITY, DDleaf.zero),
-					(a1, a2) -> a1._0() > a2._0() ? a1 : a2));
+			var factors = new ArrayList<DD>(S.size() + O.size() + 1);
+			factors.add(DDOP.primeVars(alphas.get(bestAlpha), Global.NUM_VARS / 2));
+			factors.addAll(T().get(a));
+			factors.addAll(DDOP.restrict(O().get(a), i_Om_p, _o));
+
+			gaoi.add(DDOP.addMultVarElim(factors, i_S_p()));
+		}
+
+		return gaoi;
+	}
+
+	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
+
+		var Gao = IntStream.range(0, A().size()).mapToObj(a -> Gaoi(a, b, alphas, g)).collect(Collectors.toList());
+
+		int bestA = -1;
+		float bestVal = Float.NEGATIVE_INFINITY;
+		for (int a = 0; a < A().size(); a++) {
+
+			float val = 0.0f;
+			for (int o = 0; o < Gao.get(a).size(); o++)
+				val += DDOP.dotProduct(b, Gao.get(a).get(o), i_S());
+
+			//LOGGER.debug(String.format("After summing o for a %s, val at %s is %s", a, b, val));
+			val *= discount;
+			val += DDOP.dotProduct(b, R().get(a), i_S());
+			//LOGGER.debug(String.format("Value of R %s at %s is %s", R().get(a), b, DDOP.dotProduct(b, R().get(a), i_S())));
+			//LOGGER.debug(String.format("After adding R, it is %s", val));
+
+			if (val >= bestVal) {
+
+				bestVal = val;
+				bestA = a;
+			}
 
 		}
 
-		return Gaoi.stream().reduce(Tuple.of(0f, DDleaf.zero),
-				(t1, t2) -> Tuple.of(t1._0() + t2._0(), DDOP.add(t1._1(), t2._1())));
+		//LOGGER.debug(String.format("Best action at %s is %s with val %s", b, bestA, bestVal));
+		var vec = Gao.get(bestA).stream().reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
+
+		return Tuple.of(bestA, DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec)));
 	}
 
 }
