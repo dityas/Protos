@@ -180,15 +180,14 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				.collect(Collectors.toList());
 		var b_MjDD = b_js.stream()
 				.map(b -> DDOP.mult(DDleaf.getDD(1.0f / b_js.size()),
-						DDnode.getDDForChild(i_Mj,
-								Collections.binarySearch(Global.valNames.get(i_Mj - 1), b.toString()))))
+						DDnode.getDDForChild(i_Mj, Integer.valueOf(b.split("m")[1]))))
 				.reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
 
-		LOGGER.debug(String.format("Mj is %s", Global.valNames.get(i_Mj - 1)));
-		b_js.stream().forEach(b -> {
-			var child = Collections.binarySearch(Global.valNames.get(i_Mj - 1), b);
-			LOGGER.debug(String.format("Child for %s is %s", b, child));
-		});
+		//LOGGER.debug(String.format("Mj is %s", Global.valNames.get(i_Mj - 1)));
+		//b_js.stream().forEach(b -> {
+		//	var child = Collections.binarySearch(Global.valNames.get(i_Mj - 1), b);
+		//	LOGGER.debug(String.format("Child for %s is %s", b, child));
+		//});
 		
 		b_i = DDOP.reorder(DDOP.mult(b_i, b_MjDD));
 
@@ -305,8 +304,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
 		b_p = DDOP.div(b_p, prob);
-		LOGGER.debug(String.format("obs prob for %s from belief %s to belief %s with state vars %s is %s", o,
-				DDOP.factors(b, i_S()), DDOP.factors(b_p, i_S()), stateVars, prob));
+		//LOGGER.debug(String.format("obs prob for %s from belief %s to belief %s with state vars %s is %s", o,
+		//		DDOP.factors(b, i_S()), DDOP.factors(b_p, i_S()), stateVars, prob));
 
 		return b_p;
 	}
