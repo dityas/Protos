@@ -229,6 +229,13 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitParenExpr(SpuddXParser.ParenExprContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code SumoutExpr}
+	 * labeled alternative in {@link SpuddXParser#dd_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSumoutExpr(SpuddXParser.SumoutExprContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code AddSubExpr}
 	 * labeled alternative in {@link SpuddXParser#dd_expr}.
 	 * @param ctx the parse tree

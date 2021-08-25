@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.apache.commons.collections4.map.HashedMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
@@ -53,25 +54,24 @@ public class ReachabilityGraph extends AbstractAOGraph<DD, Integer, List<Integer
 
 	public List<Tuple3<DD, List<Integer>, DD>> getTriples() {
 
-		var triples = this.connections.entrySet().stream()
-				.flatMap(e -> this.edgeIndexMap.entrySet().stream().map(f -> {
-					
-					// for each edge, make a list of indices of child vals
-					var edge = new ArrayList<Integer>(f.getKey()._1().size() + 1);
-					edge.add(f.getKey()._0() + 1);
-					edge.addAll(f.getKey()._1());
-					
-					var mj_p = e.getValue().get(f.getValue());
+		var triples = this.connections.entrySet().stream().flatMap(e -> this.edgeIndexMap.entrySet().stream().map(f ->
+			{
 
-					// if it is a leaf node, loop it back
-					if (mj_p == null)
-						return Tuple.of(e.getKey(),(List<Integer>) edge, e.getKey());
-					
-					else
-						return Tuple.of(e.getKey(),(List<Integer>) edge, mj_p);
-				}))
-				.collect(Collectors.toList());
-		
+				// for each edge, make a list of indices of child vals
+				var edge = new ArrayList<Integer>(f.getKey()._1().size() + 1);
+				edge.add(f.getKey()._0() + 1);
+				edge.addAll(f.getKey()._1());
+
+				var mj_p = e.getValue().get(f.getValue());
+
+				// if it is a leaf node, loop it back
+				if (mj_p == null)
+					return Tuple.of(e.getKey(), (List<Integer>) edge, e.getKey());
+
+				else
+					return Tuple.of(e.getKey(), (List<Integer>) edge, mj_p);
+			})).collect(Collectors.toList());
+
 		return triples;
 	}
 
@@ -99,6 +99,37 @@ public class ReachabilityGraph extends AbstractAOGraph<DD, Integer, List<Integer
 		builder.append("}\r\n]");
 
 		return builder.toString();
+	}
+
+	public String toDot(POSeqDecMakingModel<?> m) {
+
+		var nodeMap = new HashedMap<DD, Integer>(connections.size());
+
+		var builder = new StringBuilder();
+		builder.append("digraph D {").append("\r\n").append("\t node [shape=record];\r\n");
+
+		for (var dd : connections.keySet()) {
+
+			nodeMap.put(dd, nodeMap.size());
+			builder.append(nodeMap.get(dd)).append(" [label=\"").append(DDOP.factors(dd, m.i_S())).append("\"]\r\n");
+		}
+
+		builder.append("\r\n");
+
+		for (var dd : connections.keySet()) {
+
+			for (var edge : edgeIndexMap.keySet()) {
+
+				builder.append(nodeMap.get(dd)).append(" -> ")
+						.append(nodeMap.get(connections.get(dd).get(edgeIndexMap.get(edge)))).append(" [label=\" ")
+						.append(m.A().get(edge._0())).append(" ").append(edge._1()).append("\"]\r\n");
+			}
+
+		}
+
+		builder.append("}\r\n]");
+		return builder.toString();
+
 	}
 
 }

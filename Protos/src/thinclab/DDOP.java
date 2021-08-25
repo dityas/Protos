@@ -62,7 +62,7 @@ public class DDOP {
 			DD children[];
 			children = new DD[dd1.getChildren().length];
 			for (int i = 0; i < dd1.getChildren().length; i++) {
-				
+
 				children[i] = DDOP.mult(dd1.getChildren()[i], dd2);
 			}
 			DD result = DDnode.getDD(dd1.getVar(), children);
@@ -395,7 +395,7 @@ public class DDOP {
 
 		var _vars = new HashSet<Integer>(vars);
 		var _dds = new ArrayList<DD>(dds);
-		
+
 		// check if any of the dds are zero
 		for (int i = 0; i < _dds.size(); i++) {
 
@@ -482,8 +482,8 @@ public class DDOP {
 		// is now free of any variable that appeared in vars
 
 		var result = DDOP.mult(_dds);
-		
-		return result; 
+
+		return result;
 	}
 
 	public static DD addout(DD dd, int var) {
@@ -491,12 +491,12 @@ public class DDOP {
 		var cacheKey = Tuple.of(dd, var);
 		if (Global.addOutCache.containsKey(cacheKey))
 			return Global.addOutCache.get(cacheKey);
-		
+
 		HashMap<DD, DD> hashtable = new HashMap<>();
 		var result = addout(dd, var, hashtable);
-		
+
 		Global.addOutCache.put(cacheKey, result);
-		
+
 		return result;
 	}
 
@@ -538,14 +538,16 @@ public class DDOP {
 
 	public static List<DD> factors(final DD dd, final List<Integer> vars) {
 
-		var factordds = IntStream.range(0, vars.size()).mapToObj(i ->
-			{
+		var factordds = new ArrayList<DD>(vars.size());
+		var _vars = new ArrayList<Integer>(vars);
 
-				var _vars = new ArrayList<>(vars);
-				_vars.remove(i);
+		for (int i = 0; i < _vars.size(); i++) {
 
-				return DDOP.addMultVarElim(List.of(dd), _vars);
-			}).collect(Collectors.toList());
+			var _var = _vars.remove(0);
+
+			factordds.add(DDOP.addMultVarElim(List.of(dd), _vars));
+			_vars.add(_var);
+		}
 
 		return factordds;
 	}
@@ -888,5 +890,41 @@ public class DDOP {
 			return null;
 		}
 	}
+	
+	// ---------------------------------------------------------------------------------------
+	// max all
+	public static float maxAll(DD dd) {
 
+		HashMap<DD, Float> hashtable = new HashMap<>();
+		return maxAll(dd, hashtable);
+	}
+
+	public static float maxAll(DD dd, HashMap<DD, Float> hashtable) {
+
+		Float storedResult = (Float) hashtable.get(dd);
+
+		if (storedResult != null)
+			return storedResult.floatValue();
+
+		// it's a leaf
+		float result = Float.NEGATIVE_INFINITY;
+
+		if (dd.getVar() == 0)
+			result = dd.getVal();
+
+		else {
+
+			DD[] children = dd.getChildren();
+
+			for (int i = 0; i < children.length; i++) {
+
+				float maxVal = DDOP.maxAll(children[i], hashtable);
+				if (result < maxVal)
+					result = maxVal;
+			}
+		}
+
+		hashtable.put(dd, Float.valueOf(result));
+		return result;
+	}
 }

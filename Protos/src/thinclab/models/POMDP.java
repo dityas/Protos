@@ -130,7 +130,8 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		for (int o = 0; o < oAll.size(); o++) {
 
 			var _o = oAll.get(o);
-			var b_p = g.getNodeAtEdge(b, Tuple.of(a, _o)).orElseGet(() -> beliefUpdate(b, a, _o));
+			var b_p = g.getNodeAtEdge(b, Tuple.of(a, _o));
+			if (b_p == null) b_p = beliefUpdate(b, a, _o);
 
 			float bestVal = Float.NEGATIVE_INFINITY;
 			int bestAlpha = -1;
@@ -171,11 +172,8 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			for (int o = 0; o < Gao.get(a).size(); o++)
 				val += DDOP.dotProduct(b, Gao.get(a).get(o), i_S());
 
-			//LOGGER.debug(String.format("After summing o for a %s, val at %s is %s", a, b, val));
 			val *= discount;
 			val += DDOP.dotProduct(b, R().get(a), i_S());
-			//LOGGER.debug(String.format("Value of R %s at %s is %s", R().get(a), b, DDOP.dotProduct(b, R().get(a), i_S())));
-			//LOGGER.debug(String.format("After adding R, it is %s", val));
 
 			if (val >= bestVal) {
 
@@ -185,8 +183,9 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 		}
 
-		//LOGGER.debug(String.format("Best action at %s is %s with val %s", b, bestA, bestVal));
-		var vec = Gao.get(bestA).stream().reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
+		var vec = DD.zero;
+		for (int o = 0; o < Gao.get(bestA).size(); o++)
+			vec = DDOP.add(Gao.get(bestA).get(o), vec);
 
 		return Tuple.of(bestA, DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec)));
 	}

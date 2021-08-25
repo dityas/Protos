@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import thinclab.legacy.DD;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
-import thinclab.model_ops.belief_exploration.SSGAExploration;
 
 /*
  * @author adityas
@@ -51,11 +50,11 @@ public class PBVISolvableFrameSolution {
 
 		RG = ReachabilityGraph.fromDecMakingModel(m);
 		b_is.stream().forEach(RG::addNode);
-		RG = new BreadthFirstExploration<DD, PBVISolvablePOMDPBasedModel, ReachabilityGraph, AlphaVectorPolicy>(1000)
+		RG = new BreadthFirstExploration<DD, PBVISolvablePOMDPBasedModel, ReachabilityGraph, AlphaVectorPolicy>(10000)
 				.expand(RG, m, H, Vn);
-/*
-		Vn = s.solve(b_is, m, 100, H, new SSGAExploration<>(0.1f), Vn);
-*/
+	
+		Vn = s.solve(m, 100, H, Vn);
+
 	}
 
 	public List<Tuple<Integer, DD>> mjList() {

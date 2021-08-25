@@ -52,7 +52,8 @@ public class DDleaf extends DD {
 
 		// create new leaf
 		DDleaf leaf = new DDleaf(val);
-
+		
+		/*
 		// try to lookup leaf in leafHashtable
 		WeakReference<DD> weakReference = (WeakReference<DD>) Global.leafHashtable.get(leaf);
 		WeakReference<DD> storedLeaf = weakReference;
@@ -60,7 +61,7 @@ public class DDleaf extends DD {
 			return (DDleaf) storedLeaf.get();
 
 		// store leaf in leafHashtable
-		Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf));
+		Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf)); */
 		return leaf;
 	}
 
@@ -69,13 +70,14 @@ public class DDleaf extends DD {
 		// create new leaf
 		DDleaf leaf = new DDleaf(val, config);
 
+		/*
 		// try to lookup leaf in leafHashtable
 		WeakReference<DD> storedLeaf = (WeakReference<DD>) Global.leafHashtable.get(leaf);
 		if (storedLeaf != null)
 			return (DDleaf) storedLeaf.get();
 
 		// store leaf in leafHashtable
-		Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf));
+		Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf)); */
 		return leaf;
 	}
 

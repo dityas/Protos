@@ -18,6 +18,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.ExplorationStrategy;
+import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
@@ -47,22 +48,35 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		while (B.size() > 0) {
 
 			DD b = B.remove(Global.random.nextInt(B.size()));
+			//LOGGER.debug(String.format("Backing up %s on %s", Vn, DDOP.factors(b, m.i_S())));
 			var newAlpha = m.backup(b, Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList()), g);
 
+			//LOGGER.debug(String.format("New alpha is %s", newAlpha));
+			
 			// Construct V_{n+1}(b)
-			var Vnb = Vn.aVecs.stream().map(a -> Tuple.of(DDOP.dotProduct(b, a._1(), m.i_S()), a._0(), a._1())).reduce(
-					Tuple.of(Float.NEGATIVE_INFINITY, -1, DDleaf.zero), (v1, v2) -> v1._0() >= v2._0() ? v1 : v2);
+			float bestVal = Float.NEGATIVE_INFINITY;
+			int bestA = -1;
+			DD bestDD = DD.zero;
+			for (int a = 0; a < Vn.aVecs.size(); a++) {
+
+				float val = DDOP.dotProduct(b, Vn.aVecs.get(a)._1(), m.i_S());
+
+				if (val >= bestVal) {
+
+					bestVal = val;
+					bestA = Vn.aVecs.get(a)._0();
+					bestDD = Vn.aVecs.get(a)._1();
+				}
+			}
 
 			var newAlphab = DDOP.dotProduct(b, newAlpha._1(), m.i_S());
-			// LOGGER.debug(String.format("new Alpha is %s Vnb is %s and new Alphab is %s",
-			// newAlpha, Vnb, newAlphab));
-
+			//LOGGER.debug(String.format("Value of new Alpha is %s and of Vn is %s", newAlphab, bestVal));
 			// If new \alpha.b > Vn(b) add it to new V
-			if (newAlphab > Vnb._0())
+			if (newAlphab > bestVal)
 				newVn.add(newAlpha);
 
 			else
-				newVn.add(Tuple.of(Vnb._1(), Vnb._2()));
+				newVn.add(Tuple.of(bestA, bestDD));
 
 			B = B.stream().filter(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()) > DDOP.value_b(newVn, _b, m.i_S()))
 					.collect(Collectors.toList());
@@ -74,11 +88,18 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 	}
 
 	@Override
-	public AlphaVectorPolicy solve(final M m, int I, int H, ReachabilityGraph g, AlphaVectorPolicy Vn) {
+	public AlphaVectorPolicy solve(final M m, int I, int H, AlphaVectorPolicy Vn) {
 
+		var g = ReachabilityGraph.fromDecMakingModel(m);
+		var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.1f);
+		
 		for (int i = 0; i < I; i++) {
 
 			// expand belief region
+			
+			if (i % 5 == 0)
+				g = ES.expand(g, m, H, Vn);
+			
 			var B = new ArrayList<DD>(g.getParents());
 			long then = System.nanoTime();
 
@@ -90,6 +111,9 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 					.map(_b -> Math.abs(DDOP.value_b(Vn.aVecs, _b, m.i_S()) - DDOP.value_b(Vn_p.aVecs, _b, m.i_S())))
 					.reduce(Float.NEGATIVE_INFINITY, (v1, v2) -> v1 > v2 ? v1 : v2);
 
+			//LOGGER.debug(String.format("Vn' is %s", Vn_p));
+			//LOGGER.debug(String.format("Vn is %s", Vn));
+			
 			// prepare for next iter
 			Vn.aVecs.clear();
 			Vn.aVecs.addAll(Vn_p.aVecs);
@@ -106,6 +130,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 		}
 
+		g.removeAllNodes();
 		return Vn;
 	}
 

@@ -48,14 +48,14 @@ public abstract class AbstractAOGraph<N, A, O> implements ActionObservationGraph
 	}
 
 	@Override
-	public Optional<N> getNodeAtEdge(N parent, Tuple<A, O> edge) {
+	public N getNodeAtEdge(N parent, Tuple<A, O> edge) {
 
 		if (!this.connections.containsKey(parent) || this.connections.get(parent) == null
 				|| !(this.edgeIndexMap.containsKey(edge)))
-			return Optional.empty();
+			return null;
 
 		else
-			return Optional.ofNullable(this.connections.get(parent).get(this.edgeIndexMap.get(edge)));
+			return this.connections.get(parent).get(this.edgeIndexMap.get(edge));
 	}
 
 	@Override

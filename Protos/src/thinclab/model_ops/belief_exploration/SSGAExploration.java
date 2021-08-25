@@ -78,7 +78,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 				var _edge = Tuple.of(a, oSampled._1());
 				var b_ = g.getNodeAtEdge(b, _edge);
 
-				if (b_.isEmpty()) {
+				if (b_ == null) {
 
 					var b_n = m.beliefUpdate(b, _edge._0(), _edge._1());
 					g.addEdge(b, _edge, b_n);
@@ -86,7 +86,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 				}
 
 				else
-					b = b_.get();
+					b = b_;
 			}
 		}
 

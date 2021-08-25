@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -79,11 +80,15 @@ class TestSolvers {
 			});
 
 		var g = ReachabilityGraph.fromDecMakingModel(I);
-		var _g = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(g, I, 5, null);
-		
-		IntStream.range(0, I.A().size()).forEach(i -> {
-			LOGGER.debug(String.format("backup for %s at %s is %s", I.A().get(i), I.b_i(), I.backup(I.b_i(), I.R(), _g)));
-		});
+		var _g = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(g, I, 5,
+				null);
+
+		IntStream.range(0, I.A().size()).forEach(i ->
+			{
+
+				LOGGER.debug(String.format("backup for %s at %s is %s", I.A().get(i), I.b_i(),
+						I.backup(I.b_i(), I.R(), _g)));
+			});
 		printMemConsumption();
 	}
 
@@ -108,13 +113,13 @@ class TestSolvers {
 				System.exit(-1);
 				return null;
 			});
-
+		/*
 		var G = ReachabilityGraph.fromDecMakingModel(I);
 		G.addNode(I.b_i());
 		G = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(G, I, 5, null);
-		
+
 		var solver = new SymbolicPerseusSolver<POMDP>();
-		var policy = solver.solve(I, 100, 10, G, AlphaVectorPolicy.fromR(I.R()));
+		var policy = solver.solve(I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
 
 		int bestAct = policy.getBestActionIndex(I.b_i(), I.i_S());
 
@@ -124,7 +129,7 @@ class TestSolvers {
 		assertTrue(bestAct == 0);
 		assertTrue(policy.aVecs.size() == 5);
 
-		LOGGER.debug(String.format("Solved policy is %s", policy));
+		LOGGER.debug(String.format("Solved policy is %s", policy)); */
 		printMemConsumption();
 	}
 
@@ -149,7 +154,13 @@ class TestSolvers {
 				return null;
 			});
 
-		//LOGGER.debug(String.format("Gaoi for %s is %s", I.A().get(0), I.Gaoi(I.b_i(), 0, I.R())));
+		var G = ReachabilityGraph.fromDecMakingModel(I);
+		G.addNode(I.b_i());
+
+		G = new BreadthFirstExploration<DD, IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(G, I, 5, null);
+
+		LOGGER.debug(String.format("Gaoi for %s is %s", I.A().get(0), I.Gaoi(0, I.b_i(), I.R(), G)));
+		LOGGER.debug(String.format("backup at %s is %s", I.b_i(), I.backup(I.b_i(), I.R(), G)));
 
 		printMemConsumption();
 	}
@@ -174,21 +185,43 @@ class TestSolvers {
 				System.exit(-1);
 				return null;
 			});
-		/*
+		
+		//LOGGER.debug(String.format("P(Aj|Mj) is %s", I.PAjGivenMj));
+		//LOGGER.debug(String.format("P(Mj'|Mj,Aj,Oj') is %s", I.PMj_pGivenMjAjOj_p));
+
 		var solver = new SymbolicPerseusSolver<IPOMDP>();
-		var policy = solver.solve(List.of(I.b_i()), I, 100, I.H,
-				new SSGAExploration<IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(0.1f),
-				AlphaVectorPolicy.fromR(I.R()));
+		var G = ReachabilityGraph.fromDecMakingModel(I);
+		G.addNode(I.b_i());
+
+		G = new BreadthFirstExploration<DD, IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(G, I, I.H, null);
+
+		var policy = solver.solve(I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
 		int bestAct = policy.getBestActionIndex(I.b_i(), I.i_S());
 
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
 				I.A().get(bestAct)));
 
+		LOGGER.info(String.format("Policy is %s", policy.aVecs.stream().map(a -> a._0()).collect(Collectors.toList())));
+
 		assertTrue(bestAct == 0);
 
-		LOGGER.debug(String.format("Solved policy is %s", policy));
+		DD b_ = I.b_i();
 
-		printMemConsumption(); */
+		for (int i = 0; i < I.H; i++) {
+
+			LOGGER.info(String.format("Suggested optimal action for %s  is %s which resolves to %s",
+					DDOP.factors(b_, I.i_S()), bestAct, I.A().get(bestAct)));
+
+			LOGGER.info(String.format("Agent hears %s, %s ", Global.valNames.get(I.i_Om.get(0) - 1).get(0),
+					Global.valNames.get(I.i_Om.get(1) - 1).get(2)));
+			b_ = I.beliefUpdate(b_, bestAct, List.of(1, 3));
+			bestAct = policy.getBestActionIndex(b_, I.i_S());
+		}
+		
+		LOGGER.debug(String.format("Policy is %s", policy));
+		
+		System.gc();
+		printMemConsumption();
 	}
 
 }

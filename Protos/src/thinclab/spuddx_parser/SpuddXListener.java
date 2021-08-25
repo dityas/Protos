@@ -375,6 +375,18 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitParenExpr(SpuddXParser.ParenExprContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code SumoutExpr}
+	 * labeled alternative in {@link SpuddXParser#dd_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterSumoutExpr(SpuddXParser.SumoutExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SumoutExpr}
+	 * labeled alternative in {@link SpuddXParser#dd_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitSumoutExpr(SpuddXParser.SumoutExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code AddSubExpr}
 	 * labeled alternative in {@link SpuddXParser#dd_expr}.
 	 * @param ctx the parse tree

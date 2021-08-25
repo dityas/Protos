@@ -46,6 +46,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public final List<Integer> i_Omj;
 	public final List<Integer> i_Omj_p;
 
+	public final List<Integer> allvars;
+	public final List<Integer> gaoivars;
+
 	public final List<List<DD>> Oj;
 
 	public DD PAjGivenMj;
@@ -73,7 +76,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		// opponent's model variable
 		this.i_Mj = Global.varNames.indexOf(Mj) + 1;
 		this.i_Mj_p = this.i_Mj + (Global.NUM_VARS / 2);
-		
+
 		this.i_S.add(i_Mj);
 		this.i_S_p.add(i_Mj_p);
 
@@ -119,6 +122,22 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 						.collect(Collectors.toList()))
 				.collect(Collectors.toList());
 
+		allvars = new ArrayList<Integer>();
+		allvars.addAll(i_S());
+		allvars.add(i_Aj);
+		allvars.add(i_Thetaj);
+		allvars.addAll(i_Omj_p);
+
+		Collections.sort(allvars);
+
+		gaoivars = new ArrayList<Integer>();
+		gaoivars.addAll(i_S_p());
+		gaoivars.add(i_Aj);
+		gaoivars.add(i_Thetaj);
+		gaoivars.addAll(i_Omj_p);
+
+		Collections.sort(gaoivars);
+
 		// prepare structures for solving frames
 		this.framesjSoln = this.framesj.stream().map(f -> new PBVISolvableFrameSolution(f._0(), f._1(), H))
 				.collect(Collectors.toList());
@@ -150,8 +169,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		createPAjMj();
 		createPMj_pMjAjOj_p();
-		
-		R = R.stream().map(ra -> DDOP.addMultVarElim(List.of(PAjGivenMj, ra), List.of(i_Aj))).collect(Collectors.toList());
+
+		R = R.stream().map(ra -> DDOP.addMultVarElim(List.of(PAjGivenMj, ra), List.of(i_Aj)))
+				.collect(Collectors.toList());
 	}
 
 	public void createFirstb_i() {
@@ -164,7 +184,22 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 								Collections.binarySearch(Global.valNames.get(i_Mj - 1), b.toString()))))
 				.reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
 
+		LOGGER.debug(String.format("Mj is %s", Global.valNames.get(i_Mj - 1)));
+		b_js.stream().forEach(b -> {
+			var child = Collections.binarySearch(Global.valNames.get(i_Mj - 1), b);
+			LOGGER.debug(String.format("Child for %s is %s", b, child));
+		});
+		
 		b_i = DDOP.reorder(DDOP.mult(b_i, b_MjDD));
+
+		var b_iSanity = DDOP.addMultVarElim(List.of(b_i), i_S());
+		if (DDOP.maxAll(DDOP.abs(DDOP.sub(b_iSanity, DD.one))) > 1e-5) {
+
+			LOGGER.error(String.format("b_i: %s, # (S) b_i is %s != 1.0", DDOP.factors(b_i, i_S()),
+					DDOP.addMultVarElim(List.of(b_i), i_S())));
+			LOGGER.error("IPOMDP failed sanity check");
+			System.exit(-1);
+		}
 	}
 
 	public void createIS() {
@@ -186,10 +221,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var sortedVals = mjMap.k2v.values().stream().collect(Collectors.toList());
 		Collections.sort(sortedVals, (a, b) -> Integer.valueOf(a.split("m")[1]) - Integer.valueOf(b.split("m")[1]));
 
-		Global.valNames.set(i_Mj - 1, sortedVals);
-		Global.valNames.set(i_Mj_p - 1, sortedVals);
-		Global.varDomSize.set(i_Mj - 1, sortedVals.size());
-		Global.varDomSize.set(i_Mj_p - 1, sortedVals.size());
+		Global.replaceValues(i_Mj, sortedVals);
+		Global.replaceValues(i_Mj_p, sortedVals);
 
 		LOGGER.debug(String.format("Interactive state space has %s models", Global.valNames.get(i_Mj - 1).size()));
 	}
@@ -235,22 +268,12 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		PMj_pGivenMjAjOj_p = triples.stream().map(t -> DDOP.reorder(DDnode.getDD(varList, t, 1.0f)))
 				.reduce(DDleaf.getDD(0.0f), (d1, d2) -> DDOP.add(d1, d2));
 
-	}
+		var ddSum = DDOP.addMultVarElim(List.of(PMj_pGivenMjAjOj_p), List.of(i_Mj_p));
+		if (DDOP.maxAll(DDOP.abs(DDOP.sub(ddSum, DD.one))) > 1e-5f) {
 
-	public void printGraph(List<List<Integer>> triples) {
-
-		var builder = new StringBuilder();
-		builder.append("digraph {\r\n");
-		triples.forEach(t ->
-			{
-
-				builder.append("\"" + mjMap.v2k.get(t.get(0)) + "\"").append(" -> ")
-						.append("\"" + mjMap.v2k.get(t.get(t.size() - 1)) + "\"").append("\r\n");
-			});
-
-		builder.append("}");
-
-		LOGGER.debug(builder.toString());
+			LOGGER.error(String.format("# (Mj') P(Mj'|Mj,Aj,Oj') is %s != 1", ddSum));
+			System.exit(-1);
+		}
 	}
 
 	@Override
@@ -269,19 +292,21 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		var vars = new ArrayList<Integer>(factors.size());
 		vars.addAll(i_S());
-		vars.addAll(i_Omj_p);
+		// vars.add(i_Thetaj);
 		vars.add(i_Aj);
-		vars.add(i_Thetaj);
+		vars.addAll(i_Omj_p);
 
-		Collections.sort(vars);
+		// Collections.sort(vars);
 
 		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), -(Global.NUM_VARS / 2));
 		var stateVars = new ArrayList<Integer>(S().size() + 2);
 		stateVars.addAll(i_S());
-		stateVars.add(i_Thetaj);
+		// stateVars.add(i_Thetaj);
 
 		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
 		b_p = DDOP.div(b_p, prob);
+		LOGGER.debug(String.format("obs prob for %s from belief %s to belief %s with state vars %s is %s", o,
+				DDOP.factors(b, i_S()), DDOP.factors(b_p, i_S()), stateVars, prob));
 
 		return b_p;
 	}
@@ -324,59 +349,86 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		return DDOP.addMultVarElim(factors, vars);
 	}
-/*
-	@Override
-	public Tuple<Float, DD> Gaoi(DD b, int a, List<DD> alphaPrimes) {
-		
-		List<Tuple<Float, DD>> Gaoi = new ArrayList<>(oAll.size());
 
-		for (int _o = 0; _o < oAll.size(); _o++) {
+	// ----------------------------------------------------------------------------------------
+	// PBVISolvable implementations
 
-			List<Tuple<Float, DD>> _Gaoi = new ArrayList<>();
-			
-			var restrictedObs = DDOP.restrict(O().get(a), i_Om_p, oAll.get(_o));
+	public List<DD> Gaoi(final int a, final DD b, final List<DD> alphas, final ReachabilityGraph g) {
 
-			for (int i = 0; i < alphaPrimes.size(); i++) {
+		var gaoi = new ArrayList<DD>(oAll.size());
 
-				var _factors = new ArrayList<DD>(S().size() + Om().size() + Omj.size() + 3);
-				_factors.addAll(T().get(a));
-				_factors.addAll(restrictedObs);
-				_factors.addAll(Oj.get(a));
-				_factors.add(PAjGivenMj);
-				_factors.add(PMj_pGivenMjAjOj_p);
-				_factors.add(alphaPrimes.get(i));
-				
-				var _vars = new ArrayList<Integer>(i_S_p().size() + i_Omj_p.size() + 3);
-				_vars.addAll(i_S_p());
-				_vars.addAll(i_Omj_p);
-				_vars.add(i_Aj);
-				
-				Collections.sort(_vars);
-				
-				var _prodVars = new ArrayList<Integer>(i_S().size() + 1);
-				_prodVars.addAll(i_S());
+		for (int o = 0; o < oAll.size(); o++) {
 
-				DD gaoi = DDOP.mult(DDleaf.getDD(discount), DDOP.addMultVarElim(_factors, _vars));
-				_Gaoi.add(Tuple.of(DDOP.dotProduct(b, gaoi, _prodVars), gaoi));
+			var _o = oAll.get(o);
+			var b_p = g.getNodeAtEdge(b, Tuple.of(a, _o));
+			if (b_p == null)
+				b_p = beliefUpdate(b, a, _o);
+
+			float bestVal = Float.NEGATIVE_INFINITY;
+			int bestAlpha = -1;
+
+			for (int i = 0; i < alphas.size(); i++) {
+
+				float val = DDOP.dotProduct(b_p, alphas.get(i), i_S());
+				// LOGGER.debug(String.format("for %s, Val is %s and best val is %s", b_p, val,
+				// bestVal));
+				if (val >= bestVal) {
+
+					bestVal = val;
+					bestAlpha = i;
+
+				}
 
 			}
 
-			Gaoi.add(_Gaoi.stream().reduce(Tuple.of(Float.NEGATIVE_INFINITY, DDleaf.zero),
-					(a1, a2) -> a1._0() > a2._0() ? a1 : a2));
+			var factors = new ArrayList<DD>(S.size() + O.size() + 1);
+			factors.add(DDOP.primeVars(alphas.get(bestAlpha), Global.NUM_VARS / 2));
+			factors.addAll(T().get(a));
+			factors.addAll(Oj.get(a));
+			factors.addAll(DDOP.restrict(O().get(a), i_Om_p, _o));
+			factors.add(PAjGivenMj);
+			factors.add(PMj_pGivenMjAjOj_p);
+
+			/*
+			 * var vars = new ArrayList<Integer>(); vars.addAll(i_S_p()); vars.add(i_Aj);
+			 * vars.add(i_Thetaj); vars.addAll(i_Omj_p);
+			 * 
+			 * Collections.sort(vars);
+			 */
+			gaoi.add(DDOP.addMultVarElim(factors, gaoivars));
+		}
+
+		return gaoi;
+	}
+
+	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
+
+		var Gao = IntStream.range(0, A().size()).mapToObj(a -> Gaoi(a, b, alphas, g)).collect(Collectors.toList());
+
+		int bestA = -1;
+		float bestVal = Float.NEGATIVE_INFINITY;
+		for (int a = 0; a < A().size(); a++) {
+
+			float val = 0.0f;
+			for (int o = 0; o < Gao.get(a).size(); o++)
+				val += DDOP.dotProduct(b, Gao.get(a).get(o), i_S());
+
+			val *= discount;
+			val += DDOP.dotProduct(b, R().get(a), i_S());
+
+			if (val >= bestVal) {
+
+				bestVal = val;
+				bestA = a;
+			}
 
 		}
 
-		LOGGER.debug(String.format("Vars in Gaois are %s", Gaoi.stream().map(t -> t._1().getVars()).collect(Collectors.toList())));
-		return Gaoi.stream().reduce(Tuple.of(0f, DDleaf.zero),
-				(t1, t2) -> Tuple.of(t1._0() + t2._0(), DDOP.add(t1._1(), t2._1())));
+		var vec = DD.zero;
+		for (int o = 0; o < Gao.get(bestA).size(); o++)
+			vec = DDOP.add(Gao.get(bestA).get(o), vec);
 
+		return Tuple.of(bestA, DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec)));
 	}
-*/
 
-	@Override
-	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
-
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

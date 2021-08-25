@@ -22,6 +22,7 @@ import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
+import thinclab.utils.Tuple;
 
 /*
  *	THINC Lab at UGA | Cyber Deception Group
@@ -60,63 +61,52 @@ class TestBeliefUpdate {
 		LOGGER.info(String.format("Used mem: %s", (total - free)));
 		Global.logCacheSizes();
 	}
-	
+
 	/*
-	@Test
-	void testTigerProblemSSGABeliefExploration() throws Exception {
-
-		System.gc();
-
-		LOGGER.info("Running Single agent tiger domain belief exploration test");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
-				.getFile();
-
-		// Parse domain
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		var randomVars = parserWrapper.getVariableDeclarations();
-
-		// Initialize random variables
-		Global.primeVarsAndInitGlobals(randomVars);
-
-		// Get POMDP models
-		var models = parserWrapper.getModels();
-		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
-
-		models.clear();
-		models = null;
-		parserWrapper = null;
-
-		// Get agent I
-		var I = pomdps.get("agentI");
-		
-		// Initialize belief update mechanism
-		var BU = new POMDPBeliefUpdate();
-		
-		// Make action observation space for agent I
-		var obsVars = Arrays.stream(I.Ovars).mapToObj(i -> Global.valNames.get(i - 1)).collect(Collectors.toList());
-		obsVars.add(Global.valNames.get(I.Avar - 1));
-		var aoSpace = OP.cartesianProd(obsVars);
-	
-		// Make belief region for agent I
-		var beliefGraph = new ReachabilityGraph(aoSpace);
-		beliefGraph.addNode(I.b);
-		
-		// Initialize belief exploration
-		var BE = new POMDPBreadthFirstBeliefExploration(20);
-		
-		long then = System.nanoTime();
-		for (int i = 0; i < 20; i++)
-			beliefGraph = BE.expandRG(I, BU, beliefGraph);
-		
-		long now = System.nanoTime();
-		float T = (now - then) / 1000.0f;
-		LOGGER.debug(String.format("BFS expansion took %s us", T));
-		
-		assertTrue(beliefGraph.getAllNodes().size() <= 20);
-		LOGGER.debug(String.format("Graph is %s", beliefGraph));
-		printMemConsumption();
-	}
-	*/
+	 * @Test void testTigerProblemSSGABeliefExploration() throws Exception {
+	 * 
+	 * System.gc();
+	 * 
+	 * LOGGER.info("Running Single agent tiger domain belief exploration test");
+	 * String domainFile = this.getClass().getClassLoader().getResource(
+	 * "test_domains/test_tiger_domain.spudd") .getFile();
+	 * 
+	 * // Parse domain SpuddXParserWrapper parserWrapper = new
+	 * SpuddXParserWrapper(domainFile); var randomVars =
+	 * parserWrapper.getVariableDeclarations();
+	 * 
+	 * // Initialize random variables Global.primeVarsAndInitGlobals(randomVars);
+	 * 
+	 * // Get POMDP models var models = parserWrapper.getModels(); var pomdps =
+	 * SpuddXParserWrapper.getPOMDPs(models);
+	 * 
+	 * models.clear(); models = null; parserWrapper = null;
+	 * 
+	 * // Get agent I var I = pomdps.get("agentI");
+	 * 
+	 * // Initialize belief update mechanism var BU = new POMDPBeliefUpdate();
+	 * 
+	 * // Make action observation space for agent I var obsVars =
+	 * Arrays.stream(I.Ovars).mapToObj(i -> Global.valNames.get(i -
+	 * 1)).collect(Collectors.toList()); obsVars.add(Global.valNames.get(I.Avar -
+	 * 1)); var aoSpace = OP.cartesianProd(obsVars);
+	 * 
+	 * // Make belief region for agent I var beliefGraph = new
+	 * ReachabilityGraph(aoSpace); beliefGraph.addNode(I.b);
+	 * 
+	 * // Initialize belief exploration var BE = new
+	 * POMDPBreadthFirstBeliefExploration(20);
+	 * 
+	 * long then = System.nanoTime(); for (int i = 0; i < 20; i++) beliefGraph =
+	 * BE.expandRG(I, BU, beliefGraph);
+	 * 
+	 * long now = System.nanoTime(); float T = (now - then) / 1000.0f;
+	 * LOGGER.debug(String.format("BFS expansion took %s us", T));
+	 * 
+	 * assertTrue(beliefGraph.getAllNodes().size() <= 20);
+	 * LOGGER.debug(String.format("Graph is %s", beliefGraph));
+	 * printMemConsumption(); }
+	 */
 	@Test
 	void testSimpleTigerProblemBeliefUpdate() throws Exception {
 
@@ -129,11 +119,13 @@ class TestBeliefUpdate {
 		var domainRunner = new SpuddXMainParser(domainFile);
 		domainRunner.run();
 
-		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() -> {
-			LOGGER.error("Could not find POMDP agentI");
-			System.exit(-1);
-			return null;
-		});
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Could not find POMDP agentI");
+				System.exit(-1);
+				return null;
+			});
 
 		System.gc();
 
@@ -163,24 +155,25 @@ class TestBeliefUpdate {
 		assertTrue(OP.abs(OP.sub(bListenGR, bPrime)).getVal() < 1e-8f);
 
 	}
-	
+
 	@Test
-	void testL1TigerProblemBeliefUpdates() throws Exception {
+	void testL1TigerProblemlikelihood() throws Exception {
 
 		System.gc();
 
 		LOGGER.info("Running Single agent tiger domain belief update test");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd")
-				.getFile();
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd").getFile();
 
 		var domainRunner = new SpuddXMainParser(domainFile);
 		domainRunner.run();
 
-		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() -> {
-			LOGGER.error("Could not find IPOMDP agentI");
-			System.exit(-1);
-			return null;
-		});
+		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Could not find IPOMDP agentI");
+				System.exit(-1);
+				return null;
+			});
 
 		System.gc();
 
@@ -191,55 +184,53 @@ class TestBeliefUpdate {
 		LOGGER.debug(String.format("Likelihoods: %s", likelihoods));
 	}
 
-	/*
 	@Test
-	void timeSimpleTigerProblemBeliefUpdate() throws Exception {
+	void testL1TigerProblemBeliefUpdate() throws Exception {
 
 		System.gc();
 
-		LOGGER.info("Timing Single agent tiger domain belief update with string based obs and actions");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
-				.getFile();
+		LOGGER.info("Testing Single agent tiger domain belief update");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd").getFile();
 
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		var randomVars = parserWrapper.getVariableDeclarations();
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
 
-		Global.primeVarsAndInitGlobals(randomVars);
+		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
 
-		var models = parserWrapper.getModels();
-		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
+				LOGGER.error("Could not find IPOMDP agentI");
+				System.exit(-1);
+				return null;
+			});
 
-		models.clear();
-		models = null;
-		parserWrapper = null;
 		System.gc();
 
-		var I = pomdps.get("agentI");
-		var BE = new POMDPBeliefUpdate();
-
-		var rand = new Random();
-		var actions = (ArrayList<String>) IntStream.range(0, 1000).mapToObj(i -> I.A.get(rand.nextInt(3)))
-				.collect(Collectors.toList());
 		var obs = OP.cartesianProd(
 				I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList()));
-		var os = IntStream.range(0, 1000).mapToObj(i -> obs.get(rand.nextInt(2))).collect(Collectors.toList());
 
-		DD b = I.b;
+		DD b = I.b_i();
+		var beliefs = new ArrayList<DD>();
+		var aos = new ArrayList<Tuple<Integer, List<Integer>>>();
 
-		long then = System.nanoTime();
-		for (int i = 0; i < 1000; i++) {
+		for (int a = 0; a < I.A().size(); a++) {
 
-			b = BE.beliefUpdate(I, b, actions.get(i), os.get(i));
+			for (int o = 0; o < I.oAll.size(); o++) {
+
+				beliefs.add(I.beliefUpdate(b, a, I.oAll.get(o)));
+				aos.add(Tuple.of(a, I.oAll.get(o)));
+			}
 		}
 
-		LOGGER.debug(String.format("Last belief is %s for action %s", b, actions.get(999)));
-		long now = System.nanoTime();
-		long timeElapsed = (now - then);
-		float avgTime = timeElapsed / 1000.0f;
+		IntStream.range(0, aos.size()).forEach(i ->
+			{
 
-		LOGGER.info(String.format("1000 random belief updates on the tiger problem took %s ns total and %s ns on avg",
-				timeElapsed, avgTime));
+				var ao = aos.get(i);
+				var a = I.A().get(ao._0());
+
+				LOGGER.debug(String.format("Starting from %s, for action %s and obs %s, the update is %s",
+						DDOP.factors(b, I.i_S()), a, ao._1(), DDOP.factors(beliefs.get(i), I.i_S())));
+
+			});
 
 	}
-	*/
 }

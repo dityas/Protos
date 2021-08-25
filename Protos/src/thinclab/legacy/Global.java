@@ -80,6 +80,13 @@ public class Global {
 		Global.NUM_VARS += 1;
 	}
 	
+	public static void replaceValues(int var, List<String> vals) {
+		
+		Global.valNames.set(var - 1, vals);
+		Global.varDomSize.set(var - 1, vals.size());
+		Global.clearHashtables();
+	}
+	
 	public static void populateFromRandomVariables(List<RandomVariable> vars) {
 		
 		vars.stream()

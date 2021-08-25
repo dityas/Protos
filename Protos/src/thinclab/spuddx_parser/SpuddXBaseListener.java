@@ -425,6 +425,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterSumoutExpr(SpuddXParser.SumoutExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSumoutExpr(SpuddXParser.SumoutExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterAddSubExpr(SpuddXParser.AddSubExprContext ctx) { }
 	/**
 	 * {@inheritDoc}

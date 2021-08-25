@@ -8,15 +8,17 @@
 package thinclab.spuddx_parser;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
-import thinclab.legacy.OP;
 import thinclab.models.DBN;
+import thinclab.spuddx_parser.SpuddXParser.SumoutExprContext;
 
 /*
  * @author adityas
@@ -77,7 +79,7 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 		if (childDDList.size() != Global.varDomSize.get(varIndex))
 			LOGGER.error("Error while parsing DD");
 
-		return OP.reorder(DDnode.getDD(varIndex + 1, children));
+		return DDOP.reorder(DDnode.getDD(varIndex + 1, children));
 	}
 
 	@Override
@@ -140,6 +142,15 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 
 		return this.visit(ctx.dd_expr());
 	}
+	
+	@Override
+	public DD visitSumoutExpr(SumoutExprContext ctx) {
+	
+		var vars = ctx.var_name().stream().map(v -> Global.varNames.indexOf(v.IDENTIFIER().getText()) + 1).collect(Collectors.toList());
+		var dd = this.visit(ctx.dd_expr());
+		
+		return DDOP.addMultVarElim(List.of(dd), vars);
+	}
 
 	@Override
 	public DD visitMultDivExpr(SpuddXParser.MultDivExprContext ctx) {
@@ -148,10 +159,10 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 		var right = this.visit(ctx.right);
 
 		if (ctx.op.getText().contentEquals("*"))
-			return OP.mult(left, right);
+			return DDOP.mult(left, right);
 
 		else if (ctx.op.getText().contentEquals("/"))
-			return OP.div(left, right);
+			return DDOP.div(left, right);
 
 		else
 			return null;
@@ -164,10 +175,10 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 		var right = this.visit(ctx.right);
 
 		if (ctx.op.getText().contentEquals("+"))
-			return OP.add(left, right);
+			return DDOP.add(left, right);
 
 		else if (ctx.op.getText().contentEquals("-"))
-			return OP.sub(left, right);
+			return DDOP.sub(left, right);
 
 		else
 			return null;
@@ -182,7 +193,7 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 			return term;
 
 		else if (ctx.op.getText().contentEquals("-"))
-			return OP.neg(term);
+			return DDOP.neg(term);
 
 		else
 			return null;

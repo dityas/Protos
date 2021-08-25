@@ -8,7 +8,6 @@
 package thinclab.models.datastructures;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 import thinclab.utils.Tuple;
 
@@ -22,7 +21,7 @@ public interface ActionObservationGraph<N, A, O> {
 
 	public void addEdge(N parent, Tuple<A, O> edge, N child);
 
-	public Optional<N> getNodeAtEdge(N parent, Tuple<A, O> edge);
+	public N getNodeAtEdge(N parent, Tuple<A, O> edge);
 
 	public Set<N> getParents();
 

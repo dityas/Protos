@@ -46,7 +46,7 @@ public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G exte
 
 								if (g.getAllNodes().size() < maxB) {
 
-									if (g.getNodeAtEdge(b, _t).isEmpty())
+									if (g.getNodeAtEdge(b, _t) == null)
 										g.addEdge(b, _t, m.beliefUpdate(b, _t._0(), _t._1()));
 								}
 

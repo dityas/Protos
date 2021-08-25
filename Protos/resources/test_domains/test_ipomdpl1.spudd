@@ -15,6 +15,14 @@
 		(TigerLoc' UNIFORM)
 )
 
+(defdd aIDist
+	(Agent_actions
+		(OL 	(0.005))
+		(OR 	(0.005))
+		(L 		(0.99))
+	)
+)
+
 (defdd growlObsDD
 		(TigerLoc'
 			(TL
@@ -62,20 +70,9 @@
 )
 
 (defdd iListensGrowl
-
-	(Agentj_actions
-		(OL
-			(Growl' UNIFORM)
-		)
-		
-		(OR	(Growl'	UNIFORM))
-		
-		(L
-			(TigerLoc'
-				(TL 	(Growl'	(GL	(0.85)) 	(GR 	(0.15))))
-				(TR 	(Growl'	(GR	(0.85)) 	(GL 	(0.15))))
-			)
-		)
+	(TigerLoc'
+		(TL 	(Growl'	(GL	(0.85)) 	(GR 	(0.15))))
+		(TR 	(Growl'	(GR	(0.85)) 	(GL 	(0.15))))
 	)
 )
 
@@ -100,6 +97,14 @@
 	
 )
 
+(defdd jListensDD
+	(Agent_actions
+		(OL 	(TigerLoc' UNIFORM))
+		(OR 	(TigerLoc' UNIFORM))
+		(L 		(SAME TigerLoc))
+	)
+)
+
 (defdbn actionIOpen
 	(TigerLoc 	(TigerLoc' 	UNIFORM))
 	(Growl 		(Growl' 	UNIFORM))
@@ -115,11 +120,11 @@
 
 (defdbn actionOpenAny
 	(TigerLoc 	(openDoorDD))
-	(Growl_j 		(Growl_j' UNIFORM))
+	(Growl_j 	(Growl_j' UNIFORM))
 )
 
 (defdbn actionL
-	(TigerLoc 	(SAME TigerLoc))
+	(TigerLoc 	(# (Agent_actions) (aIDist * jListensDD)))
 	(Growl_j 		(growlObsDD))
 )
 
@@ -188,21 +193,26 @@
     )
         
     (R
-        (OL 	(TigerLoc 
-                    (TL 	(-100))
-                    (TR 	(10))
-        ))
+        (OL 	
+        	(TigerLoc 
+                (TL 	(-100))
+                (TR 	(10))
+        	)
+        )
         
-        (OR		(TigerLoc
-                    (TL 	(10))
-                    (TR 	(-100))
-        ))
+        (OR		
+        			
+            (TigerLoc
+                (TR 	(-100))
+                (TL 	(10))
+            )
+       	)
             
         (L 		(-1))
     )
         
     (discount 0.9)
-    (H 4)	
+    (H 6)	
 )
 
 
