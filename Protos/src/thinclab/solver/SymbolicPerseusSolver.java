@@ -93,7 +93,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		for (int i = 0; i < I; i++) {
 
 			// expand belief region
-			if (i % 5 == 0)
+			if (i % 10 == 0)
 				g = ES.expand(g, m, H, Vn);
 			
 			var B = new ArrayList<DD>(g.getParents());
@@ -115,7 +115,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 					String.format("iter: %s | bell err: %.5f | time: %.3f msec | num vectors: %s | beliefs used: %s/%s",
 							i, bellmanError, backupT, Vn_p.aVecs.size(), this.usedBeliefs, B.size()));
 
-			if (bellmanError < 0.001 && i > 5) {
+			if (bellmanError < 0.01 && i > 5) {
 
 				LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));
 				break;

@@ -61,7 +61,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	// public HashMap<Tuple<Integer, DD>, Integer> mjMap = new HashMap<>(1000);
 	public TwoWayMap<Tuple<Integer, DD>, String> mjMap = new TwoWayMap<>();
-	private TypedCacheMap<Tuple3<DD, Integer, List<Integer>>, Float> obsProbCache = new TypedCacheMap<>(1000);
+	private TypedCacheMap<Tuple3<DD, Integer, Integer>, Float> obsProbCache = new TypedCacheMap<>(1000);
 
 	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
 
@@ -359,57 +359,28 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	// ----------------------------------------------------------------------------------------
 	// PBVISolvable implementations
 
-	public List<DD> Gaoi(final int a, final DD b, final List<DD> alphas, ReachabilityGraph g) {
+	public Tuple<Float, Integer> Gaoi(final DD b, final int a, final List<Integer> o, final List<DD> alphas) {
 
-		var gaoi = new ArrayList<DD>(oAll.size());
+		float bestVal = Float.NEGATIVE_INFINITY;
+		int bestAlpha = -1;
 
-		for (int o = 0; o < oAll.size(); o++) {
+		for (int i = 0; i < alphas.size(); i++) {
 
-			var _o = oAll.get(o);
-			var b_p = g.getNodeAtEdge(b, Tuple.of(a, _o));
-			if (b_p == null) {
+			float val = DDOP.dotProduct(b, alphas.get(i), i_S());
+			if (val >= bestVal) {
 
-				// LOGGER.warn(String.format("Manually computing belief update? This shouldn't
-				// be happening"));
-				b_p = beliefUpdate(b, a, _o);
-				g.addEdge(b, Tuple.of(a, _o), b_p);
-			}
-
-			float bestVal = Float.NEGATIVE_INFINITY;
-			int bestAlpha = -1;
-
-			for (int i = 0; i < alphas.size(); i++) {
-
-				float val = DDOP.dotProduct(b_p, alphas.get(i), i_S());
-				// LOGGER.debug(String.format("for %s, Val is %s and best val is %s", b_p, val,
-				// bestVal));
-				if (val >= bestVal) {
-
-					bestVal = val;
-					bestAlpha = i;
-
-				}
+				bestVal = val;
+				bestAlpha = i;
 
 			}
-			/*
-			var factors = new ArrayList<DD>(S.size() + O.size() + 1);
-			factors.add(DDOP.primeVars(alphas.get(bestAlpha), Global.NUM_VARS / 2));
-			factors.addAll(T().get(a));
-			factors.addAll(Oj.get(a));
-			factors.addAll(DDOP.restrict(O().get(a), i_Om_p, _o));
-			factors.add(PAjGivenMj);
-			factors.add(PMj_pGivenMjAjOj_p);
-			
-			gaoi.add(DDOP.addMultVarElim(factors, gaoivars)); */
-			
-			gaoi.add(alphas.get(bestAlpha));
+
 		}
 
-		return gaoi;
+		return Tuple.of(bestVal, bestAlpha);
 	}
 
 	public DD project(DD d, int a, List<Integer> o) {
-		
+
 		var factors = new ArrayList<DD>(S.size() + Om().size() + 1);
 		factors.addAll(DDOP.restrict(O().get(a), i_Om_p, o));
 		factors.addAll(T().get(a));
@@ -417,23 +388,50 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		factors.add(PAjGivenMj);
 		factors.add(PMj_pGivenMjAjOj_p);
 		factors.add(DDOP.primeVars(d, Global.NUM_VARS / 2));
-		
+
 		var results = DDOP.addMultVarElim(factors, gaoivars);
-		
+
 		return results;
 	}
 
 	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
 
-		var Gao = IntStream.range(0, A().size()).mapToObj(a -> Gaoi(a, b, alphas, g)).collect(Collectors.toList());
+		// var Gao = IntStream.range(0, A().size()).mapToObj(a -> Gaoi(a, b, alphas,
+		// g)).collect(Collectors.toList());
 
 		int bestA = -1;
 		float bestVal = Float.NEGATIVE_INFINITY;
+
+		var Gao = new ArrayList<ArrayList<DD>>(A().size());
 		for (int a = 0; a < A().size(); a++) {
 
 			float val = 0.0f;
-			for (int o = 0; o < Gao.get(a).size(); o++)
-				val += DDOP.dotProduct(b, Gao.get(a).get(o), i_S());
+
+			var argmax_iGaoi = new ArrayList<DD>(oAll.size());
+			for (int o = 0; o < oAll.size(); o++) {
+
+				var key = Tuple.of(b, a, o);
+				var prob = obsProbCache.get(key);
+
+				var b_p = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o)));
+				if (b_p == null) {
+
+					b_p = beliefUpdate(b, a, oAll.get(o));
+					g.addEdge(b, Tuple.of(a, oAll.get(o)), b_p);
+				}
+
+				if (prob == null) {
+
+					var likelihoods = obsLikelihoods(b, a);
+					prob = DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal();
+					obsProbCache.put(key, prob);
+				}
+
+				var bestAlpha = Gaoi(b_p, a, oAll.get(o), alphas);
+				argmax_iGaoi.add(alphas.get(bestAlpha._1()));
+
+				val += (prob * bestAlpha._0());
+			}
 
 			val *= discount;
 			val += DDOP.dotProduct(b, R().get(a), i_S());
@@ -444,12 +442,18 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				bestA = a;
 			}
 
+			Gao.add(argmax_iGaoi);
 		}
 
 		var vec = DD.zero;
 		for (int o = 0; o < Gao.get(bestA).size(); o++)
-			vec = DDOP.add(Gao.get(bestA).get(o), vec);
+			vec = DDOP.add(project(Gao.get(bestA).get(o), bestA, oAll.get(o)), vec);
 
+		/*
+		 * var vec = IntStream.range(0, oAll.size()) .mapToObj(o ->
+		 * project(Gao.get(_a).get(o), _a, oAll.get(o))) .reduce(DD.zero, (a1, a2) ->
+		 * DDOP.add(a1, a2));
+		 */
 		return Tuple.of(bestA, DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec)));
 	}
 

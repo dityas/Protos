@@ -59,7 +59,7 @@ public class Tuple3<A, B, C> {
 		if (this == other)
 			return true;
 
-		if (!(other instanceof Tuple<?, ?>))
+		if (!(other instanceof Tuple3<?, ?, ?>))
 			return false;
 
 		Tuple3<A, B, C> _other = (Tuple3<A, B, C>) other;

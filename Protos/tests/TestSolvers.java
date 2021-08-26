@@ -134,38 +134,6 @@ class TestSolvers {
 	}
 
 	@Test
-	void testL1IPOMDPGaoi() throws Exception {
-
-		System.gc();
-
-		LOGGER.info("Testing L1 IPOMDP Gaoi on single frame tiger problem");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd").getFile();
-
-		// Run domain
-		var domainRunner = new SpuddXMainParser(domainFile);
-		domainRunner.run();
-
-		// Get agent I
-		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() ->
-			{
-
-				LOGGER.error("Model not found");
-				System.exit(-1);
-				return null;
-			});
-
-		var G = ReachabilityGraph.fromDecMakingModel(I);
-		G.addNode(I.b_i());
-
-		G = new BreadthFirstExploration<DD, IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(G, I, 5, null);
-
-		LOGGER.debug(String.format("Gaoi for %s is %s", I.A().get(0), I.Gaoi(0, I.b_i(), I.R(), G)));
-		LOGGER.debug(String.format("backup at %s is %s", I.b_i(), I.backup(I.b_i(), I.R(), G)));
-
-		printMemConsumption();
-	}
-
-	@Test
 	void testL1IPOMDPSolution() throws Exception {
 
 		System.gc();

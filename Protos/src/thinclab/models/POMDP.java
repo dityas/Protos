@@ -201,6 +201,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 				var prob = obsProbCache.get(key);
 				
 				if (prob == null) {
+					//LOGGER.warn(String.format("Cache miss for key %s", key));
 					var likelihoods = obsLikelihoods(b, a);
 					prob = DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal();
 					obsProbCache.put(key, prob);
