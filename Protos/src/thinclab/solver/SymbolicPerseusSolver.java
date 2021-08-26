@@ -40,7 +40,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 	 * region
 	 */
 
-	protected AlphaVectorPolicy solveForB(final M m, List<DD> B, AlphaVectorPolicy Vn, final ReachabilityGraph g) {
+	protected AlphaVectorPolicy solveForB(final M m, List<DD> B, AlphaVectorPolicy Vn, ReachabilityGraph g) {
 
 		List<Tuple<Integer, DD>> newVn = new ArrayList<>(10);
 		this.usedBeliefs = 0;
@@ -48,10 +48,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		while (B.size() > 0) {
 
 			DD b = B.remove(Global.random.nextInt(B.size()));
-			//LOGGER.debug(String.format("Backing up %s on %s", Vn, DDOP.factors(b, m.i_S())));
 			var newAlpha = m.backup(b, Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList()), g);
-
-			//LOGGER.debug(String.format("New alpha is %s", newAlpha));
 			
 			// Construct V_{n+1}(b)
 			float bestVal = Float.NEGATIVE_INFINITY;
@@ -70,7 +67,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			}
 
 			var newAlphab = DDOP.dotProduct(b, newAlpha._1(), m.i_S());
-			//LOGGER.debug(String.format("Value of new Alpha is %s and of Vn is %s", newAlphab, bestVal));
+			
 			// If new \alpha.b > Vn(b) add it to new V
 			if (newAlphab > bestVal)
 				newVn.add(newAlpha);
@@ -96,7 +93,6 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		for (int i = 0; i < I; i++) {
 
 			// expand belief region
-			
 			if (i % 5 == 0)
 				g = ES.expand(g, m, H, Vn);
 			
@@ -110,9 +106,6 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			float bellmanError = B.stream()
 					.map(_b -> Math.abs(DDOP.value_b(Vn.aVecs, _b, m.i_S()) - DDOP.value_b(Vn_p.aVecs, _b, m.i_S())))
 					.reduce(Float.NEGATIVE_INFINITY, (v1, v2) -> v1 > v2 ? v1 : v2);
-
-			//LOGGER.debug(String.format("Vn' is %s", Vn_p));
-			//LOGGER.debug(String.format("Vn is %s", Vn));
 			
 			// prepare for next iter
 			Vn.aVecs.clear();
@@ -131,6 +124,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		}
 
 		g.removeAllNodes();
+		System.gc();
 		return Vn;
 	}
 

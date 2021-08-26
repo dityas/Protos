@@ -72,6 +72,7 @@ public class ReachabilityGraph extends AbstractAOGraph<DD, Integer, List<Integer
 					return Tuple.of(e.getKey(), (List<Integer>) edge, mj_p);
 			})).collect(Collectors.toList());
 
+		//LOGGER.debug(String.format("Triples are: %s", triples));
 		return triples;
 	}
 

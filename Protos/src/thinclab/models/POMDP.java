@@ -19,8 +19,10 @@ import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
+import thinclab.legacy.TypedCacheMap;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.utils.Tuple;
+import thinclab.utils.Tuple3;
 
 /*
  * @author adityas
@@ -28,6 +30,8 @@ import thinclab.utils.Tuple;
  */
 public class POMDP extends PBVISolvablePOMDPBasedModel {
 
+	private TypedCacheMap<Tuple3<DD, Integer, List<Integer>>, Float> obsProbCache = new TypedCacheMap<>(1000);
+	
 	private static final Logger LOGGER = LogManager.getLogger(POMDP.class);
 
 	public POMDP(List<String> S, List<String> O, String A, HashMap<String, Model> dynamics, HashMap<String, DD> R,
@@ -123,7 +127,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 	// ----------------------------------------------------------------------------------------
 	// PBVISolvable implementations
 
-	public List<DD> Gaoi(final int a, final DD b, final List<DD> alphas, final ReachabilityGraph g) {
+	public List<DD> Gaoi(final int a, final DD b, final List<DD> alphas, ReachabilityGraph g) {
 
 		var gaoi = new ArrayList<DD>(oAll.size());
 
@@ -131,7 +135,11 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 			var _o = oAll.get(o);
 			var b_p = g.getNodeAtEdge(b, Tuple.of(a, _o));
-			if (b_p == null) b_p = beliefUpdate(b, a, _o);
+			if (b_p == null) {
+
+				b_p = beliefUpdate(b, a, _o);
+				g.addEdge(b, Tuple.of(a, _o), b_p);
+			}
 
 			float bestVal = Float.NEGATIVE_INFINITY;
 			int bestAlpha = -1;
@@ -149,15 +157,31 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 			}
 
-			var factors = new ArrayList<DD>(S.size() + O.size() + 1);
-			factors.add(DDOP.primeVars(alphas.get(bestAlpha), Global.NUM_VARS / 2));
-			factors.addAll(T().get(a));
-			factors.addAll(DDOP.restrict(O().get(a), i_Om_p, _o));
+			/*
+			 * var factors = new ArrayList<DD>(S.size() + O.size() + 1);
+			 * factors.add(DDOP.primeVars(alphas.get(bestAlpha), Global.NUM_VARS / 2));
+			 * factors.addAll(T().get(a)); factors.addAll(DDOP.restrict(O().get(a), i_Om_p,
+			 * _o));
+			 * 
+			 * gaoi.add(DDOP.addMultVarElim(factors, i_S_p()));
+			 */
 
-			gaoi.add(DDOP.addMultVarElim(factors, i_S_p()));
+			gaoi.add(alphas.get(bestAlpha));
 		}
 
 		return gaoi;
+	}
+	
+	public DD project(DD d, int a, List<Integer> o) {
+		
+		var factors = new ArrayList<DD>(S.size() + Om().size() + 1);
+		factors.addAll(DDOP.restrict(O().get(a), i_Om_p, o));
+		factors.addAll(T().get(a));
+		factors.add(DDOP.primeVars(d, Global.NUM_VARS / 2));
+		
+		var results = DDOP.addMultVarElim(factors, i_S_p());
+		
+		return results;
 	}
 
 	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
@@ -169,8 +193,21 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		for (int a = 0; a < A().size(); a++) {
 
 			float val = 0.0f;
-			for (int o = 0; o < Gao.get(a).size(); o++)
-				val += DDOP.dotProduct(b, Gao.get(a).get(o), i_S());
+			for (int o = 0; o < Gao.get(a).size(); o++) {
+				
+				var b_p = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o)));
+				
+				var key = Tuple.of(b, a, oAll.get(o));
+				var prob = obsProbCache.get(key);
+				
+				if (prob == null) {
+					var likelihoods = obsLikelihoods(b, a);
+					prob = DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal();
+					obsProbCache.put(key, prob);
+				}
+				
+				val += (prob * DDOP.dotProduct(b_p, Gao.get(a).get(o), i_S()));
+			}
 
 			val *= discount;
 			val += DDOP.dotProduct(b, R().get(a), i_S());
@@ -185,7 +222,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 		var vec = DD.zero;
 		for (int o = 0; o < Gao.get(bestA).size(); o++)
-			vec = DDOP.add(Gao.get(bestA).get(o), vec);
+			vec = DDOP.add(project(Gao.get(bestA).get(o), bestA, oAll.get(o)), vec);
 
 		return Tuple.of(bestA, DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec)));
 	}

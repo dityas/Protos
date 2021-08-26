@@ -117,7 +117,7 @@ class TestSolvers {
 		var G = ReachabilityGraph.fromDecMakingModel(I);
 		G.addNode(I.b_i());
 		G = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(G, I, 5, null);
-
+		*/
 		var solver = new SymbolicPerseusSolver<POMDP>();
 		var policy = solver.solve(I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
 
@@ -129,7 +129,7 @@ class TestSolvers {
 		assertTrue(bestAct == 0);
 		assertTrue(policy.aVecs.size() == 5);
 
-		LOGGER.debug(String.format("Solved policy is %s", policy)); */
+		LOGGER.debug(String.format("Solved policy is %s", policy));
 		printMemConsumption();
 	}
 
@@ -201,7 +201,7 @@ class TestSolvers {
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
 				I.A().get(bestAct)));
 
-		LOGGER.info(String.format("Policy is %s", policy.aVecs.stream().map(a -> a._0()).collect(Collectors.toList())));
+		//LOGGER.info(String.format("Policy is %s", policy.aVecs.stream().map(a -> a._0()).collect(Collectors.toList())));
 
 		assertTrue(bestAct == 0);
 

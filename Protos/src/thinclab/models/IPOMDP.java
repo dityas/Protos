@@ -20,10 +20,12 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
+import thinclab.legacy.TypedCacheMap;
 import thinclab.models.datastructures.PBVISolvableFrameSolution;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.utils.Diagnostics;
 import thinclab.utils.Tuple;
+import thinclab.utils.Tuple3;
 import thinclab.utils.TwoWayMap;
 
 /*
@@ -59,6 +61,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	// public HashMap<Tuple<Integer, DD>, Integer> mjMap = new HashMap<>(1000);
 	public TwoWayMap<Tuple<Integer, DD>, String> mjMap = new TwoWayMap<>();
+	private TypedCacheMap<Tuple3<DD, Integer, List<Integer>>, Float> obsProbCache = new TypedCacheMap<>(1000);
 
 	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
 
@@ -183,12 +186,12 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 						DDnode.getDDForChild(i_Mj, Integer.valueOf(b.split("m")[1]))))
 				.reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
 
-		//LOGGER.debug(String.format("Mj is %s", Global.valNames.get(i_Mj - 1)));
-		//b_js.stream().forEach(b -> {
-		//	var child = Collections.binarySearch(Global.valNames.get(i_Mj - 1), b);
-		//	LOGGER.debug(String.format("Child for %s is %s", b, child));
-		//});
-		
+		// LOGGER.debug(String.format("Mj is %s", Global.valNames.get(i_Mj - 1)));
+		// b_js.stream().forEach(b -> {
+		// var child = Collections.binarySearch(Global.valNames.get(i_Mj - 1), b);
+		// LOGGER.debug(String.format("Child for %s is %s", b, child));
+		// });
+
 		b_i = DDOP.reorder(DDOP.mult(b_i, b_MjDD));
 
 		var b_iSanity = DDOP.addMultVarElim(List.of(b_i), i_S());
@@ -237,6 +240,11 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		Collections.sort(MjToOPTAj,
 				(a, b) -> Integer.valueOf(a._0().split("m")[1]) - Integer.valueOf(b._0().split("m")[1]));
+
+		// LOGGER.debug(String.format("Mjs : %s", Global.valNames.get(i_Mj - 1)));
+		// LOGGER.debug(String.format("P(Aj|Mj) : %s", MjToOPTAj));
+		// LOGGER.debug(String.format("Mjs : %s", Global.valNames.get(i_Mj -
+		// 1).stream().map(mj -> mjMap.v2k.get(mj)).collect(Collectors.toList())));
 
 		var AjDDs = MjToOPTAj.stream().map(m -> m._1()).toArray(DD[]::new);
 		PAjGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, AjDDs));
@@ -304,8 +312,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
 		b_p = DDOP.div(b_p, prob);
-		//LOGGER.debug(String.format("obs prob for %s from belief %s to belief %s with state vars %s is %s", o,
-		//		DDOP.factors(b, i_S()), DDOP.factors(b_p, i_S()), stateVars, prob));
+		// LOGGER.debug(String.format("obs prob for %s from belief %s to belief %s with
+		// state vars %s is %s", o,
+		// DDOP.factors(b, i_S()), DDOP.factors(b_p, i_S()), stateVars, prob));
 
 		return b_p;
 	}
@@ -344,15 +353,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		vars.add(i_Thetaj);
 		vars.addAll(i_S_p());
 
-		Collections.sort(vars);
-
 		return DDOP.addMultVarElim(factors, vars);
 	}
 
 	// ----------------------------------------------------------------------------------------
 	// PBVISolvable implementations
 
-	public List<DD> Gaoi(final int a, final DD b, final List<DD> alphas, final ReachabilityGraph g) {
+	public List<DD> Gaoi(final int a, final DD b, final List<DD> alphas, ReachabilityGraph g) {
 
 		var gaoi = new ArrayList<DD>(oAll.size());
 
@@ -360,8 +367,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 			var _o = oAll.get(o);
 			var b_p = g.getNodeAtEdge(b, Tuple.of(a, _o));
-			if (b_p == null)
+			if (b_p == null) {
+
+				// LOGGER.warn(String.format("Manually computing belief update? This shouldn't
+				// be happening"));
 				b_p = beliefUpdate(b, a, _o);
+				g.addEdge(b, Tuple.of(a, _o), b_p);
+			}
 
 			float bestVal = Float.NEGATIVE_INFINITY;
 			int bestAlpha = -1;
@@ -379,7 +391,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				}
 
 			}
-
+			/*
 			var factors = new ArrayList<DD>(S.size() + O.size() + 1);
 			factors.add(DDOP.primeVars(alphas.get(bestAlpha), Global.NUM_VARS / 2));
 			factors.addAll(T().get(a));
@@ -387,17 +399,28 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			factors.addAll(DDOP.restrict(O().get(a), i_Om_p, _o));
 			factors.add(PAjGivenMj);
 			factors.add(PMj_pGivenMjAjOj_p);
-
-			/*
-			 * var vars = new ArrayList<Integer>(); vars.addAll(i_S_p()); vars.add(i_Aj);
-			 * vars.add(i_Thetaj); vars.addAll(i_Omj_p);
-			 * 
-			 * Collections.sort(vars);
-			 */
-			gaoi.add(DDOP.addMultVarElim(factors, gaoivars));
+			
+			gaoi.add(DDOP.addMultVarElim(factors, gaoivars)); */
+			
+			gaoi.add(alphas.get(bestAlpha));
 		}
 
 		return gaoi;
+	}
+
+	public DD project(DD d, int a, List<Integer> o) {
+		
+		var factors = new ArrayList<DD>(S.size() + Om().size() + 1);
+		factors.addAll(DDOP.restrict(O().get(a), i_Om_p, o));
+		factors.addAll(T().get(a));
+		factors.addAll(Oj.get(a));
+		factors.add(PAjGivenMj);
+		factors.add(PMj_pGivenMjAjOj_p);
+		factors.add(DDOP.primeVars(d, Global.NUM_VARS / 2));
+		
+		var results = DDOP.addMultVarElim(factors, gaoivars);
+		
+		return results;
 	}
 
 	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {

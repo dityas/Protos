@@ -72,7 +72,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 					LOGGER.error("Error while sampling exploration probability");
 					System.exit(-1);
 				}
-
+				
 				var oSampled = DDOP.sample(List.of(m.obsLikelihoods(b, a)), m.i_Om_p());
 
 				var _edge = Tuple.of(a, oSampled._1());
