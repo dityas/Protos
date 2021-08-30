@@ -1,9 +1,7 @@
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
@@ -23,7 +21,6 @@ import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.spuddx_parser.SpuddXMainParser;
-import thinclab.spuddx_parser.SpuddXParserWrapper;
 import thinclab.utils.Tuple;
 
 /*
@@ -76,7 +73,7 @@ class TestBeliefUpdate {
 		// Parse domain
 		var runner = new SpuddXMainParser(domainFile);
 		runner.run();
-		
+
 		var I = (POMDP) runner.getModel("agentI").get();
 
 		// Make belief region for agent I
@@ -225,4 +222,55 @@ class TestBeliefUpdate {
 			});
 
 	}
+
+	@Test
+	void testL2TigerProblemBeliefUpdate() throws Exception {
+
+		System.gc();
+
+		LOGGER.info("Testing Single agent tiger domain belief update for level 2");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl2.spudd").getFile();
+
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		var I = (IPOMDP) domainRunner.getModel("agentJl2").orElseGet(() ->
+			{
+
+				LOGGER.error("Could not find IPOMDP agentI");
+				System.exit(-1);
+				return null;
+			});
+
+		System.gc();
+
+		var obs = OP.cartesianProd(
+				I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList()));
+
+		DD b = I.b_i();
+		var beliefs = new ArrayList<DD>();
+		var aos = new ArrayList<Tuple<Integer, List<Integer>>>();
+
+		for (int a = 0; a < I.A().size(); a++) {
+
+			for (int o = 0; o < I.oAll.size(); o++) {
+
+				beliefs.add(I.beliefUpdate(b, a, I.oAll.get(o)));
+				aos.add(Tuple.of(a, I.oAll.get(o)));
+			}
+		}
+
+		IntStream.range(0, aos.size()).forEach(i ->
+			{
+
+				var ao = aos.get(i);
+				var a = I.A().get(ao._0());
+
+				LOGGER.debug(String.format("Starting from %s, for action %s and obs %s, the update is %s",
+						DDOP.factors(b, I.i_S()), a, ao._1(), DDOP.factors(beliefs.get(i), I.i_S())));
+
+			});
+
+	}
+
 }

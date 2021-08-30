@@ -23,7 +23,6 @@ import thinclab.legacy.Global;
 import thinclab.legacy.TypedCacheMap;
 import thinclab.models.datastructures.PBVISolvableFrameSolution;
 import thinclab.models.datastructures.ReachabilityGraph;
-import thinclab.utils.Diagnostics;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 import thinclab.utils.TwoWayMap;
@@ -113,7 +112,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		var OjRestrictedAi = IntStream
 				.range(0, A().size()).mapToObj(i -> this.framesj.stream()
-						.map(f -> this.prepareOj_pGivenAjAiS_p(i, f._1().O())).collect(Collectors.toList()))
+						.map(f -> this.prepareOj_pGivenAjAiS_p(i + 1, f._1().O())).collect(Collectors.toList()))
 				.collect(Collectors.toList());
 
 		Oj = IntStream
@@ -183,7 +182,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				.collect(Collectors.toList());
 		var b_MjDD = b_js.stream()
 				.map(b -> DDOP.mult(DDleaf.getDD(1.0f / b_js.size()),
-						DDnode.getDDForChild(i_Mj, Integer.valueOf(b.split("m")[1]))))
+						DDnode.getDDForChild(i_Mj, Collections.binarySearch(Global.valNames.get(i_Mj - 1), b))))
 				.reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
 
 		// LOGGER.debug(String.format("Mj is %s", Global.valNames.get(i_Mj - 1)));

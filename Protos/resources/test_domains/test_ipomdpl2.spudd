@@ -1,0 +1,357 @@
+
+-- State vars and interactive state vars
+-- Common physical state
+(defvar TigerLoc (TL TR))
+
+-- Model var for agent I modeling agent J
+(defmodelvar agent_j)
+
+-- Model var for agent J modeling agent I
+(defmodelvar agent_il1)
+
+-- Variables to represent frames
+(defvar Frame_jl1 (frame1))
+(defvar Frame_il2 (frame1))
+
+-- Agent I's actions
+(defvar Agent_actions (OL OR L))
+
+-- Agent J's actions
+(defvar Agentj_actions (OL OR L))
+
+-- Agent J's observations
+(defvar Growl_j (GL GR))
+(defvar Creak_j (CL CR SL))
+
+-- Agent I's observations
+(defvar Growl (GL GR))
+(defvar Creak (CL CR SL))
+
+-- DD's for transitions, observations, beliefs and rewards
+-- Common initial belief for all agents
+(defdd initLoc
+		(TigerLoc 	UNIFORM)
+)
+
+-- Transition if anyone opens door
+(defdd openDoorDD
+		(TigerLoc' UNIFORM)
+)
+
+-- J's L0 assumption over I's action distribution
+(defdd aIDist
+	(Agent_actions
+		(OL 	(0.005))
+		(OR 	(0.005))
+		(L 		(0.99))
+	)
+)
+
+-- J's observation function for listening to growls
+(defdd growlObsDD
+		(TigerLoc'
+			(TL
+				(Growl_j'
+					(GL 	(0.85))
+					(GR 	(0.15))
+				)
+			)
+			
+			(TR
+				(Growl_j'
+					(GL 	(0.15))
+					(GR 	(0.85))
+				)
+			)
+		)
+)
+
+-- I's observation function for listening to creaks
+(defdd iListensCreak
+	(Agentj_actions
+		(OL
+			(Creak'
+				(CL 	(0.9))
+				(CR 	(0.05))
+				(SL 	(0.05))
+			)
+		)
+		
+		(OR
+			(Creak'
+				(CL 	(0.05))
+				(CR 	(0.9))
+				(SL 	(0.05))
+			)
+		)
+		
+		(L
+			(Creak'
+				(CL 	(0.05))
+				(CR 	(0.05))
+				(SL 	(0.9))
+			)
+		)
+	)
+)
+
+-- I's observation function for listening to growls
+(defdd iListensGrowl
+	(TigerLoc'
+		(TL 	(Growl'	(GL	(0.85)) 	(GR 	(0.15))))
+		(TR 	(Growl'	(GR	(0.85)) 	(GL 	(0.15))))
+	)
+)
+
+-- I's joint action transition for the listen action
+(defdd iListensDD
+	
+	(Agentj_actions
+		(OL
+			(TigerLoc' UNIFORM)
+		)
+		
+		(OR
+			(TigerLoc' UNIFORM)
+		)
+		
+		(L
+			(TigerLoc
+				(TL 	(TigerLoc' TL))
+				(TR 	(TigerLoc' TR))
+			)
+		)
+	)
+	
+)
+
+-- J's joint action transition for the listen action
+(defdd jListensDD
+	(Agent_actions
+		(OL 	(TigerLoc' UNIFORM))
+		(OR 	(TigerLoc' UNIFORM))
+		(L 		(SAME TigerLoc))
+	)
+)
+
+-- I's DBNs
+-- I's DBN for open action
+(defdbn actionIOpen
+	(TigerLoc 	(TigerLoc' 	UNIFORM))
+	(Growl 		(Growl' 	UNIFORM))
+	(Creak 		(Creak' 	UNIFORM))
+	
+)
+
+-- I's DBN for listen action
+(defdbn actionIListen
+	(TigerLoc 	(iListensDD))
+	(Growl 		(iListensGrowl))
+	(Creak 		(iListensCreak))
+)
+
+-- J's DBNs
+-- J's L0 DBN for opening doors
+(defdbn actionOpenAny
+	(TigerLoc 	(openDoorDD))
+	(Growl_j 	(Growl_j' UNIFORM))
+)
+
+-- J's L0 DBN for listening
+-- Notice that the Agent_actions var is summed out after multiplying with
+-- assumed distribution of I's actions. This is mainly because at L0, agent J
+-- does not explicitly model agent I
+(defdbn actionL
+	(TigerLoc 	(# (Agent_actions) (aIDist * jListensDD)))
+	(Growl_j 	(growlObsDD))
+)
+
+-- J's level N DBN for opening doors
+(defdbn actionJOpen
+    (TigerLoc   (TigerLoc' UNIFORM))
+    (Growl_j    (Growl_j' UNIFORM))
+    (Creak_j    (Creak_j' UNIFORM))
+)
+
+-- J's level N DBN for listening
+
+(defdd jListensCreakDD
+
+    (Agent_actions
+        (OL
+            (Creak_j'
+                (CL     (0.9))
+                (CR     (0.05))
+                (SL     (0.05))
+            )
+        )
+
+        (OR
+            (Creak_j'
+                (CL     (0.05))
+                (CR     (0.9))
+                (SL     (0.05))
+            )
+        )
+
+        (L
+            (Creak_j'
+                (CL     (0.05))
+                (CR     (0.05))
+                (SL     (0.9))
+            )
+        )
+    )
+)
+
+(defdbn actionJListens
+    (TigerLoc   (jListensDD))
+    (Growl_j    (growlObsDD))
+    (Creak_j    (jListensCreakDD))
+
+)
+
+-- Define agents
+-- Agnet J L0
+(defpomdp agentJ
+    (S 	
+        (TigerLoc)
+    )
+
+    (O
+        (Growl_j)
+    )
+
+    (A 	Agentj_actions)
+        
+    (dynamics
+        (OL 	(actionOpenAny))
+        (OR 	(actionOpenAny))
+        (L 		(actionL))
+    )
+        
+    (b
+        (initLoc)	
+    )
+        
+    (R
+        (OL 	(TigerLoc 
+                    (TL 	(-100))
+                    (TR 	(10))
+        ))
+        
+        (OR		(TigerLoc
+                    (TL 	(10))
+                    (TR 	(-100))
+        ))
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)	
+)
+
+-- Agent I L1
+(defipomdp agentI
+    (S 	
+        (TigerLoc)
+    )
+
+    (O
+        (Growl Creak)
+    )
+
+    (A 	Agent_actions)
+    (Aj Agentj_actions)
+    (Mj agent_j)
+    (Thetaj Frame_jl1 	
+    	(frame1 agentJ)
+    )
+        
+    (dynamics
+        (OL 	(actionIOpen))
+        (OR 	(actionIOpen))
+        (L 	(actionIListen))
+    )
+        
+    (b
+        (initLoc)	
+    )
+        
+    (R
+        (OL 	
+        	(TigerLoc 
+                (TL 	(-100))
+                (TR 	(10))
+        	)
+        )
+        
+        (OR		
+        			
+            (TigerLoc
+                (TR 	(-100))
+                (TL 	(10))
+            )
+       	)
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)
+    (H 4)	
+)
+
+-- Agent J L2
+(defipomdp agentJl2
+    (S 	
+        (TigerLoc)
+    )
+
+    (O
+        (Growl_j Creak_j)
+    )
+
+    (A 	Agentj_actions)
+    (Aj Agent_actions)
+    (Mj agent_il1)
+    (Thetaj Frame_il2 	
+    	(frame1 agentI)
+    )
+        
+    (dynamics
+        (OL 	(actionJOpen))
+        (OR 	(actionJOpen))
+        (L 	(actionJListens))
+    )
+        
+    (b
+        (initLoc)	
+    )
+        
+    (R
+        (OL 	
+        	(TigerLoc 
+                (TL 	(-100))
+                (TR 	(10))
+        	)
+        )
+        
+        (OR		
+        			
+            (TigerLoc
+                (TR 	(-100))
+                (TL 	(10))
+            )
+       	)
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)
+    (H 3)	
+)
+
+-- Solvers
+(defpbvisolv pomdp agentJSolver)
+(defpbvisolv ipomdp agentISolver)
+(defpbvisolv ipomdp agentJl2Solver)

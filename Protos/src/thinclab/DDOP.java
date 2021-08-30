@@ -556,7 +556,7 @@ public class DDOP {
 	// restrict
 
 	public static DD restrict(DD dd, final List<Integer> vars, final List<Integer> vals) {
-
+		
 		if (dd.getVar() == 0)
 			return dd;
 

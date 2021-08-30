@@ -36,6 +36,7 @@ FLOAT_NUM=35
 LP=36
 RP=37
 WS=38
+LINE_COMMENT=39
 'defvar'=1
 'defmodelvar'=2
 'defpbvisolv'=3
