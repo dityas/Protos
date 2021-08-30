@@ -1,6 +1,5 @@
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -113,11 +112,7 @@ class TestSolvers {
 				System.exit(-1);
 				return null;
 			});
-		/*
-		var G = ReachabilityGraph.fromDecMakingModel(I);
-		G.addNode(I.b_i());
-		G = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(G, I, 5, null);
-		*/
+
 		var solver = new SymbolicPerseusSolver<POMDP>();
 		var policy = solver.solve(I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
 
@@ -153,15 +148,8 @@ class TestSolvers {
 				System.exit(-1);
 				return null;
 			});
-		
-		//LOGGER.debug(String.format("P(Aj|Mj) is %s", I.PAjGivenMj));
-		//LOGGER.debug(String.format("P(Mj'|Mj,Aj,Oj') is %s", I.PMj_pGivenMjAjOj_p));
 
 		var solver = new SymbolicPerseusSolver<IPOMDP>();
-		var G = ReachabilityGraph.fromDecMakingModel(I);
-		G.addNode(I.b_i());
-
-		G = new BreadthFirstExploration<DD, IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(G, I, I.H, null);
 
 		var policy = solver.solve(I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
 		int bestAct = policy.getBestActionIndex(I.b_i(), I.i_S());
@@ -169,25 +157,66 @@ class TestSolvers {
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
 				I.A().get(bestAct)));
 
-		//LOGGER.info(String.format("Policy is %s", policy.aVecs.stream().map(a -> a._0()).collect(Collectors.toList())));
-
 		assertTrue(bestAct == 0);
 
 		DD b_ = I.b_i();
 
-		for (int i = 0; i < I.H; i++) {
-
-			LOGGER.info(String.format("Suggested optimal action for %s  is %s which resolves to %s",
-					DDOP.factors(b_, I.i_S()), bestAct, I.A().get(bestAct)));
-
-			LOGGER.info(String.format("Agent hears %s, %s ", Global.valNames.get(I.i_Om.get(0) - 1).get(0),
-					Global.valNames.get(I.i_Om.get(1) - 1).get(2)));
-			b_ = I.beliefUpdate(b_, bestAct, List.of(1, 3));
-			bestAct = policy.getBestActionIndex(b_, I.i_S());
-		}
+		LOGGER.info(String.format("Suggested optimal action for %s  is %s which resolves to %s",
+				DDOP.factors(b_, I.i_S()), bestAct, I.A().get(bestAct)));
 		
-		LOGGER.debug(String.format("Policy is %s", policy));
+		assertTrue(bestAct == 0);
+
+		LOGGER.info(String.format("Agent hears %s, %s ", Global.valNames.get(I.i_Om.get(0) - 1).get(0),
+				Global.valNames.get(I.i_Om.get(1) - 1).get(2)));
+		b_ = I.beliefUpdate(b_, bestAct, List.of(1, 3));
+		bestAct = policy.getBestActionIndex(b_, I.i_S());
+
+		assertTrue(bestAct == 0);
+
+		System.gc();
+		printMemConsumption();
+	}
+
+	@Test
+	void testL1IPOMDPSolutionTree() throws Exception {
+
+		System.gc();
+
+		LOGGER.info("Testing L1 IPOMDP Solver Gaoi on single frame tiger problem");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd").getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+
+		var solver = new SymbolicPerseusSolver<IPOMDP>();
+
+		var policy = solver.solve(I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
+		int bestAct = policy.getBestActionIndex(I.b_i(), I.i_S());
+
+		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
+				I.A().get(bestAct)));
+
+		assertTrue(bestAct == 0);
+
+		var G = ReachabilityGraph.fromDecMakingModel(I);
+		var ES = new SSGAExploration<IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(0.0f);
+
+		int numNodes = G.getAllNodes().size();
 		
+		G = ES.expand(G, I, I.H, policy);
+		
+		assertTrue(G.getAllNodes().size() > numNodes);
+
 		System.gc();
 		printMemConsumption();
 	}

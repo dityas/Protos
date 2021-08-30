@@ -55,6 +55,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public DD PAjGivenMj;
 	public DD PMj_pGivenMjAjOj_p;
+	public List<DD> Taus;
 
 	public List<Tuple<Integer, PBVISolvablePOMDPBasedModel>> framesj;
 	public List<PBVISolvableFrameSolution> framesjSoln;
@@ -137,7 +138,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		gaoivars.addAll(i_S_p());
 		gaoivars.add(i_Aj);
 		gaoivars.add(i_Thetaj);
-		gaoivars.addAll(i_Omj_p);
 
 		Collections.sort(gaoivars);
 
@@ -221,7 +221,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			});
 
 		var sortedVals = mjMap.k2v.values().stream().collect(Collectors.toList());
-		Collections.sort(sortedVals, (a, b) -> Integer.valueOf(a.split("m")[1]) - Integer.valueOf(b.split("m")[1]));
+		Collections.sort(sortedVals);
 
 		Global.replaceValues(i_Mj, sortedVals);
 		Global.replaceValues(i_Mj_p, sortedVals);
@@ -235,16 +235,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				.map(e -> Tuple.of(mjMap.k2v.get(e.getKey()), DDnode.getDDForChild(i_Aj, e.getValue())))
 				.collect(Collectors.toList());
 
-		// MjToOPTAj.forEach(d -> LOGGER.debug(String.format("P(Aj|Mj) is %s, %s",
-		// mjMap.v2k.get(d._0()), d)));
-
-		Collections.sort(MjToOPTAj,
-				(a, b) -> Integer.valueOf(a._0().split("m")[1]) - Integer.valueOf(b._0().split("m")[1]));
-
-		// LOGGER.debug(String.format("Mjs : %s", Global.valNames.get(i_Mj - 1)));
-		// LOGGER.debug(String.format("P(Aj|Mj) : %s", MjToOPTAj));
-		// LOGGER.debug(String.format("Mjs : %s", Global.valNames.get(i_Mj -
-		// 1).stream().map(mj -> mjMap.v2k.get(mj)).collect(Collectors.toList())));
+		Collections.sort(MjToOPTAj, (a, b) -> a._0().compareTo(b._0()));
 
 		var AjDDs = MjToOPTAj.stream().map(m -> m._1()).toArray(DD[]::new);
 		PAjGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, AjDDs));
@@ -281,6 +272,16 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			LOGGER.error(String.format("# (Mj') P(Mj'|Mj,Aj,Oj') is %s != 1", ddSum));
 			System.exit(-1);
 		}
+
+		Taus = IntStream.range(0, A().size()).mapToObj(i ->
+			{
+
+				var factors = new ArrayList<DD>(Omj.size() + 1);
+				factors.addAll(Oj.get(i));
+				factors.add(PMj_pGivenMjAjOj_p);
+
+				return DDOP.addMultVarElim(factors, i_Omj_p);
+			}).collect(Collectors.toList());
 	}
 
 	@Override
@@ -384,9 +385,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var factors = new ArrayList<DD>(S.size() + Om().size() + 1);
 		factors.addAll(DDOP.restrict(O().get(a), i_Om_p, o));
 		factors.addAll(T().get(a));
-		factors.addAll(Oj.get(a));
 		factors.add(PAjGivenMj);
-		factors.add(PMj_pGivenMjAjOj_p);
+		factors.add(Taus.get(a));
 		factors.add(DDOP.primeVars(d, Global.NUM_VARS / 2));
 
 		var results = DDOP.addMultVarElim(factors, gaoivars);
@@ -449,11 +449,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		for (int o = 0; o < Gao.get(bestA).size(); o++)
 			vec = DDOP.add(project(Gao.get(bestA).get(o), bestA, oAll.get(o)), vec);
 
-		/*
-		 * var vec = IntStream.range(0, oAll.size()) .mapToObj(o ->
-		 * project(Gao.get(_a).get(o), _a, oAll.get(o))) .reduce(DD.zero, (a1, a2) ->
-		 * DDOP.add(a1, a2));
-		 */
 		return Tuple.of(bestA, DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec)));
 	}
 

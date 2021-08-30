@@ -10,7 +10,6 @@ package thinclab.spuddx_parser;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -21,9 +20,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.DBN;
+import thinclab.models.IPOMDP;
 import thinclab.models.Model;
+import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.POMDP;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
@@ -33,7 +33,6 @@ import thinclab.spuddx_parser.SpuddXParser.IPOMDPDefContext;
 import thinclab.spuddx_parser.SpuddXParser.PBVISolverDefContext;
 import thinclab.spuddx_parser.SpuddXParser.POMDPDefContext;
 import thinclab.spuddx_parser.SpuddXParser.SolvExprContext;
-//import thinclab.spuddx_parser.SpuddXParser.SolvExprContext;
 import thinclab.spuddx_parser.SpuddXParser.Var_defsContext;
 
 /*
@@ -58,7 +57,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 	private VarDefVisitor varVisitor = new VarDefVisitor();
 
 	// solvers
-	private HashMap<String, SymbolicPerseusSolver<POMDP>> pomdpSolvers = new HashMap<>(5);
+	private HashMap<String, SymbolicPerseusSolver<? extends PBVISolvablePOMDPBasedModel>> solvers = new HashMap<>(5);
 
 	private String fileName;
 	private SpuddXParser parser;
@@ -163,7 +162,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 	public void enterIPOMDPDef(IPOMDPDefContext ctx) {
 
 		String modelName = ctx.ipomdp_def().model_name().IDENTIFIER().getText();
-		
+
 		if (this.models.containsKey(modelName)) {
 
 			LOGGER.error(String.format("A model named %s has been defined previously.", modelName));
@@ -188,8 +187,16 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 			SymbolicPerseusSolver<POMDP> solver = new SymbolicPerseusSolver<>();
 
-			this.pomdpSolvers.put(name, solver);
+			this.solvers.put(name, solver);
 			LOGGER.debug(String.format("Parsed solver %s for POMDPs", name));
+		}
+
+		else if (ctx.pbvi_solv_def().IPOMDP() != null) {
+
+			SymbolicPerseusSolver<IPOMDP> solver = new SymbolicPerseusSolver<>();
+
+			this.solvers.put(name, solver);
+			LOGGER.debug(String.format("Parsed IPOMDP solver %s", name));
 		}
 
 		super.enterPBVISolverDef(ctx);
@@ -208,15 +215,28 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 			POMDP _model = (POMDP) model;
 
-			if (!this.pomdpSolvers.containsKey(solverName)) {
+			if (!this.solvers.containsKey(solverName)) {
 
 				LOGGER.error(String.format("Solver %s for POMDP %s is not defined", solverName, modelName));
 				System.exit(-1);
 			}
 
-			SymbolicPerseusSolver<POMDP> solver = this.pomdpSolvers.get(solverName); /*
-			solver.solve(List.of(_model.b_i()), _model, backups, expHorizon, new SSGAExploration<>(0.1f),
-					AlphaVectorPolicy.fromR(_model.R()));*/
+			SymbolicPerseusSolver<POMDP> solver = (SymbolicPerseusSolver<POMDP>) this.solvers.get(solverName);
+			solver.solve(_model, backups, expHorizon, AlphaVectorPolicy.fromR(_model.R()));
+		}
+		
+		else if (model instanceof IPOMDP) {
+
+			IPOMDP _model = (IPOMDP) model;
+
+			if (!this.solvers.containsKey(solverName)) {
+
+				LOGGER.error(String.format("Solver %s for IPOMDP %s is not defined", solverName, modelName));
+				System.exit(-1);
+			}
+
+			SymbolicPerseusSolver<IPOMDP> solver = (SymbolicPerseusSolver<IPOMDP>) this.solvers.get(solverName);
+			solver.solve(_model, backups, _model.H, AlphaVectorPolicy.fromR(_model.R()));
 		}
 
 		super.enterSolvExpr(ctx);

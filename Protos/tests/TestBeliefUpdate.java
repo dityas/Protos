@@ -17,9 +17,11 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.OP;
+import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.models.IPOMDP;
 import thinclab.models.POMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.spuddx_parser.SpuddXParserWrapper;
 import thinclab.utils.Tuple;
@@ -62,51 +64,41 @@ class TestBeliefUpdate {
 		Global.logCacheSizes();
 	}
 
-	/*
-	 * @Test void testTigerProblemSSGABeliefExploration() throws Exception {
-	 * 
-	 * System.gc();
-	 * 
-	 * LOGGER.info("Running Single agent tiger domain belief exploration test");
-	 * String domainFile = this.getClass().getClassLoader().getResource(
-	 * "test_domains/test_tiger_domain.spudd") .getFile();
-	 * 
-	 * // Parse domain SpuddXParserWrapper parserWrapper = new
-	 * SpuddXParserWrapper(domainFile); var randomVars =
-	 * parserWrapper.getVariableDeclarations();
-	 * 
-	 * // Initialize random variables Global.primeVarsAndInitGlobals(randomVars);
-	 * 
-	 * // Get POMDP models var models = parserWrapper.getModels(); var pomdps =
-	 * SpuddXParserWrapper.getPOMDPs(models);
-	 * 
-	 * models.clear(); models = null; parserWrapper = null;
-	 * 
-	 * // Get agent I var I = pomdps.get("agentI");
-	 * 
-	 * // Initialize belief update mechanism var BU = new POMDPBeliefUpdate();
-	 * 
-	 * // Make action observation space for agent I var obsVars =
-	 * Arrays.stream(I.Ovars).mapToObj(i -> Global.valNames.get(i -
-	 * 1)).collect(Collectors.toList()); obsVars.add(Global.valNames.get(I.Avar -
-	 * 1)); var aoSpace = OP.cartesianProd(obsVars);
-	 * 
-	 * // Make belief region for agent I var beliefGraph = new
-	 * ReachabilityGraph(aoSpace); beliefGraph.addNode(I.b);
-	 * 
-	 * // Initialize belief exploration var BE = new
-	 * POMDPBreadthFirstBeliefExploration(20);
-	 * 
-	 * long then = System.nanoTime(); for (int i = 0; i < 20; i++) beliefGraph =
-	 * BE.expandRG(I, BU, beliefGraph);
-	 * 
-	 * long now = System.nanoTime(); float T = (now - then) / 1000.0f;
-	 * LOGGER.debug(String.format("BFS expansion took %s us", T));
-	 * 
-	 * assertTrue(beliefGraph.getAllNodes().size() <= 20);
-	 * LOGGER.debug(String.format("Graph is %s", beliefGraph));
-	 * printMemConsumption(); }
-	 */
+	@Test
+	void testTigerProblemSSGABeliefExploration() throws Exception {
+
+		System.gc();
+
+		LOGGER.info("Running Single agent tiger domain belief exploration test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
+				.getFile();
+
+		// Parse domain
+		var runner = new SpuddXMainParser(domainFile);
+		runner.run();
+		
+		var I = (POMDP) runner.getModel("agentI").get();
+
+		// Make belief region for agent I
+		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
+		beliefGraph.addNode(I.b_i());
+
+		// Initialize belief exploration
+		var BE = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(20);
+
+		long then = System.nanoTime();
+		for (int i = 0; i < 20; i++)
+			beliefGraph = BE.expand(beliefGraph, I, 10, AlphaVectorPolicy.fromR(I.R()));
+
+		long now = System.nanoTime();
+		float T = (now - then) / 1000.0f;
+		LOGGER.debug(String.format("BFS expansion took %s us", T));
+
+		assertTrue(beliefGraph.getAllNodes().size() <= 20);
+		LOGGER.debug(String.format("Graph is %s", beliefGraph));
+		printMemConsumption();
+	}
+
 	@Test
 	void testSimpleTigerProblemBeliefUpdate() throws Exception {
 

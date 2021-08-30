@@ -72,7 +72,7 @@ public class ReachabilityGraph extends AbstractAOGraph<DD, Integer, List<Integer
 					return Tuple.of(e.getKey(), (List<Integer>) edge, mj_p);
 			})).collect(Collectors.toList());
 
-		//LOGGER.debug(String.format("Triples are: %s", triples));
+		// LOGGER.debug(String.format("Triples are: %s", triples));
 		return triples;
 	}
 
@@ -121,9 +121,12 @@ public class ReachabilityGraph extends AbstractAOGraph<DD, Integer, List<Integer
 
 			for (var edge : edgeIndexMap.keySet()) {
 
-				builder.append(nodeMap.get(dd)).append(" -> ")
-						.append(nodeMap.get(connections.get(dd).get(edgeIndexMap.get(edge)))).append(" [label=\" ")
-						.append(m.A().get(edge._0())).append(" ").append(edge._1()).append("\"]\r\n");
+				if (connections.get(dd).get(edgeIndexMap.get(edge)) != null) {
+
+					builder.append(nodeMap.get(dd)).append(" -> ")
+							.append(nodeMap.get(connections.get(dd).get(edgeIndexMap.get(edge)))).append(" [label=\" ")
+							.append(m.A().get(edge._0())).append(" ").append(edge._1()).append("\"]\r\n");
+				}
 			}
 
 		}
