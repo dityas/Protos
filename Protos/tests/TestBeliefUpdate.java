@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -216,8 +217,19 @@ class TestBeliefUpdate {
 				var ao = aos.get(i);
 				var a = I.A().get(ao._0());
 
-				LOGGER.debug(String.format("Starting from %s, for action %s and obs %s, the update is %s",
-						DDOP.factors(b, I.i_S()), a, ao._1(), DDOP.factors(beliefs.get(i), I.i_S())));
+				var initMjBeliefs = DDOP.factors(I.b_i(), I.i_S()).get(1).getChildren();
+				var initL0Beliefs = IntStream.range(0, initMjBeliefs.length).boxed()
+						.filter(j -> !initMjBeliefs[j].equals(DDleaf.getDD(0.0f)))
+						.map(j -> Global.valNames.get(I.i_Mj - 1).get(j)).collect(Collectors.toList());
+
+				var MjBeliefs = DDOP.factors(beliefs.get(i), I.i_S()).get(1).getChildren();
+				var l0Beliefs = IntStream.range(0, MjBeliefs.length).boxed()
+						.filter(j -> !MjBeliefs[j].equals(DDleaf.getDD(0.0f)))
+						.map(j -> Global.valNames.get(I.i_Mj - 1).get(j)).collect(Collectors.toList());
+
+				LOGGER.debug(String.format("Checking for %s from %s", l0Beliefs, initL0Beliefs));
+				LOGGER.debug(String.format("%s is %s", initL0Beliefs,
+						initL0Beliefs.stream().map(j -> I.mjMap.v2k.get(j)).collect(Collectors.toList())));
 
 			});
 
