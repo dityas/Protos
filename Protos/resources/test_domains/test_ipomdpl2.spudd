@@ -10,7 +10,7 @@
 (defmodelvar agent_il1)
 
 -- Variables to represent frames
-(defvar Frame_jl1 (frame1))
+(defvar Frame_jl1 (frame1 frame2))
 (defvar Frame_il2 (frame1))
 
 -- Agent I's actions
@@ -251,6 +251,44 @@
     (discount 0.9)	
 )
 
+(defpomdp agentJ2
+    (S 	
+        (TigerLoc)
+    )
+
+    (O
+        (Growl_j)
+    )
+
+    (A 	Agentj_actions)
+        
+    (dynamics
+        (OL 	(actionOpenAny))
+        (OR 	(actionOpenAny))
+        (L 		(actionL))
+    )
+        
+    (b
+        (initLoc)	
+    )
+        
+    (R
+        (OL 	(TigerLoc 
+                    (TL 	(-150))
+                    (TR 	(10))
+        ))
+        
+        (OR		(TigerLoc
+                    (TL 	(10))
+                    (TR 	(-150))
+        ))
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)	
+)
+
 -- Agent I L1
 (defipomdp agentI
     (S 	
@@ -266,6 +304,7 @@
     (Mj agent_j)
     (Thetaj Frame_jl1 	
     	(frame1 agentJ)
+    	(frame2 agentJ2)
     )
         
     (dynamics

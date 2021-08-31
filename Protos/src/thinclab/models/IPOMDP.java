@@ -54,6 +54,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public DD PAjGivenMj;
 	public DD PMj_pGivenMjAjOj_p;
+	public DD PThetajGivenMj;
 	public List<DD> Taus;
 
 	public List<Tuple<Integer, PBVISolvablePOMDPBasedModel>> framesj;
@@ -93,6 +94,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		this.framesj = frames_j.stream().map(
 				t -> Tuple.of(Global.valNames.get(i_Thetaj - 1).indexOf(t._0()), (PBVISolvablePOMDPBasedModel) t._1()))
 				.collect(Collectors.toList());
+
+		Collections.sort(this.framesj, (f1, f2) -> f1._0() - f2._0());
 
 		// verify and prepare Oj
 		var incorrectFrame = this.framesj.stream().filter(f -> !f._1().Om().equals(this.framesj.get(0)._1().Om()))
@@ -170,6 +173,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			createFirstb_i();
 
 		createPAjMj();
+		createPThetajMj();
 		createPMj_pMjAjOj_p();
 
 		R = R.stream().map(ra -> DDOP.addMultVarElim(List.of(PAjGivenMj, ra), List.of(i_Aj)))
@@ -185,12 +189,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 						DDnode.getDDForChild(i_Mj, Collections.binarySearch(Global.valNames.get(i_Mj - 1), b))))
 				.reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
 
-		// LOGGER.debug(String.format("Mj is %s", Global.valNames.get(i_Mj - 1)));
-		// b_js.stream().forEach(b -> {
-		// var child = Collections.binarySearch(Global.valNames.get(i_Mj - 1), b);
-		// LOGGER.debug(String.format("Child for %s is %s", b, child));
-		// });
-
 		b_i = DDOP.reorder(DDOP.mult(b_i, b_MjDD));
 
 		var b_iSanity = DDOP.addMultVarElim(List.of(b_i), i_S());
@@ -205,7 +203,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createIS() {
 
-		this.framesjSoln.stream().parallel().forEach(f ->
+		this.framesjSoln.stream().forEach(f ->
 			{
 
 				f.solve();
@@ -238,6 +236,18 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		var AjDDs = MjToOPTAj.stream().map(m -> m._1()).toArray(DD[]::new);
 		PAjGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, AjDDs));
+	}
+
+	public void createPThetajMj() {
+
+		var ThetajToMj = mjMap.k2v.entrySet().stream()
+				.map(e -> Tuple.of(DDnode.getDDForChild(i_Thetaj, e.getKey()._0()), e.getValue()))
+				.collect(Collectors.toList());
+
+		Collections.sort(ThetajToMj, (a, b) -> a._1().compareTo(b._1()));
+
+		var ThetajDDs = ThetajToMj.stream().map(m -> m._0()).toArray(DD[]::new);
+		PThetajGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, ThetajDDs));
 	}
 
 	public void createPMj_pMjAjOj_p() {
@@ -289,9 +299,10 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var Ofao = DDOP.restrict(O().get(a), i_Om_p, o);
 
 		var factors = new ArrayList<DD>(S().size() + S().size() + Omj.size() + 3);
-
+		
 		factors.add(b);
 		factors.add(PAjGivenMj);
+		factors.add(PThetajGivenMj);
 		factors.add(PMj_pGivenMjAjOj_p);
 		factors.addAll(T().get(a));
 		factors.addAll(Oj.get(a));
@@ -299,7 +310,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		var vars = new ArrayList<Integer>(factors.size());
 		vars.addAll(i_S());
-		// vars.add(i_Thetaj);
+		vars.add(i_Thetaj);
 		vars.add(i_Aj);
 		vars.addAll(i_Omj_p);
 
@@ -308,7 +319,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), -(Global.NUM_VARS / 2));
 		var stateVars = new ArrayList<Integer>(S().size() + 2);
 		stateVars.addAll(i_S());
-		// stateVars.add(i_Thetaj);
+		stateVars.add(i_Thetaj);
 
 		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
 		b_p = DDOP.div(b_p, prob);
@@ -341,6 +352,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		factors.add(b);
 		factors.add(PAjGivenMj);
+		factors.add(PThetajGivenMj);
 		factors.add(PMj_pGivenMjAjOj_p);
 		factors.addAll(T().get(a));
 		factors.addAll(O().get(a));
@@ -385,6 +397,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		factors.addAll(DDOP.restrict(O().get(a), i_Om_p, o));
 		factors.addAll(T().get(a));
 		factors.add(PAjGivenMj);
+		factors.add(PThetajGivenMj);
 		factors.add(Taus.get(a));
 		factors.add(DDOP.primeVars(d, Global.NUM_VARS / 2));
 
