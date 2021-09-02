@@ -744,6 +744,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSolv_name(SpuddXParser.Solv_nameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPol_name(SpuddXParser.Pol_nameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPol_name(SpuddXParser.Pol_nameContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

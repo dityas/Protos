@@ -666,4 +666,14 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSolv_name(SpuddXParser.Solv_nameContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#pol_name}.
+	 * @param ctx the parse tree
+	 */
+	void enterPol_name(SpuddXParser.Pol_nameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#pol_name}.
+	 * @param ctx the parse tree
+	 */
+	void exitPol_name(SpuddXParser.Pol_nameContext ctx);
 }

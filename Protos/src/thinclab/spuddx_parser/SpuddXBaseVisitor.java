@@ -439,4 +439,11 @@ public class SpuddXBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitSolv_name(SpuddXParser.Solv_nameContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitPol_name(SpuddXParser.Pol_nameContext ctx) { return visitChildren(ctx); }
 }

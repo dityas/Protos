@@ -401,4 +401,10 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitSolv_name(SpuddXParser.Solv_nameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#pol_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPol_name(SpuddXParser.Pol_nameContext ctx);
 }

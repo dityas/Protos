@@ -118,10 +118,11 @@ exp_horizon : FLOAT_NUM ;
 env_name : IDENTIFIER ;
 action_name : IDENTIFIER ;
 model_name : IDENTIFIER ;
-dd_name : IDENTIFIER;
-var_name : IDENTIFIER;
+dd_name : IDENTIFIER ;
+var_name : IDENTIFIER ;
 var_value : IDENTIFIER ;
-solv_name : IDENTIFIER;
+solv_name : IDENTIFIER ;
+pol_name : IDENTIFIER ;
 
 ENV : 'ENV' | 'env' ;
 DD : 'DD' | 'dd' ;

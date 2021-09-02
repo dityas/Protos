@@ -154,6 +154,12 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			}
 
 		}
+		
+		if (bestAlpha < 0) {
+			LOGGER.error(String.format("Could not find best alpha vector while backing up at %s", b));
+			LOGGER.debug(String.format("All Alphas are: %s", alphas));
+			System.exit(-1);
+		}
 
 		return Tuple.of(bestVal, bestAlpha);
 	}
