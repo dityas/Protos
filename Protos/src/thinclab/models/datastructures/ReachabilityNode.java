@@ -7,6 +7,8 @@
  */
 package thinclab.models.datastructures;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import thinclab.legacy.DD;
@@ -23,6 +25,13 @@ public class ReachabilityNode {
 	public ReachabilityNode(int alphaId) {
 
 		this.alphaId = alphaId;
+		beliefs = new HashSet<DD>(5);
+	}
+
+	public ReachabilityNode(int alphaId, Collection<DD> beliefPoints) {
+
+		this(alphaId);
+		beliefs.addAll(beliefPoints);
 	}
 
 	@Override
@@ -53,6 +62,16 @@ public class ReachabilityNode {
 			return false;
 
 		return true;
+	}
+
+	@Override
+	public String toString() {
+
+		var builder = new StringBuilder();
+		builder.append("ReachabilityNode [").append("alphaId = ").append(alphaId).append(" [b] = ").append(beliefs)
+				.append("]");
+		
+		return builder.toString();
 	}
 
 }

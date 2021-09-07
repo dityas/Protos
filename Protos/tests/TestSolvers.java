@@ -8,12 +8,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
+import thinclab.model_ops.belief_exploration.PolicyGraphExpansion;
 import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.IPOMDP;
 import thinclab.models.POMDP;
+import thinclab.models.datastructures.ModelGraph;
 import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
@@ -163,7 +167,7 @@ class TestSolvers {
 
 		LOGGER.info(String.format("Suggested optimal action for %s  is %s which resolves to %s",
 				DDOP.factors(b_, I.i_S()), bestAct, I.A().get(bestAct)));
-		
+
 		assertTrue(bestAct == 0);
 
 		LOGGER.info(String.format("Agent hears %s, %s ", Global.valNames.get(I.i_Om.get(0) - 1).get(0),
@@ -212,12 +216,48 @@ class TestSolvers {
 		var ES = new SSGAExploration<IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(0.0f);
 
 		int numNodes = G.getAllNodes().size();
-		
+
 		G = ES.expand(G, I, I.H, policy);
-		
+
 		assertTrue(G.getAllNodes().size() > numNodes);
 
 		System.gc();
+		printMemConsumption();
+	}
+
+	@Test
+	void testPolicyGraphExpansion() throws Exception {
+
+		System.gc();
+
+		LOGGER.info("Running Single agent tiger problem to test policy trace");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
+				.getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+
+		var solver = new SymbolicPerseusSolver<POMDP>();
+		var policy = solver.solve(I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
+
+		var modelGraph = ModelGraph.fromDecMakingModel(I);
+		var expansionStrat = new PolicyGraphExpansion<ReachabilityNode, POMDP, AlphaVectorPolicy>();
+		
+		var initNode = new ReachabilityNode(-1);
+		initNode.beliefs.add(DDleaf.getDD(0.5f));
+		
+		modelGraph = expansionStrat.expand(List.of(initNode), modelGraph, I, policy);
+		
 		printMemConsumption();
 	}
 
