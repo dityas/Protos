@@ -27,13 +27,13 @@ import thinclab.policy.AlphaVectorPolicy;
  * @author adityas
  *
  */
-public class PolicyGraphExpansion<N extends ReachabilityNode, M extends PBVISolvablePOMDPBasedModel, P extends AlphaVectorPolicy>
-		implements ModelGraphExpansionStrategy<N, M, P> {
+public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P extends AlphaVectorPolicy>
+		implements ModelGraphExpansionStrategy<ReachabilityNode, M, P> {
 
 	private static final Logger LOGGER = LogManager.getLogger(PolicyGraphExpansion.class);
 
-	public HashMap<Integer, ReachabilityNode> expandReachabilityNode(N node, M m, P p,
-			ModelGraph<N, Integer, List<Integer>> g) {
+	public HashMap<Integer, ReachabilityNode> expandReachabilityNode(ReachabilityNode node, M m, P p,
+			ModelGraph<ReachabilityNode, Integer, List<Integer>> g, int h) {
 
 		var nextNodes = new HashMap<Integer, ReachabilityNode>(10);
 
@@ -57,8 +57,12 @@ public class PolicyGraphExpansion<N extends ReachabilityNode, M extends PBVISolv
 							if (nextNodes.containsKey(e.getValue()))
 								_node = nextNodes.get(e.getValue());
 
-							else
-								_node = new ReachabilityNode(DDOP.bestAlphaIndex(p.aVecs, b_next, m.i_S()));
+							else {
+
+								int bestAlpha = DDOP.bestAlphaIndex(p.aVecs, b_next, m.i_S());
+								_node = new ReachabilityNode(bestAlpha, p.aVecs.get(bestAlpha)._0());
+								_node.h = h;
+							}
 
 							_node.beliefs.add(b_next);
 							nextNodes.put(e.getValue(), _node);
@@ -78,17 +82,38 @@ public class PolicyGraphExpansion<N extends ReachabilityNode, M extends PBVISolv
 	}
 
 	@Override
-	public ModelGraph<N, Integer, List<Integer>> expand(List<N> startNodes, ModelGraph<N, Integer, List<Integer>> G,
-			M m, P p) {
+	public ModelGraph<ReachabilityNode, Integer, List<Integer>> expand(List<ReachabilityNode> startNodes,
+			ModelGraph<ReachabilityNode, Integer, List<Integer>> G, M m, int T, P p) {
 
-		startNodes.stream().forEach(n ->
-			{
+		startNodes.stream().forEach(G::addNode);
+		int i = 0;
 
-				var nextNodes = expandReachabilityNode(n, m, p, G);
-			});
-		LOGGER.debug(String.format("Next nodes are %s", nextNodes));
+		while (i < T) {
 
-		return null;
+			int t = i + 1;
+			var _sNodes = G.getAllChildren();
+			LOGGER.debug(String.format("Expanding from %s nodes containing %s beliefs in total", _sNodes.size(),
+					_sNodes.stream().map(__n -> __n.beliefs.size()).reduce(0, (a, b) -> a + b)));
+
+			_sNodes.stream().forEach(n ->
+				{
+
+					var nextNodes = expandReachabilityNode(n, m, p, G, t);
+					G.edgeIndexMap.entrySet().stream().forEach(e ->
+						{
+
+							if (nextNodes.containsKey(e.getValue())) {
+
+								G.addEdge(n, e.getKey(), nextNodes.get(e.getValue()));
+							}
+
+						});
+
+				});
+			i++;
+		}
+
+		return G;
 	}
 
 }

@@ -20,5 +20,5 @@ import thinclab.policy.AlphaVectorPolicy;
 public interface ModelGraphExpansionStrategy<N extends ReachabilityNode, M extends PBVISolvablePOMDPBasedModel, P extends AlphaVectorPolicy> {
 
 	public ModelGraph<N, Integer, List<Integer>> expand(List<N> startNodes, ModelGraph<N, Integer, List<Integer>> G,
-			M m, P p);
+			M m, int T, P p);
 }

@@ -7,6 +7,7 @@
  */
 package thinclab.models.datastructures;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -14,6 +15,7 @@ import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
+import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.utils.Tuple;
@@ -25,7 +27,7 @@ import thinclab.utils.Tuple;
 public class ModelGraph<N extends ReachabilityNode, A, O> extends AbstractAOGraph<N, A, O> {
 
 	private static final Logger LOGGER = LogManager.getLogger(ModelGraph.class);
-	
+
 	public ModelGraph(final List<Tuple<A, O>> AOSpace) {
 
 		this.connections = new ConcurrentHashMap<>(10);
@@ -46,6 +48,79 @@ public class ModelGraph<N extends ReachabilityNode, A, O> extends AbstractAOGrap
 				.flatMap(i -> oSpace.stream().map(o -> Tuple.of(i, o))).collect(Collectors.toList());
 
 		return new ModelGraph<>(aoSpace);
+	}
+
+	@Override
+	public String toString() {
+
+		var builder = new StringBuilder();
+		builder.append("Model Graph: [").append("\r\n").append("edges: {\r\n");
+
+		this.edgeIndexMap.entrySet().stream().forEach(e ->
+			{
+
+				builder.append("\t").append(e.getKey()).append(" -> ").append(e.getValue()).append("\r\n");
+			});
+
+		builder.append("}\r\n");
+		builder.append("nodes: {\r\n");
+
+		this.connections.entrySet().stream().forEach(e ->
+			{
+
+				builder.append("\t").append(e.getKey()).append(" -> ").append(e.getValue()).append("\r\n");
+			});
+
+		builder.append("}\r\n]");
+
+		return builder.toString();
+	}
+
+	public static String toDot(ModelGraph<ReachabilityNode, Integer, List<Integer>> G, POSeqDecMakingModel<?> m) {
+
+		var nodeMap = new HashMap<ReachabilityNode, Integer>(G.connections.size());
+
+		var builder = new StringBuilder();
+		builder.append("digraph D {").append("\r\n").append("\t node [shape=record];\r\n");
+
+		for (var _n : G.connections.keySet()) {
+
+			nodeMap.put(_n, nodeMap.size());
+			builder.append(nodeMap.get(_n)).append(" [label=\"");
+
+			//if (_n.alphaId < 0)
+			builder.append(_n.beliefs).append(" , A=");
+
+			builder.append(m.A().get(_n.i_a));
+			
+			if (_n.h >= 0)
+				builder.append(" t= ").append(_n.h);
+			
+			builder.append("\"]\r\n");
+		}
+
+		builder.append("\r\n");
+
+		for (var _n : G.connections.keySet()) {
+
+			for (var edge : G.edgeIndexMap.keySet()) {
+
+				if (G.connections.get(_n).get(G.edgeIndexMap.get(edge)) != null) {
+
+					builder.append(nodeMap.get(_n)).append(" -> ")
+							.append(nodeMap.get(G.connections.get(_n).get(G.edgeIndexMap.get(edge))))
+							.append(" [label=\" ")
+							.append(IntStream.range(0, m.i_Om().size())
+									.mapToObj(i -> Global.valNames.get(m.i_Om().get(i) - 1).get(edge._1().get(i) - 1))
+									.collect(Collectors.toList()))
+							.append("\"]\r\n");
+				}
+			}
+
+		}
+
+		builder.append("}\r\n");
+		return builder.toString();
 	}
 
 }

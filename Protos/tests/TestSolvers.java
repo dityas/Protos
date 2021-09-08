@@ -251,13 +251,17 @@ class TestSolvers {
 		var policy = solver.solve(I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
 
 		var modelGraph = ModelGraph.fromDecMakingModel(I);
-		var expansionStrat = new PolicyGraphExpansion<ReachabilityNode, POMDP, AlphaVectorPolicy>();
+		var expansionStrat = new PolicyGraphExpansion<POMDP, AlphaVectorPolicy>();
 		
-		var initNode = new ReachabilityNode(-1);
+		var initNode = new ReachabilityNode(-1, policy.getBestActionIndex(DDleaf.getDD(0.5f), I.i_S()));
 		initNode.beliefs.add(DDleaf.getDD(0.5f));
+		initNode.h = 0;
 		
-		modelGraph = expansionStrat.expand(List.of(initNode), modelGraph, I, policy);
+		modelGraph = expansionStrat.expand(List.of(initNode), modelGraph, I, 5, policy);
+	
+		LOGGER.debug(String.format("Graph is %s", ModelGraph.toDot(modelGraph, I)));
 		
+		assertTrue(modelGraph.getAllChildren().size() > 0 && modelGraph.getParents().size() > 0);
 		printMemConsumption();
 	}
 
