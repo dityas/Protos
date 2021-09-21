@@ -71,7 +71,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			DD initialBelief, float discount, int H) {
 
 		// initialize dynamics like POMDP
-		super(S, O, A, dynamics, R, initialBelief, discount);
+		super(S, O, A, dynamics, R, discount);
 
 		// random variable for opponent's action
 		this.i_Aj = Global.varNames.indexOf(Aj) + 1;

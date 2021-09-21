@@ -593,13 +593,13 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDDExecExpr(SpuddXParser.DDExecExprContext ctx) { }
+	@Override public void enterDDExecDef(SpuddXParser.DDExecDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDDExecExpr(SpuddXParser.DDExecExprContext ctx) { }
+	@Override public void exitDDExecDef(SpuddXParser.DDExecDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -612,6 +612,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSolvExpr(SpuddXParser.SolvExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPolTreeExpr(SpuddXParser.PolTreeExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPolTreeExpr(SpuddXParser.PolTreeExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -636,6 +648,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSolv_cmd(SpuddXParser.Solv_cmdContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterDd_list(SpuddXParser.Dd_listContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDd_list(SpuddXParser.Dd_listContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -672,6 +696,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitEnv_name(SpuddXParser.Env_nameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPolicy_name(SpuddXParser.Policy_nameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPolicy_name(SpuddXParser.Policy_nameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

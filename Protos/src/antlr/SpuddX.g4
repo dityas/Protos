@@ -32,7 +32,6 @@ pomdp_def : LP 'defpomdp' model_name
 			obs_list
 			action_var
 			dynamics
-			initial_belief
 			reward
 			discount
 			RP
@@ -46,7 +45,6 @@ ipomdp_def : LP 'defipomdp' model_name
 			 model_j_var
 			 frame_def
              dynamics
-             initial_belief
              reward
              discount
              reachability
@@ -105,17 +103,20 @@ dbn_def : LP 'defdbn' model_name (cpd_def)* RP ;
 cpd_def : LP var_name dd_expr RP ;
 
 exec_block : LP 'run' (exec_expr)* RP;
-exec_expr : dd_name '=' dd_expr 	# DDExecExpr
-		  | solv_cmd 				# SolvExpr
-		  | LP exec_expr RP 		# ParenExecExpr
+exec_expr : dd_def													# DDExecDef
+		  | 'defpol' policy_name '=' solv_cmd 						# SolvExpr
+		  | 'poltree' dd_list model_name policy_name exp_horizon	# PolTreeExpr
+		  | LP exec_expr RP 										# ParenExecExpr
 		  ;
 
 solv_cmd : 'solve' solv_name model_name backups exp_horizon;
+dd_list : LP (dd_expr)+ RP ;
 
 backups : FLOAT_NUM ;
 exp_horizon : FLOAT_NUM ;
 
 env_name : IDENTIFIER ;
+policy_name : IDENTIFIER ;
 action_name : IDENTIFIER ;
 model_name : IDENTIFIER ;
 dd_name : IDENTIFIER ;

@@ -88,14 +88,16 @@ public class ModelGraph<N extends ReachabilityNode, A, O> extends AbstractAOGrap
 			nodeMap.put(_n, nodeMap.size());
 			builder.append(nodeMap.get(_n)).append(" [label=\"");
 
-			//if (_n.alphaId < 0)
-			builder.append(_n.beliefs).append(" , A=");
+			// if (_n.alphaId < 0)
+			builder.append(_n.beliefs.stream().map(b -> DDOP.factors(b, m.i_S())).collect(Collectors.toList()))
+					.append(" , A=");
 
 			builder.append(m.A().get(_n.i_a));
-			
+			builder.append(" alpha= ").append(_n.alphaId);
+
 			if (_n.h >= 0)
 				builder.append(" t= ").append(_n.h);
-			
+
 			builder.append("\"]\r\n");
 		}
 

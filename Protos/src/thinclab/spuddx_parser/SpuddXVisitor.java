@@ -321,12 +321,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExec_block(SpuddXParser.Exec_blockContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code DDExecExpr}
+	 * Visit a parse tree produced by the {@code DDExecDef}
 	 * labeled alternative in {@link SpuddXParser#exec_expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDDExecExpr(SpuddXParser.DDExecExprContext ctx);
+	T visitDDExecDef(SpuddXParser.DDExecDefContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code SolvExpr}
 	 * labeled alternative in {@link SpuddXParser#exec_expr}.
@@ -334,6 +334,13 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitSolvExpr(SpuddXParser.SolvExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code PolTreeExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPolTreeExpr(SpuddXParser.PolTreeExprContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code ParenExecExpr}
 	 * labeled alternative in {@link SpuddXParser#exec_expr}.
@@ -347,6 +354,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitSolv_cmd(SpuddXParser.Solv_cmdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#dd_list}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDd_list(SpuddXParser.Dd_listContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#backups}.
 	 * @param ctx the parse tree
@@ -365,6 +378,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitEnv_name(SpuddXParser.Env_nameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#policy_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPolicy_name(SpuddXParser.Policy_nameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#action_name}.
 	 * @param ctx the parse tree

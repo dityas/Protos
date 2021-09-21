@@ -29,7 +29,6 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 	public final List<String> S;
 	public final List<String> O;
 	public final List<String> A;
-	public DD b_i;
 	public final float discount;
 
 	public final List<Integer> i_S;
@@ -47,7 +46,7 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 	private static final Logger LOGGER = LogManager.getLogger(PBVISolvablePOMDPBasedModel.class);
 
 	public PBVISolvablePOMDPBasedModel(List<String> S, List<String> O, String A, HashMap<String, Model> dynamics,
-			HashMap<String, DD> R, DD initialBelief, float discount) {
+			HashMap<String, DD> R, float discount) {
 
 		// variable names
 		this.S = this.sortByVarOrdering(S, Global.varNames);
@@ -90,7 +89,6 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 
 		this.R = this.A.stream().map(a -> R.containsKey(a) ? R.get(a) : DD.zero).collect(Collectors.toList());
 
-		this.b_i = initialBelief;
 		this.discount = discount;
 
 	}
@@ -151,12 +149,6 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 	public List<String> S() {
 
 		return this.S;
-	}
-
-	@Override
-	public DD b_i() {
-
-		return this.b_i;
 	}
 
 	@Override

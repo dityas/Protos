@@ -53,13 +53,18 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 						if (!b_next.equals(DDleaf.getDD(Float.NaN))) {
 
 							ReachabilityNode _node = null;
+							int bestAlpha = DDOP.bestAlphaIndex(p.aVecs, b_next, m.i_S());
 
-							if (nextNodes.containsKey(e.getValue()))
+							var __node = nextNodes.values().stream().filter(n -> n.alphaId == bestAlpha).findFirst();
+
+							if (__node.isPresent())
+								_node = __node.get();
+
+							else if (nextNodes.containsKey(e.getValue()))
 								_node = nextNodes.get(e.getValue());
 
 							else {
 
-								int bestAlpha = DDOP.bestAlphaIndex(p.aVecs, b_next, m.i_S());
 								_node = new ReachabilityNode(bestAlpha, p.aVecs.get(bestAlpha)._0());
 								_node.h = h;
 							}

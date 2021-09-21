@@ -118,6 +118,8 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			if (bellmanError < 0.01 && i > 5) {
 
 				LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));
+				LOGGER.info("Convergence, software version 7.0, looking at life through the eyes of a tired heart.");
+				LOGGER.info("Eating seeds as a past time activity, the toxicity of my city of my city.");
 				break;
 			}
 

@@ -531,17 +531,17 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitExec_block(SpuddXParser.Exec_blockContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code DDExecExpr}
+	 * Enter a parse tree produced by the {@code DDExecDef}
 	 * labeled alternative in {@link SpuddXParser#exec_expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterDDExecExpr(SpuddXParser.DDExecExprContext ctx);
+	void enterDDExecDef(SpuddXParser.DDExecDefContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code DDExecExpr}
+	 * Exit a parse tree produced by the {@code DDExecDef}
 	 * labeled alternative in {@link SpuddXParser#exec_expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitDDExecExpr(SpuddXParser.DDExecExprContext ctx);
+	void exitDDExecDef(SpuddXParser.DDExecDefContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code SolvExpr}
 	 * labeled alternative in {@link SpuddXParser#exec_expr}.
@@ -554,6 +554,18 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSolvExpr(SpuddXParser.SolvExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PolTreeExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterPolTreeExpr(SpuddXParser.PolTreeExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PolTreeExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitPolTreeExpr(SpuddXParser.PolTreeExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code ParenExecExpr}
 	 * labeled alternative in {@link SpuddXParser#exec_expr}.
@@ -576,6 +588,16 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSolv_cmd(SpuddXParser.Solv_cmdContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#dd_list}.
+	 * @param ctx the parse tree
+	 */
+	void enterDd_list(SpuddXParser.Dd_listContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#dd_list}.
+	 * @param ctx the parse tree
+	 */
+	void exitDd_list(SpuddXParser.Dd_listContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#backups}.
 	 * @param ctx the parse tree
@@ -606,6 +628,16 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitEnv_name(SpuddXParser.Env_nameContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#policy_name}.
+	 * @param ctx the parse tree
+	 */
+	void enterPolicy_name(SpuddXParser.Policy_nameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#policy_name}.
+	 * @param ctx the parse tree
+	 */
+	void exitPolicy_name(SpuddXParser.Policy_nameContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#action_name}.
 	 * @param ctx the parse tree

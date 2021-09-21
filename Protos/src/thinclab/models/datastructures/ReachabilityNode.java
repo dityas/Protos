@@ -36,6 +36,15 @@ public class ReachabilityNode {
 		this(alphaId, actId);
 		beliefs.addAll(beliefPoints);
 	}
+	
+	public static ReachabilityNode getStartNode(int actId, DD startBelief) {
+		
+		var node = new ReachabilityNode(-1, actId);
+		node.beliefs.add(startBelief);
+		node.h = 0;
+		
+		return node;
+	}
 
 	@Override
 	public int hashCode() {

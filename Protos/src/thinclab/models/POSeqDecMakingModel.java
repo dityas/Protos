@@ -35,8 +35,6 @@ public interface POSeqDecMakingModel<R> extends Model {
 
 	public List<R> R();
 
-	public R b_i();
-
 	// belief update implementations
 	public R beliefUpdate(R b, int a, List<Integer> o);
 
