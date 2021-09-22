@@ -36,14 +36,14 @@ public class PBVISolvableFrameSolution {
 	public SymbolicPerseusSolver<PBVISolvablePOMDPBasedModel> s;
 	public AlphaVectorPolicy Vn;
 
-	public PBVISolvableFrameSolution(int f, PBVISolvablePOMDPBasedModel _m, int H) {
+	public PBVISolvableFrameSolution(List<DD> b_is, int f, PBVISolvablePOMDPBasedModel _m, int H) {
 
 		this.H = H;
 		this.frame = f;
 		this.m = _m;
 		Vn = AlphaVectorPolicy.fromR(m.R());
 		s = new SymbolicPerseusSolver<>();
-		b_is = List.of(m.b_i());
+		this.b_is = b_is;
 	}
 
 	public void solve() {
@@ -51,9 +51,9 @@ public class PBVISolvableFrameSolution {
 		RG = ReachabilityGraph.fromDecMakingModel(m);
 		b_is.stream().forEach(RG::addNode);
 		RG = new BreadthFirstExploration<DD, PBVISolvablePOMDPBasedModel, ReachabilityGraph, AlphaVectorPolicy>(10000)
-				.expand(RG, m, H, Vn);
+				.expand(b_is, RG, m, H, Vn);
 	
-		Vn = s.solve(m, 100, H, Vn);
+		Vn = s.solve(b_is, m, 100, H, Vn);
 
 	}
 

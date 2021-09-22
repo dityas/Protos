@@ -38,7 +38,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 	}
 
 	@Override
-	public G expand(G g, M m, int T, P Vn) {
+	public G expand(List<DD> bs, G g, M m, int T, P Vn) {
 
 		float Pa = 1 - e;
 
@@ -52,41 +52,43 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
 		for (int n = 0; n < 30; n++) {
 
-			DD b = m.b_i();
-			for (int i = 0; i < T; i++) {
+			for (DD b : bs) {
 
-				if (g.getAllNodes().size() >= maxB)
-					break;
+				for (int i = 0; i < T; i++) {
 
-				var usePolicy = DDOP.sampleIndex(List.of(e, Pa));
-				int a = -1;
+					if (g.getAllNodes().size() >= maxB)
+						break;
 
-				if (usePolicy == 1)
-					a = Vn.getBestActionIndex(b, m.i_S());
+					var usePolicy = DDOP.sampleIndex(List.of(e, Pa));
+					int a = -1;
 
-				else if (usePolicy == 0)
-					a = Global.random.nextInt(m.A().size());
+					if (usePolicy == 1)
+						a = Vn.getBestActionIndex(b, m.i_S());
 
-				else {
+					else if (usePolicy == 0)
+						a = Global.random.nextInt(m.A().size());
 
-					LOGGER.error("Error while sampling exploration probability");
-					System.exit(-1);
+					else {
+
+						LOGGER.error("Error while sampling exploration probability");
+						System.exit(-1);
+					}
+
+					var oSampled = DDOP.sample(List.of(m.obsLikelihoods(b, a)), m.i_Om_p());
+
+					var _edge = Tuple.of(a, oSampled._1());
+					var b_ = g.getNodeAtEdge(b, _edge);
+
+					if (b_ == null) {
+
+						var b_n = m.beliefUpdate(b, _edge._0(), _edge._1());
+						g.addEdge(b, _edge, b_n);
+						b = b_n;
+					}
+
+					else
+						b = b_;
 				}
-				
-				var oSampled = DDOP.sample(List.of(m.obsLikelihoods(b, a)), m.i_Om_p());
-
-				var _edge = Tuple.of(a, oSampled._1());
-				var b_ = g.getNodeAtEdge(b, _edge);
-
-				if (b_ == null) {
-
-					var b_n = m.beliefUpdate(b, _edge._0(), _edge._1());
-					g.addEdge(b, _edge, b_n);
-					b = b_n;
-				}
-
-				else
-					b = b_;
 			}
 		}
 

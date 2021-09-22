@@ -57,7 +57,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public DD PThetajGivenMj;
 	public List<DD> Taus;
 
-	public List<Tuple<Integer, PBVISolvablePOMDPBasedModel>> framesj;
+	public List<Tuple3<Integer, PBVISolvablePOMDPBasedModel, List<DD>>> framesj;
 	public List<PBVISolvableFrameSolution> framesjSoln;
 
 	// public HashMap<Tuple<Integer, DD>, Integer> mjMap = new HashMap<>(1000);
@@ -67,8 +67,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
 
 	public IPOMDP(List<String> S, List<String> O, String A, String Aj, String Mj, String Thetaj,
-			List<Tuple<String, Model>> frames_j, HashMap<String, Model> dynamics, HashMap<String, DD> R,
-			DD initialBelief, float discount, int H) {
+			List<Tuple3<String, Model, List<DD>>> frames_j, HashMap<String, Model> dynamics, HashMap<String, DD> R, 
+			float discount, int H) {
 
 		// initialize dynamics like POMDP
 		super(S, O, A, dynamics, R, discount);
@@ -92,7 +92,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		// initialize frames
 		this.framesj = frames_j.stream().map(
-				t -> Tuple.of(Global.valNames.get(i_Thetaj - 1).indexOf(t._0()), (PBVISolvablePOMDPBasedModel) t._1()))
+				t -> Tuple.of(Global.valNames.get(i_Thetaj - 1).indexOf(t._0()), (PBVISolvablePOMDPBasedModel) t._1(), t._2()))
 				.collect(Collectors.toList());
 
 		Collections.sort(this.framesj, (f1, f2) -> f1._0() - f2._0());
@@ -144,7 +144,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		Collections.sort(gaoivars);
 
 		// prepare structures for solving frames
-		this.framesjSoln = this.framesj.stream().map(f -> new PBVISolvableFrameSolution(f._0(), f._1(), H))
+		this.framesjSoln = this.framesj.stream().map(f -> new PBVISolvableFrameSolution(f._2(), f._0(), f._1(), H))
 				.collect(Collectors.toList());
 
 		// create interactive state space using mjs
@@ -168,37 +168,12 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		createIS();
 
-		// weird way to create initial belief the first time, but ok...
-		if (PAjGivenMj == null)
-			createFirstb_i();
-
 		createPAjMj();
 		createPThetajMj();
 		createPMj_pMjAjOj_p();
 
 		R = R.stream().map(ra -> DDOP.addMultVarElim(List.of(PAjGivenMj, ra), List.of(i_Aj)))
 				.collect(Collectors.toList());
-	}
-
-	public void createFirstb_i() {
-
-		var b_js = framesjSoln.stream().flatMap(f -> f.bMjList().stream().map(b -> mjMap.k2v.get(b)))
-				.collect(Collectors.toList());
-		var b_MjDD = b_js.stream()
-				.map(b -> DDOP.mult(DDleaf.getDD(1.0f / b_js.size()),
-						DDnode.getDDForChild(i_Mj, Collections.binarySearch(Global.valNames.get(i_Mj - 1), b))))
-				.reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
-
-		b_i = DDOP.reorder(DDOP.mult(b_i, b_MjDD));
-
-		var b_iSanity = DDOP.addMultVarElim(List.of(b_i), i_S());
-		if (DDOP.maxAll(DDOP.abs(DDOP.sub(b_iSanity, DD.one))) > 1e-5) {
-
-			LOGGER.error(String.format("b_i: %s, # (S) b_i is %s != 1.0", DDOP.factors(b_i, i_S()),
-					DDOP.addMultVarElim(List.of(b_i), i_S())));
-			LOGGER.error("IPOMDP failed sanity check");
-			System.exit(-1);
-		}
 	}
 
 	public void createIS() {

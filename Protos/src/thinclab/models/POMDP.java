@@ -29,13 +29,13 @@ import thinclab.utils.Tuple3;
 public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 	private TypedCacheMap<Tuple3<DD, Integer, Integer>, Float> obsProbCache = new TypedCacheMap<>(1000);
-	
+
 	private static final Logger LOGGER = LogManager.getLogger(POMDP.class);
 
 	public POMDP(List<String> S, List<String> O, String A, HashMap<String, Model> dynamics, HashMap<String, DD> R,
-			DD initialBelief, float discount) {
+			float discount) {
 
-		super(S, O, A, dynamics, R, initialBelief, discount);
+		super(S, O, A, dynamics, R, discount);
 	}
 
 	@Override
@@ -57,7 +57,6 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 		builder.append("R : ").append("\r\n");
 
-		builder.append("b : ").append(this.b_i).append("\r\n");
 		builder.append("discount : ").append(this.discount).append("\r\n");
 
 		builder.append("]").append("\r\n");
@@ -124,20 +123,19 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 	// ----------------------------------------------------------------------------------------
 	// PBVISolvable implementations
-		
+
 	public DD project(DD d, int a, List<Integer> o) {
-		
+
 		var factors = new ArrayList<DD>(S.size() + Om().size() + 1);
 		factors.addAll(DDOP.restrict(O().get(a), i_Om_p, o));
 		factors.addAll(T().get(a));
 		factors.add(DDOP.primeVars(d, Global.NUM_VARS / 2));
-		
+
 		var results = DDOP.addMultVarElim(factors, i_S_p());
-		
+
 		return results;
 	}
 
-	
 	public Tuple<Float, Integer> Gaoi(final DD b, final int a, final List<Integer> o, final List<DD> alphas) {
 
 		float bestVal = Float.NEGATIVE_INFINITY;
@@ -154,8 +152,9 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			}
 
 		}
-		
+
 		if (bestAlpha < 0) {
+
 			LOGGER.error(String.format("Could not find best alpha vector while backing up at %s", b));
 			LOGGER.debug(String.format("All Alphas are: %s", alphas));
 			System.exit(-1);
@@ -163,7 +162,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 		return Tuple.of(bestVal, bestAlpha);
 	}
-	
+
 	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
 
 		int bestA = -1;

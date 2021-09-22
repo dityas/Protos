@@ -221,6 +221,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		String modelName = ctx.solv_cmd().model_name().getText();
 		int backups = Integer.valueOf(ctx.solv_cmd().backups().getText());
 		int expHorizon = Integer.valueOf(ctx.solv_cmd().exp_horizon().getText());
+		List<DD> dds = ctx.solv_cmd().dd_list().dd_expr().stream().map(this.ddParser::visit).collect(Collectors.toList());
 
 		String policyName = ctx.policy_name().IDENTIFIER().getText();
 
@@ -236,7 +237,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 			}
 
 			SymbolicPerseusSolver<POMDP> solver = (SymbolicPerseusSolver<POMDP>) this.solvers.get(solverName);
-			var policy = solver.solve(_model, backups, expHorizon, AlphaVectorPolicy.fromR(_model.R()));
+			var policy = solver.solve(dds, _model, backups, expHorizon, AlphaVectorPolicy.fromR(_model.R()));
 
 			this.policies.put(policyName, policy);
 			LOGGER.info(String.format("Solved %s and stored policy %s", modelName, policyName));
@@ -254,7 +255,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 			}
 
 			SymbolicPerseusSolver<IPOMDP> solver = (SymbolicPerseusSolver<IPOMDP>) this.solvers.get(solverName);
-			var policy = solver.solve(_model, backups, _model.H, AlphaVectorPolicy.fromR(_model.R()));
+			var policy = solver.solve(dds, _model, backups, _model.H, AlphaVectorPolicy.fromR(_model.R()));
 
 			this.policies.put(policyName, policy);
 			LOGGER.info(String.format("Solved %s and stored policy %s", modelName, policyName));

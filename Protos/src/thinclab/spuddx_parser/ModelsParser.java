@@ -65,10 +65,9 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 				R.put(ar.action_name().getText(), this.ddParser.visit(ar.dd_expr()));
 			});
 
-		DD b = this.ddParser.visit(ctx.pomdp_def().initial_belief().dd_expr());
 		float discount = Float.valueOf(ctx.pomdp_def().discount().FLOAT_NUM().getText());
 
-		var pomdp = new POMDP(S, O, A, dynamics, R, b, discount);
+		var pomdp = new POMDP(S, O, A, dynamics, R, discount);
 
 		return pomdp;
 	}
@@ -87,7 +86,8 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		String Thetaj = ctx.ipomdp_def().frame_def().var_name().IDENTIFIER().getText();
 		var _frames = ctx.ipomdp_def().frame_def().frame_tuple().stream()
 				.map(t -> Tuple.of(t.var_value().IDENTIFIER().getText(),
-						this.declaredModels.get(t.model_name().IDENTIFIER().getText())))
+						this.declaredModels.get(t.model_name().IDENTIFIER().getText()),
+						t.dd_list().dd_expr().stream().map(this.ddParser::visit).collect(Collectors.toList())))
 				.collect(Collectors.toList());
 
 		var wrongFrames = _frames.stream().filter(f -> !(f._1() instanceof PBVISolvablePOMDPBasedModel)).findFirst();
@@ -111,11 +111,10 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 				R.put(ar.action_name().getText(), this.ddParser.visit(ar.dd_expr()));
 			});
 
-		DD b = this.ddParser.visit(ctx.ipomdp_def().initial_belief().dd_expr());
 		float discount = Float.valueOf(ctx.ipomdp_def().discount().FLOAT_NUM().getText());
 		int H = Integer.valueOf(ctx.ipomdp_def().reachability().FLOAT_NUM().getText());
 
-		var ipomdp = new IPOMDP(S, O, A, Aj, Mj, Thetaj, _frames, dynamics, R, b, discount, H);
+		var ipomdp = new IPOMDP(S, O, A, Aj, Mj, Thetaj, _frames, dynamics, R, discount, H);
 
 		return ipomdp;
 	}

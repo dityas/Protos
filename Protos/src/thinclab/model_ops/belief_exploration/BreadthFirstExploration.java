@@ -32,8 +32,10 @@ public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G exte
 	}
 
 	@Override
-	public G expand(G g, M m, int T, P Vn) {
+	public G expand(List<B> bs, G g, M m, int T, P Vn) {
 
+		bs.forEach(g::addNode);
+		
 		if (g.getAllNodes().size() < maxB && !done) {
 
 			while (T > 0) {

@@ -303,8 +303,8 @@
     (Aj Agentj_actions)
     (Mj agent_j)
     (Thetaj Frame_jl1 	
-    	(frame1 agentJ)
-    	(frame2 agentJ2)
+    	(frame1 agentJ 	(0.5))
+    	(frame2 agentJ2 (0.5))
     )
         
     (dynamics

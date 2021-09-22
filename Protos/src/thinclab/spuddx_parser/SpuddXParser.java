@@ -698,9 +698,6 @@ public class SpuddXParser extends Parser {
 		public DynamicsContext dynamics() {
 			return getRuleContext(DynamicsContext.class,0);
 		}
-		public Initial_beliefContext initial_belief() {
-			return getRuleContext(Initial_beliefContext.class,0);
-		}
 		public RewardContext reward() {
 			return getRuleContext(RewardContext.class,0);
 		}
@@ -748,12 +745,10 @@ public class SpuddXParser extends Parser {
 			setState(150);
 			dynamics();
 			setState(151);
-			initial_belief();
-			setState(152);
 			reward();
-			setState(153);
+			setState(152);
 			discount();
-			setState(154);
+			setState(153);
 			match(RP);
 			}
 		}
@@ -794,9 +789,6 @@ public class SpuddXParser extends Parser {
 		public DynamicsContext dynamics() {
 			return getRuleContext(DynamicsContext.class,0);
 		}
-		public Initial_beliefContext initial_belief() {
-			return getRuleContext(Initial_beliefContext.class,0);
-		}
 		public RewardContext reward() {
 			return getRuleContext(RewardContext.class,0);
 		}
@@ -832,35 +824,33 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(156);
+			setState(155);
 			match(LP);
-			setState(157);
+			setState(156);
 			match(T__4);
-			setState(158);
+			setState(157);
 			model_name();
-			setState(159);
+			setState(158);
 			states_list();
-			setState(160);
+			setState(159);
 			obs_list();
-			setState(161);
+			setState(160);
 			action_var();
-			setState(162);
+			setState(161);
 			action_j_var();
-			setState(163);
+			setState(162);
 			model_j_var();
-			setState(164);
+			setState(163);
 			frame_def();
-			setState(165);
+			setState(164);
 			dynamics();
-			setState(166);
-			initial_belief();
-			setState(167);
+			setState(165);
 			reward();
-			setState(168);
+			setState(166);
 			discount();
-			setState(169);
+			setState(167);
 			reachability();
-			setState(170);
+			setState(168);
 			match(RP);
 			}
 		}
@@ -916,29 +906,29 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
+			setState(170);
+			match(LP);
+			setState(171);
+			match(T__5);
 			setState(172);
 			match(LP);
-			setState(173);
-			match(T__5);
-			setState(174);
-			match(LP);
-			setState(176); 
+			setState(174); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(175);
+				setState(173);
 				var_name();
 				}
 				}
-				setState(178); 
+				setState(176); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==IDENTIFIER );
-			setState(180);
+			setState(178);
 			match(RP);
-			setState(181);
+			setState(179);
 			match(RP);
 			}
 		}
@@ -994,29 +984,29 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
+			setState(181);
+			match(LP);
+			setState(182);
+			match(T__6);
 			setState(183);
 			match(LP);
-			setState(184);
-			match(T__6);
-			setState(185);
-			match(LP);
-			setState(187); 
+			setState(185); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(186);
+				setState(184);
 				var_name();
 				}
 				}
-				setState(189); 
+				setState(187); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==IDENTIFIER );
-			setState(191);
+			setState(189);
 			match(RP);
-			setState(192);
+			setState(190);
 			match(RP);
 			}
 		}
@@ -1062,15 +1052,15 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(194);
+			setState(192);
 			match(LP);
-			setState(195);
+			setState(193);
 			match(T__7);
 			{
-			setState(196);
+			setState(194);
 			var_name();
 			}
-			setState(197);
+			setState(195);
 			match(RP);
 			}
 		}
@@ -1116,15 +1106,15 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(199);
+			setState(197);
 			match(LP);
-			setState(200);
+			setState(198);
 			match(T__8);
 			{
-			setState(201);
+			setState(199);
 			var_name();
 			}
-			setState(202);
+			setState(200);
 			match(RP);
 			}
 		}
@@ -1170,15 +1160,15 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(204);
+			setState(202);
 			match(LP);
-			setState(205);
+			setState(203);
 			match(T__9);
 			{
-			setState(206);
+			setState(204);
 			var_name();
 			}
-			setState(207);
+			setState(205);
 			match(RP);
 			}
 		}
@@ -1234,29 +1224,29 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
+			setState(207);
+			match(LP);
+			setState(208);
+			match(T__7);
 			setState(209);
 			match(LP);
-			setState(210);
-			match(T__7);
-			setState(211);
-			match(LP);
-			setState(213); 
+			setState(211); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(212);
+				setState(210);
 				var_name();
 				}
 				}
-				setState(215); 
+				setState(213); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==IDENTIFIER );
-			setState(217);
+			setState(215);
 			match(RP);
-			setState(218);
+			setState(216);
 			match(RP);
 			}
 		}
@@ -1309,27 +1299,27 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(220);
+			setState(218);
 			match(LP);
-			setState(221);
+			setState(219);
 			match(T__10);
-			setState(222);
+			setState(220);
 			var_name();
-			setState(224); 
+			setState(222); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(223);
+				setState(221);
 				frame_tuple();
 				}
 				}
-				setState(226); 
+				setState(224); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==LP );
-			setState(228);
+			setState(226);
 			match(RP);
 			}
 		}
@@ -1351,6 +1341,9 @@ public class SpuddXParser extends Parser {
 		}
 		public Model_nameContext model_name() {
 			return getRuleContext(Model_nameContext.class,0);
+		}
+		public Dd_listContext dd_list() {
+			return getRuleContext(Dd_listContext.class,0);
 		}
 		public TerminalNode RP() { return getToken(SpuddXParser.RP, 0); }
 		public Frame_tupleContext(ParserRuleContext parent, int invokingState) {
@@ -1378,13 +1371,15 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(230);
+			setState(228);
 			match(LP);
-			setState(231);
+			setState(229);
 			var_value();
-			setState(232);
+			setState(230);
 			model_name();
-			setState(233);
+			setState(231);
+			dd_list();
+			setState(232);
 			match(RP);
 			}
 		}
@@ -1434,25 +1429,25 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(235);
+			setState(234);
 			match(LP);
-			setState(236);
+			setState(235);
 			match(T__11);
-			setState(238); 
+			setState(237); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(237);
+				setState(236);
 				action_model();
 				}
 				}
-				setState(240); 
+				setState(239); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==LP );
-			setState(242);
+			setState(241);
 			match(RP);
 			}
 		}
@@ -1501,13 +1496,13 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(244);
+			setState(243);
 			match(LP);
-			setState(245);
+			setState(244);
 			action_name();
-			setState(246);
+			setState(245);
 			all_def();
-			setState(247);
+			setState(246);
 			match(RP);
 			}
 		}
@@ -1553,13 +1548,13 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(249);
+			setState(248);
 			match(LP);
-			setState(250);
+			setState(249);
 			match(T__12);
-			setState(251);
+			setState(250);
 			dd_expr(0);
-			setState(252);
+			setState(251);
 			match(RP);
 			}
 		}
@@ -1609,25 +1604,25 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(254);
+			setState(253);
 			match(LP);
-			setState(255);
+			setState(254);
 			match(T__13);
-			setState(257); 
+			setState(256); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(256);
+				setState(255);
 				action_reward();
 				}
 				}
-				setState(259); 
+				setState(258); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==LP );
-			setState(261);
+			setState(260);
 			match(RP);
 			}
 		}
@@ -1676,13 +1671,13 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(263);
+			setState(262);
 			match(LP);
-			setState(264);
+			setState(263);
 			action_name();
-			setState(265);
+			setState(264);
 			dd_expr(0);
-			setState(266);
+			setState(265);
 			match(RP);
 			}
 		}
@@ -1726,13 +1721,13 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(268);
+			setState(267);
 			match(LP);
-			setState(269);
+			setState(268);
 			match(T__14);
-			setState(270);
+			setState(269);
 			match(FLOAT_NUM);
-			setState(271);
+			setState(270);
 			match(RP);
 			}
 		}
@@ -1776,13 +1771,13 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(273);
+			setState(272);
 			match(LP);
-			setState(274);
+			setState(273);
 			match(T__15);
-			setState(275);
+			setState(274);
 			match(FLOAT_NUM);
-			setState(276);
+			setState(275);
 			match(RP);
 			}
 		}
@@ -1831,15 +1826,15 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(278);
+			setState(277);
 			match(LP);
-			setState(279);
+			setState(278);
 			match(T__16);
-			setState(280);
+			setState(279);
 			dd_name();
-			setState(281);
+			setState(280);
 			dd_expr(0);
-			setState(282);
+			setState(281);
 			match(RP);
 			}
 		}
@@ -2026,7 +2021,7 @@ public class SpuddXParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(302);
+			setState(301);
 			switch ( getInterpreter().adaptivePredict(_input,13,_ctx) ) {
 			case 1:
 				{
@@ -2034,7 +2029,7 @@ public class SpuddXParser extends Parser {
 				_ctx = _localctx;
 				_prevctx = _localctx;
 
-				setState(285);
+				setState(284);
 				((NegExprContext)_localctx).op = _input.LT(1);
 				_la = _input.LA(1);
 				if ( !(_la==OP_ADD || _la==OP_SUB) ) {
@@ -2042,7 +2037,7 @@ public class SpuddXParser extends Parser {
 				} else {
 					consume();
 				}
-				setState(286);
+				setState(285);
 				((NegExprContext)_localctx).term = dd_expr(5);
 				}
 				break;
@@ -2051,27 +2046,27 @@ public class SpuddXParser extends Parser {
 				_localctx = new SumoutExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(287);
+				setState(286);
 				match(T__17);
-				setState(288);
+				setState(287);
 				match(LP);
-				setState(290); 
+				setState(289); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(289);
+					setState(288);
 					var_name();
 					}
 					}
-					setState(292); 
+					setState(291); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				} while ( _la==IDENTIFIER );
-				setState(294);
+				setState(293);
 				match(RP);
-				setState(295);
+				setState(294);
 				dd_expr(4);
 				}
 				break;
@@ -2080,7 +2075,7 @@ public class SpuddXParser extends Parser {
 				_localctx = new AtomicExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(297);
+				setState(296);
 				dd_decl();
 				}
 				break;
@@ -2089,17 +2084,17 @@ public class SpuddXParser extends Parser {
 				_localctx = new ParenExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(298);
+				setState(297);
 				match(LP);
-				setState(299);
+				setState(298);
 				dd_expr(0);
-				setState(300);
+				setState(299);
 				match(RP);
 				}
 				break;
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(312);
+			setState(311);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,15,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -2107,16 +2102,16 @@ public class SpuddXParser extends Parser {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					setState(310);
+					setState(309);
 					switch ( getInterpreter().adaptivePredict(_input,14,_ctx) ) {
 					case 1:
 						{
 						_localctx = new MultDivExprContext(new Dd_exprContext(_parentctx, _parentState));
 						((MultDivExprContext)_localctx).left = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_dd_expr);
-						setState(304);
+						setState(303);
 						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
-						setState(305);
+						setState(304);
 						((MultDivExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !(_la==OP_MUL || _la==OP_DIV) ) {
@@ -2124,7 +2119,7 @@ public class SpuddXParser extends Parser {
 						} else {
 							consume();
 						}
-						setState(306);
+						setState(305);
 						((MultDivExprContext)_localctx).right = dd_expr(3);
 						}
 						break;
@@ -2133,9 +2128,9 @@ public class SpuddXParser extends Parser {
 						_localctx = new AddSubExprContext(new Dd_exprContext(_parentctx, _parentState));
 						((AddSubExprContext)_localctx).left = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_dd_expr);
-						setState(307);
+						setState(306);
 						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
-						setState(308);
+						setState(307);
 						((AddSubExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !(_la==OP_ADD || _la==OP_SUB) ) {
@@ -2143,14 +2138,14 @@ public class SpuddXParser extends Parser {
 						} else {
 							consume();
 						}
-						setState(309);
+						setState(308);
 						((AddSubExprContext)_localctx).right = dd_expr(2);
 						}
 						break;
 					}
 					} 
 				}
-				setState(314);
+				setState(313);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,15,_ctx);
 			}
@@ -2322,37 +2317,37 @@ public class SpuddXParser extends Parser {
 		enterRule(_localctx, 48, RULE_dd_decl);
 		int _la;
 		try {
-			setState(337);
+			setState(336);
 			switch ( getInterpreter().adaptivePredict(_input,17,_ctx) ) {
 			case 1:
 				_localctx = new DDDeclContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(315);
+				setState(314);
 				match(LP);
-				setState(316);
+				setState(315);
 				var_name();
-				setState(322); 
+				setState(321); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(317);
+					setState(316);
 					match(LP);
-					setState(318);
+					setState(317);
 					var_value();
-					setState(319);
+					setState(318);
 					dd_expr(0);
-					setState(320);
+					setState(319);
 					match(RP);
 					}
 					}
-					setState(324); 
+					setState(323); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				} while ( _la==LP );
-				setState(326);
+				setState(325);
 				match(RP);
 				}
 				break;
@@ -2360,7 +2355,7 @@ public class SpuddXParser extends Parser {
 				_localctx = new DDleafContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(328);
+				setState(327);
 				dd_leaf();
 				}
 				break;
@@ -2368,7 +2363,7 @@ public class SpuddXParser extends Parser {
 				_localctx = new SameDDContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(329);
+				setState(328);
 				same_dd_decl();
 				}
 				break;
@@ -2376,7 +2371,7 @@ public class SpuddXParser extends Parser {
 				_localctx = new DDRefContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(330);
+				setState(329);
 				dd_ref();
 				}
 				break;
@@ -2384,9 +2379,9 @@ public class SpuddXParser extends Parser {
 				_localctx = new DDDeterministicContext(_localctx);
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(331);
+				setState(330);
 				var_name();
-				setState(332);
+				setState(331);
 				var_value();
 				}
 				break;
@@ -2394,9 +2389,9 @@ public class SpuddXParser extends Parser {
 				_localctx = new DDUniformContext(_localctx);
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(334);
+				setState(333);
 				var_name();
-				setState(335);
+				setState(334);
 				match(UNIFORM);
 				}
 				break;
@@ -2442,23 +2437,23 @@ public class SpuddXParser extends Parser {
 		Dd_refContext _localctx = new Dd_refContext(_ctx, getState());
 		enterRule(_localctx, 50, RULE_dd_ref);
 		try {
-			setState(344);
+			setState(343);
 			switch (_input.LA(1)) {
 			case IDENTIFIER:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(339);
+				setState(338);
 				dd_name();
 				}
 				break;
 			case LP:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(340);
+				setState(339);
 				match(LP);
-				setState(341);
+				setState(340);
 				dd_name();
-				setState(342);
+				setState(341);
 				match(RP);
 				}
 				break;
@@ -2504,23 +2499,23 @@ public class SpuddXParser extends Parser {
 		Dd_leafContext _localctx = new Dd_leafContext(_ctx, getState());
 		enterRule(_localctx, 52, RULE_dd_leaf);
 		try {
-			setState(350);
+			setState(349);
 			switch (_input.LA(1)) {
 			case FLOAT_NUM:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(346);
+				setState(345);
 				match(FLOAT_NUM);
 				}
 				break;
 			case LP:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(347);
+				setState(346);
 				match(LP);
-				setState(348);
+				setState(347);
 				match(FLOAT_NUM);
-				setState(349);
+				setState(348);
 				match(RP);
 				}
 				break;
@@ -2570,13 +2565,13 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(352);
+			setState(351);
 			match(LP);
-			setState(353);
+			setState(352);
 			match(T__18);
-			setState(354);
+			setState(353);
 			var_name();
-			setState(355);
+			setState(354);
 			match(RP);
 			}
 		}
@@ -2629,27 +2624,27 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(357);
+			setState(356);
 			match(LP);
-			setState(358);
+			setState(357);
 			match(T__19);
-			setState(359);
+			setState(358);
 			model_name();
-			setState(363);
+			setState(362);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==LP) {
 				{
 				{
-				setState(360);
+				setState(359);
 				cpd_def();
 				}
 				}
-				setState(365);
+				setState(364);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(366);
+			setState(365);
 			match(RP);
 			}
 		}
@@ -2698,13 +2693,13 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(368);
+			setState(367);
 			match(LP);
-			setState(369);
+			setState(368);
 			var_name();
-			setState(370);
+			setState(369);
 			dd_expr(0);
-			setState(371);
+			setState(370);
 			match(RP);
 			}
 		}
@@ -2754,25 +2749,25 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(373);
+			setState(372);
 			match(LP);
-			setState(374);
+			setState(373);
 			match(T__20);
-			setState(378);
+			setState(377);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__21) | (1L << T__23) | (1L << LP))) != 0)) {
 				{
 				{
-				setState(375);
+				setState(374);
 				exec_expr();
 				}
 				}
-				setState(380);
+				setState(379);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(381);
+			setState(380);
 			match(RP);
 			}
 		}
@@ -2893,13 +2888,13 @@ public class SpuddXParser extends Parser {
 		Exec_exprContext _localctx = new Exec_exprContext(_ctx, getState());
 		enterRule(_localctx, 62, RULE_exec_expr);
 		try {
-			setState(399);
+			setState(398);
 			switch ( getInterpreter().adaptivePredict(_input,22,_ctx) ) {
 			case 1:
 				_localctx = new DDExecDefContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(383);
+				setState(382);
 				dd_def();
 				}
 				break;
@@ -2907,13 +2902,13 @@ public class SpuddXParser extends Parser {
 				_localctx = new SolvExprContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(384);
+				setState(383);
 				match(T__21);
-				setState(385);
+				setState(384);
 				policy_name();
-				setState(386);
+				setState(385);
 				match(T__22);
-				setState(387);
+				setState(386);
 				solv_cmd();
 				}
 				break;
@@ -2921,15 +2916,15 @@ public class SpuddXParser extends Parser {
 				_localctx = new PolTreeExprContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(389);
+				setState(388);
 				match(T__23);
-				setState(390);
+				setState(389);
 				dd_list();
-				setState(391);
+				setState(390);
 				model_name();
-				setState(392);
+				setState(391);
 				policy_name();
-				setState(393);
+				setState(392);
 				exp_horizon();
 				}
 				break;
@@ -2937,11 +2932,11 @@ public class SpuddXParser extends Parser {
 				_localctx = new ParenExecExprContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(395);
+				setState(394);
 				match(LP);
-				setState(396);
+				setState(395);
 				exec_expr();
-				setState(397);
+				setState(396);
 				match(RP);
 				}
 				break;
@@ -2961,6 +2956,9 @@ public class SpuddXParser extends Parser {
 	public static class Solv_cmdContext extends ParserRuleContext {
 		public Solv_nameContext solv_name() {
 			return getRuleContext(Solv_nameContext.class,0);
+		}
+		public Dd_listContext dd_list() {
+			return getRuleContext(Dd_listContext.class,0);
 		}
 		public Model_nameContext model_name() {
 			return getRuleContext(Model_nameContext.class,0);
@@ -2996,10 +2994,12 @@ public class SpuddXParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(401);
+			setState(400);
 			match(T__24);
-			setState(402);
+			setState(401);
 			solv_name();
+			setState(402);
+			dd_list();
 			setState(403);
 			model_name();
 			setState(404);
@@ -3575,36 +3575,36 @@ public class SpuddXParser extends Parser {
 		"\3\3\6\3j\n\3\r\3\16\3k\3\4\3\4\3\4\3\4\3\4\6\4s\n\4\r\4\16\4t\3\4\3\4"+
 		"\3\4\3\4\3\4\3\4\3\4\3\4\5\4\177\n\4\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3"+
 		"\5\3\5\5\5\u008b\n\5\3\6\3\6\3\6\3\6\3\6\3\6\3\7\3\7\3\7\3\7\3\7\3\7\3"+
-		"\7\3\7\3\7\3\7\3\7\3\7\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b"+
-		"\3\b\3\b\3\b\3\b\3\t\3\t\3\t\3\t\6\t\u00b3\n\t\r\t\16\t\u00b4\3\t\3\t"+
-		"\3\t\3\n\3\n\3\n\3\n\6\n\u00be\n\n\r\n\16\n\u00bf\3\n\3\n\3\n\3\13\3\13"+
-		"\3\13\3\13\3\13\3\f\3\f\3\f\3\f\3\f\3\r\3\r\3\r\3\r\3\r\3\16\3\16\3\16"+
-		"\3\16\6\16\u00d8\n\16\r\16\16\16\u00d9\3\16\3\16\3\16\3\17\3\17\3\17\3"+
-		"\17\6\17\u00e3\n\17\r\17\16\17\u00e4\3\17\3\17\3\20\3\20\3\20\3\20\3\20"+
-		"\3\21\3\21\3\21\6\21\u00f1\n\21\r\21\16\21\u00f2\3\21\3\21\3\22\3\22\3"+
-		"\22\3\22\3\22\3\23\3\23\3\23\3\23\3\23\3\24\3\24\3\24\6\24\u0104\n\24"+
-		"\r\24\16\24\u0105\3\24\3\24\3\25\3\25\3\25\3\25\3\25\3\26\3\26\3\26\3"+
-		"\26\3\26\3\27\3\27\3\27\3\27\3\27\3\30\3\30\3\30\3\30\3\30\3\30\3\31\3"+
-		"\31\3\31\3\31\3\31\3\31\6\31\u0125\n\31\r\31\16\31\u0126\3\31\3\31\3\31"+
-		"\3\31\3\31\3\31\3\31\3\31\5\31\u0131\n\31\3\31\3\31\3\31\3\31\3\31\3\31"+
-		"\7\31\u0139\n\31\f\31\16\31\u013c\13\31\3\32\3\32\3\32\3\32\3\32\3\32"+
-		"\3\32\6\32\u0145\n\32\r\32\16\32\u0146\3\32\3\32\3\32\3\32\3\32\3\32\3"+
-		"\32\3\32\3\32\3\32\3\32\5\32\u0154\n\32\3\33\3\33\3\33\3\33\3\33\5\33"+
-		"\u015b\n\33\3\34\3\34\3\34\3\34\5\34\u0161\n\34\3\35\3\35\3\35\3\35\3"+
-		"\35\3\36\3\36\3\36\3\36\7\36\u016c\n\36\f\36\16\36\u016f\13\36\3\36\3"+
-		"\36\3\37\3\37\3\37\3\37\3\37\3 \3 \3 \7 \u017b\n \f \16 \u017e\13 \3 "+
-		"\3 \3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\5!\u0192\n!\3\"\3"+
-		"\"\3\"\3\"\3\"\3\"\3#\3#\6#\u019c\n#\r#\16#\u019d\3#\3#\3$\3$\3%\3%\3"+
-		"&\3&\3\'\3\'\3(\3(\3)\3)\3*\3*\3+\3+\3,\3,\3-\3-\3.\3.\3.\2\3\60/\2\4"+
-		"\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\668:<>@BDFHJLNP"+
-		"RTVXZ\2\5\3\2\36\37\3\2\"#\3\2$%\u01af\2\\\3\2\2\2\4i\3\2\2\2\6~\3\2\2"+
-		"\2\b\u008a\3\2\2\2\n\u008c\3\2\2\2\f\u0092\3\2\2\2\16\u009e\3\2\2\2\20"+
-		"\u00ae\3\2\2\2\22\u00b9\3\2\2\2\24\u00c4\3\2\2\2\26\u00c9\3\2\2\2\30\u00ce"+
-		"\3\2\2\2\32\u00d3\3\2\2\2\34\u00de\3\2\2\2\36\u00e8\3\2\2\2 \u00ed\3\2"+
-		"\2\2\"\u00f6\3\2\2\2$\u00fb\3\2\2\2&\u0100\3\2\2\2(\u0109\3\2\2\2*\u010e"+
-		"\3\2\2\2,\u0113\3\2\2\2.\u0118\3\2\2\2\60\u0130\3\2\2\2\62\u0153\3\2\2"+
-		"\2\64\u015a\3\2\2\2\66\u0160\3\2\2\28\u0162\3\2\2\2:\u0167\3\2\2\2<\u0172"+
-		"\3\2\2\2>\u0177\3\2\2\2@\u0191\3\2\2\2B\u0193\3\2\2\2D\u0199\3\2\2\2F"+
+		"\7\3\7\3\7\3\7\3\7\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b"+
+		"\3\b\3\b\3\t\3\t\3\t\3\t\6\t\u00b1\n\t\r\t\16\t\u00b2\3\t\3\t\3\t\3\n"+
+		"\3\n\3\n\3\n\6\n\u00bc\n\n\r\n\16\n\u00bd\3\n\3\n\3\n\3\13\3\13\3\13\3"+
+		"\13\3\13\3\f\3\f\3\f\3\f\3\f\3\r\3\r\3\r\3\r\3\r\3\16\3\16\3\16\3\16\6"+
+		"\16\u00d6\n\16\r\16\16\16\u00d7\3\16\3\16\3\16\3\17\3\17\3\17\3\17\6\17"+
+		"\u00e1\n\17\r\17\16\17\u00e2\3\17\3\17\3\20\3\20\3\20\3\20\3\20\3\20\3"+
+		"\21\3\21\3\21\6\21\u00f0\n\21\r\21\16\21\u00f1\3\21\3\21\3\22\3\22\3\22"+
+		"\3\22\3\22\3\23\3\23\3\23\3\23\3\23\3\24\3\24\3\24\6\24\u0103\n\24\r\24"+
+		"\16\24\u0104\3\24\3\24\3\25\3\25\3\25\3\25\3\25\3\26\3\26\3\26\3\26\3"+
+		"\26\3\27\3\27\3\27\3\27\3\27\3\30\3\30\3\30\3\30\3\30\3\30\3\31\3\31\3"+
+		"\31\3\31\3\31\3\31\6\31\u0124\n\31\r\31\16\31\u0125\3\31\3\31\3\31\3\31"+
+		"\3\31\3\31\3\31\3\31\5\31\u0130\n\31\3\31\3\31\3\31\3\31\3\31\3\31\7\31"+
+		"\u0138\n\31\f\31\16\31\u013b\13\31\3\32\3\32\3\32\3\32\3\32\3\32\3\32"+
+		"\6\32\u0144\n\32\r\32\16\32\u0145\3\32\3\32\3\32\3\32\3\32\3\32\3\32\3"+
+		"\32\3\32\3\32\3\32\5\32\u0153\n\32\3\33\3\33\3\33\3\33\3\33\5\33\u015a"+
+		"\n\33\3\34\3\34\3\34\3\34\5\34\u0160\n\34\3\35\3\35\3\35\3\35\3\35\3\36"+
+		"\3\36\3\36\3\36\7\36\u016b\n\36\f\36\16\36\u016e\13\36\3\36\3\36\3\37"+
+		"\3\37\3\37\3\37\3\37\3 \3 \3 \7 \u017a\n \f \16 \u017d\13 \3 \3 \3!\3"+
+		"!\3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\3!\5!\u0191\n!\3\"\3\"\3\"\3"+
+		"\"\3\"\3\"\3\"\3#\3#\6#\u019c\n#\r#\16#\u019d\3#\3#\3$\3$\3%\3%\3&\3&"+
+		"\3\'\3\'\3(\3(\3)\3)\3*\3*\3+\3+\3,\3,\3-\3-\3.\3.\3.\2\3\60/\2\4\6\b"+
+		"\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\668:<>@BDFHJLNPRTVX"+
+		"Z\2\5\3\2\36\37\3\2\"#\3\2$%\u01af\2\\\3\2\2\2\4i\3\2\2\2\6~\3\2\2\2\b"+
+		"\u008a\3\2\2\2\n\u008c\3\2\2\2\f\u0092\3\2\2\2\16\u009d\3\2\2\2\20\u00ac"+
+		"\3\2\2\2\22\u00b7\3\2\2\2\24\u00c2\3\2\2\2\26\u00c7\3\2\2\2\30\u00cc\3"+
+		"\2\2\2\32\u00d1\3\2\2\2\34\u00dc\3\2\2\2\36\u00e6\3\2\2\2 \u00ec\3\2\2"+
+		"\2\"\u00f5\3\2\2\2$\u00fa\3\2\2\2&\u00ff\3\2\2\2(\u0108\3\2\2\2*\u010d"+
+		"\3\2\2\2,\u0112\3\2\2\2.\u0117\3\2\2\2\60\u012f\3\2\2\2\62\u0152\3\2\2"+
+		"\2\64\u0159\3\2\2\2\66\u015f\3\2\2\28\u0161\3\2\2\2:\u0166\3\2\2\2<\u0171"+
+		"\3\2\2\2>\u0176\3\2\2\2@\u0190\3\2\2\2B\u0192\3\2\2\2D\u0199\3\2\2\2F"+
 		"\u01a1\3\2\2\2H\u01a3\3\2\2\2J\u01a5\3\2\2\2L\u01a7\3\2\2\2N\u01a9\3\2"+
 		"\2\2P\u01ab\3\2\2\2R\u01ad\3\2\2\2T\u01af\3\2\2\2V\u01b1\3\2\2\2X\u01b3"+
 		"\3\2\2\2Z\u01b5\3\2\2\2\\`\5\4\3\2]_\5\b\5\2^]\3\2\2\2_b\3\2\2\2`^\3\2"+
@@ -3622,82 +3622,82 @@ public class SpuddXParser extends Parser {
 		"\u008f\u0090\5X-\2\u0090\u0091\7)\2\2\u0091\13\3\2\2\2\u0092\u0093\7("+
 		"\2\2\u0093\u0094\7\6\2\2\u0094\u0095\5P)\2\u0095\u0096\5\20\t\2\u0096"+
 		"\u0097\5\22\n\2\u0097\u0098\5\24\13\2\u0098\u0099\5 \21\2\u0099\u009a"+
-		"\5$\23\2\u009a\u009b\5&\24\2\u009b\u009c\5*\26\2\u009c\u009d\7)\2\2\u009d"+
-		"\r\3\2\2\2\u009e\u009f\7(\2\2\u009f\u00a0\7\7\2\2\u00a0\u00a1\5P)\2\u00a1"+
-		"\u00a2\5\20\t\2\u00a2\u00a3\5\22\n\2\u00a3\u00a4\5\24\13\2\u00a4\u00a5"+
-		"\5\26\f\2\u00a5\u00a6\5\30\r\2\u00a6\u00a7\5\34\17\2\u00a7\u00a8\5 \21"+
-		"\2\u00a8\u00a9\5$\23\2\u00a9\u00aa\5&\24\2\u00aa\u00ab\5*\26\2\u00ab\u00ac"+
-		"\5,\27\2\u00ac\u00ad\7)\2\2\u00ad\17\3\2\2\2\u00ae\u00af\7(\2\2\u00af"+
-		"\u00b0\7\b\2\2\u00b0\u00b2\7(\2\2\u00b1\u00b3\5T+\2\u00b2\u00b1\3\2\2"+
-		"\2\u00b3\u00b4\3\2\2\2\u00b4\u00b2\3\2\2\2\u00b4\u00b5\3\2\2\2\u00b5\u00b6"+
-		"\3\2\2\2\u00b6\u00b7\7)\2\2\u00b7\u00b8\7)\2\2\u00b8\21\3\2\2\2\u00b9"+
-		"\u00ba\7(\2\2\u00ba\u00bb\7\t\2\2\u00bb\u00bd\7(\2\2\u00bc\u00be\5T+\2"+
-		"\u00bd\u00bc\3\2\2\2\u00be\u00bf\3\2\2\2\u00bf\u00bd\3\2\2\2\u00bf\u00c0"+
-		"\3\2\2\2\u00c0\u00c1\3\2\2\2\u00c1\u00c2\7)\2\2\u00c2\u00c3\7)\2\2\u00c3"+
-		"\23\3\2\2\2\u00c4\u00c5\7(\2\2\u00c5\u00c6\7\n\2\2\u00c6\u00c7\5T+\2\u00c7"+
-		"\u00c8\7)\2\2\u00c8\25\3\2\2\2\u00c9\u00ca\7(\2\2\u00ca\u00cb\7\13\2\2"+
-		"\u00cb\u00cc\5T+\2\u00cc\u00cd\7)\2\2\u00cd\27\3\2\2\2\u00ce\u00cf\7("+
-		"\2\2\u00cf\u00d0\7\f\2\2\u00d0\u00d1\5T+\2\u00d1\u00d2\7)\2\2\u00d2\31"+
-		"\3\2\2\2\u00d3\u00d4\7(\2\2\u00d4\u00d5\7\n\2\2\u00d5\u00d7\7(\2\2\u00d6"+
-		"\u00d8\5T+\2\u00d7\u00d6\3\2\2\2\u00d8\u00d9\3\2\2\2\u00d9\u00d7\3\2\2"+
-		"\2\u00d9\u00da\3\2\2\2\u00da\u00db\3\2\2\2\u00db\u00dc\7)\2\2\u00dc\u00dd"+
-		"\7)\2\2\u00dd\33\3\2\2\2\u00de\u00df\7(\2\2\u00df\u00e0\7\r\2\2\u00e0"+
-		"\u00e2\5T+\2\u00e1\u00e3\5\36\20\2\u00e2\u00e1\3\2\2\2\u00e3\u00e4\3\2"+
-		"\2\2\u00e4\u00e2\3\2\2\2\u00e4\u00e5\3\2\2\2\u00e5\u00e6\3\2\2\2\u00e6"+
-		"\u00e7\7)\2\2\u00e7\35\3\2\2\2\u00e8\u00e9\7(\2\2\u00e9\u00ea\5V,\2\u00ea"+
-		"\u00eb\5P)\2\u00eb\u00ec\7)\2\2\u00ec\37\3\2\2\2\u00ed\u00ee\7(\2\2\u00ee"+
-		"\u00f0\7\16\2\2\u00ef\u00f1\5\"\22\2\u00f0\u00ef\3\2\2\2\u00f1\u00f2\3"+
-		"\2\2\2\u00f2\u00f0\3\2\2\2\u00f2\u00f3\3\2\2\2\u00f3\u00f4\3\2\2\2\u00f4"+
-		"\u00f5\7)\2\2\u00f5!\3\2\2\2\u00f6\u00f7\7(\2\2\u00f7\u00f8\5N(\2\u00f8"+
-		"\u00f9\5\b\5\2\u00f9\u00fa\7)\2\2\u00fa#\3\2\2\2\u00fb\u00fc\7(\2\2\u00fc"+
-		"\u00fd\7\17\2\2\u00fd\u00fe\5\60\31\2\u00fe\u00ff\7)\2\2\u00ff%\3\2\2"+
-		"\2\u0100\u0101\7(\2\2\u0101\u0103\7\20\2\2\u0102\u0104\5(\25\2\u0103\u0102"+
-		"\3\2\2\2\u0104\u0105\3\2\2\2\u0105\u0103\3\2\2\2\u0105\u0106\3\2\2\2\u0106"+
-		"\u0107\3\2\2\2\u0107\u0108\7)\2\2\u0108\'\3\2\2\2\u0109\u010a\7(\2\2\u010a"+
-		"\u010b\5N(\2\u010b\u010c\5\60\31\2\u010c\u010d\7)\2\2\u010d)\3\2\2\2\u010e"+
-		"\u010f\7(\2\2\u010f\u0110\7\21\2\2\u0110\u0111\7\'\2\2\u0111\u0112\7)"+
-		"\2\2\u0112+\3\2\2\2\u0113\u0114\7(\2\2\u0114\u0115\7\22\2\2\u0115\u0116"+
-		"\7\'\2\2\u0116\u0117\7)\2\2\u0117-\3\2\2\2\u0118\u0119\7(\2\2\u0119\u011a"+
-		"\7\23\2\2\u011a\u011b\5R*\2\u011b\u011c\5\60\31\2\u011c\u011d\7)\2\2\u011d"+
-		"/\3\2\2\2\u011e\u011f\b\31\1\2\u011f\u0120\t\3\2\2\u0120\u0131\5\60\31"+
-		"\7\u0121\u0122\7\24\2\2\u0122\u0124\7(\2\2\u0123\u0125\5T+\2\u0124\u0123"+
-		"\3\2\2\2\u0125\u0126\3\2\2\2\u0126\u0124\3\2\2\2\u0126\u0127\3\2\2\2\u0127"+
-		"\u0128\3\2\2\2\u0128\u0129\7)\2\2\u0129\u012a\5\60\31\6\u012a\u0131\3"+
-		"\2\2\2\u012b\u0131\5\62\32\2\u012c\u012d\7(\2\2\u012d\u012e\5\60\31\2"+
-		"\u012e\u012f\7)\2\2\u012f\u0131\3\2\2\2\u0130\u011e\3\2\2\2\u0130\u0121"+
-		"\3\2\2\2\u0130\u012b\3\2\2\2\u0130\u012c\3\2\2\2\u0131\u013a\3\2\2\2\u0132"+
-		"\u0133\f\4\2\2\u0133\u0134\t\4\2\2\u0134\u0139\5\60\31\5\u0135\u0136\f"+
-		"\3\2\2\u0136\u0137\t\3\2\2\u0137\u0139\5\60\31\4\u0138\u0132\3\2\2\2\u0138"+
-		"\u0135\3\2\2\2\u0139\u013c\3\2\2\2\u013a\u0138\3\2\2\2\u013a\u013b\3\2"+
-		"\2\2\u013b\61\3\2\2\2\u013c\u013a\3\2\2\2\u013d\u013e\7(\2\2\u013e\u0144"+
-		"\5T+\2\u013f\u0140\7(\2\2\u0140\u0141\5V,\2\u0141\u0142\5\60\31\2\u0142"+
-		"\u0143\7)\2\2\u0143\u0145\3\2\2\2\u0144\u013f\3\2\2\2\u0145\u0146\3\2"+
-		"\2\2\u0146\u0144\3\2\2\2\u0146\u0147\3\2\2\2\u0147\u0148\3\2\2\2\u0148"+
-		"\u0149\7)\2\2\u0149\u0154\3\2\2\2\u014a\u0154\5\66\34\2\u014b\u0154\5"+
-		"8\35\2\u014c\u0154\5\64\33\2\u014d\u014e\5T+\2\u014e\u014f\5V,\2\u014f"+
-		"\u0154\3\2\2\2\u0150\u0151\5T+\2\u0151\u0152\7!\2\2\u0152\u0154\3\2\2"+
-		"\2\u0153\u013d\3\2\2\2\u0153\u014a\3\2\2\2\u0153\u014b\3\2\2\2\u0153\u014c"+
-		"\3\2\2\2\u0153\u014d\3\2\2\2\u0153\u0150\3\2\2\2\u0154\63\3\2\2\2\u0155"+
-		"\u015b\5R*\2\u0156\u0157\7(\2\2\u0157\u0158\5R*\2\u0158\u0159\7)\2\2\u0159"+
-		"\u015b\3\2\2\2\u015a\u0155\3\2\2\2\u015a\u0156\3\2\2\2\u015b\65\3\2\2"+
-		"\2\u015c\u0161\7\'\2\2\u015d\u015e\7(\2\2\u015e\u015f\7\'\2\2\u015f\u0161"+
-		"\7)\2\2\u0160\u015c\3\2\2\2\u0160\u015d\3\2\2\2\u0161\67\3\2\2\2\u0162"+
-		"\u0163\7(\2\2\u0163\u0164\7\25\2\2\u0164\u0165\5T+\2\u0165\u0166\7)\2"+
-		"\2\u01669\3\2\2\2\u0167\u0168\7(\2\2\u0168\u0169\7\26\2\2\u0169\u016d"+
-		"\5P)\2\u016a\u016c\5<\37\2\u016b\u016a\3\2\2\2\u016c\u016f\3\2\2\2\u016d"+
-		"\u016b\3\2\2\2\u016d\u016e\3\2\2\2\u016e\u0170\3\2\2\2\u016f\u016d\3\2"+
-		"\2\2\u0170\u0171\7)\2\2\u0171;\3\2\2\2\u0172\u0173\7(\2\2\u0173\u0174"+
-		"\5T+\2\u0174\u0175\5\60\31\2\u0175\u0176\7)\2\2\u0176=\3\2\2\2\u0177\u0178"+
-		"\7(\2\2\u0178\u017c\7\27\2\2\u0179\u017b\5@!\2\u017a\u0179\3\2\2\2\u017b"+
-		"\u017e\3\2\2\2\u017c\u017a\3\2\2\2\u017c\u017d\3\2\2\2\u017d\u017f\3\2"+
-		"\2\2\u017e\u017c\3\2\2\2\u017f\u0180\7)\2\2\u0180?\3\2\2\2\u0181\u0192"+
-		"\5.\30\2\u0182\u0183\7\30\2\2\u0183\u0184\5L\'\2\u0184\u0185\7\31\2\2"+
-		"\u0185\u0186\5B\"\2\u0186\u0192\3\2\2\2\u0187\u0188\7\32\2\2\u0188\u0189"+
-		"\5D#\2\u0189\u018a\5P)\2\u018a\u018b\5L\'\2\u018b\u018c\5H%\2\u018c\u0192"+
-		"\3\2\2\2\u018d\u018e\7(\2\2\u018e\u018f\5@!\2\u018f\u0190\7)\2\2\u0190"+
-		"\u0192\3\2\2\2\u0191\u0181\3\2\2\2\u0191\u0182\3\2\2\2\u0191\u0187\3\2"+
-		"\2\2\u0191\u018d\3\2\2\2\u0192A\3\2\2\2\u0193\u0194\7\33\2\2\u0194\u0195"+
-		"\5X-\2\u0195\u0196\5P)\2\u0196\u0197\5F$\2\u0197\u0198\5H%\2\u0198C\3"+
+		"\5&\24\2\u009a\u009b\5*\26\2\u009b\u009c\7)\2\2\u009c\r\3\2\2\2\u009d"+
+		"\u009e\7(\2\2\u009e\u009f\7\7\2\2\u009f\u00a0\5P)\2\u00a0\u00a1\5\20\t"+
+		"\2\u00a1\u00a2\5\22\n\2\u00a2\u00a3\5\24\13\2\u00a3\u00a4\5\26\f\2\u00a4"+
+		"\u00a5\5\30\r\2\u00a5\u00a6\5\34\17\2\u00a6\u00a7\5 \21\2\u00a7\u00a8"+
+		"\5&\24\2\u00a8\u00a9\5*\26\2\u00a9\u00aa\5,\27\2\u00aa\u00ab\7)\2\2\u00ab"+
+		"\17\3\2\2\2\u00ac\u00ad\7(\2\2\u00ad\u00ae\7\b\2\2\u00ae\u00b0\7(\2\2"+
+		"\u00af\u00b1\5T+\2\u00b0\u00af\3\2\2\2\u00b1\u00b2\3\2\2\2\u00b2\u00b0"+
+		"\3\2\2\2\u00b2\u00b3\3\2\2\2\u00b3\u00b4\3\2\2\2\u00b4\u00b5\7)\2\2\u00b5"+
+		"\u00b6\7)\2\2\u00b6\21\3\2\2\2\u00b7\u00b8\7(\2\2\u00b8\u00b9\7\t\2\2"+
+		"\u00b9\u00bb\7(\2\2\u00ba\u00bc\5T+\2\u00bb\u00ba\3\2\2\2\u00bc\u00bd"+
+		"\3\2\2\2\u00bd\u00bb\3\2\2\2\u00bd\u00be\3\2\2\2\u00be\u00bf\3\2\2\2\u00bf"+
+		"\u00c0\7)\2\2\u00c0\u00c1\7)\2\2\u00c1\23\3\2\2\2\u00c2\u00c3\7(\2\2\u00c3"+
+		"\u00c4\7\n\2\2\u00c4\u00c5\5T+\2\u00c5\u00c6\7)\2\2\u00c6\25\3\2\2\2\u00c7"+
+		"\u00c8\7(\2\2\u00c8\u00c9\7\13\2\2\u00c9\u00ca\5T+\2\u00ca\u00cb\7)\2"+
+		"\2\u00cb\27\3\2\2\2\u00cc\u00cd\7(\2\2\u00cd\u00ce\7\f\2\2\u00ce\u00cf"+
+		"\5T+\2\u00cf\u00d0\7)\2\2\u00d0\31\3\2\2\2\u00d1\u00d2\7(\2\2\u00d2\u00d3"+
+		"\7\n\2\2\u00d3\u00d5\7(\2\2\u00d4\u00d6\5T+\2\u00d5\u00d4\3\2\2\2\u00d6"+
+		"\u00d7\3\2\2\2\u00d7\u00d5\3\2\2\2\u00d7\u00d8\3\2\2\2\u00d8\u00d9\3\2"+
+		"\2\2\u00d9\u00da\7)\2\2\u00da\u00db\7)\2\2\u00db\33\3\2\2\2\u00dc\u00dd"+
+		"\7(\2\2\u00dd\u00de\7\r\2\2\u00de\u00e0\5T+\2\u00df\u00e1\5\36\20\2\u00e0"+
+		"\u00df\3\2\2\2\u00e1\u00e2\3\2\2\2\u00e2\u00e0\3\2\2\2\u00e2\u00e3\3\2"+
+		"\2\2\u00e3\u00e4\3\2\2\2\u00e4\u00e5\7)\2\2\u00e5\35\3\2\2\2\u00e6\u00e7"+
+		"\7(\2\2\u00e7\u00e8\5V,\2\u00e8\u00e9\5P)\2\u00e9\u00ea\5D#\2\u00ea\u00eb"+
+		"\7)\2\2\u00eb\37\3\2\2\2\u00ec\u00ed\7(\2\2\u00ed\u00ef\7\16\2\2\u00ee"+
+		"\u00f0\5\"\22\2\u00ef\u00ee\3\2\2\2\u00f0\u00f1\3\2\2\2\u00f1\u00ef\3"+
+		"\2\2\2\u00f1\u00f2\3\2\2\2\u00f2\u00f3\3\2\2\2\u00f3\u00f4\7)\2\2\u00f4"+
+		"!\3\2\2\2\u00f5\u00f6\7(\2\2\u00f6\u00f7\5N(\2\u00f7\u00f8\5\b\5\2\u00f8"+
+		"\u00f9\7)\2\2\u00f9#\3\2\2\2\u00fa\u00fb\7(\2\2\u00fb\u00fc\7\17\2\2\u00fc"+
+		"\u00fd\5\60\31\2\u00fd\u00fe\7)\2\2\u00fe%\3\2\2\2\u00ff\u0100\7(\2\2"+
+		"\u0100\u0102\7\20\2\2\u0101\u0103\5(\25\2\u0102\u0101\3\2\2\2\u0103\u0104"+
+		"\3\2\2\2\u0104\u0102\3\2\2\2\u0104\u0105\3\2\2\2\u0105\u0106\3\2\2\2\u0106"+
+		"\u0107\7)\2\2\u0107\'\3\2\2\2\u0108\u0109\7(\2\2\u0109\u010a\5N(\2\u010a"+
+		"\u010b\5\60\31\2\u010b\u010c\7)\2\2\u010c)\3\2\2\2\u010d\u010e\7(\2\2"+
+		"\u010e\u010f\7\21\2\2\u010f\u0110\7\'\2\2\u0110\u0111\7)\2\2\u0111+\3"+
+		"\2\2\2\u0112\u0113\7(\2\2\u0113\u0114\7\22\2\2\u0114\u0115\7\'\2\2\u0115"+
+		"\u0116\7)\2\2\u0116-\3\2\2\2\u0117\u0118\7(\2\2\u0118\u0119\7\23\2\2\u0119"+
+		"\u011a\5R*\2\u011a\u011b\5\60\31\2\u011b\u011c\7)\2\2\u011c/\3\2\2\2\u011d"+
+		"\u011e\b\31\1\2\u011e\u011f\t\3\2\2\u011f\u0130\5\60\31\7\u0120\u0121"+
+		"\7\24\2\2\u0121\u0123\7(\2\2\u0122\u0124\5T+\2\u0123\u0122\3\2\2\2\u0124"+
+		"\u0125\3\2\2\2\u0125\u0123\3\2\2\2\u0125\u0126\3\2\2\2\u0126\u0127\3\2"+
+		"\2\2\u0127\u0128\7)\2\2\u0128\u0129\5\60\31\6\u0129\u0130\3\2\2\2\u012a"+
+		"\u0130\5\62\32\2\u012b\u012c\7(\2\2\u012c\u012d\5\60\31\2\u012d\u012e"+
+		"\7)\2\2\u012e\u0130\3\2\2\2\u012f\u011d\3\2\2\2\u012f\u0120\3\2\2\2\u012f"+
+		"\u012a\3\2\2\2\u012f\u012b\3\2\2\2\u0130\u0139\3\2\2\2\u0131\u0132\f\4"+
+		"\2\2\u0132\u0133\t\4\2\2\u0133\u0138\5\60\31\5\u0134\u0135\f\3\2\2\u0135"+
+		"\u0136\t\3\2\2\u0136\u0138\5\60\31\4\u0137\u0131\3\2\2\2\u0137\u0134\3"+
+		"\2\2\2\u0138\u013b\3\2\2\2\u0139\u0137\3\2\2\2\u0139\u013a\3\2\2\2\u013a"+
+		"\61\3\2\2\2\u013b\u0139\3\2\2\2\u013c\u013d\7(\2\2\u013d\u0143\5T+\2\u013e"+
+		"\u013f\7(\2\2\u013f\u0140\5V,\2\u0140\u0141\5\60\31\2\u0141\u0142\7)\2"+
+		"\2\u0142\u0144\3\2\2\2\u0143\u013e\3\2\2\2\u0144\u0145\3\2\2\2\u0145\u0143"+
+		"\3\2\2\2\u0145\u0146\3\2\2\2\u0146\u0147\3\2\2\2\u0147\u0148\7)\2\2\u0148"+
+		"\u0153\3\2\2\2\u0149\u0153\5\66\34\2\u014a\u0153\58\35\2\u014b\u0153\5"+
+		"\64\33\2\u014c\u014d\5T+\2\u014d\u014e\5V,\2\u014e\u0153\3\2\2\2\u014f"+
+		"\u0150\5T+\2\u0150\u0151\7!\2\2\u0151\u0153\3\2\2\2\u0152\u013c\3\2\2"+
+		"\2\u0152\u0149\3\2\2\2\u0152\u014a\3\2\2\2\u0152\u014b\3\2\2\2\u0152\u014c"+
+		"\3\2\2\2\u0152\u014f\3\2\2\2\u0153\63\3\2\2\2\u0154\u015a\5R*\2\u0155"+
+		"\u0156\7(\2\2\u0156\u0157\5R*\2\u0157\u0158\7)\2\2\u0158\u015a\3\2\2\2"+
+		"\u0159\u0154\3\2\2\2\u0159\u0155\3\2\2\2\u015a\65\3\2\2\2\u015b\u0160"+
+		"\7\'\2\2\u015c\u015d\7(\2\2\u015d\u015e\7\'\2\2\u015e\u0160\7)\2\2\u015f"+
+		"\u015b\3\2\2\2\u015f\u015c\3\2\2\2\u0160\67\3\2\2\2\u0161\u0162\7(\2\2"+
+		"\u0162\u0163\7\25\2\2\u0163\u0164\5T+\2\u0164\u0165\7)\2\2\u01659\3\2"+
+		"\2\2\u0166\u0167\7(\2\2\u0167\u0168\7\26\2\2\u0168\u016c\5P)\2\u0169\u016b"+
+		"\5<\37\2\u016a\u0169\3\2\2\2\u016b\u016e\3\2\2\2\u016c\u016a\3\2\2\2\u016c"+
+		"\u016d\3\2\2\2\u016d\u016f\3\2\2\2\u016e\u016c\3\2\2\2\u016f\u0170\7)"+
+		"\2\2\u0170;\3\2\2\2\u0171\u0172\7(\2\2\u0172\u0173\5T+\2\u0173\u0174\5"+
+		"\60\31\2\u0174\u0175\7)\2\2\u0175=\3\2\2\2\u0176\u0177\7(\2\2\u0177\u017b"+
+		"\7\27\2\2\u0178\u017a\5@!\2\u0179\u0178\3\2\2\2\u017a\u017d\3\2\2\2\u017b"+
+		"\u0179\3\2\2\2\u017b\u017c\3\2\2\2\u017c\u017e\3\2\2\2\u017d\u017b\3\2"+
+		"\2\2\u017e\u017f\7)\2\2\u017f?\3\2\2\2\u0180\u0191\5.\30\2\u0181\u0182"+
+		"\7\30\2\2\u0182\u0183\5L\'\2\u0183\u0184\7\31\2\2\u0184\u0185\5B\"\2\u0185"+
+		"\u0191\3\2\2\2\u0186\u0187\7\32\2\2\u0187\u0188\5D#\2\u0188\u0189\5P)"+
+		"\2\u0189\u018a\5L\'\2\u018a\u018b\5H%\2\u018b\u0191\3\2\2\2\u018c\u018d"+
+		"\7(\2\2\u018d\u018e\5@!\2\u018e\u018f\7)\2\2\u018f\u0191\3\2\2\2\u0190"+
+		"\u0180\3\2\2\2\u0190\u0181\3\2\2\2\u0190\u0186\3\2\2\2\u0190\u018c\3\2"+
+		"\2\2\u0191A\3\2\2\2\u0192\u0193\7\33\2\2\u0193\u0194\5X-\2\u0194\u0195"+
+		"\5D#\2\u0195\u0196\5P)\2\u0196\u0197\5F$\2\u0197\u0198\5H%\2\u0198C\3"+
 		"\2\2\2\u0199\u019b\7(\2\2\u019a\u019c\5\60\31\2\u019b\u019a\3\2\2\2\u019c"+
 		"\u019d\3\2\2\2\u019d\u019b\3\2\2\2\u019d\u019e\3\2\2\2\u019e\u019f\3\2"+
 		"\2\2\u019f\u01a0\7)\2\2\u01a0E\3\2\2\2\u01a1\u01a2\7\'\2\2\u01a2G\3\2"+
@@ -3706,8 +3706,8 @@ public class SpuddXParser extends Parser {
 		"\2\u01ab\u01ac\7&\2\2\u01acQ\3\2\2\2\u01ad\u01ae\7&\2\2\u01aeS\3\2\2\2"+
 		"\u01af\u01b0\7&\2\2\u01b0U\3\2\2\2\u01b1\u01b2\7&\2\2\u01b2W\3\2\2\2\u01b3"+
 		"\u01b4\7&\2\2\u01b4Y\3\2\2\2\u01b5\u01b6\7&\2\2\u01b6[\3\2\2\2\32`dkt"+
-		"~\u008a\u00b4\u00bf\u00d9\u00e4\u00f2\u0105\u0126\u0130\u0138\u013a\u0146"+
-		"\u0153\u015a\u0160\u016d\u017c\u0191\u019d";
+		"~\u008a\u00b2\u00bd\u00d7\u00e2\u00f1\u0104\u0125\u012f\u0137\u0139\u0145"+
+		"\u0152\u0159\u015f\u016c\u017b\u0190\u019d";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
