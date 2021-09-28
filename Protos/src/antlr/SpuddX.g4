@@ -11,8 +11,7 @@ domain: var_defs
 		;
 
 var_defs : (var_def)+ ;
-var_def : LP 'defvar' var_name LP (var_value)+ RP RP	# RVarDef
-		| LP 'defmodelvar' var_name RP 				  	# ModelVarDef
+var_def : LP 'defvar' var_name LP (var_value)+ RP RP
 		;
 		   
 all_def : model_name			# PreDefModel
@@ -21,6 +20,7 @@ all_def : model_name			# PreDefModel
 		| ipomdp_def 			# IPOMDPDef
 		| dbn_def				# DBNDef
 		| pbvi_solv_def 		# PBVISolverDef
+		| modelvar_init_def		# ModelVarInitDef
 		| LP all_def RP 		# OtherDefParen
 		;
 		 
@@ -50,6 +50,14 @@ ipomdp_def : LP 'defipomdp' model_name
              reachability
              RP
              ;
+             
+modelvar_init_def : LP 'initmodelvar' var_name
+					LP 'frames' var_name RP
+					LP (model_init)+ RP 
+					RP
+				  ;
+					
+model_init : LP frame_name LP var_value dd_expr RP RP ;
             
 states_list	: LP 'S' LP (var_name)+ RP RP ;
 obs_list 	: LP 'O' LP (var_name)+ RP RP ;
@@ -58,7 +66,8 @@ action_j_var 	: LP 'Aj' (var_name)  RP ;
 model_j_var 	: LP 'Mj' (var_name)  RP ;
 actions_list 	: LP 'A' LP (var_name)+ RP RP ;
 frame_def 	: LP 'Thetaj' var_name (frame_tuple)+ RP ;
-frame_tuple : LP var_value model_name dd_list RP ;
+frame_tuple : LP var_value model_name RP ;
+frame_name: var_value ;
 
 dynamics : LP 'dynamics' (action_model)+ RP ;
 action_model : LP action_name all_def RP ;

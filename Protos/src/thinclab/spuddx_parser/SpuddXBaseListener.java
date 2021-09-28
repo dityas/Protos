@@ -41,25 +41,13 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterRVarDef(SpuddXParser.RVarDefContext ctx) { }
+	@Override public void enterVar_def(SpuddXParser.Var_defContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitRVarDef(SpuddXParser.RVarDefContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterModelVarDef(SpuddXParser.ModelVarDefContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitModelVarDef(SpuddXParser.ModelVarDefContext ctx) { }
+	@Override public void exitVar_def(SpuddXParser.Var_defContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -137,6 +125,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterModelVarInitDef(SpuddXParser.ModelVarInitDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitModelVarInitDef(SpuddXParser.ModelVarInitDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterOtherDefParen(SpuddXParser.OtherDefParenContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -180,6 +180,30 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitIpomdp_def(SpuddXParser.Ipomdp_defContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterModelvar_init_def(SpuddXParser.Modelvar_init_defContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitModelvar_init_def(SpuddXParser.Modelvar_init_defContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterModel_init(SpuddXParser.Model_initContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitModel_init(SpuddXParser.Model_initContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -276,6 +300,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFrame_tuple(SpuddXParser.Frame_tupleContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFrame_name(SpuddXParser.Frame_nameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFrame_name(SpuddXParser.Frame_nameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

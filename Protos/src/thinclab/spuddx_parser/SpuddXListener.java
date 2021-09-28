@@ -29,29 +29,15 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitVar_defs(SpuddXParser.Var_defsContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code RVarDef}
-	 * labeled alternative in {@link SpuddXParser#var_def}.
+	 * Enter a parse tree produced by {@link SpuddXParser#var_def}.
 	 * @param ctx the parse tree
 	 */
-	void enterRVarDef(SpuddXParser.RVarDefContext ctx);
+	void enterVar_def(SpuddXParser.Var_defContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code RVarDef}
-	 * labeled alternative in {@link SpuddXParser#var_def}.
+	 * Exit a parse tree produced by {@link SpuddXParser#var_def}.
 	 * @param ctx the parse tree
 	 */
-	void exitRVarDef(SpuddXParser.RVarDefContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code ModelVarDef}
-	 * labeled alternative in {@link SpuddXParser#var_def}.
-	 * @param ctx the parse tree
-	 */
-	void enterModelVarDef(SpuddXParser.ModelVarDefContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code ModelVarDef}
-	 * labeled alternative in {@link SpuddXParser#var_def}.
-	 * @param ctx the parse tree
-	 */
-	void exitModelVarDef(SpuddXParser.ModelVarDefContext ctx);
+	void exitVar_def(SpuddXParser.Var_defContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code PreDefModel}
 	 * labeled alternative in {@link SpuddXParser#all_def}.
@@ -125,6 +111,18 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitPBVISolverDef(SpuddXParser.PBVISolverDefContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code ModelVarInitDef}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
+	 * @param ctx the parse tree
+	 */
+	void enterModelVarInitDef(SpuddXParser.ModelVarInitDefContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ModelVarInitDef}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
+	 * @param ctx the parse tree
+	 */
+	void exitModelVarInitDef(SpuddXParser.ModelVarInitDefContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code OtherDefParen}
 	 * labeled alternative in {@link SpuddXParser#all_def}.
 	 * @param ctx the parse tree
@@ -166,6 +164,26 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitIpomdp_def(SpuddXParser.Ipomdp_defContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#modelvar_init_def}.
+	 * @param ctx the parse tree
+	 */
+	void enterModelvar_init_def(SpuddXParser.Modelvar_init_defContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#modelvar_init_def}.
+	 * @param ctx the parse tree
+	 */
+	void exitModelvar_init_def(SpuddXParser.Modelvar_init_defContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#model_init}.
+	 * @param ctx the parse tree
+	 */
+	void enterModel_init(SpuddXParser.Model_initContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#model_init}.
+	 * @param ctx the parse tree
+	 */
+	void exitModel_init(SpuddXParser.Model_initContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#states_list}.
 	 * @param ctx the parse tree
@@ -246,6 +264,16 @@ public interface SpuddXListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFrame_tuple(SpuddXParser.Frame_tupleContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SpuddXParser#frame_name}.
+	 * @param ctx the parse tree
+	 */
+	void enterFrame_name(SpuddXParser.Frame_nameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SpuddXParser#frame_name}.
+	 * @param ctx the parse tree
+	 */
+	void exitFrame_name(SpuddXParser.Frame_nameContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#dynamics}.
 	 * @param ctx the parse tree

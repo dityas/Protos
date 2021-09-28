@@ -7,7 +7,6 @@
  */
 package thinclab.spuddx_parser;
 
-import java.util.ArrayList;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,7 +21,7 @@ public class VarDefVisitor extends SpuddXBaseVisitor<RandomVariable> {
 	private static final Logger LOGGER = LogManager.getLogger(VarDefVisitor.class);
 
 	@Override
-	public RandomVariable visitRVarDef(SpuddXParser.RVarDefContext ctx) {
+	public RandomVariable visitVar_def(SpuddXParser.Var_defContext ctx) {
 
 		var name = ctx.var_name().IDENTIFIER().getText();
 		var vals = ctx.var_value().stream().map(v -> v.IDENTIFIER().getText()).collect(Collectors.toList());
@@ -33,7 +32,7 @@ public class VarDefVisitor extends SpuddXBaseVisitor<RandomVariable> {
 
 		return rv;
 	}
-	
+/*	
 	@Override
 	public RandomVariable visitModelVarDef(SpuddXParser.ModelVarDefContext ctx) {
 		
@@ -44,5 +43,5 @@ public class VarDefVisitor extends SpuddXBaseVisitor<RandomVariable> {
 
 		return rv;
 	}
-	
+*/	
 }

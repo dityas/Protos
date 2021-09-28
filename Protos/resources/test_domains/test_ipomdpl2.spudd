@@ -229,11 +229,7 @@
         (OR 	(actionOpenAny))
         (L 		(actionL))
     )
-        
-    (b
-        (initLoc)	
-    )
-        
+       
     (R
         (OL 	(TigerLoc 
                     (TL 	(-100))
@@ -267,11 +263,7 @@
         (OR 	(actionOpenAny))
         (L 		(actionL))
     )
-        
-    (b
-        (initLoc)	
-    )
-        
+       
     (R
         (OL 	(TigerLoc 
                     (TL 	(-150))
@@ -312,11 +304,7 @@
         (OR 	(actionIOpen))
         (L 	(actionIListen))
     )
-        
-    (b
-        (initLoc)	
-    )
-        
+       
     (R
         (OL 	
         	(TigerLoc 
@@ -362,11 +350,7 @@
         (OR 	(actionJOpen))
         (L 	(actionJListens))
     )
-        
-    (b
-        (initLoc)	
-    )
-        
+       
     (R
         (OL 	
         	(TigerLoc 

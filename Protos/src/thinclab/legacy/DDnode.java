@@ -5,7 +5,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.ddinterface.DDTree;
-import java.lang.ref.*;
+import thinclab.utils.Tuple;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -175,14 +176,41 @@ public class DDnode extends DD {
 
 		// try look up node in nodeHashtable
 		DDnode node = new DDnode(var, children);
-		/*
 		WeakReference<DD> storedNode = ((WeakReference<DD>) Global.nodeHashtable.get(node));
 		if (storedNode != null)
 			return (DDnode) storedNode.get();
-		
+
 		// store node in nodeHashtable
-		Global.nodeHashtable.put(node, new WeakReference<DD>(node)); */
+		Global.nodeHashtable.put(node, new WeakReference<DD>(node));
 		return node;
+	}
+
+	public static DD getDistribution(int var, List<Tuple<String, Float>> probs) {
+
+		/*
+		 * For making DDs when all children are not defined.
+		 */
+		var childNames = Global.valNames.get(var - 1);
+		DD[] children = new DD[childNames.size()];
+		for (int i = 0; i < children.length; i++)
+			children[i] = DDleaf.getDD(0.0f);
+
+		probs.stream().forEach(i ->
+			{
+
+				int index = Collections.binarySearch(childNames, i._0());
+				if (index < 0) {
+
+					LOGGER.error(
+							String.format("Child %s does not exist in var %s: %s", i, var, Global.varNames.get(var)));
+					System.exit(-1);
+				}
+
+				else
+					children[index] = DDleaf.getDD(i._1());
+			});
+
+		return DDnode.getDD(var, children);
 	}
 
 	public void setChild(int child, DD childDD) {

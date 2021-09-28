@@ -79,14 +79,14 @@ class TestBeliefUpdate {
 
 		// Make belief region for agent I
 		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
-		beliefGraph.addNode(I.b_i());
+		beliefGraph.addNode(DDleaf.getDD(0.5f));
 
 		// Initialize belief exploration
 		var BE = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(20);
 
 		long then = System.nanoTime();
 		for (int i = 0; i < 20; i++)
-			beliefGraph = BE.expand(beliefGraph, I, 10, AlphaVectorPolicy.fromR(I.R()));
+			beliefGraph = BE.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 10, AlphaVectorPolicy.fromR(I.R()));
 
 		long now = System.nanoTime();
 		float T = (now - then) / 1000.0f;
@@ -119,7 +119,7 @@ class TestBeliefUpdate {
 
 		System.gc();
 
-		DD initBelief = I.b_i();
+		DD initBelief = DDleaf.getDD(0.5f);
 		DD bListenGL = I.beliefUpdate(initBelief, "L", Collections.singletonList("GL"));
 
 		DD tl = DDleaf.getDD(0.85f);
@@ -167,11 +167,11 @@ class TestBeliefUpdate {
 
 		System.gc();
 
-		DD initBelief = I.b_i();
-		var likelihoods = DDOP.factors(I.obsLikelihoods(initBelief, 0), I.i_Om_p());
+		//DD initBelief = ;
+		//var likelihoods = DDOP.factors(I.obsLikelihoods(initBelief, 0), I.i_Om_p());
 
-		LOGGER.debug(String.format("Initial belief: %s", initBelief));
-		LOGGER.debug(String.format("Likelihoods: %s", likelihoods));
+		//LOGGER.debug(String.format("Initial belief: %s", initBelief));
+		//LOGGER.debug(String.format("Likelihoods: %s", likelihoods));
 	}
 
 	@Test
@@ -198,7 +198,7 @@ class TestBeliefUpdate {
 		var obs = OP.cartesianProd(
 				I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList()));
 
-		DD b = I.b_i();
+		DD b = DDleaf.getDD(0.5f);
 		var beliefs = new ArrayList<DD>();
 		var aos = new ArrayList<Tuple<Integer, List<Integer>>>();
 
@@ -210,14 +210,14 @@ class TestBeliefUpdate {
 				aos.add(Tuple.of(a, I.oAll.get(o)));
 			}
 		}
-
+		/*
 		IntStream.range(0, aos.size()).forEach(i ->
 			{
 
 				var ao = aos.get(i);
 				var a = I.A().get(ao._0());
 
-				var initMjBeliefs = DDOP.factors(I.b_i(), I.i_S()).get(1).getChildren();
+				var initMjBeliefs = DDOP.factors(DDleaf.getDD(0.5f), I.i_S()).get(1).getChildren();
 				var initL0Beliefs = IntStream.range(0, initMjBeliefs.length).boxed()
 						.filter(j -> !initMjBeliefs[j].equals(DDleaf.getDD(0.0f)))
 						.map(j -> Global.valNames.get(I.i_Mj - 1).get(j)).collect(Collectors.toList());
@@ -232,7 +232,7 @@ class TestBeliefUpdate {
 						initL0Beliefs.stream().map(j -> I.mjMap.v2k.get(j)).collect(Collectors.toList())));
 
 			});
-
+		*/
 	}
 
 	@Test
@@ -258,7 +258,7 @@ class TestBeliefUpdate {
 
 		var obs = OP.cartesianProd(
 				I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList()));
-
+		/*
 		DD b = I.b_i();
 		var beliefs = new ArrayList<DD>();
 		var aos = new ArrayList<Tuple<Integer, List<Integer>>>();
@@ -282,7 +282,7 @@ class TestBeliefUpdate {
 						DDOP.factors(b, I.i_S()), a, ao._1(), DDOP.factors(beliefs.get(i), I.i_S())));
 
 			});
-
+		*/
 	}
 
 }

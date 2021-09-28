@@ -54,7 +54,6 @@ public class PBVISolvableFrameSolution {
 				.expand(b_is, RG, m, H, Vn);
 	
 		Vn = s.solve(b_is, m, 100, H, Vn);
-
 	}
 
 	public List<Tuple<Integer, DD>> mjList() {

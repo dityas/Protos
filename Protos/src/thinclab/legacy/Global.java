@@ -1,12 +1,12 @@
 package thinclab.legacy;
 
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.RandomVariable;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
+import thinclab.utils.TwoWayMap;
 import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -24,7 +24,9 @@ public class Global {
 	public static List<Integer> varDomSize = new ArrayList<>(10);
 	public static List<String> varNames = new ArrayList<>(10);
 	public static List<List<String>> valNames = new ArrayList<>(10);
-	
+
+	public static TypedCacheMap<String, HashMap<Tuple<Integer, DD>, String>> modelVars = new TypedCacheMap<>();
+
 	public static int NUM_VARS = 0;
 
 	/* identify which frame and level has the current context */
@@ -71,36 +73,34 @@ public class Global {
 	public static void addVariable(String varName, List<String> valNames) {
 
 		Collections.sort(valNames);
-		
+
 		Global.varNames.add(varName);
 		Global.valNames.add(valNames);
 		Global.varDomSize.add(valNames.size());
-		
+
 		LOGGER.debug(String.format("Add var %s with values %s", varName, valNames));
 		Global.NUM_VARS += 1;
 	}
-	
+
 	public static void replaceValues(int var, List<String> vals) {
-		
+
 		Global.valNames.set(var - 1, vals);
 		Global.varDomSize.set(var - 1, vals.size());
 		Global.clearHashtables();
 	}
-	
+
 	public static void populateFromRandomVariables(List<RandomVariable> vars) {
-		
-		vars.stream()
-			.forEach(v -> Global.addVariable(
-						v.getVarName(), 
-						v.getValNames()));
+
+		vars.stream().forEach(v -> Global.addVariable(v.getVarName(), v.getValNames()));
 	}
 
 	public static void setSeed(long seed) {
+
 		random.setSeed(seed);
 	}
-	
+
 	public static void primeVarsAndInitGlobals(List<RandomVariable> vars) {
-		
+
 		var primedVars = RandomVariable.primeVariables(vars);
 		Global.populateFromRandomVariables(primedVars);
 	}
@@ -128,9 +128,9 @@ public class Global {
 
 		System.gc();
 	}
-	
+
 	public static void clearAll() {
-		
+
 		Global.varNames.clear();
 		Global.valNames.clear();
 		Global.varDomSize.clear();
@@ -161,19 +161,20 @@ public class Global {
 		Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
 		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
 	}
-	
+
 	public static void logCacheSizes() {
-		
+
 		LOGGER.debug(String.format("Nodes Cache: %s", Global.nodeHashtable.size()));
 		LOGGER.debug(String.format("Leaf Cache: %s", Global.leafHashtable.size()));
 		LOGGER.debug(String.format("Add Cache: %s", Global.addCache.size()));
 		LOGGER.debug(String.format("Mult Cache: %s", Global.multCache.size()));
 		LOGGER.debug(String.format("Dot Product Cache: %s", Global.dotProductCache.size()));
 		LOGGER.debug(String.format("Add Out Cache: %s", Global.addOutCache.size()));
-		
+
 	}
 
 	public static void printProgressBar(int currentStep, int totalSteps, int totalRounds) {
+
 		/*
 		 * Build a progress bar to show progress for backups and all that
 		 */
@@ -197,6 +198,7 @@ public class Global {
 	}
 
 	public static void printProgressBarConvergence() {
+
 		System.out.println("\rProgress: 100% Converged. Solving next round.\t\t\t\t\t\t\t\t\t");
 	}
 }

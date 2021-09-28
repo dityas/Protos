@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
+import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.model_ops.belief_exploration.PolicyGraphExpansion;
@@ -21,6 +22,7 @@ import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
+import thinclab.utils.Tuple;
 
 /*
  *	THINC Lab at UGA | Cyber Deception Group
@@ -156,15 +158,20 @@ class TestSolvers {
 
 		var solver = new SymbolicPerseusSolver<IPOMDP>();
 
-		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
-		int bestAct = policy.getBestActionIndex(DDleaf.getDD(0.5f), I.i_S());
+		var b_i = DDOP.mult(
+				DDleaf.getDD(0.5f), 
+				DDnode.getDistribution(
+						I.i_Mj, 
+						List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
+		var policy = solver.solve(List.of(b_i), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
+		int bestAct = policy.getBestActionIndex(b_i, I.i_S());
 
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
 				I.A().get(bestAct)));
 
 		assertTrue(bestAct == 0);
 
-		DD b_ = DDleaf.getDD(0.5f);
+		DD b_ = b_i;
 
 		LOGGER.info(String.format("Suggested optimal action for %s  is %s which resolves to %s",
 				DDOP.factors(b_, I.i_S()), bestAct, I.A().get(bestAct)));

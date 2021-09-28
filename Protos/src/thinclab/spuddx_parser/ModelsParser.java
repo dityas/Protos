@@ -86,8 +86,7 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		String Thetaj = ctx.ipomdp_def().frame_def().var_name().IDENTIFIER().getText();
 		var _frames = ctx.ipomdp_def().frame_def().frame_tuple().stream()
 				.map(t -> Tuple.of(t.var_value().IDENTIFIER().getText(),
-						this.declaredModels.get(t.model_name().IDENTIFIER().getText()),
-						t.dd_list().dd_expr().stream().map(this.ddParser::visit).collect(Collectors.toList())))
+						this.declaredModels.get(t.model_name().IDENTIFIER().getText())))
 				.collect(Collectors.toList());
 
 		var wrongFrames = _frames.stream().filter(f -> !(f._1() instanceof PBVISolvablePOMDPBasedModel)).findFirst();

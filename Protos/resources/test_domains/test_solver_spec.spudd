@@ -54,11 +54,7 @@
         (OR 	(actionOpenAny))
         (L 		(actionL))
     )
-        
-    (b
-        (initLoc)	
-    )
-        
+       
     (R
         (OL 	(TigerLoc 
                     (TL 	(-100))

@@ -61,14 +61,14 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public List<PBVISolvableFrameSolution> framesjSoln;
 
 	// public HashMap<Tuple<Integer, DD>, Integer> mjMap = new HashMap<>(1000);
-	public TwoWayMap<Tuple<Integer, DD>, String> mjMap = new TwoWayMap<>();
+	// public TwoWayMap<Tuple<Integer, DD>, String> mjMap = new TwoWayMap<>();
 	private TypedCacheMap<Tuple3<DD, Integer, Integer>, Float> obsProbCache = new TypedCacheMap<>(1000);
 
 	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
 
 	public IPOMDP(List<String> S, List<String> O, String A, String Aj, String Mj, String Thetaj,
-			List<Tuple3<String, Model, List<DD>>> frames_j, HashMap<String, Model> dynamics, HashMap<String, DD> R, 
-			float discount, int H) {
+			List<Tuple<String, Model>> frames_j, HashMap<String, Model> dynamics, HashMap<String, DD> R, float discount,
+			int H) {
 
 		// initialize dynamics like POMDP
 		super(S, O, A, dynamics, R, discount);
@@ -92,7 +92,10 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		// initialize frames
 		this.framesj = frames_j.stream().map(
-				t -> Tuple.of(Global.valNames.get(i_Thetaj - 1).indexOf(t._0()), (PBVISolvablePOMDPBasedModel) t._1(), t._2()))
+				t -> Tuple.of(Global.valNames.get(i_Thetaj - 1).indexOf(t._0()), (PBVISolvablePOMDPBasedModel) t._1()))
+				.map(t -> Tuple.of(t._0(), t._1(),
+						Global.modelVars.get(Global.varNames.get(i_Mj - 1)).keySet().stream()
+								.filter(k -> k._0() == t._0()).map(k -> k._1()).collect(Collectors.toList())))
 				.collect(Collectors.toList());
 
 		Collections.sort(this.framesj, (f1, f2) -> f1._0() - f2._0());
@@ -178,6 +181,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createIS() {
 
+		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
+		
 		this.framesjSoln.stream().forEach(f ->
 			{
 
@@ -188,11 +193,16 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		mjsList.stream().forEach(f ->
 			{
-
-				this.mjMap.put(Tuple.of(f._0(), f._1()), "m" + this.mjMap.k2v.size());
+				var key = Tuple.of(f._0(), f._1());
+				if (!mjMap.containsKey(key))
+					mjMap.put(Tuple.of(f._0(), f._1()), "m" + mjMap.size());
+				
+				else {
+					LOGGER.warn(String.format("Model %s already exists in mjMap. Will skip it", key));
+				}
 			});
 
-		var sortedVals = mjMap.k2v.values().stream().collect(Collectors.toList());
+		var sortedVals = mjMap.values().stream().collect(Collectors.toList());
 		Collections.sort(sortedVals);
 
 		Global.replaceValues(i_Mj, sortedVals);
@@ -203,8 +213,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createPAjMj() {
 
+		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
 		var MjToOPTAj = framesjSoln.stream().flatMap(f -> f.mjToOPTAjMap().entrySet().stream())
-				.map(e -> Tuple.of(mjMap.k2v.get(e.getKey()), DDnode.getDDForChild(i_Aj, e.getValue())))
+				.map(e -> Tuple.of(mjMap.get(e.getKey()), DDnode.getDDForChild(i_Aj, e.getValue())))
 				.collect(Collectors.toList());
 
 		Collections.sort(MjToOPTAj, (a, b) -> a._0().compareTo(b._0()));
@@ -215,7 +226,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createPThetajMj() {
 
-		var ThetajToMj = mjMap.k2v.entrySet().stream()
+		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
+		var ThetajToMj = mjMap.entrySet().stream()
 				.map(e -> Tuple.of(DDnode.getDDForChild(i_Thetaj, e.getKey()._0()), e.getValue()))
 				.collect(Collectors.toList());
 
@@ -227,8 +239,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createPMj_pMjAjOj_p() {
 
+		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
 		var triples = framesjSoln.stream().flatMap(f -> f.getTriples().stream())
-				.map(f -> Tuple.of(mjMap.k2v.get(f._0()), f._1(), mjMap.k2v.get(f._2()))).map(t ->
+				.map(f -> Tuple.of(mjMap.get(f._0()), f._1(), mjMap.get(f._2()))).map(t ->
 					{
 
 						// convert everything into list
@@ -253,6 +266,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var ddSum = DDOP.addMultVarElim(List.of(PMj_pGivenMjAjOj_p), List.of(i_Mj_p));
 		if (DDOP.maxAll(DDOP.abs(DDOP.sub(ddSum, DD.one))) > 1e-5f) {
 
+			LOGGER.debug(String.format("Models are %s", Global.modelVars));
 			LOGGER.error(String.format("# (Mj') P(Mj'|Mj,Aj,Oj') is %s != 1", ddSum));
 			System.exit(-1);
 		}
@@ -274,7 +288,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var Ofao = DDOP.restrict(O().get(a), i_Om_p, o);
 
 		var factors = new ArrayList<DD>(S().size() + S().size() + Omj.size() + 3);
-		
+
 		factors.add(b);
 		factors.add(PAjGivenMj);
 		factors.add(PThetajGivenMj);

@@ -1,11 +1,24 @@
 (defvar TigerLoc (TL TR))
-(defmodelvar agent_j)
+(defvar agent_j (m0 m1 m2))
 (defvar Frame_jl1 (frame1))
 (defvar Agent_actions (OL OR L))
 (defvar Agentj_actions (OL OR L))
 (defvar Growl_j (GL GR))
 (defvar Growl (GL GR))
 (defvar Creak (CL CR SL))
+
+(initmodelvar agent_j
+	(frames Frame_jl1)
+	(
+		(frame1 	(m0 	(0.5)))
+		(frame1 	(m1 	
+			(TigerLoc 	(TR 	(0.85)) 	(TL 	(0.15)))
+		))
+		(frame1 	(m2 	
+			(TigerLoc 	(TR 	(0.15)) 	(TL 	(0.85)))
+		))
+	)
+)
 
 (defdd initLoc
 		(TigerLoc 	UNIFORM)
@@ -145,10 +158,6 @@
         (L 		(actionL))
     )
         
-    (b
-        (initLoc)	
-    )
-        
     (R
         (OL 	(TigerLoc 
                     (TL 	(-100))
@@ -179,7 +188,7 @@
     (Aj Agentj_actions)
     (Mj agent_j)
     (Thetaj Frame_jl1 	
-    	(frame1 agentJ	((0.5) (TigerLoc 	(TL 	(0.9))	(TR 	(0.1)))))
+    	(frame1 agentJ)
     )
         
     (dynamics
@@ -187,11 +196,7 @@
         (OR 	(actionIOpen))
         (L 		(actionIListen))
     )
-        
-    (b
-        (initLoc)	
-    )
-        
+            
     (R
         (OL 	
         	(TigerLoc 

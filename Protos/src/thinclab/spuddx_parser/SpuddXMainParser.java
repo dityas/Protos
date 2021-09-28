@@ -37,12 +37,15 @@ import thinclab.spuddx_parser.SpuddXParser.DBNDefContext;
 import thinclab.spuddx_parser.SpuddXParser.DDDefContext;
 import thinclab.spuddx_parser.SpuddXParser.DDExecDefContext;
 import thinclab.spuddx_parser.SpuddXParser.IPOMDPDefContext;
+import thinclab.spuddx_parser.SpuddXParser.Modelvar_init_defContext;
 import thinclab.spuddx_parser.SpuddXParser.PBVISolverDefContext;
 import thinclab.spuddx_parser.SpuddXParser.POMDPDefContext;
 import thinclab.spuddx_parser.SpuddXParser.ParenExecExprContext;
 import thinclab.spuddx_parser.SpuddXParser.PolTreeExprContext;
 import thinclab.spuddx_parser.SpuddXParser.SolvExprContext;
 import thinclab.spuddx_parser.SpuddXParser.Var_defsContext;
+import thinclab.utils.Tuple;
+import thinclab.utils.TwoWayMap;
 
 /*
  * @author adityas
@@ -118,6 +121,42 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		Global.primeVarsAndInitGlobals(variables);
 
 		super.exitVar_defs(ctx);
+	}
+
+	@Override
+	public void enterModelvar_init_def(Modelvar_init_defContext ctx) {
+
+		String varName = ctx.var_name(0).IDENTIFIER().getText();
+		int varIndex = Global.varNames.indexOf(varName);
+
+		String frameVarName = ctx.var_name(1).IDENTIFIER().getText();
+		int frameVarIndex = Global.varNames.indexOf(frameVarName);
+
+		if (varIndex < 0)
+			this.errorAndExit(String.format("Variable %s does not exist", varName));
+
+		if (frameVarIndex < 0)
+			this.errorAndExit(String.format("Frame variable %s does not exist", frameVarName));
+
+		var models = ctx.model_init().stream()
+				.map(t -> Tuple.of(t.frame_name().var_value().IDENTIFIER().getText(),
+						t.var_value().IDENTIFIER().getText(), this.ddParser.visit(t.dd_expr())))
+				.map(t -> Tuple.of(Global.valNames.get(frameVarIndex).indexOf(t._0()), t._1(), t._2()))
+				.collect(Collectors.toList());
+		
+		models.stream().forEach(m -> {
+	
+			if(!Global.modelVars.containsKey(varName))
+				Global.modelVars.put(varName, new HashMap<>());
+				
+			var modelDict = Global.modelVars.get(varName);
+			var model = Tuple.of(m._0(), m._2());
+			if (!modelDict.containsKey(model))
+				modelDict.put(model, m._1());
+		});
+
+		LOGGER.info(String.format("Model variable %s initialized to %s", varName, Global.modelVars.get(varName)));
+		super.enterModelvar_init_def(ctx);
 	}
 
 	@Override
@@ -221,7 +260,8 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		String modelName = ctx.solv_cmd().model_name().getText();
 		int backups = Integer.valueOf(ctx.solv_cmd().backups().getText());
 		int expHorizon = Integer.valueOf(ctx.solv_cmd().exp_horizon().getText());
-		List<DD> dds = ctx.solv_cmd().dd_list().dd_expr().stream().map(this.ddParser::visit).collect(Collectors.toList());
+		List<DD> dds = ctx.solv_cmd().dd_list().dd_expr().stream().map(this.ddParser::visit)
+				.collect(Collectors.toList());
 
 		String policyName = ctx.policy_name().IDENTIFIER().getText();
 
@@ -338,6 +378,12 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 		this.enterDd_def(ctx.dd_def());
 		super.enterDDExecDef(ctx);
+	}
+
+	private void errorAndExit(String message) {
+
+		LOGGER.error(message);
+		System.exit(-1);
 	}
 
 	// ----------------------------------------------------------------------------------------

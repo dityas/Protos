@@ -53,13 +53,13 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 		// Prepare children
 		var childNames = ctx.var_value().stream().map(v -> v.IDENTIFIER().getText()).collect(Collectors.toList());
 		var childDDList = ctx.dd_expr().stream().map(this::visit).collect(Collectors.toList());
-
+/*
 		if (valNames.size() != childNames.size() && valNames.size() != childDDList.size()) {
 
 			LOGGER.error(String.format("All children for %s not defined", varName));
 			System.exit(-1);
 		}
-
+*/
 		DD[] children = new DD[childDDList.size()];
 		for (int i = 0; i < childNames.size(); i++) {
 
@@ -67,13 +67,18 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 
 			if (childIndex < 0 || childDDList.get(i) == null) {
 
+				LOGGER.warn(String.format("Value for child %s not defined. Defaulting to 0", childNames.get(i)));
+				children[childIndex] = DDleaf.getDD(0.0f);
+				/* Instead of breaking here, assign zero and move on with your life
 				LOGGER.error(String.format("Could not parse DD for child %s", childNames.get(i)));
 				LOGGER.debug(String.format("Child index is %s, childNames are %s", childIndex, childNames));
 				LOGGER.error(String.format("Error while parsing %s", ctx.getText()));
 				System.exit(-1);
+				*/
 			}
 
-			children[childIndex] = childDDList.get(i);
+			else
+				children[childIndex] = childDDList.get(i);
 		}
 
 		if (childDDList.size() != Global.varDomSize.get(varIndex))

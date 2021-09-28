@@ -195,11 +195,7 @@
 			(FRECON_SDATA 	(actionFRSdata))
 			(FRECON_CDATA 	(actionFRCdata))
 		)
-		
-		(b
-			(initAttacker)	
-		)
-		
+				
 		(R
 			(FRECON_SDATA 	(1.0))
 			(FRECON_CDATA 	(1.0))

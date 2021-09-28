@@ -56,7 +56,7 @@ class TestIPOMDPCreation {
 	void testMjCreation() throws Exception {
 
 		System.gc();
-
+		/*
 		LOGGER.info("Creating Mj space from single agent tiger problem POMDP");
 		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
 				.getFile();
@@ -95,5 +95,6 @@ class TestIPOMDPCreation {
 		var b_js = frameSoln.bMjList().stream().map(b -> mjMap.k2v.get(b)).collect(Collectors.toList());
 		LOGGER.debug(String.format("b_js %s", b_js));
 		LOGGER.debug(String.format("b_js index in Mj is %s", Collections.binarySearch(sortedVals, "m10")));
+		*/
 	}
 }
