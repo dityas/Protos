@@ -3,7 +3,7 @@ package thinclab.legacy;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+import thinclab.DDOP;
 import thinclab.ddinterface.DDTree;
 import thinclab.utils.Tuple;
 import java.lang.ref.WeakReference;
@@ -381,6 +381,28 @@ public class DDnode extends DD {
 
 		return this.toSPUDD(0);
 	}
+	
+	@Override
+	public String toDot() {
+		
+		var builder = new StringBuilder();
+		
+		builder.append(" { ").append(Global.varNames.get(this.var - 1));
+		
+		for (int i = 0; i < this.children.length; i++) {
+			
+			if (this.children[i].equals(DD.zero))
+				continue;
+			
+			builder.append(" | { ").append(Global.valNames.get(this.var - 1).get(i))
+				.append(" | ").append(this.children[i].toDot()).append(" } ");
+		}
+		
+		builder.append(" } ");
+		
+		return builder.toString();
+	}
+
 
 	@Override
 	public TreeSet<Integer> getVars() {

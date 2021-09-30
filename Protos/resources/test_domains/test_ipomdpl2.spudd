@@ -4,10 +4,10 @@
 (defvar TigerLoc (TL TR))
 
 -- Model var for agent I modeling agent J
-(defmodelvar agent_j)
+(defvar agent_j (m0 m1 m2))
 
 -- Model var for agent J modeling agent I
-(defmodelvar agent_il1)
+(defvar agent_il1 (m0 m1 m2))
 
 -- Variables to represent frames
 (defvar Frame_jl1 (frame1 frame2))
@@ -26,6 +26,23 @@
 -- Agent I's observations
 (defvar Growl (GL GR))
 (defvar Creak (CL CR SL))
+
+
+-- Initialize models
+(initmodelvar agent_j
+	(frames Frame_jl1)
+	(
+		(frame1 	(m0 	(0.5)))
+		(frame1 	(m1 	(
+			(TigerLoc 
+				(TL 	(0.85))
+				(TR 	(0.15))
+			)		
+		)))
+		(frame2 	(m2 	(0.5)))
+	)
+)
+
 
 -- DD's for transitions, observations, beliefs and rewards
 -- Common initial belief for all agents
@@ -295,14 +312,14 @@
     (Aj Agentj_actions)
     (Mj agent_j)
     (Thetaj Frame_jl1 	
-    	(frame1 agentJ 	(0.5))
-    	(frame2 agentJ2 (0.5))
+    	(frame1 agentJ)
+    	(frame2 agentJ2)
     )
         
     (dynamics
         (OL 	(actionIOpen))
         (OR 	(actionIOpen))
-        (L 	(actionIListen))
+        (L 		(actionIListen))
     )
        
     (R
@@ -328,6 +345,16 @@
     (H 4)	
 )
 
+-- Initialize models for L2 model var
+(initmodelvar agent_il1
+	(frames Frame_il2)
+	(
+		(frame1 	(m0 	(agent_j m0)))
+		(frame1		(m1 	(agent_j m1)))
+		(frame1 	(m2 	(agent_j m2)))
+	)
+)
+
 -- Agent J L2
 (defipomdp agentJl2
     (S 	
@@ -348,7 +375,7 @@
     (dynamics
         (OL 	(actionJOpen))
         (OR 	(actionJOpen))
-        (L 	(actionJListens))
+        (L 		(actionJListens))
     )
        
     (R

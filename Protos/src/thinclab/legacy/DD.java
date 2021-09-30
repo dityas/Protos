@@ -58,6 +58,8 @@ public abstract class DD implements Serializable {
 
 		return (DD) node;
 	}
+	
+	abstract public String toDot();
 
 	abstract public DDTree toDDTree();
 

@@ -199,6 +199,12 @@ public class DDleaf extends DD {
 
 		return builder.toString();
 	}
+	
+	@Override
+	public String toDot() {
+		
+		return String.format("%.5f", this.val);
+	}
 
 	@Override
 	public TreeSet<Integer> getVars() {

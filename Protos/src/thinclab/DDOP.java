@@ -552,11 +552,35 @@ public class DDOP {
 		return factordds;
 	}
 
+	public static String toDotRecord(final DD dd, final List<Integer> vars) {
+
+		var factordds = new ArrayList<DD>(vars.size());
+		var _vars = new ArrayList<Integer>(vars);
+
+		for (int i = 0; i < _vars.size(); i++) {
+
+			var _var = _vars.remove(0);
+
+			factordds.add(DDOP.addMultVarElim(List.of(dd), _vars));
+			_vars.add(_var);
+		}
+
+		var builder = new StringBuilder();
+		builder.append(" ")
+				.append(String.join(" | ", 
+						factordds.stream()
+							.map(d -> d.toDot())
+							.collect(Collectors.toList())))
+				.append(" ");
+
+		return builder.toString();
+	}
+
 	// -------------------------------------------------------------------------------------------------
 	// restrict
 
 	public static DD restrict(DD dd, final List<Integer> vars, final List<Integer> vals) {
-		
+
 		if (dd.getVar() == 0)
 			return dd;
 
@@ -890,7 +914,7 @@ public class DDOP {
 			return null;
 		}
 	}
-	
+
 	// ---------------------------------------------------------------------------------------
 	// max all
 	public static float maxAll(DD dd) {
