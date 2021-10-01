@@ -15,7 +15,6 @@ import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
-import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.utils.Tuple;

@@ -3,7 +3,6 @@ package thinclab.legacy;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import thinclab.DDOP;
 import thinclab.ddinterface.DDTree;
 import thinclab.utils.Tuple;
 import java.lang.ref.WeakReference;

@@ -25,7 +25,6 @@ import thinclab.models.datastructures.PBVISolvableFrameSolution;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
-import thinclab.utils.TwoWayMap;
 
 /*
  * @author adityas

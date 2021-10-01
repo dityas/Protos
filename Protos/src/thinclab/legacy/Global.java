@@ -136,6 +136,7 @@ public class Global {
 		Global.varDomSize.clear();
 		Global.NUM_VARS = 0;
 		Global.clearHashtables();
+		Global.modelVars.clear();
 	}
 
 	public static void newHashtables() {
