@@ -22,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.model_ops.belief_exploration.MjSpaceExpansion;
 import thinclab.model_ops.belief_exploration.PolicyGraphExpansion;
 import thinclab.models.DBN;
 import thinclab.models.IPOMDP;
@@ -345,7 +346,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 				.collect(Collectors.toList());
 
 		var modelGraph = ModelGraph.fromDecMakingModel(_model);
-		var expStrat = new PolicyGraphExpansion<>();
+		var expStrat = new MjSpaceExpansion<>(); /* new PolicyGraphExpansion<>(); */
 
 		modelGraph = expStrat.expand(initNodes, modelGraph, _model, expHorizon, policy);
 		LOGGER.info(String.format("Made policy tree for model %s till time step %s", modelName, expHorizon));
@@ -362,7 +363,9 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		catch (Exception e) {
 
 			LOGGER.error(String.format("While writing policy tree for model %s to file", modelName));
+			LOGGER.error(String.format("Model graph is %s", modelGraph));
 			LOGGER.error(e.getMessage());
+			e.printStackTrace();
 			System.exit(-1);
 		}
 	}

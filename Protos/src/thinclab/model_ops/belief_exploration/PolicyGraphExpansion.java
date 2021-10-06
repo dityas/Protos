@@ -8,15 +8,10 @@
 package thinclab.model_ops.belief_exploration;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
-import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ModelGraph;
@@ -76,6 +71,8 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 					});
 
 			});
+		
+		//node.beliefs.clear();
 
 		return nextNodes;
 	}
@@ -113,11 +110,11 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 							}
 
 						});
-
 				});
 			i++;
 		}
-
+		
+		//G.connections.keySet().forEach(k -> k.beliefs.clear());
 		return G;
 	}
 

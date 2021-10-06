@@ -35,7 +35,7 @@ public class ModelGraph<N extends ReachabilityNode, A, O> extends AbstractAOGrap
 		AOSpace.stream().forEach(i -> this.edgeIndexMap.put(i, this.edgeIndexMap.size()));
 		LOGGER.info(String.format("Initialized policy graph for branching factor %s", AOSpace.size()));
 	}
-
+	
 	public static ModelGraph<ReachabilityNode, Integer, List<Integer>> fromDecMakingModel(POSeqDecMakingModel<?> m) {
 
 		// Make action observation space for agent I
@@ -85,10 +85,12 @@ public class ModelGraph<N extends ReachabilityNode, A, O> extends AbstractAOGrap
 		for (var _n : G.connections.keySet()) {
 
 			nodeMap.put(_n, nodeMap.size());
+			
 			builder.append(nodeMap.get(_n)).append(" [label=\"{ ");
 
 			// if (_n.alphaId < 0)
-			builder.append(" ").append(String.join(" | --- | ", _n.beliefs.stream().map(b -> DDOP.toDotRecord(b, m.i_S())).collect(Collectors.toList())))
+			builder.append(" ")
+					.append(String.join(" | --- | ", _n.beliefs.stream().map(b -> DDOP.toDotRecord(b, m.i_S())).collect(Collectors.toList())))
 					.append(" ")
 					.append("| --- | A=");
 
