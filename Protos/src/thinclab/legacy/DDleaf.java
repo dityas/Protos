@@ -203,7 +203,7 @@ public class DDleaf extends DD {
 	@Override
 	public String toDot() {
 		
-		return String.format("%.9f", this.val);
+		return String.format("%.5f", this.val);
 	}
 
 	@Override

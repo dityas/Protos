@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,6 +13,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
+import thinclab.model_ops.belief_exploration.MjSpaceExpansion;
 import thinclab.model_ops.belief_exploration.PolicyGraphExpansion;
 import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.IPOMDP;
@@ -133,6 +135,28 @@ class TestSolvers {
 
 		LOGGER.debug(String.format("Solved policy is %s", policy));
 		printMemConsumption();
+		
+		LOGGER.info("Testing MjSpace representation");
+		var initNodes = List.of(DDleaf.getDD(0.5f)).stream()
+				.map(d -> ReachabilityNode.getStartNode(policy.getBestActionIndex(d, I.i_S()), d))
+				.collect(Collectors.toList());
+
+		var modelGraph = ModelGraph.fromDecMakingModel(I);
+		var expStrat = new MjSpaceExpansion<>(); /* new PolicyGraphExpansion<>(); */
+
+		modelGraph = expStrat.expand(initNodes, modelGraph, I, 5, policy);
+		LOGGER.debug(String.format("After expanding the MjSpace graph, no. of models are %s",
+				modelGraph.getAllNodes().size()));
+		LOGGER.debug(String.format("Graph is %s", ModelGraph.toDot(modelGraph, I)));
+		
+		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
+		var bfe = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100);
+		
+		beliefGraph = bfe.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 5, policy);
+		
+		LOGGER.debug(String.format("After expanding the belief space graph, no. of models are %s",
+				beliefGraph.getAllNodes().size()));
+
 	}
 
 	@Test
@@ -158,11 +182,8 @@ class TestSolvers {
 
 		var solver = new SymbolicPerseusSolver<IPOMDP>();
 
-		var b_i = DDOP.mult(
-				DDleaf.getDD(0.5f), 
-				DDnode.getDistribution(
-						I.i_Mj, 
-						List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
+		var b_i = DDOP.mult(DDleaf.getDD(0.5f),
+				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
 		var policy = solver.solve(List.of(b_i), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
 		int bestAct = policy.getBestActionIndex(b_i, I.i_S());
 
@@ -184,6 +205,18 @@ class TestSolvers {
 		bestAct = policy.getBestActionIndex(b_, I.i_S());
 
 		assertTrue(bestAct == 0);
+
+		LOGGER.info("Testing MjSpace representation");
+		var initNodes = List.of(b_i).stream()
+				.map(d -> ReachabilityNode.getStartNode(policy.getBestActionIndex(d, I.i_S()), d))
+				.collect(Collectors.toList());
+
+		var modelGraph = ModelGraph.fromDecMakingModel(I);
+		var expStrat = new MjSpaceExpansion<>(); /* new PolicyGraphExpansion<>(); */
+
+		modelGraph = expStrat.expand(initNodes, modelGraph, I, I.H, policy);
+		LOGGER.debug(String.format("After expanding the MjSpace graph, no. of models are %s",
+				modelGraph.getAllNodes().size()));
 
 		System.gc();
 		printMemConsumption();
@@ -212,12 +245,9 @@ class TestSolvers {
 
 		var solver = new SymbolicPerseusSolver<IPOMDP>();
 
-		var _b_i = DDOP.mult(
-				DDleaf.getDD(0.5f), 
-				DDnode.getDistribution(
-						I.i_Mj, 
-						List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
-		
+		var _b_i = DDOP.mult(DDleaf.getDD(0.5f),
+				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
+
 		// Get agent J L2
 		var J = (IPOMDP) domainRunner.getModel("agentJl2").orElseGet(() ->
 			{
@@ -227,12 +257,8 @@ class TestSolvers {
 				return null;
 			});
 
-		var b_i = DDOP.mult(
-				DDleaf.getDD(0.5f),
-				DDnode.getDistribution(
-						J.i_Mj, 
-						List.of(Tuple.of("m0", 1.0f))));
-		
+		var b_i = DDOP.mult(DDleaf.getDD(0.5f), DDnode.getDistribution(J.i_Mj, List.of(Tuple.of("m0", 1.0f))));
+
 		var policy = solver.solve(List.of(b_i), J, 100, J.H, AlphaVectorPolicy.fromR(J.R()));
 		int bestAct = policy.getBestActionIndex(b_i, J.i_S());
 
@@ -254,7 +280,7 @@ class TestSolvers {
 		bestAct = policy.getBestActionIndex(b_, J.i_S());
 
 		assertTrue(bestAct == 0);
-		
+
 		System.gc();
 		printMemConsumption();
 	}
@@ -330,15 +356,15 @@ class TestSolvers {
 
 		var modelGraph = ModelGraph.fromDecMakingModel(I);
 		var expansionStrat = new PolicyGraphExpansion<POMDP, AlphaVectorPolicy>();
-		
+
 		var initNode = new ReachabilityNode(-1, policy.getBestActionIndex(DDleaf.getDD(0.5f), I.i_S()));
 		initNode.beliefs.add(DDleaf.getDD(0.5f));
 		initNode.h = 0;
-		
+
 		modelGraph = expansionStrat.expand(List.of(initNode), modelGraph, I, 5, policy);
-	
+
 		LOGGER.debug(String.format("Graph is %s", ModelGraph.toDot(modelGraph, I)));
-		
+
 		assertTrue(modelGraph.getAllChildren().size() > 0 && modelGraph.getParents().size() > 0);
 		printMemConsumption();
 	}

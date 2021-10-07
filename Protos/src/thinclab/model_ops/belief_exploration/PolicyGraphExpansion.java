@@ -71,8 +71,8 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 					});
 
 			});
-		
-		//node.beliefs.clear();
+
+		// node.beliefs.clear();
 
 		return nextNodes;
 	}
@@ -105,8 +105,22 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 						{
 
 							if (nextNodes.containsKey(e.getValue())) {
-
-								G.addEdge(n, e.getKey(), nextNodes.get(e.getValue()));
+								
+								// if model node already exists, fetch that, 
+								// insert all new beliefs and put it back in
+								
+								var _nextNode = G.getNodeAtEdge(n, e.getKey());
+								
+								if (_nextNode != null) {
+									
+									var newNode = nextNodes.get(e.getValue());
+									newNode.beliefs.addAll(_nextNode.beliefs);
+									
+									G.replaceNode(_nextNode, newNode);
+								}
+								
+								else
+									G.addEdge(n, e.getKey(), nextNodes.get(e.getValue()));
 							}
 
 						});

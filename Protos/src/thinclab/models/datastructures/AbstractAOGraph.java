@@ -92,6 +92,33 @@ public abstract class AbstractAOGraph<N, A, O> implements ActionObservationGraph
 	}
 
 	@Override
+	public void replaceNode(N fNode, N tNode) {
+
+		// first replace any child nodes from fNode to tNode
+		var val = this.connections.remove(fNode);
+		this.connections.put(tNode, val);
+
+		// then the difficult part of changing fNode's parents to tNode's parents
+		var keys = this.connections.keySet();
+		keys.forEach(k ->
+			{
+
+				// for each src node, get all dests
+				var dest = this.connections.get(k);
+
+				// in all dests find one which is fNode and replace that
+				var toReplace = dest.entrySet().stream().filter(e -> e.getValue().equals(fNode)).map(e -> e.getKey())
+						.collect(Collectors.toList());
+
+				toReplace.forEach(_k -> dest.remove(_k));
+				toReplace.forEach(_k -> dest.put(_k, tNode));
+
+				this.connections.remove(k);
+				this.connections.put(k, dest);
+			});
+	}
+
+	@Override
 	public void removeAllNodes() {
 
 		this.connections.clear();
