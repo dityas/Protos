@@ -52,7 +52,7 @@ public class ReachabilityNode {
 		var builder = new HashCodeBuilder();
 		builder.append(alphaId);
 		builder.append(i_a);
-		//builder.append(beliefs);
+		builder.append(beliefs);
 		builder.append(h);
 
 		return builder.hashCode();
@@ -72,8 +72,8 @@ public class ReachabilityNode {
 		if (n.alphaId != alphaId || n.i_a != i_a || n.h != h)
 			return false;
 
-		//if (!n.beliefs.equals(beliefs))
-		//	return false;
+		if (!n.beliefs.equals(beliefs))
+			return false;
 
 		return true;
 	}

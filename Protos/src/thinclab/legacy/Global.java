@@ -4,9 +4,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.RandomVariable;
+import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
-import thinclab.utils.TwoWayMap;
 import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -25,7 +25,8 @@ public class Global {
 	public static List<String> varNames = new ArrayList<>(10);
 	public static List<List<String>> valNames = new ArrayList<>(10);
 
-	public static TypedCacheMap<String, HashMap<Tuple<Integer, DD>, String>> modelVars = new TypedCacheMap<>();
+	//public static TypedCacheMap<String, HashMap<Tuple<Integer, DD>, String>> modelVars = new TypedCacheMap<>();
+	public static TypedCacheMap<String, HashMap<Tuple<Integer, ReachabilityNode>, String>> modelVars = new TypedCacheMap<>();
 
 	public static int NUM_VARS = 0;
 

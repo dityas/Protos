@@ -46,7 +46,6 @@ import thinclab.spuddx_parser.SpuddXParser.PolTreeExprContext;
 import thinclab.spuddx_parser.SpuddXParser.SolvExprContext;
 import thinclab.spuddx_parser.SpuddXParser.Var_defsContext;
 import thinclab.utils.Tuple;
-import thinclab.utils.TwoWayMap;
 
 /*
  * @author adityas
@@ -151,7 +150,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 				Global.modelVars.put(varName, new HashMap<>());
 				
 			var modelDict = Global.modelVars.get(varName);
-			var model = Tuple.of(m._0(), m._2());
+			var model = Tuple.of(m._0(), ReachabilityNode.getStartNode(-1, m._2()));
 			if (!modelDict.containsKey(model))
 				modelDict.put(model, m._1());
 		});

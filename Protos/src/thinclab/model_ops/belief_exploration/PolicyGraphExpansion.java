@@ -28,7 +28,7 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 	private static final Logger LOGGER = LogManager.getLogger(PolicyGraphExpansion.class);
 
 	public HashMap<Integer, ReachabilityNode> expandReachabilityNode(ReachabilityNode node, M m, P p,
-			ModelGraph<ReachabilityNode, Integer, List<Integer>> g, int h) {
+			ModelGraph<ReachabilityNode> g, int h) {
 
 		var nextNodes = new HashMap<Integer, ReachabilityNode>(10);
 
@@ -84,8 +84,8 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 	}
 
 	@Override
-	public ModelGraph<ReachabilityNode, Integer, List<Integer>> expand(List<ReachabilityNode> startNodes,
-			ModelGraph<ReachabilityNode, Integer, List<Integer>> G, M m, int T, P p) {
+	public ModelGraph<ReachabilityNode> expand(List<ReachabilityNode> startNodes,
+			ModelGraph<ReachabilityNode> G, M m, int T, P p) {
 
 		startNodes.stream().forEach(G::addNode);
 		int i = 0;

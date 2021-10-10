@@ -23,6 +23,7 @@ import thinclab.legacy.Global;
 import thinclab.legacy.TypedCacheMap;
 import thinclab.models.datastructures.PBVISolvableFrameSolution;
 import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 
@@ -56,7 +57,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public DD PThetajGivenMj;
 	public List<DD> Taus;
 
-	public List<Tuple3<Integer, PBVISolvablePOMDPBasedModel, List<DD>>> framesj;
+	public List<Tuple3<Integer, PBVISolvablePOMDPBasedModel, List<ReachabilityNode>>> framesj;
 	public List<PBVISolvableFrameSolution> framesjSoln;
 
 	// public HashMap<Tuple<Integer, DD>, Integer> mjMap = new HashMap<>(1000);

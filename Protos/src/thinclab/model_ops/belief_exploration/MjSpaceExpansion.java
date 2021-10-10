@@ -34,8 +34,8 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 	private PolicyGraphExpansion<M, P> expansion = new PolicyGraphExpansion<>();
 
 	@Override
-	public ModelGraph<ReachabilityNode, Integer, List<Integer>> expand(List<ReachabilityNode> startNodes,
-			ModelGraph<ReachabilityNode, Integer, List<Integer>> G, M m, int T, P p) {
+	public ModelGraph<ReachabilityNode> expand(List<ReachabilityNode> startNodes,
+			ModelGraph<ReachabilityNode> G, M m, int T, P p) {
 
 		var newEdges = new ArrayList<Tuple3<ReachabilityNode, Tuple<Integer, List<Integer>>, ReachabilityNode>>();
 		var edges = G.edgeIndexMap.entrySet();

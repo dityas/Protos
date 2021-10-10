@@ -6,7 +6,6 @@ import thinclab.ddinterface.DDTree;
 import thinclab.ddinterface.DDTreeLeaf;
 
 import java.lang.ref.*;
-import java.util.Set;
 import java.util.TreeSet;
 import java.io.*;
 

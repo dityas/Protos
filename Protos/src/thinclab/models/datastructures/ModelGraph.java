@@ -7,6 +7,7 @@
  */
 package thinclab.models.datastructures;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,16 +19,17 @@ import thinclab.DDOP;
 import thinclab.legacy.Global;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.utils.Tuple;
+import thinclab.utils.Tuple3;
 
 /*
  * @author adityas
  *
  */
-public class ModelGraph<N extends ReachabilityNode, A, O> extends AbstractAOGraph<N, A, O> {
+public class ModelGraph<N extends ReachabilityNode> extends AbstractAOGraph<N, Integer, List<Integer>> {
 
 	private static final Logger LOGGER = LogManager.getLogger(ModelGraph.class);
 
-	public ModelGraph(final List<Tuple<A, O>> AOSpace) {
+	public ModelGraph(final List<Tuple<Integer, List<Integer>>> AOSpace) {
 
 		this.connections = new ConcurrentHashMap<>(10);
 		this.edgeIndexMap = new ConcurrentHashMap<>(10);
@@ -36,7 +38,7 @@ public class ModelGraph<N extends ReachabilityNode, A, O> extends AbstractAOGrap
 		LOGGER.info(String.format("Initialized policy graph for branching factor %s", AOSpace.size()));
 	}
 	
-	public static ModelGraph<ReachabilityNode, Integer, List<Integer>> fromDecMakingModel(POSeqDecMakingModel<?> m) {
+	public static ModelGraph<ReachabilityNode> fromDecMakingModel(POSeqDecMakingModel<?> m) {
 
 		// Make action observation space for agent I
 		var obsVars = m.i_Om().stream().map(i -> IntStream.range(1, Global.valNames.get(i - 1).size() + 1)
@@ -49,6 +51,30 @@ public class ModelGraph<N extends ReachabilityNode, A, O> extends AbstractAOGrap
 		return new ModelGraph<>(aoSpace);
 	}
 
+	public List<Tuple3<N, List<Integer>, N>> getTriples() {
+
+		var triples = this.connections.entrySet().stream().flatMap(e -> this.edgeIndexMap.entrySet().stream().map(f ->
+			{
+
+				// for each edge, make a list of indices of child vals
+				var edge = new ArrayList<Integer>(f.getKey()._1().size() + 1);
+				edge.add(f.getKey()._0() + 1);
+				edge.addAll(f.getKey()._1());
+
+				var mj_p = e.getValue().get(f.getValue());
+
+				// if it is a leaf node, loop it back
+				if (mj_p == null)
+					return Tuple.of(e.getKey(), (List<Integer>) edge, e.getKey());
+
+				else
+					return Tuple.of(e.getKey(), (List<Integer>) edge, mj_p);
+			})).collect(Collectors.toList());
+
+		// LOGGER.debug(String.format("Triples are: %s", triples));
+		return triples;
+	}
+	
 	@Override
 	public String toString() {
 
@@ -75,7 +101,7 @@ public class ModelGraph<N extends ReachabilityNode, A, O> extends AbstractAOGrap
 		return builder.toString();
 	}
 
-	public static String toDot(ModelGraph<ReachabilityNode, Integer, List<Integer>> G, POSeqDecMakingModel<?> m) {
+	public static String toDot(ModelGraph<ReachabilityNode> G, POSeqDecMakingModel<?> m) {
 
 		var nodeMap = new HashMap<ReachabilityNode, Integer>(G.connections.size());
 
@@ -94,7 +120,9 @@ public class ModelGraph<N extends ReachabilityNode, A, O> extends AbstractAOGrap
 					.append(" ")
 					.append("| --- | A=");
 
-			builder.append(m.A().get(_n.i_a));
+			if (_n.i_a >= 0)
+				builder.append(m.A().get(_n.i_a));
+			
 			builder.append(" | alpha= ").append(_n.alphaId).append(" | ");
 
 			if (_n.h >= 0)
