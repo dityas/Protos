@@ -60,255 +60,417 @@ The I-POMDP domain file follows an extension of the SPUDD format for representin
 
 #### Example
 
-Here is the solver simulating the multi-agent tiger problem for 10 steps.
-
-Run:
+Here is the domain file for a level 2 multi-agent tiger problem
 
 ```
-java -Xms55g -Xmx60g -cp Protos.jar thinclab.executables.RunSimulations -b 100 
--d /path/to/domain_file/tiger.L1.F3.agnostic.domain -s /path/to/results/dir/ 
--n 5 --ipomdp --sim 10 -y 1 -ssga
-```
+-- In the domain file, lines beginning with '--' are single line comments
 
-The output directory will contain:
-- policy graph of every solved POMDP frame. (dot file)
-- policy tree of every solved POMDP frame (not all POMDP policies can be compressed into finite policy graphs).
-- human readable summary of the simulation
-- complete trace of the simulation in json format.
+-- The very first parts of the domain file should define the state, observation,
+-- action, and model variables.
+-- Here, for the tiger problem, let's define the physical states using a single
+-- random variable TigerLoc
+(defvar TigerLoc (TL TR))
 
-Example of the summary file:
-```
-Interaction step 1 summary:
+-- Next, let's have a model variable for agent I modeling agent J at level 1
+-- Let's give it 3 initial models m0, m1, and m2 (the models will be defined
+-- later)
+(defvar agent_j (m0 m1 m2))
 
-State is,
-tiger-location is tiger-right
+-- Model var for agent J modeling agent I at level 2
+(defvar agent_il1 (m0 m1 m2))
 
-Agent i at L1 believes,
-Theta_j is likely theta/1 with probability 0.33333334
-tiger-location is likely tiger-left with probability 0.5
-i believes that j believes tiger-location is likely tiger-left with probability 0.5 with probability 0.33333334
-This leads agent i to believe that agent j will perfrom action listen with a probability 0.33333334
+-- Variables to represent frames
+(defvar Frame_jl1 (frame1 frame2))
+(defvar Frame_il2 (frame1))
 
-Agent i takes action listen and observes [growl-right, silence]
-i expects average discounted reward 0.8530685000000006
+-- Agent I's actions
+(defvar Agent_actions (OL OR L))
 
-Agent j at L0 believes,
-tiger-location is likely tiger-left with probability 0.5
+-- Agent J's actions
+(defvar Agentj_actions (OL OR L))
 
-Agent j takes action listen and observes [growl-right]
-j expects average discounted reward -1.7139059999999995
+-- Agent J's observations
+(defvar Growl_j (GL GR))
+(defvar Creak_j (CL CR SL))
 
-Interaction ends
+-- Agent I's observations
+(defvar Growl (GL GR))
+(defvar Creak (CL CR SL))
 
-Interaction step 2 summary:
+-- Initialize models
+(initmodelvar agent_j
+    (frames Frame_jl1)
+    (
+	(frame1 	(m0 	(0.5)))
+	(frame1 	(m1 	(
+		(TigerLoc 
+			(TL 	(0.85))
+			(TR 	(0.15))
+		)		
+	)))
+	(frame2 	(m2 	(0.5)))
+    )
+)
 
-State is,
-tiger-location is tiger-right
 
-Agent i at L1 believes,
-Theta_j is likely theta/0 with probability 0.33333334
-tiger-location is likely tiger-right with probability 0.85
-i believes that j believes tiger-location is likely tiger-right with probability 0.85 with probability 0.24833333
-This leads agent i to believe that agent j will perfrom action listen with a probability 0.24833333
+-- DD's for transitions, observations, beliefs and rewards
+-- Common initial belief for all agents
+(defdd initLoc
+    (TigerLoc 	UNIFORM)
+)
 
-Agent i takes action listen and observes [growl-right, silence]
-i expects average discounted reward 4.0824584
+-- Transition if anyone opens door
+(defdd openDoorDD
+    (TigerLoc' UNIFORM)
+)
 
-Agent j at L0 believes,
-tiger-location is likely tiger-right with probability 0.75
+-- J's L0 assumption over I's action distribution
+(defdd aIDist
+    (Agent_actions
+	(OL 	(0.005))
+	(OR 	(0.005))
+	(L 		(0.99))
+    )
+)
 
-Agent j takes action listen and observes [growl-right]
-j expects average discounted reward -0.8806412874999993
+-- J's observation function for listening to growls
+(defdd growlObsDD
+    (TigerLoc'
+	(TL
+            (Growl_j'
+		(GL 	(0.85))
+		(GR 	(0.15))
+	    )
+	)
+			
+	(TR
+	    (Growl_j'
+		(GL 	(0.15))
+		(GR 	(0.85))
+	    )
+	)
+    )
+)
 
-Interaction ends
-.
-.
-.
-```
-The complete simulation trace is captured in JSON format in the simX.json file where X is the trial number.
-The schema for the json trace is:
-```
-[
-    {
-        "beliefI": {
+-- I's observation function for listening to creaks
+(defdd iListensCreak
+	(Agentj_actions
+		(OL
+			(Creak'
+				(CL 	(0.9))
+				(CR 	(0.05))
+				(SL 	(0.05))
+			)
+		)
+		
+		(OR
+			(Creak'
+				(CL 	(0.05))
+				(CR 	(0.9))
+				(SL 	(0.05))
+			)
+		)
+		
+		(L
+			(Creak'
+				(CL 	(0.05))
+				(CR 	(0.05))
+				(SL 	(0.9))
+			)
+		)
+	)
+)
 
-            # Agent i's beliefs over models of agent j
-            "M_j": [
-                {
-                    "model": {
-                        "belief_j": {
-                            "<state variable 1>": {
-                                "<state value 1>": <probability>,
-                                "<state value 2>": <probability>
-                            }
-                        },
+-- I's observation function for listening to growls
+(defdd iListensGrowl
+	(TigerLoc'
+		(TL 	(Growl'	(GL	(0.85)) 	(GR 	(0.15))))
+		(TR 	(Growl'	(GR	(0.85)) 	(GL 	(0.15))))
+	)
+)
 
-                        "A_j": "<agent j's optimal action>",
-                        "Theta_j": "<frame of agent j>"
-                    },
-                    
-                    "prob": <agent i's belief over this M_j>
-                },
-                {
-                    "model": {
-                        "belief_j": {
-                            "<state variable 1>": {
-                                "<state value 1>": <probability>,
-                                "<state value 2>": <probability>
-                            }
-                        },
+-- I's joint action transition for the listen action
+(defdd iListensDD
+	
+	(Agentj_actions
+		(OL
+			(TigerLoc' UNIFORM)
+		)
+		
+		(OR
+			(TigerLoc' UNIFORM)
+		)
+		
+		(L
+			(TigerLoc
+				(TL 	(TigerLoc' TL))
+				(TR 	(TigerLoc' TR))
+			)
+		)
+	)
+	
+)
 
-                        "A_j": "<agent j's optimal action>",
-                        "Theta_j": "<frame of agent j>"
-                    },
-                    
-                    "prob": <agent i's belief over this M_j>
-                }
-            ],
+-- J's joint action transition for the listen action
+(defdd jListensDD
+	(Agent_actions
+		(OL 	(TigerLoc' UNIFORM))
+		(OR 	(TigerLoc' UNIFORM))
+		(L 		(SAME TigerLoc))
+	)
+)
 
-            # Agent i's belief over theta_j
-            "Theta_j": {
-                "theta/n": <i's belief over frame n of agent j>,
-                .
-                .
-                .
-                "theta/1": <i's belief over frame 1 of agent j>,
-                "theta/0": <i's belief over frame 0 of agent j>
-            },
+-- I's DBNs
+-- I's DBN for open action
+(defdbn actionIOpen
+	(TigerLoc 	(TigerLoc' 	UNIFORM))
+	(Growl 		(Growl' 	UNIFORM))
+	(Creak 		(Creak' 	UNIFORM))
+	
+)
 
-            # Agent i's belief over S
-            "<state variable 1>": {
-                "<state value 1>": <probability>,
-                "<state value 2>": <probability>
-            }
-        },
+-- I's DBN for listen action
+(defdbn actionIListen
+	(TigerLoc 	(iListensDD))
+	(Growl 		(iListensGrowl))
+	(Creak 		(iListensCreak))
+)
 
-        # Agent j's belief over S
-        "beliefJ": {
-            "<state variable 1>": {
-                "<state value 1>": <probability>,
-                "<state value 2>": <probability>
-            }
-        },
+-- J's DBNs
+-- J's L0 DBN for opening doors
+(defdbn actionOpenAny
+	(TigerLoc 	(openDoorDD))
+	(Growl_j 	(Growl_j' UNIFORM))
+)
+
+-- J's L0 DBN for listening
+-- Notice that the Agent_actions var is summed out after multiplying with
+-- assumed distribution of I's actions. This is mainly because at L0, agent J
+-- does not explicitly model agent I
+(defdbn actionL
+	(TigerLoc 	(# (Agent_actions) (aIDist * jListensDD)))
+	(Growl_j 	(growlObsDD))
+)
+
+-- J's level N DBN for opening doors
+(defdbn actionJOpen
+    (TigerLoc   (TigerLoc' UNIFORM))
+    (Growl_j    (Growl_j' UNIFORM))
+    (Creak_j    (Creak_j' UNIFORM))
+)
+
+-- J's level N DBN for listening
+
+(defdd jListensCreakDD
+
+    (Agent_actions
+        (OL
+            (Creak_j'
+                (CL     (0.9))
+                (CR     (0.05))
+                (SL     (0.05))
+            )
+        )
+
+        (OR
+            (Creak_j'
+                (CL     (0.05))
+                (CR     (0.9))
+                (SL     (0.05))
+            )
+        )
+
+        (L
+            (Creak_j'
+                (CL     (0.05))
+                (CR     (0.05))
+                (SL     (0.9))
+            )
+        )
+    )
+)
+
+(defdbn actionJListens
+    (TigerLoc   (jListensDD))
+    (Growl_j    (growlObsDD))
+    (Creak_j    (jListensCreakDD))
+
+)
+
+-- Define agents
+-- Agnet J L0
+(defpomdp agentJ
+    (S 	
+        (TigerLoc)
+    )
+
+    (O
+        (Growl_j)
+    )
+
+    (A 	Agentj_actions)
         
-        # Actual state
-        "state": {
-            "<state variable 1>": {
-                "<state value 1>": <probability>,
-                "<state value 2>": <probability>
-            }
-        },
+    (dynamics
+        (OL 	(actionOpenAny))
+        (OR 	(actionOpenAny))
+        (L 		(actionL))
+    )
+       
+    (R
+        (OL 	(TigerLoc 
+                    (TL 	(-100))
+                    (TR 	(10))
+        ))
+        
+        (OR		(TigerLoc
+                    (TL 	(10))
+                    (TR 	(-100))
+        ))
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)	
+)
 
-        "Theta_j": <true frame of agent j>,
-        "Ai": "<action taken by agent i>",
-        "Aj": "<action taken by agent j>",
-        "Oi": "i's observation",
-        "Oj": "j's observation",
-        "ERi": <i's expected reward>,
-        "ERj": <j's expected reward>
-    },
+(defpomdp agentJ2
+    (S 	
+        (TigerLoc)
+    )
 
-    {
-        <belief traces for next interaction step>
-    },
+    (O
+        (Growl_j)
+    )
 
-    {
-        <belief traces for next interaction step>
-    },
+    (A 	Agentj_actions)
+        
+    (dynamics
+        (OL 	(actionOpenAny))
+        (OR 	(actionOpenAny))
+        (L 		(actionL))
+    )
+       
+    (R
+        (OL 	(TigerLoc 
+                    (TL 	(-150))
+                    (TR 	(10))
+        ))
+        
+        (OR		(TigerLoc
+                    (TL 	(10))
+                    (TR 	(-150))
+        ))
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)	
+)
 
-    .
-    .
-    .
-]
-```
+-- Agent I L1
+(defipomdp agentI
+    (S 	
+        (TigerLoc)
+    )
 
-For the tiger problem example above, the json trace look like this:
-```json
-[
-  {
-    "beliefI": {
-      "M_j": [
-        {
-          "model": {
-            "belief_j": {
-              "tiger-location": {
-                "tiger-left": 0.5,
-                "tiger-right": 0.5
-              }
-            },
-            "A_j": "listen",
-            "Theta_j": "theta/1"
-          },
-          "prob": 0.33333334
-        },
-        {
-          "model": {
-            "belief_j": {
-              "tiger-location": {
-                "tiger-left": 0.5,
-                "tiger-right": 0.5
-              }
-            },
-            "A_j": "listen",
-            "Theta_j": "theta/2"
-          },
-          "prob": 0.33333334
-        },
-        {
-          "model": {
-            "belief_j": {
-              "tiger-location": {
-                "tiger-left": 0.5,
-                "tiger-right": 0.5
-              }
-            },
-            "A_j": "listen",
-            "Theta_j": "theta/0"
-          },
-          "prob": 0.33333334
-        }
-      ],
-      "Theta_j": {
-        "theta/1": 0.33333334,
-        "theta/2": 0.33333334,
-        "theta/0": 0.33333334
-      },
-      "tiger-location": {
-        "tiger-left": 0.5,
-        "tiger-right": 0.5
-      }
-    },
-    "beliefJ": {
-      "tiger-location": {
-        "tiger-left": 0.5,
-        "tiger-right": 0.5
-      }
-    },
-    "state": {
-      "tiger-location": {
-        "tiger-left": 0.0,
-        "tiger-right": 1.0
-      }
-    },
-    "Theta_j": 2,
-    "Ai": "listen",
-    "Aj": "listen",
-    "Oi": "[growl-right, silence]",
-    "Oj": "[growl-right]",
-    "ERi": 0.8530685000000006,
-    "ERj": -1.7139059999999995
-  },
+    (O
+        (Growl Creak)
+    )
 
-  {
-      <belief traces for next interaction step>
-  },
+    (A 	Agent_actions)
+    (Aj Agentj_actions)
+    (Mj agent_j)
+    (Thetaj Frame_jl1 	
+    	(frame1 agentJ)
+    	(frame2 agentJ2)
+    )
+        
+    (dynamics
+        (OL 	(actionIOpen))
+        (OR 	(actionIOpen))
+        (L 		(actionIListen))
+    )
+       
+    (R
+        (OL 	
+        	(TigerLoc 
+                (TL 	(-100))
+                (TR 	(10))
+        	)
+        )
+        
+        (OR		
+        			
+            (TigerLoc
+                (TR 	(-100))
+                (TL 	(10))
+            )
+       	)
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)
+    (H 4)	
+)
 
-  {
-      <belief traces for next interaction step>
-  },
+-- Initialize models for L2 model var
+(initmodelvar agent_il1
+	(frames Frame_il2)
+	(
+		(frame1 	(m0 	(agent_j m0)))
+		(frame1		(m1 	(agent_j m1)))
+		(frame1 	(m2 	(agent_j m2)))
+	)
+)
 
-  .
-  .
-  .
-]
+-- Agent J L2
+(defipomdp agentJl2
+    (S 	
+        (TigerLoc)
+    )
+
+    (O
+        (Growl_j Creak_j)
+    )
+
+    (A 	Agentj_actions)
+    (Aj Agent_actions)
+    (Mj agent_il1)
+    (Thetaj Frame_il2 	
+    	(frame1 agentI)
+    )
+        
+    (dynamics
+        (OL 	(actionJOpen))
+        (OR 	(actionJOpen))
+        (L 		(actionJListens))
+    )
+       
+    (R
+        (OL 	
+        	(TigerLoc 
+                (TL 	(-100))
+                (TR 	(10))
+        	)
+        )
+        
+        (OR		
+        			
+            (TigerLoc
+                (TR 	(-100))
+                (TL 	(10))
+            )
+       	)
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)
+    (H 3)	
+)
+
+-- Solvers
+(defpbvisolv ipomdp agentJl2Solver)
+
 ```
