@@ -4,12 +4,16 @@
 Protos is a factored IPOMDP solver developed at [THINC Lab @ UGA](http://thinc.cs.uga.edu/). It uses Jesse Hoey's implementation of the symbolic Perseus and with some modifications, extends it to I-POMDPs.
 
 :heavy_exclamation_mark: The solver has only yet been tested on Linux systems.
-Running it on Windows might cause some problem because the paths are hardcoded
+Running it on Windows might cause problems because the paths are hardcoded
 in Linux format.
 
 :heavy_exclamation_mark: The solver works on Java 15 and above. Please use a
 Coretto VM or a GraalVM build of JVM. This might seriously help with
 performance. I haven't performed any formal benchmarks though.
+
+:heavy_exclamation_mark: Protos is constantly being developed and likely to
+undergo major changes as new features are added. If you are using this solver
+for research work, I would highly recommend cloning or forking the repo and having a local copy.
 
 **If you use this solver in your research, please cite the following paper.**
 ```
@@ -32,38 +36,27 @@ Systems. 2021.
 
 ******
 
+
+### Usage
+#### Building the solver
+
+Run the gradle wrapper
+```
+$ ./gradlew shadowJar
+```
+
+The solver should build to a JAR file  `build/libs/Protos-all.jar` 
+
+#### Running the solver
+```
+java -jar Protos-all.jar -d <domain_file>
+```
+
+******
+
 ### Domain file format
-The I-POMDP domain file follows an extension of the SPUDD format for representing ADDs in plaintext. Currently, the solver can only solve 2-agent interactions
+The I-POMDP domain file follows an extension of the SPUDD format for representing ADDs in plaintext. Currently, the solver can only solve 2-agent interactions.
 
-### Online IPOMDP simulator
-Simulates a 2 agent interaction between the I-POMDP agent and a randomly sampled POMDP agent from the I-POMDP frames. The I-POMDP is solved online.
-
-#### Usage
-
-```
-java -Xms50g -Xmx55g -cp Protos.jar thinclab.executables.RunSimulations
-
- -b <arg>                    number of backups in each round
- -d <arg>                    path to the domain file
- -e,--ssga                   use SSGA expansion? (5 perseus rounds and 30
-                             iterations of exploration)
- -i,--ipomdp                 set if the domain is a IPOMDP domain
- -j,--default-policy <arg>   use default policy for L1?
- -k,--random-policy          use random policy for L1?
- -l                          log to file in results dir?
- -n <arg>                    look ahead for IPOMDPs / SSGA depth for
-                             POMDPs
- -p,--pomdp                  set if the domain is a POMDP domain
- -q,--cyberdec-reactive      use reactive solver (only for cyber
-                             deception domain)
- -r <arg>                    number of symbolic perseus rounds (always 1
-                             for IPOMDPs)
- -s,--output <arg>           directory where result files are to be
-                             stored. (Should be an existing dir)
- -x,--sim <arg>              run stochastic simulation for given
-                             length
- -y <arg>                    number of simulation trials
-```
 
 #### Example
 
