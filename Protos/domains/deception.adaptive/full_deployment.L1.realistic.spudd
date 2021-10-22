@@ -1,0 +1,3680 @@
+
+(variables
+	(PRIVS_DECEPTION 		user root none)
+	(C_DATA_DECOYS 			yes no)
+	(S_DATA_DECOYS 			yes no)
+	(HOST_HAS_DATA 			sensitive_data critical_data none)
+	(ATTACKER_PRIVS 		user root)
+	(DATA_ACCESS_PRIVS 		user root)
+	(HOST_HAS_VULN 			yes no)
+	(DATA_FOUND 			yes no)
+	(VULN_FOUND 			yes no)
+	(IMPACT_CAUSED 			yes no)
+	(ATTACKER_STATUS 		active inactive)
+)
+
+(observations
+	(S_DATA_DECOY_INTERACTION 	yes no)
+	(C_DATA_DECOY_INTERACTION 	yes no)
+	(LOG_INFERENCE 	  		  	file_recon sys_info persist_attempt none)
+)
+
+most_probable_ai NOP 0.99
+
+unnormalized
+
+// Initial belief implies a honeypot environment.
+
+init [*
+
+	(PRIVS_DECEPTION
+		(user 			(0.0))
+		(root 			(0.0))
+		(none 			(1.0))
+	)
+
+	(C_DATA_DECOYS
+		(yes 			(1.0))
+		(no 			(0.0))
+	)
+
+	(S_DATA_DECOYS
+		(yes 			(1.0))
+		(no 			(0.0))
+	)
+
+	(HOST_HAS_DATA
+		(sensitive_data (0.0))
+		(critical_data 	(0.0))
+		(none 			(1.0))
+	)
+
+	(DATA_ACCESS_PRIVS
+		(user 			(0.5))
+		(root 			(0.5))
+	)
+
+	(HOST_HAS_VULN
+		(yes 			(1.0))
+		(no 			(0.0))
+	)
+
+	(ATTACKER_PRIVS
+		(user			(0.5))
+		(root			(0.5))
+	)
+
+	(DATA_FOUND
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	(VULN_FOUND
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	(IMPACT_CAUSED
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	(ATTACKER_STATUS
+		(active 		(1.0))
+		(inactive 		(0.0))
+	)
+]
+
+
+/////////////////////////////////////////////
+// Lower level DDs
+/////////////////////////////////////////////
+
+//////////////////////
+// FRAME 1
+//////////////////////
+
+/////////////////////////////////
+// FILE_RECON
+
+dd dataFoundYes
+
+(DATA_FOUND
+	(yes
+		(DATA_FOUND'
+			(yes 	(1.0))
+			(no 	(0.0))
+		)
+	)
+
+	(no
+		(DATA_FOUND'
+			(yes 	(0.7))
+			(no 	(0.3))
+		)
+	)
+)
+
+enddd
+
+
+dd dataFoundNo
+
+(DATA_FOUND
+	(yes
+		(DATA_FOUND'
+			(yes 	(1.0))
+			(no 	(0.0))
+		)
+	)
+
+	(no
+		(DATA_FOUND'
+			(yes 	(0.0))
+			(no 	(1.0))
+		)
+	)
+)
+
+enddd
+
+
+dd fileReconSDataDataFoundNoDec
+
+(HOST_HAS_DATA'
+	(sensitive_data
+		(DATA_ACCESS_PRIVS
+			(user
+				(ATTACKER_PRIVS
+					(user 	(dataFoundYes))
+					(root 	(dataFoundYes))
+				)
+			)
+
+			(root
+				(ATTACKER_PRIVS
+					(user 	(dataFoundNo))
+					(root 	(dataFoundYes))
+				)
+			)
+		)
+	)
+
+	(critical_data
+		(dataFoundNo)
+	)
+
+	(none 	(dataFoundNo))
+)
+
+enddd
+
+
+dd fileReconSDataDataFoundDec
+
+(dataFoundYes)
+
+enddd
+
+
+dd fileReconSDataDataFound
+
+(S_DATA_DECOYS'
+	(yes 	(fileReconSDataDataFoundDec))
+	(no 	(fileReconSDataDataFoundNoDec))
+)
+
+enddd
+
+
+
+dd fileReconSDataDataFoundWrapper
+
+(ATTACKER_STATUS
+	(active 	(fileReconSDataDataFound))
+	(inactive 	(SAMEDATA_FOUND))
+)
+
+enddd
+
+
+//////////////////////////////
+// VULN_RECON
+
+dd vulnAppYes
+
+(VULN_FOUND
+	(yes
+		(VULN_FOUND'
+			(yes 	(1.0))
+			(no 	(0.0))
+		)
+	)
+
+	(no
+		(VULN_FOUND'
+			(yes 	(0.7))
+			(no 	(0.3))
+		)
+	)
+)
+
+enddd
+
+
+dd vulnFoundYesImm
+
+(VULN_FOUND'
+	(yes 	(0.7))
+	(no 	(0.3))
+)
+
+enddd
+
+
+dd vulnAppNo
+
+(VULN_FOUND
+	(yes
+		(VULN_FOUND'
+			(yes 	(1.0))
+			(no 	(0.0))
+		)
+	)
+
+	(no
+		(VULN_FOUND'
+			(yes 	(0.1))
+			(no 	(0.9))
+		)
+	)
+)
+
+enddd
+
+dd vulnAppVulnFoundNoDeception
+
+(HOST_HAS_VULN'
+	(yes 		(vulnAppYes))
+	(no 		(vulnAppNo))
+)
+
+enddd
+
+
+dd vulnReconVulnFoundWrapper
+
+(ATTACKER_STATUS
+	(active 	(vulnAppVulnFoundNoDeception))
+	(inactive 	(SAMEVULN_FOUND))
+)
+
+enddd
+
+/////////////////////////////////////
+// PRIV_ESC
+
+dd privEscSuccess
+
+(VULN_FOUND
+	(yes
+		(ATTACKER_PRIVS
+			(user
+				(ATTACKER_PRIVS'
+					(user 	(0.01))
+					(root 	(0.99))
+				)
+			)
+
+			(root
+				(ATTACKER_PRIVS'
+					(user 	(0.0))
+					(root 	(1.0))
+				)
+			)
+		)
+	)
+
+	(no
+		(ATTACKER_PRIVS
+			(user
+				(ATTACKER_PRIVS'
+					(user 	(1.0))
+					(root 	(0.0))
+				)
+			)
+
+			(root
+				(ATTACKER_PRIVS'
+					(user 	(0.0))
+					(root 	(1.0))
+				)
+			)
+		)
+	)
+)
+
+enddd
+
+
+dd privEscHasVuln
+
+(HOST_HAS_VULN
+	(yes 	(privEscSuccess))
+	(no 	(SAMEATTACKER_PRIVS))
+)
+
+enddd
+
+
+dd privEscAttackerPrivsWrapper
+
+(ATTACKER_STATUS
+	(active 	(privEscHasVuln))
+	(inactive 	(SAMEATTACKER_PRIVS))
+)
+
+enddd
+
+
+//////////////////////////////////
+// EXFIL
+
+dd impactCausedDataFound
+
+(DATA_FOUND
+	(yes
+		(IMPACT_CAUSED
+			(yes
+				(IMPACT_CAUSED'
+					(yes 	(1.0))
+					(no 	(0.0))
+				)
+			)
+
+			(no
+				(IMPACT_CAUSED'
+					(yes 	(0.8))
+					(no 	(0.2))
+				)
+			)
+		)
+	)
+
+	(no
+		(IMPACT_CAUSED'
+			(yes 	(0.0))
+			(no 	(1.0))
+		)
+	)
+)
+
+enddd
+
+
+dd startExfilTargetImpactedWrapper
+
+(ATTACKER_STATUS
+	(active 	(impactCausedDataFound))
+	(inactive 	(SAMEIMPACT_CAUSED))
+)
+
+enddd
+
+
+///////////////////////////////
+// END FRAME 1 (exfil)
+///////////////////////////////
+
+
+//////////////////////////////
+// FRAME 2 (persistent threat)
+//////////////////////////////
+
+//////////////////////////////////
+// PERSIST
+
+dd persistImpactCaused
+
+(ATTACKER_PRIVS
+	(root
+		(IMPACT_CAUSED
+			(yes
+				(IMPACT_CAUSED'
+					(yes 	(1.0))
+					(no 	(0.0))
+				)
+			)
+
+			(no
+				(IMPACT_CAUSED'
+					(yes 	(0.99))
+					(no 	(0.01))
+				)
+			)
+		)
+	)
+
+	(user
+		(IMPACT_CAUSED
+			(yes
+				(IMPACT_CAUSED'
+					(yes 	(0.0))
+					(no 	(1.0))
+				)
+			)
+
+			(no
+				(IMPACT_CAUSED'
+					(yes 	(0.0))
+					(no 	(1.0))
+				)
+			)
+		)
+	)
+)
+
+enddd
+
+
+dd persistTargetImpactedWrapper
+
+(ATTACKER_STATUS
+	(active 	(persistImpactCaused))
+	(inactive 	(SAMEIMPACT_CAUSED))
+)
+
+enddd
+
+
+///////////////////////////////////////
+// END FRAME 2
+///////////////////////////////////////
+
+
+///////////////////////////////////////
+// FRAME 3
+///////////////////////////////////////
+
+/////////////////////////////
+// FILE_RECON_CDATA
+
+dd dataFoundYesCertain
+
+(DATA_FOUND
+	(yes
+		(DATA_FOUND'
+			(yes 	(1.0))
+			(no 	(0.0))
+		)
+	)
+
+	(no
+		(DATA_FOUND'
+			(yes 	(0.9))
+			(no 	(0.1))
+		)
+	)
+)
+
+enddd
+
+
+dd fileReconCDataDataFoundNoDec
+
+(HOST_HAS_DATA'
+	(sensitive_data
+		(dataFoundNo)
+	)
+
+	(critical_data
+		(DATA_ACCESS_PRIVS
+			(user
+				(ATTACKER_PRIVS
+					(user 	(dataFoundYesCertain))
+					(root 	(dataFoundYesCertain))
+				)
+			)
+
+			(root
+				(ATTACKER_PRIVS
+					(user 	(dataFoundNo))
+					(root 	(dataFoundYesCertain))
+				)
+			)
+		)
+	)
+
+	(none 	(dataFoundNo))
+)
+
+enddd
+
+
+dd fileReconCDataDataFoundDec
+
+(dataFoundYesCertain)
+
+enddd
+
+
+dd fileReconCDataDataFound
+
+(C_DATA_DECOYS'
+	(yes 	(fileReconCDataDataFoundDec))
+	(no 	(fileReconCDataDataFoundNoDec))
+)
+
+enddd
+
+
+dd fileReconCDataDataFoundWrapper
+
+(ATTACKER_STATUS
+	(active 	(fileReconCDataDataFound))
+	(inactive 	(SAMEDATA_FOUND))
+)
+
+enddd
+
+
+//////////////////////////////////
+// MANIPULATE_DATA
+
+dd impactCausedManipulation
+
+(DATA_FOUND
+	(yes
+		(IMPACT_CAUSED
+			(yes
+				(IMPACT_CAUSED'
+					(yes 	(1.0))
+					(no 	(0.0))
+				)
+			)
+
+			(no
+				(IMPACT_CAUSED'
+					(yes 	(0.7))
+					(no 	(0.3))
+				)
+			)
+		)
+	)
+
+	(no
+		(IMPACT_CAUSED'
+			(yes 	(0.0))
+			(no 	(1.0))
+		)
+	)
+)
+
+enddd
+
+
+dd manipulateDataImpactCausedWrapper
+
+(ATTACKER_STATUS
+	(active 	(impactCausedManipulation))
+	(inactive 	(SAMEIMPACT_CAUSED))
+)
+
+enddd
+
+
+///////////////////////////////////////
+// END FRAME 3
+///////////////////////////////////////
+
+
+//////////////////////////////////////////////
+// End Lower level DDs
+//////////////////////////////////////////////
+
+
+/////////////////////////////////////////////
+// L1 DDs
+/////////////////////////////////////////////
+
+dd deployCDataDecoys
+
+(C_DATA_DECOYS'
+	(yes 	(1.0))
+	(no 	(0.0))
+)
+
+enddd
+
+
+dd deploySDataDecoys
+
+(S_DATA_DECOYS'
+	(yes 	(1.0))
+	(no 	(0.0))
+)
+
+enddd
+
+
+dd removeCDataDecoys
+
+(DATA_FOUND
+	(yes 	(SAMEC_DATA_DECOYS))
+	(no
+		(C_DATA_DECOYS'
+			(yes 	(0.0))
+			(no 	(1.0))
+		)
+	)
+)
+
+enddd
+
+
+dd removeSDataDecoys
+
+(DATA_FOUND
+	(yes 	(SAMES_DATA_DECOYS))
+	(no
+		(S_DATA_DECOYS'
+			(yes 	(0.0))
+			(no 	(1.0))
+		)
+	)
+)
+
+enddd
+
+
+dd addReadVuln
+
+(HOST_HAS_VULN'
+	(yes 	(1.0))
+	(no 	(0.0))
+)
+
+enddd
+
+
+dd privsDeceptionUser
+
+(PRIVS_DECEPTION'
+	(user 	(1.0))
+	(root 	(0.0))
+	(none 	(0.0))
+)
+
+enddd
+
+
+dd privsDeceptionRoot
+
+(PRIVS_DECEPTION'
+	(user 	(0.0))
+	(root 	(1.0))
+	(none 	(0.0))
+)
+
+enddd
+
+
+dd privsDeceptionTrue
+
+(PRIVS_DECEPTION'
+	(user 	(0.0))
+	(root 	(0.0))
+	(none 	(1.0))
+)
+
+enddd
+
+
+/////////////////////////////////////////////
+// END L1 DDs
+/////////////////////////////////////////////
+
+
+/////////////////////////////////////////////
+// default Obs DD
+
+dd defaultSDataDecoyInt
+
+(S_DATA_DECOY_INTERACTION'
+	(yes 	(0.0))
+	(no 	(1.0))
+)
+
+enddd
+
+
+dd defaultCDataDecoyInt
+
+(C_DATA_DECOY_INTERACTION'
+	(yes 	(0.0))
+	(no 	(1.0))
+)
+
+enddd
+
+
+dd defaultLogInference
+
+(LOG_INFERENCE'
+	(file_recon 	 	(0.1))
+	(sys_info 			(0.1))
+	(persist_attempt 	(0.05))
+	(none 				(0.75))
+)
+
+enddd
+
+
+dd privEscLogInference
+
+(LOG_INFERENCE'
+	(file_recon 	 	(0.25))
+	(sys_info 			(0.25))
+	(persist_attempt 	(0.25))
+	(none 				(0.25))
+)
+
+enddd
+
+
+dd persistenceAttemptTriggered
+
+(IMPACT_CAUSED'
+	(yes 
+		(LOG_INFERENCE'
+			(file_recon 		(0.0))
+			(sys_info 			(0.0))
+			(persist_attempt 	(0.7))
+			(none 				(0.3))
+		)
+	)
+
+	(no 	(defaultLogInference))
+)
+
+enddd
+
+
+dd fileReconInferred
+
+(LOG_INFERENCE'
+	(file_recon 		(0.6))
+	(sys_info 			(0.0))
+	(persist_attempt 	(0.0))
+	(none 				(0.4))
+)
+
+enddd
+
+
+dd vulnReconInferred
+
+(LOG_INFERENCE'
+	(file_recon 		(0.4))
+	(sys_info 			(0.5))
+	(persist_attempt 	(0.0))
+	(none 				(0.1))
+)
+
+enddd
+
+
+dd sDataDecoyIntTrigger
+
+(S_DATA_DECOYS'
+	(yes
+		(DATA_FOUND'
+			(yes
+				(S_DATA_DECOY_INTERACTION'
+					(yes 	(0.99))
+					(no 	(0.01))
+				)
+			)
+
+			(no
+				(S_DATA_DECOY_INTERACTION'
+					(yes 	(0.0))
+					(no 	(1.0))
+				)
+			)
+		)
+	)
+
+	(no
+		(S_DATA_DECOY_INTERACTION'
+			(yes 	(0.0))
+			(no 	(1.0))
+		)
+	)
+)
+
+enddd
+
+
+dd cDataDecoyIntTrigger
+
+(C_DATA_DECOYS'
+	(yes
+		(DATA_FOUND'
+			(yes
+				(C_DATA_DECOY_INTERACTION'
+					(yes 	(0.99))
+					(no 	(0.01))
+				)
+			)
+
+			(no
+				(C_DATA_DECOY_INTERACTION'
+					(yes 	(0.0))
+					(no 	(1.0))
+				)
+			)
+		)
+	)
+
+	(no
+		(C_DATA_DECOY_INTERACTION'
+			(yes 	(0.0))
+			(no 	(1.0))
+		)
+	)
+)
+
+enddd
+
+/////////////////////////////////////////////
+// Exit cost / reward
+
+dd exitCost
+
+(IMPACT_CAUSED
+	(yes 	(0.0))
+	(no 	(0.0))
+)
+
+enddd
+
+
+//////////////////////////////////////////////
+// Actions
+//////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////
+// NOP
+////////////////////////////////////////////////////////////////
+
+
+action NOP__PERSIST
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(persistTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(persistenceAttemptTriggered)
+		
+	endobserve
+	
+endaction
+
+
+action NOP__VULN_RECON
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(vulnReconVulnFoundWrapper)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(vulnReconInferred)
+		
+	endobserve
+	
+endaction
+
+
+action NOP__CHECK_ROOT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+	
+endaction
+
+
+action NOP__FILE_RECON_SDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconSDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+	
+endaction
+
+
+action NOP__FILE_RECON_CDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconCDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+	
+endaction
+
+
+action NOP__START_EXFIL
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(startExfilTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(sDataDecoyIntTrigger)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+endaction
+
+
+action NOP__PRIV_ESC
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(privEscAttackerPrivsWrapper)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(privEscLogInference)
+		
+	endobserve
+
+endaction
+
+
+action NOP__EXIT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(ATTACKER_STATUS' 	(active 	(0.0)) 	(inactive 	(1.0)))
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (exitCost)
+
+endaction
+
+
+action NOP__NOP
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+endaction
+
+
+action NOP__MANIPULATE_DATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(manipulateDataImpactCausedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(cDataDecoyIntTrigger)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+endaction
+
+
+//////////////////////////////////////////////
+// END NOP
+//////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////
+// DEPLOY_C_DATA_DECOYS
+////////////////////////////////////////////////////////////////
+
+
+action DEPLOY_C_DATA_DECOYS__PERSIST
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(deployCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(persistTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(persistenceAttemptTriggered)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_C_DATA_DECOYS__VULN_RECON
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(deployCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(vulnReconVulnFoundWrapper)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(vulnReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_C_DATA_DECOYS__CHECK_ROOT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(deployCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_C_DATA_DECOYS__FILE_RECON_SDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(deployCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconSDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_C_DATA_DECOYS__FILE_RECON_CDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(deployCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconCDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_C_DATA_DECOYS__START_EXFIL
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(deployCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(startExfilTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(sDataDecoyIntTrigger)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action DEPLOY_C_DATA_DECOYS__PRIV_ESC
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(deployCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(privEscAttackerPrivsWrapper)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(privEscLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action DEPLOY_C_DATA_DECOYS__EXIT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(deployCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(ATTACKER_STATUS' 	(active 	(0.0)) 	(inactive 	(1.0)))
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost [+ (0.1) (exitCost)]
+
+endaction
+
+
+action DEPLOY_C_DATA_DECOYS__NOP
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(deployCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action DEPLOY_C_DATA_DECOYS__MANIPULATE_DATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(deployCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(manipulateDataImpactCausedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(cDataDecoyIntTrigger)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+//////////////////////////////////////////////
+// END DEPLOY_C_DATA_DECOYS
+//////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////
+// DEPLOY_S_DATA_DECOYS
+////////////////////////////////////////////////////////////////
+
+
+action DEPLOY_S_DATA_DECOYS__PERSIST
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(deploySDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(persistTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(persistenceAttemptTriggered)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_S_DATA_DECOYS__VULN_RECON
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(deploySDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(vulnReconVulnFoundWrapper)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(vulnReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_S_DATA_DECOYS__CHECK_ROOT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(deploySDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_S_DATA_DECOYS__FILE_RECON_SDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(deploySDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconSDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_S_DATA_DECOYS__FILE_RECON_CDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(deploySDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconCDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_S_DATA_DECOYS__START_EXFIL
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(deploySDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(startExfilTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(sDataDecoyIntTrigger)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action DEPLOY_S_DATA_DECOYS__PRIV_ESC
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(deploySDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(privEscAttackerPrivsWrapper)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(privEscLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action DEPLOY_S_DATA_DECOYS__EXIT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(deploySDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(ATTACKER_STATUS' 	(active 	(0.0)) 	(inactive 	(1.0)))
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost [+ (0.1) (exitCost)]
+
+endaction
+
+
+action DEPLOY_S_DATA_DECOYS__NOP
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(deploySDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action DEPLOY_S_DATA_DECOYS__MANIPULATE_DATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(deploySDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(manipulateDataImpactCausedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(cDataDecoyIntTrigger)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+//////////////////////////////////////////////
+// END DEPLOY_S_DATA_DECOYS
+//////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////
+// REMOVE_DECOYS
+////////////////////////////////////////////////////////////////
+
+
+action REMOVE_DECOYS__PERSIST
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(persistTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(persistenceAttemptTriggered)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_DECOYS__VULN_RECON
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(vulnReconVulnFoundWrapper)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(vulnReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_DECOYS__CHECK_ROOT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_DECOYS__FILE_RECON_SDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconSDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_DECOYS__FILE_RECON_CDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconCDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_DECOYS__START_EXFIL
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(startExfilTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(sDataDecoyIntTrigger)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action REMOVE_DECOYS__PRIV_ESC
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(privEscAttackerPrivsWrapper)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(privEscLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action REMOVE_DECOYS__EXIT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(ATTACKER_STATUS' 	(active 	(0.0)) 	(inactive 	(1.0)))
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost [+ (0.1) (exitCost)]
+
+endaction
+
+
+action REMOVE_DECOYS__NOP
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action REMOVE_DECOYS__MANIPULATE_DATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(manipulateDataImpactCausedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(cDataDecoyIntTrigger)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+//////////////////////////////////////////////
+// END REMOVE_DECOYS
+//////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////
+// REMOVE_C_DATA_DECOYS
+////////////////////////////////////////////////////////////////
+
+
+action REMOVE_C_DATA_DECOYS__PERSIST
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(persistTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(persistenceAttemptTriggered)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_C_DATA_DECOYS__VULN_RECON
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(vulnReconVulnFoundWrapper)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(vulnReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_C_DATA_DECOYS__CHECK_ROOT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_C_DATA_DECOYS__FILE_RECON_SDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconSDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_C_DATA_DECOYS__FILE_RECON_CDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconCDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_C_DATA_DECOYS__START_EXFIL
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(startExfilTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(sDataDecoyIntTrigger)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action REMOVE_C_DATA_DECOYS__PRIV_ESC
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(privEscAttackerPrivsWrapper)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(privEscLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action REMOVE_C_DATA_DECOYS__EXIT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(ATTACKER_STATUS' 	(active 	(0.0)) 	(inactive 	(1.0)))
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost [+ (0.1) (exitCost)]
+
+endaction
+
+
+action REMOVE_C_DATA_DECOYS__NOP
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action REMOVE_C_DATA_DECOYS__MANIPULATE_DATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(removeCDataDecoys)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(manipulateDataImpactCausedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(cDataDecoyIntTrigger)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+//////////////////////////////////////////////
+// END REMOVE_C_DATA_DECOYS
+//////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////
+// REMOVE_S_DATA_DECOYS
+////////////////////////////////////////////////////////////////
+
+
+action REMOVE_S_DATA_DECOYS__PERSIST
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(persistTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(persistenceAttemptTriggered)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_S_DATA_DECOYS__VULN_RECON
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(vulnReconVulnFoundWrapper)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(vulnReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_S_DATA_DECOYS__CHECK_ROOT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_S_DATA_DECOYS__FILE_RECON_SDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconSDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_S_DATA_DECOYS__FILE_RECON_CDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconCDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action REMOVE_S_DATA_DECOYS__START_EXFIL
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(startExfilTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(sDataDecoyIntTrigger)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action REMOVE_S_DATA_DECOYS__PRIV_ESC
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(privEscAttackerPrivsWrapper)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(privEscLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action REMOVE_S_DATA_DECOYS__EXIT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(ATTACKER_STATUS' 	(active 	(0.0)) 	(inactive 	(1.0)))
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost [+ (0.1) (exitCost)]
+
+endaction
+
+
+action REMOVE_S_DATA_DECOYS__NOP
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action REMOVE_S_DATA_DECOYS__MANIPULATE_DATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(removeSDataDecoys)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(manipulateDataImpactCausedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(cDataDecoyIntTrigger)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+//////////////////////////////////////////////
+// END REMOVE_S_DATA_DECOYS
+//////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////
+// DEPLOY_VULN
+////////////////////////////////////////////////////////////////
+
+
+action DEPLOY_VULN__PERSIST
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(addReadVuln)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(persistTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(persistenceAttemptTriggered)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_VULN__VULN_RECON
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(addReadVuln)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(vulnReconVulnFoundWrapper)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(vulnReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_VULN__CHECK_ROOT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(addReadVuln)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_VULN__FILE_RECON_SDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(addReadVuln)
+	DATA_FOUND 				(fileReconSDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_VULN__FILE_RECON_CDATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(addReadVuln)
+	DATA_FOUND 				(fileReconCDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action DEPLOY_VULN__START_EXFIL
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(addReadVuln)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(startExfilTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(sDataDecoyIntTrigger)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action DEPLOY_VULN__PRIV_ESC
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(privEscAttackerPrivsWrapper)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(addReadVuln)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(privEscLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action DEPLOY_VULN__EXIT
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(addReadVuln)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(ATTACKER_STATUS' 	(active 	(0.0)) 	(inactive 	(1.0)))
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost [+ (0.1) (exitCost)]
+
+endaction
+
+
+action DEPLOY_VULN__NOP
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(addReadVuln)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action DEPLOY_VULN__MANIPULATE_DATA
+
+	PRIVS_DECEPTION 		(SAMEPRIVS_DECEPTION)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(addReadVuln)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(manipulateDataImpactCausedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(cDataDecoyIntTrigger)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+//////////////////////////////////////////////
+// END DEPLOY_VULN
+//////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////
+// SHOW_USER_PRIVS
+////////////////////////////////////////////////////////////////
+
+
+action SHOW_USER_PRIVS__PERSIST
+
+	PRIVS_DECEPTION 		(privsDeceptionUser)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(persistTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(persistenceAttemptTriggered)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_USER_PRIVS__VULN_RECON
+
+	PRIVS_DECEPTION 		(privsDeceptionUser)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(vulnReconVulnFoundWrapper)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(vulnReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_USER_PRIVS__CHECK_ROOT
+
+	PRIVS_DECEPTION 		(privsDeceptionUser)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_USER_PRIVS__FILE_RECON_SDATA
+
+	PRIVS_DECEPTION 		(privsDeceptionUser)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconSDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_USER_PRIVS__FILE_RECON_CDATA
+
+	PRIVS_DECEPTION 		(privsDeceptionUser)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconCDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_USER_PRIVS__START_EXFIL
+
+	PRIVS_DECEPTION 		(privsDeceptionUser)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(startExfilTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(sDataDecoyIntTrigger)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action SHOW_USER_PRIVS__PRIV_ESC
+
+	PRIVS_DECEPTION 		(privsDeceptionUser)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(privEscAttackerPrivsWrapper)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(privEscLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action SHOW_USER_PRIVS__EXIT
+
+	PRIVS_DECEPTION 		(privsDeceptionUser)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(ATTACKER_STATUS' 	(active 	(0.0)) 	(inactive 	(1.0)))
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost [+ (0.1) (exitCost)]
+
+endaction
+
+
+action SHOW_USER_PRIVS__NOP
+
+	PRIVS_DECEPTION 		(privsDeceptionUser)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action SHOW_USER_PRIVS__MANIPULATE_DATA
+
+	PRIVS_DECEPTION 		(privsDeceptionUser)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(manipulateDataImpactCausedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(cDataDecoyIntTrigger)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+//////////////////////////////////////////////
+// END SHOW_USER_PRIVS
+//////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////
+// SHOW_ROOT_PRIVS
+////////////////////////////////////////////////////////////////
+
+
+action SHOW_ROOT_PRIVS__PERSIST
+
+	PRIVS_DECEPTION 		(privsDeceptionRoot)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(persistTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(persistenceAttemptTriggered)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_ROOT_PRIVS__VULN_RECON
+
+	PRIVS_DECEPTION 		(privsDeceptionRoot)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(vulnReconVulnFoundWrapper)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(vulnReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_ROOT_PRIVS__CHECK_ROOT
+
+	PRIVS_DECEPTION 		(privsDeceptionRoot)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_ROOT_PRIVS__FILE_RECON_SDATA
+
+	PRIVS_DECEPTION 		(privsDeceptionRoot)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconSDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_ROOT_PRIVS__FILE_RECON_CDATA
+
+	PRIVS_DECEPTION 		(privsDeceptionRoot)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconCDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_ROOT_PRIVS__START_EXFIL
+
+	PRIVS_DECEPTION 		(privsDeceptionRoot)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(startExfilTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(sDataDecoyIntTrigger)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action SHOW_ROOT_PRIVS__PRIV_ESC
+
+	PRIVS_DECEPTION 		(privsDeceptionRoot)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(privEscAttackerPrivsWrapper)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(privEscLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action SHOW_ROOT_PRIVS__EXIT
+
+	PRIVS_DECEPTION 		(privsDeceptionRoot)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(ATTACKER_STATUS' 	(active 	(0.0)) 	(inactive 	(1.0)))
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost [+ (0.1) (exitCost)]
+
+endaction
+
+
+action SHOW_ROOT_PRIVS__NOP
+
+	PRIVS_DECEPTION 		(privsDeceptionRoot)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action SHOW_ROOT_PRIVS__MANIPULATE_DATA
+
+	PRIVS_DECEPTION 		(privsDeceptionRoot)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(manipulateDataImpactCausedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(cDataDecoyIntTrigger)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+//////////////////////////////////////////////
+// END SHOW_ROOT_PRIVS
+//////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////
+// SHOW_TRUE_PRIVS
+////////////////////////////////////////////////////////////////
+
+
+action SHOW_TRUE_PRIVS__PERSIST
+
+	PRIVS_DECEPTION 		(privsDeceptionTrue)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(persistTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(persistenceAttemptTriggered)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_TRUE_PRIVS__VULN_RECON
+
+	PRIVS_DECEPTION 		(privsDeceptionTrue)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(vulnReconVulnFoundWrapper)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(vulnReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_TRUE_PRIVS__CHECK_ROOT
+
+	PRIVS_DECEPTION 		(privsDeceptionTrue)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+	
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_TRUE_PRIVS__FILE_RECON_SDATA
+
+	PRIVS_DECEPTION 		(privsDeceptionTrue)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconSDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_TRUE_PRIVS__FILE_RECON_CDATA
+
+	PRIVS_DECEPTION 		(privsDeceptionTrue)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(fileReconCDataDataFoundWrapper)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(fileReconInferred)
+		
+	endobserve
+
+	cost (0.1)
+	
+endaction
+
+
+action SHOW_TRUE_PRIVS__START_EXFIL
+
+	PRIVS_DECEPTION 		(privsDeceptionTrue)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(startExfilTargetImpactedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(sDataDecoyIntTrigger)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action SHOW_TRUE_PRIVS__PRIV_ESC
+
+	PRIVS_DECEPTION 		(privsDeceptionTrue)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(privEscAttackerPrivsWrapper)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(privEscLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action SHOW_TRUE_PRIVS__EXIT
+
+	PRIVS_DECEPTION 		(privsDeceptionTrue)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(ATTACKER_STATUS' 	(active 	(0.0)) 	(inactive 	(1.0)))
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost [+ (0.1) (exitCost)]
+
+endaction
+
+
+action SHOW_TRUE_PRIVS__NOP
+
+	PRIVS_DECEPTION 		(privsDeceptionTrue)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(SAMEIMPACT_CAUSED)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(defaultCDataDecoyInt)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+action SHOW_TRUE_PRIVS__MANIPULATE_DATA
+
+	PRIVS_DECEPTION 		(privsDeceptionTrue)
+	C_DATA_DECOYS 			(SAMEC_DATA_DECOYS)
+	S_DATA_DECOYS			(SAMES_DATA_DECOYS)
+	HOST_HAS_DATA			(SAMEHOST_HAS_DATA)
+	ATTACKER_PRIVS 			(SAMEATTACKER_PRIVS)
+	DATA_ACCESS_PRIVS		(SAMEDATA_ACCESS_PRIVS)
+	HOST_HAS_VULN 			(SAMEHOST_HAS_VULN)
+	DATA_FOUND 				(SAMEDATA_FOUND)
+	VULN_FOUND 				(SAMEVULN_FOUND)
+	IMPACT_CAUSED  			(manipulateDataImpactCausedWrapper)
+	ATTACKER_STATUS 		(SAMEATTACKER_STATUS)
+
+	observe
+	
+		S_DATA_DECOY_INTERACTION 	(defaultSDataDecoyInt)
+		C_DATA_DECOY_INTERACTION 	(cDataDecoyIntTrigger)
+		LOG_INFERENCE 				(defaultLogInference)
+		
+	endobserve
+
+	cost (0.1)
+
+endaction
+
+
+//////////////////////////////////////////////
+// END SHOW_TRUE_PRIVS
+//////////////////////////////////////////////
+
+
+reward
+[+
+	(ATTACKER_STATUS
+		(active 	(2.0))
+		(inactive 	(0.0))
+	)
+]
+
+discount 0.9
+
+tolerance 0.001
+
+//////////////////////////////////////////////
+// FRAMES
+//////////////////////////////////////////////
+
+(frames
+
+	(frame 0 level 0 import
+		"exfil_attacker.L0.spudd"
+	)
+
+	(frame 1 level 0 import
+		"pt.L0.spudd"
+	)
+
+	(frame 2 level 0 import
+		"data_manipulator.L0.spudd"
+	)
+)
