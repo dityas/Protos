@@ -1,8 +1,26 @@
 # Protos
-## A level 1 factored I-POMDP solver
+## A factored I-POMDP solver
 
-Protos is a level 1 factored IPOMDP solver developed at [THINC Lab @ UGA](http://thinc.cs.uga.edu/). It uses Jesse Hoey's implementation of the Symbolic Perseus POMDP solver and extends it to solve IPOMDPs. 
-The pre built JAR file is in the `Protos/build/` directory.
+Protos is a factored IPOMDP solver developed at [THINC Lab @ UGA](http://thinc.cs.uga.edu/). It uses Jesse Hoey's implementation of the symbolic Perseus and with some modifications, extends it to I-POMDPs.
+
+** If you use this solver in your research, please cite the following paper. **
+```
+Shinde, Aditya, Prashant Doshi, and Omid Setayeshfar. "Cyber Attack Intent
+Recognition and Active Deception using Factored Interactive POMDPs." Proceedings
+of the 20th International Conference on Autonomous Agents and MultiAgent
+Systems. 2021.
+```
+```
+@inproceedings{shinde2021cyber,
+    title={Cyber Attack Intent Recognition and Active Deception using Factored
+    Interactive POMDPs},
+    author={Shinde, Aditya and Doshi, Prashant and Setayeshfar, Omid},
+    booktitle={Proceedings of the 20th International Conference on Autonomous
+    Agents and MultiAgent Systems},
+    pages={1200--1208},
+    year={2021}
+}
+```
 
 ******
 
