@@ -22,7 +22,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.model_ops.belief_exploration.MjSpaceExpansion;
 import thinclab.model_ops.belief_exploration.PolicyTreeExpansion;
 import thinclab.models.DBN;
 import thinclab.models.IPOMDP;
