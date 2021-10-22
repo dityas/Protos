@@ -15,7 +15,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class DDMaker implements Serializable {
@@ -26,7 +27,7 @@ public class DDMaker implements Serializable {
 	
 	private static final long serialVersionUID = -3426937338090541871L;
 
-	private static final Logger logger = Logger.getLogger(DDMaker.class);
+	private static final Logger logger = LogManager.getLogger(DDMaker.class);
 	
 	private HashMap<String, String[]> variablesHashMap = new HashMap<String, String[]>();
 	private boolean primed = false;
@@ -129,7 +130,7 @@ public class DDMaker implements Serializable {
 				// Make children
 				for (int c=0; c < children.length; c++) {
 					if (previousTree == null) {
-						topTree.children.put(children[c], new DDTreeLeaf(0.0));
+						topTree.children.put(children[c], new DDTreeLeaf(0.0f));
 					}
 					
 					else {
@@ -195,7 +196,7 @@ public class DDMaker implements Serializable {
 				
 				try {
 					currentNode.setValueAt(currentRecord[currentRecord.length-2],
-									   	   new Double(currentRecord[currentRecord.length-1]));
+									   	   Float.valueOf(currentRecord[currentRecord.length-1]));
 				}
 				
 				catch (Exception e) {

@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -23,8 +24,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import thinclab.legacy.Global;
 import thinclab.representations.policyrepresentations.PolicyNode;
 
 
@@ -32,23 +35,51 @@ import thinclab.representations.policyrepresentations.PolicyNode;
  * @author adityas
  *
  */
-public class MjDB {
+public class MjDB implements Serializable {
 	
 	/*
 	 * Handles DB operations for persistent Mj storage
 	 */
 	
-	public Connection storageConn;
+	private static final long serialVersionUID = 1967096546421552467L;
+	
+	//	public Connection storageConn;
+	private int frameNo = -1;
 	private File tempFile;
-	private static final Logger LOGGER = Logger.getLogger(MjDB.class);
+	private static final Logger LOGGER = LogManager.getLogger(MjDB.class);
 	
 	// ---------------------------------------------------------------------------------
 	
-	public MjDB() {
+	public MjDB(int frameNo) {
+		
+		this.frameNo = frameNo;
 		
 		try {
 			this.tempFile = File.createTempFile("mj_policy_nodes", ".db");
 			this.tempFile.deleteOnExit();
+			
+			/* make tables */
+			this.createTables();
+			
+			LOGGER.debug("Mj DB created at " + this.tempFile.getAbsolutePath());
+		} 
+		
+		catch (Exception e) {
+			LOGGER.error("While creating temp file for MjDB: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+	
+	public MjDB(int frameNo, String fileName) {
+		
+		this.frameNo = frameNo;
+		
+		try {
+			this.tempFile = new File(fileName);
+			
+			if (this.tempFile.exists())
+				this.tempFile.createNewFile();
 			
 			/* make tables */
 			this.createTables();
@@ -71,10 +102,19 @@ public class MjDB {
 		
 		try {
 			
-			this.storageConn = 
-					DriverManager.getConnection("jdbc:sqlite:" 
-							+ this.tempFile.getAbsolutePath());
-			this.storageConn.setAutoCommit(false);
+			Connection mjDbConnection = DriverManager.getConnection("jdbc:sqlite:" + this.tempFile.getAbsolutePath());
+			mjDbConnection.setAutoCommit(false);
+			
+			Global.MjDBConnections.put(
+					frameNo, 
+					mjDbConnection);
+			
+			LOGGER.info("DB Connection established to DB " + this.tempFile);
+			
+//			this.storageConn = 
+//					DriverManager.getConnection("jdbc:sqlite:" 
+//							+ this.tempFile.getAbsolutePath());
+//			this.storageConn.setAutoCommit(false);
 			
 			/* Create table for storing opponent Model */
 			
@@ -85,7 +125,8 @@ public class MjDB {
 					+ "opt_action TEXT,"
 					+ "policy_node BLOB);";
 			
-			Statement query = this.storageConn.createStatement();
+//			Statement query = this.storageConn.createStatement();
+			Statement query = Global.MjDBConnections.get(this.frameNo).createStatement();
 			query.execute(nodeTable);
 			
 			LOGGER.debug("Created table to store nodes");
@@ -97,7 +138,8 @@ public class MjDB {
 					+ "label TEXT,"
 					+ "dest_id INTEGER);";
 			
-			query = this.storageConn.createStatement();
+//			query = this.storageConn.createStatement();
+			query = Global.MjDBConnections.get(this.frameNo).createStatement();
 			query.execute(edgesTable);
 			
 			LOGGER.debug("Created table to store edges");
@@ -118,7 +160,8 @@ public class MjDB {
 	public void commitChanges() {
 		try {
 			LOGGER.debug("Commiting changes");
-			this.storageConn.commit();
+//			this.storageConn.commit();
+			Global.MjDBConnections.get(this.frameNo).commit();
 		} 
 		
 		catch (SQLException e) {
@@ -149,7 +192,8 @@ public class MjDB {
 			bArrayOutStream.close();
 			
 			/* Insert belief */
-			PreparedStatement stmt = this.storageConn.prepareStatement(insertNodeQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(insertNodeQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(insertNodeQ);
 			stmt.setInt(1, id);
 			stmt.setInt(2, node.getH());
 			stmt.setString(3, node.getActName());
@@ -175,7 +219,8 @@ public class MjDB {
 					+ "VALUES(?, ?, ?)";
 			
 			/* Insert belief */
-			PreparedStatement stmt = this.storageConn.prepareStatement(insertEdgeQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(insertEdgeQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(insertEdgeQ);
 			stmt.setInt(1, src_id);
 			stmt.setString(2, String.join("|", label));
 			stmt.setInt(3, dest_id);
@@ -204,7 +249,8 @@ public class MjDB {
 					+ "WHERE src_id=? AND label=? AND dest_id=?";
 			
 			/* Insert belief */
-			PreparedStatement stmt = this.storageConn.prepareStatement(insertEdgeQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(insertEdgeQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(insertEdgeQ);
 			stmt.setInt(1, new_dest_id);
 			stmt.setInt(2, src_id);
 			stmt.setString(3, String.join("|", label));
@@ -230,7 +276,8 @@ public class MjDB {
 			String getPolicyNodeQ = "SELECT policy_node FROM id_to_node WHERE belief_id=?";
 			
 			/* select all */
-			PreparedStatement stmt = this.storageConn.prepareStatement(getPolicyNodeQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(getPolicyNodeQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(getPolicyNodeQ);
 			stmt.setInt(1, belief_id);
 			
 			ResultSet res = stmt.executeQuery();
@@ -267,7 +314,8 @@ public class MjDB {
 			String getPolicyNodeQ = "SELECT * FROM edges WHERE src_id=?";
 			
 			/* select all */
-			PreparedStatement stmt = this.storageConn.prepareStatement(getPolicyNodeQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(getPolicyNodeQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(getPolicyNodeQ);
 			stmt.setInt(1, src_id);
 			
 			ResultSet res = stmt.executeQuery();
@@ -301,7 +349,8 @@ public class MjDB {
 			String getPolicyNodeQ = "SELECT * FROM edges WHERE dest_id=?";
 			
 			/* select all */
-			PreparedStatement stmt = this.storageConn.prepareStatement(getPolicyNodeQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(getPolicyNodeQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(getPolicyNodeQ);
 			stmt.setInt(1, dest_id);
 			
 			ResultSet res = stmt.executeQuery();
@@ -335,7 +384,8 @@ public class MjDB {
 		try {
 			String makeAllRootsQ = "UPDATE id_to_node SET time_step=0";
 			
-			PreparedStatement stmt = this.storageConn.prepareStatement(makeAllRootsQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(makeAllRootsQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(makeAllRootsQ);
 			stmt.executeUpdate();
 			
 		}
@@ -359,7 +409,8 @@ public class MjDB {
 			String getAllRootsQ = "SELECT belief_id FROM id_to_node WHERE time_step=?";
 			
 			/* select all */
-			PreparedStatement stmt = this.storageConn.prepareStatement(getAllRootsQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(getAllRootsQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(getAllRootsQ);
 			stmt.setInt(1, 0);
 			
 			ResultSet res = stmt.executeQuery();
@@ -389,7 +440,8 @@ public class MjDB {
 			String getAllRootsQ = "SELECT belief_id FROM id_to_node WHERE time_step=?";
 			
 			/* select all */
-			PreparedStatement stmt = this.storageConn.prepareStatement(getAllRootsQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(getAllRootsQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(getAllRootsQ);
 			stmt.setInt(1, horizon);
 			
 			ResultSet res = stmt.executeQuery();
@@ -419,7 +471,8 @@ public class MjDB {
 			String getAllRootsQ = "SELECT belief_id FROM id_to_node WHERE opt_action=?";
 			
 			/* select all */
-			PreparedStatement stmt = this.storageConn.prepareStatement(getAllRootsQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(getAllRootsQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(getAllRootsQ);
 			stmt.setString(1, action);
 			
 			ResultSet res = stmt.executeQuery();
@@ -450,7 +503,8 @@ public class MjDB {
 			String getNodesQ = "SELECT belief_id FROM id_to_node";
 			
 			/* select all */
-			Statement stmt = this.storageConn.createStatement();
+//			Statement stmt = this.storageConn.createStatement();
+			Statement stmt = Global.MjDBConnections.get(this.frameNo).createStatement();
 			res = stmt.executeQuery(getNodesQ);
 			
 			while (res.next()) {
@@ -479,7 +533,8 @@ public class MjDB {
 			String getEdgesQ = "SELECT DISTINCT src_id FROM edges";
 			
 			/* select all */
-			Statement stmt = this.storageConn.createStatement();
+//			Statement stmt = this.storageConn.createStatement();
+			Statement stmt = Global.MjDBConnections.get(this.frameNo).createStatement();
 			res = stmt.executeQuery(getEdgesQ);
 			
 			while (res.next()) {
@@ -505,7 +560,8 @@ public class MjDB {
 			String deleteEntriesQ = "DELETE FROM id_to_node WHERE belief_id=?";
 			
 			/* select all */
-			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(deleteEntriesQ);
 			stmt.setInt(1, id);
 			stmt.executeUpdate();
 		}
@@ -526,7 +582,8 @@ public class MjDB {
 			String deleteEntriesQ = "DELETE FROM edges WHERE src_id=?";
 			
 			/* select all */
-			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(deleteEntriesQ);
 			stmt.setInt(1, srcId);
 			stmt.executeUpdate();
 		}
@@ -547,7 +604,8 @@ public class MjDB {
 			String deleteEntriesQ = "DELETE FROM edges WHERE dest_id=?";
 			
 			/* select all */
-			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(deleteEntriesQ);
 			stmt.setInt(1, destId);
 			stmt.executeUpdate();
 		}
@@ -569,7 +627,8 @@ public class MjDB {
 			String showAllNodesQ = "SELECT * FROM id_to_node";
 			
 			/* select all */
-			Statement stmt = this.storageConn.createStatement();
+//			Statement stmt = this.storageConn.createStatement();
+			Statement stmt = Global.MjDBConnections.get(this.frameNo).createStatement();
 			res = stmt.executeQuery(showAllNodesQ);
 		}
 		
@@ -591,7 +650,8 @@ public class MjDB {
 			String showAllEdgesQ = "SELECT * FROM edges";
 			
 			/* select all */
-			Statement stmt = this.storageConn.createStatement();
+//			Statement stmt = this.storageConn.createStatement();
+			Statement stmt = Global.MjDBConnections.get(this.frameNo).createStatement();
 			res = stmt.executeQuery(showAllEdgesQ);
 		}
 		
@@ -612,7 +672,8 @@ public class MjDB {
 			String deleteEntriesQ = "DELETE FROM id_to_node";
 			
 			/* select all */
-			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(deleteEntriesQ);
 			stmt.executeUpdate();
 			
 			LOGGER.debug("Deleted all entries from id_to_node");
@@ -634,7 +695,8 @@ public class MjDB {
 			String deleteEntriesQ = "DELETE FROM edges";
 			
 			/* select all */
-			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+//			PreparedStatement stmt = this.storageConn.prepareStatement(deleteEntriesQ);
+			PreparedStatement stmt = Global.MjDBConnections.get(this.frameNo).prepareStatement(deleteEntriesQ);
 			stmt.executeUpdate();
 			
 			LOGGER.debug("Deleted all entries from edges");
@@ -657,9 +719,9 @@ public class MjDB {
 			/* node table */
 			ResultSet nodeRes = this.getNodeTable();
 			
-			LOGGER.debug("Nodes Table:");
+			System.out.println("Nodes Table:");
 			while(nodeRes.next()) {
-				LOGGER.debug("ID: " + nodeRes.getInt("belief_id") 
+				System.out.println("ID: " + nodeRes.getInt("belief_id") 
 					+ " T: " + nodeRes.getInt("time_step") 
 					+ " NODE: " + nodeRes.getBytes("policy_node"));
 			}
@@ -667,9 +729,9 @@ public class MjDB {
 			/* edges table */
 			ResultSet edgesRes = this.getEdgesTable();
 			
-			LOGGER.debug("Edges Table:");
+			System.out.println("Edges Table:");
 			while(edgesRes.next()) {
-				LOGGER.debug("ID: " + edgesRes.getInt("edge") 
+				System.out.println("ID: " + edgesRes.getInt("edge") 
 					+ " SRC: " + edgesRes.getInt("src_id")
 					+ " LABEL: " + edgesRes.getString("label")
 					+ " DEST: " + edgesRes.getInt("dest_id"));
@@ -681,6 +743,28 @@ public class MjDB {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+	}
+	
+	public void releaseDB() {
+		LOGGER.warn("Releasing DB connection");
+		this.commitChanges();
+		
+		try {
+			Global.MjDBConnections.get(this.frameNo).close();
+//			this.storageConn = null;
+		} 
+		
+		catch (SQLException e) {
+			LOGGER.error("While releasing DB connection.");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		
+		LOGGER.info("DB connection released");
+	}
+	
+	public void acquireDB() {
+		this.createTables();
 	}
 
 }

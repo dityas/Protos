@@ -20,7 +20,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.legacy.NextBelState;
 
@@ -35,18 +36,19 @@ public class CacheDB {
 	
 	/* DB connection object */
 	public Connection storageConn;
+	private String dbFileName = null;
 	
-	private static final Logger logger = Logger.getLogger(CacheDB.class);
+	private static final Logger logger = LogManager.getLogger(CacheDB.class);
 	
 	// ----------------------------------------------------------------------------------------
 	
-//	public CacheDB(String fileName) {
-//		
-//		/* initialize tables */
-//		logger.debug("Initializing local storage for belief tree");
-//		this.dbDir = fileName;
-//		this.initializeLocalStorage();
-//	}
+	public CacheDB(String fileName) {
+		
+		/* initialize tables */
+		logger.debug("Initializing local storage for belief tree");
+		this.dbFileName = fileName;
+		this.initializeLocalStorage();
+	}
 	
 	public CacheDB() {
 		
@@ -64,8 +66,18 @@ public class CacheDB {
 		 */
 		
 		try {
-			File tempFile = File.createTempFile("nz_cache", ".db");
-			tempFile.deleteOnExit();
+			
+			File tempFile;
+			
+			if (this.dbFileName != null) {
+				tempFile = new File(this.dbFileName);
+				tempFile.deleteOnExit();
+			}
+			
+			else
+				tempFile = File.createTempFile("nz_cache", ".db");
+			
+//			tempFile.deleteOnExit();
 			this.storageConn = DriverManager.getConnection("jdbc:sqlite:" + tempFile.getAbsolutePath());
 			
 			/* Create table for storing opponent Model */

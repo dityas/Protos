@@ -12,11 +12,6 @@ public class Config {
     public static int hashCode(int[][] config) {
 
 	if (config == null) return 0;
-
-//	int hashCode = 0;
-//	for (int i=0; i<config[0].length; i++) {
-//	    hashCode += config[0][i] + config[1][i];
-//	}
 	
 	HashCodeBuilder builder = new HashCodeBuilder();
 	
@@ -40,11 +35,11 @@ public class Config {
 	    if (Global.varNames == null) 
 		string += Integer.toString(config[0][i]) + new String("=");
 	    else
-		string += Global.varNames[config[0][i]-1] + new String("=");
+		string += Global.varNames.get(config[0][i]-1) + new String("=");
 	    if (Global.valNames == null) 
 		string += Integer.toString(config[1][i]);
 	    else
-		string += Global.valNames[config[0][i]-1][config[1][i]-1];
+		string += Global.valNames.get(config[0][i]-1).get(config[1][i]-1);
 
 	    //string += Integer.toString(config[0][i]) + new String("=") 
 	    //		 + Integer.toString(config[1][i]);
@@ -180,19 +175,19 @@ public class Config {
     /////////////////////////////////////////////////////////
     // convert2dd
     /////////////////////////////////////////////////////////
-    public static DD convert2dd(int[][] config, double value) {
+    public static DD convert2dd(int[][] config, float value) {
 
 	if (config == null) return DD.one;
 
-	DD dd = DDleaf.myNew(value);
+	DD dd = DDleaf.getDD(value);
 	for (int i=0; i<config[0].length; i++) {
-	    int arity = Global.varDomSize[config[0][i]-1];
+	    int arity = Global.varDomSize.get(config[0][i]-1);
 	    DD[] children = new DD[arity];
 	    for (int j=0; j<arity; j++) {
 		if (j+1 == config[1][i]) children[j] = DD.one;
 		else children[j] = DD.zero;
 	    }
-	    dd = OP.mult(dd,DDnode.myNew(config[0][i],children));
+	    dd = OP.mult(dd,DDnode.getDD(config[0][i],children));
 	}
 	return dd;
     }

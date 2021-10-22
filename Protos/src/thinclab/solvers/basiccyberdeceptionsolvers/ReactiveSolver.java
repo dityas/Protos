@@ -10,7 +10,8 @@ package thinclab.solvers.basiccyberdeceptionsolvers;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -22,35 +23,34 @@ import thinclab.solvers.BaseSolver;
  *
  */
 public class ReactiveSolver extends BaseSolver {
-	
+
 	/*
 	 * Reactive solver.
 	 * 
 	 * Simulates a basic deception strategy. If the agent believes the attacker is
 	 * of a particular type, it deploys the relevant deception.
 	 */
-	
+
 	private boolean deceptionDeployed = false;
 	private boolean fakeVulnDeployed = false;
-	
+
 	private static final long serialVersionUID = -9200255582382484951L;
-	private static final Logger LOGGER = Logger.getLogger(ReactiveSolver.class);
-	
+	private static final Logger LOGGER = LogManager.getLogger(ReactiveSolver.class);
+
 	// ---------------------------------------------------------------------------------------
-	
+
 	public ReactiveSolver(IPOMDP ipomdp) {
-		
+
 		this.f = ipomdp;
 		LOGGER.info("Reactive solver initialised");
 	}
-	
+
 	// ---------------------------------------------------------------------------------------
 
 	@Override
 	public String getActionForBelief(DD belief) {
-		return this.getDeceptionActionFromBelief(((IPOMDP) this.f)
-						.toMapWithTheta(this.f.getCurrentBelief())
-						.get("Theta_j"));
+		return this.getDeceptionActionFromBelief(
+				((IPOMDP) this.f).toMapWithTheta(this.f.getCurrentBelief()).get("Theta_j"));
 	}
 
 	@Override
@@ -69,17 +69,17 @@ public class ReactiveSolver extends BaseSolver {
 	}
 
 	@Override
-	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
-		return 0.0;
+	public float evaluatePolicy(int trials, int evalDepth, boolean verbose) {
+		return 0.0f;
 	}
 
 	@Override
 	public void nextStep(String action, List<String> obs) throws ZeroProbabilityObsException {
-		
+
 		try {
 			this.f.step(this.f.getCurrentBelief(), action, obs.stream().toArray(String[]::new));
-		} 
-		
+		}
+
 		catch (Exception e) {
 			LOGGER.error("While stepping the solver " + e.getMessage());
 			e.printStackTrace();
@@ -91,20 +91,21 @@ public class ReactiveSolver extends BaseSolver {
 	public String getActionAtCurrentBelief() {
 		return null;
 	}
-	
+
 	private String getDeceptionActionFromBelief(HashMap<String, Float> frameBelief) {
-		
+
 		if (frameBelief.get("theta/0") > 0.51 && !this.deceptionDeployed) {
 			this.deceptionDeployed = true;
 			return "DEPLOY_HONEY_FILES";
 		}
-		
+
 		else if (!this.fakeVulnDeployed) {
 			this.fakeVulnDeployed = true;
 			return "DEPLOY_FAKE_VULN_INDICATORS";
 		}
-		
-		else return "NOP";
+
+		else
+			return "NOP";
 	}
 
 }

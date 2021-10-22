@@ -1,0 +1,8 @@
+(defvar HOST_HAS_DATA (critical sensitive none))
+(defvar HOST_HAS_VULN (yes no))
+(defvar ATTACKER_PRIVS (none user local_admin domain_admin))
+(defvar DATA_ACCESS_PRIVS (user admin))
+	
+(defvar DATA_FOUND_OBS (yes no))
+(defvar VULN_FOUND_OBS (yes no))
+(defvar PRIVS_OBS (user admin none))

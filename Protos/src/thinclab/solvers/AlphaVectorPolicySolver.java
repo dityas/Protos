@@ -7,10 +7,17 @@
  */
 package thinclab.solvers;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.List;
 
-import org.apache.commons.collections15.buffer.CircularFifoBuffer;
-import org.apache.log4j.Logger;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
@@ -38,7 +45,7 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 	public BeliefRegionExpansionStrategy expansionStrategy;
 	
 	PolicyCache pCache = new PolicyCache(5);
-	CircularFifoBuffer<Float> bErrorVals = new CircularFifoBuffer<Float>(5);
+	CircularFifoQueue<Float> bErrorVals = new CircularFifoQueue<Float>(5);
 	
 	/* for checking used beliefs and num alpha vectors */
 	float minError = Float.POSITIVE_INFINITY;
@@ -56,14 +63,14 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 	int numNewAlphaVectors;
 
 	public int[] policy;
-	double[] policyvalue;
+	float[] policyvalue;
 	boolean[] uniquePolicy;
 	
 	public int[] bestPolicy = null;
 	public DD[] bestAlphaVectors = null;
-	public double bestBellmanError = Double.MAX_VALUE;
+	public float bestBellmanError = Float.MAX_VALUE;
 	
-	private static Logger LOGGER = Logger.getLogger(AlphaVectorPolicySolver.class);
+	private static Logger LOGGER = LogManager.getLogger(AlphaVectorPolicySolver.class);
 	
 	// --------------------------------------------------------------------------------------
 	
@@ -81,11 +88,11 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 	public boolean hasSolution() {return this.solverConverged;}
 	
 	@Override
-	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
+	public float evaluatePolicy(int trials, int evalDepth, boolean verbose) {
 		/*
 		 * Run policy evaluation for IPOMDPs
 		 */
-		return this.f.evaluatePolicy(
+		return (float) this.f.evaluatePolicy(
 				this.getAlphaVectors(), this.getPolicy(), trials, evalDepth, verbose);
 	}
 	
@@ -157,7 +164,7 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 		}
 		
 		this.expansionStrategy.clearMem();
-		this.bestBellmanError = Double.MAX_VALUE;
+		this.bestBellmanError = Float.MAX_VALUE;
 		NextBelStateCache.clearCache();
 	}
 	
@@ -332,5 +339,42 @@ public abstract class AlphaVectorPolicySolver extends BaseSolver {
 	
 	public int getBestAlphaIndex(DD belief) {
 		return DecisionProcess.getBestAlphaIndex(this.f, belief, this.getAlphaVectors());
+	}
+	
+	// -----------------------------------------------------------------------------------------
+	
+	public void save(String storageDir) throws FileNotFoundException, IOException {
+		/*
+		 * Serialize solver object
+		 */
+		FileOutputStream f_out;
+		// save to disk
+		// Use a FileOutputStream to send data to a file
+		// called myobject.data.
+		f_out = 
+				new FileOutputStream(
+						storageDir + "/" + this.getFramework().level + "_" + 
+								this.getFramework().frameID + ".solver");
+
+		// Use an ObjectOutputStream to send object data to the
+		// FileOutputStream for writing to disk.
+		ObjectOutputStream obj_out = new ObjectOutputStream(f_out);
+
+		// Pass our object to the ObjectOutputStream's
+		// writeObject() method to cause it to be written out
+		// to disk.
+		obj_out.writeObject(this);
+		obj_out.flush();
+		obj_out.close();
+	}
+	
+	public static AlphaVectorPolicySolver load(String filename) throws FileNotFoundException,
+			IOException, ClassNotFoundException {
+		
+		ObjectInputStream input = new ObjectInputStream(new FileInputStream(filename));
+		AlphaVectorPolicySolver solver = (AlphaVectorPolicySolver) input.readObject();
+		
+		input.close();
+		return solver;
 	}
 }

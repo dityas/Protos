@@ -18,9 +18,9 @@ public class DDTreeLeaf extends DDTree {
 	
 	private static final long serialVersionUID = 5543304119075972676L;
 	
-	public double val = 0.0;
+	public float val = 0.0f;
 	
-	public DDTreeLeaf(double val) {
+	public DDTreeLeaf(float val) {
 		super("LeafVar");
 		this.val = val;
 	}
@@ -92,6 +92,6 @@ public class DDTreeLeaf extends DDTree {
 		/*
 		 * Overrides the DDTree implementation to convert leaves
 		 */
-		return DDleaf.myNew(this.val);
+		return DDleaf.getDD(this.val);
 	}
 }

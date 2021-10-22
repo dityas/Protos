@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.decisionprocesses.POMDP;
@@ -50,7 +51,7 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 	private int nIterations;
 	private int maxBeliefs = 200;
 	
-	private static final Logger LOGGER = Logger.getLogger(SSGABeliefExpansion.class);
+	private static final Logger LOGGER = LogManager.getLogger(SSGABeliefExpansion.class);
 	
 	// ----------------------------------------------------------------------------------------
 	
@@ -133,9 +134,9 @@ public class SSGABeliefExpansion extends BeliefRegionExpansionStrategy {
 				+ " from " + this.initialBeliefs.size() + " belief points.");
 		
 		/* Create multinomial for sampling actions */
-		double[] explore = new double[2];
-		explore[0] = 0.8;
-		explore[1] = 0.2;
+		float[] explore = new float[2];
+		explore[0] = 0.8f;
+		explore[1] = 0.2f;
 		
 		/* for iterations */
 		for (int n = 0; n < this.nIterations; n++) {

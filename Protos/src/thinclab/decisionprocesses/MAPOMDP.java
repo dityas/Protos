@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -57,7 +58,7 @@ public class MAPOMDP extends IPOMDP {
 	// ---------------------------------------------------------------------------------
 	
 	private static final long serialVersionUID = 3391360719456978181L;
-	private static final Logger LOGGER = Logger.getLogger(MAPOMDP.class);
+	private static final Logger LOGGER = LogManager.getLogger(MAPOMDP.class);
 	
 	// ---------------------------------------------------------------------------------
 	
@@ -75,12 +76,12 @@ public class MAPOMDP extends IPOMDP {
 			/* initial belief for theta */
 			this.initialThetaBelief = this.ddMaker.getDDTreeFromSequence(new String[] {"Theta_j"});
 			for (String frameName: this.initialThetaBelief.children.keySet())
-				this.initialThetaBelief.setValueAt(frameName, 1.0 / this.initialThetaBelief.children.size());
+				this.initialThetaBelief.setValueAt(frameName, 1.0f / this.initialThetaBelief.children.size());
 			
 			/* same theta transition */
 			for (String frame: this.sameThetaDDTree.children.keySet()) {
 				this.sameThetaDDTree.setDDAt(
-						Arrays.asList(new String[] {frame, frame}), new DDTreeLeaf(1.0));
+						Arrays.asList(new String[] {frame, frame}), new DDTreeLeaf(1.0f));
 			}
 			
 			/* get static aj distribution */
@@ -137,8 +138,8 @@ public class MAPOMDP extends IPOMDP {
 					(AlphaVectorPolicySolver) this.multiFrameMJ.MJs.get(frameId).solver;
 			
 			DD[] aVecs = solver.getAlphaVectors();
-			HashMap<String, Double> ajProbs = new HashMap<String, Double>();
-			for (String ajName: this.Aj) ajProbs.put(ajName, 0.0);
+			HashMap<String, Float> ajProbs = new HashMap<String, Float>();
+			for (String ajName: this.Aj) ajProbs.put(ajName, 0.0f);
 			
 			int numAlpha = aVecs.length;
 			int[] policy = solver.getPolicy();
@@ -153,14 +154,14 @@ public class MAPOMDP extends IPOMDP {
 				
 				String ajName = solver.getFramework().getActions().get(policy[p]);
 				
-				if (ajProbs.containsKey(ajName)) ajProbs.put(ajName, ajProbs.get(ajName) + 1.0);
-				else ajProbs.put(ajName, 1.0);
+				if (ajProbs.containsKey(ajName)) ajProbs.put(ajName, ajProbs.get(ajName) + 1.0f);
+				else ajProbs.put(ajName, 1.0f);
 			}
 			
 			DDTree ajTree = this.ddMaker.getDDTreeFromSequence(new String[] {"A_j"});
 			
 			for (String aj: ajTree.children.keySet())
-				ajTree.setValueAt(aj, (ajProbs.get(aj) / (float) numAlpha));
+				ajTree.setValueAt(aj, (float) (ajProbs.get(aj) / (float) numAlpha));
 			
 			AjGivenThetaj.setDDAt("theta/" + frameId, ajTree);
 		}
@@ -212,8 +213,8 @@ public class MAPOMDP extends IPOMDP {
 		/*
 		 * Max and Min reward
 		 */
-		double maxVal = Double.NEGATIVE_INFINITY;
-		double minVal = Double.POSITIVE_INFINITY;
+		float maxVal = Float.NEGATIVE_INFINITY;
+		float minVal = Float.POSITIVE_INFINITY;
 		
 		for (int a = 0; a < nActions; a++) {
 			maxVal = Math.max(maxVal, OP.maxAll(OP.addN(actions[a].rewFn)));
@@ -225,9 +226,9 @@ public class MAPOMDP extends IPOMDP {
 		/*
 		 * Set Tolerance
 		 */
-		double maxDiffRew = maxVal - minVal;
-		double maxDiffVal = maxDiffRew / (1 - Math.min(0.95, discFact));
-		tolerance = 1e-5 * maxDiffVal;
+		float maxDiffRew = maxVal - minVal;
+		float maxDiffVal = maxDiffRew / (1 - Math.min(0.95f, discFact));
+		tolerance = 1e-5f * maxDiffVal;
 	}
 	
 	// ------------------------------------------------------------------------------------
@@ -650,7 +651,7 @@ public class MAPOMDP extends IPOMDP {
 	}
 	
 	@Override
-	public double evaluatePolicy(
+	public float evaluatePolicy(
 			DD[] alphaVectors, int[] policy, int trials, int evalDepth, boolean verbose) {
 		/*
 		 * Run given number of trials of evaluation upto the given depth and return
@@ -659,7 +660,7 @@ public class MAPOMDP extends IPOMDP {
 		 * ****** This is completely based on Hoey's evalPolicyStationary function
 		 */
 		
-		List<Double> rewards = new ArrayList<Double>();
+		List<Float> rewards = new ArrayList<Float>();
 		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
 		
 		try {
@@ -669,8 +670,8 @@ public class MAPOMDP extends IPOMDP {
 			for (int n = 0; n < trials; n++) {
 				DD currentBelief = currentBeliefTree.toDD();
 				
-				double totalReward = 0.0;
-				double totalDiscount = 1.0;
+				float totalReward = 0.0f;
+				float totalDiscount = 1.0f;
 				
 				int[][] stateConfig = OP.sampleMultinomial(currentBelief, this.getStateVarIndices());
 				
@@ -687,7 +688,7 @@ public class MAPOMDP extends IPOMDP {
 					}
 					
 					/* evaluate action */
-					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					float currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
 					totalReward = totalReward + (totalDiscount * currentReward);
 					totalDiscount = totalDiscount * this.discFact;
 					
@@ -718,7 +719,7 @@ public class MAPOMDP extends IPOMDP {
 				if ((n % 1000) == 0)
 					LOGGER.debug("Finished " + n + " trials,"
 							+ " avg. reward is: " 
-							+ rewards.stream().mapToDouble(r -> r).average().orElse(Double.NaN));
+							+ rewards.stream().mapToDouble(r -> r).average().orElse(Float.NaN));
 				
 				rewards.add(totalReward);
 			}
@@ -739,15 +740,15 @@ public class MAPOMDP extends IPOMDP {
 			return -1;
 		}
 		
-		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		float avgReward = (float) rewards.stream().mapToDouble(r -> r).average().getAsDouble();
 		return avgReward;
 	}
 
 	@Override
-	public double evaluateDefaultPolicy(
+	public float evaluateDefaultPolicy(
 			String defaultAction, int trials, int evalDepth, boolean verbose) {
 		
-		List<Double> rewards = new ArrayList<Double>();
+		List<Float> rewards = new ArrayList<Float>();
 		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
 		
 		try {
@@ -757,8 +758,8 @@ public class MAPOMDP extends IPOMDP {
 			for (int n = 0; n < trials; n++) {
 				DD currentBelief = currentBeliefTree.toDD();
 				
-				double totalReward = 0.0;
-				double totalDiscount = 1.0;
+				float totalReward = 0.0f;
+				float totalDiscount = 1.0f;
 				
 				int[][] stateConfig = OP.sampleMultinomial(currentBelief, this.getStateVarIndices());
 				
@@ -773,7 +774,7 @@ public class MAPOMDP extends IPOMDP {
 					}
 					
 					/* evaluate action */
-					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					float currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
 					totalReward = totalReward + (totalDiscount * currentReward);
 					totalDiscount = totalDiscount * this.discFact;
 					
@@ -804,7 +805,7 @@ public class MAPOMDP extends IPOMDP {
 				if ((n % 1000) == 0)
 					LOGGER.debug("Finished " + n + " trials,"
 							+ " avg. reward is: " 
-							+ rewards.stream().mapToDouble(r -> r).average().orElse(Double.NaN));
+							+ rewards.stream().mapToDouble(r -> r).average().orElse(Float.NaN));
 				
 				rewards.add(totalReward);
 			}
@@ -825,14 +826,14 @@ public class MAPOMDP extends IPOMDP {
 			return -1;
 		}
 		
-		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		float avgReward = (float) rewards.stream().mapToDouble(r -> r).average().getAsDouble();
 		return avgReward;
 	}
 
 	@Override
-	public double evaluateRandomPolicy(int trials, int evalDepth, boolean verbose) {
+	public float evaluateRandomPolicy(int trials, int evalDepth, boolean verbose) {
 		
-		List<Double> rewards = new ArrayList<Double>();
+		List<Float> rewards = new ArrayList<Float>();
 		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
 		
 		try {
@@ -842,8 +843,8 @@ public class MAPOMDP extends IPOMDP {
 			for (int n = 0; n < trials; n++) {
 				DD currentBelief = currentBeliefTree.toDD();
 				
-				double totalReward = 0.0;
-				double totalDiscount = 1.0;
+				float totalReward = 0.0f;
+				float totalDiscount = 1.0f;
 				
 				int[][] stateConfig = OP.sampleMultinomial(currentBelief, this.getStateVarIndices());
 				
@@ -859,7 +860,7 @@ public class MAPOMDP extends IPOMDP {
 					}
 					
 					/* evaluate action */
-					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					float currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
 					totalReward = totalReward + (totalDiscount * currentReward);
 					totalDiscount = totalDiscount * this.discFact;
 					
@@ -890,7 +891,7 @@ public class MAPOMDP extends IPOMDP {
 				if ((n % 100) == 0)
 					LOGGER.debug("Finished " + n + " trials,"
 							+ " avg. reward is: " 
-							+ rewards.stream().mapToDouble(r -> r).average().orElse(Double.NaN));
+							+ rewards.stream().mapToDouble(r -> r).average().orElse(Float.NaN));
 				
 				rewards.add(totalReward);
 			}
@@ -911,7 +912,7 @@ public class MAPOMDP extends IPOMDP {
 			return -1;
 		}
 		
-		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		float avgReward = (float) rewards.stream().mapToDouble(r -> r).average().getAsDouble();
 		return avgReward;
 	}
 }

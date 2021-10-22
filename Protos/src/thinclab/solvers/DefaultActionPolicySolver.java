@@ -8,12 +8,16 @@
 package thinclab.solvers;
 
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.exceptions.ZeroProbabilityObsException;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 
 /*
  * @author adityas
@@ -28,7 +32,7 @@ public class DefaultActionPolicySolver extends BaseSolver {
 	private String defaultAction;
 	
 	private static final long serialVersionUID = 3084918300335447297L;
-	private static final Logger LOGGER = Logger.getLogger(DefaultActionPolicySolver.class);
+	private static final Logger LOGGER = LogManager.getLogger(DefaultActionPolicySolver.class);
 	
 	// ---------------------------------------------------------------------------------------
 	
@@ -51,6 +55,27 @@ public class DefaultActionPolicySolver extends BaseSolver {
 
 	@Override
 	public String getActionForBelief(DD belief) {
+		
+		Random rng = new Random();
+		int barLength = rng.nextInt(50);
+		
+		if (Global.showProgressBar) {
+			for (int i = 0; i < barLength; i ++) {
+				
+				Global.printProgressBar(i, 100, 5);
+				
+				try {
+					TimeUnit.SECONDS.sleep(1);
+				} 
+				
+				catch (InterruptedException e) {
+					LOGGER.error("Error while sleeping.");
+				}
+			}
+			
+			Global.printProgressBarConvergence();
+		}
+		
 		return this.defaultAction;
 	}
 
@@ -70,7 +95,7 @@ public class DefaultActionPolicySolver extends BaseSolver {
 	}
 
 	@Override
-	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
+	public float evaluatePolicy(int trials, int evalDepth, boolean verbose) {
 		return this.f.evaluateDefaultPolicy(this.defaultAction, trials, evalDepth, verbose);
 	}
 
