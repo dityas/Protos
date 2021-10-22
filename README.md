@@ -3,7 +3,15 @@
 
 Protos is a factored IPOMDP solver developed at [THINC Lab @ UGA](http://thinc.cs.uga.edu/). It uses Jesse Hoey's implementation of the symbolic Perseus and with some modifications, extends it to I-POMDPs.
 
-** If you use this solver in your research, please cite the following paper. **
+:heavy_exclamation_mark: The solver has only yet been tested on Linux systems.
+Running it on Windows might cause some problem because the paths are hardcoded
+in Linux format.
+
+:heavy_exclamation_mark: The solver works on Java 15 and above. Please use a
+Coretto VM or a GraalVM build of JVM. This might seriously help with
+performance. I haven't performed any formal benchmarks though.
+
+**If you use this solver in your research, please cite the following paper.**
 ```
 Shinde, Aditya, Prashant Doshi, and Omid Setayeshfar. "Cyber Attack Intent
 Recognition and Active Deception using Factored Interactive POMDPs." Proceedings
@@ -25,7 +33,7 @@ Systems. 2021.
 ******
 
 ### Domain file format
-The I-POMDP domain file follows the SPUDD format for representing ADDs in plaintext. Using the original SPUDD parser, I have hacked together some functionality to parse I-POMDP domains (the parser does not recursively parse I-POMDP strategy levels hence restricted to level 1 I-POMDPs).
+The I-POMDP domain file follows an extension of the SPUDD format for representing ADDs in plaintext. Currently, the solver can only solve 2-agent interactions
 
 ### Online IPOMDP simulator
 Simulates a 2 agent interaction between the I-POMDP agent and a randomly sampled POMDP agent from the I-POMDP frames. The I-POMDP is solved online.
