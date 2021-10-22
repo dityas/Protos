@@ -20,7 +20,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.legacy.NextBelState;
 
@@ -37,7 +38,7 @@ public class CacheDB {
 	public Connection storageConn;
 	private String dbFileName = null;
 	
-	private static final Logger logger = Logger.getLogger(CacheDB.class);
+	private static final Logger logger = LogManager.getLogger(CacheDB.class);
 	
 	// ----------------------------------------------------------------------------------------
 	

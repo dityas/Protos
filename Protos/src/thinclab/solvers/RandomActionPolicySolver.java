@@ -10,7 +10,8 @@ package thinclab.solvers;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.decisionprocesses.DecisionProcess;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -29,7 +30,7 @@ public class RandomActionPolicySolver extends BaseSolver {
 	private Random rng = new Random();
 
 	private static final long serialVersionUID = -5867916136386899113L;
-	private static final Logger LOGGER = Logger.getLogger(RandomActionPolicySolver.class);
+	private static final Logger LOGGER = LogManager.getLogger(RandomActionPolicySolver.class);
 	
 	// --------------------------------------------------------------------------------------
 	
@@ -61,7 +62,7 @@ public class RandomActionPolicySolver extends BaseSolver {
 	}
 
 	@Override
-	public double evaluatePolicy(int trials, int evalDepth, boolean verbose) {
+	public float evaluatePolicy(int trials, int evalDepth, boolean verbose) {
 		return this.f.evaluateRandomPolicy(trials, evalDepth, verbose);
 	}
 

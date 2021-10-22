@@ -7,35 +7,41 @@
  */
 package thinclab.legacy;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /*
  * @author adityas
  *
  */
-public class TypedCacheMap<K, V>  extends ConcurrentHashMap<K, V> {
-	
+public class TypedCacheMap<K, V> extends ConcurrentHashMap<K, V> {
+
 	/*
 	 * Define typed version of the cache map using generics
 	 * 
 	 */
-	
+
 	private static final long serialVersionUID = 6641216381317045223L;
-	
+
 	public int maxCapacity;
 
-    public TypedCacheMap() {
-    	super();
-    	maxCapacity = 100000;
-    }
+	public TypedCacheMap() {
 
-    public TypedCacheMap(int maxCapacity) {
-    	super();
-    	this.maxCapacity = maxCapacity;
-    }
+		super();
+		maxCapacity = 100000;
+	}
 
-	protected boolean removeEldestEntry(Map.Entry<Pair, DD> eldest) {
-        return size() > maxCapacity;
-    }
+	public TypedCacheMap(int maxCapacity) {
+
+		super();
+		this.maxCapacity = maxCapacity;
+	}
+
+	@Override
+	public V put(K key, V value) {
+
+		if (this.size() > this.maxCapacity)
+			this.clear();
+
+		return super.put(key, value);
+	}
 }

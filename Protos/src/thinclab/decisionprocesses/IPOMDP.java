@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -57,7 +58,7 @@ import thinclab.solvers.OfflineSymbolicPerseus;
 public class IPOMDP extends POMDP {
 
 	private static final long serialVersionUID = 4973485302724576384L;
-	private static final Logger LOGGER = Logger.getLogger(IPOMDP.class);
+	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
 	
 	private boolean testMode = false;
 	
@@ -76,10 +77,10 @@ public class IPOMDP extends POMDP {
 	public List<POMDP> lowerLevelFrames = new ArrayList<POMDP>();
 	public List<BaseSolver> lowerLevelSolutions = new ArrayList<BaseSolver>();
 	public String lowerLevelGuessForAi = null;
-	public double lowerLevelAiProb = 0.0;
+	public float lowerLevelAiProb = 0.0f;
 	public String mjStorageDir = null;
 	
-	public HashMap<String, Double> lowerLevelAiDist = new HashMap<String, Double>();
+	public HashMap<String, Float> lowerLevelAiDist = new HashMap<String, Float>();
 	
 	/*
 	 * Store a local reference to OpponentModel object to get easier access to node
@@ -87,7 +88,7 @@ public class IPOMDP extends POMDP {
 	 */
 	public MJ Mj;
 	public MultiFrameMJ multiFrameMJ;
-	public double mjMergeThreshold = 0;
+	public float mjMergeThreshold = 0;
 	
 	/*
 	 * We will need to know the varIndex for the opponentModel statevar to replace it after
@@ -147,7 +148,7 @@ public class IPOMDP extends POMDP {
 	/*
 	 * Hard coded tolerance
 	 */
-	public double tolerance = 0.01;
+	public float tolerance = 0.01f;
 	
 	// ----------------------------------------------------------------------------------------
 	
@@ -178,7 +179,7 @@ public class IPOMDP extends POMDP {
 			IPOMDPParser parsedFrame, 
 			int mjlookAhead, 
 			int mjSearchDepth, 
-			double threshold) {
+			float threshold) {
 		
 		this.mjMergeThreshold = threshold;
 		this.initiailizeIPOMDP(parsedFrame, mjlookAhead, mjSearchDepth);
@@ -330,7 +331,7 @@ public class IPOMDP extends POMDP {
 		
 		/* add J's guess for I's actions */
 		this.lowerLevelGuessForAi = this.parser.mostProbableAi;
-		this.lowerLevelAiProb = this.parser.mpAiProb;
+		this.lowerLevelAiProb = (float) this.parser.mpAiProb;
 		this.lowerLevelAiDist.putAll(this.parser.aiDist);
 		
 		/* Add Aj as a stateVar */
@@ -384,7 +385,7 @@ public class IPOMDP extends POMDP {
 		this.Ai = actionNames;
 	}
 	
-	public void setMjMergeThreshold(double threshold) {
+	public void setMjMergeThreshold(float threshold) {
 		
 		LOGGER.debug("MJ similarity threshold set to " + threshold);
 		LOGGER.warn("Higher thresholds will lead to worse approximations");
@@ -699,21 +700,21 @@ public class IPOMDP extends POMDP {
 					DD AiDist = null;
 					
 					if (this.lowerLevelAiDist.size() == 0)
-						AiDist = DDleaf.myNew(1.0 / this.getActions().size());
+						AiDist = DDleaf.getDD(1.0f / this.getActions().size());
 					
 					else {
 						DDTree aiDist = 
 								this.ddMaker.getDDTreeFromSequence(new String[] {"A_i"});
 						
-						double totalWeight = 
-								this.lowerLevelAiDist.values().stream().reduce(0.0, (a, b) -> a + b);
+						float totalWeight = 
+								this.lowerLevelAiDist.values().stream().reduce(0.0f, (a, b) -> a + b);
 						
-						double otherWeight = 
+						float otherWeight = 
 								(1 - totalWeight) / (this.getActions().size() - this.lowerLevelAiDist.size());
 						
 						for (String ai: this.getActions()) {
 							if (!this.lowerLevelAiDist.containsKey(ai))
-								this.lowerLevelAiDist.put(ai, otherWeight);
+								this.lowerLevelAiDist.put(ai, (float) otherWeight);
 						}
 						
 						for (String PAi : aiDist.children.keySet()) {
@@ -723,7 +724,7 @@ public class IPOMDP extends POMDP {
 								aiDist.setValueAt(PAi, this.lowerLevelAiDist.get(PAi));
 							}
 							
-							else aiDist.setValueAt(PAi, otherWeight);
+							else aiDist.setValueAt(PAi, (float) otherWeight);
 						}
 						
 						AiDist = OP.reorder(aiDist.toDD());
@@ -1454,7 +1455,7 @@ public class IPOMDP extends POMDP {
 			HashMap<String, Float> mjProbs = this.toMap(belief).get("M_j");
 			
 			DDTree beliefTree = belief.toDDTree();
-			double minProb = 1.0;
+			float minProb = 1.0f;
 			String minNode = null;
 			
 			for (String mjNode: mjProbs.keySet()) {
@@ -1472,7 +1473,7 @@ public class IPOMDP extends POMDP {
 				
 				try {
 					LOGGER.debug("Pruning node " + minNode + " with prob. " + minProb);
-					beliefTree.setDDAt(minNode, new DDTreeLeaf(0.0));
+					beliefTree.setDDAt(minNode, new DDTreeLeaf(0.0f));
 				}
 				
 				catch (Exception e) {
@@ -1730,7 +1731,7 @@ public class IPOMDP extends POMDP {
 	}
 	
 	@Override
-	public double evaluatePolicy(
+	public float evaluatePolicy(
 			DD[] alphaVectors, int[] policy, int trials, int evalDepth, boolean verbose) {
 		/*
 		 * Run given number of trials of evaluation upto the given depth and return
@@ -1739,7 +1740,7 @@ public class IPOMDP extends POMDP {
 		 * ****** This is completely based on Hoey's evalPolicyStationary function
 		 */
 		
-		List<Double> rewards = new ArrayList<Double>();
+		List<Float> rewards = new ArrayList<Float>();
 		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
 		
 		int[] primeStateVars = 
@@ -1753,8 +1754,8 @@ public class IPOMDP extends POMDP {
 			for (int n = 0; n < trials; n++) {
 				DD currentBelief = currentBeliefTree.toDD();
 				
-				double totalReward = 0.0;
-				double totalDiscount = 1.0;
+				float totalReward = 0.0f;
+				float totalDiscount = 1.0f;
 				
 				int[][] fullStateConfig = 
 						OP.sampleMultinomial(
@@ -1794,7 +1795,7 @@ public class IPOMDP extends POMDP {
 					}
 					
 					/* evaluate action */
-					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					float currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
 					totalReward = totalReward + (totalDiscount * currentReward);
 					totalDiscount = totalDiscount * this.discFact;
 								
@@ -1862,18 +1863,18 @@ public class IPOMDP extends POMDP {
 			return -1;
 		}
 		
-		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		float avgReward = (float) rewards.stream().mapToDouble(r -> r).average().getAsDouble();
 		return avgReward;
 	}
 	
 	@Override
-	public double evaluateDefaultPolicy(
+	public float evaluateDefaultPolicy(
 			String defaultAction, int trials, int evalDepth, boolean verbose) {
 		/*
 		 * 
 		 */
 		
-		List<Double> rewards = new ArrayList<Double>();
+		List<Float> rewards = new ArrayList<Float>();
 		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
 		
 		int[] primeStateVars = 
@@ -1887,8 +1888,8 @@ public class IPOMDP extends POMDP {
 			for (int n = 0; n < trials; n++) {
 				DD currentBelief = currentBeliefTree.toDD();
 				
-				double totalReward = 0.0;
-				double totalDiscount = 1.0;
+				float totalReward = 0.0f;
+				float totalDiscount = 1.0f;
 				
 				int[][] fullStateConfig = 
 						OP.sampleMultinomial(
@@ -1926,7 +1927,7 @@ public class IPOMDP extends POMDP {
 					}
 					
 					/* evaluate action */
-					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					float currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
 					totalReward = totalReward + (totalDiscount * currentReward);
 					totalDiscount = totalDiscount * this.discFact;
 								
@@ -1994,17 +1995,17 @@ public class IPOMDP extends POMDP {
 			return -1;
 		}
 		
-		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		float avgReward = (float) rewards.stream().mapToDouble(r -> r).average().getAsDouble();
 		return avgReward;
 	}
 	
 	@Override
-	public double evaluateRandomPolicy(int trials, int evalDepth, boolean verbose) {
+	public float evaluateRandomPolicy(int trials, int evalDepth, boolean verbose) {
 		/*
 		 * 
 		 */
 		
-		List<Double> rewards = new ArrayList<Double>();
+		List<Float> rewards = new ArrayList<Float>();
 		DDTree currentBeliefTree = this.getCurrentBelief().toDDTree();
 		
 		int[] primeStateVars = 
@@ -2018,8 +2019,8 @@ public class IPOMDP extends POMDP {
 			for (int n = 0; n < trials; n++) {
 				DD currentBelief = currentBeliefTree.toDD();
 				
-				double totalReward = 0.0;
-				double totalDiscount = 1.0;
+				float totalReward = 0.0f;
+				float totalDiscount = 1.0f;
 				
 				int[][] fullStateConfig = 
 						OP.sampleMultinomial(
@@ -2058,7 +2059,7 @@ public class IPOMDP extends POMDP {
 					}
 					
 					/* evaluate action */
-					double currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
+					float currentReward = OP.eval(this.getRewardFunctionForAction(action), stateConfig);
 					totalReward = totalReward + (totalDiscount * currentReward);
 					totalDiscount = totalDiscount * this.discFact;
 								
@@ -2126,7 +2127,7 @@ public class IPOMDP extends POMDP {
 			return -1;
 		}
 		
-		double avgReward = rewards.stream().mapToDouble(r -> r).average().getAsDouble();
+		float avgReward = (float) rewards.stream().mapToDouble(r -> r).average().getAsDouble();
 		return avgReward;
 	}
 	

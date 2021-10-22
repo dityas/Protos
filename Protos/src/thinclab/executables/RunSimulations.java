@@ -13,7 +13,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
@@ -151,7 +152,7 @@ public class RunSimulations extends Executable {
 				CustomConfigurationFactory.setLogFileName(storageDir + "/solver.log");
 			
 			CustomConfigurationFactory.initializeLogging();
-			LOGGER = Logger.getLogger(RunSimulations.class);
+			LOGGER = LogManager.getLogger(RunSimulations.class);
 			
 			/* set domain file */
 			String domainFile = line.getOptionValue("d");
@@ -219,7 +220,7 @@ public class RunSimulations extends Executable {
 				
 				int simRounds = new Integer(line.getOptionValue("y"));
 				int simLength = new Integer(line.getOptionValue("x"));
-				double mergeThreshold = 0.0;
+				float mergeThreshold = 0.0f;
 				
 				/* run simulation for simRounds */
 				for (int i = 0; i < simRounds; i++) {
@@ -233,7 +234,7 @@ public class RunSimulations extends Executable {
 					IPOMDP ipomdp;
 					
 					if (mergeThreshold > 0.0)
-						ipomdp = new IPOMDP(parser, lookAhead, simLength, 0.0);
+						ipomdp = new IPOMDP(parser, lookAhead, simLength, 0.0f);
 					
 					else ipomdp = new IPOMDP(parser, lookAhead, simLength);
 					

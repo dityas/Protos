@@ -35,7 +35,7 @@ public abstract class BaseSolver implements Serializable {
 	public abstract void solve();
 	
 	/* evaluate policy */
-	public abstract double evaluatePolicy(int trials, int evalDepth, boolean verbose);
+	public abstract float evaluatePolicy(int trials, int evalDepth, boolean verbose);
 	
 	/* Update belief after taking action and observing for online solvers */
 	public abstract void nextStep(String action, List<String> obs) 

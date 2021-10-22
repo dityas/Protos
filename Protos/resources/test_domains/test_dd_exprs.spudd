@@ -1,0 +1,26 @@
+(defvar A (a1 a2))
+(defvar B (b1 b2))
+
+(defdd uniform_a
+	(A 	(a1 0.5) 	(a2 0.5))
+)
+
+(defdd b_state_b1
+	(B	(b1 1.0) 	(b2 0.0))
+)
+
+(defdd prod_a_b
+	(uniform_a * b_state_b1)
+)
+
+(defdd sum_a_b
+	(uniform_a + b_state_b1)
+)
+
+(defdd diff_a_b 
+	(uniform_a - b_state_b1)
+)
+
+(defdd	diff_a_neg_b
+	(uniform_a - -(b_state_b1))
+)

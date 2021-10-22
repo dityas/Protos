@@ -18,7 +18,8 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
@@ -46,7 +47,7 @@ public class MJ extends OptimalDynamicBeliefTree {
 	/* keep track of root time step */
 	int T = 0;
 	
-	private static final Logger LOGGER = Logger.getLogger(MJ.class);
+	private static final Logger LOGGER = LogManager.getLogger(MJ.class);
 	
 	// ------------------------------------------------------------------------------------
 	
@@ -211,7 +212,7 @@ public class MJ extends OptimalDynamicBeliefTree {
 			if (IPOMDP.getFrameIDFromVarName(child) != this.solver.f.frameID) {
 				
 				try {
-					tree.setDDAt(child, new DDTreeLeaf(0.0));
+					tree.setDDAt(child, new DDTreeLeaf(0.0f));
 				} 
 				
 				catch (Exception e) {
@@ -234,7 +235,7 @@ public class MJ extends OptimalDynamicBeliefTree {
 						
 						independentsFactor.setDDAt(
 								childT, 
-								new DDTreeLeaf(0.0));
+								new DDTreeLeaf(0.0f));
 					}
 				}
 			} 
@@ -269,7 +270,7 @@ public class MJ extends OptimalDynamicBeliefTree {
 			for (int node : roots) {
 				
 				try {
-					beliefMj.setValueAt("m" + node, (1.0 / roots.size()));
+					beliefMj.setValueAt("m" + node, (1.0f / roots.size()));
 				} 
 				
 				catch (Exception e) {

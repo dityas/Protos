@@ -15,7 +15,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.belief.SSGABeliefExpansion;
@@ -162,7 +163,7 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 						storageDir + "/solver.log");
 			
 			HumanAgentInteractionLoggingConfigurationFactory.initializeLogging();
-			LOGGER = Logger.getLogger(RunSimulations.class);
+			LOGGER = LogManager.getLogger(RunSimulations.class);
 			
 			/* set domain file */
 			String domainFile = line.getOptionValue("d");
@@ -227,10 +228,10 @@ public class CyberDeceptionSimulationRunnerHuman extends Executable {
 				
 				int simRounds = new Integer(line.getOptionValue("y"));
 				int simLength = new Integer(line.getOptionValue("x"));
-				double mergeThreshold = 0.0;
+				float mergeThreshold = 0.0f;
 				
 				if (line.hasOption("m"))
-					mergeThreshold = new Double(line.getOptionValue("m"));
+					mergeThreshold = Float.valueOf(line.getOptionValue("m"));
 				
 				/* run simulation for simRounds */
 				for (int i = 0; i < simRounds; i++) {

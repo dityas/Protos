@@ -1,0 +1,75 @@
+(defvar TigerLoc (TL TR))
+(defvar Growl (GL GR))
+(defvar Agent_actions (OL OR L))
+
+(defdd initLoc
+		(TigerLoc 	UNIFORM)
+)
+
+(defdd openDoorDD
+		(TigerLoc' UNIFORM)
+)
+
+(defdd growlObsDD
+		(TigerLoc'
+			(TL
+				(Growl'
+					(GL 	(0.85))
+					(GR 	(0.15))
+				)
+			)
+			
+			(TR
+				(Growl'
+					(GL 	(0.15))
+					(GR 	(0.85))
+				)
+			)
+		)
+)
+
+(defdbn actionOpenAny
+	(TigerLoc 	(openDoorDD))
+	(Growl 		(Growl' UNIFORM))
+)
+
+(defdbn actionL
+	(TigerLoc 	(SAME TigerLoc))
+	(Growl 		(growlObsDD))
+)
+
+(defpomdp agentI
+    (S 	
+        (TigerLoc)
+    )
+
+    (O
+        (Growl)
+    )
+
+    (A 	Agent_actions)
+        
+    (dynamics
+        (OL 	(actionOpenAny))
+        (OR 	(actionOpenAny))
+        (L 		(actionL))
+    )
+       
+    (R
+        (OL 	(TigerLoc 
+                    (TL 	(-100))
+                    (TR 	(10))
+        ))
+        
+        (OR		(TigerLoc
+                    (TL 	(10))
+                    (TR 	(-100))
+        ))
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)	
+)
+
+(defpbvisolv pomdp agentISolver)

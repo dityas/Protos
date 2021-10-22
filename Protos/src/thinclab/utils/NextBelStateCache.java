@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.legacy.DD;
@@ -38,7 +39,7 @@ public class NextBelStateCache {
 	
 	private static HashMap<DD, Integer> BELIEF_ID_MAP = new HashMap<DD, Integer>();
 	
-	private static Logger LOGGER = Logger.getLogger(NextBelStateCache.class);
+	private static Logger LOGGER = LogManager.getLogger(NextBelStateCache.class);
 	
 	// -------------------------------------------------------------------------------------
 	
@@ -75,7 +76,7 @@ public class NextBelStateCache {
 					/* compute NextBelState */
 					HashMap<String, NextBelState> computedState = 
 							NextBelState.oneStepNZPrimeBelStates(
-									ipomdp, belief, true, 1e-8);
+									ipomdp, belief, true, 1e-8f);
 					
 					NextBelStateCache.cacheNZPrime(belief, computedState);
 					
@@ -94,7 +95,7 @@ public class NextBelStateCache {
 					/* compute NextBelState */
 					HashMap<String, NextBelState> computedState = 
 							NextBelState.oneStepNZPrimeBelStates(
-									ipomdp, belief, true, 1e-8);
+									ipomdp, belief, true, 1e-8f);
 					
 					if (NextBelStateCache.NEXT_BELSTATE_CACHE.size() 
 							>= NextBelStateCache.CACHE_LIMIT) {

@@ -14,7 +14,8 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.decisionprocesses.IPOMDP;
 import thinclab.exceptions.ZeroProbabilityObsException;
@@ -33,7 +34,7 @@ public class IBeliefOps extends BeliefOperations {
 	 */
 
 	private static final long serialVersionUID = -2262326916798060288L;
-	private static final Logger LOGGER = Logger.getLogger(IBeliefOps.class);
+	private static final Logger LOGGER = LogManager.getLogger(IBeliefOps.class);
 	
 	public IBeliefOps(IPOMDP ipomdp) {
 		/*
@@ -567,7 +568,7 @@ public class IBeliefOps extends BeliefOperations {
 			
 			if (varChildren == null) {
 				for (int i=0; i < DPRef.stateVars[varId].arity; i++) {
-					childVals.put(Global.valNames[varId][i], new Float(fbs[varId].getVal()));
+					childVals.put(Global.valNames.get(varId).get(i), Float.valueOf((float) fbs[varId].getVal()));
 				}
 			}
 			
@@ -576,7 +577,7 @@ public class IBeliefOps extends BeliefOperations {
 					if (varChildren[i].getVal() == 0.0)
 						continue;
 					
-					childVals.put(Global.valNames[varId][i], new Float(varChildren[i].getVal()));
+					childVals.put(Global.valNames.get(varId).get(i), Float.valueOf((float) varChildren[i].getVal()));
 				}
 			}
 			

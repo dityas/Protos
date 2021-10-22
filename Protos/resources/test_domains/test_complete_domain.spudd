@@ -1,0 +1,207 @@
+(defvar HOST_HAS_DATA (critical sensitive none))
+(defvar DATA_LOCATED (critical sensitive none other))
+(defvar HOST_HAS_VULN (yes no))
+(defvar ATTACKER_PRIVS (none user admin))
+(defvar DATA_ACCESS_PRIVS (user admin))
+	
+(defvar DATA_FOUND_OBS (yes no))
+(defvar VULN_FOUND_OBS (yes no))
+(defvar PRIVS_OBS user (admin none))
+	
+(defvar Attacker_actions (FRECON_SDATA FRECON_CDATA EXIT NO_OP EXFIL_DATA))
+
+(defdd initAttacker
+		(HOST_HAS_DATA 	UNIFORM)
+		* 	(DATA_LOCATED 	none)
+		* 	(HOST_HAS_VULN 	UNIFORM)
+		* 	(ATTACKER_PRIVS user)
+		* 	(DATA_ACCESS_PRIVS 	UNIFORM)
+)
+
+(defdd dataLocCData
+
+	(HOST_HAS_DATA'
+		(critical
+			(DATA_LOCATED'
+				(critical 	(0.9))
+				(sensitive 	(0.0))
+				(none 		(0.05))
+				(other 		(0.05))
+			)
+		)
+		
+		(sensitive
+			(DATA_LOCATED'
+				(critical 	(0.0))
+				(sensitive 	(0.5))
+				(none 		(0.25))
+				(other 		(0.25))
+			)
+		)
+		
+		(none
+			(DATA_LOCATED'
+				(critical 	(0.0))
+				(sensitive 	(0.0))
+				(none 		(0.5))
+				(other 		(0.5))
+			)
+		)
+	)
+)
+
+(defdd dataLocSData
+	
+	(HOST_HAS_DATA'
+		(critical
+			(DATA_LOCATED'
+				(critical 	(0.5))
+				(sensitive 	(0.0))
+				(none 		(0.25))
+				(other 		(0.25))
+			)
+		)
+		
+		(sensitive
+			(DATA_LOCATED'
+				(critical 	(0.0))
+				(sensitive 	(0.9))
+				(none 		(0.05))
+				(other 		(0.05))
+			)
+		)
+		
+		(none
+			(DATA_LOCATED'
+				(critical 	(0.0))
+				(sensitive 	(0.0))
+				(none 		(0.5))
+				(other 		(0.5))
+			)
+		)
+	)
+)
+
+(defdd dataLocFRCData
+	
+	(ATTACKER_PRIVS
+		(user
+			(DATA_ACCESS_PRIVS
+				(user 	(dataLocCData))
+				(admin 	
+					(DATA_LOCATED'
+						(critical 	(0.0))
+						(sensitive 	(0.0))
+						(none 		(0.5))
+						(other 		(0.5))
+					)
+				)
+			)
+		)
+		
+		(admin
+			(DATA_ACCESS_PRIVS
+				(user 	(dataLocCData))
+				(admin 	(dataLocCData))
+			)
+		)
+		
+		(none 	(DATA_LOCATED' none))
+	)
+)
+
+(defdd dataLocFRSData
+
+	(ATTACKER_PRIVS
+		(user
+			(DATA_ACCESS_PRIVS
+				(user 	(dataLocSData))
+				(admin 	
+					(DATA_LOCATED'
+						(critical 	(0.0))
+						(sensitive 	(0.0))
+						(none 		(0.5))
+						(other 		(0.5))
+					)
+				)
+			)
+		)
+		
+		(admin
+			(DATA_ACCESS_PRIVS
+				(user 	(dataLocSData))
+				(admin 	(dataLocSData))
+			)
+		)
+		
+		(none 	(DATA_LOCATED' none))
+	)
+)
+
+(defdd exfilReward
+	
+		(DATA_LOCATED
+			(critical 	(0.0))
+			(sensitive 	(10.0))
+			(none 		(0.0))
+			(other 		(0.0))
+		)
+)
+
+(actionNoOp
+	
+	(dbn	
+		(DATA_FOUND_OBS 	(DATA_FOUND_OBS' no))
+		(VULN_FOUND_OBS 	(VULN_FOUND_OBS' no))
+	)
+)
+
+(actionFRCdata
+
+	(dbn
+		(DATA_LOCATED 	(dataLocFRCData))
+	)
+)
+
+(actionFRSdata
+	
+	(dbn
+		(DATA_LOCATED 	(dataLocFRSData))
+	)
+)
+
+(actionExit
+	(dbn
+	
+	)
+)
+
+(attacker_agent
+	
+	(pomdp
+		(S 	
+			(DATA_ACCESS_PRIVS HOST_HAS_DATA DATA_LOCATED HOST_HAS_VULN ATTACKER_PRIVS)
+		)
+	
+		(O
+			(DATA_FOUND_OBS VULN_FOUND_OBS PRIVS_OBS)
+		)
+	
+		(A 	Attacker_actions)
+		
+		(dynamics
+			(NO_OP 			(actionNoOp))
+			(EXIT 			(actionExit))
+			(FRECON_SDATA 	(actionFRSdata))
+			(FRECON_CDATA 	(actionFRCdata))
+		)
+				
+		(R
+			(FRECON_SDATA 	(1.0))
+			(FRECON_CDATA 	(1.0))
+			(EXFIL_DATA 	(exfilReward))
+		)
+		
+		(discount 0.9)	
+	)
+)

@@ -16,7 +16,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.ddinterface.DDMaker;
 import thinclab.ddinterface.DDTree;
@@ -44,12 +45,6 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 	public HashMap<Integer, MJ> MJs = new HashMap<Integer, MJ>();
 
 	/* store nodeMaps and edge Maps of all frames */
-//	public HashMap<Integer, HashMap<Integer, PolicyNode>> idToNodeMap = 
-//			new HashMap<Integer, HashMap<Integer, PolicyNode>>();
-//
-//	public HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>> edgeMap = 
-//			new HashMap<Integer, HashMap<Integer, HashMap<List<String>, Integer>>>();
-
 	/* compute all possible obs combinations at once and store them */
 	public List<List<String>> obsCombinations;
 	public List<StateVar> obsJVars;
@@ -57,7 +52,7 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 	/* keep track of current time step */
 	public int T = 0;
 
-	private static final Logger LOGGER = Logger.getLogger(MultiFrameMJ.class);
+	private static final Logger LOGGER = LogManager.getLogger(MultiFrameMJ.class);
 
 	// -----------------------------------------------------------------------------------
 
@@ -86,10 +81,10 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		for (Integer frameID : this.MJs.keySet()) {
 
 			LOGGER.debug("Building look ahead tree for frame " + frameID);
-			
+
 			Global.clearHashtables();
 			this.MJs.get(frameID).f.setGlobals();
-			
+
 			/* build each tree */
 			this.MJs.get(frameID).buildTree();
 
@@ -127,18 +122,18 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		 * 
 		 * This will be used to make the P(Aj | Mj) DD
 		 */
-		
+
 		List<String[]> triples = new ArrayList<String[]>();
-		
+
 		/* build factors for each frame */
 		for (int frameID : this.MJs.keySet()) {
-			
+
 			/* Create triples for optimal actions given node */
 			for (int node : this.MJs.get(frameID).getAllNodeIds()) {
 
 				/* Get optimal action at node */
 				String optimal_action = this.MJs.get(frameID).getPolicyNode(node).getActName();
-				
+
 				/*
 				 * For aj depending on mj, P(OPT(Aj) at mj | mj) = 1
 				 */
@@ -163,29 +158,27 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 					triples.add(triple.toArray(new String[triple.size()]));
 				}
 			} /* for currentNodes */
-			
+
 		}
-		
-		DDTree PAjGivenMjTree = 
-				ddMaker.getDDTreeFromSequence(
-						new String[] { "M_j", "A_j"}, 
-						triples.stream().toArray(String[][]::new));
+
+		DDTree PAjGivenMjTree = ddMaker.getDDTreeFromSequence(new String[] { "M_j", "A_j" },
+				triples.stream().toArray(String[][]::new));
 
 		return OP.reorder(PAjGivenMjTree.toDD());
 	}
-	
+
 	public DD getThetajGivenMj(DDMaker ddMaker, List<String> Thetaj) {
 		/*
 		 * Returns the factor P(Aj | Mj) as triples of (mj, aj, probability)
 		 * 
 		 * This will be used to make the P(Aj | Mj) DD
 		 */
-		
+
 		List<String[]> triples = new ArrayList<String[]>();
-		
+
 		/* build factors for each frame */
 		for (int frameID : this.MJs.keySet()) {
-			
+
 			/* Create triples for optimal actions given node */
 			for (int node : this.MJs.get(frameID).getAllNodeIds()) {
 
@@ -213,21 +206,16 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 					triples.add(triple.toArray(new String[triple.size()]));
 				}
 			} /* for currentNodes */
-			
+
 		}
-		
-		DDTree PThetajGivenMjTree = 
-				ddMaker.getDDTreeFromSequence(
-						new String[] { "M_j", "Theta_j"},
-						triples.stream().toArray(String[][]::new));
+
+		DDTree PThetajGivenMjTree = ddMaker.getDDTreeFromSequence(new String[] { "M_j", "Theta_j" },
+				triples.stream().toArray(String[][]::new));
 
 		return OP.reorder(PThetajGivenMjTree.toDD());
 	}
 
-	public DD getPMjPGivenMjOjPAj(
-			DDMaker ddMaker, 
-			List<String> Aj, 
-			List<String> OjNames) {
+	public DD getPMjPGivenMjOjPAj(DDMaker ddMaker, List<String> Aj, List<String> OjNames) {
 		/*
 		 * Make P(Mj'| Mj, Oj', Aj)
 		 */
@@ -236,140 +224,133 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		HashMap<Integer, DDTree> individualMjTrees = new HashMap<Integer, DDTree>();
 
 		/*
-		 * construct the factor from triples of relevant frames
-		 * So for Mj1 transitions, let Mj1 construct parts of the factor which has Mj1 nodes
-		 * and similar for all other frames.
+		 * construct the factor from triples of relevant frames So for Mj1 transitions,
+		 * let Mj1 construct parts of the factor which has Mj1 nodes and similar for all
+		 * other frames.
 		 */
 		for (int frameID : this.MJs.keySet()) {
 
-			DDTree t = 
-					this.MJs.get(frameID).getPMjPGivenMjOjAj(ddMaker, Aj, OjNames);
+			DDTree t = this.MJs.get(frameID).getPMjPGivenMjOjAj(ddMaker, Aj, OjNames);
 
 			individualMjTrees.put(frameID, t);
 		}
-		
+
 		/* Assemble the full Mj transition DD */
-		DDTree PMjPGivenMjOjAj = ddMaker.getDDTreeFromSequence(new String[] {"M_j'"});
-		
+		DDTree PMjPGivenMjOjAj = ddMaker.getDDTreeFromSequence(new String[] { "M_j'" });
+
 		for (String mj : PMjPGivenMjOjAj.children.keySet()) {
-			
+
 			int f = IPOMDP.getFrameIDFromVarName(mj);
-			
+
 			try {
-				PMjPGivenMjOjAj.setDDAt(
-						mj, individualMjTrees.get(f).children.get(mj));
-			} 
-			
+				PMjPGivenMjOjAj.setDDAt(mj, individualMjTrees.get(f).children.get(mj));
+			}
+
 			catch (Exception e) {
 				LOGGER.error("While assembling factor P(Mj'| Mj, Oj', Aj)");
 				e.printStackTrace();
 				System.exit(-1);
 			}
 		}
-		
+
 		return OP.reorder(PMjPGivenMjOjAj.toDD());
 	}
-	
+
 	public DDTree getMjInitBelief(DDMaker ddMaker, DDTree prior) {
 		/*
 		 * Constructs an initial belief DDTree based on the current roots
 		 */
 		LOGGER.debug("Making initial belief for current opponent model traversal");
-		DDTree beliefMj = ddMaker.getDDTreeFromSequence(new String[] {"M_j"});
-		
+		DDTree beliefMj = ddMaker.getDDTreeFromSequence(new String[] { "M_j" });
+
 		if (prior == null) {
-			
+
 			int mjCount = 0;
 			for (int frame : this.MJs.keySet())
-				mjCount +=
-					this.MJs.get(frame).getAllRootIds().size();
-			
+				mjCount += this.MJs.get(frame).getAllRootIds().size();
+
 			for (int frameID : this.MJs.keySet()) {
-				
-				List<Integer> roots = 
-						this.MJs.get(frameID).getAllRootIds();
-				
+
+				List<Integer> roots = this.MJs.get(frameID).getAllRootIds();
+
 				/* Uniform distribution over all current roots */
 				for (int node : roots) {
-					
+
 					try {
-						beliefMj.setValueAt(
-								MJ.makeModelLabelFromNodeId(node, frameID), 
-								(1.0 / mjCount));
-					} 
-					
+						beliefMj.setValueAt(MJ.makeModelLabelFromNodeId(node, frameID), (1.0f / mjCount));
+					}
+
 					catch (Exception e) {
 						LOGGER.error("While making initial Mj: " + e.getMessage());
 						e.printStackTrace();
 					}
 				}
-			
+
 			}
 		}
-		
+
 		/* else use previous belief values */
 		else {
-			
+
 			for (Entry<String, DDTree> entry : prior.children.entrySet()) {
-				
+
 				DDTree child = entry.getValue();
-				
+
 				/* add all non leaf vars */
 				if (!child.varName.contentEquals("LeafVar"))
 					beliefMj.addChild(entry.getKey(), child);
-				
-				else if (child.varName.contentEquals("LeafVar") 
-						&& ((DDTreeLeaf) child).val != 0.0)
+
+				else if (child.varName.contentEquals("LeafVar") && ((DDTreeLeaf) child).val != 0.0)
 					beliefMj.addChild(entry.getKey(), child);
 			}
-			
+
 		}
-		
+
 		LOGGER.debug("Made initial belief");
 		return beliefMj;
 	}
 
 	// --------------------------------------------------------------------------------------
-	
+
 	public void step(DD belief, int lookAhead, HashSet<String> nonZeroMj) {
 		/*
 		 * Moves to the next time step
 		 */
-		
+
 		for (int frameID : this.MJs.keySet()) {
-			
+
 			/* Set the selected frame's context */
 			this.MJs.get(frameID).f.setGlobals();
 			this.MJs.get(frameID).step(belief, lookAhead, nonZeroMj);
 		}
-		
+
 		this.T += 1;
 		LOGGER.info("Mj currently tracking time step " + this.T);
-		
+
 		this.buildTree();
 	}
-	
+
 	// --------------------------------------------------------------------------------------
-	
+
 	public String getOptimalActionAtNode(String node) {
 		/*
 		 * Returns j's optimal action at the belief point at node
 		 */
 		int frame = IPOMDP.getFrameIDFromVarName(node);
-		
+
 		return this.MJs.get(frame).getPolicyNode(MJ.getNodeId(node)).getActName();
 	}
-	
+
 	public String getBeliefTextAtNode(String node) {
 		/*
 		 * Returns j's beliefs at node
 		 * 
-		 * Note that this method only returns the string representation and not the actual
-		 * usable belief
+		 * Note that this method only returns the string representation and not the
+		 * actual usable belief
 		 */
 //		System.out.println("Node is " + node);
 		int frame = IPOMDP.getFrameIDFromVarName(node);
-		
+
 		return this.MJs.get(frame).getPolicyNode(MJ.getNodeId(node)).getsBelief();
 	}
 
@@ -381,19 +362,19 @@ public class MultiFrameMJ implements Serializable, LowerLevelModel {
 		 */
 		return Integer.valueOf(modelLabel.split("/")[1].split("_")[0]);
 	}
-	
+
 	// ---------------------------------------------------------------------------------------
-	
+
 	public void releaseStorage() {
-		
+
 		for (int frameID : this.MJs.keySet()) {
 			this.MJs.get(frameID).commitChanges();
 			this.MJs.get(frameID).releaseStorage();
 		}
 	}
-	
+
 	public void acquireStorage() {
-		
+
 		for (int frameID : this.MJs.keySet())
 			this.MJs.get(frameID).acquireStorage();
 	}

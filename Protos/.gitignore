@@ -1,5 +1,0 @@
-bin/
-*.pomdp
-target/
-/test.log
-/test.obj

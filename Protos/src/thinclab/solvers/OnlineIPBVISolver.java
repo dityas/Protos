@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.belief.BeliefRegionExpansionStrategy;
 import thinclab.decisionprocesses.DecisionProcess;
@@ -35,10 +36,10 @@ public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 	private static final long serialVersionUID = 4278938278257692053L;
 
 	/* Variables to hold point based values */
-	double[][] currentPointBasedValues;
-	double[][] newPointBasedValues;
-	double bestImprovement;
-	double worstDecline;
+	float[][] currentPointBasedValues;
+	float[][] newPointBasedValues;
+	float bestImprovement;
+	float worstDecline;
 
 	/* Store local reference to the IPOMDP */
 	IPOMDP ipomdp;
@@ -46,7 +47,7 @@ public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 	/* IPBVI hyper params */
 	int dpBackups;
 
-	private static final Logger LOGGER = Logger.getLogger(OnlineIPBVISolver.class);
+	private static final Logger LOGGER = LogManager.getLogger(OnlineIPBVISolver.class);
 
 	// -----------------------------------------------------------------------------------------
 
@@ -138,9 +139,9 @@ public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 
 	public void computeMaxMinImprovement(int beliefRegionLen) {
 
-		double imp;
-		this.bestImprovement = Double.NEGATIVE_INFINITY;
-		this.worstDecline = Double.POSITIVE_INFINITY;
+		float imp;
+		this.bestImprovement = Float.NEGATIVE_INFINITY;
+		this.worstDecline = Float.POSITIVE_INFINITY;
 
 		for (int j = 0; j < beliefRegionLen; j++) {
 			/*
@@ -178,26 +179,26 @@ public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 			int maxAlpha, int firstStep, int nSteps, DD[][] beliefRegion, List<DD> beliefs)
 			throws ZeroProbabilityObsException, VariableNotFoundException {
 
-		double bellmanErr;
-		double[] onezero = { 0 };
-		double steptolerance = 0.0;
+		float bellmanErr;
+		float[] onezero = { 0 };
+		float steptolerance = 0.0f;
 
 		int maxAlphaSetSize = maxAlpha;
 
-		bellmanErr = 20 * this.ipomdp.tolerance;
+		bellmanErr = (float) (20 * this.ipomdp.tolerance);
 
 		this.currentPointBasedValues = 
 				OP.factoredExpectationSparseNoMem(beliefRegion, this.alphaVectors);
 
 		DD[] primedV;
-		double maxAbsVal = 0;
+		float maxAbsVal = 0;
 		
 		/* For computation stats */
 		List<Long> backupTimes = new ArrayList<Long>();
 
 		for (int stepId = firstStep; stepId < firstStep + nSteps; stepId++) {
 
-			steptolerance = ipomdp.tolerance;
+			steptolerance = (float) ipomdp.tolerance;
 
 			primedV = new DD[this.alphaVectors.length];
 
@@ -212,7 +213,7 @@ public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 									IPOMDP.concatenateArray(
 											OP.maxAllN(this.alphaVectors), 
 											OP.minAllN(this.alphaVectors))), 
-							1e-10);
+							1e-10f);
 
 			int nDpBackups = 0;
 
@@ -220,13 +221,13 @@ public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 			 * could be one more than the maximum number at most
 			 */
 			this.newAlphaVectors = new AlphaVector[maxAlphaSetSize + 1];
-			this.newPointBasedValues = new double[beliefRegion.length][maxAlphaSetSize + 1];
+			this.newPointBasedValues = new float[beliefRegion.length][maxAlphaSetSize + 1];
 			this.numNewAlphaVectors = 0;
 
 			AlphaVector newVector;
 
-			double[] newValues;
-			double improvement;
+			float[] newValues;
+			float improvement;
 
 			/*
 			 * we allow the number of new alpha vectors to get one bigger than the maximum
@@ -255,7 +256,7 @@ public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 				backupTimes.add((afterBackup - beforeBackup));
 
 				newVector.alphaVector = OP.approximate(newVector.alphaVector,
-						bellmanErr * (1 - this.ipomdp.discFact) / 2.0, onezero);
+						(float) (bellmanErr * (1 - this.ipomdp.discFact) / 2.0f), onezero);
 				newVector.setWitness(i);
 
 				nDpBackups = nDpBackups + 1;
@@ -264,7 +265,7 @@ public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 				newValues = OP.factoredExpectationSparseNoMem(beliefRegion, newVector.alphaVector);
 
 				if (this.numNewAlphaVectors < 1)
-					improvement = Double.POSITIVE_INFINITY;
+					improvement = Float.POSITIVE_INFINITY;
 
 				else
 					improvement = 
@@ -289,10 +290,10 @@ public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 			/* save data and copy over new to old */
 			this.alphaVectors = new DD[this.numNewAlphaVectors];
 			this.currentPointBasedValues = 
-					new double[this.newPointBasedValues.length][this.numNewAlphaVectors];
+					new float[this.newPointBasedValues.length][this.numNewAlphaVectors];
 
 			this.policy = new int[this.numNewAlphaVectors];
-			this.policyvalue = new double[this.numNewAlphaVectors];
+			this.policyvalue = new float[this.numNewAlphaVectors];
 
 			for (int j = 0; j < ipomdp.Ai.size(); j++)
 				this.uniquePolicy[j] = false;
@@ -317,12 +318,12 @@ public class OnlineIPBVISolver extends AlphaVectorPolicySolver {
 			float errorVar = this.getErrorVariance((float) bellmanErr);
 			
 			/* compute average backup time */
-			double avgTime = 
+			float avgTime = (float) 
 					backupTimes.stream()
-						.map(i -> (double) i)
-						.mapToDouble(Double::valueOf)
+						.map(i -> (float) i)
+						.mapToDouble(Float::valueOf)
 						.average()
-						.orElse(Double.NaN);
+						.orElse(Float.NaN);
 			
 			backupTimes.clear();
 			

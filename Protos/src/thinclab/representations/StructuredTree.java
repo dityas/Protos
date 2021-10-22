@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -55,7 +56,7 @@ public class StructuredTree implements Serializable {
 	
 	private double mergeThreshold = 0;
 	
-	private static final Logger LOGGER = Logger.getLogger(StructuredTree.class);
+	private static final Logger LOGGER = LogManager.getLogger(StructuredTree.class);
 	
 	// ----------------------------------------------------------------------------------------
 	
@@ -529,7 +530,7 @@ public class StructuredTree implements Serializable {
 				LOGGER.debug("is within merge threshold of " + solver.f.toMap(closestBelief));
 				LOGGER.debug("And both have same optimal actions: " + act1 + " and " + act2);
 				
-				DD midPoint = OP.div(OP.add(closestBelief, belief), DDleaf.myNew(2.0));
+				DD midPoint = OP.div(OP.add(closestBelief, belief), DDleaf.getDD(2.0f));
 				LOGGER.debug("Replacing with: " + solver.f.toMap(midPoint));
 				LOGGER.debug("With optimal action: " + solver.getActionForBelief(midPoint));
 				
