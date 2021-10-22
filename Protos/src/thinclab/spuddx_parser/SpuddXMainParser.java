@@ -23,7 +23,7 @@ import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.MjSpaceExpansion;
-import thinclab.model_ops.belief_exploration.PolicyGraphExpansion;
+import thinclab.model_ops.belief_exploration.PolicyTreeExpansion;
 import thinclab.models.DBN;
 import thinclab.models.IPOMDP;
 import thinclab.models.Model;
@@ -294,6 +294,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 				System.exit(-1);
 			}
 
+			LOGGER.info(String.format("Starting solver %s with initial beliefs %s", solverName, dds));
 			SymbolicPerseusSolver<IPOMDP> solver = (SymbolicPerseusSolver<IPOMDP>) this.solvers.get(solverName);
 			var policy = solver.solve(dds, _model, backups, _model.H, AlphaVectorPolicy.fromR(_model.R()));
 
@@ -345,7 +346,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 				.collect(Collectors.toList());
 
 		var modelGraph = ModelGraph.fromDecMakingModel(_model);
-		var expStrat = new MjSpaceExpansion<>(); /* new PolicyGraphExpansion<>(); */
+		var expStrat =  /* new MjSpaceExpansion<>(); */ new PolicyTreeExpansion<>();
 
 		modelGraph = expStrat.expand(initNodes, modelGraph, _model, expHorizon, policy);
 		LOGGER.info(String.format("Made policy tree for model %s till time step %s", modelName, expHorizon));

@@ -25,7 +25,15 @@ import thinclab.policy.AlphaVectorPolicy;
 public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P extends AlphaVectorPolicy>
 		implements ModelGraphExpansionStrategy<ReachabilityNode, M, P> {
 
+	private int initT = 0;
+	
 	private static final Logger LOGGER = LogManager.getLogger(PolicyGraphExpansion.class);
+	
+	public PolicyGraphExpansion(int startT) {
+		this.initT = startT;
+	}
+
+	public PolicyGraphExpansion() {}
 
 	public HashMap<Integer, ReachabilityNode> expandReachabilityNode(ReachabilityNode node, M m, P p,
 			ModelGraph<ReachabilityNode> g, int h) {
@@ -88,7 +96,7 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 			ModelGraph<ReachabilityNode> G, M m, int T, P p) {
 
 		startNodes.stream().forEach(G::addNode);
-		int i = 0;
+		int i = this.initT;
 
 		while (i < T) {
 

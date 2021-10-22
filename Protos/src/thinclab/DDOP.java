@@ -547,7 +547,7 @@ public class DDOP {
 			factordds.add(DDOP.addMultVarElim(List.of(dd), _vars));
 			_vars.add(_var);
 		}
-
+		
 		return factordds;
 	}
 
@@ -555,7 +555,7 @@ public class DDOP {
 
 		var factordds = new ArrayList<DD>(vars.size());
 		var _vars = new ArrayList<Integer>(vars);
-
+		
 		for (int i = 0; i < _vars.size(); i++) {
 
 			var _var = _vars.remove(0);

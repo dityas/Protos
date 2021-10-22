@@ -31,7 +31,7 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 	 * breadth first and then expand using PolicyGraphExpansion for the rest.
 	 */
 
-	private PolicyGraphExpansion<M, P> expansion = new PolicyGraphExpansion<>();
+	private PolicyGraphExpansion<M, P> expansion = new PolicyGraphExpansion<>(1);
 
 	@Override
 	public ModelGraph<ReachabilityNode> expand(List<ReachabilityNode> startNodes,
@@ -75,8 +75,6 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 	
 		for (var e : newEdges)
 			G.addEdge(e._0(), e._1(), e._2());
-
-		T = T - 1;
 
 		G = expansion.expand(new ArrayList<>(G.getAllChildren()), G, m, T, p);
 

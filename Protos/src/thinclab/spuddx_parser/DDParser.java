@@ -7,6 +7,7 @@
  */
 package thinclab.spuddx_parser;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,14 +54,17 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 		// Prepare children
 		var childNames = ctx.var_value().stream().map(v -> v.IDENTIFIER().getText()).collect(Collectors.toList());
 		var childDDList = ctx.dd_expr().stream().map(this::visit).collect(Collectors.toList());
-/*
-		if (valNames.size() != childNames.size() && valNames.size() != childDDList.size()) {
-
-			LOGGER.error(String.format("All children for %s not defined", varName));
-			System.exit(-1);
-		}
-*/
-		DD[] children = new DD[childDDList.size()];
+		/*
+		 * if (valNames.size() != childNames.size() && valNames.size() !=
+		 * childDDList.size()) {
+		 * 
+		 * LOGGER.error(String.format("All children for %s not defined", varName));
+		 * System.exit(-1); }
+		 */
+		DD[] children = new DD[valNames.size()];
+		for (int i = 0; i < children.length; i++)
+			children[i] = DDleaf.getDD(0.0f);
+		
 		for (int i = 0; i < childNames.size(); i++) {
 
 			int childIndex = valNames.indexOf(childNames.get(i));
@@ -69,20 +73,36 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 
 				LOGGER.warn(String.format("Value for child %s not defined. Defaulting to 0", childNames.get(i)));
 				children[childIndex] = DDleaf.getDD(0.0f);
-				/* Instead of breaking here, assign zero and move on with your life
-				LOGGER.error(String.format("Could not parse DD for child %s", childNames.get(i)));
-				LOGGER.debug(String.format("Child index is %s, childNames are %s", childIndex, childNames));
-				LOGGER.error(String.format("Error while parsing %s", ctx.getText()));
-				System.exit(-1);
-				*/
+				/*
+				 * Instead of breaking here, assign zero and move on with your life
+				 * LOGGER.error(String.format("Could not parse DD for child %s",
+				 * childNames.get(i)));
+				 * LOGGER.debug(String.format("Child index is %s, childNames are %s",
+				 * childIndex, childNames));
+				 * LOGGER.error(String.format("Error while parsing %s", ctx.getText()));
+				 * System.exit(-1);
+				 */
 			}
 
-			else
+			else {
+
+				if (i >= childDDList.size() || childIndex >= children.length) {
+
+					LOGGER.error(String.format("Trying to get index %s from childDD list %s", i, childDDList));
+					LOGGER.error(String.format("List of next DD's is %s", Arrays.toString(children)));
+					LOGGER.error(String.format("Val names are %s", valNames));
+					LOGGER.error(String.format("Var names are %s", Global.varNames));
+					LOGGER.error(String.format("Var being built %s", varName));
+					LOGGER.error(String.format("Child names while parsing %s", childNames));
+					LOGGER.error("Error while parsing child DD");
+				}
+
 				children[childIndex] = childDDList.get(i);
+			}
 		}
 
-		if (childDDList.size() != Global.varDomSize.get(varIndex))
-			LOGGER.error("Error while parsing DD");
+		//if (childDDList.size() != Global.varDomSize.get(varIndex))
+		//	LOGGER.error("Error while parsing DD");
 
 		return DDOP.reorder(DDnode.getDD(varIndex + 1, children));
 	}
@@ -129,7 +149,8 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 
 		if (varIndex < 0) {
 
-			LOGGER.error(String.format("Could not find %s in %s while parsing %s", varName, Global.varNames, ctx.getText()));
+			LOGGER.error(
+					String.format("Could not find %s in %s while parsing %s", varName, Global.varNames, ctx.getText()));
 			System.exit(-1);
 		}
 
@@ -147,13 +168,14 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 
 		return this.visit(ctx.dd_expr());
 	}
-	
+
 	@Override
 	public DD visitSumoutExpr(SumoutExprContext ctx) {
-	
-		var vars = ctx.var_name().stream().map(v -> Global.varNames.indexOf(v.IDENTIFIER().getText()) + 1).collect(Collectors.toList());
+
+		var vars = ctx.var_name().stream().map(v -> Global.varNames.indexOf(v.IDENTIFIER().getText()) + 1)
+				.collect(Collectors.toList());
 		var dd = this.visit(ctx.dd_expr());
-		
+
 		return DDOP.addMultVarElim(List.of(dd), vars);
 	}
 

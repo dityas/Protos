@@ -85,6 +85,7 @@ public class Global {
 
 	public static void replaceValues(int var, List<String> vals) {
 
+		LOGGER.warn(String.format("Values of RV %s are being changed", Global.varNames.get(var - 1)));
 		Global.valNames.set(var - 1, vals);
 		Global.varDomSize.set(var - 1, vals.size());
 		Global.clearHashtables();

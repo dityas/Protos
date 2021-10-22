@@ -292,6 +292,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		factors.add(b);
 		factors.add(PAjGivenMj);
 		factors.add(PThetajGivenMj);
+		//factors.add(Taus.get(a));
 		factors.add(PMj_pGivenMjAjOj_p);
 		factors.addAll(T().get(a));
 		factors.addAll(Oj.get(a));
@@ -308,7 +309,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), -(Global.NUM_VARS / 2));
 		var stateVars = new ArrayList<Integer>(S().size() + 2);
 		stateVars.addAll(i_S());
-		stateVars.add(i_Thetaj);
+		//stateVars.add(i_Thetaj);
 
 		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
 		b_p = DDOP.div(b_p, prob);
@@ -343,6 +344,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		factors.add(PAjGivenMj);
 		factors.add(PThetajGivenMj);
 		factors.add(PMj_pGivenMjAjOj_p);
+		//factors.add(Taus.get(a));
 		factors.addAll(T().get(a));
 		factors.addAll(O().get(a));
 		factors.addAll(Oj.get(a));
