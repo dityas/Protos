@@ -8,7 +8,6 @@ import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 import java.lang.ref.WeakReference;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,19 +36,10 @@ public class Global {
 	// hash tables
 	public static TypedCacheMap<DD, WeakReference<DD>> leafHashtable = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<DD, WeakReference<DD>> nodeHashtable = new TypedCacheMap<>(10000);
-	public static TypedCacheMap<Pair, DD> addHashtable = new TypedCacheMap<Pair, DD>(10000);
 	public static TypedCacheMap<Tuple<DD, DD>, DD> addCache = new TypedCacheMap<>(10000);
-	public static TypedCacheMap<Pair, DD> multHashtable = new TypedCacheMap<Pair, DD>(10000);
 	public static TypedCacheMap<Tuple<DD, DD>, DD> multCache = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<Tuple<DD, Integer>, DD> addOutCache = new TypedCacheMap<>(10000);
-	public static CacheMap maxHashtable = new CacheMap();
-	public static CacheMap minHashtable = new CacheMap();
-	public static TypedCacheMap<TripletSet, Float> dotProductHashtable = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<Tuple3<DD, DD, HashSet<Integer>>, Float> dotProductCache = new TypedCacheMap<>(10000);
-	public static CacheMap nEdgesHashtable = new CacheMap();
-	public static CacheMap nLeavesHashtable = new CacheMap();
-	public static CacheMap nNodesHashtable = new CacheMap();
-
 	/* Caches for optimizing NZ prime computations */
 	public static boolean USE_NEXT_BELSTATE_CACHES = false;
 
@@ -59,13 +49,6 @@ public class Global {
 
 	// random number generator
 	public static Random random = new Random();
-
-	// --------------------------------------------------------------------------
-	/*
-	 * Cache DB stuff
-	 */
-
-	public static HashMap<Integer, Connection> MjDBConnections = new HashMap<Integer, Connection>();
 
 	// --------------------------------------------------------------------------
 
@@ -113,18 +96,10 @@ public class Global {
 
 		Global.leafHashtable.clear();
 		Global.nodeHashtable.clear();
-		Global.addHashtable.clear();
 		Global.addCache.clear();
-		Global.multHashtable.clear();
 		Global.multCache.clear();
 		Global.addOutCache.clear();
-		Global.maxHashtable.clear();
-		Global.minHashtable.clear();
-		Global.dotProductHashtable.clear();
 		Global.dotProductCache.clear();
-		Global.nEdgesHashtable.clear();
-		Global.nLeavesHashtable.clear();
-		Global.nNodesHashtable.clear();
 		Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
 		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
 
@@ -149,18 +124,10 @@ public class Global {
 
 		Global.leafHashtable = new TypedCacheMap<>(10000);
 		Global.nodeHashtable = new TypedCacheMap<>(10000);
-		Global.addHashtable = new TypedCacheMap<Pair, DD>(10000);
 		Global.addCache = new TypedCacheMap<>(10000);
-		Global.multHashtable = new TypedCacheMap<Pair, DD>(10000);
 		Global.multCache = new TypedCacheMap<>(10000);
 		Global.addOutCache = new TypedCacheMap<>(10000);
-		Global.maxHashtable = new CacheMap();
-		Global.minHashtable = new CacheMap();
-		Global.dotProductHashtable = new TypedCacheMap<>(10000);
 		Global.dotProductCache = new TypedCacheMap<>(10000);
-		Global.nEdgesHashtable = new CacheMap();
-		Global.nLeavesHashtable = new CacheMap();
-		Global.nNodesHashtable = new CacheMap();
 		Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
 		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
 	}

@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.legacy.OP;
 import thinclab.models.POMDP;
 import thinclab.spuddx_parser.SpuddXMainParser;
 

@@ -15,7 +15,6 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
-import thinclab.legacy.OP;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.models.IPOMDP;
 import thinclab.models.POMDP;
@@ -131,7 +130,7 @@ class TestBeliefUpdate {
 		LOGGER.debug(String.format("Expected to be: %s", bPrime));
 
 		printMemConsumption();
-		assertTrue(OP.abs(OP.sub(bListenGL, bPrime)).getVal() < 1e-8f);
+		assertTrue(DDOP.abs(DDOP.sub(bListenGL, bPrime)).getVal() < 1e-8f);
 
 		DD bListenGR = I.beliefUpdate(bListenGL, "L", Collections.singletonList("GR"));
 
@@ -142,7 +141,7 @@ class TestBeliefUpdate {
 		LOGGER.debug(String.format("Expected to be: %s", bPrime));
 
 		printMemConsumption();
-		assertTrue(OP.abs(OP.sub(bListenGR, bPrime)).getVal() < 1e-8f);
+		assertTrue(DDOP.abs(DDOP.sub(bListenGR, bPrime)).getVal() < 1e-8f);
 
 	}
 
@@ -195,7 +194,7 @@ class TestBeliefUpdate {
 
 		System.gc();
 
-		var obs = OP.cartesianProd(
+		var obs = DDOP.cartesianProd(
 				I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList()));
 
 		DD b = DDleaf.getDD(0.5f);
@@ -256,7 +255,7 @@ class TestBeliefUpdate {
 
 		System.gc();
 
-		var obs = OP.cartesianProd(
+		var obs = DDOP.cartesianProd(
 				I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList()));
 		/*
 		DD b = I.b_i();
