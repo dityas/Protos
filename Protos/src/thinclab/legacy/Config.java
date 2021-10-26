@@ -1,6 +1,7 @@
 package thinclab.legacy;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import thinclab.DDOP;
 
 public class Config {
 
@@ -187,7 +188,7 @@ public class Config {
 		if (j+1 == config[1][i]) children[j] = DD.one;
 		else children[j] = DD.zero;
 	    }
-	    dd = OP.mult(dd,DDnode.getDD(config[0][i],children));
+	    dd = DDOP.mult(dd,DDnode.getDD(config[0][i],children));
 	}
 	return dd;
     }
@@ -257,4 +258,3 @@ public class Config {
     }
 
 }
-

@@ -3,7 +3,6 @@ package thinclab.legacy;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import thinclab.ddinterface.DDTree;
 import thinclab.utils.Tuple;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -59,7 +58,6 @@ public class DDnode extends DD {
 			else {
 
 				LOGGER.error("Null child at " + i + " something might be seriously wrong.");
-				LOGGER.error("Error causing DD is " + this.toDDTree());
 			}
 		}
 
@@ -267,7 +265,7 @@ public class DDnode extends DD {
 
 		return children;
 	}
-
+/*
 	public int[] getVarSet() {
 
 		if (varSet == null) {
@@ -283,7 +281,7 @@ public class DDnode extends DD {
 
 		return varSet;
 	}
-
+*/
 	public int getNumLeaves() {
 
 		if (numLeaves == 0) {
@@ -296,7 +294,7 @@ public class DDnode extends DD {
 
 		return numLeaves;
 	}
-
+/*
 	public float getSum() {
 
 		if (sum == Double.NaN) {
@@ -316,28 +314,8 @@ public class DDnode extends DD {
 
 		return sum;
 	}
-
+*/
 	// ---------------------------------------------------------------------------------------
-
-	public DDTree toDDTree() {
-		/*
-		 * Converts the DD to a DDTree representation.
-		 */
-
-		DDTree ddTree = null;
-
-		/* Make childless DDTree */
-		ddTree = new DDTree(Global.varNames.get(this.var - 1));
-
-		/* Get children and add each to DDTree */
-		var valNames = Global.valNames.get(this.var - 1);
-
-		for (int c = 0; c < valNames.size(); c++)
-			ddTree.addChild(valNames.get(c), this.children[c].toDDTree());
-
-		/* Return DDTree obj */
-		return ddTree;
-	}
 
 	@Override
 	public String toString() {

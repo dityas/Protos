@@ -2,9 +2,6 @@ package thinclab.legacy;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import thinclab.ddinterface.DDTree;
-import thinclab.ddinterface.DDTreeLeaf;
-
 import java.lang.ref.*;
 import java.util.TreeSet;
 import java.io.*;
@@ -169,14 +166,6 @@ public class DDleaf extends DD {
 	}
 
 	// -------------------------------------------------------------------------
-
-	public DDTree toDDTree() {
-
-		/*
-		 * Return DDTree leaf of current value
-		 */
-		return new DDTreeLeaf(this.val);
-	}
 
 	@Override
 	public String toString() {
