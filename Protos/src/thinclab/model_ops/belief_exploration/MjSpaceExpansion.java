@@ -9,6 +9,8 @@ package thinclab.model_ops.belief_exploration;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ModelGraph;
 import thinclab.models.datastructures.ReachabilityNode;
@@ -32,6 +34,8 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 	 */
 
 	private PolicyGraphExpansion<M, P> expansion = new PolicyGraphExpansion<>(1);
+	
+	private static final Logger LOGGER = LogManager.getLogger(MjSpaceExpansion.class);
 
 	@Override
 	public ModelGraph<ReachabilityNode> expand(List<ReachabilityNode> startNodes,
@@ -53,6 +57,7 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 
 								var b_next = m.beliefUpdate(b, bestAct, k.getKey()._1());
 
+								LOGGER.debug(String.format("Best action %s at %s", m.A().get(bestAct), b));
 								// if belief is valid, add it to the set of unexplored beliefs in next nodes
 								if (!b_next.equals(DDleaf.getDD(Float.NaN))) {
 
@@ -75,9 +80,9 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 	
 		for (var e : newEdges)
 			G.addEdge(e._0(), e._1(), e._2());
-
+		
 		G = expansion.expand(new ArrayList<>(G.getAllChildren()), G, m, T, p);
-
+		
 		return G;
 	}
 

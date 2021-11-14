@@ -10,11 +10,14 @@ package thinclab.solver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
+import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
@@ -43,7 +46,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		this.usedBeliefs = 0;
 
 		while (B.size() > 0) {
-
+			
 			DD b = B.remove(Global.random.nextInt(B.size()));
 			var newAlpha = m.backup(b, Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList()), g);
 			
@@ -85,15 +88,24 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 	public AlphaVectorPolicy solve(final List<DD> b_is, final M m, int I, int H, AlphaVectorPolicy Vn) {
 
 		var g = ReachabilityGraph.fromDecMakingModel(m);
+	
+		var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.1f);
+		var b_i = new ArrayList<>(b_is);
+
+		if (g.getAllNodes().size() == 0) {
+			LOGGER.info("Running initial breadth first expansion");
+			g = new BreadthFirstExploration<DD, M, ReachabilityGraph, AlphaVectorPolicy>(10).expand(b_is, g, m, 3, Vn);
+			b_i.addAll(g.getAllNodes());
+		}
+		
 		b_is.forEach(g::addNode);
 		
-		var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.1f);
-		
+		LOGGER.info("Starting symbolic Perseus iterations");
 		for (int i = 0; i < I; i++) {
 
 			// expand belief region
-			if (i % 10 == 0)
-				g = ES.expand(b_is, g, m, H, Vn);
+			if (i % 2 == 0)
+				g = ES.expand(b_i, g, m, H, Vn);
 			
 			var B = new ArrayList<DD>(g.getParents());
 			long then = System.nanoTime();
@@ -113,9 +125,9 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			LOGGER.info(
 					String.format("iter: %s | bell err: %.5f | time: %.3f msec | num vectors: %s | beliefs used: %s/%s",
 							i, bellmanError, backupT, Vn_p.aVecs.size(), this.usedBeliefs, B.size()));
-
-			if (bellmanError < 0.01 && i > 5) {
-
+			
+			if (bellmanError < 0.01 && i > 10) {
+								
 				LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));
 				LOGGER.info("Convergence, software version 7.0, looking at life through the eyes of a tired heart.");
 				LOGGER.info("Eating seeds as a past time activity, the toxicity of my city of my city.");
@@ -126,6 +138,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 		g.removeAllNodes();
 		System.gc();
+
 		return Vn;
 	}
 

@@ -8,6 +8,7 @@
 package thinclab.models;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -182,7 +183,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public void createIS() {
 
 		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
-		
+
 		this.framesjSoln.stream().forEach(f ->
 			{
 
@@ -193,13 +194,37 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		mjsList.stream().forEach(f ->
 			{
+
 				var key = Tuple.of(f._0(), f._1());
-				if (!mjMap.containsKey(key))
-					mjMap.put(Tuple.of(f._0(), f._1()), "m" + mjMap.size());
-				
+
+				if (!mjMap.containsKey(key)) {
+
+					mjMap.put(key, "m" + mjMap.size());
+				}
+
 				else {
+
 					LOGGER.warn(String.format("Model %s already exists in mjMap. Will skip it", key));
 				}
+
+				// If this node was initialized in the domain file, we'll need to populate the
+				// optimal action and the optimal alpha vector
+				/*
+				if (f._1().i_a == -1 && f._1().beliefs.size() == 1) {
+
+					String mName = mjMap.remove(key);
+
+					var _b = f._1().beliefs.stream().findFirst().get();
+					int i_a = this.framesjSoln.get(f._0()).Vn.getBestActionIndex(_b, framesj.get(f._0())._1().i_S());
+					int alphaId = DDOP.bestAlphaIndex(framesjSoln.get(f._0()).Vn.aVecs, _b,
+							framesj.get(f._0())._1().i_S());
+
+					f._1().i_a = i_a;
+					f._1().alphaId = alphaId;
+
+					mjMap.put(Tuple.of(f._0(), f._1()), mName);
+				}
+				*/
 			});
 
 		var sortedVals = mjMap.values().stream().collect(Collectors.toList());
@@ -222,6 +247,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		var AjDDs = MjToOPTAj.stream().map(m -> m._1()).toArray(DD[]::new);
 		PAjGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, AjDDs));
+		
 	}
 
 	public void createPThetajMj() {
@@ -240,6 +266,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public void createPMj_pMjAjOj_p() {
 
 		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
+
 		var triples = framesjSoln.stream().flatMap(f -> f.getTriples().stream())
 				.map(f -> Tuple.of(mjMap.get(f._0()), f._1(), mjMap.get(f._2()))).map(t ->
 					{
@@ -247,7 +274,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 						// convert everything into list
 						List<Integer> valList = new ArrayList<>(t._1().size() + 2);
 						valList.add(Global.valNames.get(i_Mj - 1).indexOf(t._0()) + 1);
+						
 						valList.addAll(t._1());
+						
 						valList.add(Global.valNames.get(i_Mj_p - 1).indexOf(t._2()) + 1);
 
 						return valList;
@@ -292,24 +321,24 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		factors.add(b);
 		factors.add(PAjGivenMj);
 		factors.add(PThetajGivenMj);
-		//factors.add(Taus.get(a));
-		factors.add(PMj_pGivenMjAjOj_p);
+		factors.add(Taus.get(a));
+		// factors.add(PMj_pGivenMjAjOj_p);
 		factors.addAll(T().get(a));
-		factors.addAll(Oj.get(a));
+		// factors.addAll(Oj.get(a));
 		factors.addAll(Ofao);
 
 		var vars = new ArrayList<Integer>(factors.size());
 		vars.addAll(i_S());
 		vars.add(i_Thetaj);
 		vars.add(i_Aj);
-		vars.addAll(i_Omj_p);
+		// vars.addAll(i_Omj_p);
 
 		// Collections.sort(vars);
 
 		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), -(Global.NUM_VARS / 2));
 		var stateVars = new ArrayList<Integer>(S().size() + 2);
 		stateVars.addAll(i_S());
-		//stateVars.add(i_Thetaj);
+		// stateVars.add(i_Thetaj);
 
 		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
 		b_p = DDOP.div(b_p, prob);
@@ -343,15 +372,15 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		factors.add(b);
 		factors.add(PAjGivenMj);
 		factors.add(PThetajGivenMj);
-		factors.add(PMj_pGivenMjAjOj_p);
-		//factors.add(Taus.get(a));
+		// factors.add(PMj_pGivenMjAjOj_p);
+		factors.add(Taus.get(a));
 		factors.addAll(T().get(a));
 		factors.addAll(O().get(a));
-		factors.addAll(Oj.get(a));
+		// factors.addAll(Oj.get(a));
 
 		var vars = new ArrayList<Integer>(factors.size());
 		vars.addAll(i_S());
-		vars.addAll(i_Omj_p);
+		// vars.addAll(i_Omj_p);
 		vars.add(i_Aj);
 		vars.add(i_Thetaj);
 		vars.addAll(i_S_p());

@@ -7,6 +7,7 @@
  */
 package thinclab.models;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -87,7 +88,15 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 		this.TF = this.A.stream().map(a -> this.getTransitionFunction(dyn.get(a))).collect(Collectors.toList());
 		this.OF = this.A.stream().map(a -> this.getObsFunction(dyn.get(a))).collect(Collectors.toList());
 
-		this.R = this.A.stream().map(a -> R.containsKey(a) ? R.get(a) : DD.zero).collect(Collectors.toList());
+		var _R = this.A.stream().map(a -> R.containsKey(a) ? R.get(a) : DD.zero).collect(Collectors.toList());
+		
+		this.R = IntStream.range(0, _R.size()).boxed().map(i -> {
+			var r = new ArrayList<DD>(this.i_S.size() + 1);
+			r.addAll(this.TF.get(i));
+			r.add(_R.get(i));
+			
+			return DDOP.addMultVarElim(r, i_S_p());
+		}).collect(Collectors.toList());
 
 		this.discount = discount;
 

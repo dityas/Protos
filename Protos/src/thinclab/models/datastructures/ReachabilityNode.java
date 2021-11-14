@@ -19,9 +19,9 @@ import thinclab.legacy.DD;
  */
 public class ReachabilityNode {
 
-	public final int alphaId;
+	public int alphaId;
 	public Set<DD> beliefs;
-	public final int i_a;
+	public int i_a;
 	public int h = -1;
 
 	public ReachabilityNode(int alphaId, int actId) {
@@ -83,7 +83,7 @@ public class ReachabilityNode {
 
 		var builder = new StringBuilder();
 		builder.append("ReachabilityNode [").append("alphaId = ").append(alphaId).append(" [b] = ").append(beliefs)
-				.append("]");
+				.append("t = ").append(h).append("]");
 		
 		return builder.toString();
 	}

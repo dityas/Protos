@@ -2,8 +2,12 @@ package thinclab.legacy;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+import thinclab.DDOP;
 import thinclab.RandomVariable;
+import thinclab.models.IPOMDP;
+import thinclab.models.POMDP;
+import thinclab.models.POSeqDecMakingModel;
+import thinclab.models.datastructures.ModelGraph;
 import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
@@ -14,6 +18,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class Global {
 
@@ -24,7 +29,8 @@ public class Global {
 	public static List<String> varNames = new ArrayList<>(10);
 	public static List<List<String>> valNames = new ArrayList<>(10);
 
-	//public static TypedCacheMap<String, HashMap<Tuple<Integer, DD>, String>> modelVars = new TypedCacheMap<>();
+	// public static TypedCacheMap<String, HashMap<Tuple<Integer, DD>, String>>
+	// modelVars = new TypedCacheMap<>();
 	public static TypedCacheMap<String, HashMap<Tuple<Integer, ReachabilityNode>, String>> modelVars = new TypedCacheMap<>();
 
 	public static int NUM_VARS = 0;
@@ -170,5 +176,61 @@ public class Global {
 	public static void printProgressBarConvergence() {
 
 		System.out.println("\rProgress: 100% Converged. Solving next round.\t\t\t\t\t\t\t\t\t");
+	}
+
+	public static String modelVarsToDot(String v, IPOMDP m) {
+
+		var builder = new StringBuilder();
+
+		m.framesj.forEach(f ->
+			{
+
+				if (f._1() instanceof IPOMDP) {
+
+					builder.append(
+							Global.modelVarsToDot(Global.varNames.get(((IPOMDP) f._1()).i_Mj - 1), (IPOMDP) f._1()))
+							.append("\r\n");
+				}
+			});
+
+		// build subgraph
+		builder.append("subgraph cluster_").append(v).append("{\r\n");
+		builder.append("node [shape=record];\r\n");
+		builder.append("label=\"").append(v).append("\";\r\n");
+
+		Global.modelVars.get(v).keySet().forEach(_m ->
+			{
+
+				var _mName = Global.modelVars.get(v).get(_m);
+				builder.append(v).append("_").append(_mName).append(" [label=\"{ ").append(_mName).append(" | --- | ");
+
+				if (_m._1().beliefs.size() == 1) {
+
+					var b = _m._1().beliefs.stream().findFirst().get();
+					var frame = m.framesj.get(_m._0())._1();
+
+					// if (frame instanceof IPOMDP) {
+
+					// var varList = ((IPOMDP) frame).i_S();
+					builder.append(DDOP.toDotRecord(b, frame.i_S())).append("| --- |");
+					// }
+
+				}
+
+				if (_m._1().i_a >= 0)
+					builder.append("A = ")
+						   .append(
+								   m.framesj.get(
+										   _m._0())._1().A().get(
+												   _m._1().i_a));
+
+				builder.append("}\"]\r\n");
+			});
+		
+
+		builder.append("}\r\n");
+		m.framesjSoln.forEach(f -> builder.append(ModelGraph.toDot(f.MG, f.m)).append("\r\n"));
+		
+		return builder.toString();
 	}
 }

@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.Global;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
 import thinclab.policy.Policy;
@@ -50,15 +51,21 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 			System.exit(-1);
 		}
 
-		for (int n = 0; n < 30; n++) {
+		var startSize = g.getAllNodes().size();
+		
+		for (int n = 0; n < 100; n++) {
+			
+			if ((g.getAllNodes().size() - startSize) >= 10 || g.getAllNodes().size() >= maxB)
+				break;
 
 			for (DD b : bs) {
+				
+				if ((g.getAllNodes().size() - startSize) >= 10)
+					break;
 
 				for (int i = 0; i < T; i++) {
-
-					if (g.getAllNodes().size() >= maxB)
-						break;
-
+					
+					
 					var usePolicy = DDOP.sampleIndex(List.of(e, Pa));
 					int a = -1;
 
@@ -84,6 +91,10 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 						var b_n = m.beliefUpdate(b, _edge._0(), _edge._1());
 						g.addEdge(b, _edge, b_n);
 						b = b_n;
+						
+						// if more than 10 beliefs added, end iteration
+						if ((g.getAllNodes().size() - startSize) >= 10)
+							break;
 					}
 
 					else

@@ -10,6 +10,7 @@ package thinclab.model_ops.belief_exploration;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import thinclab.legacy.DDleaf;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
 import thinclab.policy.Policy;
@@ -48,8 +49,13 @@ public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G exte
 
 								if (g.getAllNodes().size() < maxB) {
 
-									if (g.getNodeAtEdge(b, _t) == null)
-										g.addEdge(b, _t, m.beliefUpdate(b, _t._0(), _t._1()));
+									if (g.getNodeAtEdge(b, _t) == null) {
+										
+										var b_n = m.beliefUpdate(b, _t._0(), _t._1());
+										
+										if (!b_n.equals(DDleaf.getDD(0.0f)))
+											g.addEdge(b, _t, b_n);
+									}
 								}
 
 							});
