@@ -19,7 +19,9 @@ import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
+import thinclab.legacy.TypedCacheMap;
 import thinclab.solver.PBVISolvable;
+import thinclab.utils.Tuple3;
 
 /*
  * @author adityas
@@ -44,6 +46,7 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 	public final List<List<DD>> OF;
 	public List<DD> R;
 
+	protected TypedCacheMap<DD, HashMap<Integer, List<Tuple3<Integer, DD, Float>>>> belCache = new TypedCacheMap<>(1000);
 	private static final Logger LOGGER = LogManager.getLogger(PBVISolvablePOMDPBasedModel.class);
 
 	public PBVISolvablePOMDPBasedModel(List<String> S, List<String> O, String A, HashMap<String, Model> dynamics,
@@ -131,6 +134,10 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 
 		Collections.sort(varList, (a, b) -> ordering.indexOf(a) - ordering.indexOf(b));
 		return varList;
+	}
+	
+	public void clearBackupCache() {
+		belCache.clear();
 	}
 
 	// ----------------------------------------------------------------------------------------

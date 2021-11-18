@@ -17,7 +17,6 @@ import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
-import thinclab.legacy.TypedCacheMap;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
@@ -28,7 +27,6 @@ import thinclab.utils.Tuple3;
  */
 public class POMDP extends PBVISolvablePOMDPBasedModel {
 
-	private TypedCacheMap<DD, HashMap<Integer, List<Tuple3<Integer, DD, Float>>>> belCache = new TypedCacheMap<>(1000);
 
 	private static final Logger LOGGER = LogManager.getLogger(POMDP.class);
 
@@ -237,46 +235,6 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			Gao.add(argmax_iGaoi);
 		}
 
-		/*
-		 * var Gao = new ArrayList<ArrayList<Tuple<Integer, DD>>>(A().size()); 
-		 * 
-		 * for (int
-		 * a = 0; a < A().size(); a++) {
-		 * 
-		 * float val = 0.0f;
-		 * 
-		 * var argmax_iGaoi = new ArrayList<Tuple<Integer, DD>>(oAll.size()); for (int o
-		 * = 0; o < oAll.size(); o++) {
-		 * 
-		 * var key = Tuple.of(b, a, o); var prob = obsProbCache.get(key);
-		 * 
-		 * if (prob == null) {
-		 * 
-		 * var likelihoods = obsLikelihoods(b, a); prob = DDOP.restrict(likelihoods,
-		 * i_Om_p, oAll.get(o)).getVal(); obsProbCache.put(key, prob); }
-		 * 
-		 * //var bestAlpha = Tuple.of(0.0f, -1);
-		 * 
-		 * if (prob >= 1e-6f) {
-		 * 
-		 * var b_p = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o))); if (b_p == null) {
-		 * b_p = beliefUpdate(b, a, oAll.get(o)); //g.addEdge(b, Tuple.of(a,
-		 * oAll.get(o)), b_p); }
-		 * 
-		 * var bestAlpha = Gaoi(b_p, a, oAll.get(o), alphas);
-		 * argmax_iGaoi.add(Tuple.of(o, alphas.get(bestAlpha._1()))); val += (prob *
-		 * bestAlpha._0()); }
-		 * 
-		 * }
-		 * 
-		 * val *= discount; val += DDOP.dotProduct(b, R().get(a), i_S());
-		 * 
-		 * if (val >= bestVal) {
-		 * 
-		 * bestVal = val; bestA = a; }
-		 * 
-		 * Gao.add(argmax_iGaoi); }
-		 */
 		var vec = DD.zero;
 		for (int o = 0; o < Gao.get(bestA).size(); o++) {
 

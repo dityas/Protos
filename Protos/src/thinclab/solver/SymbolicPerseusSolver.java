@@ -132,6 +132,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		}
 
 		g.removeAllNodes();
+		m.clearBackupCache();
 		System.gc();
 
 		return Vn;
