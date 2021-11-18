@@ -48,6 +48,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		while (B.size() > 0) {
 			
 			DD b = B.remove(Global.random.nextInt(B.size()));
+			
 			var newAlpha = m.backup(b, Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList()), g);
 			
 			// Construct V_{n+1}(b)
@@ -77,7 +78,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 			B = B.stream().filter(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()) > DDOP.value_b(newVn, _b, m.i_S()))
 					.collect(Collectors.toList());
-
+			
 			this.usedBeliefs++;
 		}
 
@@ -91,13 +92,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 	
 		var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.1f);
 		var b_i = new ArrayList<>(b_is);
-
-		if (g.getAllNodes().size() == 0) {
-			LOGGER.info("Running initial breadth first expansion");
-			g = new BreadthFirstExploration<DD, M, ReachabilityGraph, AlphaVectorPolicy>(10).expand(b_is, g, m, 3, Vn);
-			b_i.addAll(g.getAllNodes());
-		}
-		
+				
 		b_is.forEach(g::addNode);
 		
 		LOGGER.info("Starting symbolic Perseus iterations");
@@ -107,7 +102,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			if (i % 2 == 0)
 				g = ES.expand(b_i, g, m, H, Vn);
 			
-			var B = new ArrayList<DD>(g.getParents());
+			var B = new ArrayList<DD>(g.getAllNodes());
 			long then = System.nanoTime();
 
 			// new value function after backups
@@ -126,7 +121,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 					String.format("iter: %s | bell err: %.5f | time: %.3f msec | num vectors: %s | beliefs used: %s/%s",
 							i, bellmanError, backupT, Vn_p.aVecs.size(), this.usedBeliefs, B.size()));
 			
-			if (bellmanError < 0.01 && i > 10) {
+			if (bellmanError != 0.0f && bellmanError < 0.01 && i > 5) {
 								
 				LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));
 				LOGGER.info("Convergence, software version 7.0, looking at life through the eyes of a tired heart.");

@@ -28,7 +28,7 @@ import thinclab.utils.Tuple3;
  */
 public class POMDP extends PBVISolvablePOMDPBasedModel {
 
-	private TypedCacheMap<Tuple3<DD, Integer, Integer>, Float> obsProbCache = new TypedCacheMap<>(1000);
+	private TypedCacheMap<DD, HashMap<Integer, List<Tuple3<Integer, DD, Float>>>> belCache = new TypedCacheMap<>(1000);
 
 	private static final Logger LOGGER = LogManager.getLogger(POMDP.class);
 
@@ -169,42 +169,62 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		int bestA = -1;
 		float bestVal = Float.NEGATIVE_INFINITY;
 
+		var nextBels = belCache.get(b);
+		
+		if (nextBels == null) {
+		
+			// build cache entry for this belief
+			nextBels = new HashMap<Integer, List<Tuple3<Integer, DD, Float>>>(A().size());
+			
+			for (int a = 0; a < A().size(); a++) {
+				
+				var nextBa = new ArrayList<Tuple3<Integer, DD, Float>>();
+				var likelihoods = obsLikelihoods(b, a);
+				
+				for (int o = 0; o < oAll.size(); o++) {
+					
+					var prob = DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal();
+					
+					if (prob < 1e-6f)
+						continue;
+					
+					// perform belief update and cache next belief
+					var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o)));
+					if (b_n == null)
+						b_n = beliefUpdate(b, a, oAll.get(o));
+					
+					nextBa.add(Tuple.of(o, b_n, prob));
+				}
+				
+				nextBels.put(a, nextBa);
+			}
+			
+			belCache.put(b, nextBels);
+		}
+
+		// compute everything from the cached entries
 		var Gao = new ArrayList<ArrayList<Tuple<Integer, DD>>>(A().size());
+
 		for (int a = 0; a < A().size(); a++) {
 
+			var nextBa = nextBels.get(a);
 			float val = 0.0f;
+			var argmax_iGaoi = new ArrayList<Tuple<Integer, DD>>(nextBa.size());
 
-			var argmax_iGaoi = new ArrayList<Tuple<Integer, DD>>(oAll.size());
-			for (int o = 0; o < oAll.size(); o++) {
+			// project to next belief for all observations and compute values
+			for (int o = 0; o < nextBa.size(); o++) {
 
-				var key = Tuple.of(b, a, o);
-				var prob = obsProbCache.get(key);
+				var obsIndex = nextBa.get(o)._0();
+				var b_n = nextBa.get(o)._1();
+				var prob = nextBa.get(o)._2();
 
-				if (prob == null) {
+				var bestAlpha = Gaoi(b_n, a, oAll.get(obsIndex), alphas);
 
-					var likelihoods = obsLikelihoods(b, a);
-					prob = DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal();
-					obsProbCache.put(key, prob);
-				}
-
-				var bestAlpha = Tuple.of(0.0f, -1);
-
-				if (prob >= 1e-6f) {
-
-					var b_p = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o)));
-					if (b_p == null) {
-
-						b_p = beliefUpdate(b, a, oAll.get(o));
-						g.addEdge(b, Tuple.of(a, oAll.get(o)), b_p);
-					}
-
-					bestAlpha = Gaoi(b_p, a, oAll.get(o), alphas);
-					argmax_iGaoi.add(Tuple.of(o, alphas.get(bestAlpha._1())));
-					val += (prob * bestAlpha._0());
-				}
-
+				argmax_iGaoi.add(Tuple.of(obsIndex, alphas.get(bestAlpha._1())));
+				val += (prob * bestAlpha._0());
 			}
 
+			// compute value of a and check best action and best value
 			val *= discount;
 			val += DDOP.dotProduct(b, R().get(a), i_S());
 
@@ -217,6 +237,46 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			Gao.add(argmax_iGaoi);
 		}
 
+		/*
+		 * var Gao = new ArrayList<ArrayList<Tuple<Integer, DD>>>(A().size()); 
+		 * 
+		 * for (int
+		 * a = 0; a < A().size(); a++) {
+		 * 
+		 * float val = 0.0f;
+		 * 
+		 * var argmax_iGaoi = new ArrayList<Tuple<Integer, DD>>(oAll.size()); for (int o
+		 * = 0; o < oAll.size(); o++) {
+		 * 
+		 * var key = Tuple.of(b, a, o); var prob = obsProbCache.get(key);
+		 * 
+		 * if (prob == null) {
+		 * 
+		 * var likelihoods = obsLikelihoods(b, a); prob = DDOP.restrict(likelihoods,
+		 * i_Om_p, oAll.get(o)).getVal(); obsProbCache.put(key, prob); }
+		 * 
+		 * //var bestAlpha = Tuple.of(0.0f, -1);
+		 * 
+		 * if (prob >= 1e-6f) {
+		 * 
+		 * var b_p = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o))); if (b_p == null) {
+		 * b_p = beliefUpdate(b, a, oAll.get(o)); //g.addEdge(b, Tuple.of(a,
+		 * oAll.get(o)), b_p); }
+		 * 
+		 * var bestAlpha = Gaoi(b_p, a, oAll.get(o), alphas);
+		 * argmax_iGaoi.add(Tuple.of(o, alphas.get(bestAlpha._1()))); val += (prob *
+		 * bestAlpha._0()); }
+		 * 
+		 * }
+		 * 
+		 * val *= discount; val += DDOP.dotProduct(b, R().get(a), i_S());
+		 * 
+		 * if (val >= bestVal) {
+		 * 
+		 * bestVal = val; bestA = a; }
+		 * 
+		 * Gao.add(argmax_iGaoi); }
+		 */
 		var vec = DD.zero;
 		for (int o = 0; o < Gao.get(bestA).size(); o++) {
 

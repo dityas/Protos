@@ -57,7 +57,6 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 
 								var b_next = m.beliefUpdate(b, bestAct, k.getKey()._1());
 
-								LOGGER.debug(String.format("Best action %s at %s", m.A().get(bestAct), b));
 								// if belief is valid, add it to the set of unexplored beliefs in next nodes
 								if (!b_next.equals(DDleaf.getDD(Float.NaN))) {
 
