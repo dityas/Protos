@@ -7,6 +7,7 @@
  */
 package thinclab.models;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +19,9 @@ import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
+import thinclab.legacy.TypedCacheMap;
 import thinclab.solver.PBVISolvable;
+import thinclab.utils.Tuple3;
 
 /*
  * @author adityas
@@ -43,6 +46,7 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 	public final List<List<DD>> OF;
 	public List<DD> R;
 
+	protected TypedCacheMap<DD, HashMap<Integer, List<Tuple3<Integer, DD, Float>>>> belCache = new TypedCacheMap<>(1000);
 	private static final Logger LOGGER = LogManager.getLogger(PBVISolvablePOMDPBasedModel.class);
 
 	public PBVISolvablePOMDPBasedModel(List<String> S, List<String> O, String A, HashMap<String, Model> dynamics,
@@ -87,7 +91,15 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 		this.TF = this.A.stream().map(a -> this.getTransitionFunction(dyn.get(a))).collect(Collectors.toList());
 		this.OF = this.A.stream().map(a -> this.getObsFunction(dyn.get(a))).collect(Collectors.toList());
 
-		this.R = this.A.stream().map(a -> R.containsKey(a) ? R.get(a) : DD.zero).collect(Collectors.toList());
+		var _R = this.A.stream().map(a -> R.containsKey(a) ? R.get(a) : DD.zero).collect(Collectors.toList());
+		
+		this.R = IntStream.range(0, _R.size()).boxed().map(i -> {
+			var r = new ArrayList<DD>(this.i_S.size() + 1);
+			r.addAll(this.TF.get(i));
+			r.add(_R.get(i));
+			
+			return DDOP.addMultVarElim(r, i_S_p());
+		}).collect(Collectors.toList());
 
 		this.discount = discount;
 
@@ -122,6 +134,10 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 
 		Collections.sort(varList, (a, b) -> ordering.indexOf(a) - ordering.indexOf(b));
 		return varList;
+	}
+	
+	public void clearBackupCache() {
+		belCache.clear();
 	}
 
 	// ----------------------------------------------------------------------------------------

@@ -31,6 +31,16 @@ public class PolicyTreeExpansion<M extends PBVISolvablePOMDPBasedModel, P extend
 
 		var newEdges = new ArrayList<Tuple3<ReachabilityNode, Tuple<Integer, List<Integer>>, ReachabilityNode>>();
 		var edges = G.edgeIndexMap.entrySet();
+	
+		// populate optimal action and alphaId
+		startNodes.forEach(n -> {
+			var _b = n.beliefs.stream().findFirst().get();
+			int i_a = p.getBestActionIndex(_b, m.i_S());
+			int alphaId = DDOP.bestAlphaIndex(p.aVecs, _b, m.i_S());
+			
+			n.i_a = i_a;
+			n.alphaId = alphaId;
+		});
 		
 		startNodes.stream().forEach(G::addNode);
 
@@ -53,7 +63,7 @@ public class PolicyTreeExpansion<M extends PBVISolvablePOMDPBasedModel, P extend
 									var b_next = m.beliefUpdate(b, bestAct, k.getKey()._1());
 
 									// if belief is valid, add it to the set of unexplored beliefs in next nodes
-									if (!b_next.equals(DDleaf.getDD(Float.NaN))) {
+									if (!b_next.equals(DDleaf.getDD(0.0f))) {
 
 										int bestAlpha = DDOP.bestAlphaIndex(p.aVecs, b_next, m.i_S());
 										ReachabilityNode _node = new ReachabilityNode(bestAlpha,

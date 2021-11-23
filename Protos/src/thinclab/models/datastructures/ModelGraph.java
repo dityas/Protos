@@ -17,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.Global;
+import thinclab.models.IPOMDP;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
@@ -37,7 +38,7 @@ public class ModelGraph<N extends ReachabilityNode> extends AbstractAOGraph<N, I
 		AOSpace.stream().forEach(i -> this.edgeIndexMap.put(i, this.edgeIndexMap.size()));
 		LOGGER.info(String.format("Initialized policy graph for branching factor %s", AOSpace.size()));
 	}
-	
+
 	public static ModelGraph<ReachabilityNode> fromDecMakingModel(POSeqDecMakingModel<?> m) {
 
 		// Make action observation space for agent I
@@ -71,10 +72,9 @@ public class ModelGraph<N extends ReachabilityNode> extends AbstractAOGraph<N, I
 					return Tuple.of(e.getKey(), (List<Integer>) edge, mj_p);
 			})).collect(Collectors.toList());
 
-		// LOGGER.debug(String.format("Triples are: %s", triples));
 		return triples;
 	}
-	
+
 	@Override
 	public String toString() {
 
@@ -106,23 +106,46 @@ public class ModelGraph<N extends ReachabilityNode> extends AbstractAOGraph<N, I
 		var nodeMap = new HashMap<ReachabilityNode, Integer>(G.connections.size());
 
 		var builder = new StringBuilder();
-		builder.append("digraph D {").append("\r\n").append("\t node [shape=Mrecord];\r\n");
+
+		if (m instanceof IPOMDP) {
+
+			IPOMDP _m = (IPOMDP) m;
+			builder.append(Global.modelVarsToDot(Global.varNames.get(_m.i_Mj - 1), _m));
+			builder.append("\r\n");
+		}
+		
+		builder.append("\r\n");
+		builder.append("subgraph cluster_").append(G.hashCode()).append(" {\r\n");
+		builder.append("\t node [shape=Mrecord];\r\n");
 
 		for (var _n : G.connections.keySet()) {
 
 			nodeMap.put(_n, nodeMap.size());
-			
-			builder.append(nodeMap.get(_n)).append(" [label=\"{ ");
+
+			builder.append(G.hashCode())
+				.append(nodeMap.get(_n)).append(" [label=\"{ ");
 
 			// if (_n.alphaId < 0)
-			builder.append(" ")
-					.append(String.join(" | --- | ", _n.beliefs.stream().map(b -> DDOP.toDotRecord(b, m.i_S())).collect(Collectors.toList())))
-					.append(" ")
-					.append("| --- | A=");
+			if (_n.beliefs.size() == 1) {
+
+				builder.append(" ").append(String.join(" | --- | ",
+						_n.beliefs.stream().map(b -> DDOP.toDotRecord(b, m.i_S())).collect(Collectors.toList())))
+						.append(" ");
+
+				if (m instanceof IPOMDP) {
+
+					var _m = (IPOMDP) m;
+					var b = _n.beliefs.stream().findFirst().get();
+					builder.append("| --- |")
+							.append(DDOP.getFrameBelief(b, _m.PThetajGivenMj, _m.i_Mj, _m.i_S()).toDot());
+				}
+			}
+
+			builder.append("| --- | A=");
 
 			if (_n.i_a >= 0)
 				builder.append(m.A().get(_n.i_a));
-			
+
 			builder.append(" | alpha= ").append(_n.alphaId).append(" | ");
 
 			if (_n.h >= 0)
@@ -136,10 +159,14 @@ public class ModelGraph<N extends ReachabilityNode> extends AbstractAOGraph<N, I
 		for (var _n : G.connections.keySet()) {
 
 			for (var edge : G.edgeIndexMap.keySet()) {
+				
+				var _node = G.connections.get(_n);
+				var _edge = G.edgeIndexMap.get(edge);
+				
+				if (_node != null && _edge != null && _node.get(_edge) != null) {
 
-				if (G.connections.get(_n).get(G.edgeIndexMap.get(edge)) != null) {
-
-					builder.append(nodeMap.get(_n)).append(" -> ")
+					builder.append(G.hashCode()).append(nodeMap.get(_n)).append(" -> ")
+							.append(G.hashCode())
 							.append(nodeMap.get(G.connections.get(_n).get(G.edgeIndexMap.get(edge))))
 							.append(" [label=\" ")
 							.append(IntStream.range(0, m.i_Om().size())

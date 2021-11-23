@@ -355,7 +355,11 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 		try (PrintWriter out = new PrintWriter(fileName)) {
 
-			out.write(ModelGraph.toDot(modelGraph, _model));
+			var builder = new StringBuilder();
+			builder.append("digraph G {\r\n");
+			builder.append(ModelGraph.toDot(modelGraph, _model));
+			builder.append("}\r\n");
+			out.write(builder.toString());
 			LOGGER.info(String.format("Wrote policy tree to %s", fileName));
 		}
 
