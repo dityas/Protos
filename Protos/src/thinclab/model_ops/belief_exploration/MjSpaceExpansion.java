@@ -9,6 +9,9 @@ package thinclab.model_ops.belief_exploration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ModelGraph;
 import thinclab.models.datastructures.ReachabilityNode;
@@ -32,11 +35,19 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 	 */
 
 	private PolicyGraphExpansion<M, P> expansion = new PolicyGraphExpansion<>(1);
+	
+	private static final Logger LOGGER = LogManager.getLogger(MjSpaceExpansion.class);
 
 	@Override
 	public ModelGraph<ReachabilityNode> expand(List<ReachabilityNode> startNodes,
 			ModelGraph<ReachabilityNode> G, M m, int T, P p) {
 
+		LOGGER.debug(String.format("Expanding from %s", 
+				startNodes.stream()
+					.map(n -> n.beliefs.stream().findFirst().get())
+					//.map(b -> DDOP.factors(b, m.i_S()))
+					.collect(Collectors.toList())));
+		
 		var newEdges = new ArrayList<Tuple3<ReachabilityNode, Tuple<Integer, List<Integer>>, ReachabilityNode>>();
 		var edges = G.edgeIndexMap.entrySet();
 		
@@ -75,9 +86,9 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 	
 		for (var e : newEdges)
 			G.addEdge(e._0(), e._1(), e._2());
-
+		
 		G = expansion.expand(new ArrayList<>(G.getAllChildren()), G, m, T, p);
-
+		
 		return G;
 	}
 

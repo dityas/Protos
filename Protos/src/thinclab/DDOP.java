@@ -547,7 +547,7 @@ public class DDOP {
 			factordds.add(DDOP.addMultVarElim(List.of(dd), _vars));
 			_vars.add(_var);
 		}
-		
+
 		return factordds;
 	}
 
@@ -555,7 +555,7 @@ public class DDOP {
 
 		var factordds = new ArrayList<DD>(vars.size());
 		var _vars = new ArrayList<Integer>(vars);
-		
+
 		for (int i = 0; i < _vars.size(); i++) {
 
 			var _var = _vars.remove(0);
@@ -566,13 +566,28 @@ public class DDOP {
 
 		var builder = new StringBuilder();
 		builder.append(" ")
-				.append(String.join(" | ", 
-						factordds.stream()
-							.map(d -> d.toDot())
-							.collect(Collectors.toList())))
+				.append(String.join(" | ", factordds.stream().map(d -> d.toDot()).collect(Collectors.toList())))
 				.append(" ");
 
 		return builder.toString();
+	}
+
+	public static DD getFrameBelief(final DD b, final DD PThetajGivenMj, final int i_Mj, final List<Integer> vars) {
+
+		int mjIndex = vars.indexOf(i_Mj);
+		var _vars = new ArrayList<>(vars);
+
+		if (mjIndex < 0) {
+
+			LOGGER.error("While getting belief over frame, i_Mj %s is not in i_S %s", i_Mj, vars);
+			System.exit(-1);
+		}
+
+		var _dontCare = _vars.remove(mjIndex);
+		DD b_Mj = DDOP.addMultVarElim(List.of(b), _vars);
+		DD b_Thetaj = DDOP.addMultVarElim(List.of(b_Mj, PThetajGivenMj), List.of(i_Mj));
+
+		return b_Thetaj;
 	}
 
 	// -------------------------------------------------------------------------------------------------

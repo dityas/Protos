@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import thinclab.DDOP;
+import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.MjSpaceExpansion;
 
 /*
@@ -50,13 +52,26 @@ public class PBVISolvableFrameSolution {
 
 	public void solve() {
 
-		MG = ModelGraph.fromDecMakingModel(m);
-		mj_i.stream().forEach(MG::addNode);
-		MG = new MjSpaceExpansion<>().expand(mj_i, MG, m, H, Vn);
+		LOGGER.info("Solving opponent");
+		var b_list = mj_i.stream().flatMap(m -> m.beliefs.stream()).collect(Collectors.toList());
+		Vn = s.solve(b_list, m, 100, H, Vn);
 		
-		// LOGGER.debug(String.format("Graphs is %s", ModelGraph.toDot(MG, m)));
-
-		Vn = s.solve(mj_i.stream().flatMap(m -> m.beliefs.stream()).collect(Collectors.toList()), m, 100, H, Vn);
+		MG = ModelGraph.fromDecMakingModel(m);
+	
+		/*
+		mj_i.stream().forEach(m -> {
+			
+			var b = m.beliefs.stream().findAny().get();
+			var i_a = Vn.getBestActionIndex(b, this.m.i_S());
+			var alphaId = DDOP.bestAlphaIndex(Vn.aVecs, b, this.m.i_S());
+			
+			m.i_a = i_a;
+			m.alphaId = alphaId;
+		});
+		*/
+		
+		mj_i.stream().forEach(MG::addNode);
+		MG = new MjSpaceExpansion<>().expand(mj_i, MG, m, H, Vn);	
 	}
 
 	public List<Tuple<Integer, ReachabilityNode>> mjList() {
