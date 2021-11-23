@@ -82,8 +82,8 @@ public class ReachabilityNode {
 	public String toString() {
 
 		var builder = new StringBuilder();
-		builder.append("ReachabilityNode [").append("alphaId = ").append(alphaId).append(" [b] = ").append(beliefs)
-				.append("t = ").append(h).append("]");
+		builder.append("ReachabilityNode [").append("alphaId = ").append(alphaId).append(" [|b|] = ").append(beliefs.size())
+				.append(" t = ").append(h).append("]");
 		
 		return builder.toString();
 	}

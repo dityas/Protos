@@ -9,6 +9,7 @@ package thinclab.model_ops.belief_exploration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
@@ -41,6 +42,12 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 	public ModelGraph<ReachabilityNode> expand(List<ReachabilityNode> startNodes,
 			ModelGraph<ReachabilityNode> G, M m, int T, P p) {
 
+		LOGGER.debug(String.format("Expanding from %s", 
+				startNodes.stream()
+					.map(n -> n.beliefs.stream().findFirst().get())
+					//.map(b -> DDOP.factors(b, m.i_S()))
+					.collect(Collectors.toList())));
+		
 		var newEdges = new ArrayList<Tuple3<ReachabilityNode, Tuple<Integer, List<Integer>>, ReachabilityNode>>();
 		var edges = G.edgeIndexMap.entrySet();
 		

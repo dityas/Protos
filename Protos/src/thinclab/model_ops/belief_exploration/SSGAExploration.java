@@ -53,6 +53,9 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 					(1 - e)));
 			System.exit(-1);
 		}
+		
+		if (g.getAllNodes().size() >= maxB)
+			return g;
 
 		int startSize = g.getAllNodes().size();
 

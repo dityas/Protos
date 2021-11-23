@@ -229,7 +229,7 @@ public class Global {
 		
 
 		builder.append("}\r\n");
-		m.framesjSoln.forEach(f -> builder.append(ModelGraph.toDot(f.MG, f.m)).append("\r\n"));
+		//m.framesjSoln.forEach(f -> builder.append(ModelGraph.toDot(f.MG, f.m)).append("\r\n"));
 		
 		return builder.toString();
 	}
