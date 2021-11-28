@@ -30,7 +30,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 		implements ExplorationStrategy<DD, M, G, P> {
 
 	private final float e;
-	private final int maxB;
+	public final int maxB;
 
 	private static final Logger LOGGER = LogManager.getLogger(SSGAExploration.class);
 
@@ -76,14 +76,22 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
 						a = Vn.getBestActionIndex(b, m.i_S());
 						var oSampled = DDOP.sample(List.of(m.obsLikelihoods(b, a)), m.i_Om_p());
-
+						
 						var _edge = Tuple.of(a, oSampled._1());
 						var b_ = g.getNodeAtEdge(b, _edge);
 
 						if (b_ == null) {
 
 							var b_n = m.beliefUpdate(b, _edge._0(), _edge._1());
-							g.addEdge(b, _edge, b_n);
+							
+							var distance = g.getAllNodes().stream()
+												.map(_b -> DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b_n))))
+												.reduce(1.0f, (x, y) -> x < y ? x : y);
+							
+							//LOGGER.debug(String.format("Distance is %s", distance));
+							if (distance > 0.01f)
+								g.addEdge(b, _edge, b_n);
+							
 							b = b_n;
 						}
 
@@ -119,14 +127,19 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 						var distances = nextBs.stream()
 								.map(b_s -> g.getAllNodes().stream()
 										.map(b_c -> DDOP.maxAll(DDOP.abs(DDOP.sub(b_s._1(), b_c))))
-										.reduce(0.0f, (x, y) -> x > y ? x : y))
+										.reduce(1.0f, (x, y) -> x < y ? x : y))
 								.collect(Collectors.toList());
-
+						
 						int maxIndex = IntStream.range(0, nextBs.size()).reduce(0,
 								(p, q) -> distances.get(p) > distances.get(q) ? p : q);
-
+						
+						var maxDist = distances.get(maxIndex);
 						var b_n = nextBs.get(maxIndex);
-						g.addEdge(b, b_n._0(), b_n._1());
+					
+						//LOGGER.debug(String.format("Randomized Distance is %s", maxDist));
+						if (maxDist > 0.01f) 
+							g.addEdge(b, b_n._0(), b_n._1());
+						
 						b = b_n._1();
 					}
 

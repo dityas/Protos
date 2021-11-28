@@ -95,12 +95,20 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 				
 		b_is.forEach(g::addNode);
 		
-		LOGGER.info("Starting symbolic Perseus iterations");
+		LOGGER.info(String.format("Starting symbolic Perseus iterations from starting beliefs %s",
+				b_is.stream().map(_b -> DDOP.factors(_b, m.i_S())).collect(Collectors.toList())));
 		for (int i = 0; i < I; i++) {
 
 			// expand belief region
-			if (i % 2 == 0)
+			if (i % 2 == 0) {
+				
+				//if (g.getAllNodes().size() >= ES.maxB) {
+				//	g.getAllChildren().forEach(g::removeNode);
+					//b_is.forEach(g::addNode);
+				//}
+					
 				g = ES.expand(b_i, g, m, H, Vn);
+			}
 			
 			var B = new ArrayList<DD>(g.getAllNodes());
 			long then = System.nanoTime();

@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
@@ -118,6 +119,13 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		LOGGER.info(String.format("Parsed variables: %s", variables));
 
 		Global.primeVarsAndInitGlobals(variables);
+		
+		int totalStates = IntStream.range(0, Global.NUM_VARS / 2)
+				.mapToObj(i -> Global.valNames.get(i).size())
+				.reduce(1, (p, q) -> p * q);
+		
+		LOGGER.info(String.format("Domain has %s random variables representing approx. %s initial states", 
+				Global.NUM_VARS / 2, totalStates));
 
 		super.exitVar_defs(ctx);
 	}
@@ -204,6 +212,17 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 		this.models.put(modelName, pomdp);
 		LOGGER.debug(String.format("Parsed POMDP %s", modelName));
+		LOGGER.info(String.format("POMDP %s has %s state variables representing a total of %s states",
+				modelName, ((POMDP) pomdp).i_S().size(), 
+				pomdp.i_S().stream()
+					.map(i -> Global.valNames.get(i - 1).size())
+					.reduce(1, (p, q) -> p * q)));
+
+		LOGGER.info(String.format("POMDP %s has %s obs variables representing a total of %s obs",
+				modelName, ((POMDP) pomdp).i_Om().size(), 
+				((POMDP) pomdp).i_Om().stream()
+					.map(i -> Global.valNames.get(i - 1).size())
+					.reduce(1, (p, q) -> p * q)));
 
 		super.enterPOMDPDef(ctx);
 	}
