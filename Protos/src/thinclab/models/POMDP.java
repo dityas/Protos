@@ -27,7 +27,6 @@ import thinclab.utils.Tuple3;
  */
 public class POMDP extends PBVISolvablePOMDPBasedModel {
 
-
 	private static final Logger LOGGER = LogManager.getLogger(POMDP.class);
 
 	public POMDP(List<String> S, List<String> O, String A, HashMap<String, Model> dynamics, HashMap<String, DD> R,
@@ -68,26 +67,66 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 	@Override
 	public DD beliefUpdate(DD b, int a, List<Integer> o) {
 
-		var OFao = DDOP.restrict(this.OF.get(a), i_Om_p, o);
+		try {
 
-		// concat b, TF and OF
-		var dynamicsArray = new ArrayList<DD>(1 + i_S.size() + i_Om.size());
-		dynamicsArray.add(b);
-		dynamicsArray.addAll(TF.get(a));
-		dynamicsArray.addAll(OFao);
+			var OFao = DDOP.restrict(this.OF.get(a), i_Om_p, o);
 
-		// Sumout[S] P(O'=o| S, A=a) x P(S'| S, A=a) x P(S)
-		DD nextBelState = DDOP.addMultVarElim(dynamicsArray, i_S);
+			// concat b, TF and OF
+			var dynamicsArray = new ArrayList<DD>(1 + i_S.size() + i_Om.size());
+			dynamicsArray.add(b);
+			dynamicsArray.addAll(TF.get(a));
+			dynamicsArray.addAll(OFao);
 
-		nextBelState = DDOP.primeVars(nextBelState, -(Global.NUM_VARS / 2));
-		DD obsProb = DDOP.addMultVarElim(List.of(nextBelState), i_S);
+			// Sumout[S] P(O'=o| S, A=a) x P(S'| S, A=a) x P(S)
+			DD nextBelState = DDOP.addMultVarElim(dynamicsArray, i_S);
 
-		if (obsProb.getVal() < 1e-8)
-			return DDleaf.getDD(0.0f);
+			nextBelState = DDOP.primeVars(nextBelState, -(Global.NUM_VARS / 2));
+			DD obsProb = DDOP.addMultVarElim(List.of(nextBelState), i_S);
 
-		nextBelState = DDOP.div(nextBelState, obsProb);
+			if (obsProb.getVal() < 1e-8)
+				return DD.zero;
 
-		return nextBelState;
+			nextBelState = DDOP.div(nextBelState, obsProb);
+
+			return nextBelState;
+		}
+
+		catch (Exception e) {
+			
+			LOGGER.error("Error while running POMDP belief update!");
+			
+			LOGGER.info("If you are not able to find the cause of the error, here are the likely causes,");
+			LOGGER.info("1. A DD in the dynamics is defined over wrong variables that are not in the POMDP.");
+			LOGGER.info("2. If there is a sumout expression in the dynamics DBN, there might be a problem with operator precedence. Use brackets.");
+			LOGGER.info("3. You are likely summing out over a wrong variable in the dynamics.");
+			LOGGER.info("If none of the above seem to be the problem, contact me (Aditya Shinde) through GitHub and delay my Ph.D. by another 6 months.");
+			
+			LOGGER.error(String.format("Starting belief %s", b));
+			LOGGER.error(String.format("Actions %s index %s", A().get(a), a));
+			LOGGER.error(String.format("Obs: %s", o));
+			
+			var OFao = DDOP.restrict(this.OF.get(a), i_Om_p, o);
+
+			// concat b, TF and OF
+			var dynamicsArray = new ArrayList<DD>(1 + i_S.size() + i_Om.size());
+			dynamicsArray.add(b);
+			dynamicsArray.addAll(TF.get(a));
+			dynamicsArray.addAll(OFao);
+
+			// Sumout[S] P(O'=o| S, A=a) x P(S'| S, A=a) x P(S)
+			DD nextBelState = DDOP.addMultVarElim(dynamicsArray, i_S);
+			
+			LOGGER.error(String.format("NextBelState %s", nextBelState));
+			
+			nextBelState = DDOP.primeVars(nextBelState, -(Global.NUM_VARS / 2));
+			DD obsProb = DDOP.addMultVarElim(List.of(nextBelState), i_S);
+			LOGGER.error(String.format("Obs Prob: %s", obsProb));
+	
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		
+		return DD.zero;
 	}
 
 	@Override
@@ -150,7 +189,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			}
 
 		}
-
+		
 		if (bestAlpha < 0) {
 
 			LOGGER.error(String.format("Could not find best alpha vector while backing up at %s", b));
@@ -163,40 +202,40 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 	}
 
 	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
-
+		
 		int bestA = -1;
 		float bestVal = Float.NEGATIVE_INFINITY;
 
 		var nextBels = belCache.get(b);
-		
+
 		if (nextBels == null) {
-		
+
 			// build cache entry for this belief
 			nextBels = new HashMap<Integer, List<Tuple3<Integer, DD, Float>>>(A().size());
-			
+
 			for (int a = 0; a < A().size(); a++) {
-				
+
 				var nextBa = new ArrayList<Tuple3<Integer, DD, Float>>();
 				var likelihoods = obsLikelihoods(b, a);
-				
+
 				for (int o = 0; o < oAll.size(); o++) {
-					
+
 					var prob = DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal();
-					
+
 					if (prob < 1e-6f)
 						continue;
-					
+
 					// perform belief update and cache next belief
 					var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o)));
 					if (b_n == null)
 						b_n = beliefUpdate(b, a, oAll.get(o));
-					
+
 					nextBa.add(Tuple.of(o, b_n, prob));
 				}
-				
+
 				nextBels.put(a, nextBa);
 			}
-			
+
 			belCache.put(b, nextBels);
 		}
 
@@ -234,7 +273,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 			Gao.add(argmax_iGaoi);
 		}
-
+		
 		var vec = DD.zero;
 		for (int o = 0; o < Gao.get(bestA).size(); o++) {
 
@@ -243,7 +282,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		}
 
 		var newVec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
-
+		
 		return Tuple.of(bestA, newVec);
 	}
 

@@ -2250,7 +2250,7 @@ public class SpuddXParser extends Parser {
 				setState(318);
 				match(RP);
 				setState(319);
-				dd_expr(4);
+				dd_expr(1);
 				}
 				break;
 			case 3:
@@ -2293,7 +2293,7 @@ public class SpuddXParser extends Parser {
 						((MultDivExprContext)_localctx).left = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_dd_expr);
 						setState(328);
-						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
+						if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
 						setState(329);
 						((MultDivExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
@@ -2303,7 +2303,7 @@ public class SpuddXParser extends Parser {
 							consume();
 						}
 						setState(330);
-						((MultDivExprContext)_localctx).right = dd_expr(3);
+						((MultDivExprContext)_localctx).right = dd_expr(4);
 						}
 						break;
 					case 2:
@@ -2312,7 +2312,7 @@ public class SpuddXParser extends Parser {
 						((AddSubExprContext)_localctx).left = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_dd_expr);
 						setState(331);
-						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
+						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
 						setState(332);
 						((AddSubExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
@@ -2322,7 +2322,7 @@ public class SpuddXParser extends Parser {
 							consume();
 						}
 						setState(333);
-						((AddSubExprContext)_localctx).right = dd_expr(2);
+						((AddSubExprContext)_localctx).right = dd_expr(3);
 						}
 						break;
 					}
@@ -3740,9 +3740,9 @@ public class SpuddXParser extends Parser {
 	private boolean dd_expr_sempred(Dd_exprContext _localctx, int predIndex) {
 		switch (predIndex) {
 		case 0:
-			return precpred(_ctx, 2);
+			return precpred(_ctx, 3);
 		case 1:
-			return precpred(_ctx, 1);
+			return precpred(_ctx, 2);
 		}
 		return true;
 	}
@@ -3854,12 +3854,12 @@ public class SpuddXParser extends Parser {
 		"\t\3\2\2\u0138\u0149\5\66\34\7\u0139\u013a\7\25\2\2\u013a\u013c\7)\2\2"+
 		"\u013b\u013d\5Z.\2\u013c\u013b\3\2\2\2\u013d\u013e\3\2\2\2\u013e\u013c"+
 		"\3\2\2\2\u013e\u013f\3\2\2\2\u013f\u0140\3\2\2\2\u0140\u0141\7*\2\2\u0141"+
-		"\u0142\5\66\34\6\u0142\u0149\3\2\2\2\u0143\u0149\58\35\2\u0144\u0145\7"+
+		"\u0142\5\66\34\3\u0142\u0149\3\2\2\2\u0143\u0149\58\35\2\u0144\u0145\7"+
 		")\2\2\u0145\u0146\5\66\34\2\u0146\u0147\7*\2\2\u0147\u0149\3\2\2\2\u0148"+
 		"\u0136\3\2\2\2\u0148\u0139\3\2\2\2\u0148\u0143\3\2\2\2\u0148\u0144\3\2"+
-		"\2\2\u0149\u0152\3\2\2\2\u014a\u014b\f\4\2\2\u014b\u014c\t\4\2\2\u014c"+
-		"\u0151\5\66\34\5\u014d\u014e\f\3\2\2\u014e\u014f\t\3\2\2\u014f\u0151\5"+
-		"\66\34\4\u0150\u014a\3\2\2\2\u0150\u014d\3\2\2\2\u0151\u0154\3\2\2\2\u0152"+
+		"\2\2\u0149\u0152\3\2\2\2\u014a\u014b\f\5\2\2\u014b\u014c\t\4\2\2\u014c"+
+		"\u0151\5\66\34\6\u014d\u014e\f\4\2\2\u014e\u014f\t\3\2\2\u014f\u0151\5"+
+		"\66\34\5\u0150\u014a\3\2\2\2\u0150\u014d\3\2\2\2\u0151\u0154\3\2\2\2\u0152"+
 		"\u0150\3\2\2\2\u0152\u0153\3\2\2\2\u0153\67\3\2\2\2\u0154\u0152\3\2\2"+
 		"\2\u0155\u0156\7)\2\2\u0156\u015c\5Z.\2\u0157\u0158\7)\2\2\u0158\u0159"+
 		"\5\\/\2\u0159\u015a\5\66\34\2\u015a\u015b\7*\2\2\u015b\u015d\3\2\2\2\u015c"+

@@ -47,6 +47,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 		while (B.size() > 0) {
 			
+			//LOGGER.debug(String.format("B: %s", B.stream().map(b -> DDOP.factors(b, m.i_S())).collect(Collectors.toList())));
 			DD b = B.remove(Global.random.nextInt(B.size()));
 			
 			var newAlpha = m.backup(b, Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList()), g);

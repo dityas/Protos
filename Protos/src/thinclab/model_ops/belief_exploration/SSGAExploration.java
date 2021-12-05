@@ -14,9 +14,7 @@ import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
-import thinclab.legacy.Global;
 import thinclab.legacy.DD;
-import thinclab.legacy.DDleaf;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
 import thinclab.policy.Policy;
@@ -137,10 +135,11 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 						var b_n = nextBs.get(maxIndex);
 					
 						//LOGGER.debug(String.format("Randomized Distance is %s", maxDist));
-						if (maxDist > 0.01f) 
+						if (maxDist > 0.01f) { 
 							g.addEdge(b, b_n._0(), b_n._1());
 						
-						b = b_n._1();
+							b = b_n._1();
+						}
 					}
 
 					else {

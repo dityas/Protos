@@ -84,10 +84,10 @@ dd_def : LP 'defdd' dd_name dd_expr RP ;
 
 dd_expr : dd_decl 											# AtomicExpr
 		| op=(OP_ADD | OP_SUB) term=dd_expr 				# NegExpr
-		| '#' LP (var_name)+ RP dd_expr 					# SumoutExpr
 		| LP dd_expr RP										# ParenExpr
 		| left=dd_expr op=(OP_MUL | OP_DIV) right=dd_expr	# MultDivExpr
 		| left=dd_expr op=(OP_ADD | OP_SUB) right=dd_expr	# AddSubExpr
+		| '#' LP (var_name)+ RP dd_expr 					# SumoutExpr
 		;
 		
 dd_decl : LP var_name (LP var_value dd_expr RP)+ RP 	# DDDecl
