@@ -96,20 +96,21 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 				
 		b_is.forEach(g::addNode);
 		
+		// initial belief exploration
+		var _then = System.nanoTime();
+		
+		var _ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(1 - (1.0f / m.A().size()));
+		g = _ES.expand(b_i, g, m, H, Vn);
+		var _now = System.nanoTime();
+		LOGGER.info(String.format("Initial belief exploration took %s msecs", ((_now - _then) / 1000000.0)));
+		
 		LOGGER.info(String.format("Starting symbolic Perseus iterations from starting beliefs %s",
 				b_is.stream().map(_b -> DDOP.factors(_b, m.i_S())).collect(Collectors.toList())));
 		for (int i = 0; i < I; i++) {
 
 			// expand belief region
-			if (i % 2 == 0) {
-				
-				//if (g.getAllNodes().size() >= ES.maxB) {
-				//	g.getAllChildren().forEach(g::removeNode);
-					//b_is.forEach(g::addNode);
-				//}
-					
-				g = ES.expand(b_i, g, m, H, Vn);
-			}
+			//if (i % 2 == 0)
+			//	g = ES.expand(b_i, g, m, H, Vn);
 			
 			var B = new ArrayList<DD>(g.getAllNodes());
 			long then = System.nanoTime();
@@ -130,7 +131,10 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 					String.format("iter: %s | bell err: %.5f | time: %.3f msec | num vectors: %s | beliefs used: %s/%s",
 							i, bellmanError, backupT, Vn_p.aVecs.size(), this.usedBeliefs, B.size()));
 			
-			if (bellmanError != 0.0f && bellmanError < 0.01 && i > 5) {
+			if (bellmanError < 0.1f && bellmanError >= 0.01f && i > 0)
+				g = ES.expand(b_i, g, m, H, Vn);
+			
+			if (bellmanError < 0.01 && i > 5) {
 								
 				LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));
 				LOGGER.info("Convergence, software version 7.0, looking at life through the eyes of a tired heart.");

@@ -312,7 +312,6 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 				System.exit(-1);
 			}
 
-			LOGGER.info(String.format("Starting solver %s with initial beliefs %s", solverName, dds));
 			SymbolicPerseusSolver<IPOMDP> solver = (SymbolicPerseusSolver<IPOMDP>) this.solvers.get(solverName);
 			var policy = solver.solve(dds, _model, backups, _model.H, AlphaVectorPolicy.fromR(_model.R()));
 

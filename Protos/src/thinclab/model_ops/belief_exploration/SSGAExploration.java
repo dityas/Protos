@@ -83,11 +83,12 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 							var b_n = m.beliefUpdate(b, _edge._0(), _edge._1());
 							
 							var distance = g.getAllNodes().stream()
-												.map(_b -> DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b_n))))
-												.reduce(1.0f, (x, y) -> x < y ? x : y);
+												.filter(_b -> DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b_n))) < 0.1f)
+												.findFirst();
+												//.reduce(1.0f, (x, y) -> x < y ? x : y);
 							
 							//LOGGER.debug(String.format("Distance is %s", distance));
-							if (distance > 0.01f)
+							if (distance.isEmpty())
 								g.addEdge(b, _edge, b_n);
 							
 							b = b_n;
@@ -135,11 +136,10 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 						var b_n = nextBs.get(maxIndex);
 					
 						//LOGGER.debug(String.format("Randomized Distance is %s", maxDist));
-						if (maxDist > 0.01f) { 
+						if (maxDist > 0.01f) 
 							g.addEdge(b, b_n._0(), b_n._1());
 						
-							b = b_n._1();
-						}
+						b = b_n._1();
 					}
 
 					else {

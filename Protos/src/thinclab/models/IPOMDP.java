@@ -228,6 +228,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		Global.replaceValues(i_Mj_p, sortedVals);
 
 		LOGGER.debug(String.format("Interactive state space has %s models", Global.valNames.get(i_Mj - 1).size()));
+		LOGGER.debug(String.format("IPOMDP has %s interactive states in total",
+				i_S().stream().map(i -> Global.valNames.get(i - 1).size()).reduce(1, (p, q) -> p * q) * Global.valNames.get(i_Mj - 1).size()));
 	}
 
 	public void createPAjMj() {
@@ -259,6 +261,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createPMj_pMjAjOj_p() {
 
+		var then = System.nanoTime();
+		
 		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
 
 		var triples = framesjSoln.stream().flatMap(f -> f.getTriples().stream())
@@ -303,6 +307,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 				return DDOP.addMultVarElim(factors, i_Omj_p);
 			}).collect(Collectors.toList());
+		
+		var now = System.nanoTime();
+		LOGGER.debug(String.format("Building P(Mj'|Mj,Aj,Oj') took %s msecs", ((now - then) / 1000000.0)));
 	}
 
 	@Override

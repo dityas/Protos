@@ -19,6 +19,7 @@ import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 import thinclab.DDOP;
+import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 
 /*
@@ -45,7 +46,7 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 		LOGGER.debug(String.format("Expanding from %s", 
 				startNodes.stream()
 					.map(n -> n.beliefs.stream().findFirst().get())
-					//.map(b -> DDOP.factors(b, m.i_S()))
+					.map(b -> DDOP.factors(b, m.i_S()))
 					.collect(Collectors.toList())));
 		
 		var newEdges = new ArrayList<Tuple3<ReachabilityNode, Tuple<Integer, List<Integer>>, ReachabilityNode>>();
@@ -65,7 +66,7 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 								var b_next = m.beliefUpdate(b, bestAct, k.getKey()._1());
 
 								// if belief is valid, add it to the set of unexplored beliefs in next nodes
-								if (!b_next.equals(DDleaf.getDD(Float.NaN))) {
+								if (!b_next.equals(DD.zero)) {
 
 									int bestAlpha = DDOP.bestAlphaIndex(p.aVecs, b_next, m.i_S());
 									ReachabilityNode _node = new ReachabilityNode(bestAlpha,
