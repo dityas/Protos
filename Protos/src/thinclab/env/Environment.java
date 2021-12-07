@@ -19,5 +19,5 @@ public interface Environment<S extends DD> {
 
 	public void init(S s);
 	
-	public List<S> step(List<Tuple<Integer, Integer>> actions);
+	public Tuple<List<Integer>, List<Integer>> step(List<Tuple<Integer, Integer>> actions);
 }

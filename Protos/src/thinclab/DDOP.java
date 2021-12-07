@@ -792,6 +792,11 @@ public class DDOP {
 				bestIndex = i;
 			}
 		}
+		
+		if (bestIndex < 0) {
+			LOGGER.error(String.format("Error while getting best action from %s at %s", Vn, b));
+			System.exit(-1);
+		}
 
 		return bestIndex;
 	}

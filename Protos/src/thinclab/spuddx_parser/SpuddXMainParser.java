@@ -22,7 +22,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.env.Environment;
-import thinclab.env.PartiallObservableEnv;
+import thinclab.env.PartiallyObservableEnv;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.PolicyTreeExpansion;
@@ -412,7 +412,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		var O = ctx.env_def().obs_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
 		
 		DBN dynamics = (DBN) modelParser.visit(ctx.env_def().dbn_def());
-		var env = new PartiallObservableEnv<>(S, O, dynamics, null);
+		var env = new PartiallyObservableEnv(S, O, dynamics, null);
 		env.name = envName;
 		
 		envs.put(envName, env);

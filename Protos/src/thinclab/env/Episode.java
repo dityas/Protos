@@ -12,6 +12,6 @@ package thinclab.env;
  * @author adityas
  *
  */
-public interface SimulationTrace {
+public interface Episode {
 
 }

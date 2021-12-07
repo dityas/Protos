@@ -1,13 +1,21 @@
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import thinclab.env.PartiallyObservableEnv;
+import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.models.POMDP;
+import thinclab.policy.AlphaVectorPolicy;
+import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
+import thinclab.utils.Tuple;
 
 /*
  *	THINC Lab at UGA | Cyber Deception Group
@@ -76,10 +84,30 @@ class TestSimulations {
 		LOGGER.debug("Making initial state");
 		var s = DDnode.getDDForChild("TigerLoc", "TR");
 		
+		var solver = new SymbolicPerseusSolver<>();
+		var Vn = solver.solve(List.of(DDleaf.getDD(0.5f)), J, 100, 10, AlphaVectorPolicy.fromR(J.R()));
+		
+		LOGGER.info("Solved POMDP for infinite horizon");
+		
 		LOGGER.debug(String.format("Setting initial state to %s", s));
 		env.init(s);
+
+		var obs = env.step(
+				List.of(Tuple.of(
+						J.i_A, 
+						Vn.getBestActionIndex(DDleaf.getDD(0.5f), J.i_S()) + 1)));
 		
+		var statesList = new ArrayList<DD>();
+		for (int i = 0; i < 10; i++) {
+			
+			var _obs = env.step(List.of(Tuple.of(J.i_A, 2)));
+			statesList.add(((PartiallyObservableEnv) env).s);
+		}
 		
+		LOGGER.debug(String.format("After 10 OL transitions, states are %s", statesList));
+		var result = statesList.stream().reduce(s, (p, q) -> p.equals(q) ? p : DD.zero);
+		
+		assertEquals(result, DD.zero);
 
 	}
 
