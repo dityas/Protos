@@ -101,6 +101,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterEnvDef(SpuddXParser.EnvDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitEnvDef(SpuddXParser.EnvDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterDBNDef(SpuddXParser.DBNDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -180,6 +192,18 @@ public class SpuddXBaseListener implements SpuddXListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitIpomdp_def(SpuddXParser.Ipomdp_defContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterEnv_def(SpuddXParser.Env_defContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitEnv_def(SpuddXParser.Env_defContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

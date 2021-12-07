@@ -133,6 +133,20 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 	}
 
 	@Override
+	public Model visitDbn_def(SpuddXParser.Dbn_defContext ctx) {
+
+		HashMap<Integer, DD> cpds = new HashMap<>(5);
+
+		// <var, DD> hashmap entries from (cpd_def)*
+		ctx.cpd_def().stream().forEach(
+				d -> cpds.put(Global.varNames.indexOf(d.var_name().getText()) + 1, this.ddParser.visit(d.dd_expr())));
+
+		var dbn = new DBN(cpds);
+
+		return dbn;
+	}
+
+	@Override
 	public Model visitPreDefModel(SpuddXParser.PreDefModelContext ctx) {
 
 		var name = ctx.model_name().IDENTIFIER().getText();

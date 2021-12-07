@@ -45,6 +45,8 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 	public final List<List<DD>> TF;
 	public final List<List<DD>> OF;
 	public List<DD> R;
+	
+	public String name;
 
 	protected TypedCacheMap<DD, HashMap<Integer, List<Tuple3<Integer, DD, Float>>>> belCache = new TypedCacheMap<>(1000);
 	private static final Logger LOGGER = LogManager.getLogger(PBVISolvablePOMDPBasedModel.class);
@@ -53,8 +55,8 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 			HashMap<String, DD> R, float discount) {
 
 		// variable names
-		this.S = this.sortByVarOrdering(S, Global.varNames);
-		this.O = this.sortByVarOrdering(O, Global.varNames);
+		this.S = Global.sortByVarOrdering(S, Global.varNames);
+		this.O = Global.sortByVarOrdering(O, Global.varNames);
 		this.A = Global.valNames.get(Global.varNames.indexOf(A));
 
 		// variable indices
@@ -122,20 +124,7 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 
 		return Oa;
 	}
-
-	private List<String> sortByVarOrdering(List<String> varList, List<String> ordering) {
-
-		var unknownVar = varList.stream().filter(v -> ordering.indexOf(v) < 0).findFirst();
-		if (unknownVar.isPresent()) {
-
-			LOGGER.error(String.format("Symbol %s is not defined in %s", unknownVar.get(), ordering));
-			return null;
-		}
-
-		Collections.sort(varList, (a, b) -> ordering.indexOf(a) - ordering.indexOf(b));
-		return varList;
-	}
-	
+		
 	public void clearBackupCache() {
 		belCache.clear();
 	}
@@ -207,6 +196,11 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 	public List<DD> R() {
 
 		return this.R;
+	}
+	
+	@Override
+	public String getName() {
+		return this.name;
 	}
 
 }

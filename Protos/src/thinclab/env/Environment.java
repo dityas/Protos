@@ -8,16 +8,16 @@
 package thinclab.env;
 
 import java.util.List;
+import thinclab.legacy.DD;
+import thinclab.utils.Tuple;
 
 /*
  * @author adityas
  *
  */
-public interface Environment {
+public interface Environment<S extends DD> {
 
-	public int[] getObsForVars(int[] O);
-
-	public int[] getStateForVars(int[] S);
-
-	public void step(List<String> actions);
+	public void init(S s);
+	
+	public List<S> step(List<Tuple<Integer, Integer>> actions);
 }

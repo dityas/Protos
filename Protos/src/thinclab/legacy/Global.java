@@ -178,6 +178,20 @@ public class Global {
 		System.out.println("\rProgress: 100% Converged. Solving next round.\t\t\t\t\t\t\t\t\t");
 	}
 
+	public static List<String> sortByVarOrdering(List<String> varList, List<String> ordering) {
+
+		var unknownVar = varList.stream().filter(v -> ordering.indexOf(v) < 0).findFirst();
+		if (unknownVar.isPresent()) {
+
+			LOGGER.error(String.format("Symbol %s is not defined in %s", unknownVar.get(), ordering));
+			return null;
+		}
+
+		Collections.sort(varList, (a, b) -> ordering.indexOf(a) - ordering.indexOf(b));
+		return varList;
+	}
+
+	
 	public static String modelVarsToDot(String v, IPOMDP m) {
 
 		var builder = new StringBuilder();

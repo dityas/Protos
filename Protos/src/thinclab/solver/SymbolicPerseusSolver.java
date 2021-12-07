@@ -10,14 +10,11 @@ package thinclab.solver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
-import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
-import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
@@ -102,9 +99,9 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		var _ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(1 - (1.0f / m.A().size()));
 		g = _ES.expand(b_i, g, m, H, Vn);
 		var _now = System.nanoTime();
-		LOGGER.info(String.format("Initial belief exploration took %s msecs", ((_now - _then) / 1000000.0)));
+		LOGGER.info(String.format("Initial belief exploration for %s took %s msecs", m.getName(), ((_now - _then) / 1000000.0)));
 		
-		LOGGER.info(String.format("Starting symbolic Perseus iterations from starting beliefs %s",
+		LOGGER.info(String.format("Starting symbolic Perseus iterations for %s from starting beliefs %s", m.getName(),
 				b_is.stream().map(_b -> DDOP.factors(_b, m.i_S())).collect(Collectors.toList())));
 		for (int i = 0; i < I; i++) {
 

@@ -18,6 +18,7 @@ all_def : model_name			# PreDefModel
 		| dd_def 				# DDDef
 		| pomdp_def 			# POMDPDef
 		| ipomdp_def 			# IPOMDPDef
+		| env_def 				# EnvDef
 		| dbn_def				# DBNDef
 		| pbvi_solv_def 		# PBVISolverDef
 		| modelvar_init_def		# ModelVarInitDef
@@ -50,7 +51,15 @@ ipomdp_def : LP 'defipomdp' model_name
              reachability
              RP
              ;
-             
+
+env_def : LP 'defenv' env_name
+		states_list
+		obs_list
+		dbn_def
+		reward
+		RP
+		;
+            
 modelvar_init_def : LP 'initmodelvar' var_name
 					LP 'frames' var_name RP
 					LP (model_init)+ RP 
@@ -153,3 +162,4 @@ RP : ')' ;
 
 WS : [ \t\r\n]+ -> skip ;
 LINE_COMMENT : '--' ~[\r\n]* -> skip ;
+

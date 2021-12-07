@@ -21,6 +21,8 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import thinclab.env.Environment;
+import thinclab.env.PartiallObservableEnv;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.PolicyTreeExpansion;
@@ -37,6 +39,7 @@ import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXParser.DBNDefContext;
 import thinclab.spuddx_parser.SpuddXParser.DDDefContext;
 import thinclab.spuddx_parser.SpuddXParser.DDExecDefContext;
+import thinclab.spuddx_parser.SpuddXParser.EnvDefContext;
 import thinclab.spuddx_parser.SpuddXParser.IPOMDPDefContext;
 import thinclab.spuddx_parser.SpuddXParser.Modelvar_init_defContext;
 import thinclab.spuddx_parser.SpuddXParser.PBVISolverDefContext;
@@ -64,6 +67,9 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 	// parsed Models
 	private HashMap<String, Model> models = new HashMap<>(10);
 	private ModelsParser modelParser = new ModelsParser(this.ddParser, this.models);
+	
+	// parsed environments
+	public HashMap<String, Environment<DD>> envs = new HashMap<>(10);
 
 	// visitor for parsing variable definitions
 	private VarDefVisitor varVisitor = new VarDefVisitor();
@@ -182,6 +188,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 	public void enterDBNDef(DBNDefContext ctx) {
 
 		String modelName = ctx.dbn_def().model_name().IDENTIFIER().getText();
+		LOGGER.debug(String.format("Parsing DBN %s", modelName));
 		Model dbn = this.modelParser.visit(ctx);
 
 		if (!(dbn instanceof DBN)) {
@@ -209,6 +216,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		}
 
 		Model pomdp = this.modelParser.visit(ctx);
+		((POMDP) pomdp).name = modelName;
 
 		this.models.put(modelName, pomdp);
 		LOGGER.debug(String.format("Parsed POMDP %s", modelName));
@@ -240,6 +248,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		}
 
 		Model ipomdp = this.modelParser.visit(ctx);
+		((IPOMDP) ipomdp).name = modelName;
 
 		this.models.put(modelName, ipomdp);
 		LOGGER.debug(String.format("Parsed IPOMDP %s", modelName));
@@ -389,6 +398,28 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+	}
+	
+	@Override
+	public void enterEnvDef(EnvDefContext ctx) {
+
+	
+		var envName = ctx.env_def().env_name().IDENTIFIER().getText();
+		
+		LOGGER.info(String.format("Parsing environment %s", envName));
+		
+		var S = ctx.env_def().states_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
+		var O = ctx.env_def().obs_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
+		
+		DBN dynamics = (DBN) modelParser.visit(ctx.env_def().dbn_def());
+		var env = new PartiallObservableEnv<>(S, O, dynamics, null);
+		env.name = envName;
+		
+		envs.put(envName, env);
+		
+		LOGGER.info(String.format("Parsed env %s", env));
+		
+		super.enterEnvDef(ctx);
 	}
 
 	@Override
