@@ -342,6 +342,10 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		// stateVars.add(i_Thetaj);
 
 		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
+		
+		if (DDOP.abs(DDOP.sub(prob, DD.zero)).getVal() < 1e-6)
+			return DD.zero;
+		
 		b_p = DDOP.div(b_p, prob);
 		// LOGGER.debug(String.format("obs prob for %s from belief %s to belief %s with
 		// state vars %s is %s", o,
