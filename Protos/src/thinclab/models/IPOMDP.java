@@ -229,7 +229,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		LOGGER.debug(String.format("Interactive state space for %s has %s models", getName(), Global.valNames.get(i_Mj - 1).size()));
 		LOGGER.debug(String.format("IPOMDP %s has %s interactive states in total", getName(),
-				i_S().stream().map(i -> Global.valNames.get(i - 1).size()).reduce(1, (p, q) -> p * q) * Global.valNames.get(i_Mj - 1).size()));
+				i_S().stream().map(i -> Global.valNames.get(i - 1).size()).reduce(1, (p, q) -> p * q)));
 	}
 
 	public void createPAjMj() {

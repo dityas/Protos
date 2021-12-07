@@ -7,14 +7,20 @@
  */
 package thinclab.env;
 
+import java.util.List;
 import thinclab.legacy.DD;
+import thinclab.models.PBVISolvablePOMDPBasedModel;
+import thinclab.solver.SymbolicPerseusSolver;
+import thinclab.utils.Tuple;
 
 /*
  * @author adityas
  *
  */
 public interface Simulator<E extends Environment<DD>> {
-	
-	public Episode run(E env, DD s);
+
+	public Episode run(E env, DD s,
+			List<Tuple<PBVISolvablePOMDPBasedModel, SymbolicPerseusSolver<PBVISolvablePOMDPBasedModel>>> agents,
+			int len);
 
 }
