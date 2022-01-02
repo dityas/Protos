@@ -59,6 +59,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public List<Tuple3<Integer, PBVISolvablePOMDPBasedModel, List<ReachabilityNode>>> framesj;
 	public List<PBVISolvableFrameSolution> framesjSoln;
 
+	private boolean debug = true;
 	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
 
 	public IPOMDP(List<String> S, List<String> O, String A, String Aj, String Mj, String Thetaj,
@@ -204,21 +205,20 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				// If this node was initialized in the domain file, we'll need to populate the
 				// optimal action and the optimal alpha vector
 				/*
-				if (f._1().i_a == -1 && f._1().beliefs.size() == 1) {
-
-					String mName = mjMap.remove(key);
-
-					var _b = f._1().beliefs.stream().findFirst().get();
-					int i_a = this.framesjSoln.get(f._0()).Vn.getBestActionIndex(_b, framesj.get(f._0())._1().i_S());
-					int alphaId = DDOP.bestAlphaIndex(framesjSoln.get(f._0()).Vn.aVecs, _b,
-							framesj.get(f._0())._1().i_S());
-
-					f._1().i_a = i_a;
-					f._1().alphaId = alphaId;
-
-					mjMap.put(Tuple.of(f._0(), f._1()), mName);
-				}
-				*/
+				 * if (f._1().i_a == -1 && f._1().beliefs.size() == 1) {
+				 * 
+				 * String mName = mjMap.remove(key);
+				 * 
+				 * var _b = f._1().beliefs.stream().findFirst().get(); int i_a =
+				 * this.framesjSoln.get(f._0()).Vn.getBestActionIndex(_b,
+				 * framesj.get(f._0())._1().i_S()); int alphaId =
+				 * DDOP.bestAlphaIndex(framesjSoln.get(f._0()).Vn.aVecs, _b,
+				 * framesj.get(f._0())._1().i_S());
+				 * 
+				 * f._1().i_a = i_a; f._1().alphaId = alphaId;
+				 * 
+				 * mjMap.put(Tuple.of(f._0(), f._1()), mName); }
+				 */
 			});
 
 		var sortedVals = mjMap.values().stream().collect(Collectors.toList());
@@ -227,7 +227,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		Global.replaceValues(i_Mj, sortedVals);
 		Global.replaceValues(i_Mj_p, sortedVals);
 
-		LOGGER.debug(String.format("Interactive state space for %s has %s models", getName(), Global.valNames.get(i_Mj - 1).size()));
+		LOGGER.debug(String.format("Interactive state space for %s has %s models", getName(),
+				Global.valNames.get(i_Mj - 1).size()));
 		LOGGER.debug(String.format("IPOMDP %s has %s interactive states in total", getName(),
 				i_S().stream().map(i -> Global.valNames.get(i - 1).size()).reduce(1, (p, q) -> p * q)));
 	}
@@ -243,7 +244,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		var AjDDs = MjToOPTAj.stream().map(m -> m._1()).toArray(DD[]::new);
 		PAjGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, AjDDs));
-		
+
 	}
 
 	public void createPThetajMj() {
@@ -262,7 +263,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public void createPMj_pMjAjOj_p() {
 
 		var then = System.nanoTime();
-		
+
 		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
 
 		var triples = framesjSoln.stream().flatMap(f -> f.getTriples().stream())
@@ -272,9 +273,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 						// convert everything into list
 						List<Integer> valList = new ArrayList<>(t._1().size() + 2);
 						valList.add(Global.valNames.get(i_Mj - 1).indexOf(t._0()) + 1);
-						
+
 						valList.addAll(t._1());
-						
+
 						valList.add(Global.valNames.get(i_Mj_p - 1).indexOf(t._2()) + 1);
 
 						return valList;
@@ -307,9 +308,10 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 				return DDOP.addMultVarElim(factors, i_Omj_p);
 			}).collect(Collectors.toList());
-		
+
 		var now = System.nanoTime();
-		LOGGER.debug(String.format("Building P(Mj'|Mj,Aj,Oj') for %s took %s msecs", getName(), ((now - then) / 1000000.0)));
+		LOGGER.debug(
+				String.format("Building P(Mj'|Mj,Aj,Oj') for %s took %s msecs", getName(), ((now - then) / 1000000.0)));
 	}
 
 	@Override
@@ -342,10 +344,10 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		// stateVars.add(i_Thetaj);
 
 		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
-		
+
 		if (DDOP.abs(DDOP.sub(prob, DD.zero)).getVal() < 1e-6)
 			return DD.zero;
-		
+
 		b_p = DDOP.div(b_p, prob);
 		// LOGGER.debug(String.format("obs prob for %s from belief %s to belief %s with
 		// state vars %s is %s", o,
@@ -437,37 +439,48 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		float bestVal = Float.NEGATIVE_INFINITY;
 
 		var nextBels = belCache.get(b);
-		
+
+		long missThen = System.nanoTime();
+
 		if (nextBels == null) {
-		
+
 			// build cache entry for this belief
 			nextBels = new HashMap<Integer, List<Tuple3<Integer, DD, Float>>>(A().size());
-			
+
 			for (int a = 0; a < A().size(); a++) {
-				
+
 				var nextBa = new ArrayList<Tuple3<Integer, DD, Float>>();
 				var likelihoods = obsLikelihoods(b, a);
-				
+
 				for (int o = 0; o < oAll.size(); o++) {
-					
+
 					var prob = DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal();
-					
+
 					if (prob < 1e-6f)
 						continue;
-					
+
 					// perform belief update and cache next belief
 					var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o)));
 					if (b_n == null)
 						b_n = beliefUpdate(b, a, oAll.get(o));
-					
+
 					nextBa.add(Tuple.of(o, b_n, prob));
 				}
-				
+
 				nextBels.put(a, nextBa);
 			}
-			
+
 			belCache.put(b, nextBels);
+
+			if (debug) {
+
+				float missT = (System.nanoTime() - missThen) / 1000000.0f;
+				LOGGER.debug(String.format("Cache missed computation took %s msecs", missT));
+			}
+
 		}
+
+		long hitThen = System.nanoTime();
 
 		// compute everything from the cached entries
 		var Gao = new ArrayList<ArrayList<Tuple<Integer, DD>>>(A().size());
@@ -479,11 +492,11 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			var argmax_iGaoi = new ArrayList<Tuple<Integer, DD>>(nextBa.size());
 
 			// project to next belief for all observations and compute values
-			for (int o = 0; o < nextBa.size(); o++) {
+			for (var ba : nextBa) {
 
-				var obsIndex = nextBa.get(o)._0();
-				var b_n = nextBa.get(o)._1();
-				var prob = nextBa.get(o)._2();
+				var obsIndex = ba._0();
+				var b_n = ba._1();
+				var prob = ba._2();
 
 				var bestAlpha = Gaoi(b_n, a, oAll.get(obsIndex), alphas);
 
@@ -502,6 +515,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			}
 
 			Gao.add(argmax_iGaoi);
+
+		}
+		
+		if (debug) {
+
+			float hitT = (System.nanoTime() - hitThen) / 1000000.0f;
+			LOGGER.debug(String.format("Cache hit computation took %s msecs", hitT));
 		}
 
 		var vec = DD.zero;

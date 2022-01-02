@@ -384,6 +384,10 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
 			var builder = new StringBuilder();
 			builder.append("digraph G {\r\n");
+			//builder.append("layout=neato;\r\n");
+			builder.append("overlap=false;\r\n");
+			builder.append("sep=1.0;\r\n");
+			builder.append("splines=true;\r\n");
 			builder.append(ModelGraph.toDot(modelGraph, _model));
 			builder.append("}\r\n");
 			out.write(builder.toString());
