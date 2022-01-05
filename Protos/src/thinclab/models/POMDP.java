@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
@@ -92,19 +94,21 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		}
 
 		catch (Exception e) {
-			
+
 			LOGGER.error("Error while running POMDP belief update!");
-			
+
 			LOGGER.info("If you are not able to find the cause of the error, here are the likely causes,");
 			LOGGER.info("1. A DD in the dynamics is defined over wrong variables that are not in the POMDP.");
-			LOGGER.info("2. If there is a sumout expression in the dynamics DBN, there might be a problem with operator precedence. Use brackets.");
+			LOGGER.info(
+					"2. If there is a sumout expression in the dynamics DBN, there might be a problem with operator precedence. Use brackets.");
 			LOGGER.info("3. You are likely summing out over a wrong variable in the dynamics.");
-			LOGGER.info("If none of the above seem to be the problem, contact me (Aditya Shinde) through GitHub and delay my Ph.D. by another 6 months.");
-			
+			LOGGER.info(
+					"If none of the above seem to be the problem, contact me (Aditya Shinde) through GitHub and delay my Ph.D. by another 6 months.");
+
 			LOGGER.error(String.format("Starting belief %s", b));
 			LOGGER.error(String.format("Actions %s index %s", A().get(a), a));
 			LOGGER.error(String.format("Obs: %s", o));
-			
+
 			var OFao = DDOP.restrict(this.OF.get(a), i_Om_p, o);
 
 			// concat b, TF and OF
@@ -115,17 +119,17 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 			// Sumout[S] P(O'=o| S, A=a) x P(S'| S, A=a) x P(S)
 			DD nextBelState = DDOP.addMultVarElim(dynamicsArray, i_S);
-			
+
 			LOGGER.error(String.format("NextBelState %s", nextBelState));
-			
+
 			nextBelState = DDOP.primeVars(nextBelState, -(Global.NUM_VARS / 2));
 			DD obsProb = DDOP.addMultVarElim(List.of(nextBelState), i_S);
 			LOGGER.error(String.format("Obs Prob: %s", obsProb));
-	
+
 			e.printStackTrace();
 			System.exit(-1);
 		}
-		
+
 		return DD.zero;
 	}
 
@@ -189,7 +193,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			}
 
 		}
-		
+
 		if (bestAlpha < 0) {
 
 			LOGGER.error(String.format("Could not find best alpha vector while backing up at %s", b));
@@ -201,8 +205,27 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		return Tuple.of(bestVal, bestAlpha);
 	}
 
+	public List<Tuple3<Integer, DD, Float>> computeNextBaParallel(DD b, DD likelihoods, int a, ReachabilityGraph g) {
+
+		var res = IntStream.range(0, oAll.size()).parallel().boxed()
+				.map(o -> Tuple.of(DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal(), o))
+				.filter(o -> o._0() > 1e-6f).map(o ->
+					{
+
+						var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o._1())));
+
+						if (b_n == null)
+							b_n = beliefUpdate(b, a, oAll.get(o._1()));
+
+						return Tuple.of(o._1(), b_n, o._0());
+					})
+				.collect(Collectors.toList());
+
+		return res;
+	}
+
 	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
-		
+
 		int bestA = -1;
 		float bestVal = Float.NEGATIVE_INFINITY;
 
@@ -211,32 +234,53 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		if (nextBels == null) {
 
 			// build cache entry for this belief
+			// nextBels = new HashMap<Integer, List<Tuple3<Integer, DD,
+			// Float>>>(A().size());
+
+			// for (int a = 0; a < A().size(); a++) {
+
+			// var nextBa = new ArrayList<Tuple3<Integer, DD, Float>>();
+			// var likelihoods = obsLikelihoods(b, a);
+
+			// for (int o = 0; o < oAll.size(); o++) {
+
+			// var prob = DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal();
+
+			// if (prob < 1e-6f)
+			// continue;
+
+			// perform belief update and cache next belief
+			// var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o)));
+			// if (b_n == null)
+			// b_n = beliefUpdate(b, a, oAll.get(o));
+
+			// nextBa.add(Tuple.of(o, b_n, prob));
+			// }
+
+			// nextBels.put(a, nextBa);
+			// }
+
+			// belCache.put(b, nextBels);
+
+			long missThen = System.nanoTime();
+			// build cache entry for this belief
 			nextBels = new HashMap<Integer, List<Tuple3<Integer, DD, Float>>>(A().size());
 
-			for (int a = 0; a < A().size(); a++) {
+			var res = IntStream.range(0, A().size()).parallel().boxed()
+					.map(a -> Tuple.of(a, computeNextBaParallel(b, obsLikelihoods(b, a), a, g)))
+					.collect(Collectors.toList());
 
-				var nextBa = new ArrayList<Tuple3<Integer, DD, Float>>();
-				var likelihoods = obsLikelihoods(b, a);
-
-				for (int o = 0; o < oAll.size(); o++) {
-
-					var prob = DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal();
-
-					if (prob < 1e-6f)
-						continue;
-
-					// perform belief update and cache next belief
-					var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o)));
-					if (b_n == null)
-						b_n = beliefUpdate(b, a, oAll.get(o));
-
-					nextBa.add(Tuple.of(o, b_n, prob));
-				}
-
-				nextBels.put(a, nextBa);
-			}
+			for (var r : res)
+				nextBels.put(r._0(), r._1());
 
 			belCache.put(b, nextBels);
+
+			if (Global.DEBUG) {
+
+				float missT = (System.nanoTime() - missThen) / 1000000.0f;
+				LOGGER.debug(String.format("Cache missed computation took %s msecs", missT));
+			}
+
 		}
 
 		// compute everything from the cached entries
@@ -273,17 +317,26 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 			Gao.add(argmax_iGaoi);
 		}
-		
-		var vec = DD.zero;
-		for (int o = 0; o < Gao.get(bestA).size(); o++) {
 
-			var _gao = Gao.get(bestA).get(o);
-			vec = DDOP.add(project(_gao._1(), bestA, oAll.get(_gao._0())), vec);
-		}
+		var vec = constructAlphaVector(Gao.get(bestA), bestA);
+		//for (int o = 0; o < Gao.get(bestA).size(); o++) {
+
+		//	var _gao = Gao.get(bestA).get(o);
+		//	vec = DDOP.add(project(_gao._1(), bestA, oAll.get(_gao._0())), vec);
+		//}
 
 		var newVec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
-		
+
 		return Tuple.of(bestA, newVec);
 	}
+	
+	private DD constructAlphaVector(ArrayList<Tuple<Integer, DD>> Gao, int bestA) {
+
+		var vec = Gao.parallelStream().map(g -> project(g._1(), bestA, oAll.get(g._0()))).reduce(DD.zero,
+				(a, b) -> DDOP.add(a, b));
+
+		return vec;
+	}
+
 
 }

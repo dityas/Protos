@@ -20,6 +20,7 @@ import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.TypedCacheMap;
 import thinclab.solver.PBVISolvable;
+import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 
 /*
@@ -48,6 +49,7 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 	public String name;
 
 	protected TypedCacheMap<DD, HashMap<Integer, List<Tuple3<Integer, DD, Float>>>> belCache = new TypedCacheMap<>(1000);
+	protected TypedCacheMap<Tuple<DD, Integer>, DD> lCache = new TypedCacheMap<>(1000);
 	private static final Logger LOGGER = LogManager.getLogger(PBVISolvablePOMDPBasedModel.class);
 
 	public PBVISolvablePOMDPBasedModel(List<String> S, List<String> O, String A, HashMap<String, Model> dynamics,

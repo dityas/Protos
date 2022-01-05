@@ -768,19 +768,15 @@ public class DDOP {
 
 	public static float value_b(List<Tuple<Integer, DD>> Vn, DD b, Collection<Integer> Svars) {
 
-		//float maxVal = Float.NEGATIVE_INFINITY;
+		float maxVal = Float.NEGATIVE_INFINITY;
 
-		//for (int i = 0; i < Vn.size(); i++) {
+		for (var vn : Vn) {
 
-		//	float val = DDOP.dotProduct(b, Vn.get(i)._1(), Svars);
+			float val = DDOP.dotProduct(b, vn._1(), Svars);
 
-		//	if (val > maxVal)
-		//		maxVal = val;
-		//}
-		
-		float maxVal = Vn.parallelStream()
-				.map(v -> DDOP.dotProduct(b, v._1(), Svars))
-				.max((v1, v2) -> v1.compareTo(v2)).get();
+			if (val > maxVal)
+				maxVal = val;
+		}
 
 		return maxVal;
 	}

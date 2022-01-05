@@ -306,10 +306,13 @@ class TestSolvers {
 				return null;
 			});
 
+		var b_i = DDOP.mult(DDleaf.getDD(0.5f),
+				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
+
 		var solver = new SymbolicPerseusSolver<IPOMDP>();
 
-		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
-		int bestAct = policy.getBestActionIndex(DDleaf.getDD(0.5f), I.i_S());
+		var policy = solver.solve(List.of(b_i), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
+		int bestAct = policy.getBestActionIndex(b_i, I.i_S());
 
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
 				I.A().get(bestAct)));
@@ -317,12 +320,14 @@ class TestSolvers {
 		assertTrue(bestAct == 0);
 
 		var G = ReachabilityGraph.fromDecMakingModel(I);
-		var ES = new SSGAExploration<IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(0.0f);
+		var ES = new SSGAExploration<IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(0.99f);
 
 		int numNodes = G.getAllNodes().size();
 
-		G = ES.expand(List.of(DDleaf.getDD(0.5f)), G, I, I.H, policy);
+		G = ES.expand(List.of(b_i), G, I, I.H, policy);
 
+		LOGGER.debug(G);
+		LOGGER.debug(String.format("Starting size is %s and after expansion, it is %s", numNodes, G.getAllNodes().size()));
 		assertTrue(G.getAllNodes().size() > numNodes);
 
 		System.gc();

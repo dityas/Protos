@@ -102,9 +102,15 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
 					// greedy action
 					if (usePolicy == 1) {
-
+						
 						a = Vn.getBestActionIndex(b, m.i_S());
-						var oSampled = DDOP.sample(List.of(m.obsLikelihoods(b, a)), m.i_Om_p());
+						
+						if (!likelihoodsCache.containsKey(Tuple.of(b, a)))
+							likelihoodsCache.put(Tuple.of(b, a), m.obsLikelihoods(b, a));
+
+						var l = likelihoodsCache.get(Tuple.of(b, a));
+
+						var oSampled = DDOP.sample(List.of(l), m.i_Om_p());
 
 						var _edge = Tuple.of(a, oSampled._1());
 						var b_ = g.getNodeAtEdge(b, _edge);

@@ -75,7 +75,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			else
 				newVn.add(Tuple.of(bestA, bestDD));
 
-			B = B.stream().filter(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()) > DDOP.value_b(newVn, _b, m.i_S()))
+			B = B.parallelStream().filter(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()) > DDOP.value_b(newVn, _b, m.i_S()))
 					.collect(Collectors.toList());
 
 			this.usedBeliefs++;
