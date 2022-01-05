@@ -63,11 +63,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public IPOMDP(List<String> S, List<String> O, String A, String Aj, String Mj, String Thetaj,
 			List<Tuple<String, Model>> frames_j, HashMap<String, Model> dynamics, HashMap<String, DD> R, float discount,
-			int H) {
-
+			int H, String name) {
+		
 		// initialize dynamics like POMDP
 		super(S, O, A, dynamics, R, discount);
 
+		this.name = name;
+		
 		// random variable for opponent's action
 		this.i_Aj = Global.varNames.indexOf(Aj) + 1;
 		this.Aj = Global.valNames.get(i_Aj - 1);
