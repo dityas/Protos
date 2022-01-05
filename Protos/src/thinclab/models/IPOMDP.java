@@ -59,7 +59,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public List<Tuple3<Integer, PBVISolvablePOMDPBasedModel, List<ReachabilityNode>>> framesj;
 	public List<PBVISolvableFrameSolution> framesjSoln;
 
-	private boolean debug = true;
 	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
 
 	public IPOMDP(List<String> S, List<String> O, String A, String Aj, String Mj, String Thetaj,
@@ -419,7 +418,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	}
 
 	public DD project(DD d, int a, List<Integer> o) {
-
+		
 		var factors = new ArrayList<DD>(S.size() + Om().size() + 1);
 		factors.addAll(DDOP.restrict(O().get(a), i_Om_p, o));
 		factors.addAll(T().get(a));
@@ -431,6 +430,24 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var results = DDOP.addMultVarElim(factors, gaoivars);
 
 		return results;
+	}
+	
+	public List<Tuple3<Integer, DD, Float>> computeNextBaParallel(DD b, DD likelihoods, int a, ReachabilityGraph g) {
+		
+		var res = IntStream.range(0, oAll.size()).parallel().boxed()
+				.map(o -> Tuple.of(DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal(), o))
+				.filter(o -> o._0() > 1e-6f)
+				.map(o -> {
+					
+					var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o._1())));
+					
+					if (b_n == null)
+						b_n = beliefUpdate(b, a, oAll.get(o._1()));
+					
+					return Tuple.of(o._1(), b_n, o._0());
+				}).collect(Collectors.toList());
+		
+		return res;
 	}
 
 	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
@@ -446,33 +463,17 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 			// build cache entry for this belief
 			nextBels = new HashMap<Integer, List<Tuple3<Integer, DD, Float>>>(A().size());
-
-			for (int a = 0; a < A().size(); a++) {
-
-				var nextBa = new ArrayList<Tuple3<Integer, DD, Float>>();
-				var likelihoods = obsLikelihoods(b, a);
-
-				for (int o = 0; o < oAll.size(); o++) {
-
-					var prob = DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal();
-
-					if (prob < 1e-6f)
-						continue;
-
-					// perform belief update and cache next belief
-					var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o)));
-					if (b_n == null)
-						b_n = beliefUpdate(b, a, oAll.get(o));
-
-					nextBa.add(Tuple.of(o, b_n, prob));
-				}
-
-				nextBels.put(a, nextBa);
-			}
-
+			
+			var res = IntStream.range(0, A().size()).parallel().boxed()
+					.map(a -> Tuple.of(a, computeNextBaParallel(b, obsLikelihoods(b, a), a, g)))
+					.collect(Collectors.toList());
+			
+			for (var r: res)
+				nextBels.put(r._0(), r._1());
+			
 			belCache.put(b, nextBels);
 
-			if (debug) {
+			if (Global.DEBUG) {
 
 				float missT = (System.nanoTime() - missThen) / 1000000.0f;
 				LOGGER.debug(String.format("Cache missed computation took %s msecs", missT));
@@ -518,22 +519,31 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		}
 		
-		if (debug) {
+		if (Global.DEBUG) {
 
 			float hitT = (System.nanoTime() - hitThen) / 1000000.0f;
 			LOGGER.debug(String.format("Cache hit computation took %s msecs", hitT));
 		}
 
-		var vec = DD.zero;
-		for (int o = 0; o < Gao.get(bestA).size(); o++) {
-
-			var _gao = Gao.get(bestA).get(o);
-			vec = DDOP.add(project(_gao._1(), bestA, oAll.get(_gao._0())), vec);
+		long constThen = System.nanoTime();
+		var vec = constructAlphaVector(Gao.get(bestA), bestA);
+		var newVec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
+		
+		if (Global.DEBUG) {
+			float constT = (System.nanoTime() - constThen) / 1000000.0f;
+			LOGGER.debug(String.format("Alpha vector construction took %s msecs", constT));
 		}
 
-		var newVec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
-
 		return Tuple.of(bestA, newVec);
+	}
+	
+	private DD constructAlphaVector(ArrayList<Tuple<Integer, DD>> Gao, int bestA) {
+		
+		var vec = Gao.parallelStream()
+				.map(g -> project(g._1(), bestA, oAll.get(g._0())))
+				.reduce(DD.zero, (a, b) -> DDOP.add(a, b));
+		
+		return vec;
 	}
 
 }

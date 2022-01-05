@@ -2,7 +2,6 @@ package thinclab.legacy;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.lang.ref.*;
 import java.util.TreeSet;
 import java.io.*;
 
@@ -52,13 +51,13 @@ public class DDleaf extends DD {
 		DDleaf leaf = new DDleaf(val);
 
 		// try to lookup leaf in leafHashtable
-		WeakReference<DD> weakReference = (WeakReference<DD>) Global.leafHashtable.get(leaf);
-		WeakReference<DD> storedLeaf = weakReference;
-		if (storedLeaf != null)
-			return (DDleaf) storedLeaf.get();
+		//WeakReference<DD> weakReference = (WeakReference<DD>) Global.leafHashtable.get(leaf);
+		//WeakReference<DD> storedLeaf = weakReference;
+		//if (storedLeaf != null)
+		//	return (DDleaf) storedLeaf.get();
 
 		// store leaf in leafHashtable
-		Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf));
+		//Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf));
 		return leaf;
 	}
 
@@ -68,12 +67,12 @@ public class DDleaf extends DD {
 		DDleaf leaf = new DDleaf(val, config);
 
 		// try to lookup leaf in leafHashtable
-		WeakReference<DD> storedLeaf = (WeakReference<DD>) Global.leafHashtable.get(leaf);
-		if (storedLeaf != null)
-			return (DDleaf) storedLeaf.get();
+		//WeakReference<DD> storedLeaf = (WeakReference<DD>) Global.leafHashtable.get(leaf);
+		//if (storedLeaf != null)
+		//	return (DDleaf) storedLeaf.get();
 
 		// store leaf in leafHashtable
-		Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf));
+		//Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf));
 		return leaf;
 	}
 

@@ -5,9 +5,6 @@ import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.RandomVariable;
 import thinclab.models.IPOMDP;
-import thinclab.models.POMDP;
-import thinclab.models.POSeqDecMakingModel;
-import thinclab.models.datastructures.ModelGraph;
 import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
@@ -18,7 +15,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 public class Global {
 
@@ -55,7 +51,9 @@ public class Global {
 
 	// random number generator
 	public static Random random = new Random();
-
+	
+	public static final boolean DEBUG = false;
+	
 	// --------------------------------------------------------------------------
 
 	private static final Logger LOGGER = LogManager.getLogger(Global.class);
@@ -108,6 +106,23 @@ public class Global {
 		Global.dotProductCache.clear();
 		Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
 		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
+
+		System.gc();
+	}
+
+	public static void clearHashtablesIfFull() {
+
+		Global.nodeHashtable.clearIfFull();
+		Global.addCache.clearIfFull();
+		Global.multCache.clearIfFull();
+		Global.addOutCache.clearIfFull();
+		Global.dotProductCache.clearIfFull();
+
+		if (Global.leafHashtable.clearIfFull()) {
+
+			Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
+			Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
+		}
 
 		System.gc();
 	}
@@ -191,7 +206,6 @@ public class Global {
 		return varList;
 	}
 
-	
 	public static String modelVarsToDot(String v, IPOMDP m) {
 
 		var builder = new StringBuilder();
@@ -232,19 +246,15 @@ public class Global {
 				}
 
 				if (_m._1().i_a >= 0)
-					builder.append("A = ")
-						   .append(
-								   m.framesj.get(
-										   _m._0())._1().A().get(
-												   _m._1().i_a));
+					builder.append("A = ").append(m.framesj.get(_m._0())._1().A().get(_m._1().i_a));
 
 				builder.append("}\"]\r\n");
 			});
-		
 
 		builder.append("}\r\n");
-		//m.framesjSoln.forEach(f -> builder.append(ModelGraph.toDot(f.MG, f.m)).append("\r\n"));
-		
+		// m.framesjSoln.forEach(f -> builder.append(ModelGraph.toDot(f.MG,
+		// f.m)).append("\r\n"));
+
 		return builder.toString();
 	}
 }

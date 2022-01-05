@@ -88,7 +88,6 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 		float bellmanError = B.parallelStream()
 				.map(_b -> Math.abs(DDOP.value_b(Vn.aVecs, _b, m.i_S()) - DDOP.value_b(Vn_p.aVecs, _b, m.i_S())))
-				//.reduce(Float.NEGATIVE_INFINITY, (v1, v2) -> v1 > v2 ? v1 : v2);
 				.max((v1, v2) -> v1.compareTo(v2)).get();
 
 		return bellmanError;
@@ -115,11 +114,8 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 		LOGGER.info(String.format("Starting symbolic Perseus iterations for %s from starting beliefs %s", m.getName(),
 				b_is.stream().map(_b -> DDOP.factors(_b, m.i_S())).collect(Collectors.toList())));
+		
 		for (int i = 0; i < I; i++) {
-
-			// expand belief region
-			// if (i % 2 == 0)
-			// g = ES.expand(b_i, g, m, H, Vn);
 
 			var B = new ArrayList<DD>(g.getAllNodes());
 			long then = System.nanoTime();
@@ -130,14 +126,12 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			float backupT = (System.nanoTime() - then) / 1000000.0f;
 
 			long bErrThen = System.nanoTime();
-			// float bellmanError = B.parallelStream()
-			// .map(_b -> Math.abs(DDOP.value_b(Vn.aVecs, _b, m.i_S()) -
-			// DDOP.value_b(Vn_p.aVecs, _b, m.i_S())))
-			// .reduce(Float.NEGATIVE_INFINITY, (v1, v2) -> v1 > v2 ? v1 : v2);
 			float bellmanError = computeBellmanError(B, m, Vn, Vn_p);
 
-			float bErrT = (System.nanoTime() - bErrThen) / 1000000.0f;
-			LOGGER.debug(String.format("Computing bellman error took %s msec", bErrT));
+			if (Global.DEBUG) {
+				float bErrT = (System.nanoTime() - bErrThen) / 1000000.0f;
+				LOGGER.debug(String.format("Computing bellman error took %s msec", bErrT));
+			}
 
 			// prepare for next iter
 			Vn.aVecs.clear();
@@ -154,16 +148,34 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 				LOGGER.info("Eating seeds as a past time activity, the toxicity of my city of my city.");
 				break;
 			}
+			
+			Global.clearHashtablesIfFull();
 
-			if (bellmanError < 0.1f && i > 0)
+			if (bellmanError < 0.1f && i > 0) {
+				
+				long expandThen = System.nanoTime();
+
 				g = ES.expand(b_i, g, m, H, Vn);
+				
+				if (Global.DEBUG) {
+					float expandT = (System.nanoTime() - expandThen) / 1000000.0f;
+					LOGGER.debug(String.format("Belief expansion took %s msecs", expandT));
+				}
+			}
 
 		}
-
+	
+		if (Global.DEBUG)
+			Global.logCacheSizes();
+		
 		g.removeAllNodes();
+		Global.clearHashtablesIfFull();
 		m.clearBackupCache();
 		ES.clearCaches();
 		System.gc();
+		
+		if (Global.DEBUG)
+			Global.logCacheSizes();
 
 		return Vn;
 	}

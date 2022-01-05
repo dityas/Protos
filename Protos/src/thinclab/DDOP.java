@@ -397,6 +397,10 @@ public class DDOP {
 
 		// check if any of the dds are zero
 		for (int i = 0; i < _dds.size(); i++) {
+			
+			if (_dds.get(i) == null) {
+				LOGGER.error(String.format("null DD is %s", i));
+			}
 
 			if (_dds.get(i).getVar() == 0 && _dds.get(i).getVal() == 0)
 				return DD.zero;
@@ -658,12 +662,12 @@ public class DDOP {
 
 			DD children[];
 			children = new DD[dd.getChildren().length];
-			for (int i = 0; i < dd.getChildren().length; i++) {
-
+			for (int i = 0; i < dd.getChildren().length; i++)
 				children[i] = DDOP.primeVars(dd.getChildren()[i], n);
-			}
+				
 			result = DDnode.getDD(dd.getVar() + n, children);
 			hashtable.put(dd, result);
+			
 			return result;
 		}
 	}

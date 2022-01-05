@@ -7,12 +7,9 @@
  */
 package thinclab.model_ops.belief_exploration;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
@@ -44,19 +41,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 		LOGGER.debug(String.format("Initialized SSGA exploration for exploration probability %s", e));
 	}
 
-	/*
-	 * This has to be done here only because java's stream API makes everything 3
-	 * times slower. So for low latency operations, it is better to write everything
-	 * in traditional loops. If you are at a party and someone tells you how awesome
-	 * java is and all that. You should point them to this particular file in this
-	 * repository and let them know that you absolutely hate them. Then you should
-	 * proceed to throw your beer in their face and leave. And you should never ever
-	 * hang out with such people.
-	 */
 	public float getMinDistance(DD b, Collection<DD> beliefs) {
-
-		// g.getAllNodes().stream().filter(_b -> DDOP.maxAll(DDOP.abs(DDOP.sub(_b,
-		// b_n))) < 0.1f).findFirst();
 
 		float minDist = Float.POSITIVE_INFINITY;
 
@@ -97,6 +82,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
 		int startSize = g.getAllNodes().size();
 
+		LOGGER.info("Expanding belief region...");
 		for (int n = 0; n < 100; n++) {
 
 			if (g.getAllNodes().size() >= maxB)
@@ -142,10 +128,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 					else if (usePolicy == 0) {
 
 						int _a = Global.random.nextInt(m.A().size());
-
-						// var nextBs = new ArrayList<Tuple<Tuple<Integer, List<Integer>>, DD>>();
-						// for (int _a = 0; _a < m.A().size(); _a++) {
-
+						
 						if (!likelihoodsCache.containsKey(Tuple.of(b, _a)))
 							likelihoodsCache.put(Tuple.of(b, _a), m.obsLikelihoods(b, _a));
 
@@ -158,39 +141,8 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 						if (b_ == null)
 							b_ = m.beliefUpdate(b, _edge._0(), _edge._1());
 
-						// else
-						// nextBs.add(Tuple.of(_edge, b_));
-
-						// }
-
-						// var distances = new ArrayList<Float>();
-						// int maxIndex = -1;
-						// float maxDist = Float.NEGATIVE_INFINITY;
-
-						// for (int i_b = 0; i_b < nextBs.size(); i_b++) {
-
 						var dist = getMinDistance(b_, g.getAllNodes());
 
-						// if (dist > maxDist) {
-
-						// maxIndex = i_b;
-						// maxDist = dist;
-						// }
-						// }
-
-						// var distances = nextBs.stream()
-						// .map(b_s -> g.getAllNodes().stream()
-						// .map(b_c -> DDOP.maxAll(DDOP.abs(DDOP.sub(b_s._1(), b_c))))
-						// .reduce(1.0f, (x, y) -> x < y ? x : y))
-						// .collect(Collectors.toList());
-
-						// int maxIndex = IntStream.range(0, nextBs.size()).reduce(0,
-						// (p, q) -> distances.get(p) > distances.get(q) ? p : q);
-
-						// var maxDist = distances.get(maxIndex);
-						// var b_n = nextBs.get(maxIndex);
-
-						// LOGGER.debug(String.format("Randomized Distance is %s", maxDist));
 						if (dist > 0.01f)
 							g.addEdge(b, _edge, b_);
 

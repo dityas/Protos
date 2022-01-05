@@ -4,7 +4,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.utils.Tuple;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,10 +18,8 @@ public class DDnode extends DD {
 	 */
 	private static final long serialVersionUID = 8410391598527547020L;
 
-	private int[] varSet;
 	private int numLeaves;
 	private DD children[];
-	private float sum;
 
 	private int hash;
 
@@ -32,9 +29,7 @@ public class DDnode extends DD {
 
 		this.var = var;
 		this.children = children;
-		this.varSet = null; // lazy temporary value
 		this.numLeaves = 0; // lazy temporary value
-		this.sum = Float.NaN; // lazy temporary value
 
 		this.precomputeHash();
 	}
@@ -160,7 +155,7 @@ public class DDnode extends DD {
 		// try to aggregate children
 		boolean aggregate = true;
 		for (int i = 1; i < children.length; i++) {
-
+			
 			if (!children[0].equals(children[i])) {
 
 				aggregate = false;
@@ -173,12 +168,13 @@ public class DDnode extends DD {
 
 		// try look up node in nodeHashtable
 		DDnode node = new DDnode(var, children);
-		WeakReference<DD> storedNode = ((WeakReference<DD>) Global.nodeHashtable.get(node));
-		if (storedNode != null)
-			return (DDnode) storedNode.get();
+		//WeakReference<DD> storedNode = ((WeakReference<DD>) Global.nodeHashtable.get(node));
+		
+		//if (storedNode != null && storedNode.get() != null)
+		//	return (DDnode) storedNode.get();
 
 		// store node in nodeHashtable
-		Global.nodeHashtable.put(node, new WeakReference<DD>(node));
+		//Global.nodeHashtable.put(node, new WeakReference<DD>(node));
 		return node;
 	}
 
@@ -226,7 +222,7 @@ public class DDnode extends DD {
 	@Override
 	public boolean equals(Object obj) {
 
-		if (obj.getClass() != getClass())
+		if (!(obj instanceof DDnode))
 			return false;
 
 		DDnode node = (DDnode) obj;

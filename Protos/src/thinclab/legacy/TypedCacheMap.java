@@ -39,9 +39,19 @@ public class TypedCacheMap<K, V> extends ConcurrentHashMap<K, V> {
 	@Override
 	public V put(K key, V value) {
 
-		if (this.size() > this.maxCapacity)
-			this.clear();
+		//if (this.size() > this.maxCapacity)
+		//	this.clear();
 
 		return super.put(key, value);
+	}
+	
+	public boolean clearIfFull() {
+		
+		if (size() > maxCapacity) {
+			clear();
+			return true;
+		}
+		
+		return false;
 	}
 }
