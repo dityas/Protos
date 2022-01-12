@@ -6,7 +6,9 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import thinclab.Agent;
 import thinclab.env.PartiallyObservableEnv;
+import thinclab.env.StochasticSimulation;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
@@ -109,6 +111,44 @@ class TestSimulations {
 		
 		assertEquals(result, DD.zero);
 
+	}
+	
+	@Test
+	void testStochasticSimulation() throws Exception {
+		
+		LOGGER.info("Testing stochastic simulation for partially observable env");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1_env.spudd").getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var J = (POMDP) domainRunner.getModel("agentJ").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+		
+		LOGGER.debug(String.format("Got a hold of POMDP agent %s", J));
+		
+		var env = domainRunner.envs.get("tigerEnv");
+		LOGGER.debug(String.format("Got env %s", env));
+		
+		LOGGER.debug("Making initial state");
+		var s = DDnode.getDDForChild("TigerLoc", "TR");
+		
+		var solver = new SymbolicPerseusSolver<>();
+
+		LOGGER.debug("Initializing StochasticSimulation");
+	
+		var agentJ = Agent.of(J, DDleaf.getDD(0.5f), solver, 100, 10);
+		LOGGER.debug(String.format("Agent %s", agentJ.toDot()));
+		var sim = new StochasticSimulation<>();
+		var e = sim.run(env, s, List.of(agentJ), 5);
+		LOGGER.debug(e.toDot());
 	}
 
 

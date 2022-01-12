@@ -2,8 +2,10 @@ package thinclab.legacy;
 
 import java.io.Serializable;
 import java.util.TreeSet;
+import thinclab.utils.Graphable;
+import thinclab.utils.Jsonable;
 
-public abstract class DD implements Serializable {
+public abstract class DD implements Serializable, Jsonable, Graphable {
 
 	public static DD one = DDleaf.getDD(1);
 	public static DD zero = DDleaf.getDD(0);

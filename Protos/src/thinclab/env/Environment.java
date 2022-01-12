@@ -18,6 +18,8 @@ import thinclab.utils.Tuple;
 public interface Environment<S extends DD> {
 
 	public void init(S s);
-	
+
+	public S getS();
+
 	public Tuple<List<Integer>, List<Integer>> step(List<Tuple<Integer, Integer>> actions);
 }

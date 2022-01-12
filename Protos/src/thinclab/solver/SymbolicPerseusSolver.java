@@ -26,7 +26,7 @@ import thinclab.utils.Tuple;
  *
  */
 public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
-		implements PointBasedSolver<M, ReachabilityGraph, AlphaVectorPolicy> {
+		implements PointBasedSolver<M, AlphaVectorPolicy> {
 
 	private int usedBeliefs = 0;
 
@@ -44,8 +44,6 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 		while (B.size() > 0) {
 
-			// LOGGER.debug(String.format("B: %s", B.stream().map(b -> DDOP.factors(b,
-			// m.i_S())).collect(Collectors.toList())));
 			DD b = B.remove(Global.random.nextInt(B.size()));
 
 			var newAlpha = m.backup(b, Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList()), g);
@@ -138,8 +136,8 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			Vn.aVecs.addAll(Vn_p.aVecs);
 
 			LOGGER.info(
-					String.format("iter: %s | bell err: %.5f | time: %.3f msec | num vectors: %s | beliefs used: %s/%s",
-							i, bellmanError, backupT, Vn_p.aVecs.size(), this.usedBeliefs, B.size()));
+					String.format("iter: %s | bell err: %.5f | num vectors: %s | beliefs used: %s/%s | time: %.3f msec",
+							i, bellmanError, Vn_p.aVecs.size(), this.usedBeliefs, B.size(), backupT));
 
 			if (bellmanError < 0.01 && i > 5) {
 

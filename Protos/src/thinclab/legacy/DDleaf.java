@@ -190,7 +190,11 @@ public class DDleaf extends DD {
 	@Override
 	public String toDot() {
 		
-		return String.format("%.5f", this.val);
+		var builder = new StringBuilder();
+		builder.append(this.hashCode()).append(" ");
+		builder.append(" [label=\"").append(toLabel()).append("\"];\r\n");
+		
+		return builder.toString();
 	}
 
 	@Override
@@ -198,5 +202,18 @@ public class DDleaf extends DD {
 
 		// TODO Auto-generated method stub
 		return new TreeSet<Integer>();
+	}
+
+	@Override
+	public String toJson() {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String toLabel() {
+
+		return String.format("%.5f", this.val);
 	}
 }

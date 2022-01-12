@@ -205,21 +205,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 				// If this node was initialized in the domain file, we'll need to populate the
 				// optimal action and the optimal alpha vector
-				/*
-				 * if (f._1().i_a == -1 && f._1().beliefs.size() == 1) {
-				 * 
-				 * String mName = mjMap.remove(key);
-				 * 
-				 * var _b = f._1().beliefs.stream().findFirst().get(); int i_a =
-				 * this.framesjSoln.get(f._0()).Vn.getBestActionIndex(_b,
-				 * framesj.get(f._0())._1().i_S()); int alphaId =
-				 * DDOP.bestAlphaIndex(framesjSoln.get(f._0()).Vn.aVecs, _b,
-				 * framesj.get(f._0())._1().i_S());
-				 * 
-				 * f._1().i_a = i_a; f._1().alphaId = alphaId;
-				 * 
-				 * mjMap.put(Tuple.of(f._0(), f._1()), mName); }
-				 */
 			});
 
 		var sortedVals = mjMap.values().stream().collect(Collectors.toList());
@@ -326,23 +311,17 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		factors.add(PAjGivenMj);
 		factors.add(PThetajGivenMj);
 		factors.add(Taus.get(a));
-		// factors.add(PMj_pGivenMjAjOj_p);
 		factors.addAll(T().get(a));
-		// factors.addAll(Oj.get(a));
 		factors.addAll(Ofao);
 
 		var vars = new ArrayList<Integer>(factors.size());
 		vars.addAll(i_S());
 		vars.add(i_Thetaj);
 		vars.add(i_Aj);
-		// vars.addAll(i_Omj_p);
-
-		// Collections.sort(vars);
 
 		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), -(Global.NUM_VARS / 2));
 		var stateVars = new ArrayList<Integer>(S().size() + 2);
 		stateVars.addAll(i_S());
-		// stateVars.add(i_Thetaj);
 
 		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
 
@@ -350,9 +329,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			return DD.zero;
 
 		b_p = DDOP.div(b_p, prob);
-		// LOGGER.debug(String.format("obs prob for %s from belief %s to belief %s with
-		// state vars %s is %s", o,
-		// DDOP.factors(b, i_S()), DDOP.factors(b_p, i_S()), stateVars, prob));
 
 		return b_p;
 	}
@@ -521,27 +497,12 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 					.map(nb -> getBestAlpha(nb, alphas, _a))
 					.collect(Collectors.toList());
 			
-			//var argmax_iGaoi = new ArrayList<Tuple<Integer, DD>>(nextBa.size());
 			var argmax_iGaoi = argmaxGois.stream()
 					.map(a_ -> Tuple.of(a_._0(), a_._1()))
 					.collect(Collectors.toList());
 			
 			val = argmaxGois.stream().map(a_ -> a_._2()).reduce(0.0f, (a1_, a2_) -> a1_ + a2_);
 
-			// project to next belief for all observations and compute values
-			//for (var ba : nextBa) {
-
-			//	var obsIndex = ba._0();
-			//	var b_n = ba._1();
-			//	var prob = ba._2();
-
-			//	var bestAlpha = Gaoi(b_n, a, oAll.get(obsIndex), alphas);
-
-			//	argmax_iGaoi.add(Tuple.of(obsIndex, alphas.get(bestAlpha._1())));
-			//	val += (prob * bestAlpha._0());
-			//}
-
-			// compute value of a and check best action and best value
 			val *= discount;
 			val += DDOP.dotProduct(b, R().get(a), i_S());
 
@@ -580,6 +541,41 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				(a, b) -> DDOP.add(a, b));
 
 		return vec;
+	}
+
+	@Override
+	public DD step(DD b, int a, List<Integer> o) {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DD step(DD b, String a, List<String> o) {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String toJson() {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String toDot() {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String toLabel() {
+
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

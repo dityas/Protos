@@ -233,35 +233,6 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 		if (nextBels == null) {
 
-			// build cache entry for this belief
-			// nextBels = new HashMap<Integer, List<Tuple3<Integer, DD,
-			// Float>>>(A().size());
-
-			// for (int a = 0; a < A().size(); a++) {
-
-			// var nextBa = new ArrayList<Tuple3<Integer, DD, Float>>();
-			// var likelihoods = obsLikelihoods(b, a);
-
-			// for (int o = 0; o < oAll.size(); o++) {
-
-			// var prob = DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal();
-
-			// if (prob < 1e-6f)
-			// continue;
-
-			// perform belief update and cache next belief
-			// var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o)));
-			// if (b_n == null)
-			// b_n = beliefUpdate(b, a, oAll.get(o));
-
-			// nextBa.add(Tuple.of(o, b_n, prob));
-			// }
-
-			// nextBels.put(a, nextBa);
-			// }
-
-			// belCache.put(b, nextBels);
-
 			long missThen = System.nanoTime();
 			// build cache entry for this belief
 			nextBels = new HashMap<Integer, List<Tuple3<Integer, DD, Float>>>(A().size());
@@ -319,15 +290,9 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		}
 
 		var vec = constructAlphaVector(Gao.get(bestA), bestA);
-		//for (int o = 0; o < Gao.get(bestA).size(); o++) {
+		vec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
 
-		//	var _gao = Gao.get(bestA).get(o);
-		//	vec = DDOP.add(project(_gao._1(), bestA, oAll.get(_gao._0())), vec);
-		//}
-
-		var newVec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
-
-		return Tuple.of(bestA, newVec);
+		return Tuple.of(bestA, vec);
 	}
 	
 	private DD constructAlphaVector(ArrayList<Tuple<Integer, DD>> Gao, int bestA) {
@@ -336,6 +301,39 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 				(a, b) -> DDOP.add(a, b));
 
 		return vec;
+	}
+
+	@Override
+	public DD step(DD b, int a, List<Integer> o) {
+
+		return beliefUpdate(b, a, o);
+	}
+
+	@Override
+	public DD step(DD b, String a, List<String> o) {
+
+		return beliefUpdate(b, a, o);
+	}
+
+	@Override
+	public String toJson() {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String toDot() {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String toLabel() {
+
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

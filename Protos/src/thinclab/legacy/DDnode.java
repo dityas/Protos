@@ -155,7 +155,7 @@ public class DDnode extends DD {
 		// try to aggregate children
 		boolean aggregate = true;
 		for (int i = 1; i < children.length; i++) {
-			
+
 			if (!children[0].equals(children[i])) {
 
 				aggregate = false;
@@ -168,13 +168,14 @@ public class DDnode extends DD {
 
 		// try look up node in nodeHashtable
 		DDnode node = new DDnode(var, children);
-		//WeakReference<DD> storedNode = ((WeakReference<DD>) Global.nodeHashtable.get(node));
-		
-		//if (storedNode != null && storedNode.get() != null)
-		//	return (DDnode) storedNode.get();
+		// WeakReference<DD> storedNode = ((WeakReference<DD>)
+		// Global.nodeHashtable.get(node));
+
+		// if (storedNode != null && storedNode.get() != null)
+		// return (DDnode) storedNode.get();
 
 		// store node in nodeHashtable
-		//Global.nodeHashtable.put(node, new WeakReference<DD>(node));
+		// Global.nodeHashtable.put(node, new WeakReference<DD>(node));
 		return node;
 	}
 
@@ -261,23 +262,7 @@ public class DDnode extends DD {
 
 		return children;
 	}
-/*
-	public int[] getVarSet() {
 
-		if (varSet == null) {
-
-			varSet = new int[1];
-			varSet[0] = var;
-
-			for (int childId = 0; childId < children.length; childId++) {
-
-				varSet = MySet.unionOrdered(children[childId].getVarSet(), varSet);
-			}
-		}
-
-		return varSet;
-	}
-*/
 	public int getNumLeaves() {
 
 		if (numLeaves == 0) {
@@ -290,27 +275,7 @@ public class DDnode extends DD {
 
 		return numLeaves;
 	}
-/*
-	public float getSum() {
 
-		if (sum == Double.NaN) {
-
-			sum = 0;
-
-			int[] childrenVars = MySet.remove(this.getVarSet(), var);
-			for (int i = 0; i < children.length; i++) {
-
-				int[] remainingVars = MySet.diff(childrenVars, children[i].getVarSet());
-				int multiplicativeFactor = 1;
-				for (int j = 0; j < remainingVars.length; j++)
-					multiplicativeFactor *= Global.varDomSize.get(remainingVars[j] - 1);
-				sum = sum + multiplicativeFactor * children[i].getSum();
-			}
-		}
-
-		return sum;
-	}
-*/
 	// ---------------------------------------------------------------------------------------
 
 	@Override
@@ -354,28 +319,17 @@ public class DDnode extends DD {
 
 		return this.toSPUDD(0);
 	}
-	
+
 	@Override
 	public String toDot() {
-		
+
 		var builder = new StringBuilder();
-		
-		builder.append(" { ").append(Global.varNames.get(this.var - 1));
-		
-		for (int i = 0; i < this.children.length; i++) {
-			
-			if (this.children[i].equals(DD.zero))
-				continue;
-			
-			builder.append(" | { ").append(Global.valNames.get(this.var - 1).get(i))
-				.append(" | ").append(this.children[i].toDot()).append(" } ");
-		}
-		
-		builder.append(" } ");
+
+		builder.append(this.hashCode()).append(" [label=\"");
+		builder.append(this.toLabel()).append("\"];");
 		
 		return builder.toString();
 	}
-
 
 	@Override
 	public TreeSet<Integer> getVars() {
@@ -384,6 +338,39 @@ public class DDnode extends DD {
 		Arrays.stream(this.children).forEach(c -> varSet.addAll(c.getVars()));
 
 		return varSet;
+	}
+
+	@Override
+	public String toJson() {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String toLabel() {
+
+		var builder = new StringBuilder();
+
+		builder.append("(").append(Global.varNames.get(this.var - 1));
+
+		for (int i = 0; i < this.children.length; i++) {
+
+			if (this.children[i].equals(DD.zero))
+				continue;
+
+			if (this.children[i] instanceof DDleaf)
+				builder.append(" ( ").append(Global.valNames.get(this.var - 1).get(i)).append("  ")
+						.append(this.children[i].toLabel()).append(" ) ");
+			
+			else {
+				builder.append(" ( ").append("<DD for ")
+					.append(Global.varNames.get(children[i].var - 1)).append("> ) ");
+			}
+		}
+
+		builder.append(" )");
+		return builder.toString();
 	}
 
 }

@@ -85,7 +85,8 @@ public class PartiallyObservableEnv implements Environment<DD> {
 
 		var s_p = DDOP.addMultVarElim(t, i_S);
 		var _s = DDOP.sample(List.of(s_p), i_S_p);
-		
+	
+		// sample and create next state
 		s = DDOP.mult(IntStream.range(0, _s._0().size())
 				.boxed()
 				.map(i -> DDnode.getDDForChild(_s._0().get(i), _s._1().get(i) - 1))
@@ -94,12 +95,14 @@ public class PartiallyObservableEnv implements Environment<DD> {
 		var _o = DDOP.restrict(O, actIndices, actVals);
 		_o.add(s);
 		
+		// sample and create observation
 		var o_s = DDOP.sample(List.of(DDOP.addMultVarElim(_o, i_S_p)), i_Om_p);
 		var obsList = IntStream.range(0, o_s._0().size())
 				.boxed()
 				.map(i -> Tuple.of(Global.varNames.get(o_s._0().get(i) - 1), Global.valNames.get(o_s._0().get(i) - 1).get(o_s._1().get(i) - 1)))
 				.collect(Collectors.toList());
 		
+		// unprime next state to make it current state
 		s = DDOP.primeVars(s, -(Global.NUM_VARS / 2));
 		LOGGER.info(String.format("State transitions to %s and produces obs %s", 
 				DDOP.factors(s, i_S), obsList));
@@ -117,6 +120,13 @@ public class PartiallyObservableEnv implements Environment<DD> {
 		builder.append("]");
 
 		return builder.toString();
+	}
+
+	@Override
+	public DD getS() {
+
+		// TODO Auto-generated method stub
+		return s;
 	}
 
 }
