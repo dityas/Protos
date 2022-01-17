@@ -15,11 +15,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Global {
-
-	public static String storagDir = null;
-	public static boolean showProgressBar = false;
 
 	public static List<Integer> varDomSize = new ArrayList<>(10);
 	public static List<String> varNames = new ArrayList<>(10);
@@ -42,12 +41,6 @@ public class Global {
 	public static TypedCacheMap<Tuple<DD, DD>, DD> multCache = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<Tuple<DD, Integer>, DD> addOutCache = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<Tuple3<DD, DD, HashSet<Integer>>, Float> dotProductCache = new TypedCacheMap<>(10000);
-	/* Caches for optimizing NZ prime computations */
-	public static boolean USE_NEXT_BELSTATE_CACHES = false;
-
-	public static HashMap<DD, HashMap<String, DD[][]>> NEXT_BELSTATES_CACHE = new HashMap<DD, HashMap<String, DD[][]>>();
-
-	public static HashMap<DD, HashMap<String, double[]>> OBS_PROB_CACHE = new HashMap<DD, HashMap<String, double[]>>();
 
 	// random number generator
 	public static Random random = new Random();
@@ -204,6 +197,40 @@ public class Global {
 
 		Collections.sort(varList, (a, b) -> ordering.indexOf(a) - ordering.indexOf(b));
 		return varList;
+	}
+	
+	public static List<Tuple<Tuple<Integer, ReachabilityNode>, DD>> decoupleMj (DD b, int i_Mj) {
+	
+		var varSet = b.getVars();
+		
+		if (!Global.modelVars.containsKey(Global.varNames.get(i_Mj - 1))) {
+			
+			LOGGER.error(String.format("Var %s index %s passed to decoupleMj does not look like a modelvar",
+					Global.varNames.get(i_Mj - 1), i_Mj));
+			
+			System.exit(-1);
+			return null;
+		}
+		
+		else if (varSet.size() == 0 || varSet.last() == i_Mj || !varSet.contains(i_Mj)) {
+			
+			var mjVals = IntStream.range(0, b.getChildren().length).boxed()
+					.filter(b_ -> !b.getChildren()[b_].equals(DD.zero))
+					.map(i -> Tuple.of(
+							Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream()
+								.filter(kv -> kv.getValue() == Global.valNames.get(i_Mj - 1).get(i))
+								.map(kv -> kv.getKey()).findFirst().get(), 
+							b.getChildren()[i]))
+					.collect(Collectors.toList());
+		
+			return mjVals;
+		}
+		
+		else {
+			LOGGER.error(String.format("%s has to be at the top of the DD.", i_Mj));
+			System.exit(-1);
+			return null;
+		}
 	}
 
 	public static String modelVarsToDot(String v, IPOMDP m) {

@@ -8,6 +8,7 @@
 package thinclab.models;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -229,6 +230,10 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		Collections.sort(MjToOPTAj, (a, b) -> a._0().compareTo(b._0()));
 
 		var AjDDs = MjToOPTAj.stream().map(m -> m._1()).toArray(DD[]::new);
+		
+		LOGGER.debug(String.format("AjDDs are %s", AjDDs.length));
+		LOGGER.debug(String.format("i_Mj size is %s", Global.valNames.get(i_Mj - 1).size()));
+		
 		PAjGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, AjDDs));
 
 	}
@@ -546,7 +551,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	@Override
 	public DD step(DD b, int a, List<Integer> o) {
 
-		// TODO Auto-generated method stub
+		var b_n = beliefUpdate(b, a, o);
+		var bnList = Global.decoupleMj(b_n, i_Mj);
+		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).clear();
+		
+		framesjSoln.forEach(f -> f.step());
+		updateIS();
+		
 		return null;
 	}
 

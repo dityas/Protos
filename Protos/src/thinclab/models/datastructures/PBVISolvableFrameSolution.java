@@ -8,10 +8,12 @@
 package thinclab.models.datastructures;
 
 import thinclab.models.PBVISolvablePOMDPBasedModel;
+import thinclab.models.POMDP;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,18 +59,6 @@ public class PBVISolvableFrameSolution {
 		Vn = s.solve(b_list, m, 100, H, Vn);
 		
 		MG = ModelGraph.fromDecMakingModel(m);
-	
-		/*
-		mj_i.stream().forEach(m -> {
-			
-			var b = m.beliefs.stream().findAny().get();
-			var i_a = Vn.getBestActionIndex(b, this.m.i_S());
-			var alphaId = DDOP.bestAlphaIndex(Vn.aVecs, b, this.m.i_S());
-			
-			m.i_a = i_a;
-			m.alphaId = alphaId;
-		});
-		*/
 		
 		mj_i.stream().forEach(MG::addNode);
 		MG = new MjSpaceExpansion<>().expand(mj_i, MG, m, H, Vn);	
@@ -99,8 +89,15 @@ public class PBVISolvableFrameSolution {
 
 	public void step() {
 
-		// set next beliefs
-		//b_is = new ArrayList<>(RG.getChildren(b_is));
+		if (m instanceof POMDP) {
+			
+			var mjs = MG.getChildren(mj_i);
+			mjs.forEach(m -> m.h = 0);
+			mj_i = new ArrayList<>(mjs);
+		}
+		
+		else 
+			LOGGER.error("Stepping for L1+ IPOMDPs is not implemented yet");
 	}
 
 }

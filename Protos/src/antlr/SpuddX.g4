@@ -3,6 +3,22 @@ grammar SpuddX;
 /*
 	Parser
 */
+/*
+domain: (expr)+
+		EOF
+		;
+		
+expr: list
+	| atom
+	| symbol
+	| LP expr RP
+	;
+	
+list : LP (expr)* RP ;
+atom : FLOAT_NUM ;
+symbol : SYMBOL ; 
+
+*/
 
 domain: var_defs
 		(all_def)*
@@ -153,6 +169,9 @@ OP_ADD : '+' ;
 OP_SUB : '-' ;
 OP_MUL : '*' ;
 OP_DIV : '/' ;
+
+
+/* SYMBOL : [a-zA-Z_'+'] ; */
 
 IDENTIFIER: [_]?[a-zA-Z][a-zA-Z0-9_']* ;
 FLOAT_NUM: [0-9]*['.']?[0-9]+ ;

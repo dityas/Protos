@@ -1,4 +1,5 @@
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -6,9 +7,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import thinclab.DDOP;
+import thinclab.legacy.DDleaf;
+import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.models.IPOMDP;
 import thinclab.spuddx_parser.SpuddXMainParser;
+import thinclab.utils.Tuple;
 
 /*
  *	THINC Lab at UGA | Cyber Deception Group
@@ -167,6 +171,36 @@ class TestExpansionStrats {
 					LOGGER.debug("Edge not explored. Self loop");
 
 			});
+	}
+	
+	@Test
+	void testIPOMDPL1Stepping() throws Exception {
+		
+		LOGGER.info("Checking L1 IPOMDP stepping");
+		System.gc();
+
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd").getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+
+		var b = DDOP.reorder(
+					DDOP.mult(
+							DDnode.getDistribution(
+									I.i_Mj, 
+									List.of(Tuple.of("m0", 1.0f))), 
+							DDleaf.getDD(0.5f)));
+		var b_n = I.step(b, 0, List.of(1, 2));
 	}
 
 }

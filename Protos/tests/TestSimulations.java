@@ -149,6 +149,8 @@ class TestSimulations {
 		var sim = new StochasticSimulation<>();
 		var e = sim.run(env, s, List.of(agentJ), 5);
 		LOGGER.debug(e.toDot());
+		
+		LOGGER.debug(Class.forName("thinclab.Agent"));
 	}
 
 
