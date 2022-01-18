@@ -7,12 +7,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import thinclab.Agent;
+import thinclab.DDOP;
 import thinclab.env.PartiallyObservableEnv;
 import thinclab.env.StochasticSimulation;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
+import thinclab.models.IPOMDP;
 import thinclab.models.POMDP;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
@@ -153,5 +155,77 @@ class TestSimulations {
 		LOGGER.debug(Class.forName("thinclab.Agent"));
 	}
 
+	@Test
+	void testMAStochasticSimulation() throws Exception {
+		
+		LOGGER.info("Testing stochastic simulation for multiagent partially observable env");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1_env.spudd").getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent J
+		var J = (POMDP) domainRunner.getModel("agentJ").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+		
+		LOGGER.debug(String.format("Got a hold of POMDP agent %s", J));
+		
+		// Get agent I
+		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+		
+		LOGGER.debug(String.format("Got a hold of IPOMDP agent %s", I));
+		
+		var env = domainRunner.envs.get("maTigerEnv");
+		LOGGER.debug(String.format("Got env %s", env));
+		
+		LOGGER.debug("Making initial state");
+		var s = DDnode.getDDForChild("TigerLoc", "TR");
+		
+		var Isolver = new SymbolicPerseusSolver<>();
+		var Jsolver = new SymbolicPerseusSolver<>();
+
+		//LOGGER.debug("Initializing StochasticSimulation");
+		var b = DDOP.mult(
+					DDleaf.getDD(0.5f), 
+					DDnode.getDistribution(
+							I.i_Mj, 
+							List.of(Tuple.of("m0", 1.0f))));
+		
+		var agentI = Agent.of(I, b, Isolver, 100, 10);
+		LOGGER.debug(String.format("Agent %s", agentI.toDot()));
+		
+		var agentJ = Agent.of(J, DDleaf.getDD(0.5f), Jsolver, 100, 10);
+		LOGGER.debug(String.format("Agent %s", agentJ.toDot()));
+		
+		var sim = new StochasticSimulation<>();
+		var e = sim.run(env, s, List.of(agentI, agentJ), 4);
+		LOGGER.debug(e.toDot());
+		
+		//LOGGER.debug(Class.forName("thinclab.Agent"));
+	}
+
+	@Test
+	void testCyberDeceptionSim() throws Exception {
+		
+		LOGGER.info("Testing sim for cyber deception env");
+		String domainFile = "/home/adityas/UGA/THINCLab/PhD/JAIR/new_domains/defenderL1.spudd";
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+		
+	}
 
 }

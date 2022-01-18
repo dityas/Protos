@@ -40,7 +40,6 @@ all_def : model_name			# PreDefModel
 		| modelvar_init_def		# ModelVarInitDef
 		| LP all_def RP 		# OtherDefParen
 		;
-		 
  
 pbvi_solv_def : LP 'defpbvisolv' type=(POMDP | IPOMDP) solv_name RP;
 

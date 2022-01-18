@@ -204,10 +204,15 @@ class TestExpansionStrats {
 		LOGGER.debug(String.format("Actions are %s", Global.valNames.get(I.i_A - 1)));
 		LOGGER.debug(String.format("Obs are %s", I.i_Om().stream().map(o -> Global.valNames.get(o - 1)).collect(Collectors.toList())));
 		LOGGER.debug(String.format("Starting belief is %s", DDOP.factors(b, I.i_S())));
+		
+		var _b_n = I.beliefUpdate(b, 0, List.of(1, 3));
+		var b1 = DDOP.factors(_b_n, I.i_S()).get(0);
+		
 		var b_n = I.step(b, 0, List.of(1, 3));
+		var b2 = DDOP.factors(b_n, I.i_S()).get(0);
 		
 		LOGGER.debug(String.format("Next belief is %s", DDOP.factors(b_n, I.i_S())));
-		
+		assertTrue(DDOP.abs(DDOP.sub(b1, b2)).getVal() < 1e-5f);
 	}
 
 }

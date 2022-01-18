@@ -8,6 +8,7 @@
 package thinclab;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
@@ -75,7 +76,9 @@ public class Agent implements Jsonable, Graphable {
 		
 		builder.append("agent_").append(this.hashCode()).append(" ");
 		builder.append(" [label=\"").append(" Name: ").append(this.m.getName()).append(" ");
-		builder.append(" | ").append("{ belief | ").append(this.b.toLabel()).append(" }");
+		
+		var b = String.join(" | ", DDOP.factors(this.b, m.i_S()).stream().map(d -> d.toLabel()).collect(Collectors.toList()));
+		builder.append(" | ").append("{ belief | ").append(b).append(" }");
 		builder.append(" | ").append("{ opt_a(b) | ").append(this.m.A().get(this.optA)).append(" }");
 		builder.append("\"];");
 		
