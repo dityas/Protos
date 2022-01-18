@@ -44,9 +44,9 @@ public class Global {
 
 	// random number generator
 	public static Random random = new Random();
-	
+
 	public static final boolean DEBUG = false;
-	
+
 	// --------------------------------------------------------------------------
 
 	private static final Logger LOGGER = LogManager.getLogger(Global.class);
@@ -198,39 +198,90 @@ public class Global {
 		Collections.sort(varList, (a, b) -> ordering.indexOf(a) - ordering.indexOf(b));
 		return varList;
 	}
-	
-	public static List<Tuple<Tuple<Integer, ReachabilityNode>, DD>> decoupleMj (DD b, int i_Mj) {
-	
+
+	public static List<Tuple<Tuple<Integer, ReachabilityNode>, DD>> decoupleMj(DD b, int i_Mj) {
+
 		var varSet = b.getVars();
-		
+
 		if (!Global.modelVars.containsKey(Global.varNames.get(i_Mj - 1))) {
-			
+
 			LOGGER.error(String.format("Var %s index %s passed to decoupleMj does not look like a modelvar",
 					Global.varNames.get(i_Mj - 1), i_Mj));
-			
+
 			System.exit(-1);
 			return null;
 		}
-		
+
 		else if (varSet.size() == 0 || varSet.last() == i_Mj || !varSet.contains(i_Mj)) {
-			
-			var mjVals = IntStream.range(0, b.getChildren().length).boxed()
-					.filter(b_ -> !b.getChildren()[b_].equals(DD.zero))
-					.map(i -> Tuple.of(
-							Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream()
-								.filter(kv -> kv.getValue() == Global.valNames.get(i_Mj - 1).get(i))
-								.map(kv -> kv.getKey()).findFirst().get(), 
-							b.getChildren()[i]))
+
+			var mjVals = IntStream
+					.range(0,
+							b.getChildren().length)
+					.boxed().filter(b_ -> !b
+							.getChildren()[b_]
+									.equals(DD.zero))
+					.map(i -> Tuple.of(Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream()
+							.filter(kv -> kv.getValue() == Global.valNames.get(i_Mj - 1).get(i)).map(kv -> kv.getKey())
+							.findFirst().get(), b.getChildren()[i]))
 					.collect(Collectors.toList());
-		
+
 			return mjVals;
 		}
-		
+
 		else {
+
 			LOGGER.error(String.format("%s has to be at the top of the DD.", i_Mj));
 			System.exit(-1);
 			return null;
 		}
+	}
+
+	public static DD assemblebMj(int i_Mj, List<Tuple<Tuple<Integer, ReachabilityNode>, DD>> mjs) {
+
+		final var mjSpace = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
+
+		var _mjs = mjs.stream().map(m ->
+			{
+
+				if (!mjSpace.containsKey(m._0())) {
+
+					LOGGER.error(String.format("Fatal error! %s is not in mj space", m._0()));
+					LOGGER.debug(String.format("Belief of j is %s", m._0()._1().beliefs));
+					LOGGER.debug("Possible mjs in the MjSpace are:");
+
+					mjSpace.keySet().stream().filter(_m -> _m._1().h == 0).forEach(_m ->
+						{
+
+							LOGGER.debug(String.format("%s in frame %s for node %s", 
+									_m._1().beliefs, _m._0(), _m._1()));
+							
+							LOGGER.debug(String.format("Debug equals is %s", 
+									m._0()._1().debugEquals(_m._1())));
+							LOGGER.debug(String.format("Hashcode equality is %s for %s and %s", 
+									m._0()._1().hashCode() == _m._1().hashCode(),
+									m._0()._1().hashCode(), _m._1().hashCode()));
+							LOGGER.debug(String.format("Hashcode equality is %s for ints %s and %s", 
+									m._0()._0().hashCode() == _m._0().hashCode(),
+									m._0()._0().hashCode(), _m._0().hashCode()));
+							LOGGER.debug(String.format("Tuple equality between %s and %s is %s",
+									m._0(), _m, m._0().equals(_m)));
+							LOGGER.debug(String.format("hashcode equality is %s, for %s and %s",
+									m._0().hashCode() == _m.hashCode(),
+									m._0().hashCode(), _m.hashCode()));
+						});
+					
+					System.exit(-1);
+					return null;
+				}
+
+				return Tuple.of(mjSpace.get(m._0()), m._1());
+			}).collect(Collectors.toMap(m -> m._0(), m -> m._1()));
+
+		var childDDs = Global.valNames.get(i_Mj - 1).stream()
+				.map(m -> _mjs.containsKey(m) ? _mjs.get(m) : DD.zero)
+				.toArray(DD[]::new);
+	
+		return DDnode.getDD(i_Mj, childDDs);
 	}
 
 	public static String modelVarsToDot(String v, IPOMDP m) {

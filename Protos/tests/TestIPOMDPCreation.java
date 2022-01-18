@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import thinclab.legacy.Global;
 import thinclab.legacy.DD;
 import thinclab.models.POMDP;
-import thinclab.models.datastructures.PBVISolvableFrameSolution;
+import thinclab.models.datastructures.BjSpace;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.utils.Tuple;
 import thinclab.utils.TwoWayMap;

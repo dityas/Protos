@@ -27,7 +27,7 @@ import thinclab.model_ops.belief_exploration.MjSpaceExpansion;
  * @author adityas
  *
  */
-public class PBVISolvableFrameSolution {
+public class BjSpace {
 
 	// horizon
 	public final int H;
@@ -40,9 +40,9 @@ public class PBVISolvableFrameSolution {
 	public SymbolicPerseusSolver<PBVISolvablePOMDPBasedModel> s;
 	public AlphaVectorPolicy Vn;
 	
-	private static final Logger LOGGER = LogManager.getLogger(PBVISolvableFrameSolution.class);
+	private static final Logger LOGGER = LogManager.getLogger(BjSpace.class);
 
-	public PBVISolvableFrameSolution(List<ReachabilityNode> mj_i, int f, PBVISolvablePOMDPBasedModel _m, int H) {
+	public BjSpace(List<ReachabilityNode> mj_i, int f, PBVISolvablePOMDPBasedModel _m, int H) {
 
 		this.H = H;
 		this.frame = f;

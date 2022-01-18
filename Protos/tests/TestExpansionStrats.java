@@ -200,7 +200,14 @@ class TestExpansionStrats {
 									I.i_Mj, 
 									List.of(Tuple.of("m0", 1.0f))), 
 							DDleaf.getDD(0.5f)));
-		var b_n = I.step(b, 0, List.of(1, 2));
+		
+		LOGGER.debug(String.format("Actions are %s", Global.valNames.get(I.i_A - 1)));
+		LOGGER.debug(String.format("Obs are %s", I.i_Om().stream().map(o -> Global.valNames.get(o - 1)).collect(Collectors.toList())));
+		LOGGER.debug(String.format("Starting belief is %s", DDOP.factors(b, I.i_S())));
+		var b_n = I.step(b, 0, List.of(1, 3));
+		
+		LOGGER.debug(String.format("Next belief is %s", DDOP.factors(b_n, I.i_S())));
+		
 	}
 
 }

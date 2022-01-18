@@ -21,7 +21,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
-import thinclab.models.datastructures.PBVISolvableFrameSolution;
+import thinclab.models.datastructures.BjSpace;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.utils.Tuple;
@@ -58,19 +58,19 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public List<DD> Taus;
 
 	public List<Tuple3<Integer, PBVISolvablePOMDPBasedModel, List<ReachabilityNode>>> framesj;
-	public List<PBVISolvableFrameSolution> framesjSoln;
+	public List<BjSpace> framesjSoln;
 
 	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
 
 	public IPOMDP(List<String> S, List<String> O, String A, String Aj, String Mj, String Thetaj,
 			List<Tuple<String, Model>> frames_j, HashMap<String, Model> dynamics, HashMap<String, DD> R, float discount,
 			int H, String name) {
-		
+
 		// initialize dynamics like POMDP
 		super(S, O, A, dynamics, R, discount);
 
 		this.name = name;
-		
+
 		// random variable for opponent's action
 		this.i_Aj = Global.varNames.indexOf(Aj) + 1;
 		this.Aj = Global.valNames.get(i_Aj - 1);
@@ -145,7 +145,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		Collections.sort(gaoivars);
 
 		// prepare structures for solving frames
-		this.framesjSoln = this.framesj.stream().map(f -> new PBVISolvableFrameSolution(f._2(), f._0(), f._1(), H))
+		this.framesjSoln = this.framesj.stream().map(f -> new BjSpace(f._2(), f._0(), f._1(), H))
 				.collect(Collectors.toList());
 
 		// create interactive state space using mjs
@@ -230,10 +230,15 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		Collections.sort(MjToOPTAj, (a, b) -> a._0().compareTo(b._0()));
 
 		var AjDDs = MjToOPTAj.stream().map(m -> m._1()).toArray(DD[]::new);
-		
-		LOGGER.debug(String.format("AjDDs are %s", AjDDs.length));
-		LOGGER.debug(String.format("i_Mj size is %s", Global.valNames.get(i_Mj - 1).size()));
-		
+
+		if (AjDDs.length != Global.valNames.get(i_Mj - 1).size()) {
+			
+			LOGGER.error("Fatal error while constructing P(Aj|Mj)");
+			LOGGER.debug(String.format("AjDDs are %s", AjDDs.length));
+			LOGGER.debug(String.format("i_Mj size is %s", Global.valNames.get(i_Mj - 1).size()));
+			System.exit(-1);
+		}
+
 		PAjGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, AjDDs));
 
 	}
@@ -388,6 +393,37 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	}
 
 	// ----------------------------------------------------------------------------------------
+	// MjSpace transformations
+
+	@Override
+	public void step() {
+
+		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).clear();
+
+		framesjSoln.forEach(f -> f.step());
+		updateIS();
+
+	}
+
+	@Override
+	public DD step(DD b, int a, List<Integer> o) {
+
+		var b_n = beliefUpdate(b, a, o);
+		var bnList = Global.decoupleMj(b_n, i_Mj);
+		
+		step();
+
+		return Global.assemblebMj(i_Mj, bnList);
+	}
+
+	@Override
+	public DD step(DD b, String a, List<String> o) {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	// ----------------------------------------------------------------------------------------
 	// PBVISolvable implementations
 
 	public Tuple<Float, Integer> Gaoi(final DD b, final int a, final List<Integer> o, final List<DD> alphas) {
@@ -496,16 +532,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 			var nextBa = nextBels.get(a);
 			float val = 0.0f;
-			
+
 			var _a = a;
-			var argmaxGois = nextBa.parallelStream()
-					.map(nb -> getBestAlpha(nb, alphas, _a))
+			var argmaxGois = nextBa.parallelStream().map(nb -> getBestAlpha(nb, alphas, _a))
 					.collect(Collectors.toList());
-			
-			var argmax_iGaoi = argmaxGois.stream()
-					.map(a_ -> Tuple.of(a_._0(), a_._1()))
-					.collect(Collectors.toList());
-			
+
+			var argmax_iGaoi = argmaxGois.stream().map(a_ -> Tuple.of(a_._0(), a_._1())).collect(Collectors.toList());
+
 			val = argmaxGois.stream().map(a_ -> a_._2()).reduce(0.0f, (a1_, a2_) -> a1_ + a2_);
 
 			val *= discount;
@@ -517,7 +550,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				bestA = a;
 			}
 
-			Gao.add((ArrayList<Tuple<Integer,DD>>) argmax_iGaoi);
+			Gao.add((ArrayList<Tuple<Integer, DD>>) argmax_iGaoi);
 
 		}
 
@@ -546,26 +579,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				(a, b) -> DDOP.add(a, b));
 
 		return vec;
-	}
-
-	@Override
-	public DD step(DD b, int a, List<Integer> o) {
-
-		var b_n = beliefUpdate(b, a, o);
-		var bnList = Global.decoupleMj(b_n, i_Mj);
-		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).clear();
-		
-		framesjSoln.forEach(f -> f.step());
-		updateIS();
-		
-		return null;
-	}
-
-	@Override
-	public DD step(DD b, String a, List<String> o) {
-
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override

@@ -173,7 +173,7 @@ OP_DIV : '/' ;
 
 /* SYMBOL : [a-zA-Z_'+'] ; */
 
-IDENTIFIER: [_]?[a-zA-Z][a-zA-Z0-9_']* ;
+IDENTIFIER: [_]?[a-zA-Z][a-zA-Z0-9_'.]* ;
 FLOAT_NUM: [0-9]*['.']?[0-9]+ ;
 
 LP : '(' ;

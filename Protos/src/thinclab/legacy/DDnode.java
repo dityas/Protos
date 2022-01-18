@@ -21,8 +21,6 @@ public class DDnode extends DD {
 	private int numLeaves;
 	private DD children[];
 
-	private int hash;
-
 	private static final Logger LOGGER = LogManager.getLogger(DDnode.class);
 
 	private DDnode(int var, DD children[]) {
@@ -31,10 +29,10 @@ public class DDnode extends DD {
 		this.children = children;
 		this.numLeaves = 0; // lazy temporary value
 
-		this.precomputeHash();
+		//this.hash = this.precomputeHash();
 	}
 
-	private void precomputeHash() {
+	private int computeHash() {
 		/*
 		 * Precomputes the hash code to avoid repeated computations and save time.
 		 * 
@@ -56,7 +54,7 @@ public class DDnode extends DD {
 			}
 		}
 
-		this.hash = builder.toHashCode();
+		return builder.toHashCode();
 	}
 
 	public static DD getDD(List<Integer> vars, List<Integer> vals, float val) {
@@ -243,7 +241,7 @@ public class DDnode extends DD {
 	@Override
 	public int hashCode() {
 
-		return this.hash;
+		return computeHash();
 	}
 
 	public DD store() {

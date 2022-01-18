@@ -163,6 +163,27 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 	}
 
 	// ----------------------------------------------------------------------------------------
+	// Mj Space transformations. (Only here to conform to POSeqDecModel interface)
+	// This will probably change in the future
+
+	@Override
+	public DD step(DD b, int a, List<Integer> o) {
+
+		return beliefUpdate(b, a, o);
+	}
+
+	@Override
+	public DD step(DD b, String a, List<String> o) {
+
+		return beliefUpdate(b, a, o);
+	}
+
+	@Override
+	public void step() {
+
+	}
+
+	// ----------------------------------------------------------------------------------------
 	// PBVISolvable implementations
 
 	public DD project(DD d, int a, List<Integer> o) {
@@ -303,18 +324,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		return vec;
 	}
 
-	@Override
-	public DD step(DD b, int a, List<Integer> o) {
-
-		return beliefUpdate(b, a, o);
-	}
-
-	@Override
-	public DD step(DD b, String a, List<String> o) {
-
-		return beliefUpdate(b, a, o);
-	}
-
+	
 	@Override
 	public String toJson() {
 
@@ -336,5 +346,6 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		return null;
 	}
 
+	
 
 }
