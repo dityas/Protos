@@ -225,7 +225,56 @@ class TestSimulations {
 		// Run domain
 		var domainRunner = new SpuddXMainParser(domainFile);
 		domainRunner.run();
+	
+		// Get agent J
+		var J = (POMDP) domainRunner.getModel("defL0Agg").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
 		
+		LOGGER.debug(String.format("Got a hold of POMDP agent %s", J));
+		
+		// Get agent I
+		var I = (IPOMDP) domainRunner.getModel("attL1Exfil").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+		
+		LOGGER.debug(String.format("Got a hold of IPOMDP agent %s", I));
+		
+		var env = domainRunner.envs.get("cyberDecEnv");
+		LOGGER.debug(String.format("Got env %s", env));
+		
+		//LOGGER.debug("Making initial state");
+		var bJ = domainRunner.getDDs().get("initBeliefDefL0");
+		var bI = domainRunner.getDDs().get("initL1AttBelief");
+		
+		var Isolver = new SymbolicPerseusSolver<>();
+		var Jsolver = new SymbolicPerseusSolver<>();
+
+		//LOGGER.debug("Initializing StochasticSimulation");
+		//var b = DDOP.mult(
+		//			DDleaf.getDD(0.5f), 
+		//			DDnode.getDistribution(
+		//					I.i_Mj, 
+		//					List.of(Tuple.of("m0", 1.0f))));
+		
+		var agentJ = Agent.of(J, bJ, Jsolver, 100, 5);
+		LOGGER.debug(String.format("Agent %s", agentJ.toDot()));
+		
+		var agentI = Agent.of(I, bI, Isolver, 100, I.H);
+		LOGGER.debug(String.format("Agent %s", agentI.toDot()));
+		
+
+		//var sim = new StochasticSimulation<>();
+		//var e = sim.run(env, s, List.of(agentI, agentJ), 4);
+		//LOGGER.debug(e.toDot());
 	}
 
 }
