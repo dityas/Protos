@@ -379,24 +379,6 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitParenExecExpr(SpuddXParser.ParenExecExprContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#lisp_block}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitLisp_block(SpuddXParser.Lisp_blockContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#expr_list}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitExpr_list(SpuddXParser.Expr_listContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SpuddXParser#lisp_expr}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitLisp_expr(SpuddXParser.Lisp_exprContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#solv_cmd}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

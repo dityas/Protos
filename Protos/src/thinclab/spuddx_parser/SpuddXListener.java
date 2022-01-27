@@ -629,36 +629,6 @@ public interface SpuddXListener extends ParseTreeListener {
 	 */
 	void exitParenExecExpr(SpuddXParser.ParenExecExprContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#lisp_block}.
-	 * @param ctx the parse tree
-	 */
-	void enterLisp_block(SpuddXParser.Lisp_blockContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#lisp_block}.
-	 * @param ctx the parse tree
-	 */
-	void exitLisp_block(SpuddXParser.Lisp_blockContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#expr_list}.
-	 * @param ctx the parse tree
-	 */
-	void enterExpr_list(SpuddXParser.Expr_listContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#expr_list}.
-	 * @param ctx the parse tree
-	 */
-	void exitExpr_list(SpuddXParser.Expr_listContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link SpuddXParser#lisp_expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterLisp_expr(SpuddXParser.Lisp_exprContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link SpuddXParser#lisp_expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitLisp_expr(SpuddXParser.Lisp_exprContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link SpuddXParser#solv_cmd}.
 	 * @param ctx the parse tree
 	 */

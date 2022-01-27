@@ -23,7 +23,6 @@ symbol : SYMBOL ;
 domain: var_defs
 		(all_def)*
 		(exec_block)?
-		(lisp_block)?
 		EOF 
 		;
 
@@ -141,13 +140,6 @@ exec_expr : dd_def													# DDExecDef
 		  | 'defpol' policy_name '=' solv_cmd 						# SolvExpr
 		  | 'poltree' dd_list model_name policy_name exp_horizon	# PolTreeExpr
 		  | LP exec_expr RP 										# ParenExecExpr
-		  ;
-
-lisp_block : LP 'lisp' (expr_list)* RP ;
-expr_list : LP (lisp_expr)* RP ;
-lisp_expr : expr_list
-		  | IDENTIFIER
-		  | FLOAT_NUM
 		  ;
 
 solv_cmd : 'solve' solv_name dd_list model_name backups exp_horizon;

@@ -59,6 +59,9 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 	/*
 	 * Parses and runs the SPUDDX domain
 	 */
+	
+	// all definitions
+	private HashMap<String, Object> envMap = new HashMap<>();
 
 	// parsed DDs
 	private HashMap<String, DD> dds = new HashMap<>(10);
@@ -444,7 +447,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 		LOGGER.error(message);
 		System.exit(-1);
 	}
-
+	
 	// ----------------------------------------------------------------------------------------
 
 	public HashMap<String, DD> getDDs() {

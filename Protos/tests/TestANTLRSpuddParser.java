@@ -227,4 +227,23 @@ class TestANTLRSpuddParser {
 
 	}
 
+	@Test
+	void testTinyLisp() throws Exception {
+
+		System.gc();
+		printMemConsumption();
+
+		LOGGER.info("Testing L1 IPOMDP belief update");
+		String domainFile = this.getClass()
+				.getClassLoader()
+				.getResource("test_domains/test_ipomdpl1_lisp.spudd")
+				.getFile();
+
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		printMemConsumption();
+
+	}
+	
 }
