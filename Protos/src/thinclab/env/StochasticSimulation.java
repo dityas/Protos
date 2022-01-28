@@ -13,7 +13,9 @@ import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.Agent;
+import thinclab.DDOP;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 import thinclab.utils.Tuple;
 
 /*
@@ -39,8 +41,15 @@ public class StochasticSimulation<E extends Environment<DD>> implements Simulato
 			var simState = new SimState(i, env.getS(), agents);
 			
 			LOGGER.info(String.format("Simulation time step %s", i));
-			LOGGER.info(String.format("Beliefs are %s", 
-					agents.stream().map(a -> Tuple.of(a.m.name, a.b)).collect(Collectors.toList())));
+			
+			agents.forEach(a -> {
+				
+				LOGGER.info(String.format("Belief for agent %s is %s", 
+						a.m.name, DDOP.factors(a.b, a.m.i_S())));
+			});
+			
+			//LOGGER.info(String.format("Beliefs are %s", 
+			//		agents.stream().map(a -> Tuple.of(a.m.name, DDOP.factors(a.b, a.m.i_S()))).collect(Collectors.toList())));
 			
 			var actions = agents.stream()
 					.map(a -> Tuple.of(
@@ -48,7 +57,14 @@ public class StochasticSimulation<E extends Environment<DD>> implements Simulato
 							a.optA + 1))
 					.collect(Collectors.toList());
 			
-			LOGGER.info(String.format("Optimal actions for agents %s are %s", agents, actions));
+			agents.forEach(a -> {
+				
+				LOGGER.info(String.format("Optimal action for %s is %s", 
+						a.m.name, Global.valNames.get(a.m.i_A).get(a.optA)));
+				
+			});
+			
+			// LOGGER.info(String.format("Optimal actions for agents %s are %s", agents, actions));
 			
 			var obs = env.step(actions);
 			

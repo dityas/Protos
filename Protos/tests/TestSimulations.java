@@ -220,7 +220,7 @@ class TestSimulations {
 	void testCyberDeceptionSim() throws Exception {
 		
 		LOGGER.info("Testing sim for cyber deception env");
-		String domainFile = "/home/adityas/UGA/THINCLab/PhD/JAIR/new_domains/defenderL1.spudd";
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/defenderL1.spudd").getFile();
 
 		// Run domain
 		var domainRunner = new SpuddXMainParser(domainFile);
@@ -270,10 +270,11 @@ class TestSimulations {
 		
 		var agentI = Agent.of(I, bI, Isolver, 100, I.H);
 		LOGGER.debug(String.format("Agent %s", agentI.toDot()));
-		
+	
+		var s = domainRunner.getDDs().get("initS");
 
-		//var sim = new StochasticSimulation<>();
-		//var e = sim.run(env, s, List.of(agentI, agentJ), 4);
+		var sim = new StochasticSimulation<>();
+		var e = sim.run(env, s, List.of(agentI, agentJ), 4);
 		//LOGGER.debug(e.toDot());
 	}
 

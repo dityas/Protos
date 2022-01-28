@@ -66,7 +66,7 @@ public class PartiallyObservableEnv implements Environment<DD> {
 	public void init(DD s) {
 
 		this.s = s;
-		LOGGER.info(String.format("Initial state for env %s set to %s", name, s));
+		LOGGER.info(String.format("Initial state for env %s set to %s", name, DDOP.factors(s, i_S)));
 	}
 
 	@Override
