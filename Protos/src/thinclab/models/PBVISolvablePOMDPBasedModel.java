@@ -105,7 +105,10 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 			
 			return DDOP.addMultVarElim(r, i_S_p());
 		}).collect(Collectors.toList());
-
+		LOGGER.error(String.format("R is %s",
+				R().stream()
+						.map(_r -> _r.getVar() == 0 ? "(Leaf)": Global.varNames.get(_r.getVar() - 1))
+						.collect(Collectors.toList())));
 		this.discount = discount;
 
 	}

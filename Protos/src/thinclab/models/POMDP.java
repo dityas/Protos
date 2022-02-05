@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
@@ -20,6 +21,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 
@@ -179,7 +181,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 	}
 
 	@Override
-	public void step() {
+	public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter) {
 
 	}
 

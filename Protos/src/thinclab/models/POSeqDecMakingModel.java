@@ -8,6 +8,9 @@
 package thinclab.models;
 
 import java.util.List;
+import java.util.Set;
+import thinclab.models.datastructures.ReachabilityNode;
+import thinclab.utils.Tuple;
 
 /*
  * @author adityas
@@ -43,7 +46,7 @@ public interface POSeqDecMakingModel<R> extends Model {
 	public R obsLikelihoods(R b, int a);
 	
 	// step to next belief
-	public void step();
+	public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter);
 	public R step(R b, int a, List<Integer> o);
 	public R step(R b, String a, List<String> o);
 

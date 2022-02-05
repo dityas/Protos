@@ -7,9 +7,12 @@
  */
 package thinclab.model_ops.belief_exploration;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
@@ -17,6 +20,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.policy.Policy;
 import thinclab.utils.Tuple;
 
@@ -83,7 +87,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 		int startSize = g.getAllNodes().size();
 
 		LOGGER.info("Expanding belief region...");
-		for (int n = 0; n < 100; n++) {
+		for (int n = 0; n < 300; n++) {
 
 			if (g.getAllNodes().size() >= maxB)
 				break;
@@ -102,9 +106,20 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
 					// greedy action
 					if (usePolicy == 1) {
+
+						try {
+							a = Vn.getBestActionIndex(b, m.i_S());
+						}
 						
-						a = Vn.getBestActionIndex(b, m.i_S());
-						
+						catch (Exception e) {
+							LOGGER.error(String.format("b has vars %s", DDOP.factors(b, m.i_S())));
+							LOGGER.error(String.format("b has childs %s", b.getChildren().length));
+							LOGGER.error(String.format("aVecs have childs %s", ((AlphaVectorPolicy) Vn).aVecs.stream().map(_a -> _a._1().getVar() == 0 ? "Leaf" : Global.varNames.get(_a._1().getVar() - 1)).collect(Collectors.toList())));
+							LOGGER.error(String.format("m has %s states", m.i_S()));
+							e.printStackTrace();
+							System.exit(-1);
+						}
+
 						if (!likelihoodsCache.containsKey(Tuple.of(b, a)))
 							likelihoodsCache.put(Tuple.of(b, a), m.obsLikelihoods(b, a));
 
@@ -133,8 +148,10 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 					// exploratory action
 					else if (usePolicy == 0) {
 
+						// var nextBels = new ArrayList<Tuple<DD, Tuple<Integer, List<Integer>>>>();
+						// for (int _a = 0; _a < m.A().size(); _a++) {
 						int _a = Global.random.nextInt(m.A().size());
-						
+
 						if (!likelihoodsCache.containsKey(Tuple.of(b, _a)))
 							likelihoodsCache.put(Tuple.of(b, _a), m.obsLikelihoods(b, _a));
 
@@ -147,9 +164,14 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 						if (b_ == null)
 							b_ = m.beliefUpdate(b, _edge._0(), _edge._1());
 
+						// nextBels.add(Tuple.of(b_, _edge));
 						var dist = getMinDistance(b_, g.getAllNodes());
 
-						if (dist > 0.01f)
+						// var bestBel = nextBels.parallelStream()
+						// .map(bel -> Tuple.of(bel, getMinDistance(bel._0(), g.getAllNodes())))
+						// .max((d1, d2) -> d1._1().compareTo(d2._1())).get();
+
+						if (dist > 0.1f)
 							g.addEdge(b, _edge, b_);
 
 						b = b_;

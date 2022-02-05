@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.policy.Policy;
@@ -34,21 +35,28 @@ public class Agent implements Jsonable, Graphable {
 	public final int H;
 
 	private static final Logger LOGGER = LogManager.getLogger(Agent.class);
-	
+
 	public Agent(PBVISolvablePOMDPBasedModel m, DD b,
 			PointBasedSolver<PBVISolvablePOMDPBasedModel, AlphaVectorPolicy> solver, int backups, int H) {
+
+		LOGGER.info(String.format("[*] Constructing agent wrapper for model %s", m.getName()));
+
 		this.m = m;
 		this.b = b;
 		this.backups = backups;
 		this.solver = solver;
 		this.H = H;
+
+		LOGGER.error(String.format("aVecs have childs %s",
+				AlphaVectorPolicy.fromR(this.m.R()).aVecs.stream()
+						.map(_a -> _a._1().getVar() == 0 ? String.format("Leaf, %s", this.m.A().get(_a._0())) : String.format("%s, %s", Global.varNames.get(_a._1().getVar() - 1), this.m.A().get(_a._0())))
+						.collect(Collectors.toList())));
 		
-		this.Vn = this.solver.solve(List.of(this.b), this.m, this.backups, this.H,
-				AlphaVectorPolicy.fromR(this.m.R()));
+		this.Vn = this.solver.solve(List.of(this.b), this.m, this.backups, this.H, AlphaVectorPolicy.fromR(this.m.R()));
 		this.optA = this.Vn.getBestActionIndex(this.b, this.m.i_S());
 
 		LOGGER.info(String.format("Initialized agent for model %s", this.m.getName()));
-		
+
 	}
 
 	public static Agent of(PBVISolvablePOMDPBasedModel m, DD b,
@@ -56,10 +64,11 @@ public class Agent implements Jsonable, Graphable {
 
 		return new Agent(m, b, solver, backups, H);
 	}
-	
+
 	public static Agent step(Agent A, List<Integer> obs) {
-		
+
 		DD b_n = A.m.step(A.b, A.optA, obs);
+		LOGGER.warn(String.format("b %s is %s", b_n.getChildren().length, DDOP.factors(b_n, A.m.i_S())));
 		return Agent.of(A.m, b_n, A.solver, A.backups, A.H);
 	}
 
@@ -73,15 +82,16 @@ public class Agent implements Jsonable, Graphable {
 	public String toDot() {
 
 		var builder = new StringBuilder();
-		
+
 		builder.append("agent_").append(this.hashCode()).append(" ");
 		builder.append(" [label=\"").append(" Name: ").append(this.m.getName()).append(" ");
-		
-		var b = String.join(" | ", DDOP.factors(this.b, m.i_S()).stream().map(d -> d.toLabel()).collect(Collectors.toList()));
+
+		var b = String.join(" | ",
+				DDOP.factors(this.b, m.i_S()).stream().map(d -> d.toLabel()).collect(Collectors.toList()));
 		builder.append(" | ").append("{ belief | ").append(b).append(" }");
 		builder.append(" | ").append("{ opt_a(b) | ").append(this.m.A().get(this.optA)).append(" }");
 		builder.append("\"];");
-		
+
 		return builder.toString();
 	}
 

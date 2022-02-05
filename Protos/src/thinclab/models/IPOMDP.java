@@ -8,10 +8,10 @@
 package thinclab.models;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
@@ -49,6 +49,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public final List<Integer> allvars;
 	public final List<Integer> gaoivars;
+	
+	public final List<DD> jointR;
 
 	public final List<List<DD>> Oj;
 
@@ -69,6 +71,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		// initialize dynamics like POMDP
 		super(S, O, A, dynamics, R, discount);
 
+		jointR = new ArrayList<DD>(this.R.size());
+		jointR.addAll(this.R);
+		
 		this.name = name;
 
 		// random variable for opponent's action
@@ -173,7 +178,11 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		createPThetajMj();
 		createPMj_pMjAjOj_p();
 
-		R = R.stream().map(ra -> DDOP.addMultVarElim(List.of(PAjGivenMj, ra), List.of(i_Aj)))
+		//R = R.stream().map(ra -> DDOP.addMultVarElim(List.of(PAjGivenMj, ra), List.of(i_Aj)))
+		//		.collect(Collectors.toList());
+		
+		R = jointR.stream()
+				.map(jr -> DDOP.addMultVarElim(List.of(PAjGivenMj,  jr), List.of(i_Aj)))
 				.collect(Collectors.toList());
 	}
 
@@ -396,24 +405,38 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	// MjSpace transformations
 
 	@Override
-	public void step() {
+	public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter) {
 
 		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).clear();
 
-		framesjSoln.forEach(f -> f.step());
+		framesjSoln.forEach(f -> f.step(modelFilter.stream()
+				.filter(mf -> mf._0() == f.frame)
+				.collect(Collectors.toSet())));
+		
 		updateIS();
-
 	}
 
 	@Override
 	public DD step(DD b, int a, List<Integer> o) {
 
 		var b_n = beliefUpdate(b, a, o);
-		var bnList = Global.decoupleMj(b_n, i_Mj);
 		
-		step();
+		// Prune all models with P(Mj) < 0.01.
+		var modelFilter = Global.pruneModels(
+				DDOP.factors(b_n, i_S()).get(i_S().size() - 1), i_Mj);
 
-		return Global.assemblebMj(i_Mj, bnList);
+		var bnList = Global.decoupleMj(b_n, i_Mj).stream()
+				.filter(_b -> modelFilter.contains(_b._0()))
+				.collect(Collectors.toList());
+				
+		step(modelFilter);
+
+		var bel = Global.assemblebMj(i_Mj, bnList);
+		LOGGER.debug(String.format("bel has %s childs", bel.getChildren().length));
+		var norm = DDOP.addMultVarElim(List.of(bel), i_S());
+		LOGGER.debug(String.format("norm is %s", norm));
+		
+		return DDOP.div(bel, norm);
 	}
 
 	@Override

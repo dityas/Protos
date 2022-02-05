@@ -60,7 +60,7 @@ public class StochasticSimulation<E extends Environment<DD>> implements Simulato
 			agents.forEach(a -> {
 				
 				LOGGER.info(String.format("Optimal action for %s is %s", 
-						a.m.name, Global.valNames.get(a.m.i_A).get(a.optA)));
+						a.m.name, Global.valNames.get(a.m.i_A - 1).get(a.optA)));
 				
 			});
 			

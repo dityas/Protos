@@ -730,7 +730,23 @@ public class DDOP {
 			float dp = 0;
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 
+				//try {
 				dp += DDOP.dotProduct(dd1.getChildren()[i], dd2.getChildren()[i], _vars);
+				//}
+				//catch (Exception e) {
+				
+					//LOGGER.debug(String.format("DD1 is %s", Arrays.toString(dd1.getChildren())));
+				//	LOGGER.debug(String.format("DD2 is %s", Arrays.toString(dd2.getChildren())));
+				//	LOGGER.debug(String.format("Children are %s and %s and _vars are %s", 
+				//			dd1.getChildren().length, dd2.getChildren().length, _vars));
+				//	LOGGER.debug(String.format("Root vars are %s and %s", 
+				//			Global.varNames.get(dd1.getVar() - 1), Global.varNames.get(dd2.getVar()-1)));
+				//	LOGGER.debug(String.format("Children are %s and %s", 
+				//			Global.valNames.get(dd1.getVar() - 1), Global.valNames.get(dd2.getVar() - 1)));
+					
+				//	e.printStackTrace();
+				//	System.exit(-1);
+				//}
 			}
 			Global.dotProductCache.put(_computation, dp);
 			return dp;

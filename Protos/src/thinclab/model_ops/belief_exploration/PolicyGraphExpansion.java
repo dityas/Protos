@@ -69,9 +69,11 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 						if (_node == null) {
 							_node = new ReachabilityNode(bestAlpha, bestAct);
 							_node.h = h;
+							
+							_node.beliefs.add(b_n);
 						}
 						
-						_node.beliefs.add(b_n);
+						//_node.beliefs.add(b_n);
 						nextNodes[bestAlpha] = _node;
 						
 						newEdges.add(Tuple.of(n, e.getKey(), bestAlpha));

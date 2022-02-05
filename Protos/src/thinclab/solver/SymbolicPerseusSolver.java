@@ -94,6 +94,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 	@Override
 	public AlphaVectorPolicy solve(final List<DD> b_is, final M m, int I, int H, AlphaVectorPolicy Vn) {
 
+		LOGGER.info(String.format("[*] Launching symbolic Perseus solver for model %s", m.getName()));
 		var g = ReachabilityGraph.fromDecMakingModel(m);
 
 		var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.1f);
@@ -106,12 +107,16 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 		var _ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(1 - (1.0f / m.A().size()));
 		g = _ES.expand(b_i, g, m, H, Vn);
+		
 		var _now = System.nanoTime();
 		LOGGER.info(String.format("Initial belief exploration for %s took %s msecs", m.getName(),
 				((_now - _then) / 1000000.0)));
 
-		LOGGER.info(String.format("Starting symbolic Perseus iterations for %s from starting beliefs %s", m.getName(),
-				b_is.stream().map(_b -> DDOP.factors(_b, m.i_S())).collect(Collectors.toList())));
+		LOGGER.info(String.format("Starting symbolic Perseus iterations for %s from starting beliefs: ", m.getName()));
+		
+		b_is.stream().forEach(_b -> {
+			LOGGER.info(String.format("Belief %s", DDOP.factors(_b, m.i_S())));
+		});
 		
 		for (int i = 0; i < I; i++) {
 
@@ -149,7 +154,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			
 			Global.clearHashtablesIfFull();
 
-			if (bellmanError < 0.1f && i > 0) {
+			if (bellmanError < 0.1f) {
 				
 				long expandThen = System.nanoTime();
 
@@ -174,7 +179,13 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		
 		if (Global.DEBUG)
 			Global.logCacheSizes();
+		
+		b_is.forEach(_b -> {
+			LOGGER.info(String.format("OPT(A) = %s for b = %s", m.A().get(Vn.getBestActionIndex(_b, m.i_S())), DDOP.factors(_b, m.i_S())));
+		});
 
+		LOGGER.info(String.format("[*] Finished solving %s", m.getName()));
+		
 		return Vn;
 	}
 

@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -235,6 +236,77 @@ public class Global {
 			return null;
 		}
 	}
+	
+	public static Set<Tuple<Integer, ReachabilityNode>> pruneModels(DD b, int i_Mj) {
+	
+		if (b.getVar() != i_Mj) {
+			
+			LOGGER.error(String.format("Var %s in DD %s is not a model var", 
+					Global.varNames.get(b.getVar() - 1), b));
+			System.exit(-1);
+		}
+	
+		var mostProbableModel = Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream()
+				.filter(e -> e.getKey()._1().h == 1)
+				.map(e -> { // Get actual model from Mj value
+					
+					var m = e.getKey();
+					var mv = e.getValue();
+					
+					int index = Collections.binarySearch(Global.valNames.get(i_Mj - 1), mv);
+					
+					if (index < 0) {
+						
+						LOGGER.error(String.format("Could not find model %s in %s", 
+								mv, Global.valNames.get(i_Mj - 1)));
+						System.exit(-1);
+					}
+					
+					return Tuple.of(m, b.getChildren()[index].getVal());
+				}).max((m1, m2) -> m1._1().compareTo(m2._1())).get();
+				
+		var models = Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream()
+				.filter(e -> e.getKey()._1().h == 1)
+				.map(e -> { // Get actual model from Mj value
+					
+					var m = e.getKey();
+					var mv = e.getValue();
+					
+					int index = Collections.binarySearch(Global.valNames.get(i_Mj - 1), mv);
+					
+					if (index < 0) {
+						
+						LOGGER.error(String.format("Could not find model %s in %s", 
+								mv, Global.valNames.get(i_Mj - 1)));
+						System.exit(-1);
+					}
+					
+					return Tuple.of(m, b.getChildren()[index].getVal());
+				})
+				.filter(m -> { // Remove all models with P(mj) < 0.01
+					
+					LOGGER.info(String.format("Checking model %s with probability %s", 
+								m._0(), m._1()));
+					
+					if (m._1() > 0.01f)
+						return true;
+					
+					else {
+						LOGGER.info(String.format("Pruning model %s with probability %s", 
+								m._0(), m._1()));
+						return false;
+					}
+				})
+				.map(m -> m._0())
+				.collect(Collectors.toSet());
+		
+		if (models.size() < 1) {
+			LOGGER.warn("No more models with P(mj) > 0.01. Adding the most probable model as the only model.");
+			models.add(mostProbableModel._0());
+		}
+		
+		return models;
+	}
 
 	public static DD assemblebMj(int i_Mj, List<Tuple<Tuple<Integer, ReachabilityNode>, DD>> mjs) {
 
@@ -281,7 +353,7 @@ public class Global {
 				.map(m -> _mjs.containsKey(m) ? _mjs.get(m) : DD.zero)
 				.toArray(DD[]::new);
 	
-		return DDnode.getDD(i_Mj, childDDs);
+		return DDOP.reorder(DDnode.getDD(i_Mj, childDDs));
 	}
 
 	public static String modelVarsToDot(String v, IPOMDP m) {

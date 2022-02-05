@@ -16,11 +16,10 @@ import thinclab.utils.Tuple3;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import thinclab.DDOP;
-import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.MjSpaceExpansion;
 
 /*
@@ -87,17 +86,21 @@ public class BjSpace {
 				.collect(Collectors.toList());
 	}
 
-	public void step() {
+	public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter) {
 
 		if (m instanceof POMDP) {
 			
-			var mjs = MG.getChildren(mj_i);
+			var mjs = MG.getChildren(mj_i).stream()
+					.filter(m -> modelFilter.contains(Tuple.of(frame, m)))
+					.collect(Collectors.toList());
 			mjs.forEach(m -> m.h = 0);
 			mj_i = new ArrayList<>(mjs);
 		}
 		
-		else 
+		else { 
 			LOGGER.error("Stepping for L1+ IPOMDPs is not implemented yet");
+			System.exit(-1);
+		}
 	}
 
 }
