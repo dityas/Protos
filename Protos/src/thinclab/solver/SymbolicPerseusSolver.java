@@ -94,6 +94,9 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 	@Override
 	public AlphaVectorPolicy solve(final List<DD> b_is, final M m, int I, int H, AlphaVectorPolicy Vn) {
 
+		if (b_is.size() < 1)
+			return Vn;
+		
 		LOGGER.info(String.format("[*] Launching symbolic Perseus solver for model %s", m.getName()));
 		var g = ReachabilityGraph.fromDecMakingModel(m);
 
@@ -112,10 +115,12 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		LOGGER.info(String.format("Initial belief exploration for %s took %s msecs", m.getName(),
 				((_now - _then) / 1000000.0)));
 
-		LOGGER.info(String.format("Starting symbolic Perseus iterations for %s from starting beliefs: ", m.getName()));
-		
 		b_is.stream().forEach(_b -> {
-			LOGGER.info(String.format("Belief %s", DDOP.factors(_b, m.i_S())));
+			
+			if (!DDOP.verifyJointProbabilityDist(_b, m.i_S())) {
+				LOGGER.error(String.format("Belief %s is not a valid probability distribution", DDOP.factors(_b, m.i_S())));
+				System.exit(-1);
+			}
 		});
 		
 		for (int i = 0; i < I; i++) {
@@ -180,10 +185,9 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		if (Global.DEBUG)
 			Global.logCacheSizes();
 		
-		b_is.forEach(_b -> {
-			LOGGER.info(String.format("OPT(A) = %s for b = %s", m.A().get(Vn.getBestActionIndex(_b, m.i_S())), DDOP.factors(_b, m.i_S())));
-		});
-
+		var solnSet = Vn.aVecs.parallelStream().map(a -> m.A().get(a._0())).collect(Collectors.toSet());
+		LOGGER.info(String.format("Optimal policy contains actions: %s", solnSet));
+		
 		LOGGER.info(String.format("[*] Finished solving %s", m.getName()));
 		
 		return Vn;

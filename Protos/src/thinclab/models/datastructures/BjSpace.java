@@ -38,7 +38,7 @@ public class BjSpace {
 	public PBVISolvablePOMDPBasedModel m;
 	public SymbolicPerseusSolver<PBVISolvablePOMDPBasedModel> s;
 	public AlphaVectorPolicy Vn;
-	
+
 	private static final Logger LOGGER = LogManager.getLogger(BjSpace.class);
 
 	public BjSpace(List<ReachabilityNode> mj_i, int f, PBVISolvablePOMDPBasedModel _m, int H) {
@@ -53,14 +53,17 @@ public class BjSpace {
 
 	public void solve() {
 
-		LOGGER.info("Solving opponent");
-		var b_list = mj_i.stream().flatMap(m -> m.beliefs.stream()).collect(Collectors.toList());
-		Vn = s.solve(b_list, m, 100, H, Vn);
-		
-		MG = ModelGraph.fromDecMakingModel(m);
-		
-		mj_i.stream().forEach(MG::addNode);
-		MG = new MjSpaceExpansion<>().expand(mj_i, MG, m, H, Vn);	
+		if (mj_i.size() > 0) {
+
+			LOGGER.info("Solving opponent");
+			var b_list = mj_i.stream().flatMap(m -> m.beliefs.stream()).collect(Collectors.toList());
+			Vn = s.solve(b_list, m, 100, H, Vn);
+
+			MG = ModelGraph.fromDecMakingModel(m);
+
+			mj_i.stream().forEach(MG::addNode);
+			MG = new MjSpaceExpansion<>().expand(mj_i, MG, m, H, Vn);
+		}
 	}
 
 	public List<Tuple<Integer, ReachabilityNode>> mjList() {
@@ -89,15 +92,15 @@ public class BjSpace {
 	public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter) {
 
 		if (m instanceof POMDP) {
-			
-			var mjs = MG.getChildren(mj_i).stream()
-					.filter(m -> modelFilter.contains(Tuple.of(frame, m)))
+
+			var mjs = MG.getChildren(mj_i).stream().filter(m -> modelFilter.contains(Tuple.of(frame, m)))
 					.collect(Collectors.toList());
 			mjs.forEach(m -> m.h = 0);
 			mj_i = new ArrayList<>(mjs);
 		}
-		
-		else { 
+
+		else {
+
 			LOGGER.error("Stepping for L1+ IPOMDPs is not implemented yet");
 			System.exit(-1);
 		}

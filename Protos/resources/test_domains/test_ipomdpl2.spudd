@@ -349,9 +349,9 @@
 (initmodelvar agent_il1
 	(frames Frame_il2)
 	(
-		(frame1 	(m0 	(agent_j m0)))
-		(frame1		(m1 	(agent_j m1)))
-		(frame1 	(m2 	(agent_j m2)))
+		(frame1 	(m0 	(agent_j m0) * (0.5)))
+		(frame1		(m1 	(agent_j m1) * (0.5)))
+		(frame1 	(m2 	(agent_j m2) * (0.5)))
 	)
 )
 

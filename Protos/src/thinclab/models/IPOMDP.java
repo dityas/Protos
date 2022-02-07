@@ -422,19 +422,17 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var b_n = beliefUpdate(b, a, o);
 		
 		// Prune all models with P(Mj) < 0.01.
-		var modelFilter = Global.pruneModels(
+		var allModels = Global.pruneModels(
 				DDOP.factors(b_n, i_S()).get(i_S().size() - 1), i_Mj);
 
 		var bnList = Global.decoupleMj(b_n, i_Mj).stream()
-				.filter(_b -> modelFilter.contains(_b._0()))
+				.filter(_b -> allModels._0().contains(_b._0()))
 				.collect(Collectors.toList());
 				
-		step(modelFilter);
+		step(allModels._0());
 
-		var bel = Global.assemblebMj(i_Mj, bnList);
-		LOGGER.debug(String.format("bel has %s childs", bel.getChildren().length));
+		var bel = Global.assemblebMj(i_Mj, bnList, allModels._1());
 		var norm = DDOP.addMultVarElim(List.of(bel), i_S());
-		LOGGER.debug(String.format("norm is %s", norm));
 		
 		return DDOP.div(bel, norm);
 	}

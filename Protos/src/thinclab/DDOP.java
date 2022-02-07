@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -397,8 +398,9 @@ public class DDOP {
 
 		// check if any of the dds are zero
 		for (int i = 0; i < _dds.size(); i++) {
-			
+
 			if (_dds.get(i) == null) {
+
 				LOGGER.error(String.format("null DD is %s", i));
 			}
 
@@ -664,10 +666,10 @@ public class DDOP {
 			children = new DD[dd.getChildren().length];
 			for (int i = 0; i < dd.getChildren().length; i++)
 				children[i] = DDOP.primeVars(dd.getChildren()[i], n);
-				
+
 			result = DDnode.getDD(dd.getVar() + n, children);
 			hashtable.put(dd, result);
-			
+
 			return result;
 		}
 	}
@@ -730,23 +732,24 @@ public class DDOP {
 			float dp = 0;
 			for (int i = 0; i < dd1.getChildren().length; i++) {
 
-				//try {
+				// try {
 				dp += DDOP.dotProduct(dd1.getChildren()[i], dd2.getChildren()[i], _vars);
-				//}
-				//catch (Exception e) {
-				
-					//LOGGER.debug(String.format("DD1 is %s", Arrays.toString(dd1.getChildren())));
-				//	LOGGER.debug(String.format("DD2 is %s", Arrays.toString(dd2.getChildren())));
-				//	LOGGER.debug(String.format("Children are %s and %s and _vars are %s", 
-				//			dd1.getChildren().length, dd2.getChildren().length, _vars));
-				//	LOGGER.debug(String.format("Root vars are %s and %s", 
-				//			Global.varNames.get(dd1.getVar() - 1), Global.varNames.get(dd2.getVar()-1)));
-				//	LOGGER.debug(String.format("Children are %s and %s", 
-				//			Global.valNames.get(dd1.getVar() - 1), Global.valNames.get(dd2.getVar() - 1)));
-					
-				//	e.printStackTrace();
-				//	System.exit(-1);
-				//}
+				// }
+				// catch (Exception e) {
+
+				// LOGGER.debug(String.format("DD1 is %s", Arrays.toString(dd1.getChildren())));
+				// LOGGER.debug(String.format("DD2 is %s", Arrays.toString(dd2.getChildren())));
+				// LOGGER.debug(String.format("Children are %s and %s and _vars are %s",
+				// dd1.getChildren().length, dd2.getChildren().length, _vars));
+				// LOGGER.debug(String.format("Root vars are %s and %s",
+				// Global.varNames.get(dd1.getVar() - 1), Global.varNames.get(dd2.getVar()-1)));
+				// LOGGER.debug(String.format("Children are %s and %s",
+				// Global.valNames.get(dd1.getVar() - 1), Global.valNames.get(dd2.getVar() -
+				// 1)));
+
+				// e.printStackTrace();
+				// System.exit(-1);
+				// }
 			}
 			Global.dotProductCache.put(_computation, dp);
 			return dp;
@@ -812,8 +815,9 @@ public class DDOP {
 				bestIndex = i;
 			}
 		}
-		
+
 		if (bestIndex < 0) {
+
 			LOGGER.error(String.format("Error while getting best action from %s at %s", Vn, b));
 			System.exit(-1);
 		}
@@ -989,5 +993,54 @@ public class DDOP {
 
 		hashtable.put(dd, Float.valueOf(result));
 		return result;
+	}
+
+	public static boolean verifyProbabilityDist(final DD d, final int var) {
+
+		if (d instanceof DDleaf) {
+
+			float m = d.getVal() * Global.valNames.get(var - 1).size();
+
+			if (Math.abs(1.0f - m) > 1e-4f)
+				return false;
+		}
+		
+		else {
+			
+			float m = IntStream.range(0, Global.valNames.get(var - 1).size()).boxed()
+					.map(i -> {
+						
+						if (d.getChildren()[i] instanceof DDleaf)
+							return d.getChildren()[i].getVal();
+						
+						else
+							return Float.POSITIVE_INFINITY;
+					}).reduce(0.0f, (p1, p2) -> p1 + p2);
+			
+			if (Math.abs(1.0f - m) > 1e-4f)
+				return false;
+			
+		}
+		
+		return true;
+	}
+
+	public static boolean verifyJointProbabilityDist(final DD d, final List<Integer> vars) {
+
+		var _vars = new ArrayList<Integer>(vars);
+
+		for (int i = 0; i < _vars.size(); i++) {
+
+			var _var = _vars.remove(0);
+
+			var f = DDOP.addMultVarElim(List.of(d), _vars);
+			
+			if (!verifyProbabilityDist(f, _var))
+				return false;
+
+			_vars.add(_var);
+		}
+
+		return true;
 	}
 }

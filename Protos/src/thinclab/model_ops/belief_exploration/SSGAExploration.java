@@ -47,16 +47,17 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
 	public float getMinDistance(DD b, Collection<DD> beliefs) {
 
-		float minDist = Float.POSITIVE_INFINITY;
+		//float minDist = Float.POSITIVE_INFINITY;
 
-		for (var _b : beliefs) {
+		//for (var _b : beliefs) {
 
-			float dist = DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b)));
-			if (dist < minDist)
-				minDist = dist;
-		}
+		//	float dist = DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b)));
+		//	if (dist < minDist)
+		//		minDist = dist;
+		//}
 
-		return minDist;
+		//return minDist;
+		return beliefs.stream().parallel().map(_b -> DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b)))).min((d1, d2) -> d1.compareTo(d2)).orElseGet(() -> Float.POSITIVE_INFINITY);
 	}
 
 	public boolean isUniqueBelief(DD b, Collection<DD> beliefs, float minDist) {
@@ -87,7 +88,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 		int startSize = g.getAllNodes().size();
 
 		LOGGER.info("Expanding belief region...");
-		for (int n = 0; n < 300; n++) {
+		for (int n = 0; n < 100; n++) {
 
 			if (g.getAllNodes().size() >= maxB)
 				break;

@@ -237,7 +237,7 @@ public class Global {
 		}
 	}
 	
-	public static Set<Tuple<Integer, ReachabilityNode>> pruneModels(DD b, int i_Mj) {
+	public static Tuple<Set<Tuple<Integer, ReachabilityNode>>, Set<Tuple<Integer, ReachabilityNode>>> pruneModels(DD b, int i_Mj) {
 	
 		if (b.getVar() != i_Mj) {
 			
@@ -245,48 +245,28 @@ public class Global {
 					Global.varNames.get(b.getVar() - 1), b));
 			System.exit(-1);
 		}
+		
+		var allModels = Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream()
+				.filter(e -> e.getKey()._1().h == 1)
+				.map(e -> { // Get actual model from Mj value
+					
+					var m = e.getKey();
+					var mv = e.getValue();
+					
+					int index = Collections.binarySearch(Global.valNames.get(i_Mj - 1), mv);
+					
+					if (index < 0) {
+						
+						LOGGER.error(String.format("Could not find model %s in %s", 
+								mv, Global.valNames.get(i_Mj - 1)));
+						System.exit(-1);
+					}
+					
+					return Tuple.of(m, b.getChildren()[index].getVal());
+				}).collect(Collectors.toList());
 	
-		var mostProbableModel = Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream()
-				.filter(e -> e.getKey()._1().h == 1)
-				.map(e -> { // Get actual model from Mj value
-					
-					var m = e.getKey();
-					var mv = e.getValue();
-					
-					int index = Collections.binarySearch(Global.valNames.get(i_Mj - 1), mv);
-					
-					if (index < 0) {
-						
-						LOGGER.error(String.format("Could not find model %s in %s", 
-								mv, Global.valNames.get(i_Mj - 1)));
-						System.exit(-1);
-					}
-					
-					return Tuple.of(m, b.getChildren()[index].getVal());
-				}).max((m1, m2) -> m1._1().compareTo(m2._1())).get();
-				
-		var models = Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream()
-				.filter(e -> e.getKey()._1().h == 1)
-				.map(e -> { // Get actual model from Mj value
-					
-					var m = e.getKey();
-					var mv = e.getValue();
-					
-					int index = Collections.binarySearch(Global.valNames.get(i_Mj - 1), mv);
-					
-					if (index < 0) {
-						
-						LOGGER.error(String.format("Could not find model %s in %s", 
-								mv, Global.valNames.get(i_Mj - 1)));
-						System.exit(-1);
-					}
-					
-					return Tuple.of(m, b.getChildren()[index].getVal());
-				})
+		var validModels = allModels.stream()
 				.filter(m -> { // Remove all models with P(mj) < 0.01
-					
-					LOGGER.info(String.format("Checking model %s with probability %s", 
-								m._0(), m._1()));
 					
 					if (m._1() > 0.01f)
 						return true;
@@ -299,48 +279,28 @@ public class Global {
 				})
 				.map(m -> m._0())
 				.collect(Collectors.toSet());
+	
+		var invalidModels = allModels.stream()
+				.map(m -> m._0())
+				.filter(m -> !validModels.contains(m))
+				.collect(Collectors.toSet());
 		
-		if (models.size() < 1) {
-			LOGGER.warn("No more models with P(mj) > 0.01. Adding the most probable model as the only model.");
-			models.add(mostProbableModel._0());
-		}
+		LOGGER.info(String.format("Pruned a total of %s models from %s models of the opponent", invalidModels.size(), allModels.size()));
 		
-		return models;
+		return Tuple.of(validModels, invalidModels);
 	}
 
-	public static DD assemblebMj(int i_Mj, List<Tuple<Tuple<Integer, ReachabilityNode>, DD>> mjs) {
+	public static DD assemblebMj(int i_Mj, List<Tuple<Tuple<Integer, ReachabilityNode>, DD>> mjs, Set<Tuple<Integer, ReachabilityNode>> lowProbModels) {
 
 		final var mjSpace = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
 
 		var _mjs = mjs.stream().map(m ->
 			{
 
-				if (!mjSpace.containsKey(m._0())) {
+				if (!mjSpace.containsKey(m._0()) && !lowProbModels.contains(m._0())) {
 
-					LOGGER.error(String.format("Fatal error! %s is not in mj space", m._0()));
+					LOGGER.error(String.format("Fatal error! %s is not in mj space and in the set of low probabolity models", m._0()));
 					LOGGER.debug(String.format("Belief of j is %s", m._0()._1().beliefs));
-					LOGGER.debug("Possible mjs in the MjSpace are:");
-
-					mjSpace.keySet().stream().filter(_m -> _m._1().h == 0).forEach(_m ->
-						{
-
-							LOGGER.debug(String.format("%s in frame %s for node %s", 
-									_m._1().beliefs, _m._0(), _m._1()));
-							
-							LOGGER.debug(String.format("Debug equals is %s", 
-									m._0()._1().debugEquals(_m._1())));
-							LOGGER.debug(String.format("Hashcode equality is %s for %s and %s", 
-									m._0()._1().hashCode() == _m._1().hashCode(),
-									m._0()._1().hashCode(), _m._1().hashCode()));
-							LOGGER.debug(String.format("Hashcode equality is %s for ints %s and %s", 
-									m._0()._0().hashCode() == _m._0().hashCode(),
-									m._0()._0().hashCode(), _m._0().hashCode()));
-							LOGGER.debug(String.format("Tuple equality between %s and %s is %s",
-									m._0(), _m, m._0().equals(_m)));
-							LOGGER.debug(String.format("hashcode equality is %s, for %s and %s",
-									m._0().hashCode() == _m.hashCode(),
-									m._0().hashCode(), _m.hashCode()));
-						});
 					
 					System.exit(-1);
 					return null;

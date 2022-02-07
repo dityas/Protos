@@ -46,11 +46,6 @@ public class Agent implements Jsonable, Graphable {
 		this.backups = backups;
 		this.solver = solver;
 		this.H = H;
-
-		LOGGER.error(String.format("aVecs have childs %s",
-				AlphaVectorPolicy.fromR(this.m.R()).aVecs.stream()
-						.map(_a -> _a._1().getVar() == 0 ? String.format("Leaf, %s", this.m.A().get(_a._0())) : String.format("%s, %s", Global.varNames.get(_a._1().getVar() - 1), this.m.A().get(_a._0())))
-						.collect(Collectors.toList())));
 		
 		this.Vn = this.solver.solve(List.of(this.b), this.m, this.backups, this.H, AlphaVectorPolicy.fromR(this.m.R()));
 		this.optA = this.Vn.getBestActionIndex(this.b, this.m.i_S());
@@ -68,14 +63,23 @@ public class Agent implements Jsonable, Graphable {
 	public static Agent step(Agent A, List<Integer> obs) {
 
 		DD b_n = A.m.step(A.b, A.optA, obs);
-		LOGGER.warn(String.format("b %s is %s", b_n.getChildren().length, DDOP.factors(b_n, A.m.i_S())));
 		return Agent.of(A.m, b_n, A.solver, A.backups, A.H);
 	}
 
 	@Override
 	public String toString() {
 
-		return new StringBuilder().append("Agent: [ ").append(m.getName()).append(" ]").toString();
+		var builder = new StringBuilder().append("Agent: [ name: ").append(m.getName()).append("\r\n");
+		builder.append("\t belief: ").append("\r\n");
+		
+		DDOP.factors(b, m.i_S()).forEach(_b -> {
+			builder.append("\t").append(_b).append("\r\n");
+		});
+		
+		builder.append("\t OPT(A): ").append(m.A().get(optA)).append("\r\n");
+		builder.append("]");
+		
+		return builder.toString();
 	}
 
 	@Override

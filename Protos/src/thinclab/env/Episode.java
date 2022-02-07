@@ -23,6 +23,14 @@ import thinclab.utils.Tuple;
 public class Episode implements Graphable, Jsonable {
 
 	public List<Tuple<SimState, List<Tuple<Integer, Integer>>>> trace = new ArrayList<>();
+	
+	@Override
+	public String toString() {
+		
+		
+		
+		return null;
+	}
 
 	@Override
 	public String toJson() {

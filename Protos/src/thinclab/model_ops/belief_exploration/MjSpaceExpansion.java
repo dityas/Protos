@@ -41,18 +41,15 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 	public ModelGraph<ReachabilityNode> expand(List<ReachabilityNode> startNodes,
 			ModelGraph<ReachabilityNode> G, M m, int T, P p) {
 
-		LOGGER.debug("Expanding Mj Space from beliefs: ");
 		startNodes.stream().forEach(n -> {
 			
 			var _b = n.beliefs.stream().findFirst().get();
-			LOGGER.debug(String.format("%s", DDOP.factors(_b, m.i_S())));
+			if(!DDOP.verifyJointProbabilityDist(_b, m.i_S())) {
+				
+				LOGGER.error(String.format("%s is not a valid probability distribution", DDOP.factors(_b, m.i_S())));
+				System.exit(-1);
+			}
 		});
-		
-		//LOGGER.debug(String.format("Expanding from %s", 
-		//		startNodes.stream()
-		//			.map(n -> n.beliefs.stream().findFirst().get())
-		//			.map(b -> DDOP.factors(b, m.i_S()))
-		//			.collect(Collectors.toList())));
 		
 		var newEdges = new ArrayList<Tuple3<ReachabilityNode, Tuple<Integer, List<Integer>>, ReachabilityNode>>();
 		var edges = G.edgeIndexMap.entrySet();
