@@ -318,7 +318,7 @@ public class Global {
 					LOGGER.debug(String.format("j is %s", m._0()));
 
 					LOGGER.debug(String.format("Differences are %s", m._0()._1().beliefs.stream()
-							.map(b1 -> lowProbModels.stream().filter(_m -> _m._0() == m._0()._0())
+							.map(b1 -> lowProbModels.stream().filter(_m -> _m._0() == m._0()._0()).filter(_m -> _m._1().h == m._0()._1().h)
 									.map(b2 -> Tuple.of(b2._0(), DDOP.maxAll(DDOP.abs(DDOP.sub(b1, b2._1().beliefs.stream().findFirst().get())))))
 									.collect(Collectors.toList()))
 							.collect(Collectors.toList())));
