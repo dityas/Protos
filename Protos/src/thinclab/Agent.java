@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.models.IPOMDP;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.policy.Policy;
@@ -75,6 +76,11 @@ public class Agent implements Jsonable, Graphable {
 		DDOP.factors(b, m.i_S()).forEach(_b -> {
 			builder.append("\t").append(_b).append("\r\n");
 		});
+		
+		if (m instanceof IPOMDP) {
+			var _m = (IPOMDP) m;
+			builder.append("\t").append(DDOP.getFrameBelief(b, _m.PAjGivenMj, _m.i_Mj, _m.i_S())).append("\r\n");
+		}
 		
 		builder.append("\t OPT(A): ").append(m.A().get(optA)).append("\r\n");
 		builder.append("]");

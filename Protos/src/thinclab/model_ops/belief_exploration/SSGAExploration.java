@@ -57,7 +57,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 		//}
 
 		//return minDist;
-		return beliefs.stream().parallel().map(_b -> DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b)))).min((d1, d2) -> d1.compareTo(d2)).orElseGet(() -> Float.POSITIVE_INFINITY);
+		return beliefs.stream().parallel().map(_b -> DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b)))).min((d1, d2) -> d1.compareTo(d2)).get();
 	}
 
 	public boolean isUniqueBelief(DD b, Collection<DD> beliefs, float minDist) {

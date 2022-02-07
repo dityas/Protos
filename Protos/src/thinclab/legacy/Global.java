@@ -236,61 +236,75 @@ public class Global {
 			return null;
 		}
 	}
-	
-	public static Tuple<Set<Tuple<Integer, ReachabilityNode>>, Set<Tuple<Integer, ReachabilityNode>>> pruneModels(DD b, int i_Mj) {
-	
+
+	public static Tuple<Set<Tuple<Integer, ReachabilityNode>>, Set<Tuple<Integer, ReachabilityNode>>> pruneModels(DD b,
+			int i_Mj) {
+
 		if (b.getVar() != i_Mj) {
+
+			LOGGER.error(String.format("Var %s in DD %s is not a model var", Global.varNames.get(b.getVar() - 1), b));
+			System.exit(-1);
+		}
+
+		var allModels = Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream()
+				.filter(e -> e.getKey()._1().h == 1).map(e ->
+					{ // Get actual model from Mj value
+
+						var m = e.getKey();
+						var mv = e.getValue();
+
+						int index = Collections.binarySearch(Global.valNames.get(i_Mj - 1), mv);
+
+						if (index < 0) {
+
+							LOGGER.error(
+									String.format("Could not find model %s in %s", mv, Global.valNames.get(i_Mj - 1)));
+							System.exit(-1);
+						}
+
+						return Tuple.of(m, b.getChildren()[index].getVal());
+					})
+				.collect(Collectors.toList());
+
+		var validModels = allModels.stream().filter(m ->
+			{ // Remove all models with P(mj) < 0.01
+
+				if (m._1() >= 0.01f)
+					return true;
+
+				else {
+
+					LOGGER.info(String.format("Pruning model %s with probability %s", m._0(), m._1()));
+					return false;
+				}
+			}).map(m -> m._0()).collect(Collectors.toSet());
+
+		var invalidModels = allModels.stream().map(m -> m._0()).filter(m -> !validModels.contains(m))
+				.collect(Collectors.toSet());
+		
+		var errorModels = allModels.stream().filter(m -> !(validModels.contains(m._0()) || invalidModels.contains(m._0()))).collect(Collectors.toList());
+		
+		if (errorModels.size() > 0) {
 			
-			LOGGER.error(String.format("Var %s in DD %s is not a model var", 
-					Global.varNames.get(b.getVar() - 1), b));
+			errorModels.forEach(m -> {
+				
+				LOGGER.error(String.format("Model %s with P(mj)=%s is not in valid models or pruned models", m._0(), m._1()));
+			});
+			
 			System.exit(-1);
 		}
 		
-		var allModels = Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream()
-				.filter(e -> e.getKey()._1().h == 1)
-				.map(e -> { // Get actual model from Mj value
-					
-					var m = e.getKey();
-					var mv = e.getValue();
-					
-					int index = Collections.binarySearch(Global.valNames.get(i_Mj - 1), mv);
-					
-					if (index < 0) {
-						
-						LOGGER.error(String.format("Could not find model %s in %s", 
-								mv, Global.valNames.get(i_Mj - 1)));
-						System.exit(-1);
-					}
-					
-					return Tuple.of(m, b.getChildren()[index].getVal());
-				}).collect(Collectors.toList());
-	
-		var validModels = allModels.stream()
-				.filter(m -> { // Remove all models with P(mj) < 0.01
-					
-					if (m._1() > 0.01f)
-						return true;
-					
-					else {
-						LOGGER.info(String.format("Pruning model %s with probability %s", 
-								m._0(), m._1()));
-						return false;
-					}
-				})
-				.map(m -> m._0())
-				.collect(Collectors.toSet());
-	
-		var invalidModels = allModels.stream()
-				.map(m -> m._0())
-				.filter(m -> !validModels.contains(m))
-				.collect(Collectors.toSet());
-		
-		LOGGER.info(String.format("Pruned a total of %s models from %s models of the opponent", invalidModels.size(), allModels.size()));
-		
+		else
+			LOGGER.info("Model pruning verified successfully.");
+
+		LOGGER.info(String.format("Pruned a total of %s models from %s models of the opponent", invalidModels.size(),
+				allModels.size()));
+
 		return Tuple.of(validModels, invalidModels);
 	}
 
-	public static DD assemblebMj(int i_Mj, List<Tuple<Tuple<Integer, ReachabilityNode>, DD>> mjs, Set<Tuple<Integer, ReachabilityNode>> lowProbModels) {
+	public static DD assemblebMj(int i_Mj, List<Tuple<Tuple<Integer, ReachabilityNode>, DD>> mjs,
+			Set<Tuple<Integer, ReachabilityNode>> lowProbModels) {
 
 		final var mjSpace = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
 
@@ -299,9 +313,16 @@ public class Global {
 
 				if (!mjSpace.containsKey(m._0()) && !lowProbModels.contains(m._0())) {
 
-					LOGGER.error(String.format("Fatal error! %s is not in mj space and in the set of low probabolity models", m._0()));
-					LOGGER.debug(String.format("Belief of j is %s", m._0()._1().beliefs));
-					
+					LOGGER.error(String.format(
+							"Fatal error! %s is not in mj space and in the set of low probabolity models", m._0()));
+					LOGGER.debug(String.format("j is %s", m._0()));
+
+					LOGGER.debug(String.format("Differences are %s", m._0()._1().beliefs.stream()
+							.map(b1 -> lowProbModels.stream().filter(_m -> _m._0() == m._0()._0())
+									.map(b2 -> Tuple.of(b2._0(), DDOP.maxAll(DDOP.abs(DDOP.sub(b1, b2._1().beliefs.stream().findFirst().get())))))
+									.collect(Collectors.toList()))
+							.collect(Collectors.toList())));
+
 					System.exit(-1);
 					return null;
 				}
@@ -309,10 +330,9 @@ public class Global {
 				return Tuple.of(mjSpace.get(m._0()), m._1());
 			}).collect(Collectors.toMap(m -> m._0(), m -> m._1()));
 
-		var childDDs = Global.valNames.get(i_Mj - 1).stream()
-				.map(m -> _mjs.containsKey(m) ? _mjs.get(m) : DD.zero)
+		var childDDs = Global.valNames.get(i_Mj - 1).stream().map(m -> _mjs.containsKey(m) ? _mjs.get(m) : DD.zero)
 				.toArray(DD[]::new);
-	
+
 		return DDOP.reorder(DDnode.getDD(i_Mj, childDDs));
 	}
 
