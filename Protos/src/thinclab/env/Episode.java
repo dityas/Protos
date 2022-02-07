@@ -27,9 +27,23 @@ public class Episode implements Graphable, Jsonable {
 	@Override
 	public String toString() {
 		
+		var builder = new StringBuilder();
 		
+		builder.append("[*] Episode start-\r\n");
 		
-		return null;
+		trace.forEach(t -> {
+			
+			builder.append(t._0()).append("\r\n\r\n");
+			builder.append("Observations: ")
+				.append(t._1().stream()
+						.map(o -> Tuple.of(Global.varNames.get(o._0() - 1), Global.valNames.get(o._0() - 1).get(o._1() - 1)))
+						.collect(Collectors.toList()))
+				.append("\r\n\r\n");
+		});
+		
+		builder.append("[/] End episode.");
+		
+		return builder.toString();
 	}
 
 	@Override

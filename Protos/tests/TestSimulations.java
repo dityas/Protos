@@ -210,8 +210,8 @@ class TestSimulations {
 		LOGGER.debug(String.format("Agent %s", agentJ.toDot()));
 		
 		var sim = new StochasticSimulation<>();
-		var e = sim.run(env, s, List.of(agentI, agentJ), 5);
-		LOGGER.debug(e.toDot());
+		var e = sim.run(env, s, List.of(agentI, agentJ), 3);
+		System.out.println(e);
 		
 		//LOGGER.debug(Class.forName("thinclab.Agent"));
 	}

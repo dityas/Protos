@@ -20,6 +20,10 @@ public interface Environment<S extends DD> {
 	public void init(S s);
 
 	public S getS();
+	
+	public List<Integer> i_S();
+	
+	public List<Integer> i_Om_p();
 
 	public Tuple<List<Integer>, List<Integer>> step(List<Tuple<Integer, Integer>> actions);
 }

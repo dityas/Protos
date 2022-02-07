@@ -129,4 +129,16 @@ public class PartiallyObservableEnv implements Environment<DD> {
 		return s;
 	}
 
+	@Override
+	public List<Integer> i_S() {
+
+		return i_S;
+	}
+
+	@Override
+	public List<Integer> i_Om_p() {
+
+		return i_Om_p;
+	}
+
 }
