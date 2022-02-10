@@ -27,21 +27,31 @@ public class Episode implements Graphable, Jsonable {
 	@Override
 	public String toString() {
 		
+		return toJson();
+	}
+	
+	public String timeStepToJson(Tuple<SimState, List<Tuple<Integer, Integer>>> simState) {
+		
 		var builder = new StringBuilder();
 		
-		builder.append("[*] Episode start-\r\n");
+		builder.append(" { \r\n");
+		builder.append("\"sim state\" : ").append(simState._0().toJson()).append(" , \r\n");
 		
-		trace.forEach(t -> {
-			
-			builder.append(t._0()).append("\r\n\r\n");
-			builder.append("Observations: ")
-				.append(t._1().stream()
-						.map(o -> Tuple.of(Global.varNames.get(o._0() - 1), Global.valNames.get(o._0() - 1).get(o._1() - 1)))
-						.collect(Collectors.toList()))
-				.append("\r\n\r\n");
-		});
+		var obs = simState._1().stream()
+				.map(o -> Tuple.of(Global.varNames.get(o._0() - 1), Global.valNames.get(o._0() - 1).get(o._1() - 1))).collect(Collectors.toList());
 		
-		builder.append("[/] End episode.");
+		builder.append("\"obs\" : ").append(obs.stream()
+				.map(o -> new StringBuilder()
+						.append(" { \"")
+						.append(o._0())
+						.append("\" : \"")
+						.append(o._1())
+						.append("\" } ")
+						.toString()
+						)
+				.collect(Collectors.toList()));
+		
+		builder.append(" } ");
 		
 		return builder.toString();
 	}
@@ -49,8 +59,11 @@ public class Episode implements Graphable, Jsonable {
 	@Override
 	public String toJson() {
 
-		// TODO Auto-generated method stub
-		return null;
+		var builder = new StringBuilder();
+		
+		builder.append(trace.stream().map(t -> timeStepToJson(t)).collect(Collectors.toList()));
+		
+		return builder.toString();
 	}
 
 	@Override

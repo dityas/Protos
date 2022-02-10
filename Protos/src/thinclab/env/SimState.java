@@ -8,11 +8,12 @@
 package thinclab.env;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.Agent;
+import thinclab.DDOP;
 import thinclab.legacy.DD;
-import thinclab.legacy.Global;
 import thinclab.utils.Graphable;
 import thinclab.utils.Jsonable;
 
@@ -23,47 +24,22 @@ import thinclab.utils.Jsonable;
 public class SimState implements Jsonable, Graphable {
 	
 	public final int t;
-	public final List<DD> s;
-	public final List<Agent> agents;
+	public final String s;
+	public final List<String> agents;
 	
 	private static final Logger LOGGER = LogManager.getLogger(SimState.class);
 	
-	public SimState(int t, List<DD> s, List<Agent> agents) {
+	public SimState(int t, DD s, List<Integer> i_S, List<Agent> agents) {
 
 		this.t = t;
-		this.s = s;
-		this.agents = agents;
+		this.s = DDOP.toJson(s, i_S);
+		this.agents = agents.stream().map(a -> a.toJson()).collect(Collectors.toList());
 	}
 	
 	@Override
 	public String toString() {
 		
-		var builder = new StringBuilder();
-		
-		builder.append("[+] Time step: ").append(t).append("\r\n");
-		builder.append("[:] State: ").append("\r\n");
-		
-		s.forEach(_s -> {
-			
-			var sVar = _s.getVar();
-			
-			if (sVar == 0) {
-				
-				LOGGER.error(String.format("[!] Fatal error! Sim state %s is not valid", s));
-				System.exit(-1);
-			}
-			
-			builder.append("\t").append(Global.varNames.get(sVar - 1)).append(" : ").append(_s).append("\r\n");
-		});
-		
-		agents.forEach(a -> {
-			
-			builder.append(a).append("\r\n");
-		});
-		
-		builder.append("[-] End time step");
-		
-		return builder.toString();
+		return toJson();
 	}
 
 	@Override
@@ -77,9 +53,6 @@ public class SimState implements Jsonable, Graphable {
 		builder.append("\t ").append(s.hashCode()).append(t);
 		builder.append(" [label=\"{Sim State | ").append(s).append("}\"];\r\n");
 		
-		for (var a : agents)
-			builder.append("\t ").append(a.toDot()).append("\r\n");
-		
 		builder.append("}\r\n");
 		
 		return builder.toString();
@@ -88,8 +61,15 @@ public class SimState implements Jsonable, Graphable {
 	@Override
 	public String toJson() {
 
-		// TODO Auto-generated method stub
-		return null;
+		var builder = new StringBuilder();
+		
+		builder.append("{ \r\n \"time step\" : ").append(t).append(" , \r\n");
+		builder.append(" \"state\" : ").append(s).append(" , \r\n");
+		
+		builder.append(" \"agents\" : ").append(" [ ").append(String.join(" , \r\n", agents)).append(" ] ");
+		builder.append(" } ");
+		
+		return builder.toString();
 	}
 
 	@Override

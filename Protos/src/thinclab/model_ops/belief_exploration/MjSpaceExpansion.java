@@ -33,7 +33,8 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 	 * breadth first and then expand using PolicyGraphExpansion for the rest.
 	 */
 
-	private PolicyGraphExpansion<M, P> expansion = new PolicyGraphExpansion<>(1);
+	//private PolicyGraphExpansion<M, P> expansion = new PolicyGraphExpansion<>(1);
+	private PolicyGraphExpansion<M, P> expansion = new PolicyGraphExpansion<>(0);
 	
 	private static final Logger LOGGER = LogManager.getLogger(MjSpaceExpansion.class);
 
@@ -51,45 +52,47 @@ public class MjSpaceExpansion<M extends PBVISolvablePOMDPBasedModel, P extends A
 			}
 		});
 		
-		var newEdges = new ArrayList<Tuple3<ReachabilityNode, Tuple<Integer, List<Integer>>, ReachabilityNode>>();
-		var edges = G.edgeIndexMap.entrySet();
+//		var newEdges = new ArrayList<Tuple3<ReachabilityNode, Tuple<Integer, List<Integer>>, ReachabilityNode>>();
+//		var edges = G.edgeIndexMap.entrySet();
+//		
+//		startNodes.stream().forEach(n ->
+//			{
+//
+//				n.beliefs.stream().forEach(b ->
+//					{
+//
+//						int bestAct = p.getBestActionIndex(b, m.i_S());
+//
+//						edges.stream().filter(k -> k.getKey()._0() == bestAct).forEach(k ->
+//							{
+//
+//								var b_next = m.beliefUpdate(b, bestAct, k.getKey()._1());
+//
+//								// if belief is valid, add it to the set of unexplored beliefs in next nodes
+//								if (!b_next.equals(DD.zero)) {
+//
+//									int bestAlpha = DDOP.bestAlphaIndex(p.aVecs, b_next, m.i_S());
+//									ReachabilityNode _node = new ReachabilityNode(bestAlpha,
+//											p.aVecs.get(bestAlpha)._0());
+//									
+//									_node.h = 1;
+//
+//									_node.beliefs.add(b_next);
+//									newEdges.add(Tuple.of(n, k.getKey(), _node));
+//
+//									// G.addEdge(n, k.getKey(), _node);
+//								}
+//
+//							});
+//					});
+//
+//			});
+//	
+//		for (var e : newEdges)
+//			G.addEdge(e._0(), e._1(), e._2());
 		
-		startNodes.stream().forEach(n ->
-			{
-
-				n.beliefs.stream().forEach(b ->
-					{
-
-						int bestAct = p.getBestActionIndex(b, m.i_S());
-
-						edges.stream().filter(k -> k.getKey()._0() == bestAct).forEach(k ->
-							{
-
-								var b_next = m.beliefUpdate(b, bestAct, k.getKey()._1());
-
-								// if belief is valid, add it to the set of unexplored beliefs in next nodes
-								if (!b_next.equals(DD.zero)) {
-
-									int bestAlpha = DDOP.bestAlphaIndex(p.aVecs, b_next, m.i_S());
-									ReachabilityNode _node = new ReachabilityNode(bestAlpha,
-											p.aVecs.get(bestAlpha)._0());
-									
-									_node.h = 1;
-
-									_node.beliefs.add(b_next);
-									newEdges.add(Tuple.of(n, k.getKey(), _node));
-
-									// G.addEdge(n, k.getKey(), _node);
-								}
-
-							});
-					});
-
-			});
-	
-		for (var e : newEdges)
-			G.addEdge(e._0(), e._1(), e._2());
-		
+		LOGGER.info(String.format("Starting expansion from %s initial beliefs", startNodes.size()));
+		//G = new BreadthFirstMjExpansion().expand(startNodes, G, m, T, p);
 		G = expansion.expand(new ArrayList<>(G.getAllChildren()), G, m, T, p);
 		
 		return G;

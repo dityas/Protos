@@ -38,7 +38,7 @@ public class StochasticSimulation<E extends Environment<DD>> implements Simulato
 		
 		for (int i = 0; i < len; i++) {
 			
-			var simState = new SimState(i, DDOP.factors(env.getS(), env.i_S()) , agents);
+			var simState = new SimState(i, env.getS(), env.i_S() , agents);
 			
 			LOGGER.info(String.format("Simulation time step %s", i));
 			

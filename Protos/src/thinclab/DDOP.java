@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.Config;
@@ -1042,5 +1043,62 @@ public class DDOP {
 		}
 
 		return true;
+	}
+	
+	public static String toJson(final DD d, final int var) {
+		
+		var builder = new StringBuilder();
+		builder.append(" { \"").append(Global.varNames.get(var - 1)).append("\"");
+		builder.append(" : ").append(" { ");
+		
+		String childJson = null;
+		
+		if (d instanceof DDleaf) {
+			
+			var children = Global.valNames.get(var - 1).stream()
+					.map(v -> new StringBuilder()
+							.append("\"").append(v).append("\"")
+							.append(" : ")
+							.append(d.getVal())
+							.toString())
+					.collect(Collectors.toList());
+			
+			childJson = String.join(" , ", children);
+		}
+		
+		else {
+			
+			var children = IntStream.range(0, d.getChildren().length).boxed()
+					.map(i -> new StringBuilder()
+							.append("\"").append(Global.valNames.get(var - 1).get(i)).append("\"")
+							.append(" : ")
+							.append(d.getChildren()[i].getVal())
+							.toString())
+					.collect(Collectors.toList());
+			
+			childJson = String.join(" , ", children);
+		}
+		
+		builder.append(childJson).append(" } ").append(" } ");
+		return builder.toString();
+	}
+	
+	public static String toJson(final DD d, final List<Integer> vars) {
+		
+		var dds = DDOP.factors(d, vars);
+		
+		var invalid = dds.stream().filter(_d -> _d.getVars().size() > 1).findAny();
+		
+		if (invalid.isPresent()) {
+			
+			LOGGER.error(String.format("Cannot make JSON string from DD %s", invalid.get()));
+			System.exit(-1);
+		}
+		
+		var jsonDDs = IntStream.range(0, vars.size()).boxed()
+				.map(i -> DDOP.toJson(dds.get(i), vars.get(i)))
+				.collect(Collectors.toList());
+		
+		return jsonDDs.toString();
 	}
 }

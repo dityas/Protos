@@ -323,10 +323,11 @@ class TestSolvers {
 		var ES = new SSGAExploration<IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(0.99f);
 
 		int numNodes = G.getAllNodes().size();
+		LOGGER.debug(String.format("Graph  is %s", G));
 
+		G.addNode(b_i);
 		G = ES.expand(List.of(b_i), G, I, I.H, policy);
 
-		LOGGER.debug(G);
 		LOGGER.debug(String.format("Starting size is %s and after expansion, it is %s", numNodes, G.getAllNodes().size()));
 		assertTrue(G.getAllNodes().size() > numNodes);
 
