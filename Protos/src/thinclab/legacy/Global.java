@@ -281,19 +281,23 @@ public class Global {
 
 		var invalidModels = allModels.stream().map(m -> m._0()).filter(m -> !validModels.contains(m))
 				.collect(Collectors.toSet());
-		
-		var errorModels = allModels.stream().filter(m -> !(validModels.contains(m._0()) || invalidModels.contains(m._0()))).collect(Collectors.toList());
-		
+
+		var errorModels = allModels.stream()
+				.filter(m -> !(validModels.contains(m._0()) || invalidModels.contains(m._0())))
+				.collect(Collectors.toList());
+
 		if (errorModels.size() > 0) {
-			
-			errorModels.forEach(m -> {
-				
-				LOGGER.error(String.format("Model %s with P(mj)=%s is not in valid models or pruned models", m._0(), m._1()));
-			});
-			
+
+			errorModels.forEach(m ->
+				{
+
+					LOGGER.error(String.format("Model %s with P(mj)=%s is not in valid models or pruned models", m._0(),
+							m._1()));
+				});
+
 			System.exit(-1);
 		}
-		
+
 		else
 			LOGGER.info("Model pruning verified successfully.");
 
@@ -317,14 +321,47 @@ public class Global {
 							"Fatal error! %s is not in mj space and in the set of low probabolity models", m._0()));
 					LOGGER.debug(String.format("j is %s", m._0()));
 
-					LOGGER.debug(String.format("Differences are %s", m._0()._1().beliefs.stream()
-							.map(b1 -> lowProbModels.stream()
-									.filter(_m -> _m._0() == m._0()._0())
-									.filter(_m -> _m._1().h == m._0()._1().h)
+					LOGGER.debug(String.format("Differences are %s",
+							m._0()._1().beliefs.stream().map(b1 -> lowProbModels.stream()
+									.filter(_m -> _m._0() == m._0()._0()).filter(_m -> _m._1().h == m._0()._1().h)
 									.filter(_m -> _m._1().alphaId == m._0()._1().alphaId)
-									.map(b2 -> Tuple.of(b2._0(), DDOP.maxAll(DDOP.abs(DDOP.sub(b1, b2._1().beliefs.stream().findFirst().get())))))
-									.collect(Collectors.toList()))
-							.collect(Collectors.toList())));
+									.map(b2 -> Tuple.of(b2._0(),
+											DDOP.maxAll(DDOP
+													.abs(DDOP.sub(b1, b2._1().beliefs.stream().findFirst().get())))))
+									.collect(Collectors.toList())).collect(Collectors.toList())));
+
+					System.exit(-1);
+					return null;
+				}
+
+				return Tuple.of(mjSpace.get(m._0()), m._1());
+			}).collect(Collectors.toMap(m -> m._0(), m -> m._1()));
+
+		var childDDs = Global.valNames.get(i_Mj - 1).stream().map(m -> _mjs.containsKey(m) ? _mjs.get(m) : DD.zero)
+				.toArray(DD[]::new);
+
+		return DDOP.reorder(DDnode.getDD(i_Mj, childDDs));
+	}
+
+	public static DD assemblebMj(int i_Mj, List<Tuple<Tuple<Integer, ReachabilityNode>, DD>> mjs) {
+
+		final var mjSpace = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
+
+		var _mjs = mjs.stream().map(m ->
+			{
+
+				if (!mjSpace.containsKey(m._0())) {
+
+					LOGGER.error(String.format("Fatal error! %s is not in mj space", m._0()));
+					LOGGER.debug(String.format("j is %s", m._0()));
+					LOGGER.debug(String.format("Mj space is %s", mjSpace));
+
+					var distances = mjSpace.keySet().stream().filter(k -> k._0() == m._0()._0())
+							.map(k -> DDOP.maxAll(DDOP.abs(DDOP.sub(k._1().beliefs.stream().findFirst().get(),
+									m._0()._1().beliefs.stream().findFirst().get()))))
+							.collect(Collectors.toList());
+					
+					LOGGER.debug(String.format("Distances are %s", distances));
 
 					System.exit(-1);
 					return null;

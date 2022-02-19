@@ -81,7 +81,7 @@ class TestBeliefUpdate {
 		beliefGraph.addNode(DDleaf.getDD(0.5f));
 
 		// Initialize belief exploration
-		var BE = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(20);
+		var BE = new BreadthFirstExploration<POMDP, ReachabilityGraph, AlphaVectorPolicy>(20);
 
 		long then = System.nanoTime();
 		for (int i = 0; i < 20; i++)

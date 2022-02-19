@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.google.gson.JsonObject;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
@@ -404,15 +405,24 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	// ----------------------------------------------------------------------------------------
 	// MjSpace transformations
 
+//	@Override
+//	public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter) {
+//
+//		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).clear();
+//
+//		framesjSoln.forEach(f -> f.step(modelFilter.stream()
+//				.filter(mf -> mf._0() == f.frame)
+//				.collect(Collectors.toSet())));
+//		
+//		updateIS();
+//	}
+
 	@Override
-	public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter) {
+	public void step() {
 
 		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).clear();
 
-		framesjSoln.forEach(f -> f.step(modelFilter.stream()
-				.filter(mf -> mf._0() == f.frame)
-				.collect(Collectors.toSet())));
-		
+		framesjSoln.forEach(f -> f.step());
 		updateIS();
 	}
 
@@ -422,21 +432,31 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		var b_n = beliefUpdate(b, a, o);
 		
 		// Prune all models with P(Mj) < 0.01.
-		var allModels = Global.pruneModels(
-				DDOP.factors(b_n, i_S()).get(i_S().size() - 1), i_Mj);
+//		var allModels = Global.pruneModels(
+//				DDOP.factors(b_n, i_S()).get(i_S().size() - 1), i_Mj);
 
 		var bnList = Global.decoupleMj(b_n, i_Mj).stream()
-				.filter(_b -> allModels._0().contains(_b._0()))
+				//.filter(_b -> allModels._0().contains(_b._0()))
 				.collect(Collectors.toList());
 				
-		step(allModels._0());
+		// step(allModels._0());
+		step();
 
-		var bel = Global.assemblebMj(i_Mj, bnList, allModels._1());
+		//var bel = Global.assemblebMj(i_Mj, bnList, allModels._1());
+		var bel = Global.assemblebMj(i_Mj, bnList);
 		var norm = DDOP.addMultVarElim(List.of(bel), i_S());
 		
 		return DDOP.div(bel, norm);
 	}
 
+//	@Override
+//	public DD step(DD b, int a, List<Integer> o) {
+//
+//		var b_n = beliefUpdate(b, a, o);
+//	
+//		return b_n;
+//	}
+	
 	@Override
 	public DD step(DD b, String a, List<String> o) {
 
@@ -603,7 +623,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	}
 
 	@Override
-	public String toJson() {
+	public JsonObject toJson() {
 
 		// TODO Auto-generated method stub
 		return null;

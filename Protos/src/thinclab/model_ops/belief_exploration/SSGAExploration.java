@@ -41,7 +41,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 	public SSGAExploration(float explorationProb) {
 
 		this.e = explorationProb;
-		this.maxB = 100;
+		this.maxB = 300;
 		LOGGER.debug(String.format("Initialized SSGA exploration for exploration probability %s", e));
 	}
 

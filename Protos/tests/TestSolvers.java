@@ -88,7 +88,7 @@ class TestSolvers {
 
 		var g = ReachabilityGraph.fromDecMakingModel(I);
 		var b_is = List.of(DDleaf.getDD(0.5f));
-		var _g = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(b_is, g, I, 5,
+		var _g = new BreadthFirstExploration<POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(b_is, g, I, 5,
 				null);
 
 		IntStream.range(0, I.A().size()).forEach(i ->
@@ -150,7 +150,7 @@ class TestSolvers {
 		LOGGER.debug(String.format("Graph is %s", ModelGraph.toDot(modelGraph, I)));
 		
 		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
-		var bfe = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100);
+		var bfe = new BreadthFirstExploration<POMDP, ReachabilityGraph, AlphaVectorPolicy>(100);
 		
 		beliefGraph = bfe.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 5, policy);
 		
@@ -212,6 +212,8 @@ class TestSolvers {
 				.collect(Collectors.toList());
 
 		var modelGraph = ModelGraph.fromDecMakingModel(I);
+		initNodes.stream().forEach(modelGraph::addNode);
+		
 		var expStrat = new MjSpaceExpansion<>(); /* new PolicyGraphExpansion<>(); */
 
 		modelGraph = expStrat.expand(initNodes, modelGraph, I, I.H, policy);

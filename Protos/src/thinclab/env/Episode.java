@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import thinclab.legacy.Global;
 import thinclab.utils.Graphable;
 import thinclab.utils.Jsonable;
@@ -27,43 +29,43 @@ public class Episode implements Graphable, Jsonable {
 	@Override
 	public String toString() {
 		
-		return toJson();
+		return new GsonBuilder().setPrettyPrinting().create().toJson(toJson());
 	}
 	
-	public String timeStepToJson(Tuple<SimState, List<Tuple<Integer, Integer>>> simState) {
+	public JsonObject timeStepToJson(Tuple<SimState, List<Tuple<Integer, Integer>>> simState) {
 		
-		var builder = new StringBuilder();
+		var json = new JsonObject();
 		
-		builder.append(" { \r\n");
-		builder.append("\"sim state\" : ").append(simState._0().toJson()).append(" , \r\n");
+		json.add("sim state", simState._0().toJson());
 		
 		var obs = simState._1().stream()
 				.map(o -> Tuple.of(Global.varNames.get(o._0() - 1), Global.valNames.get(o._0() - 1).get(o._1() - 1))).collect(Collectors.toList());
 		
-		builder.append("\"obs\" : ").append(obs.stream()
-				.map(o -> new StringBuilder()
-						.append(" { \"")
-						.append(o._0())
-						.append("\" : \"")
-						.append(o._1())
-						.append("\" } ")
-						.toString()
-						)
-				.collect(Collectors.toList()));
+//		builder.append("\"obs\" : ").append(obs.stream()
+//				.map(o -> new StringBuilder()
+//						.append(" { \"")
+//						.append(o._0())
+//						.append("\" : \"")
+//						.append(o._1())
+//						.append("\" } ")
+//						.toString()
+//						)
+//				.collect(Collectors.toList()));
+//		
+//		builder.append(" } ");
 		
-		builder.append(" } ");
-		
-		return builder.toString();
+		return json;
 	}
 
 	@Override
-	public String toJson() {
-
-		var builder = new StringBuilder();
+	public JsonObject toJson() {
 		
-		builder.append(trace.stream().map(t -> timeStepToJson(t)).collect(Collectors.toList()));
+		var json = new JsonObject();
+		var gson = new GsonBuilder().setPrettyPrinting().create();
 		
-		return builder.toString();
+		json.add("episode", gson.toJsonTree(trace.stream().map(t -> timeStepToJson(t)).collect(Collectors.toList())));
+		
+		return json;
 	}
 
 	@Override

@@ -6,6 +6,8 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import thinclab.Agent;
 import thinclab.DDOP;
 import thinclab.env.PartiallyObservableEnv;
@@ -214,6 +216,37 @@ class TestSimulations {
 		System.out.println(e);
 		
 		//LOGGER.debug(Class.forName("thinclab.Agent"));
+	}
+	
+	@Test
+	void testPrinting() throws Exception {
+		
+		LOGGER.info("Testing json printing");
+		
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1_env.spudd").getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent J
+		var J = (POMDP) domainRunner.getModel("agentJ").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+		
+		LOGGER.debug(String.format("Got a hold of POMDP agent %s", J));
+		var Jsolver = new SymbolicPerseusSolver<>();
+		var agentJ = Agent.of(J, DDleaf.getDD(0.5f), Jsolver, 100, 10);
+		
+		LOGGER.debug(String.format("Agent J is %s", agentJ));
+	
+		var gson = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
+		var ddJson = gson.toJson(agentJ);
+		LOGGER.debug(String.format("JSON looks like %s", ddJson));
 	}
 	
 }

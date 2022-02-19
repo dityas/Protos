@@ -7,6 +7,7 @@
  */
 package thinclab.utils;
 
+import com.google.gson.JsonObject;
 
 /*
  * @author adityas
@@ -14,5 +15,5 @@ package thinclab.utils;
  */
 public interface Jsonable {
 
-	public String toJson();
+	public JsonObject toJson();
 }

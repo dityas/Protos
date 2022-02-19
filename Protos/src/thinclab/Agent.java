@@ -11,6 +11,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.IPOMDP;
@@ -70,22 +74,7 @@ public class Agent implements Jsonable, Graphable {
 	@Override
 	public String toString() {
 
-		var builder = new StringBuilder().append("Agent: [ name: ").append(m.getName()).append("\r\n");
-		builder.append("\t belief: ").append("\r\n");
-		
-		DDOP.factors(b, m.i_S()).forEach(_b -> {
-			builder.append("\t").append(_b).append("\r\n");
-		});
-		
-		if (m instanceof IPOMDP) {
-			var _m = (IPOMDP) m;
-			builder.append("\t").append(DDOP.getFrameBelief(b, _m.PThetajGivenMj, _m.i_Mj, _m.i_S())).append("\r\n");
-		}
-		
-		builder.append("\t OPT(A): ").append(m.A().get(optA)).append("\r\n");
-		builder.append("]");
-		
-		return builder.toString();
+		return new GsonBuilder().setPrettyPrinting().create().toJson(toJson());
 	}
 
 	@Override
@@ -106,8 +95,14 @@ public class Agent implements Jsonable, Graphable {
 	}
 
 	@Override
-	public String toJson() {
+	public JsonObject toJson() {
 
+		var gson = new GsonBuilder().setPrettyPrinting().create();
+		
+		var json = new JsonObject();
+		json.add("name", gson.toJsonTree(m.getName()));
+		json.add("belief", gson.toJsonTree(DDOP.toJson(b, m.i_S())));
+		
 		var builder = new StringBuilder();
 		builder.append(" { ").append(" \"name\" : \"").append(m.getName()).append("\" , ");
 		builder.append(" \"belief\" : ").append(DDOP.toJson(b, m.i_S())).append(" , ");
@@ -120,9 +115,9 @@ public class Agent implements Jsonable, Graphable {
 			builder.append(" \"opponent action\" : ").append(DDOP.toJson(PAj, _m.i_Aj)).append(" , ");
 		}
 		
-		builder.append(" \"optA\" : \"").append(m.A().get(optA)).append("\" } ");
+		json.add("optA", gson.toJsonTree(m.A().get(optA)));
 		
-		return builder.toString();
+		return json;
 	}
 
 	@Override

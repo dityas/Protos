@@ -1,7 +1,7 @@
 package thinclab.legacy;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
+import com.google.gson.JsonObject;
 import java.util.TreeSet;
 import java.io.*;
 
@@ -205,7 +205,7 @@ public class DDleaf extends DD {
 	}
 
 	@Override
-	public String toJson() {
+	public JsonObject toJson() {
 
 		// TODO Auto-generated method stub
 		return null;

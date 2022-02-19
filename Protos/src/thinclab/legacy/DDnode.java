@@ -3,6 +3,7 @@ package thinclab.legacy;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.google.gson.JsonObject;
 import thinclab.utils.Tuple;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -339,7 +340,7 @@ public class DDnode extends DD {
 	}
 
 	@Override
-	public String toJson() {
+	public JsonObject toJson() {
 
 		// TODO Auto-generated method stub
 		return null;

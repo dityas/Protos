@@ -20,6 +20,10 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import thinclab.legacy.Config;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
@@ -1045,45 +1049,48 @@ public class DDOP {
 		return true;
 	}
 	
-	public static String toJson(final DD d, final int var) {
+	public static JsonObject toJson(final DD d, final int var) {
 		
-		var builder = new StringBuilder();
-		builder.append(" { \"").append(Global.varNames.get(var - 1)).append("\"");
-		builder.append(" : ").append(" { ");
-		
-		String childJson = null;
+		var gson = new GsonBuilder().setPrettyPrinting().create();
+		var json = new JsonObject();
 		
 		if (d instanceof DDleaf) {
 			
 			var children = Global.valNames.get(var - 1).stream()
-					.map(v -> new StringBuilder()
-							.append("\"").append(v).append("\"")
-							.append(" : ")
-							.append(d.getVal())
-							.toString())
+					.map(v -> {
+						
+						var _json = new JsonObject();
+						_json.add(v, gson.toJsonTree(d.getVal()));
+						
+						return _json;
+					})
 					.collect(Collectors.toList());
 			
-			childJson = String.join(" , ", children);
+			json.add(Global.varNames.get(var - 1), gson.toJsonTree(children));
+			
+			return json;
 		}
 		
 		else {
 			
 			var children = IntStream.range(0, d.getChildren().length).boxed()
-					.map(i -> new StringBuilder()
-							.append("\"").append(Global.valNames.get(var - 1).get(i)).append("\"")
-							.append(" : ")
-							.append(d.getChildren()[i].getVal())
-							.toString())
+					.map(i -> {
+						
+						var _json = new JsonObject();
+						_json.add(Global.valNames.get(var - 1).get(i), gson.toJsonTree(d.getChildren()[i].getVal()));
+						
+						return _json;
+					})
 					.collect(Collectors.toList());
 			
-			childJson = String.join(" , ", children);
+			json.add(Global.varNames.get(var - 1), gson.toJsonTree(children));
+			return json;
 		}
-		
-		builder.append(childJson).append(" } ").append(" } ");
-		return builder.toString();
 	}
 	
-	public static String toJson(final DD d, final List<Integer> vars) {
+	public static JsonElement toJson(final DD d, final List<Integer> vars) {
+		
+		var gson = new GsonBuilder().setPrettyPrinting().create();
 		
 		var dds = DDOP.factors(d, vars);
 		
@@ -1098,7 +1105,14 @@ public class DDOP {
 		var jsonDDs = IntStream.range(0, vars.size()).boxed()
 				.map(i -> DDOP.toJson(dds.get(i), vars.get(i)))
 				.collect(Collectors.toList());
+	
 		
-		return jsonDDs.toString();
+		var json = new JsonArray();
+		
+		jsonDDs.forEach(j -> {
+			json.add(j);
+		});
+		
+		return json;
 	}
 }

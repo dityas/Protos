@@ -10,6 +10,7 @@ package thinclab.model_ops.belief_exploration;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
@@ -19,8 +20,8 @@ import thinclab.policy.Policy;
  * @author adityas
  *
  */
-public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<B, Integer, List<Integer>>, P extends Policy<B>>
-		implements ExplorationStrategy<B, M, G, P> {
+public class BreadthFirstExploration<M extends POSeqDecMakingModel<DD>, G extends AbstractAOGraph<DD, Integer, List<Integer>>, P extends Policy<DD>>
+		implements ExplorationStrategy<DD, M, G, P> {
 
 	private final int maxB;
 	private boolean done = false;
@@ -33,7 +34,7 @@ public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G exte
 	}
 
 	@Override
-	public G expand(List<B> bs, G g, M m, int T, P Vn) {
+	public G expand(List<DD> bs, G g, M m, int T, P Vn) {
 
 		bs.forEach(g::addNode);
 		
@@ -46,7 +47,6 @@ public class BreadthFirstExploration<B, M extends POSeqDecMakingModel<B>, G exte
 
 						g.edgeIndexMap.keySet().stream().forEach(_t ->
 							{
-
 								if (g.getAllNodes().size() < maxB) {
 
 									if (g.getNodeAtEdge(b, _t) == null) {

@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
+import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
@@ -103,19 +104,24 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.1f);
 		var b_i = new ArrayList<>(b_is);
 
-		b_is.forEach(g::addNode);
+		b_i.forEach(g::addNode);
 
 		// initial belief exploration
 		var _then = System.nanoTime();
+		
+		g = new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(100).expand(b_i, g, m, 1, Vn);
+		b_i.addAll(g.getAllChildren());
+		
+		LOGGER.info(String.format("Found %s beliefs after first step", g.getAllChildren().size()));
 
 		var _ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(1 - (1.0f / m.A().size()));
-		g = _ES.expand(b_i, g, m, H, Vn);
+		g = _ES.expand(b_i, g, m, H - 1, Vn);
 		
 		var _now = System.nanoTime();
 		LOGGER.info(String.format("Initial belief exploration for %s took %s msecs", m.getName(),
 				((_now - _then) / 1000000.0)));
 
-		b_is.stream().forEach(_b -> {
+		b_i.stream().forEach(_b -> {
 			
 			if (!DDOP.verifyJointProbabilityDist(_b, m.i_S())) {
 				LOGGER.error(String.format("Belief %s is not a valid probability distribution", DDOP.factors(_b, m.i_S())));
@@ -149,7 +155,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 					String.format("iter: %s | bell err: %.5f | num vectors: %s | beliefs used: %s/%s | time: %.3f msec",
 							i, bellmanError, Vn_p.aVecs.size(), this.usedBeliefs, B.size(), backupT));
 
-			if (bellmanError < 0.01 && i > 5) {
+			if (bellmanError < 0.01 && i > 9) {
 
 				LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));
 				LOGGER.info("Convergence, software version 7.0, looking at life through the eyes of a tired heart.");
@@ -162,7 +168,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			if (bellmanError < 0.1f) {
 				
 				long expandThen = System.nanoTime();
-
+				
 				g = ES.expand(b_i, g, m, H, Vn);
 				
 				if (Global.DEBUG) {

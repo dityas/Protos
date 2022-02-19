@@ -54,7 +54,7 @@ public class ModelGraph<N extends ReachabilityNode> extends AbstractAOGraph<N, I
 
 	public List<Tuple3<N, List<Integer>, N>> getTriples() {
 
-		var triples = this.connections.entrySet().stream().flatMap(e -> this.edgeIndexMap.entrySet().stream().map(f ->
+		var triples = connections.entrySet().stream().flatMap(e -> edgeIndexMap.entrySet().stream().map(f ->
 			{
 
 				// for each edge, make a list of indices of child vals
@@ -66,10 +66,10 @@ public class ModelGraph<N extends ReachabilityNode> extends AbstractAOGraph<N, I
 
 				// if it is a leaf node, loop it back
 				if (mj_p == null)
-					return Tuple.of(e.getKey(), (List<Integer>) edge, e.getKey());
+					return Tuple.of(revNodeIndex.get(e.getKey()), (List<Integer>) edge, revNodeIndex.get(e.getKey()));
 
 				else
-					return Tuple.of(e.getKey(), (List<Integer>) edge, mj_p);
+					return Tuple.of(revNodeIndex.get(e.getKey()), (List<Integer>) edge, revNodeIndex.get(mj_p));
 			})).collect(Collectors.toList());
 
 		return triples;
@@ -107,76 +107,76 @@ public class ModelGraph<N extends ReachabilityNode> extends AbstractAOGraph<N, I
 
 		var builder = new StringBuilder();
 
-		if (m instanceof IPOMDP) {
-
-			IPOMDP _m = (IPOMDP) m;
-			builder.append(Global.modelVarsToDot(Global.varNames.get(_m.i_Mj - 1), _m));
-			builder.append("\r\n");
-		}
-		
-		builder.append("\r\n");
-		builder.append("subgraph cluster_").append(G.hashCode()).append(" {\r\n");
-		builder.append("\t node [shape=Mrecord];\r\n");
-
-		for (var _n : G.connections.keySet()) {
-
-			nodeMap.put(_n, nodeMap.size());
-
-			builder.append(G.hashCode())
-				.append(nodeMap.get(_n)).append(" [label=\"{ ");
-
-			// if (_n.alphaId < 0)
-			if (_n.beliefs.size() == 1) {
-
-				builder.append(" ").append(String.join(" | --- | ",
-						_n.beliefs.stream().map(b -> DDOP.toDotRecord(b, m.i_S())).collect(Collectors.toList())))
-						.append(" ");
-
-				if (m instanceof IPOMDP) {
-
-					var _m = (IPOMDP) m;
-					var b = _n.beliefs.stream().findFirst().get();
-					builder.append("| --- |")
-							.append(DDOP.getFrameBelief(b, _m.PThetajGivenMj, _m.i_Mj, _m.i_S()).toDot());
-				}
-			}
-
-			builder.append("| --- | A=");
-
-			if (_n.i_a >= 0)
-				builder.append(m.A().get(_n.i_a));
-
-			builder.append(" | alpha= ").append(_n.alphaId).append(" | ");
-
-			if (_n.h >= 0)
-				builder.append(" t= ").append(_n.h).append(" }");
-
-			builder.append("\"]\r\n");
-		}
-
-		builder.append("\r\n");
-
-		for (var _n : G.connections.keySet()) {
-
-			for (var edge : G.edgeIndexMap.keySet()) {
-				
-				var _node = G.connections.get(_n);
-				var _edge = G.edgeIndexMap.get(edge);
-				
-				if (_node != null && _edge != null && _node.get(_edge) != null) {
-
-					builder.append(G.hashCode()).append(nodeMap.get(_n)).append(" -> ")
-							.append(G.hashCode())
-							.append(nodeMap.get(G.connections.get(_n).get(G.edgeIndexMap.get(edge))))
-							.append(" [label=\" ")
-							.append(IntStream.range(0, m.i_Om().size())
-									.mapToObj(i -> Global.valNames.get(m.i_Om().get(i) - 1).get(edge._1().get(i) - 1))
-									.collect(Collectors.toList()))
-							.append("\"]\r\n");
-				}
-			}
-
-		}
+//		if (m instanceof IPOMDP) {
+//
+//			IPOMDP _m = (IPOMDP) m;
+//			builder.append(Global.modelVarsToDot(Global.varNames.get(_m.i_Mj - 1), _m));
+//			builder.append("\r\n");
+//		}
+//		
+//		builder.append("\r\n");
+//		builder.append("subgraph cluster_").append(G.hashCode()).append(" {\r\n");
+//		builder.append("\t node [shape=Mrecord];\r\n");
+//
+//		for (var _n : G.connections.keySet()) {
+//
+//			nodeMap.put(_n, nodeMap.size());
+//
+//			builder.append(G.hashCode())
+//				.append(nodeMap.get(_n)).append(" [label=\"{ ");
+//
+//			// if (_n.alphaId < 0)
+//			if (_n.beliefs.size() == 1) {
+//
+//				builder.append(" ").append(String.join(" | --- | ",
+//						_n.beliefs.stream().map(b -> DDOP.toDotRecord(b, m.i_S())).collect(Collectors.toList())))
+//						.append(" ");
+//
+//				if (m instanceof IPOMDP) {
+//
+//					var _m = (IPOMDP) m;
+//					var b = _n.beliefs.stream().findFirst().get();
+//					builder.append("| --- |")
+//							.append(DDOP.getFrameBelief(b, _m.PThetajGivenMj, _m.i_Mj, _m.i_S()).toDot());
+//				}
+//			}
+//
+//			builder.append("| --- | A=");
+//
+//			if (_n.i_a >= 0)
+//				builder.append(m.A().get(_n.i_a));
+//
+//			builder.append(" | alpha= ").append(_n.alphaId).append(" | ");
+//
+//			if (_n.h >= 0)
+//				builder.append(" t= ").append(_n.h).append(" }");
+//
+//			builder.append("\"]\r\n");
+//		}
+//
+//		builder.append("\r\n");
+//
+//		for (var _n : G.connections.keySet()) {
+//
+//			for (var edge : G.edgeIndexMap.keySet()) {
+//				
+//				var _node = G.connections.get(_n);
+//				var _edge = G.edgeIndexMap.get(edge);
+//				
+//				if (_node != null && _edge != null && _node.get(_edge) != null) {
+//
+//					builder.append(G.hashCode()).append(nodeMap.get(_n)).append(" -> ")
+//							.append(G.hashCode())
+//							.append(nodeMap.get(G.connections.get(_n).get(G.edgeIndexMap.get(edge))))
+//							.append(" [label=\" ")
+//							.append(IntStream.range(0, m.i_Om().size())
+//									.mapToObj(i -> Global.valNames.get(m.i_Om().get(i) - 1).get(edge._1().get(i) - 1))
+//									.collect(Collectors.toList()))
+//							.append("\"]\r\n");
+//				}
+//			}
+//
+//		}
 
 		builder.append("}\r\n");
 		return builder.toString();

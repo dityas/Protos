@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.google.gson.JsonObject;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
@@ -180,10 +181,13 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		return beliefUpdate(b, a, o);
 	}
 
+//	@Override
+//	public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter) {
+//
+//	}
+	
 	@Override
-	public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter) {
-
-	}
+	public void step() {}
 
 	// ----------------------------------------------------------------------------------------
 	// PBVISolvable implementations
@@ -328,7 +332,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 	
 	@Override
-	public String toJson() {
+	public JsonObject toJson() {
 
 		// TODO Auto-generated method stub
 		return null;

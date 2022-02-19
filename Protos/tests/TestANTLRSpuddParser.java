@@ -212,7 +212,7 @@ class TestANTLRSpuddParser {
 		var agent = (IPOMDP) I.get();
 		
 		var RG = ReachabilityGraph.fromDecMakingModel(agent);
-		var ES = new BreadthFirstExploration<DD, IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(100);
+		var ES = new BreadthFirstExploration<IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(100);
 		
 		//RG.addNode(agent.b_i());
 		

@@ -13,6 +13,9 @@ import java.util.Set;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 import thinclab.legacy.DD;
 
 /*
@@ -23,7 +26,9 @@ public class ReachabilityNode {
 
 	public int alphaId;
 	public Set<DD> beliefs;
+	
 	public int i_a;
+	
 	public int h = -1;
 	
 	private static final Logger LOGGER = LogManager.getLogger(ReachabilityNode.class);
@@ -109,10 +114,10 @@ public class ReachabilityNode {
 
 	@Override
 	public String toString() {
-
+		
 		var builder = new StringBuilder();
-		builder.append("ReachabilityNode [").append("alphaId = ").append(alphaId).append(" [|b|] = ").append(beliefs.size())
-				.append(" t = ").append(h).append(" i_a = ").append(i_a).append("]");
+		builder.append(" { ").append("\"alphaId\" : ").append(alphaId).append(" , ")
+				.append(" \"t\" : ").append(h).append(" , ").append("\"i_a\" : ").append(i_a).append(" } ");
 		
 		return builder.toString();
 	}
