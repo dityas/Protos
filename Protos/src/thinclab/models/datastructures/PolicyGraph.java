@@ -48,6 +48,7 @@ public class PolicyGraph {
 
 		LOGGER.debug(String.format("Expanding graph from %s beliefs", b_is.size()));
 
+		// here, we transform each belief b to (next policy subgraph, next beliefs)
 		var nextNodes = b_is.parallelStream().map(b ->
 			{
 
@@ -55,7 +56,7 @@ public class PolicyGraph {
 				int alphaId = DDOP.bestAlphaIndex(p.aVecs, b, m.i_S());
 				int bestAct = p.aVecs.get(alphaId)._0();
 
-				// create tuples (obs, next belief, alpha vector)
+				// create tuples (obs, alpha vector, next belief)
 				var p_n = G.edgeMap.entrySet().parallelStream().filter(ao -> ao.getKey()._0() == bestAct)
 						.map(ao -> Tuple.of(ao.getValue(), m.beliefUpdate(b, bestAct, ao.getKey()._1())))
 						.filter(b_n -> !b_n._1().equals(DD.zero))
@@ -65,6 +66,8 @@ public class PolicyGraph {
 				var map = new ConcurrentHashMap<Integer, Integer>(10);
 				var b_ns = new ArrayList<DD>(10);
 
+				// add all (obs, alpha vector) pairs to create map
+				// alpha vector -> obs -> alpha vector
 				for (var _p_n : p_n) {
 
 					map.put(_p_n._0(), _p_n._1());
@@ -72,10 +75,13 @@ public class PolicyGraph {
 				}
 
 				return Tuple.of(alphaId, map, b_ns);
-			}).filter(_p -> !G.adjMap.containsKey(_p._0())).collect(Collectors.toList());
+			})
+				// only take next policy subgraph if root does not already exist
+				.filter(_p -> !G.adjMap.containsKey(_p._0())).collect(Collectors.toList());
 
 		var nextBels = new ArrayList<DD>();
 
+		// add new policy subgraph to policy graph and update list of all new beliefs
 		for (var nextNode : nextNodes) {
 
 			G.adjMap.put(nextNode._0(), nextNode._1());
@@ -99,8 +105,17 @@ public class PolicyGraph {
 		var G = new PolicyGraph(aoSpace);
 		LOGGER.debug(String.format("Initialized empty policy graph. Starting expansion from %s beliefs", b_is.size()));
 
-		var nextState = expandPolicyGraph(b_is, G, m, p);
-		LOGGER.debug(String.format("Next state is %s", nextState));
+		var nextState = Tuple.of(G, b_is);
+		
+		while (nextState._1().size() > 0) {
+			
+			nextState = expandPolicyGraph(nextState._1(), nextState._0(), m, p);
+			
+			if (nextState._1().size() > 300)
+				LOGGER.warn("Belief explosion while making policy graph");
+		}
+			
+		LOGGER.debug(String.format("Policy Graph is %s", nextState._0()));
 		
 		return G;
 	}
