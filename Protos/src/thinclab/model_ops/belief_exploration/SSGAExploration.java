@@ -7,8 +7,6 @@
  */
 package thinclab.model_ops.belief_exploration;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -99,7 +97,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
 				for (int i = 0; i < T; i++) {
 
-					if ((g.getAllNodes().size() - startSize) >= 20 || g.getAllNodes().size() >= maxB)
+					if ((g.getAllNodes().size() - startSize) >= 100 || g.getAllNodes().size() >= maxB)
 						break;
 
 					var usePolicy = DDOP.sampleIndex(List.of(e, Pa));

@@ -14,7 +14,7 @@ import thinclab.RandomVariable;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
-import thinclab.models.IPOMDP;
+import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.spuddx_parser.SpuddXLexer;

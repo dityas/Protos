@@ -14,39 +14,81 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.policy.AlphaVectorPolicy;
+import thinclab.utils.Jsonable;
 import thinclab.utils.Tuple;
 
 /*
  * @author adityas
  *
  */
-public class PolicyGraph {
+public class PolicyGraph implements Jsonable {
 
+	final public ConcurrentHashMap<Integer, PolicyNode> nodeMap;
 	final public ConcurrentHashMap<Tuple<Integer, List<Integer>>, Integer> edgeMap;
 	public ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, Integer>> adjMap = new ConcurrentHashMap<>();
 
 	private static final Logger LOGGER = LogManager.getLogger(PolicyGraph.class);
 
-	public PolicyGraph(List<Tuple<Integer, List<Integer>>> aoSpace) {
+	public PolicyGraph(PBVISolvablePOMDPBasedModel m, AlphaVectorPolicy p) {
 
+		// First create the action-observation space
+		var obsVars = m.i_Om().stream().map(i -> IntStream.range(1, Global.valNames.get(i - 1).size() + 1)
+				.mapToObj(j -> j).collect(Collectors.toList())).collect(Collectors.toList());
+
+		var oSpace = DDOP.cartesianProd(obsVars);
+		var aoSpace = IntStream.range(0, m.A().size()).mapToObj(i -> i)
+				.flatMap(i -> oSpace.stream().map(o -> Tuple.of(i, o))).collect(Collectors.toList());
+	
+		// populate the edge map with action-observation values
 		edgeMap = new ConcurrentHashMap<>();
 		aoSpace.forEach(ao -> edgeMap.put(ao, edgeMap.size()));
+		
+		// populate policy nodes
+		nodeMap = new ConcurrentHashMap<>(p.aVecs.size());
+		
+		IntStream.range(0, p.aVecs.size()).forEach(i -> {
+			
+			int actId = p.aVecs.get(i)._0();
+			nodeMap.put(i, new PolicyNode(i, actId, m.A().get(actId)));
+		});
 	}
 	
 	@Override
 	public String toString() {
-		return adjMap.toString();
+		
+		var gson = new GsonBuilder().setPrettyPrinting().create();
+		return gson.toJson(toJson());
+	}
+	
+	@Override
+	public JsonObject toJson() {
+		
+		var gson = new GsonBuilder().setPrettyPrinting().create();
+		var json = new JsonObject();
+		
+		var nodeJson = new JsonObject();
+		for (var node : adjMap.keySet()) {
+			
+			nodeJson.add(node.toString(), nodeMap.get(node).toJson());
+		}
+		
+		json.add("nodes", gson.toJsonTree(nodeJson));
+		
+		return json;
 	}
 
 	public static Tuple<PolicyGraph, List<DD>> expandPolicyGraph(List<DD> b_is, PolicyGraph G,
 			PBVISolvablePOMDPBasedModel m, AlphaVectorPolicy p) {
 
-		LOGGER.debug(String.format("Expanding graph from %s beliefs", b_is.size()));
+		LOGGER.debug(String.format("Graph contains %s nodes. Expanding from %s beliefs", 
+				G.adjMap.size(), b_is.size()));
 
 		// here, we transform each belief b to (next policy subgraph, next beliefs)
 		var nextNodes = b_is.parallelStream().map(b ->
@@ -93,16 +135,8 @@ public class PolicyGraph {
 
 	public static PolicyGraph makePolicyGraph(List<DD> b_is, PBVISolvablePOMDPBasedModel m, AlphaVectorPolicy p) {
 
-		// First create the action-observation space
-		var obsVars = m.i_Om().stream().map(i -> IntStream.range(1, Global.valNames.get(i - 1).size() + 1)
-				.mapToObj(j -> j).collect(Collectors.toList())).collect(Collectors.toList());
-
-		var oSpace = DDOP.cartesianProd(obsVars);
-		var aoSpace = IntStream.range(0, m.A().size()).mapToObj(i -> i)
-				.flatMap(i -> oSpace.stream().map(o -> Tuple.of(i, o))).collect(Collectors.toList());
-
 		// Make empty policy graph
-		var G = new PolicyGraph(aoSpace);
+		var G = new PolicyGraph(m, p);
 		LOGGER.debug(String.format("Initialized empty policy graph. Starting expansion from %s beliefs", b_is.size()));
 
 		var nextState = Tuple.of(G, b_is);
@@ -115,7 +149,8 @@ public class PolicyGraph {
 				LOGGER.warn("Belief explosion while making policy graph");
 		}
 			
-		LOGGER.debug(String.format("Policy Graph is %s", nextState._0()));
+		LOGGER.info(String.format("Policy Graph for %s has %s nodes", 
+				m.getName(), nextState._0().adjMap.size()));
 		
 		return G;
 	}

@@ -5,11 +5,12 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.models;
+package thinclab.models.IPOMDP;
 
 import java.util.HashMap;
 import java.util.List;
 import thinclab.legacy.DD;
+import thinclab.models.Model;
 import thinclab.utils.Tuple;
 
 /*

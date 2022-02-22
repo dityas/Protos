@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.RandomVariable;
-import thinclab.models.IPOMDP;
+import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;

@@ -77,6 +77,8 @@ class TestPolicyGraph {
 		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
 
 		var G = PolicyGraph.makePolicyGraph(List.of(DDleaf.getDD(0.5f)), I, policy);
+		
+		LOGGER.info(String.format("Made policy graph %s", G));
 	}
 
 }

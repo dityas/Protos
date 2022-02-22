@@ -5,13 +5,12 @@
  * 
  *	email: shinde.aditya386@gmail.com
  */
-package thinclab.models;
+package thinclab.models.IPOMDP;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
@@ -22,7 +21,8 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
-import thinclab.models.datastructures.BjSpace;
+import thinclab.models.Model;
+import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.utils.Tuple;
@@ -62,7 +62,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public List<Tuple3<Integer, PBVISolvablePOMDPBasedModel, List<ReachabilityNode>>> framesj;
 	public List<BjSpace> framesjSoln;
-
+	
 	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
 
 	public IPOMDP(List<String> S, List<String> O, String A, String Aj, String Mj, String Thetaj,

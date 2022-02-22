@@ -14,10 +14,10 @@ import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.DBN;
-import thinclab.models.IPOMDP;
 import thinclab.models.Model;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.POMDP;
+import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.utils.Tuple;
 
 /*

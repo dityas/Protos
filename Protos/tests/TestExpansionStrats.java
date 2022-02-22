@@ -10,7 +10,7 @@ import thinclab.DDOP;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
-import thinclab.models.IPOMDP;
+import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.utils.Tuple;
 

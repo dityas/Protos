@@ -109,7 +109,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		// initial belief exploration
 		var _then = System.nanoTime();
 		
-		g = new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(100).expand(b_i, g, m, 1, Vn);
+		g = new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(100).expand(b_i, g, m, 2, Vn);
 		b_i.addAll(g.getAllChildren());
 		
 		LOGGER.info(String.format("Found %s beliefs after first step", g.getAllChildren().size()));
@@ -166,10 +166,15 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			Global.clearHashtablesIfFull();
 
 			if (bellmanError < 0.1f) {
+			
+				if (i > I / 4) {
+					g.removeAllNodes();
+					b_is.forEach(g::addNode);
+				}
 				
 				long expandThen = System.nanoTime();
 				
-				g = ES.expand(b_i, g, m, H, Vn);
+				g = ES.expand(b_is, g, m, H, Vn);
 				
 				if (Global.DEBUG) {
 					float expandT = (System.nanoTime() - expandThen) / 1000000.0f;
