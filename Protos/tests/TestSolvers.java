@@ -180,45 +180,45 @@ class TestSolvers {
 				return null;
 			});
 
-		var solver = new SymbolicPerseusSolver<IPOMDP>();
-
-		var b_i = DDOP.mult(DDleaf.getDD(0.5f),
-				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
-		var policy = solver.solve(List.of(b_i), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
-		int bestAct = policy.getBestActionIndex(b_i, I.i_S());
-
-		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
-				I.A().get(bestAct)));
-
-		assertTrue(bestAct == 0);
-
-		DD b_ = b_i;
-
-		LOGGER.info(String.format("Suggested optimal action for %s  is %s which resolves to %s",
-				DDOP.factors(b_, I.i_S()), bestAct, I.A().get(bestAct)));
-
-		assertTrue(bestAct == 0);
-
-		LOGGER.info(String.format("Agent hears %s, %s ", Global.valNames.get(I.i_Om.get(0) - 1).get(0),
-				Global.valNames.get(I.i_Om.get(1) - 1).get(2)));
-		b_ = I.beliefUpdate(b_, bestAct, List.of(1, 3));
-		bestAct = policy.getBestActionIndex(b_, I.i_S());
-
-		assertTrue(bestAct == 0);
-
-		LOGGER.info("Testing MjSpace representation");
-		var initNodes = List.of(b_i).stream()
-				.map(d -> ReachabilityNode.getStartNode(policy.getBestActionIndex(d, I.i_S()), d))
-				.collect(Collectors.toList());
-
-		var modelGraph = ModelGraph.fromDecMakingModel(I);
-		initNodes.stream().forEach(modelGraph::addNode);
-		
-		var expStrat = new MjSpaceExpansion<>(); /* new PolicyGraphExpansion<>(); */
-
-		modelGraph = expStrat.expand(initNodes, modelGraph, I, I.H, policy);
-		LOGGER.debug(String.format("After expanding the MjSpace graph, no. of models are %s",
-				modelGraph.getAllNodes().size()));
+//		var solver = new SymbolicPerseusSolver<IPOMDP>();
+//
+//		var b_i = DDOP.mult(DDleaf.getDD(0.5f),
+//				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
+//		var policy = solver.solve(List.of(b_i), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
+//		int bestAct = policy.getBestActionIndex(b_i, I.i_S());
+//
+//		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
+//				I.A().get(bestAct)));
+//
+//		assertTrue(bestAct == 0);
+//
+//		DD b_ = b_i;
+//
+//		LOGGER.info(String.format("Suggested optimal action for %s  is %s which resolves to %s",
+//				DDOP.factors(b_, I.i_S()), bestAct, I.A().get(bestAct)));
+//
+//		assertTrue(bestAct == 0);
+//
+//		LOGGER.info(String.format("Agent hears %s, %s ", Global.valNames.get(I.i_Om.get(0) - 1).get(0),
+//				Global.valNames.get(I.i_Om.get(1) - 1).get(2)));
+//		b_ = I.beliefUpdate(b_, bestAct, List.of(1, 3));
+//		bestAct = policy.getBestActionIndex(b_, I.i_S());
+//
+//		assertTrue(bestAct == 0);
+//
+//		LOGGER.info("Testing MjSpace representation");
+//		var initNodes = List.of(b_i).stream()
+//				.map(d -> ReachabilityNode.getStartNode(policy.getBestActionIndex(d, I.i_S()), d))
+//				.collect(Collectors.toList());
+//
+//		var modelGraph = ModelGraph.fromDecMakingModel(I);
+//		initNodes.stream().forEach(modelGraph::addNode);
+//		
+//		var expStrat = new MjSpaceExpansion<>(); /* new PolicyGraphExpansion<>(); */
+//
+//		modelGraph = expStrat.expand(initNodes, modelGraph, I, I.H, policy);
+//		LOGGER.debug(String.format("After expanding the MjSpace graph, no. of models are %s",
+//				modelGraph.getAllNodes().size()));
 
 		System.gc();
 		printMemConsumption();

@@ -19,11 +19,11 @@ import thinclab.utils.Tuple;
  */
 public class IPOMDPEC extends IPOMDP {
 
-	public IPOMDPEC(List<String> S, List<String> O, String A, String Aj, String Mj, String Thetaj,
+	public IPOMDPEC(List<String> S, List<String> O, String A, String Aj, String Mj, String EC, String Thetaj,
 			List<Tuple<String, Model>> frames_j, HashMap<String, Model> dynamics, HashMap<String, DD> R, float discount,
 			int H, String name) {
 
-		super(S, O, A, Aj, Mj, Thetaj, frames_j, dynamics, R, discount, H, name);
+		super(S, O, A, Aj, Mj, EC, Thetaj, frames_j, dynamics, R, discount, H, name);
 		// TODO Auto-generated constructor stub
 	}
 

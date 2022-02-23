@@ -64,15 +64,7 @@ public class MjThetaSpace implements Frame<PolicyNode> {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-	@Override
-	public Map<MjRepr<PolicyNode>, Integer> optAMap() {
-
-		return G.adjMap.keySet().stream()
-				.map(n -> G.nodeMap.get(n))
-				.collect(Collectors.toMap(n -> new MjRepr<>(frame, n), n -> n.actId));
-	}
-
+	
 	@Override
 	public List<Tuple3<MjRepr<PolicyNode>, List<Integer>, MjRepr<PolicyNode>>> getTriples() {
 

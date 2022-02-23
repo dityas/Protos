@@ -31,6 +31,7 @@ import thinclab.models.Model;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.POMDP;
 import thinclab.models.IPOMDP.IPOMDP;
+import thinclab.models.IPOMDP.MjRepr;
 import thinclab.models.datastructures.ModelGraph;
 import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.policy.AlphaVectorPolicy;
@@ -166,7 +167,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 				Global.modelVars.put(varName, new HashMap<>());
 				
 			var modelDict = Global.modelVars.get(varName);
-			var model = Tuple.of(m._0(), ReachabilityNode.getStartNode(-1, m._2()));
+			var model = new MjRepr<>(m._0(), ReachabilityNode.getStartNode(-1, m._2()));
 			if (!modelDict.containsKey(model))
 				modelDict.put(model, m._1());
 		});

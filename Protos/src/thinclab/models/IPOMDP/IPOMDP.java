@@ -23,6 +23,7 @@ import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.models.Model;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
+import thinclab.models.datastructures.PolicyNode;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.utils.Tuple;
@@ -40,6 +41,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public final int i_Aj;
 	public final int i_Mj;
 	public final int i_Mj_p;
+	public final int i_EC;
+	public final int i_EC_p;
 	public final int i_Thetaj;
 	public final List<String> Thetaj;
 
@@ -50,7 +53,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public final List<Integer> allvars;
 	public final List<Integer> gaoivars;
-	
+
 	public final List<DD> jointR;
 
 	public final List<List<DD>> Oj;
@@ -61,11 +64,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public List<DD> Taus;
 
 	public List<Tuple3<Integer, PBVISolvablePOMDPBasedModel, List<ReachabilityNode>>> framesj;
-	public List<BjSpace> framesjSoln;
-	
+	// public List<BjSpace> framesjSoln;
+	public List<MjThetaSpace> mjThetas;
+	public HashMap<MjRepr<PolicyNode>, String> ECMap = new HashMap<>();
+
 	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
 
-	public IPOMDP(List<String> S, List<String> O, String A, String Aj, String Mj, String Thetaj,
+	public IPOMDP(List<String> S, List<String> O, String A, String Aj, String Mj, String EC, String Thetaj,
 			List<Tuple<String, Model>> frames_j, HashMap<String, Model> dynamics, HashMap<String, DD> R, float discount,
 			int H, String name) {
 
@@ -74,7 +79,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		jointR = new ArrayList<DD>(this.R.size());
 		jointR.addAll(this.R);
-		
+
 		this.name = name;
 
 		// random variable for opponent's action
@@ -84,6 +89,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		// opponent's model variable
 		this.i_Mj = Global.varNames.indexOf(Mj) + 1;
 		this.i_Mj_p = this.i_Mj + (Global.NUM_VARS / 2);
+
+		this.i_EC = Global.varNames.indexOf(EC) + 1;
+		this.i_EC_p = this.i_EC + (Global.NUM_VARS / 2);
 
 		this.i_S.add(i_Mj);
 		this.i_S_p.add(i_Mj_p);
@@ -95,11 +103,14 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		this.H = H;
 
 		// initialize frames
-		this.framesj = frames_j.stream().map(
-				t -> Tuple.of(Global.valNames.get(i_Thetaj - 1).indexOf(t._0()), (PBVISolvablePOMDPBasedModel) t._1()))
+		this.framesj = frames_j.stream()
+				// make tuples (frameId, POMDP/IPOMDP)
+				.map(t -> Tuple.of(Global.valNames.get(i_Thetaj - 1).indexOf(t._0()),
+						(PBVISolvablePOMDPBasedModel) t._1()))
+				// make tuples (frameId, POMDP/IPOMDP, beliefs (reachability nodes))
 				.map(t -> Tuple.of(t._0(), t._1(),
 						Global.modelVars.get(Global.varNames.get(i_Mj - 1)).keySet().stream()
-								.filter(k -> k._0() == t._0()).map(k -> k._1()).collect(Collectors.toList())))
+								.filter(k -> k.frame == t._0()).map(k -> k._1()).collect(Collectors.toList())))
 				.collect(Collectors.toList());
 
 		Collections.sort(this.framesj, (f1, f2) -> f1._0() - f2._0());
@@ -107,6 +118,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		// verify and prepare Oj
 		var incorrectFrame = this.framesj.stream().filter(f -> !f._1().Om().equals(this.framesj.get(0)._1().Om()))
 				.findAny();
+
 		if (incorrectFrame.isPresent()) {
 
 			LOGGER.error(String.format(
@@ -151,7 +163,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		Collections.sort(gaoivars);
 
 		// prepare structures for solving frames
-		this.framesjSoln = this.framesj.stream().map(f -> new BjSpace(f._2(), f._0(), f._1(), H))
+		// this.framesjSoln = this.framesj.stream().map(f -> new BjSpace(f._2(), f._0(),
+		// f._1(), H))
+		// .collect(Collectors.toList());
+
+		this.mjThetas = this.framesj.stream()
+				.map(f -> new MjThetaSpace(
+						f._2().stream().flatMap(n -> n.beliefs.stream()).collect(Collectors.toList()), f._0(), f._1()))
 				.collect(Collectors.toList());
 
 		// create interactive state space using mjs
@@ -174,150 +192,221 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public void updateIS() {
 
 		createIS();
-
 		createPAjMj();
 		createPThetajMj();
-		createPMj_pMjAjOj_p();
+//		createPMj_pMjAjOj_p();
 
-		//R = R.stream().map(ra -> DDOP.addMultVarElim(List.of(PAjGivenMj, ra), List.of(i_Aj)))
-		//		.collect(Collectors.toList());
-		
-		R = jointR.stream()
-				.map(jr -> DDOP.addMultVarElim(List.of(PAjGivenMj,  jr), List.of(i_Aj)))
-				.collect(Collectors.toList());
+
+//		R = jointR.stream().map(jr -> DDOP.addMultVarElim(List.of(PAjGivenMj, jr), List.of(i_Aj)))
+//				.collect(Collectors.toList());
 	}
 
 	public void createIS() {
 
-		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
+		var ecList = this.mjThetas.stream().flatMap(m -> m.allModels().stream()).collect(Collectors.toList());
 
-		this.framesjSoln.stream().forEach(f ->
+		IntStream.range(0, ecList.size()).forEach(i ->
 			{
 
-				f.solve();
+				ECMap.put(ecList.get(i), String.format("ec%s", i));
 			});
+//		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
+//
+//		this.framesjSoln.stream().forEach(f ->
+//			{
+//
+//				f.solve();
+//			});
+//
+//		var mjsList = this.framesjSoln.stream().flatMap(f -> f.mjList().stream()).collect(Collectors.toList());
+//
+//		mjsList.stream().forEach(f ->
+//			{
+//
+//				var key = Tuple.of(f._0(), f._1());
+//
+//				if (!mjMap.containsKey(key)) {
+//
+//					mjMap.put(key, "m" + mjMap.size());
+//				}
+//
+//				else {
+//
+//					LOGGER.warn(String.format("Model %s already exists in mjMap. Will skip it", key));
+//				}
+//
+//				// If this node was initialized in the domain file, we'll need to populate the
+//				// optimal action and the optimal alpha vector
+//			});
+//
+//		var sortedVals = mjMap.values().stream().collect(Collectors.toList());
+//		Collections.sort(sortedVals);
+//
+//		Global.replaceValues(i_Mj, sortedVals);
+//		Global.replaceValues(i_Mj_p, sortedVals);
+//
+//		LOGGER.debug(String.format("Interactive state space for %s has %s models", getName(),
+//				Global.valNames.get(i_Mj - 1).size()));
+//		LOGGER.debug(String.format("IPOMDP %s has %s interactive states in total", getName(),
+//				i_S().stream().map(i -> Global.valNames.get(i - 1).size()).reduce(1, (p, q) -> p * q)));
 
-		var mjsList = this.framesjSoln.stream().flatMap(f -> f.mjList().stream()).collect(Collectors.toList());
+		// Make EC variable
+		var sortedECs = ECMap.values().stream().collect(Collectors.toList());
+		Collections.sort(sortedECs);
+		
+		Global.replaceValues(i_EC, sortedECs);
+		Global.replaceValues(i_EC_p, sortedECs);
 
-		mjsList.stream().forEach(f ->
-			{
-
-				var key = Tuple.of(f._0(), f._1());
-
-				if (!mjMap.containsKey(key)) {
-
-					mjMap.put(key, "m" + mjMap.size());
-				}
-
-				else {
-
-					LOGGER.warn(String.format("Model %s already exists in mjMap. Will skip it", key));
-				}
-
-				// If this node was initialized in the domain file, we'll need to populate the
-				// optimal action and the optimal alpha vector
-			});
-
-		var sortedVals = mjMap.values().stream().collect(Collectors.toList());
-		Collections.sort(sortedVals);
-
-		Global.replaceValues(i_Mj, sortedVals);
-		Global.replaceValues(i_Mj_p, sortedVals);
-
-		LOGGER.debug(String.format("Interactive state space for %s has %s models", getName(),
-				Global.valNames.get(i_Mj - 1).size()));
+		LOGGER.debug(String.format("Eq class space for %s has %s models", getName(),
+				Global.valNames.get(i_EC - 1).size()));
 		LOGGER.debug(String.format("IPOMDP %s has %s interactive states in total", getName(),
 				i_S().stream().map(i -> Global.valNames.get(i - 1).size()).reduce(1, (p, q) -> p * q)));
+
 	}
 
 	public void createPAjMj() {
 
-		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
-		var MjToOPTAj = framesjSoln.stream().flatMap(f -> f.mjToOPTAjMap().entrySet().stream())
-				.map(e -> Tuple.of(mjMap.get(e.getKey()), DDnode.getDDForChild(i_Aj, e.getValue())))
-				.collect(Collectors.toList());
-
-		Collections.sort(MjToOPTAj, (a, b) -> a._0().compareTo(b._0()));
-
-		var AjDDs = MjToOPTAj.stream().map(m -> m._1()).toArray(DD[]::new);
-
-		if (AjDDs.length != Global.valNames.get(i_Mj - 1).size()) {
+//		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
+//		var MjToOPTAj = framesjSoln.stream().flatMap(f -> f.mjToOPTAjMap().entrySet().stream())
+//				.map(e -> Tuple.of(mjMap.get(e.getKey()), DDnode.getDDForChild(i_Aj, e.getValue())))
+//				.collect(Collectors.toList());
+//
+//		Collections.sort(MjToOPTAj, (a, b) -> a._0().compareTo(b._0()));
+//
+//		var AjDDs = MjToOPTAj.stream().map(m -> m._1()).toArray(DD[]::new);
+//
+//		if (AjDDs.length != Global.valNames.get(i_Mj - 1).size()) {
+//
+//			LOGGER.error("Fatal error while constructing P(Aj|Mj)");
+//			LOGGER.debug(String.format("AjDDs are %s", AjDDs.length));
+//			LOGGER.debug(String.format("i_Mj size is %s", Global.valNames.get(i_Mj - 1).size()));
+//			System.exit(-1);
+//		}
+//
+//		PAjGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, AjDDs));
+		
+		var optAGivenEC = mjThetas.stream()
+				.flatMap(mj -> mj.allModels().stream())
+				.collect(Collectors.toMap(mj -> ECMap.get(mj), mj -> DDnode.getDDForChild(i_Aj, mj._1().actId)));
+		
+		var AjDDs = Global.valNames.get(i_EC - 1).stream()
+				.map(v -> optAGivenEC.get(v))
+				.toArray(DD[]::new);
+		
+		PAjGivenMj = DDOP.reorder(DDnode.getDD(i_EC, AjDDs));
+		
+		// Sanity check
+		IntStream.range(0, Global.valNames.get(i_EC - 1).size()).forEach(i -> {
 			
-			LOGGER.error("Fatal error while constructing P(Aj|Mj)");
-			LOGGER.debug(String.format("AjDDs are %s", AjDDs.length));
-			LOGGER.debug(String.format("i_Mj size is %s", Global.valNames.get(i_Mj - 1).size()));
-			System.exit(-1);
-		}
-
-		PAjGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, AjDDs));
-
+			var dd = DDOP.restrict(PAjGivenMj, List.of(i_EC), List.of(i + 1));
+			if (DDOP.maxAll(
+					DDOP.abs(
+							DDOP.sub(
+									DDOP.addMultVarElim(List.of(dd), List.of(i_Aj)), 
+									DDleaf.getDD(1.0f)))) > 1e-5f) {
+				
+				LOGGER.debug(String.format("Panic! Sanity check for P(Aj|EC) failed, P(Aj|EC) = %s", PAjGivenMj));
+				System.exit(-1);
+				
+			}
+		});
+		
+		LOGGER.info("Sanity check passed for P(Aj|EC)");
 	}
 
 	public void createPThetajMj() {
 
-		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
-		var ThetajToMj = mjMap.entrySet().stream()
-				.map(e -> Tuple.of(DDnode.getDDForChild(i_Thetaj, e.getKey()._0()), e.getValue()))
-				.collect(Collectors.toList());
-
-		Collections.sort(ThetajToMj, (a, b) -> a._1().compareTo(b._1()));
-
-		var ThetajDDs = ThetajToMj.stream().map(m -> m._0()).toArray(DD[]::new);
-		PThetajGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, ThetajDDs));
+//		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
+//		var ThetajToMj = mjMap.entrySet().stream()
+//				.map(e -> Tuple.of(DDnode.getDDForChild(i_Thetaj, e.getKey()._0()), e.getValue()))
+//				.collect(Collectors.toList());
+//
+//		Collections.sort(ThetajToMj, (a, b) -> a._1().compareTo(b._1()));
+//
+//		var ThetajDDs = ThetajToMj.stream().map(m -> m._0()).toArray(DD[]::new);
+//		PThetajGivenMj = DDOP.reorder(DDnode.getDD(i_Mj, ThetajDDs));
+		
+		var mjToThetaj = mjThetas.stream()
+				.flatMap(mj -> mj.allModels().stream())
+				.collect(Collectors.toMap(mj -> ECMap.get(mj), mj -> DDnode.getDDForChild(i_Thetaj, mj.frame)));
+		
+		var thetajDDs = Global.valNames.get(i_EC - 1).stream()
+				.map(v -> mjToThetaj.get(v))
+				.toArray(DD[]::new);
+		
+		PThetajGivenMj = DDOP.reorder(DDnode.getDD(i_EC, thetajDDs));
+		
+		// Sanity check
+		IntStream.range(0, Global.valNames.get(i_EC - 1).size()).forEach(i -> {
+			
+			var dd = DDOP.restrict(PThetajGivenMj, List.of(i_EC), List.of(i + 1));
+			if (DDOP.maxAll(
+					DDOP.abs(
+							DDOP.sub(
+									DDOP.addMultVarElim(List.of(dd), List.of(i_Thetaj)), 
+									DDleaf.getDD(1.0f)))) > 1e-5f) {
+				
+				LOGGER.debug(String.format("Panic! Sanity check for P(Thetaj|EC) failed, P(Thetaj|EC) = %s", PAjGivenMj));
+				System.exit(-1);
+				
+			}
+		});
+		
+		LOGGER.info("Sanity check passed for P(Thetaj|EC)");
 	}
 
 	public void createPMj_pMjAjOj_p() {
 
-		var then = System.nanoTime();
-
-		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
-
-		var triples = framesjSoln.stream().flatMap(f -> f.getTriples().stream())
-				.map(f -> Tuple.of(mjMap.get(f._0()), f._1(), mjMap.get(f._2()))).map(t ->
-					{
-
-						// convert everything into list
-						List<Integer> valList = new ArrayList<>(t._1().size() + 2);
-						valList.add(Global.valNames.get(i_Mj - 1).indexOf(t._0()) + 1);
-
-						valList.addAll(t._1());
-
-						valList.add(Global.valNames.get(i_Mj_p - 1).indexOf(t._2()) + 1);
-
-						return valList;
-					})
-				.collect(Collectors.toList());
-
-		var varList = new ArrayList<Integer>(Omj.size() + 2);
-		varList.add(i_Mj);
-		varList.add(i_Aj);
-		varList.addAll(i_Omj_p);
-		varList.add(i_Mj_p);
-
-		PMj_pGivenMjAjOj_p = triples.stream().map(t -> DDOP.reorder(DDnode.getDD(varList, t, 1.0f)))
-				.reduce(DDleaf.getDD(0.0f), (d1, d2) -> DDOP.add(d1, d2));
-
-		var ddSum = DDOP.addMultVarElim(List.of(PMj_pGivenMjAjOj_p), List.of(i_Mj_p));
-		if (DDOP.maxAll(DDOP.abs(DDOP.sub(ddSum, DD.one))) > 1e-5f) {
-
-			LOGGER.debug(String.format("Models are %s", Global.modelVars));
-			LOGGER.error(String.format("# (Mj') P(Mj'|Mj,Aj,Oj') is %s != 1", ddSum));
-			System.exit(-1);
-		}
-
-		Taus = IntStream.range(0, A().size()).mapToObj(i ->
-			{
-
-				var factors = new ArrayList<DD>(Omj.size() + 1);
-				factors.addAll(Oj.get(i));
-				factors.add(PMj_pGivenMjAjOj_p);
-
-				return DDOP.addMultVarElim(factors, i_Omj_p);
-			}).collect(Collectors.toList());
-
-		var now = System.nanoTime();
-		LOGGER.debug(
-				String.format("Building P(Mj'|Mj,Aj,Oj') for %s took %s msecs", getName(), ((now - then) / 1000000.0)));
+//		var then = System.nanoTime();
+//
+//		var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
+//
+//		var triples = framesjSoln.stream().flatMap(f -> f.getTriples().stream())
+//				.map(f -> Tuple.of(mjMap.get(f._0()), f._1(), mjMap.get(f._2()))).map(t ->
+//					{
+//
+//						// convert everything into list
+//						List<Integer> valList = new ArrayList<>(t._1().size() + 2);
+//						valList.add(Global.valNames.get(i_Mj - 1).indexOf(t._0()) + 1);
+//
+//						valList.addAll(t._1());
+//
+//						valList.add(Global.valNames.get(i_Mj_p - 1).indexOf(t._2()) + 1);
+//
+//						return valList;
+//					})
+//				.collect(Collectors.toList());
+//
+//		var varList = new ArrayList<Integer>(Omj.size() + 2);
+//		varList.add(i_Mj);
+//		varList.add(i_Aj);
+//		varList.addAll(i_Omj_p);
+//		varList.add(i_Mj_p);
+//
+//		PMj_pGivenMjAjOj_p = triples.stream().map(t -> DDOP.reorder(DDnode.getDD(varList, t, 1.0f)))
+//				.reduce(DDleaf.getDD(0.0f), (d1, d2) -> DDOP.add(d1, d2));
+//
+//		var ddSum = DDOP.addMultVarElim(List.of(PMj_pGivenMjAjOj_p), List.of(i_Mj_p));
+//		if (DDOP.maxAll(DDOP.abs(DDOP.sub(ddSum, DD.one))) > 1e-5f) {
+//
+//			LOGGER.debug(String.format("Models are %s", Global.modelVars));
+//			LOGGER.error(String.format("# (Mj') P(Mj'|Mj,Aj,Oj') is %s != 1", ddSum));
+//			System.exit(-1);
+//		}
+//
+//		Taus = IntStream.range(0, A().size()).mapToObj(i ->
+//			{
+//
+//				var factors = new ArrayList<DD>(Omj.size() + 1);
+//				factors.addAll(Oj.get(i));
+//				factors.add(PMj_pGivenMjAjOj_p);
+//
+//				return DDOP.addMultVarElim(factors, i_Omj_p);
+//			}).collect(Collectors.toList());
+//
+//		var now = System.nanoTime();
+//		LOGGER.debug(
+//				String.format("Building P(Mj'|Mj,Aj,Oj') for %s took %s msecs", getName(), ((now - then) / 1000000.0)));
 	}
 
 	@Override
@@ -405,48 +494,37 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	// ----------------------------------------------------------------------------------------
 	// MjSpace transformations
 
-//	@Override
-//	public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter) {
-//
-//		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).clear();
-//
-//		framesjSoln.forEach(f -> f.step(modelFilter.stream()
-//				.filter(mf -> mf._0() == f.frame)
-//				.collect(Collectors.toSet())));
-//		
-//		updateIS();
-//	}
-
 	@Override
 	public void step() {
 
-		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).clear();
-
-		framesjSoln.forEach(f -> f.step());
-		updateIS();
+//		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).clear();
+//
+//		framesjSoln.forEach(f -> f.step());
+//		updateIS();
 	}
 
 	@Override
 	public DD step(DD b, int a, List<Integer> o) {
 
-		var b_n = beliefUpdate(b, a, o);
-		
-		// Prune all models with P(Mj) < 0.01.
-//		var allModels = Global.pruneModels(
-//				DDOP.factors(b_n, i_S()).get(i_S().size() - 1), i_Mj);
-
-		var bnList = Global.decoupleMj(b_n, i_Mj).stream()
-				//.filter(_b -> allModels._0().contains(_b._0()))
-				.collect(Collectors.toList());
-				
-		// step(allModels._0());
-		step();
-
-		//var bel = Global.assemblebMj(i_Mj, bnList, allModels._1());
-		var bel = Global.assemblebMj(i_Mj, bnList);
-		var norm = DDOP.addMultVarElim(List.of(bel), i_S());
-		
-		return DDOP.div(bel, norm);
+//		var b_n = beliefUpdate(b, a, o);
+//
+//		// Prune all models with P(Mj) < 0.01.
+////		var allModels = Global.pruneModels(
+////				DDOP.factors(b_n, i_S()).get(i_S().size() - 1), i_Mj);
+//
+//		var bnList = Global.decoupleMj(b_n, i_Mj).stream()
+//				// .filter(_b -> allModels._0().contains(_b._0()))
+//				.collect(Collectors.toList());
+//
+//		// step(allModels._0());
+//		step();
+//
+//		// var bel = Global.assemblebMj(i_Mj, bnList, allModels._1());
+//		var bel = Global.assemblebMj(i_Mj, bnList);
+//		var norm = DDOP.addMultVarElim(List.of(bel), i_S());
+//
+//		return DDOP.div(bel, norm);
+		return null;
 	}
 
 //	@Override
@@ -456,7 +534,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 //	
 //		return b_n;
 //	}
-	
+
 	@Override
 	public DD step(DD b, String a, List<String> o) {
 

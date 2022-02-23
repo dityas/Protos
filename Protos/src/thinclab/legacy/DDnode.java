@@ -342,7 +342,6 @@ public class DDnode extends DD {
 	@Override
 	public JsonObject toJson() {
 
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -370,6 +369,12 @@ public class DDnode extends DD {
 
 		builder.append(" )");
 		return builder.toString();
+	}
+
+	@Override
+	public float getVal() {
+
+		return 0;
 	}
 
 }

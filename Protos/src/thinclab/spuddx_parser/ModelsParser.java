@@ -82,6 +82,7 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		String A = ctx.ipomdp_def().action_var().var_name().getText();
 		String Aj = ctx.ipomdp_def().action_j_var().var_name().IDENTIFIER().getText();
 		String Mj = ctx.ipomdp_def().model_j_var().var_name().IDENTIFIER().getText();
+		String EC = ctx.ipomdp_def().ec_var().var_name().IDENTIFIER().getText();
 
 		String Thetaj = ctx.ipomdp_def().frame_def().var_name().IDENTIFIER().getText();
 		var _frames = ctx.ipomdp_def().frame_def().frame_tuple().stream()
@@ -113,7 +114,7 @@ public class ModelsParser extends SpuddXBaseVisitor<Model> {
 		float discount = Float.valueOf(ctx.ipomdp_def().discount().FLOAT_NUM().getText());
 		int H = Integer.valueOf(ctx.ipomdp_def().reachability().FLOAT_NUM().getText());
 
-		var ipomdp = new IPOMDP(S, O, A, Aj, Mj, Thetaj, _frames, dynamics, R, discount, H,
+		var ipomdp = new IPOMDP(S, O, A, Aj, Mj, EC, Thetaj, _frames, dynamics, R, discount, H,
 				ctx.ipomdp_def().model_name().IDENTIFIER().getText());
 
 		return ipomdp;

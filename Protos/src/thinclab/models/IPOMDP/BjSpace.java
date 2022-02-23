@@ -110,31 +110,31 @@ public class BjSpace {
 
 	public void step() {
 
-		if (m instanceof POMDP) {
-
-			var mjs = MG.getChildren(mj_i).stream()//.filter(m -> modelFilter.contains(Tuple.of(frame, m)))
-					.collect(Collectors.toList());
-			mjs.forEach(m -> m.h = 0);
-			mj_i = new ArrayList<>(mjs);
-		}
-
-		else {
-			
-			var _m = (IPOMDP) m;
-			
-			var mjs = MG.getChildren(mj_i).stream().map(n -> Tuple.of(n.i_a, n.alphaId, Global.decoupleMj(n.beliefs.stream().findFirst().get(), _m.i_Mj)))
-					.collect(Collectors.toList());
-		
-			LOGGER.debug(String.format("Next nodes are %s", MG.getChildren(mj_i)));
-			
-			m.step();
-			
-			var new_mjs = mjs.stream().map(n -> Global.assemblebMj(_m.i_Mj, n._2())).collect(Collectors.toList());
-			
-			LOGGER.debug(String.format("Mj space successfully reassambled to %s", new_mjs));
-			
-			LOGGER.error("Stepping for L1+ IPOMDPs is not implemented yet");
-			System.exit(-1);
-		}
+//		if (m instanceof POMDP) {
+//
+//			var mjs = MG.getChildren(mj_i).stream()//.filter(m -> modelFilter.contains(Tuple.of(frame, m)))
+//					.collect(Collectors.toList());
+//			mjs.forEach(m -> m.h = 0);
+//			mj_i = new ArrayList<>(mjs);
+//		}
+//
+//		else {
+//			
+//			var _m = (IPOMDP) m;
+//			
+//			var mjs = MG.getChildren(mj_i).stream().map(n -> Tuple.of(n.i_a, n.alphaId, Global.decoupleMj(n.beliefs.stream().findFirst().get(), _m.i_Mj)))
+//					.collect(Collectors.toList());
+//		
+//			LOGGER.debug(String.format("Next nodes are %s", MG.getChildren(mj_i)));
+//			
+//			m.step();
+//			
+//			var new_mjs = mjs.stream().map(n -> Global.assemblebMj(_m.i_Mj, n._2())).collect(Collectors.toList());
+//			
+//			LOGGER.debug(String.format("Mj space successfully reassambled to %s", new_mjs));
+//			
+//			LOGGER.error("Stepping for L1+ IPOMDPs is not implemented yet");
+//			System.exit(-1);
+//		}
 	}
 }

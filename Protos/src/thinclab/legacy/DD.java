@@ -29,10 +29,7 @@ public abstract class DD implements Serializable, Jsonable, Graphable {
 		return null;
 	} // should throw exception
 
-	public float getVal() {
-
-		return Float.NEGATIVE_INFINITY;
-	} // should throw exception
+	abstract public float getVal();
 
 	public int[][] getConfig() {
 
