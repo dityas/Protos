@@ -135,7 +135,7 @@ class TestSolvers {
 
 		LOGGER.debug(String.format("Solved policy is %s", policy));
 		printMemConsumption();
-		
+
 		LOGGER.info("Testing MjSpace representation");
 		var initNodes = List.of(DDleaf.getDD(0.5f)).stream()
 				.map(d -> ReachabilityNode.getStartNode(policy.getBestActionIndex(d, I.i_S()), d))
@@ -148,12 +148,12 @@ class TestSolvers {
 		LOGGER.debug(String.format("After expanding the MjSpace graph, no. of models are %s",
 				modelGraph.getAllNodes().size()));
 		LOGGER.debug(String.format("Graph is %s", ModelGraph.toDot(modelGraph, I)));
-		
+
 		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
 		var bfe = new BreadthFirstExploration<POMDP, ReachabilityGraph, AlphaVectorPolicy>(100);
-		
+
 		beliefGraph = bfe.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 5, policy);
-		
+
 		LOGGER.debug(String.format("After expanding the belief space graph, no. of models are %s",
 				beliefGraph.getAllNodes().size()));
 
@@ -180,17 +180,21 @@ class TestSolvers {
 				return null;
 			});
 
-//		var solver = new SymbolicPerseusSolver<IPOMDP>();
-//
-//		var b_i = DDOP.mult(DDleaf.getDD(0.5f),
-//				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
-//		var policy = solver.solve(List.of(b_i), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
-//		int bestAct = policy.getBestActionIndex(b_i, I.i_S());
-//
-//		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
-//				I.A().get(bestAct)));
-//
-//		assertTrue(bestAct == 0);
+		var solver = new SymbolicPerseusSolver<IPOMDP>();
+
+		var b_i = DDOP.mult(DDleaf.getDD(0.5f),
+				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
+
+		LOGGER.debug(String.format("Level 1 recursive belief is %s", b_i));
+
+		var dd = I.getECDDFromMjDD(b_i);
+		var policy = solver.solve(List.of(dd), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
+		int bestAct = policy.getBestActionIndex(dd, I.i_S());
+
+		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
+				I.A().get(bestAct)));
+
+		assertTrue(bestAct == 0);
 //
 //		DD b_ = b_i;
 //
@@ -330,7 +334,8 @@ class TestSolvers {
 		G.addNode(b_i);
 		G = ES.expand(List.of(b_i), G, I, I.H, policy);
 
-		LOGGER.debug(String.format("Starting size is %s and after expansion, it is %s", numNodes, G.getAllNodes().size()));
+		LOGGER.debug(
+				String.format("Starting size is %s and after expansion, it is %s", numNodes, G.getAllNodes().size()));
 		assertTrue(G.getAllNodes().size() > numNodes);
 
 		System.gc();
