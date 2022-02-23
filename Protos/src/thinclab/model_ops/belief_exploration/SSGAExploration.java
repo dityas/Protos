@@ -97,7 +97,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
 				for (int i = 0; i < T; i++) {
 
-					if ((g.getAllNodes().size() - startSize) >= 100 || g.getAllNodes().size() >= maxB)
+					if (g.getAllNodes().size() >= maxB)
 						break;
 
 					var usePolicy = DDOP.sampleIndex(List.of(e, Pa));

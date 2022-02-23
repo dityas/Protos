@@ -45,50 +45,63 @@ public class PolicyGraph implements Jsonable {
 		var oSpace = DDOP.cartesianProd(obsVars);
 		var aoSpace = IntStream.range(0, m.A().size()).mapToObj(i -> i)
 				.flatMap(i -> oSpace.stream().map(o -> Tuple.of(i, o))).collect(Collectors.toList());
-	
+
 		// populate the edge map with action-observation values
 		edgeMap = new ConcurrentHashMap<>();
 		aoSpace.forEach(ao -> edgeMap.put(ao, edgeMap.size()));
-		
+
 		// populate policy nodes
 		nodeMap = new ConcurrentHashMap<>(p.aVecs.size());
-		
-		IntStream.range(0, p.aVecs.size()).forEach(i -> {
-			
-			int actId = p.aVecs.get(i)._0();
-			nodeMap.put(i, new PolicyNode(i, actId, m.A().get(actId)));
-		});
+
+		IntStream.range(0, p.aVecs.size()).forEach(i ->
+			{
+
+				int actId = p.aVecs.get(i)._0();
+				nodeMap.put(i, new PolicyNode(i, actId, m.A().get(actId)));
+			});
 	}
-	
+
 	@Override
 	public String toString() {
-		
+
 		var gson = new GsonBuilder().setPrettyPrinting().create();
 		return gson.toJson(toJson());
 	}
-	
+
 	@Override
 	public JsonObject toJson() {
-		
+
 		var gson = new GsonBuilder().setPrettyPrinting().create();
 		var json = new JsonObject();
-		
+
 		var nodeJson = new JsonObject();
+		var edgeJson = new JsonObject();
+
 		for (var node : adjMap.keySet()) {
-			
+
 			nodeJson.add(node.toString(), nodeMap.get(node).toJson());
+
+			var thisEdgeJson = new JsonObject();
+			for (var edge : edgeMap.entrySet()) {
+
+				if (adjMap.get(node).containsKey(edge.getValue()))
+					thisEdgeJson.add(edge.getKey().toString(),
+							gson.toJsonTree(nodeMap.get(adjMap.get(node).get(edge.getValue())).actName));
+			}
+
+			edgeJson.add(nodeMap.get(node).actName, thisEdgeJson);
 		}
-		
+
 		json.add("nodes", gson.toJsonTree(nodeJson));
-		
+		json.add("edges", edgeJson);
+
 		return json;
 	}
 
 	public static Tuple<PolicyGraph, List<DD>> expandPolicyGraph(List<DD> b_is, PolicyGraph G,
 			PBVISolvablePOMDPBasedModel m, AlphaVectorPolicy p) {
 
-		LOGGER.debug(String.format("Graph contains %s nodes. Expanding from %s beliefs", 
-				G.adjMap.size(), b_is.size()));
+		LOGGER.debug(String.format("Graph contains %s nodes. Expanding from %s beliefs", G.adjMap.size(), b_is.size()));
 
 		// here, we transform each belief b to (next policy subgraph, next beliefs)
 		var nextNodes = b_is.parallelStream().map(b ->
@@ -140,19 +153,18 @@ public class PolicyGraph implements Jsonable {
 		LOGGER.debug(String.format("Initialized empty policy graph. Starting expansion from %s beliefs", b_is.size()));
 
 		var nextState = Tuple.of(G, b_is);
-		
+
 		while (nextState._1().size() > 0) {
-			
+
 			nextState = expandPolicyGraph(nextState._1(), nextState._0(), m, p);
-			
+
 			if (nextState._1().size() > 300)
 				LOGGER.warn("Belief explosion while making policy graph");
 		}
-			
-		LOGGER.info(String.format("Policy Graph for %s has %s nodes", 
-				m.getName(), nextState._0().adjMap.size()));
-		
+
+		LOGGER.info(String.format("Policy Graph for %s has %s nodes", m.getName(), nextState._0().adjMap.size()));
+
 		return G;
 	}
-	
+
 }

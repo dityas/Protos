@@ -494,7 +494,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	@Override
 	public DD step(DD b, int a, List<Integer> o) {
 
-//		var b_n = beliefUpdate(b, a, o);
+		var b_n = beliefUpdate(b, a, o);
 //
 //		// Prune all models with P(Mj) < 0.01.
 ////		var allModels = Global.pruneModels(
@@ -512,7 +512,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 //		var norm = DDOP.addMultVarElim(List.of(bel), i_S());
 //
 //		return DDOP.div(bel, norm);
-		return null;
+		return b_n;
 	}
 
 //	@Override

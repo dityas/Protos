@@ -11,16 +11,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import thinclab.legacy.DD;
-import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.IPOMDP.IPOMDP;
+import thinclab.models.datastructures.PolicyGraph;
 import thinclab.policy.AlphaVectorPolicy;
-import thinclab.policy.Policy;
 import thinclab.solver.PointBasedSolver;
 import thinclab.utils.Graphable;
 import thinclab.utils.Jsonable;
@@ -33,7 +30,7 @@ public class Agent implements Jsonable, Graphable {
 
 	public final PBVISolvablePOMDPBasedModel m;
 	public final DD b;
-	public final Policy<DD> Vn;
+	public final AlphaVectorPolicy Vn;
 	public final int optA;
 	public final PointBasedSolver<PBVISolvablePOMDPBasedModel, AlphaVectorPolicy> solver;
 	public final int backups;
@@ -56,6 +53,7 @@ public class Agent implements Jsonable, Graphable {
 		this.optA = this.Vn.getBestActionIndex(this.b, this.m.i_S());
 
 		LOGGER.info(String.format("Initialized agent for model %s", this.m.getName()));
+		LOGGER.info(String.format("Policy Graphs is %s", PolicyGraph.makePolicyGraph(List.of(this.b), this.m, this.Vn)));
 
 	}
 
@@ -110,7 +108,7 @@ public class Agent implements Jsonable, Graphable {
 		if (m instanceof IPOMDP) {
 			var _m = (IPOMDP) m;
 			builder.append(" \"opponent frame\" : ")
-				.append(DDOP.toJson(DDOP.getFrameBelief(b, _m.PThetajGivenEC, _m.i_Mj, _m.i_S()), _m.i_Thetaj)).append(" , ");
+				.append(DDOP.toJson(DDOP.getFrameBelief(b, _m.PThetajGivenEC, _m.i_EC, _m.i_S()), _m.i_Thetaj)).append(" , ");
 			
 			var PAj = DDOP.addMultVarElim(List.of(_m.PAjGivenEC, b), _m.i_S());
 			builder.append(" \"opponent action\" : ").append(DDOP.toJson(PAj, _m.i_Aj)).append(" , ");
