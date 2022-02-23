@@ -83,8 +83,6 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 		if (g.getAllNodes().size() >= maxB)
 			return g;
 
-		int startSize = g.getAllNodes().size();
-
 		LOGGER.info("Expanding belief region...");
 		for (int n = 0; n < 100; n++) {
 

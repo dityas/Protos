@@ -53,8 +53,7 @@ public class Agent implements Jsonable, Graphable {
 		this.optA = this.Vn.getBestActionIndex(this.b, this.m.i_S());
 
 		LOGGER.info(String.format("Initialized agent for model %s", this.m.getName()));
-		LOGGER.info(String.format("Policy Graphs is %s", PolicyGraph.makePolicyGraph(List.of(this.b), this.m, this.Vn)));
-
+		LOGGER.info(String.format("Policy Graph is %s", PolicyGraph.makePolicyGraph(List.of(this.b), this.m, this.Vn)));
 	}
 
 	public static Agent of(PBVISolvablePOMDPBasedModel m, DD b,

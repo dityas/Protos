@@ -84,12 +84,16 @@ public class PolicyGraph implements Jsonable {
 			var thisEdgeJson = new JsonObject();
 			for (var edge : edgeMap.entrySet()) {
 
-				if (adjMap.get(node).containsKey(edge.getValue()))
-					thisEdgeJson.add(edge.getKey().toString(),
-							gson.toJsonTree(nodeMap.get(adjMap.get(node).get(edge.getValue())).actName));
+				if (adjMap.get(node).containsKey(edge.getValue())) {
+
+					var _node = Tuple.of(nodeMap.get(adjMap.get(node).get(edge.getValue())).actName,
+							nodeMap.get(adjMap.get(node).get(edge.getValue())).alphaId);
+
+					thisEdgeJson.add(edge.getKey().toString(), gson.toJsonTree(_node.toString()));
+				}
 			}
 
-			edgeJson.add(nodeMap.get(node).actName, thisEdgeJson);
+			edgeJson.add(Tuple.of(nodeMap.get(node).actName, nodeMap.get(node).alphaId).toString(), thisEdgeJson);
 		}
 
 		json.add("nodes", gson.toJsonTree(nodeJson));

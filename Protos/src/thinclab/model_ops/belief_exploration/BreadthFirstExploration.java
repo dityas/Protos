@@ -42,6 +42,7 @@ public class BreadthFirstExploration<M extends POSeqDecMakingModel<DD>, G extend
 
 			while (T > 0) {
 
+				LOGGER.debug(String.format("Expanding belief region from %s beliefs", g.getAllChildren().size()));
 				g.getAllChildren().stream().forEach(b ->
 					{
 

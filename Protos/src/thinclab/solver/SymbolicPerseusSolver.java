@@ -109,12 +109,11 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		// initial belief exploration
 		var _then = System.nanoTime();
 		
-		g = new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(100).expand(b_i, g, m, 2, Vn);
-		b_i.addAll(g.getAllChildren());
+		g = new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(150).expand(b_i, g, m, 5, Vn);
 		
 		LOGGER.info(String.format("Found %s beliefs after first step", g.getAllChildren().size()));
 
-		var _ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(1 - (1.0f / m.A().size()));
+		var _ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.3f);
 		g = _ES.expand(b_i, g, m, H - 1, Vn);
 		
 		var _now = System.nanoTime();
@@ -167,7 +166,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 			if (bellmanError < 0.1f) {
 			
-				if (i > I / 4) {
+				if (i > 5) {
 					g.removeAllNodes();
 					b_is.forEach(g::addNode);
 				}
