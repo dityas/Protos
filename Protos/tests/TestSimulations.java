@@ -8,8 +8,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import thinclab.Agent;
 import thinclab.DDOP;
+import thinclab.agents.Agent;
+import thinclab.agents.OfflineAgent;
 import thinclab.env.PartiallyObservableEnv;
 import thinclab.env.StochasticSimulation;
 import thinclab.legacy.DD;
@@ -148,7 +149,7 @@ class TestSimulations {
 
 		LOGGER.debug("Initializing StochasticSimulation");
 	
-		var agentJ = Agent.of(J, DDleaf.getDD(0.5f), solver, 100, 10);
+		var agentJ = new OfflineAgent(J, DDleaf.getDD(0.5f), solver, 100, 10);
 		LOGGER.debug(String.format("Agent %s", agentJ.toDot()));
 		var sim = new StochasticSimulation<>();
 		var e = sim.run(env, s, List.of(agentJ), 5);
@@ -205,10 +206,10 @@ class TestSimulations {
 							I.i_Mj, 
 							List.of(Tuple.of("m0", 1.0f))));
 		
-		var agentI = Agent.of(I, b, Isolver, 100, 10);
+		var agentI = new OfflineAgent(I, b, Isolver, 100, 10);
 		LOGGER.debug(String.format("Agent %s", agentI.toDot()));
 		
-		var agentJ = Agent.of(J, DDleaf.getDD(0.5f), Jsolver, 100, 10);
+		var agentJ = new OfflineAgent(J, DDleaf.getDD(0.5f), Jsolver, 100, 10);
 		LOGGER.debug(String.format("Agent %s", agentJ.toDot()));
 		
 		var sim = new StochasticSimulation<>();
@@ -240,7 +241,7 @@ class TestSimulations {
 		
 		LOGGER.debug(String.format("Got a hold of POMDP agent %s", J));
 		var Jsolver = new SymbolicPerseusSolver<>();
-		var agentJ = Agent.of(J, DDleaf.getDD(0.5f), Jsolver, 100, 10);
+		var agentJ = new OfflineAgent(J, DDleaf.getDD(0.5f), Jsolver, 100, 10);
 		
 		LOGGER.debug(String.format("Agent J is %s", agentJ));
 	

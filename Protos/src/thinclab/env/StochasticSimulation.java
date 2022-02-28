@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import thinclab.Agent;
 import thinclab.DDOP;
+import thinclab.agents.Agent;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.utils.Tuple;
@@ -87,7 +87,7 @@ public class StochasticSimulation<E extends Environment<DD>> implements Simulato
 					.collect(Collectors.toList());
 			
 			var next_agents = agentObsIndices.stream()
-					.map(ao -> Agent.step(ao._0(), ao._1()))
+					.map(ao -> ao._0().step(ao._1()))
 					.collect(Collectors.toList());
 			
 			agents = next_agents;

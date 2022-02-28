@@ -8,7 +8,7 @@
 package thinclab.env;
 
 import java.util.List;
-import thinclab.Agent;
+import thinclab.agents.Agent;
 import thinclab.legacy.DD;
 
 /*

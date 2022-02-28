@@ -35,24 +35,15 @@ public class Episode implements Graphable, Jsonable {
 	public JsonObject timeStepToJson(Tuple<SimState, List<Tuple<Integer, Integer>>> simState) {
 		
 		var json = new JsonObject();
+		var gson = new GsonBuilder().setPrettyPrinting().create();
 		
 		json.add("sim state", simState._0().toJson());
 		
 		var obs = simState._1().stream()
-				.map(o -> Tuple.of(Global.varNames.get(o._0() - 1), Global.valNames.get(o._0() - 1).get(o._1() - 1))).collect(Collectors.toList());
+				.map(o -> Tuple.of(Global.varNames.get(o._0() - 1), Global.valNames.get(o._0() - 1).get(o._1() - 1)))
+				.collect(Collectors.toList());
 		
-//		builder.append("\"obs\" : ").append(obs.stream()
-//				.map(o -> new StringBuilder()
-//						.append(" { \"")
-//						.append(o._0())
-//						.append("\" : \"")
-//						.append(o._1())
-//						.append("\" } ")
-//						.toString()
-//						)
-//				.collect(Collectors.toList()));
-//		
-//		builder.append(" } ");
+		json.add("obs", gson.toJsonTree(obs.toString()));
 		
 		return json;
 	}

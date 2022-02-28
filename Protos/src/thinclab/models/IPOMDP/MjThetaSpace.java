@@ -42,9 +42,20 @@ public class MjThetaSpace implements Frame<PolicyNode> {
 		this.m = m;
 
 		this.s = new SymbolicPerseusSolver<>();
-		this.Vn = s.solve(b_j, m, 100, 10, AlphaVectorPolicy.fromR(m.R()));
 
-		this.G = PolicyGraph.makePolicyGraph(b_j, m, Vn);
+		var b_js = new ArrayList<DD>();
+
+		if (m instanceof IPOMDP)
+			b_js.addAll(b_j.stream().map(d -> ((IPOMDP) m).getECDDFromMjDD(d)).collect(Collectors.toList()));
+		
+		else
+			b_js.addAll(b_j);
+
+		this.Vn = s.solve(b_js, m, 100, 10, AlphaVectorPolicy.fromR(m.R()));
+
+		this.G = PolicyGraph.makePolicyGraph(b_js, m, Vn);
+		
+		LOGGER.debug(String.format("Graph has %s nodes and %s node sources", G.nodeMap.size(), G.adjMap.size()));
 
 		LOGGER.info(String.format("MjTheta space for frame %s initialized with %s EQ classes", frame, G.adjMap.size()));
 		LOGGER.info(String.format("PolicyGraph for %s is %s", m.getName(), G.toString()));
@@ -54,9 +65,7 @@ public class MjThetaSpace implements Frame<PolicyNode> {
 	@Override
 	public List<MjRepr<PolicyNode>> allModels() {
 
-		return G.adjMap.keySet().stream()
-				.map(n -> new MjRepr<>(frame, G.nodeMap.get(n)))
-				.collect(Collectors.toList());
+		return G.adjMap.keySet().stream().map(n -> new MjRepr<>(frame, G.nodeMap.get(n))).collect(Collectors.toList());
 	}
 
 	@Override
@@ -65,12 +74,11 @@ public class MjThetaSpace implements Frame<PolicyNode> {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	@Override
 	public List<Tuple3<MjRepr<PolicyNode>, List<Integer>, MjRepr<PolicyNode>>> getTriples() {
 
-		var triples = G.adjMap.entrySet().stream().flatMap(e -> G.edgeMap.entrySet().stream()
-				.map(f ->
+		var triples = G.adjMap.entrySet().stream().flatMap(e -> G.edgeMap.entrySet().stream().map(f ->
 			{
 
 				// for each edge, make a list of indices of child vals
@@ -82,17 +90,13 @@ public class MjThetaSpace implements Frame<PolicyNode> {
 
 				// if it is a leaf node, loop it back
 				if (mj_p == null)
-					return Tuple.of(
-							new MjRepr<>(frame, G.nodeMap.get(e.getKey())), 
-							(List<Integer>) edge, 
+					return Tuple.of(new MjRepr<>(frame, G.nodeMap.get(e.getKey())), (List<Integer>) edge,
 							new MjRepr<>(frame, G.nodeMap.get(e.getKey())));
 
 				else
-					return Tuple.of(
-							new MjRepr<>(frame, G.nodeMap.get(e.getKey())), 
-							(List<Integer>) edge, 
+					return Tuple.of(new MjRepr<>(frame, G.nodeMap.get(e.getKey())), (List<Integer>) edge,
 							new MjRepr<>(frame, G.nodeMap.get(mj_p)));
-				
+
 			})).collect(Collectors.toList());
 
 		return triples;

@@ -8,7 +8,6 @@
 package thinclab.models.IPOMDP;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -68,7 +67,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public List<Tuple3<Integer, PBVISolvablePOMDPBasedModel, List<ReachabilityNode>>> framesj;
 	// public List<BjSpace> framesjSoln;
-	public List<MjThetaSpace> mjThetas;
+	public List<MjThetaSpace> ecThetas;
 	public HashMap<MjRepr<PolicyNode>, String> ECMap = new HashMap<>();
 	public HashMap<String, String> mjToECMap = new HashMap<>();
 
@@ -172,7 +171,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		Collections.sort(gaoivars);
 
-		this.mjThetas = this.framesj.stream()
+		this.ecThetas = this.framesj.stream()
 				.map(f -> new MjThetaSpace(
 						f._2().stream().flatMap(n -> n.beliefs.stream()).collect(Collectors.toList()), f._0(), f._1()))
 				.collect(Collectors.toList());
@@ -186,7 +185,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 				int frameId = e.getKey().frame;
 				var bel = e.getKey().m.beliefs.stream().findAny().get();
-				var frame = mjThetas.get(frameId);
+				var frame = ecThetas.get(frameId);
 
 				int alphaId = DDOP.bestAlphaIndex(frame.Vn.aVecs, bel, mjVars);
 				int actId = frame.Vn.getBestActionIndex(bel, frame.m.i_S());
@@ -266,7 +265,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createIS() {
 
-		var ecList = this.mjThetas.stream().flatMap(m -> m.allModels().stream()).collect(Collectors.toList());
+		var ecList = this.ecThetas.stream().flatMap(m -> m.allModels().stream()).collect(Collectors.toList());
 
 		IntStream.range(0, ecList.size()).forEach(i ->
 			{
@@ -290,7 +289,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createPAjEC() {
 
-		var optAGivenEC = mjThetas.stream().flatMap(mj -> mj.allModels().stream())
+		var optAGivenEC = ecThetas.stream().flatMap(mj -> mj.allModels().stream())
 				.collect(Collectors.toMap(mj -> ECMap.get(mj), mj -> DDnode.getDDForChild(i_Aj, mj._1().actId)));
 
 		var AjDDs = Global.valNames.get(i_EC - 1).stream().map(v -> optAGivenEC.get(v)).toArray(DD[]::new);
@@ -316,7 +315,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public void createPThetajEC() {
 
-		var mjToThetaj = mjThetas.stream().flatMap(mj -> mj.allModels().stream())
+		var mjToThetaj = ecThetas.stream().flatMap(mj -> mj.allModels().stream())
 				.collect(Collectors.toMap(mj -> ECMap.get(mj), mj -> DDnode.getDDForChild(i_Thetaj, mj.frame)));
 
 		var thetajDDs = Global.valNames.get(i_EC - 1).stream().map(v -> mjToThetaj.get(v)).toArray(DD[]::new);
@@ -347,7 +346,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		// var mjMap = Global.modelVars.get(Global.varNames.get(i_Mj - 1));
 
-		var triples = mjThetas.stream().flatMap(f -> f.getTriples().stream())
+		var triples = ecThetas.stream().flatMap(f -> f.getTriples().stream())
 				.map(f -> Tuple.of(ECMap.get(f._0()), f._1(), ECMap.get(f._2()))).map(t ->
 					{
 
@@ -442,7 +441,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		}
 
 		return this.beliefUpdate(b, actIndex, obs);
-
 	}
 
 	@Override
@@ -485,43 +483,14 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	@Override
 	public void step() {
 
-//		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).clear();
-//
-//		framesjSoln.forEach(f -> f.step());
-//		updateIS();
 	}
 
 	@Override
 	public DD step(DD b, int a, List<Integer> o) {
 
 		var b_n = beliefUpdate(b, a, o);
-//
-//		// Prune all models with P(Mj) < 0.01.
-////		var allModels = Global.pruneModels(
-////				DDOP.factors(b_n, i_S()).get(i_S().size() - 1), i_Mj);
-//
-//		var bnList = Global.decoupleMj(b_n, i_Mj).stream()
-//				// .filter(_b -> allModels._0().contains(_b._0()))
-//				.collect(Collectors.toList());
-//
-//		// step(allModels._0());
-//		step();
-//
-//		// var bel = Global.assemblebMj(i_Mj, bnList, allModels._1());
-//		var bel = Global.assemblebMj(i_Mj, bnList);
-//		var norm = DDOP.addMultVarElim(List.of(bel), i_S());
-//
-//		return DDOP.div(bel, norm);
 		return b_n;
 	}
-
-//	@Override
-//	public DD step(DD b, int a, List<Integer> o) {
-//
-//		var b_n = beliefUpdate(b, a, o);
-//	
-//		return b_n;
-//	}
 
 	@Override
 	public DD step(DD b, String a, List<String> o) {

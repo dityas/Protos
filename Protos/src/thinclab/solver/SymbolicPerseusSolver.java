@@ -97,7 +97,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 		if (b_is.size() < 1)
 			return Vn;
-		
+
 		LOGGER.info(String.format("[*] Launching symbolic Perseus solver for model %s", m.getName()));
 		var g = ReachabilityGraph.fromDecMakingModel(m);
 
@@ -108,26 +108,31 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 		// initial belief exploration
 		var _then = System.nanoTime();
-		
+
 		g = new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(150).expand(b_i, g, m, 5, Vn);
-		
+
 		LOGGER.info(String.format("Found %s beliefs after first step", g.getAllChildren().size()));
 
 		var _ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.3f);
 		g = _ES.expand(b_i, g, m, H - 1, Vn);
-		
+
 		var _now = System.nanoTime();
 		LOGGER.info(String.format("Initial belief exploration for %s took %s msecs", m.getName(),
 				((_now - _then) / 1000000.0)));
 
-		b_i.stream().forEach(_b -> {
-			
-			if (!DDOP.verifyJointProbabilityDist(_b, m.i_S())) {
-				LOGGER.error(String.format("Belief %s is not a valid probability distribution", DDOP.factors(_b, m.i_S())));
-				System.exit(-1);
-			}
-		});
-		
+		b_i.stream().forEach(_b ->
+			{
+
+				if (!DDOP.verifyJointProbabilityDist(_b, m.i_S())) {
+
+					LOGGER.error(String.format("Belief %s is not a valid probability distribution",
+							DDOP.factors(_b, m.i_S())));
+					System.exit(-1);
+				}
+			});
+
+		int convergenceCount = 0;
+
 		for (int i = 0; i < I; i++) {
 
 			var B = new ArrayList<DD>(g.getAllNodes());
@@ -142,6 +147,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			float bellmanError = computeBellmanError(B, m, Vn, Vn_p);
 
 			if (Global.DEBUG) {
+
 				float bErrT = (System.nanoTime() - bErrThen) / 1000000.0f;
 				LOGGER.debug(String.format("Computing bellman error took %s msec", bErrT));
 			}
@@ -156,50 +162,59 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 			if (bellmanError < 0.01 && i > 9) {
 
-				LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));
-				LOGGER.info("Convergence, software version 7.0, looking at life through the eyes of a tired heart.");
-				LOGGER.info("Eating seeds as a past time activity, the toxicity of my city of my city.");
-				break;
+				convergenceCount += 1;
+
+				if (convergenceCount > 3) {
+
+					LOGGER.info(
+							String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));
+					LOGGER.info(
+							"Convergence, software version 7.0, looking at life through the eyes of a tired heart.");
+					LOGGER.info("Eating seeds as a past time activity, the toxicity of my city of my city.");
+					break;
+				}
 			}
-			
+
 			Global.clearHashtablesIfFull();
 
 			if (bellmanError < 0.1f) {
-			
+
 				if (i > 5) {
+
 					g.removeAllNodes();
 					b_is.forEach(g::addNode);
 				}
-				
+
 				long expandThen = System.nanoTime();
-				
+
 				g = ES.expand(b_is, g, m, H, Vn);
-				
+
 				if (Global.DEBUG) {
+
 					float expandT = (System.nanoTime() - expandThen) / 1000000.0f;
 					LOGGER.debug(String.format("Belief expansion took %s msecs", expandT));
 				}
 			}
 
 		}
-	
+
 		if (Global.DEBUG)
 			Global.logCacheSizes();
-		
+
 		g.removeAllNodes();
 		Global.clearHashtablesIfFull();
 		m.clearBackupCache();
 		ES.clearCaches();
 		System.gc();
-		
+
 		if (Global.DEBUG)
 			Global.logCacheSizes();
-		
+
 		var solnSet = Vn.aVecs.parallelStream().map(a -> m.A().get(a._0())).collect(Collectors.toSet());
 		LOGGER.info(String.format("Optimal policy contains actions: %s", solnSet));
-		
+
 		LOGGER.info(String.format("[*] Finished solving %s", m.getName()));
-		
+
 		return Vn;
 	}
 

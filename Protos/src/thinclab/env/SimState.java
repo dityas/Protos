@@ -12,10 +12,11 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import thinclab.Agent;
 import thinclab.DDOP;
+import thinclab.agents.Agent;
 import thinclab.legacy.DD;
 import thinclab.utils.Graphable;
 import thinclab.utils.Jsonable;
@@ -28,7 +29,7 @@ public class SimState implements Jsonable, Graphable {
 	
 	public final int t;
 	public final JsonElement s;
-	public final List<String> agents;
+	public final List<JsonObject> agents;
 	
 	private static final Logger LOGGER = LogManager.getLogger(SimState.class);
 	
@@ -36,8 +37,7 @@ public class SimState implements Jsonable, Graphable {
 
 		this.t = t;
 		this.s = DDOP.toJson(s, i_S);
-		//this.agents = agents.stream().map(a -> a.toJson()).collect(Collectors.toList());
-		this.agents = null;
+		this.agents = agents.stream().map(a -> a.toJson()).collect(Collectors.toList());
 	}
 	
 	@Override
@@ -65,19 +65,16 @@ public class SimState implements Jsonable, Graphable {
 	@Override
 	public JsonObject toJson() {
 
-		var builder = new StringBuilder();
-		
 		var gson = new GsonBuilder().setPrettyPrinting().create();
 		var json = new JsonObject();
 		
 		json.add("time step", gson.toJsonTree(t));
 		json.add("state", s);
 		
-		builder.append("{ \r\n \"time step\" : ").append(t).append(" , \r\n");
-		builder.append(" \"state\" : ").append(s).append(" , \r\n");
+		var agentsJson = new JsonArray();
+		agents.forEach(a -> agentsJson.add(a));
 		
-		builder.append(" \"agents\" : ").append(" [ ").append(String.join(" , \r\n", agents)).append(" ] ");
-		builder.append(" } ");
+		json.add("agents", agentsJson);
 		
 		return json;
 	}

@@ -37,31 +37,38 @@ public class BreadthFirstExploration<M extends POSeqDecMakingModel<DD>, G extend
 	public G expand(List<DD> bs, G g, M m, int T, P Vn) {
 
 		bs.forEach(g::addNode);
-		
+
 		if (g.getAllNodes().size() < maxB && !done) {
 
 			while (T > 0) {
+
+				if (g.getAllNodes().size() > maxB)
+					break;
 
 				LOGGER.debug(String.format("Expanding belief region from %s beliefs", g.getAllChildren().size()));
 				g.getAllChildren().stream().forEach(b ->
 					{
 
-						g.edgeIndexMap.keySet().stream().forEach(_t ->
-							{
-								if (g.getAllNodes().size() < maxB) {
+						if (g.getAllNodes().size() < maxB) {
 
-									if (g.getNodeAtEdge(b, _t) == null) {
-										
-										var b_n = m.beliefUpdate(b, _t._0(), _t._1());
-										
-										if (!b_n.equals(DDleaf.getDD(0.0f)))
-											g.addEdge(b, _t, b_n);
+							g.edgeIndexMap.keySet().stream().forEach(_t ->
+								{
+
+									if (g.getAllNodes().size() < maxB) {
+
+										if (g.getNodeAtEdge(b, _t) == null) {
+
+											var b_n = m.beliefUpdate(b, _t._0(), _t._1());
+
+											if (!b_n.equals(DDleaf.getDD(0.0f)))
+												g.addEdge(b, _t, b_n);
+										}
 									}
-								}
 
-							});
+								});
+						}
 					});
-				
+
 				T--;
 			}
 		}

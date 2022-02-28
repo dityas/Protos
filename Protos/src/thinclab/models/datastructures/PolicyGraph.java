@@ -32,6 +32,7 @@ public class PolicyGraph implements Jsonable {
 
 	final public ConcurrentHashMap<Integer, PolicyNode> nodeMap;
 	final public ConcurrentHashMap<Tuple<Integer, List<Integer>>, Integer> edgeMap;
+	final public ConcurrentHashMap<List<Integer>, List<String>> edgeLabelMap;
 	public ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, Integer>> adjMap = new ConcurrentHashMap<>();
 
 	private static final Logger LOGGER = LogManager.getLogger(PolicyGraph.class);
@@ -48,7 +49,25 @@ public class PolicyGraph implements Jsonable {
 
 		// populate the edge map with action-observation values
 		edgeMap = new ConcurrentHashMap<>();
-		aoSpace.forEach(ao -> edgeMap.put(ao, edgeMap.size()));
+		edgeLabelMap = new ConcurrentHashMap<>();
+		aoSpace.forEach(ao ->
+			{
+
+				edgeMap.put(ao, edgeMap.size());
+
+				var obs = ao._1();
+				var namedObs = IntStream.range(0, obs.size()).boxed().map(i ->
+					{
+
+						var name = Global.varNames.get(m.i_Om.get(i) - 1);
+						var obsName = Global.valNames.get(m.i_Om.get(i) - 1).get(obs.get(i) - 1);
+
+						return Tuple.of(name, obsName).toString();
+					}).collect(Collectors.toList());
+
+				if (!edgeLabelMap.containsKey(obs))
+					edgeLabelMap.put(obs, namedObs);
+			});
 
 		// populate policy nodes
 		nodeMap = new ConcurrentHashMap<>(p.aVecs.size());
@@ -59,6 +78,30 @@ public class PolicyGraph implements Jsonable {
 				int actId = p.aVecs.get(i)._0();
 				nodeMap.put(i, new PolicyNode(i, actId, m.A().get(actId)));
 			});
+	}
+
+	public void approximate() {
+
+		LOGGER.warn("[!] Creating an approximation of an incomplete graph.");
+		LOGGER.warn("[!] This will only be accurate to a limited horizon.");
+
+		var terminals = adjMap.keySet().parallelStream().flatMap(s ->
+			{
+
+				var leaves = adjMap.get(s).entrySet().stream().filter(e -> !adjMap.containsKey(e.getValue()))
+						.map(e -> e.getValue())
+						.collect(Collectors.toSet());
+				
+				return leaves.stream();
+
+				
+			}).collect(Collectors.toList());
+		
+		terminals.forEach(t -> {
+			
+			adjMap.put(t, new ConcurrentHashMap<>());
+		});
+
 	}
 
 	@Override
@@ -89,7 +132,8 @@ public class PolicyGraph implements Jsonable {
 					var _node = Tuple.of(nodeMap.get(adjMap.get(node).get(edge.getValue())).actName,
 							nodeMap.get(adjMap.get(node).get(edge.getValue())).alphaId);
 
-					thisEdgeJson.add(edge.getKey().toString(), gson.toJsonTree(_node.toString()));
+					thisEdgeJson.add(edgeLabelMap.get(edge.getKey()._1()).toString(),
+							gson.toJsonTree(_node.toString()));
 				}
 			}
 
@@ -162,8 +206,17 @@ public class PolicyGraph implements Jsonable {
 
 			nextState = expandPolicyGraph(nextState._1(), nextState._0(), m, p);
 
-			if (nextState._1().size() > 300)
+			if (nextState._1().size() > 1000) {
+
 				LOGGER.warn("Belief explosion while making policy graph");
+				LOGGER.info("Stopping Policy Graph construction");
+				break;
+			}
+		}
+
+		if (nextState._1().size() > 0) {
+			LOGGER.warn("Graph construction was terminated prematurely. The partial graph is shown below");
+			G.approximate();
 		}
 
 		LOGGER.info(String.format("Policy Graph for %s has %s nodes", m.getName(), nextState._0().adjMap.size()));
