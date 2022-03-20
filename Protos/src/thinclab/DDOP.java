@@ -526,12 +526,12 @@ public class DDOP {
 		if (dd.getVar() == var) {
 
 			// have to collapse all children into a new node
-			if (dd.getChildren().length > 9 && dd.getVars().size() > 2)
-				result = Arrays.stream(dd.getChildren()).parallel()
-					.reduce(DDleaf.getDD(0.0f), (d1, d2) -> DDOP.add(d1, d2));
+//			if (dd.getChildren().length > 9 && dd.getVars().size() > 2)
+//				result = Arrays.stream(dd.getChildren()).parallel()
+//					.reduce(DDleaf.getDD(0.0f), (d1, d2) -> DDOP.add(d1, d2));
 			
-			else
-				result = DDOP.add(Arrays.asList(dd.getChildren()));
+//			else
+			result = DDOP.add(Arrays.asList(dd.getChildren()));
 		}
 
 		// descend down the tree until 'var' is found

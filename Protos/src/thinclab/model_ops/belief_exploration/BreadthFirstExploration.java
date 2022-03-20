@@ -7,7 +7,9 @@
  */
 package thinclab.model_ops.belief_exploration;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
@@ -15,6 +17,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
 import thinclab.policy.Policy;
+import thinclab.utils.Tuple;
 
 /*
  * @author adityas
@@ -45,35 +48,41 @@ public class BreadthFirstExploration<M extends POSeqDecMakingModel<DD>, G extend
 				if (g.getAllNodes().size() > maxB)
 					break;
 
-				LOGGER.debug(String.format("Expanding belief region from %s beliefs", g.getAllChildren().size()));
-				g.getAllChildren().stream().forEach(b ->
+				LOGGER.debug(
+						String.format("Expanding belief region from %s beliefs", 
+								g.getAllChildren().size()));
+				
+				var triples = g.getAllChildren().parallelStream().flatMap(b ->
 					{
 
-						if (g.getAllNodes().size() < maxB) {
+							var _triples = g.edgeIndexMap.keySet().parallelStream()
+									.filter(_t -> g.getNodeAtEdge(b, _t) == null)
+									.map(_t ->
+										{
 
-							g.edgeIndexMap.keySet().stream().forEach(_t ->
-								{
+											if (g.getAllNodes().size() < maxB) {
 
-									if (g.getAllNodes().size() < maxB) {
+												var b_n = m.beliefUpdate(b, _t._0(), _t._1());
+												return Tuple.of(b, _t, b_n);
+											}
 
-										if (g.getNodeAtEdge(b, _t) == null) {
+											else
+												return Tuple.of(b, _t, DD.zero);
 
-											var b_n = m.beliefUpdate(b, _t._0(), _t._1());
-
-											if (!b_n.equals(DDleaf.getDD(0.0f)))
-												g.addEdge(b, _t, b_n);
-										}
-									}
-
-								});
-						}
-					});
-
+										}).collect(Collectors.toList());
+							return _triples.stream();
+						}).filter(t -> !t._2().equals(DD.zero)).collect(Collectors.toList());
+				
+				for (var triple : triples) {
+					
+					if (g.getAllNodes().size() < maxB)
+						g.addEdge(triple._0(), triple._1(), triple._2());
+				}
+				
 				T--;
 			}
 		}
-
-		done = true;
+		
 		return g;
 	}
 
