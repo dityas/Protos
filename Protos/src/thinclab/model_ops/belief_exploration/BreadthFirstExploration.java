@@ -76,4 +76,10 @@ public class BreadthFirstExploration<M extends POSeqDecMakingModel<DD>, G extend
 		done = true;
 		return g;
 	}
+
+	@Override
+	public int getMaxB() {
+
+		return maxB;
+	}
 }

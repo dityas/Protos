@@ -19,4 +19,5 @@ import thinclab.policy.Policy;
 public interface ExplorationStrategy<B, A extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<?, ?, ?>, P extends Policy<B>> {
 
 	public G expand(List<B> bs, G g, A a, int T, P Vn);
+	public int getMaxB();
 }

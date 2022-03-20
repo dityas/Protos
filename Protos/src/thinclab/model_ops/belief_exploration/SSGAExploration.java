@@ -83,8 +83,8 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 		if (g.getAllNodes().size() >= maxB)
 			return g;
 
-		LOGGER.info("Expanding belief region...");
-		for (int n = 0; n < 100; n++) {
+		LOGGER.info("Exploring belief region...");
+		for (int n = 0; n < 30; n++) {
 
 			if (g.getAllNodes().size() >= maxB)
 				break;
@@ -191,6 +191,12 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 	public void clearCaches() {
 
 		likelihoodsCache.clear();
+	}
+
+	@Override
+	public int getMaxB() {
+
+		return maxB;
 	}
 
 }

@@ -186,9 +186,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				int frameId = e.getKey().frame;
 				var bel = e.getKey().m.beliefs.stream().findAny().get();
 				var frame = ecThetas.get(frameId);
+				
+				if (frame.m instanceof IPOMDP)
+					bel = ((IPOMDP) frame.m).getECDDFromMjDD(bel);
 
-				int alphaId = DDOP.bestAlphaIndex(frame.Vn.aVecs, bel, mjVars);
-				int actId = frame.Vn.getBestActionIndex(bel, frame.m.i_S());
+				int alphaId = DDOP.bestAlphaIndex(frame.Vn.aVecs, bel, frame.m.i_S());
+//				int actId = frame.Vn.getBestActionIndex(bel, frame.m.i_S());
+				int actId = frame.Vn.aVecs.get(alphaId)._0();
 
 				var node = new MjRepr<>(frameId, new PolicyNode(alphaId, actId, frame.m.A().get(actId)));
 				var ec = ECMap.get(node);
@@ -196,6 +200,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 				if (ec == null) {
 
 					LOGGER.error(String.format("Panic! Could not find equivalence class for belief %s", e.getValue()));
+					LOGGER.debug(String.format("actId is %s, alphaId %s and frameId %s, act %s", 
+							actId, alphaId, frameId, frame.m.A().get(actId)));
+					LOGGER.debug(String.format("EC map is %s", ECMap));
+					LOGGER.debug(String.format("Belief is %s", bel));
+					
+					DDOP.printValuesForBelief(frame.Vn.aVecs, bel, mjVars, frame.m.A());
+					
 					System.exit(-1);
 				}
 
@@ -224,12 +235,11 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		vars.add(i_Mj);
 
 		var factors = DDOP.factors(mjDD, vars);
-
 		var _mjDD = factors.remove(factors.size() - 1);
 
 		// accumulate
 		var _ecDDMap = Global.valNames.get(i_EC - 1).stream().collect(Collectors.toMap(v -> v, v -> DD.zero));
-
+		
 		IntStream.range(0, Global.valNames.get(i_Mj - 1).size()).forEach(i ->
 			{
 

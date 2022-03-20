@@ -526,7 +526,12 @@ public class DDOP {
 		if (dd.getVar() == var) {
 
 			// have to collapse all children into a new node
-			result = DDOP.add(Arrays.asList(dd.getChildren()));
+			if (dd.getChildren().length > 9 && dd.getVars().size() > 2)
+				result = Arrays.stream(dd.getChildren()).parallel()
+					.reduce(DDleaf.getDD(0.0f), (d1, d2) -> DDOP.add(d1, d2));
+			
+			else
+				result = DDOP.add(Arrays.asList(dd.getChildren()));
 		}
 
 		// descend down the tree until 'var' is found
@@ -534,6 +539,7 @@ public class DDOP {
 
 			DD children[];
 			children = new DD[dd.getChildren().length];
+			
 			for (int i = 0; i < dd.getChildren().length; i++) {
 
 				children[i] = DDOP.addout(dd.getChildren()[i], var);
@@ -830,6 +836,27 @@ public class DDOP {
 		return bestIndex;
 	}
 
+	public static void printValuesForBelief(
+			List<Tuple<Integer, DD>> Vn, DD b, Collection<Integer> Svars, List<String> actionNames) {
+
+
+		var values = Vn.parallelStream()
+				.map(a -> Tuple.of(a._0(), actionNames.get(a._0()), DDOP.dotProduct(b, a._1(), Svars)))
+				.collect(Collectors.toList());
+		
+		LOGGER.debug("Values of belief are:");
+		
+		var idx_values = IntStream.range(0, values.size()).boxed()
+				.map(i -> Tuple.of(i, values.get(i))).collect(Collectors.toList());
+		
+		Collections.sort(idx_values, (x, y) -> x._1()._2().compareTo(y._1()._2()));
+		
+		idx_values.forEach(v -> {
+			LOGGER.debug(String.format("%s", v));
+		});
+
+	}
+	
 	public static <T> List<List<T>> cartesianProd(List<List<T>> a, List<List<T>> b) {
 
 		var prod = a.stream()

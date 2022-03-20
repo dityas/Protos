@@ -8,6 +8,7 @@
 package thinclab.models.datastructures;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import thinclab.utils.Jsonable;
 
@@ -31,7 +32,7 @@ public class PolicyNode implements Jsonable {
 	@Override
 	public String toString() {
 		
-		return "PolicyNode";
+		return new GsonBuilder().create().toJson(toJson());
 	}
 
 	@Override

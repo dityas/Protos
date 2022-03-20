@@ -46,6 +46,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		while (B.size() > 0) {
 
 			DD b = B.remove(Global.random.nextInt(B.size()));
+			// DD b = B.remove(0);
 
 			var newAlpha = m.backup(b, Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList()), g);
 
@@ -101,7 +102,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		LOGGER.info(String.format("[*] Launching symbolic Perseus solver for model %s", m.getName()));
 		var g = ReachabilityGraph.fromDecMakingModel(m);
 
-		var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.1f);
+		var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.05f);
 		var b_i = new ArrayList<>(b_is);
 
 		b_i.forEach(g::addNode);
@@ -109,12 +110,11 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		// initial belief exploration
 		var _then = System.nanoTime();
 
-		g = new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(150).expand(b_i, g, m, 5, Vn);
+		g = new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(500).expand(b_i, g, m, 5, Vn);
 
 		LOGGER.info(String.format("Found %s beliefs after first step", g.getAllChildren().size()));
 
-		var _ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.3f);
-		g = _ES.expand(b_i, g, m, H - 1, Vn);
+		// g = ES.expand(b_i, g, m, H - 1, Vn);
 
 		var _now = System.nanoTime();
 		LOGGER.info(String.format("Initial belief exploration for %s took %s msecs", m.getName(),
@@ -131,87 +131,92 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 				}
 			});
 
-		int convergenceCount = 0;
+		for (int r = 0; r < 3; r++) {
 
-		for (int i = 0; i < I; i++) {
+			int convergenceCount = 0;
 
-			var B = new ArrayList<DD>(g.getAllNodes());
-			long then = System.nanoTime();
+			if (r > 0) {
 
-			// new value function after backups
-			var Vn_p = solveForB(m, B, Vn, g);
-
-			float backupT = (System.nanoTime() - then) / 1000000.0f;
-
-			long bErrThen = System.nanoTime();
-			float bellmanError = computeBellmanError(B, m, Vn, Vn_p);
-
-			if (Global.DEBUG) {
-
-				float bErrT = (System.nanoTime() - bErrThen) / 1000000.0f;
-				LOGGER.debug(String.format("Computing bellman error took %s msec", bErrT));
+				g.removeAllNodes();
+				b_i.forEach(g::addNode);
+				g = ES.expand(b_i, g, m, H, Vn);
 			}
 
-			// prepare for next iter
-			Vn.aVecs.clear();
-			Vn.aVecs.addAll(Vn_p.aVecs);
+			for (int i = 0; i < I; i++) {
 
-			LOGGER.info(
-					String.format("iter: %s | bell err: %.5f | num vectors: %s | beliefs used: %s/%s | time: %.3f msec",
-							i, bellmanError, Vn_p.aVecs.size(), this.usedBeliefs, B.size(), backupT));
+				var B = new ArrayList<DD>(g.getAllNodes());
+				long then = System.nanoTime();
 
-			if (bellmanError < 0.01 && i > 9) {
+				// new value function after backups
+				var Vn_p = solveForB(m, B, Vn, g);
 
-				convergenceCount += 1;
+				float backupT = (System.nanoTime() - then) / 1000000.0f;
 
-				if (convergenceCount > 3) {
-
-					LOGGER.info(
-							String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));
-					LOGGER.info(
-							"Convergence, software version 7.0, looking at life through the eyes of a tired heart.");
-					LOGGER.info("Eating seeds as a past time activity, the toxicity of my city of my city.");
-					break;
-				}
-			}
-
-			Global.clearHashtablesIfFull();
-
-			if (bellmanError < 0.1f) {
-
-				if (i > 5) {
-
-					g.removeAllNodes();
-					b_is.forEach(g::addNode);
-				}
-
-				long expandThen = System.nanoTime();
-
-				g = ES.expand(b_is, g, m, H, Vn);
+				long bErrThen = System.nanoTime();
+				float bellmanError = computeBellmanError(B, m, Vn, Vn_p);
 
 				if (Global.DEBUG) {
 
-					float expandT = (System.nanoTime() - expandThen) / 1000000.0f;
-					LOGGER.debug(String.format("Belief expansion took %s msecs", expandT));
+					float bErrT = (System.nanoTime() - bErrThen) / 1000000.0f;
+					LOGGER.debug(String.format("Computing bellman error took %s msec", bErrT));
 				}
+
+				// prepare for next iter
+				Vn.aVecs.clear();
+				Vn.aVecs.addAll(Vn_p.aVecs);
+
+				LOGGER.info(String.format(
+						"iter: %s | bell err: %.5f | num vectors: %s | beliefs used: %s/%s | time: %.3f msec", i,
+						bellmanError, Vn_p.aVecs.size(), this.usedBeliefs, B.size(), backupT));
+
+				if (bellmanError < 0.01 && i > 9) {
+
+					convergenceCount += 1;
+
+					if (convergenceCount > 3) {
+
+						LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s",
+								bellmanError, i));
+						LOGGER.info(
+								"Convergence, software version 7.0, looking at life through the eyes of a tired heart.");
+						LOGGER.info("Eating seeds as a past time activity, the toxicity of my city of my city.");
+						break;
+					}
+				}
+
+				Global.clearHashtablesIfFull();
+
+				if (bellmanError < 0.05f) {
+
+					long expandThen = System.nanoTime();
+
+					g = ES.expand(b_is, g, m, H, Vn);
+
+					if (Global.DEBUG) {
+
+						float expandT = (System.nanoTime() - expandThen) / 1000000.0f;
+						LOGGER.debug(String.format("Belief expansion took %s msecs", expandT));
+					}
+				}
+
 			}
 
+			if (Global.DEBUG)
+				Global.logCacheSizes();
+
+			g.removeAllNodes();
+			Global.clearHashtablesIfFull();
+			m.clearBackupCache();
+			ES.clearCaches();
+			System.gc();
+
+			if (Global.DEBUG)
+				Global.logCacheSizes();
+
+			var solnSet = Vn.aVecs.parallelStream().map(a -> m.A().get(a._0())).collect(Collectors.toSet());
+			LOGGER.info(String.format("Optimal policy contains actions: %s", solnSet));
+
 		}
-
-		if (Global.DEBUG)
-			Global.logCacheSizes();
-
-		g.removeAllNodes();
-		Global.clearHashtablesIfFull();
-		m.clearBackupCache();
-		ES.clearCaches();
-		System.gc();
-
-		if (Global.DEBUG)
-			Global.logCacheSizes();
-
-		var solnSet = Vn.aVecs.parallelStream().map(a -> m.A().get(a._0())).collect(Collectors.toSet());
-		LOGGER.info(String.format("Optimal policy contains actions: %s", solnSet));
 
 		LOGGER.info(String.format("[*] Finished solving %s", m.getName()));
 
