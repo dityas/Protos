@@ -85,7 +85,7 @@ class TestBeliefUpdate {
 
 		long then = System.nanoTime();
 		for (int i = 0; i < 20; i++)
-			beliefGraph = BE.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 10, AlphaVectorPolicy.fromR(I.R()));
+			BE.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 10, AlphaVectorPolicy.fromR(I.R()));
 
 		long now = System.nanoTime();
 		float T = (now - then) / 1000.0f;

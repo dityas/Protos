@@ -89,18 +89,17 @@ public class PolicyGraph implements Jsonable {
 			{
 
 				var leaves = adjMap.get(s).entrySet().stream().filter(e -> !adjMap.containsKey(e.getValue()))
-						.map(e -> e.getValue())
-						.collect(Collectors.toSet());
-				
+						.map(e -> e.getValue()).collect(Collectors.toSet());
+
 				return leaves.stream();
 
-				
 			}).collect(Collectors.toList());
-		
-		terminals.forEach(t -> {
-			
-			adjMap.put(t, new ConcurrentHashMap<>());
-		});
+
+		terminals.forEach(t ->
+			{
+
+				adjMap.put(t, new ConcurrentHashMap<>());
+			});
 
 	}
 
@@ -146,39 +145,79 @@ public class PolicyGraph implements Jsonable {
 		return json;
 	}
 
+	public static Tuple<PolicyGraph, List<DD>> expandPolicyGraphDFS(List<DD> b_is, PolicyGraph G,
+			PBVISolvablePOMDPBasedModel m, AlphaVectorPolicy p) {
+
+		if (b_is.size() == 0)
+			return Tuple.of(G, b_is);
+
+		DD b = b_is.remove(0);
+		if (G.adjMap.containsKey(DDOP.bestAlphaIndex(p.aVecs, b, m.i_S())))
+			return expandPolicyGraphDFS(b_is, G, m, p);
+
+		// get start policy node
+		int alphaId = DDOP.bestAlphaIndex(p.aVecs, b, m.i_S());
+		int bestAct = p.aVecs.get(alphaId)._0();
+
+		// create tuples (obs, alpha vector, next belief)
+		var p_n = G.edgeMap.entrySet().parallelStream().filter(ao -> ao.getKey()._0() == bestAct)
+				.map(ao -> Tuple.of(ao.getValue(), m.beliefUpdate(b, bestAct, ao.getKey()._1())))
+				.filter(b_n -> !b_n._1().equals(DD.zero))
+				.map(b_n -> Tuple.of(b_n._0(), DDOP.bestAlphaIndex(p.aVecs, b_n._1(), m.i_S()), b_n._1()))
+				.collect(Collectors.toList());
+
+		var map = new ConcurrentHashMap<Integer, Integer>(10);
+		var b_ns = new ArrayList<DD>(10);
+
+		// add all (obs, alpha vector) pairs to create map
+		// alpha vector -> obs -> alpha vector
+		for (var _p_n : p_n) {
+
+			map.put(_p_n._0(), _p_n._1());
+			b_ns.add(_p_n._2());
+		}
+		
+		G.adjMap.put(alphaId, map);
+		b_is.addAll(b_ns);
+
+		return Tuple.of(G, b_is);
+	}
+
 	public static Tuple<PolicyGraph, List<DD>> expandPolicyGraph(List<DD> b_is, PolicyGraph G,
 			PBVISolvablePOMDPBasedModel m, AlphaVectorPolicy p) {
 
 		LOGGER.debug(String.format("Graph contains %s nodes. Expanding from %s beliefs", G.adjMap.size(), b_is.size()));
 
 		// here, we transform each belief b to (next policy subgraph, next beliefs)
-		var nextNodes = b_is.parallelStream().map(b ->
-			{
+		var nextNodes = b_is.parallelStream()
+				.filter(b -> !G.adjMap.containsKey(DDOP.bestAlphaIndex(p.aVecs, b, m.i_S()))).map(b ->
+					{
 
-				// get start policy node
-				int alphaId = DDOP.bestAlphaIndex(p.aVecs, b, m.i_S());
-				int bestAct = p.aVecs.get(alphaId)._0();
+						// get start policy node
+						int alphaId = DDOP.bestAlphaIndex(p.aVecs, b, m.i_S());
+						int bestAct = p.aVecs.get(alphaId)._0();
 
-				// create tuples (obs, alpha vector, next belief)
-				var p_n = G.edgeMap.entrySet().parallelStream().filter(ao -> ao.getKey()._0() == bestAct)
-						.map(ao -> Tuple.of(ao.getValue(), m.beliefUpdate(b, bestAct, ao.getKey()._1())))
-						.filter(b_n -> !b_n._1().equals(DD.zero))
-						.map(b_n -> Tuple.of(b_n._0(), DDOP.bestAlphaIndex(p.aVecs, b_n._1(), m.i_S()), b_n._1()))
-						.collect(Collectors.toList());
+						// create tuples (obs, alpha vector, next belief)
+						var p_n = G.edgeMap.entrySet().parallelStream().filter(ao -> ao.getKey()._0() == bestAct)
+								.map(ao -> Tuple.of(ao.getValue(), m.beliefUpdate(b, bestAct, ao.getKey()._1())))
+								.filter(b_n -> !b_n._1().equals(DD.zero))
+								.map(b_n -> Tuple.of(b_n._0(), DDOP.bestAlphaIndex(p.aVecs, b_n._1(), m.i_S()),
+										b_n._1()))
+								.filter(b_n -> !G.adjMap.containsKey(b_n._1())).collect(Collectors.toList());
 
-				var map = new ConcurrentHashMap<Integer, Integer>(10);
-				var b_ns = new ArrayList<DD>(10);
+						var map = new ConcurrentHashMap<Integer, Integer>(10);
+						var b_ns = new ArrayList<DD>(10);
 
-				// add all (obs, alpha vector) pairs to create map
-				// alpha vector -> obs -> alpha vector
-				for (var _p_n : p_n) {
+						// add all (obs, alpha vector) pairs to create map
+						// alpha vector -> obs -> alpha vector
+						for (var _p_n : p_n) {
 
-					map.put(_p_n._0(), _p_n._1());
-					b_ns.add(_p_n._2());
-				}
+							map.put(_p_n._0(), _p_n._1());
+							b_ns.add(_p_n._2());
+						}
 
-				return Tuple.of(alphaId, map, b_ns);
-			})
+						return Tuple.of(alphaId, map, b_ns);
+					})
 				// only take next policy subgraph if root does not already exist
 				.filter(_p -> !G.adjMap.containsKey(_p._0())).collect(Collectors.toList());
 
@@ -204,7 +243,7 @@ public class PolicyGraph implements Jsonable {
 
 		while (nextState._1().size() > 0) {
 
-			nextState = expandPolicyGraph(nextState._1(), nextState._0(), m, p);
+			nextState = expandPolicyGraphDFS(nextState._1(), nextState._0(), m, p);
 
 			if (nextState._1().size() > 1000) {
 
@@ -215,6 +254,7 @@ public class PolicyGraph implements Jsonable {
 		}
 
 		if (nextState._1().size() > 0) {
+
 			LOGGER.warn("Graph construction was terminated prematurely. The partial graph is shown below");
 			G.approximate();
 		}

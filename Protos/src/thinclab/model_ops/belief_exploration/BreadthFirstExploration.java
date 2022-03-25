@@ -37,7 +37,7 @@ public class BreadthFirstExploration<M extends POSeqDecMakingModel<DD>, G extend
 	}
 
 	@Override
-	public G expand(List<DD> bs, G g, M m, int T, P Vn) {
+	public void expand(List<DD> bs, G g, M m, int T, P Vn) {
 
 		bs.forEach(g::addNode);
 
@@ -83,7 +83,7 @@ public class BreadthFirstExploration<M extends POSeqDecMakingModel<DD>, G extend
 			}
 		}
 		
-		return g;
+		//return g;
 	}
 
 	@Override

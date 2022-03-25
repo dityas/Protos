@@ -88,14 +88,14 @@ class TestSolvers {
 
 		var g = ReachabilityGraph.fromDecMakingModel(I);
 		var b_is = List.of(DDleaf.getDD(0.5f));
-		var _g = new BreadthFirstExploration<POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(b_is, g, I, 5,
+		new BreadthFirstExploration<POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(b_is, g, I, 5,
 				null);
 
 		IntStream.range(0, I.A().size()).forEach(i ->
 			{
 
 				LOGGER.debug(String.format("backup for %s at %s is %s", I.A().get(i), DDleaf.getDD(0.5f),
-						I.backup(DDleaf.getDD(0.5f), I.R(), _g)));
+						I.backup(DDleaf.getDD(0.5f), I.R(), g)));
 			});
 		printMemConsumption();
 	}
@@ -152,7 +152,7 @@ class TestSolvers {
 		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
 		var bfe = new BreadthFirstExploration<POMDP, ReachabilityGraph, AlphaVectorPolicy>(100);
 
-		beliefGraph = bfe.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 5, policy);
+		bfe.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 5, policy);
 
 		LOGGER.debug(String.format("After expanding the belief space graph, no. of models are %s",
 				beliefGraph.getAllNodes().size()));
@@ -308,7 +308,7 @@ class TestSolvers {
 		LOGGER.debug(String.format("Graph  is %s", G));
 
 		G.addNode(b_i);
-		G = ES.expand(List.of(b_i), G, I, I.H, policy);
+		ES.expand(List.of(b_i), G, I, I.H, policy);
 
 		LOGGER.debug(
 				String.format("Starting size is %s and after expansion, it is %s", numNodes, G.getAllNodes().size()));

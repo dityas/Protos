@@ -38,10 +38,12 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 	 * region
 	 */
 
-	protected AlphaVectorPolicy solveForB(final M m, List<DD> B, AlphaVectorPolicy Vn, ReachabilityGraph g) {
+	protected AlphaVectorPolicy solveForB(final M m, final List<DD> B, AlphaVectorPolicy Vn, ReachabilityGraph g) {
 
 		List<Tuple<Integer, DD>> newVn = new ArrayList<>(10);
 		this.usedBeliefs = 0;
+		
+		var _B = new ArrayList<DD>(B);
 
 		while (B.size() > 0) {
 
@@ -75,7 +77,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 			else
 				newVn.add(Tuple.of(bestA, bestDD));
 
-			B = B.parallelStream().filter(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()) > DDOP.value_b(newVn, _b, m.i_S()))
+			_B = (ArrayList<DD>) _B.parallelStream().filter(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()) > DDOP.value_b(newVn, _b, m.i_S()))
 					.collect(Collectors.toList());
 
 			this.usedBeliefs++;
@@ -88,7 +90,11 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 		float bellmanError = B.parallelStream()
 				.map(_b -> Math.abs(DDOP.value_b(Vn.aVecs, _b, m.i_S()) - DDOP.value_b(Vn_p.aVecs, _b, m.i_S())))
-				.max((v1, v2) -> v1.compareTo(v2)).get();
+				.max((v1, v2) -> v1.compareTo(v2)).orElseGet(() -> {
+					
+					LOGGER.debug(String.format("Could not compute bellman error on B with size %s", B.size()));
+					return null;
+				});
 
 		return bellmanError;
 	}
@@ -102,7 +108,6 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		LOGGER.info(String.format("[*] Launching symbolic Perseus solver for model %s", m.getName()));
 		var g = ReachabilityGraph.fromDecMakingModel(m);
 
-		var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.05f);
 		var b_i = new ArrayList<>(b_is);
 
 		b_i.forEach(g::addNode);
@@ -110,7 +115,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 		// initial belief exploration
 		var _then = System.nanoTime();
 
-		g = new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(500).expand(b_i, g, m, 5, Vn);
+		new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(300).expand(b_i, g, m, 5, Vn);
 
 		LOGGER.info(String.format("Found %s beliefs after first step", g.getAllChildren().size()));
 
@@ -131,15 +136,22 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 				}
 			});
 
-		for (int r = 0; r < 3; r++) {
+		var explorationProb = 0.4f;
+		int round = 0;
+		
+		while (explorationProb > 0.0f) {
 
 			int convergenceCount = 0;
+			var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(explorationProb);
 
-			if (r > 0) {
+			if (round > 0) {
 
 				g.removeAllNodes();
 				b_i.forEach(g::addNode);
-				g = ES.expand(b_i, g, m, H, Vn);
+				LOGGER.info(String.format("[+] Starting round %s with exploration probability %s", 
+					round, explorationProb));
+				
+				ES.expand(b_i, g, m, H, Vn);
 			}
 
 			for (int i = 0; i < I; i++) {
@@ -151,8 +163,8 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 				var Vn_p = solveForB(m, B, Vn, g);
 
 				float backupT = (System.nanoTime() - then) / 1000000.0f;
-
 				long bErrThen = System.nanoTime();
+			
 				float bellmanError = computeBellmanError(B, m, Vn, Vn_p);
 
 				if (Global.DEBUG) {
@@ -180,6 +192,10 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 						LOGGER.info(
 								"Convergence, software version 7.0, looking at life through the eyes of a tired heart.");
 						LOGGER.info("Eating seeds as a past time activity, the toxicity of my city of my city.");
+						
+						round += 1;
+						explorationProb -= 0.09999f;
+						
 						break;
 					}
 				}
@@ -190,7 +206,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
 					long expandThen = System.nanoTime();
 
-					g = ES.expand(b_is, g, m, H, Vn);
+					ES.expand(b_is, g, m, H, Vn);
 
 					if (Global.DEBUG) {
 

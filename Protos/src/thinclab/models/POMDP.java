@@ -231,6 +231,89 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		// LOGGER.debug(String.format("Best is %s", Tuple.of(bestVal, bestAlpha)));
 		return Tuple.of(bestVal, bestAlpha);
 	}
+	
+	public List<Tuple3<Integer, DD, Float>> computeNextBaParallelOptimized(DD b, int a, ReachabilityGraph g) {
+		
+		// compute that huge factor
+		var factors = new ArrayList<DD>(S().size() + O().size() + 1);
+
+		factors.add(b);
+		factors.addAll(T().get(a));
+		factors.addAll(O().get(a));
+
+		var thatHugeFactor = DDOP.addMultVarElim(factors, i_S());
+
+		DD l = DD.zero;
+		
+		var key = Tuple.of(b, a);
+		if (lCache.containsKey(key))
+			l = lCache.get(key);
+		
+		else {
+			l = DDOP.addMultVarElim(List.of(thatHugeFactor), i_S_p());
+			lCache.put(Tuple.of(b, a), l);
+		}
+		
+		final var _l = l;
+//		var _diff = DDOP.maxAll(DDOP.abs(DDOP.sub(likelihoods, l)));
+//		if (_diff > 1e-4f) {
+//			
+//			LOGGER.error("[!!!] Likelihoods don't match!");
+//			LOGGER.debug(String.format("Difference is %s", _diff));
+//			LOGGER.debug(String.format("Original for b=%s, a=%s is %s", b, a, likelihoods));
+//			LOGGER.debug(String.format("Computed for b=%s, a=%s is %s", b, a, _l));
+//			System.exit(-1);
+//		}
+//		
+//		else
+//			LOGGER.debug("[*] Yaay! Likelihoods match!!!");
+		
+//		var res = IntStream.range(0, oAll.size()).parallel().boxed()
+//				.map(o -> Tuple.of(DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal(), o))
+//				.filter(o -> o._0() > 1e-6f).map(o ->
+//					{
+//
+//						var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o._1())));
+//
+//						if (b_n == null)
+//							b_n = beliefUpdate(b, a, oAll.get(o._1()));
+//
+//						return Tuple.of(o._1(), b_n, o._0());
+//					})
+//				.collect(Collectors.toList());
+		
+		var _res = IntStream.range(0, oAll.size()).parallel().boxed()
+				.map(o -> Tuple.of(DDOP.restrict(_l, i_Om_p, oAll.get(o)).getVal(), o))
+				.filter(o -> o._0() > 1e-6f).map(o ->
+					{
+
+						var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o._1())));
+
+						if (b_n == null)
+							b_n = DDOP.div(
+									DDOP.primeVars(
+											DDOP.restrict(
+													thatHugeFactor, i_Om_p, oAll.get(o._1())),
+													-(Global.NUM_VARS / 2)),
+									DDleaf.getDD(o._0()));
+
+						return Tuple.of(o._1(), b_n, o._0());
+					})
+				.collect(Collectors.toList());
+		
+//		IntStream.range(0, res.size()).boxed().forEach(i -> {
+//			
+//			var diff = DDOP.maxAll(DDOP.abs(DDOP.sub(res.get(i)._1(), _res.get(i)._1())));
+//			LOGGER.debug(diff);
+//			
+//			if (diff > 1e-6f) {
+//				LOGGER.error("Mistake during likelihood computation");
+//				System.exit(-1);
+//			}
+//		});
+
+		return _res;
+	}
 
 	public List<Tuple3<Integer, DD, Float>> computeNextBaParallel(DD b, DD likelihoods, int a, ReachabilityGraph g) {
 

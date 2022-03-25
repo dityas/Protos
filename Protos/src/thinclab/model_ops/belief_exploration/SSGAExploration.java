@@ -60,7 +60,8 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
 	public boolean isUniqueBelief(DD b, Collection<DD> beliefs, float minDist) {
 
-		if (getMinDistance(b, beliefs) < minDist)
+		var _minDist = getMinDistance(b, beliefs);
+		if (_minDist >= minDist)
 			return true;
 
 		else
@@ -68,7 +69,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 	}
 
 	@Override
-	public G expand(List<DD> bs, G g, M m, int T, P Vn) {
+	public void expand(List<DD> bs, G g, M m, int T, P Vn) {
 
 		float Pa = 1 - e;
 
@@ -81,9 +82,9 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 		}
 
 		if (g.getAllNodes().size() >= maxB)
-			return g;
+			return;
 
-		LOGGER.info("Exploring belief region...");
+		LOGGER.info(String.format("Exploring belief region starting from %s initial beliefs.", bs.size()));
 		for (int n = 0; n < 30; n++) {
 
 			if (g.getAllNodes().size() >= maxB)
@@ -185,7 +186,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 		}
 
 		// likelihoodsCache.clear();
-		return g;
+		return;
 	}
 
 	public void clearCaches() {
