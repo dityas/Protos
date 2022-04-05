@@ -154,8 +154,6 @@ class TestSimulations {
 		var sim = new StochasticSimulation<>();
 		var e = sim.run(env, s, List.of(agentJ), 5);
 		LOGGER.debug(e.toDot());
-		
-		LOGGER.debug(Class.forName("thinclab.Agent"));
 	}
 
 	@Test
@@ -206,7 +204,7 @@ class TestSimulations {
 							I.i_Mj, 
 							List.of(Tuple.of("m0", 1.0f))));
 		
-		var agentI = new OfflineAgent(I, b, Isolver, 100, 10);
+		var agentI = new OfflineAgent(I, I.getECDDFromMjDD(b), Isolver, 100, 10);
 		LOGGER.debug(String.format("Agent %s", agentI.toDot()));
 		
 		var agentJ = new OfflineAgent(J, DDleaf.getDD(0.5f), Jsolver, 100, 10);

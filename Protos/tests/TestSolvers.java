@@ -288,8 +288,8 @@ class TestSolvers {
 				return null;
 			});
 
-		var b_i = DDOP.mult(DDleaf.getDD(0.5f),
-				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
+		var b_i = I.getECDDFromMjDD(DDOP.mult(DDleaf.getDD(0.5f),
+				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f)))));
 
 		var solver = new SymbolicPerseusSolver<IPOMDP>();
 

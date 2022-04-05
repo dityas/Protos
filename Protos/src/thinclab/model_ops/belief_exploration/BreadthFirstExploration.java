@@ -18,6 +18,7 @@ import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
 import thinclab.policy.Policy;
 import thinclab.utils.Tuple;
+import thinclab.utils.Tuple3;
 
 /*
  * @author adityas
@@ -48,42 +49,37 @@ public class BreadthFirstExploration<M extends POSeqDecMakingModel<DD>, G extend
 				if (g.getAllNodes().size() > maxB)
 					break;
 
-				LOGGER.debug(
-						String.format("Expanding belief region from %s beliefs", 
-								g.getAllChildren().size()));
-				
-				var triples = g.getAllChildren().parallelStream().flatMap(b ->
-					{
+				LOGGER.debug(String.format("Expanding belief region from %s beliefs", g.getAllChildren().size()));
 
-							var _triples = g.edgeIndexMap.keySet().parallelStream()
-									.filter(_t -> g.getNodeAtEdge(b, _t) == null)
-									.map(_t ->
-										{
+				for (var b : g.getAllChildren()) {
 
-											if (g.getAllNodes().size() < maxB) {
+					if (g.getAllNodes().size() >= maxB)
+						break;
 
-												var b_n = m.beliefUpdate(b, _t._0(), _t._1());
-												return Tuple.of(b, _t, b_n);
-											}
+					var _triples = g.edgeIndexMap.keySet().parallelStream().filter(_t -> g.getNodeAtEdge(b, _t) == null)
+							.map(_t ->
+								{
 
-											else
-												return Tuple.of(b, _t, DD.zero);
+									var b_n = m.beliefUpdate(b, _t._0(), _t._1());
+									return Tuple.of(b, _t, b_n);
 
-										}).collect(Collectors.toList());
-							return _triples.stream();
-						}).filter(t -> !t._2().equals(DD.zero)).collect(Collectors.toList());
-				
-				for (var triple : triples) {
-					
-					if (g.getAllNodes().size() < maxB)
-						g.addEdge(triple._0(), triple._1(), triple._2());
+								})
+							.filter(_t -> !_t._2().equals(DD.zero)).collect(Collectors.toList());
+
+					for (var triple : _triples) {
+
+						if (g.getAllNodes().size() < maxB)
+							g.addEdge(triple._0(), triple._1(), triple._2());
+					}
 				}
-				
+
+				// ).filter(t -> !t._2().equals(DD.zero)).collect(Collectors.toList());
+
 				T--;
 			}
 		}
-		
-		//return g;
+
+		// return g;
 	}
 
 	@Override

@@ -188,7 +188,7 @@
     (A 	Agent_actions)
     (Aj Agentj_actions)
     (Mj agent_j)
-    (EC AgentIL1)
+    (EC ECAgentIL1)
     (Thetaj Frame_jl1 	
     	(frame1 agentJ)
     )

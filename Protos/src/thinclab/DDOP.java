@@ -396,23 +396,23 @@ public class DDOP {
 		return bestVar;
 	}
 
-	public static DD addMultVarElim(final Collection<DD> dds, final Collection<Integer> vars) {
-
-		var _vars = new HashSet<Integer>(vars);
-		var _dds = new ArrayList<DD>(dds);
+	public static DD addMultVarElim(final List<DD> dds, final Collection<Integer> vars) {
 
 		// check if any of the dds are zero
-		for (int i = 0; i < _dds.size(); i++) {
+		for (int i = 0; i < dds.size(); i++) {
 
-			if (_dds.get(i) == null) {
+			if (dds.get(i) == null) {
 
 				LOGGER.error(String.format("null DD is %s", i));
 			}
 
-			if (_dds.get(i).getVar() == 0 && _dds.get(i).getVal() == 0)
+			if (dds.get(i).getVar() == 0 && dds.get(i).getVal() == 0)
 				return DD.zero;
 		}
 
+		var _vars = new HashSet<Integer>(vars);
+		var _dds = new ArrayList<DD>(dds);
+		
 		// eliminate variables one by one
 		while (!_vars.isEmpty()) {
 
@@ -556,12 +556,13 @@ public class DDOP {
 
 		var factordds = new ArrayList<DD>(vars.size());
 		var _vars = new ArrayList<Integer>(vars);
+		var _dds = List.of(dd);
 
-		for (int i = 0; i < _vars.size(); i++) {
+		for (int i = 0; i < vars.size(); i++) {
 
 			var _var = _vars.remove(0);
 
-			factordds.add(DDOP.addMultVarElim(List.of(dd), _vars));
+			factordds.add(DDOP.addMultVarElim(_dds, _vars));
 			_vars.add(_var);
 		}
 

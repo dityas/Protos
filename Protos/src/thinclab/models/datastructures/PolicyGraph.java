@@ -233,13 +233,14 @@ public class PolicyGraph implements Jsonable {
 		return Tuple.of(G, nextBels);
 	}
 
-	public static PolicyGraph makePolicyGraph(List<DD> b_is, PBVISolvablePOMDPBasedModel m, AlphaVectorPolicy p) {
+	public static PolicyGraph makePolicyGraph(final List<DD> b_is, PBVISolvablePOMDPBasedModel m, AlphaVectorPolicy p) {
 
 		// Make empty policy graph
 		var G = new PolicyGraph(m, p);
+		var _b_is = new ArrayList<DD>(b_is);
 		LOGGER.debug(String.format("Initialized empty policy graph. Starting expansion from %s beliefs", b_is.size()));
 
-		var nextState = Tuple.of(G, b_is);
+		var nextState = Tuple.of(G, (List<DD>) _b_is);
 
 		while (nextState._1().size() > 0) {
 

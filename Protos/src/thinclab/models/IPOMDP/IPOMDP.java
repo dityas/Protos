@@ -426,8 +426,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		vars.add(i_Aj);
 
 		var b_p = DDOP.primeVars(DDOP.addMultVarElim(factors, vars), -(Global.NUM_VARS / 2));
-		var stateVars = new ArrayList<Integer>(S().size() + 2);
-		stateVars.addAll(i_S());
+		var stateVars = new ArrayList<Integer>(i_S());
 
 		var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
 

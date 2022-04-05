@@ -8,6 +8,8 @@
 package thinclab.solver;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -15,7 +17,6 @@ import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.model_ops.belief_exploration.SSGAExploration;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
@@ -27,216 +28,227 @@ import thinclab.utils.Tuple;
  *
  */
 public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
-		implements PointBasedSolver<M, AlphaVectorPolicy> {
+    implements PointBasedSolver<M, AlphaVectorPolicy> {
 
-	private int usedBeliefs = 0;
+    private int usedBeliefs = 0;
 
-	private static final Logger LOGGER = LogManager.getLogger(SymbolicPerseusSolver.class);
+    private static final Logger LOGGER = LogManager.getLogger(SymbolicPerseusSolver.class);
 
-	/*
-	 * Perform backups and get the next value function for a given explored belief
-	 * region
-	 */
+    /*
+     * Perform backups and get the next value function for a given explored belief
+     * region
+     */
 
-	protected AlphaVectorPolicy solveForB(final M m, final List<DD> B, AlphaVectorPolicy Vn, ReachabilityGraph g) {
+    protected AlphaVectorPolicy solveForB(final M m, final Collection<DD> B, AlphaVectorPolicy Vn, ReachabilityGraph g) {
 
-		List<Tuple<Integer, DD>> newVn = new ArrayList<>(10);
-		this.usedBeliefs = 0;
-		
-		var _B = new ArrayList<DD>(B);
+        List<Tuple<Integer, DD>> newVn = new ArrayList<>(10);
+        this.usedBeliefs = 0;
 
-		while (B.size() > 0) {
+        var _B = new LinkedList<DD>(B);
+        var _Vn = Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList());
 
-			DD b = B.remove(Global.random.nextInt(B.size()));
-			// DD b = B.remove(0);
+        while (_B.size() > 0) {
 
-			var newAlpha = m.backup(b, Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList()), g);
+            DD b = _B.get(Global.random.nextInt(_B.size()));
+            // DD b = B.remove(0);
 
-			// Construct V_{n+1}(b)
-			float bestVal = Float.NEGATIVE_INFINITY;
-			int bestA = -1;
-			DD bestDD = DD.zero;
-			for (int a = 0; a < Vn.aVecs.size(); a++) {
+            var newAlpha = m.backup(b, _Vn, g);
 
-				float val = DDOP.dotProduct(b, Vn.aVecs.get(a)._1(), m.i_S());
+            // Construct V_{n+1}(b)
+            float bestVal = Float.NEGATIVE_INFINITY;
+            int bestA = -1;
+            DD bestDD = DD.zero;
+            for (int a = 0; a < Vn.aVecs.size(); a++) {
 
-				if (val >= bestVal) {
+                float val = DDOP.dotProduct(b, Vn.aVecs.get(a)._1(), m.i_S());
 
-					bestVal = val;
-					bestA = Vn.aVecs.get(a)._0();
-					bestDD = Vn.aVecs.get(a)._1();
-				}
-			}
+                if (val >= bestVal) {
 
-			var newAlphab = DDOP.dotProduct(b, newAlpha._1(), m.i_S());
+                    bestVal = val;
+                    bestA = Vn.aVecs.get(a)._0();
+                    bestDD = Vn.aVecs.get(a)._1();
+                }
+            }
 
-			// If new \alpha.b > Vn(b) add it to new V
-			if (newAlphab > bestVal)
-				newVn.add(newAlpha);
+            var newAlphab = DDOP.dotProduct(b, newAlpha._1(), m.i_S());
 
-			else
-				newVn.add(Tuple.of(bestA, bestDD));
+            // If new \alpha.b > Vn(b) add it to new V
+            if (newAlphab > bestVal)
+                newVn.add(newAlpha);
 
-			_B = (ArrayList<DD>) _B.parallelStream().filter(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()) > DDOP.value_b(newVn, _b, m.i_S()))
-					.collect(Collectors.toList());
+            else
+                newVn.add(Tuple.of(bestA, bestDD));
 
-			this.usedBeliefs++;
-		}
+            // _B = (ArrayList<DD>) _B.parallelStream().filter(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()) > DDOP.value_b(newVn, _b, m.i_S())).collect(Collectors.toList());
+            _B.removeIf(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()) <= DDOP.value_b(newVn, _b, m.i_S()));
 
-		return new AlphaVectorPolicy(newVn);
-	}
+            this.usedBeliefs++;
+        }
 
-	public float computeBellmanError(List<DD> B, final M m, AlphaVectorPolicy Vn, AlphaVectorPolicy Vn_p) {
+        return new AlphaVectorPolicy(newVn);
+    }
 
-		float bellmanError = B.parallelStream()
-				.map(_b -> Math.abs(DDOP.value_b(Vn.aVecs, _b, m.i_S()) - DDOP.value_b(Vn_p.aVecs, _b, m.i_S())))
-				.max((v1, v2) -> v1.compareTo(v2)).orElseGet(() -> {
-					
-					LOGGER.debug(String.format("Could not compute bellman error on B with size %s", B.size()));
-					return null;
-				});
+    public float computeBellmanError(Collection<DD> B, final M m, AlphaVectorPolicy Vn, AlphaVectorPolicy Vn_p) {
 
-		return bellmanError;
-	}
+        float bellmanError = B.parallelStream()
+            .map(_b -> Math.abs(DDOP.value_b(Vn.aVecs, _b, m.i_S()) - DDOP.value_b(Vn_p.aVecs, _b, m.i_S())))
+            .max((v1, v2) -> v1.compareTo(v2)).orElseGet(() ->
+                    {
 
-	@Override
-	public AlphaVectorPolicy solve(final List<DD> b_is, final M m, int I, int H, AlphaVectorPolicy Vn) {
+                        LOGGER.debug(String.format("Could not compute bellman error on B with size %s", B.size()));
+                        return null;
+                    });
 
-		if (b_is.size() < 1)
-			return Vn;
+        return bellmanError;
+    }
 
-		LOGGER.info(String.format("[*] Launching symbolic Perseus solver for model %s", m.getName()));
-		var g = ReachabilityGraph.fromDecMakingModel(m);
+    @Override
+    public AlphaVectorPolicy solve(final List<DD> b_is, final M m, int I, int H, AlphaVectorPolicy Vn) {
 
-		var b_i = new ArrayList<>(b_is);
+        if (b_is.size() < 1)
+            return Vn;
 
-		b_i.forEach(g::addNode);
+        LOGGER.info(String.format("[*] Launching symbolic Perseus solver for model %s", m.getName()));
+        var g = ReachabilityGraph.fromDecMakingModel(m);
 
-		// initial belief exploration
-		var _then = System.nanoTime();
+        var b_i = new ArrayList<>(b_is);
 
-		new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(300).expand(b_i, g, m, 5, Vn);
+        b_i.forEach(g::addNode);
 
-		LOGGER.info(String.format("Found %s beliefs after first step", g.getAllChildren().size()));
+        // initial belief exploration
+        var _then = System.nanoTime();
 
-		// g = ES.expand(b_i, g, m, H - 1, Vn);
+        new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.999f).expand(b_i, g, m, H, Vn);
+        //		new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(400).expand(b_i, g, m, 5, Vn);
 
-		var _now = System.nanoTime();
-		LOGGER.info(String.format("Initial belief exploration for %s took %s msecs", m.getName(),
-				((_now - _then) / 1000000.0)));
+        // g = ES.expand(b_i, g, m, H - 1, Vn);
 
-		b_i.stream().forEach(_b ->
-			{
+        var _now = System.nanoTime();
+        LOGGER.info(String.format("Initial belief exploration for %s took %s msecs", m.getName(),
+                    ((_now - _then) / 1000000.0)));
 
-				if (!DDOP.verifyJointProbabilityDist(_b, m.i_S())) {
+        //		var initialV = b_is.parallelStream()
+        //				.map(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()))
+        //				.max((x, y) -> x.compareTo(y)).get();
 
-					LOGGER.error(String.format("Belief %s is not a valid probability distribution",
-							DDOP.factors(_b, m.i_S())));
-					System.exit(-1);
-				}
-			});
+        //		LOGGER.info(String.format("Best starting value of Vn is %s", initialV));
+        b_i.stream().forEach(_b ->
+                {
 
-		var explorationProb = 0.4f;
-		int round = 0;
-		
-		while (explorationProb > 0.0f) {
+                    if (!DDOP.verifyJointProbabilityDist(_b, m.i_S())) {
 
-			int convergenceCount = 0;
-			var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(explorationProb);
+                        LOGGER.error(String.format("Belief %s is not a valid probability distribution",
+                                    DDOP.factors(_b, m.i_S())));
+                        System.exit(-1);
+                    }
+                });
 
-			if (round > 0) {
+        var explorationProb = 0.4f;
+        int round = 0;
 
-				g.removeAllNodes();
-				b_i.forEach(g::addNode);
-				LOGGER.info(String.format("[+] Starting round %s with exploration probability %s", 
-					round, explorationProb));
-				
-				ES.expand(b_i, g, m, H, Vn);
-			}
+        while (explorationProb > 0.0f) {
 
-			for (int i = 0; i < I; i++) {
+            int convergenceCount = 0;
+            var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(explorationProb);
 
-				var B = new ArrayList<DD>(g.getAllNodes());
-				long then = System.nanoTime();
+            if (round > 0) {
 
-				// new value function after backups
-				var Vn_p = solveForB(m, B, Vn, g);
+                g.removeAllNodes();
+                b_i.forEach(g::addNode);
+                LOGGER.info(
+                        String.format("[+] Starting round %s with exploration probability %s and %s initial beliefs",
+                            round, explorationProb, b_i.size()));
 
-				float backupT = (System.nanoTime() - then) / 1000000.0f;
-				long bErrThen = System.nanoTime();
-			
-				float bellmanError = computeBellmanError(B, m, Vn, Vn_p);
+                ES.expand(b_i, g, m, H, Vn);
+            }
 
-				if (Global.DEBUG) {
+            for (int i = 0; i < I; i++) {
 
-					float bErrT = (System.nanoTime() - bErrThen) / 1000000.0f;
-					LOGGER.debug(String.format("Computing bellman error took %s msec", bErrT));
-				}
+                var B = g.getAllNodes();
+                long then = System.nanoTime();
 
-				// prepare for next iter
-				Vn.aVecs.clear();
-				Vn.aVecs.addAll(Vn_p.aVecs);
+                // new value function after backups
+                var Vn_p = solveForB(m, B, Vn, g);
 
-				LOGGER.info(String.format(
-						"iter: %s | bell err: %.5f | num vectors: %s | beliefs used: %s/%s | time: %.3f msec", i,
-						bellmanError, Vn_p.aVecs.size(), this.usedBeliefs, B.size(), backupT));
+                float backupT = (System.nanoTime() - then) / 1000000.0f;
+                long bErrThen = System.nanoTime();
 
-				if (bellmanError < 0.01 && i > 9) {
+                float bellmanError = computeBellmanError(B, m, Vn, Vn_p);
 
-					convergenceCount += 1;
+                if (Global.DEBUG) {
 
-					if (convergenceCount > 3) {
+                    float bErrT = (System.nanoTime() - bErrThen) / 1000000.0f;
+                    LOGGER.debug(String.format("Computing bellman error took %s msec", bErrT));
+                }
 
-						LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s",
-								bellmanError, i));
-						LOGGER.info(
-								"Convergence, software version 7.0, looking at life through the eyes of a tired heart.");
-						LOGGER.info("Eating seeds as a past time activity, the toxicity of my city of my city.");
-						
-						round += 1;
-						explorationProb -= 0.09999f;
-						
-						break;
-					}
-				}
+                // prepare for next iter
+                Vn.aVecs.clear();
+                Vn.aVecs.addAll(Vn_p.aVecs);
 
-				Global.clearHashtablesIfFull();
+                //				var newV = b_is.parallelStream()
+                //						.map(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()))
+                //						.max((x, y) -> x.compareTo(y)).get();
 
-				if (bellmanError < 0.05f) {
+                LOGGER.info(String.format("i=%s, ||Vn' - Vn||=%.5f, |Vn|=%s, |B|=%s/%s, t=%.3f msec", i, bellmanError,
+                            Vn_p.aVecs.size(), this.usedBeliefs, B.size(), backupT));
 
-					long expandThen = System.nanoTime();
+                if (bellmanError < 0.01 && i > 9) {
 
-					ES.expand(b_is, g, m, H, Vn);
+                    convergenceCount += 1;
 
-					if (Global.DEBUG) {
+                    if (convergenceCount > 3) {
 
-						float expandT = (System.nanoTime() - expandThen) / 1000000.0f;
-						LOGGER.debug(String.format("Belief expansion took %s msecs", expandT));
-					}
-				}
+                        LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s",
+                                    bellmanError, i));
+                        LOGGER.info(
+                                "Convergence, software version 7.0, looking at life through the eyes of a tired heart.");
+                        LOGGER.info("Eating seeds as a past time activity, the toxicity of my city of my city.");
 
-			}
+                        explorationProb -= 0.09999f;
 
-			if (Global.DEBUG)
-				Global.logCacheSizes();
+                        break;
+                    }
+                }
 
-			g.removeAllNodes();
-			Global.clearHashtablesIfFull();
-			m.clearBackupCache();
-			ES.clearCaches();
-			System.gc();
+                Global.clearHashtablesIfFull();
 
-			if (Global.DEBUG)
-				Global.logCacheSizes();
+                if (bellmanError < 0.05f) {
 
-			var solnSet = Vn.aVecs.parallelStream().map(a -> m.A().get(a._0())).collect(Collectors.toSet());
-			LOGGER.info(String.format("Optimal policy contains actions: %s", solnSet));
+                    long expandThen = System.nanoTime();
 
-		}
+                    ES.expand(b_is, g, m, H, Vn);
 
-		LOGGER.info(String.format("[*] Finished solving %s", m.getName()));
+                    if (Global.DEBUG) {
 
-		return Vn;
-	}
+                        float expandT = (System.nanoTime() - expandThen) / 1000000.0f;
+                        LOGGER.debug(String.format("Belief expansion took %s msecs", expandT));
+                    }
+                }
+
+            }
+
+            round += 1;
+
+            if (Global.DEBUG)
+                Global.logCacheSizes();
+
+            g.removeAllNodes();
+            Global.clearHashtablesIfFull();
+            m.clearBackupCache();
+            ES.clearCaches();
+            System.gc();
+
+            if (Global.DEBUG)
+                Global.logCacheSizes();
+
+            var solnSet = Vn.aVecs.parallelStream().map(a -> m.A().get(a._0())).collect(Collectors.toSet());
+            LOGGER.info(String.format("Optimal policy contains actions: %s", solnSet));
+
+        }
+
+        LOGGER.info(String.format("[*] Finished solving %s", m.getName()));
+
+        return Vn;
+    }
 
 }
