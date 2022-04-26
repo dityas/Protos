@@ -1,5 +1,5 @@
 (defvar TigerLoc (TL TR))
-(defvar agent_j (m0 m1 m2))
+(defvar agent_j (m0))
 (defvar ECAgentIL1 (m0))
 (defvar Frame_jl1 (frame1))
 (defvar Agent_actions (OL OR L))
@@ -12,12 +12,6 @@
 	(frames Frame_jl1)
 	(
 		(frame1 	(m0 	(0.5)))
-		(frame1 	(m1 	
-			(TigerLoc 	(TR 	(0.85)) 	(TL 	(0.15)))
-		))
-		(frame1 	(m2 	
-			(TigerLoc 	(TR 	(0.15)) 	(TL 	(0.85)))
-		))
 	)
 )
 
