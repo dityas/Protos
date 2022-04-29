@@ -77,7 +77,7 @@ public class LauncherInteractive {
 		var in = new Scanner(System.in);
 		while (true) {
 			
-			System.out.println(String.format("Belief Agent I is %s", DDOP.getFrameBelief(b, I.PThetajGivenEC, I.i_EC, I.i_S())));
+			System.out.println(String.format("Belief Agent J frame is %s", DDOP.getFrameBelief(b, I.PThetajGivenEC, I.i_EC, I.i_S())));
 			System.out.println(String.format("Belief Agent I is %s", DDOP.factors(b, I.i_S())));
 			
 			System.out.println(String.format("Enter action from %s (suggested %s)", I.A(), I.A().get(policy.getBestActionIndex(b, I.i_S))));

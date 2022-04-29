@@ -119,19 +119,11 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         var _then = System.nanoTime();
 
         new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.999f).expand(b_i, g, m, H, Vn);
-        //		new BreadthFirstExploration<M, ReachabilityGraph, AlphaVectorPolicy>(400).expand(b_i, g, m, 5, Vn);
-
-        // g = ES.expand(b_i, g, m, H - 1, Vn);
 
         var _now = System.nanoTime();
         LOGGER.info(String.format("Initial belief exploration for %s took %s msecs", m.getName(),
                     ((_now - _then) / 1000000.0)));
 
-        //		var initialV = b_is.parallelStream()
-        //				.map(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()))
-        //				.max((x, y) -> x.compareTo(y)).get();
-
-        //		LOGGER.info(String.format("Best starting value of Vn is %s", initialV));
         b_i.stream().forEach(_b ->
                 {
 
