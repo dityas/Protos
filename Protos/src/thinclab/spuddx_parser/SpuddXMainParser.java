@@ -57,408 +57,409 @@ import thinclab.utils.Tuple;
  */
 public class SpuddXMainParser extends SpuddXBaseListener {
 
-	/*
-	 * Parses and runs the SPUDDX domain
-	 */
-	
-	// all definitions
-	private HashMap<String, Object> envMap = new HashMap<>();
+    /*
+     * Parses and runs the SPUDDX domain
+     */
 
-	// parsed DDs
-	private HashMap<String, DD> dds = new HashMap<>(10);
-	private DDParser ddParser = new DDParser(this.dds);
+    // all definitions
+    private HashMap<String, Object> envMap = new HashMap<>();
 
-	// parsed Models
-	private HashMap<String, Model> models = new HashMap<>(10);
-	private ModelsParser modelParser = new ModelsParser(this.ddParser, this.models);
-	
-	// parsed environments
-	public HashMap<String, Environment<DD>> envs = new HashMap<>(10);
+    // parsed DDs
+    private HashMap<String, DD> dds = new HashMap<>(10);
+    private DDParser ddParser = new DDParser(this.dds);
 
-	// visitor for parsing variable definitions
-	private VarDefVisitor varVisitor = new VarDefVisitor();
+    // parsed Models
+    private HashMap<String, Model> models = new HashMap<>(10);
+    private ModelsParser modelParser = new ModelsParser(this.ddParser, this.models);
 
-	// solvers
-	private HashMap<String, SymbolicPerseusSolver<? extends PBVISolvablePOMDPBasedModel>> solvers = new HashMap<>(5);
+    // parsed environments
+    public HashMap<String, Environment<DD>> envs = new HashMap<>(10);
 
-	// policies
-	private HashMap<String, Policy<DD>> policies = new HashMap<>(5);
+    // visitor for parsing variable definitions
+    private VarDefVisitor varVisitor = new VarDefVisitor();
 
-	private String fileName;
-	private SpuddXParser parser;
+    // solvers
+    private HashMap<String, SymbolicPerseusSolver<? extends PBVISolvablePOMDPBasedModel>> solvers = new HashMap<>(5);
 
-	private static final Logger LOGGER = LogManager.getLogger(SpuddXMainParser.class);
+    // policies
+    private HashMap<String, Policy<DD>> policies = new HashMap<>(5);
 
-	// ---------------------------------------------------------------------------------
+    private String fileName;
+    private SpuddXParser parser;
 
-	public SpuddXMainParser(String fileName) {
+    private static final Logger LOGGER = LogManager.getLogger(SpuddXMainParser.class);
 
-		this.fileName = fileName;
+    // ---------------------------------------------------------------------------------
 
-		try {
+    public SpuddXMainParser(String fileName) {
 
-			// Get tokens from lexer
-			InputStream is = new FileInputStream(this.fileName);
-			ANTLRInputStream antlrIs = new ANTLRInputStream(is);
-			SpuddXLexer lexer = new SpuddXLexer(antlrIs);
-			TokenStream tokens = new CommonTokenStream(lexer);
+        this.fileName = fileName;
 
-			this.parser = new SpuddXParser(tokens);
+        try {
 
-		}
+            // Get tokens from lexer
+            InputStream is = new FileInputStream(this.fileName);
+            ANTLRInputStream antlrIs = new ANTLRInputStream(is);
+            SpuddXLexer lexer = new SpuddXLexer(antlrIs);
+            TokenStream tokens = new CommonTokenStream(lexer);
 
-		catch (Exception e) {
+            this.parser = new SpuddXParser(tokens);
 
-			LOGGER.error(String.format("Error while trying to parse %s: %s", this.fileName, e));
-			System.exit(-1);
-		}
+        }
 
-	}
+        catch (Exception e) {
 
-	public void run() {
+            LOGGER.error(String.format("Error while trying to parse %s: %s", 
+                        this.fileName, e));
+            System.exit(-1);
+        }
 
-		ParseTreeWalker walker = new ParseTreeWalker();
-		walker.walk(this, this.parser.domain());
-	}
+    }
 
-	@Override
-	public void exitVar_defs(Var_defsContext ctx) {
+    public void run() {
 
-		// get all variable definitions
-		var variables = ctx.var_def().stream().map(v -> varVisitor.visit(v)).collect(Collectors.toList());
-		LOGGER.info(String.format("Parsed variables: %s", variables));
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(this, this.parser.domain());
+    }
 
-		Global.primeVarsAndInitGlobals(variables);
-		
-		int totalStates = IntStream.range(0, Global.NUM_VARS / 2)
-				.mapToObj(i -> Global.valNames.get(i).size())
-				.reduce(1, (p, q) -> p * q);
-		
-		LOGGER.info(String.format("Domain has %s random variables representing approx. %s initial states", 
-				Global.NUM_VARS / 2, totalStates));
+    @Override
+    public void exitVar_defs(Var_defsContext ctx) {
 
-		super.exitVar_defs(ctx);
-	}
+        // get all variable definitions
+        var variables = ctx.var_def().stream().map(v -> varVisitor.visit(v)).collect(Collectors.toList());
+        LOGGER.info(String.format("Parsed variables: %s", variables));
 
-	@Override
-	public void enterModelvar_init_def(Modelvar_init_defContext ctx) {
+        Global.primeVarsAndInitGlobals(variables);
 
-		String varName = ctx.var_name(0).IDENTIFIER().getText();
-		int varIndex = Global.varNames.indexOf(varName);
+        int totalStates = IntStream.range(0, Global.NUM_VARS / 2)
+            .mapToObj(i -> Global.valNames.get(i).size())
+            .reduce(1, (p, q) -> p * q);
 
-		String frameVarName = ctx.var_name(1).IDENTIFIER().getText();
-		int frameVarIndex = Global.varNames.indexOf(frameVarName);
+        LOGGER.info(String.format("Domain has %s random variables representing approx. %s initial states", 
+                    Global.NUM_VARS / 2, totalStates));
 
-		if (varIndex < 0)
-			this.errorAndExit(String.format("Variable %s does not exist", varName));
+        super.exitVar_defs(ctx);
+    }
 
-		if (frameVarIndex < 0)
-			this.errorAndExit(String.format("Frame variable %s does not exist", frameVarName));
+    @Override
+    public void enterModelvar_init_def(Modelvar_init_defContext ctx) {
 
-		var models = ctx.model_init().stream()
-				.map(t -> Tuple.of(t.frame_name().var_value().IDENTIFIER().getText(),
-						t.var_value().IDENTIFIER().getText(), this.ddParser.visit(t.dd_expr())))
-				.map(t -> Tuple.of(Global.valNames.get(frameVarIndex).indexOf(t._0()), t._1(), t._2()))
-				.collect(Collectors.toList());
-		
-		models.stream().forEach(m -> {
-	
-			if(!Global.modelVars.containsKey(varName))
-				Global.modelVars.put(varName, new HashMap<>());
-				
-			var modelDict = Global.modelVars.get(varName);
-			var model = new MjRepr<>(m._0(), ReachabilityNode.getStartNode(-1, m._2()));
-			if (!modelDict.containsKey(model))
-				modelDict.put(model, m._1());
-		});
+        String varName = ctx.var_name(0).IDENTIFIER().getText();
+        int varIndex = Global.varNames.indexOf(varName);
 
-		LOGGER.info(String.format("Model variable %s initialized to %s", varName, Global.modelVars.get(varName)));
-		super.enterModelvar_init_def(ctx);
-	}
+        String frameVarName = ctx.var_name(1).IDENTIFIER().getText();
+        int frameVarIndex = Global.varNames.indexOf(frameVarName);
 
-	@Override
-	public void enterDDDef(DDDefContext ctx) {
+        if (varIndex < 0)
+            this.errorAndExit(String.format("Variable %s does not exist", varName));
 
-		String ddName = ctx.dd_def().dd_name().IDENTIFIER().getText();
-		DD dd = this.ddParser.visit(ctx.dd_def().dd_expr());
+        if (frameVarIndex < 0)
+            this.errorAndExit(String.format("Frame variable %s does not exist", frameVarName));
 
-		this.dds.put(ddName, dd);
-		LOGGER.debug(String.format("Parsed DD %s", ddName));
+        var models = ctx.model_init().stream()
+            .map(t -> Tuple.of(t.frame_name().var_value().IDENTIFIER().getText(),
+                        t.var_value().IDENTIFIER().getText(), this.ddParser.visit(t.dd_expr())))
+            .map(t -> Tuple.of(Global.valNames.get(frameVarIndex).indexOf(t._0()), t._1(), t._2()))
+            .collect(Collectors.toList());
 
-		super.enterDDDef(ctx);
-	}
+        models.stream().forEach(m -> {
 
-	@Override
-	public void enterDBNDef(DBNDefContext ctx) {
+            if(!Global.modelVars.containsKey(varName))
+                Global.modelVars.put(varName, new HashMap<>());
 
-		String modelName = ctx.dbn_def().model_name().IDENTIFIER().getText();
-		LOGGER.debug(String.format("Parsing DBN %s", modelName));
-		Model dbn = this.modelParser.visit(ctx);
+            var modelDict = Global.modelVars.get(varName);
+            var model = new MjRepr<>(m._0(), ReachabilityNode.getStartNode(-1, m._2()));
+            if (!modelDict.containsKey(model))
+                modelDict.put(model, m._1());
+        });
 
-		if (!(dbn instanceof DBN)) {
+        LOGGER.info(String.format("Model variable %s initialized to %s", varName, Global.modelVars.get(varName)));
+        super.enterModelvar_init_def(ctx);
+    }
 
-			LOGGER.error(String.format("%s should be a DBN but is %s", modelName, dbn.getClass().getTypeName()));
-			System.exit(-1);
-		}
+    @Override
+    public void enterDDDef(DDDefContext ctx) {
 
-		this.models.put(modelName, dbn);
-		LOGGER.debug(String.format("Parsed DBN %s", modelName));
+        String ddName = ctx.dd_def().dd_name().IDENTIFIER().getText();
+        DD dd = this.ddParser.visit(ctx.dd_def().dd_expr());
 
-		super.enterDBNDef(ctx);
-	}
+        this.dds.put(ddName, dd);
+        LOGGER.debug(String.format("Parsed DD %s", ddName));
 
-	@Override
-	public void enterPOMDPDef(POMDPDefContext ctx) {
+        super.enterDDDef(ctx);
+    }
 
-		String modelName = ctx.pomdp_def().model_name().IDENTIFIER().getText();
+    @Override
+    public void enterDBNDef(DBNDefContext ctx) {
 
-		if (this.models.containsKey(modelName)) {
+        String modelName = ctx.dbn_def().model_name().IDENTIFIER().getText();
+        LOGGER.debug(String.format("Parsing DBN %s", modelName));
+        Model dbn = this.modelParser.visit(ctx);
 
-			LOGGER.error(String.format("A model named %s has been defined previously.", modelName));
-			LOGGER.error(String.format("Error while parsing %s", ctx.getText()));
-			System.exit(-1);
-		}
+        if (!(dbn instanceof DBN)) {
 
-		Model pomdp = this.modelParser.visit(ctx);
-		((POMDP) pomdp).name = modelName;
+            LOGGER.error(String.format("%s should be a DBN but is %s", modelName, dbn.getClass().getTypeName()));
+            System.exit(-1);
+        }
 
-		this.models.put(modelName, pomdp);
-		LOGGER.debug(String.format("Parsed POMDP %s", modelName));
-		LOGGER.info(String.format("POMDP %s has %s state variables representing a total of %s states",
-				modelName, ((POMDP) pomdp).i_S().size(), 
-				pomdp.i_S().stream()
-					.map(i -> Global.valNames.get(i - 1).size())
-					.reduce(1, (p, q) -> p * q)));
+        this.models.put(modelName, dbn);
+        LOGGER.debug(String.format("Parsed DBN %s", modelName));
 
-		LOGGER.info(String.format("POMDP %s has %s obs variables representing a total of %s obs",
-				modelName, ((POMDP) pomdp).i_Om().size(), 
-				((POMDP) pomdp).i_Om().stream()
-					.map(i -> Global.valNames.get(i - 1).size())
-					.reduce(1, (p, q) -> p * q)));
+        super.enterDBNDef(ctx);
+    }
 
-		super.enterPOMDPDef(ctx);
-	}
+    @Override
+    public void enterPOMDPDef(POMDPDefContext ctx) {
 
-	@Override
-	public void enterIPOMDPDef(IPOMDPDefContext ctx) {
+        String modelName = ctx.pomdp_def().model_name().IDENTIFIER().getText();
 
-		String modelName = ctx.ipomdp_def().model_name().IDENTIFIER().getText();
+        if (this.models.containsKey(modelName)) {
 
-		if (this.models.containsKey(modelName)) {
+            LOGGER.error(String.format("A model named %s has been defined previously.", modelName));
+            LOGGER.error(String.format("Error while parsing %s", ctx.getText()));
+            System.exit(-1);
+        }
 
-			LOGGER.error(String.format("A model named %s has been defined previously.", modelName));
-			LOGGER.error(String.format("Error while parsing %s", ctx.getText()));
-			System.exit(-1);
-		}
+        Model pomdp = this.modelParser.visit(ctx);
+        ((POMDP) pomdp).name = modelName;
 
-		Model ipomdp = this.modelParser.visit(ctx);
-		((IPOMDP) ipomdp).name = modelName;
+        this.models.put(modelName, pomdp);
+        LOGGER.debug(String.format("Parsed POMDP %s", modelName));
+        LOGGER.info(String.format("POMDP %s has %s state variables representing a total of %s states",
+                    modelName, ((POMDP) pomdp).i_S().size(), 
+                    pomdp.i_S().stream()
+                    .map(i -> Global.valNames.get(i - 1).size())
+                    .reduce(1, (p, q) -> p * q)));
 
-		this.models.put(modelName, ipomdp);
-		LOGGER.debug(String.format("Parsed IPOMDP %s", modelName));
+        LOGGER.info(String.format("POMDP %s has %s obs variables representing a total of %s obs",
+                    modelName, ((POMDP) pomdp).i_Om().size(), 
+                    ((POMDP) pomdp).i_Om().stream()
+                    .map(i -> Global.valNames.get(i - 1).size())
+                    .reduce(1, (p, q) -> p * q)));
 
-		super.enterIPOMDPDef(ctx);
-	}
+        super.enterPOMDPDef(ctx);
+    }
 
-	@Override
-	public void enterPBVISolverDef(PBVISolverDefContext ctx) {
+    @Override
+    public void enterIPOMDPDef(IPOMDPDefContext ctx) {
 
-		String name = ctx.pbvi_solv_def().solv_name().IDENTIFIER().getText();
+        String modelName = ctx.ipomdp_def().model_name().IDENTIFIER().getText();
 
-		if (ctx.pbvi_solv_def().POMDP() != null) {
+        if (this.models.containsKey(modelName)) {
 
-			SymbolicPerseusSolver<POMDP> solver = new SymbolicPerseusSolver<>();
+            LOGGER.error(String.format("A model named %s has been defined previously.", modelName));
+            LOGGER.error(String.format("Error while parsing %s", ctx.getText()));
+            System.exit(-1);
+        }
 
-			this.solvers.put(name, solver);
-			LOGGER.debug(String.format("Parsed solver %s for POMDPs", name));
-		}
+        Model ipomdp = this.modelParser.visit(ctx);
+        ((IPOMDP) ipomdp).name = modelName;
 
-		else if (ctx.pbvi_solv_def().IPOMDP() != null) {
+        this.models.put(modelName, ipomdp);
+        LOGGER.debug(String.format("Parsed IPOMDP %s", modelName));
 
-			SymbolicPerseusSolver<IPOMDP> solver = new SymbolicPerseusSolver<>();
+        super.enterIPOMDPDef(ctx);
+    }
 
-			this.solvers.put(name, solver);
-			LOGGER.debug(String.format("Parsed IPOMDP solver %s", name));
-		}
+    @Override
+    public void enterPBVISolverDef(PBVISolverDefContext ctx) {
 
-		super.enterPBVISolverDef(ctx);
-	}
+        String name = ctx.pbvi_solv_def().solv_name().IDENTIFIER().getText();
 
-	@Override
-	public void enterSolvExpr(SolvExprContext ctx) {
+        if (ctx.pbvi_solv_def().POMDP() != null) {
 
-		String solverName = ctx.solv_cmd().solv_name().getText();
-		String modelName = ctx.solv_cmd().model_name().getText();
-		int backups = Integer.valueOf(ctx.solv_cmd().backups().getText());
-		int expHorizon = Integer.valueOf(ctx.solv_cmd().exp_horizon().getText());
-		List<DD> dds = ctx.solv_cmd().dd_list().dd_expr().stream().map(this.ddParser::visit)
-				.collect(Collectors.toList());
+            SymbolicPerseusSolver<POMDP> solver = new SymbolicPerseusSolver<>();
 
-		String policyName = ctx.policy_name().IDENTIFIER().getText();
+            this.solvers.put(name, solver);
+            LOGGER.debug(String.format("Parsed solver %s for POMDPs", name));
+        }
 
-		var model = this.models.get(modelName);
-		if (model instanceof POMDP) {
+        else if (ctx.pbvi_solv_def().IPOMDP() != null) {
 
-			POMDP _model = (POMDP) model;
+            SymbolicPerseusSolver<IPOMDP> solver = new SymbolicPerseusSolver<>();
 
-			if (!this.solvers.containsKey(solverName)) {
+            this.solvers.put(name, solver);
+            LOGGER.debug(String.format("Parsed IPOMDP solver %s", name));
+        }
 
-				LOGGER.error(String.format("Solver %s for POMDP %s is not defined", solverName, modelName));
-				System.exit(-1);
-			}
+        super.enterPBVISolverDef(ctx);
+    }
 
-			SymbolicPerseusSolver<POMDP> solver = (SymbolicPerseusSolver<POMDP>) this.solvers.get(solverName);
-			var policy = solver.solve(dds, _model, backups, expHorizon, AlphaVectorPolicy.fromR(_model.R()));
+    @Override
+    public void enterSolvExpr(SolvExprContext ctx) {
 
-			this.policies.put(policyName, policy);
-			LOGGER.info(String.format("Solved %s and stored policy %s", modelName, policyName));
+        String solverName = ctx.solv_cmd().solv_name().getText();
+        String modelName = ctx.solv_cmd().model_name().getText();
+        int backups = Integer.valueOf(ctx.solv_cmd().backups().getText());
+        int expHorizon = Integer.valueOf(ctx.solv_cmd().exp_horizon().getText());
+        List<DD> dds = ctx.solv_cmd().dd_list().dd_expr().stream().map(this.ddParser::visit)
+            .collect(Collectors.toList());
 
-		}
+        String policyName = ctx.policy_name().IDENTIFIER().getText();
 
-		else if (model instanceof IPOMDP) {
+        var model = this.models.get(modelName);
+        if (model instanceof POMDP) {
 
-			IPOMDP _model = (IPOMDP) model;
+            POMDP _model = (POMDP) model;
 
-			if (!this.solvers.containsKey(solverName)) {
+            if (!this.solvers.containsKey(solverName)) {
 
-				LOGGER.error(String.format("Solver %s for IPOMDP %s is not defined", solverName, modelName));
-				System.exit(-1);
-			}
+                LOGGER.error(String.format("Solver %s for POMDP %s is not defined", solverName, modelName));
+                System.exit(-1);
+            }
 
-			SymbolicPerseusSolver<IPOMDP> solver = (SymbolicPerseusSolver<IPOMDP>) this.solvers.get(solverName);
-			var policy = solver.solve(dds, _model, backups, _model.H, AlphaVectorPolicy.fromR(_model.R()));
+            SymbolicPerseusSolver<POMDP> solver = (SymbolicPerseusSolver<POMDP>) this.solvers.get(solverName);
+            var policy = solver.solve(dds, _model, backups, expHorizon, AlphaVectorPolicy.fromR(_model.R()));
 
-			this.policies.put(policyName, policy);
-			LOGGER.info(String.format("Solved %s and stored policy %s", modelName, policyName));
-		}
+            this.policies.put(policyName, policy);
+            LOGGER.info(String.format("Solved %s and stored policy %s", modelName, policyName));
 
-		super.enterSolvExpr(ctx);
-	}
+        }
 
-	@Override
-	public void enterPolTreeExpr(PolTreeExprContext ctx) {
+        else if (model instanceof IPOMDP) {
 
-		List<DD> dds = ctx.dd_list().dd_expr().stream().map(this.ddParser::visit).collect(Collectors.toList());
-		String modelName = ctx.model_name().IDENTIFIER().getText();
-		String policyName = ctx.policy_name().IDENTIFIER().getText();
-		int expHorizon = Integer.valueOf(ctx.exp_horizon().FLOAT_NUM().getText());
+            IPOMDP _model = (IPOMDP) model;
 
-		if (!this.models.containsKey(modelName)) {
+            if (!this.solvers.containsKey(solverName)) {
 
-			LOGGER.error(String.format(
-					"Model %s not declared anywhere. How will I generate a policy tree for a model that does not even exist?"));
-			System.exit(-1);
-		}
+                LOGGER.error(String.format("Solver %s for IPOMDP %s is not defined", solverName, modelName));
+                System.exit(-1);
+            }
 
-		if (!(this.models.get(modelName) instanceof PBVISolvablePOMDPBasedModel)) {
+            SymbolicPerseusSolver<IPOMDP> solver = (SymbolicPerseusSolver<IPOMDP>) this.solvers.get(solverName);
+            var policy = solver.solve(dds, _model, backups, _model.H, AlphaVectorPolicy.fromR(_model.R()));
 
-			LOGGER.error(String.format("Model %s doesn't look like a POMDP or an IPOMDP"));
-			System.exit(-1);
-		}
+            this.policies.put(policyName, policy);
+            LOGGER.info(String.format("Solved %s and stored policy %s", modelName, policyName));
+        }
 
-		if (!this.policies.containsKey(policyName)) {
+        super.enterSolvExpr(ctx);
+    }
 
-			LOGGER.error(String.format("Policy %s does not exist. Might be a typo."));
-			System.exit(-1);
-		}
+    @Override
+    public void enterPolTreeExpr(PolTreeExprContext ctx) {
 
-		if (!(this.policies.get(policyName) instanceof AlphaVectorPolicy)) {
+        List<DD> dds = ctx.dd_list().dd_expr().stream().map(this.ddParser::visit).collect(Collectors.toList());
+        String modelName = ctx.model_name().IDENTIFIER().getText();
+        String policyName = ctx.policy_name().IDENTIFIER().getText();
+        int expHorizon = Integer.valueOf(ctx.exp_horizon().FLOAT_NUM().getText());
 
-			LOGGER.error(String.format("Policy %s does not look like an alpha vector policy", policyName));
-			System.exit(-1);
-		}
+        if (!this.models.containsKey(modelName)) {
 
-		var _model = (PBVISolvablePOMDPBasedModel) this.models.get(modelName);
-		var policy = (AlphaVectorPolicy) this.policies.get(policyName);
+            LOGGER.error(String.format(
+                        "Model %s not declared anywhere. How will I generate a policy tree for a model that does not even exist?"));
+            System.exit(-1);
+        }
 
-		var initNodes = dds.stream()
-				.map(d -> ReachabilityNode.getStartNode(policy.getBestActionIndex(d, _model.i_S()), d))
-				.collect(Collectors.toList());
+        if (!(this.models.get(modelName) instanceof PBVISolvablePOMDPBasedModel)) {
 
-		var modelGraph = ModelGraph.fromDecMakingModel(_model);
-		var expStrat =  /* new MjSpaceExpansion<>(); */ new PolicyTreeExpansion<>();
+            LOGGER.error(String.format("Model %s doesn't look like a POMDP or an IPOMDP"));
+            System.exit(-1);
+        }
 
-		modelGraph = expStrat.expand(initNodes, modelGraph, _model, expHorizon, policy);
-		LOGGER.info(String.format("Made policy tree for model %s till time step %s", modelName, expHorizon));
+        if (!this.policies.containsKey(policyName)) {
 
-		String fileName = new StringBuilder().append(modelName).append("_").append(policyName).append(".poltree")
-				.toString();
+            LOGGER.error(String.format("Policy %s does not exist. Might be a typo."));
+            System.exit(-1);
+        }
 
-		try (PrintWriter out = new PrintWriter(fileName)) {
+        if (!(this.policies.get(policyName) instanceof AlphaVectorPolicy)) {
 
-			var builder = new StringBuilder();
-			builder.append("digraph G {\r\n");
-			//builder.append("layout=neato;\r\n");
-			builder.append("overlap=false;\r\n");
-			builder.append("sep=1.0;\r\n");
-			builder.append("splines=true;\r\n");
-			builder.append(ModelGraph.toDot(modelGraph, _model));
-			builder.append("}\r\n");
-			out.write(builder.toString());
-			LOGGER.info(String.format("Wrote policy tree to %s", fileName));
-		}
+            LOGGER.error(String.format("Policy %s does not look like an alpha vector policy", policyName));
+            System.exit(-1);
+        }
 
-		catch (Exception e) {
+        var _model = (PBVISolvablePOMDPBasedModel) this.models.get(modelName);
+        var policy = (AlphaVectorPolicy) this.policies.get(policyName);
 
-			LOGGER.error(String.format("While writing policy tree for model %s to file", modelName));
-			LOGGER.error(String.format("Model graph is %s", modelGraph));
-			LOGGER.error(e.getMessage());
-			e.printStackTrace();
-			System.exit(-1);
-		}
-	}
-	
-	@Override
-	public void enterEnvDef(EnvDefContext ctx) {
+        var initNodes = dds.stream()
+            .map(d -> ReachabilityNode.getStartNode(policy.getBestActionIndex(d, _model.i_S()), d))
+            .collect(Collectors.toList());
 
-	
-		var envName = ctx.env_def().env_name().IDENTIFIER().getText();
-		
-		LOGGER.info(String.format("Parsing environment %s", envName));
-		
-		var S = ctx.env_def().states_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
-		var O = ctx.env_def().obs_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
-		
-		DBN dynamics = (DBN) modelParser.visit(ctx.env_def().dbn_def());
-		var env = new PartiallyObservableEnv(S, O, dynamics, null);
-		env.name = envName;
-		
-		envs.put(envName, env);
-		
-		LOGGER.info(String.format("Parsed env %s", env));
-		
-		super.enterEnvDef(ctx);
-	}
+        var modelGraph = ModelGraph.fromDecMakingModel(_model);
+        var expStrat =  /* new MjSpaceExpansion<>(); */ new PolicyTreeExpansion<>();
 
-	@Override
-	public void enterParenExecExpr(ParenExecExprContext ctx) {
+        modelGraph = expStrat.expand(initNodes, modelGraph, _model, expHorizon, policy);
+        LOGGER.info(String.format("Made policy tree for model %s till time step %s", modelName, expHorizon));
 
-		super.enterParenExecExpr(ctx);
-	}
+        String fileName = new StringBuilder().append(modelName).append("_").append(policyName).append(".poltree")
+            .toString();
 
-	@Override
-	public void enterDDExecDef(DDExecDefContext ctx) {
+        try (PrintWriter out = new PrintWriter(fileName)) {
 
-		this.enterDd_def(ctx.dd_def());
-		super.enterDDExecDef(ctx);
-	}
+            var builder = new StringBuilder();
+            builder.append("digraph G {\r\n");
+            //builder.append("layout=neato;\r\n");
+            builder.append("overlap=false;\r\n");
+            builder.append("sep=1.0;\r\n");
+            builder.append("splines=true;\r\n");
+            builder.append(ModelGraph.toDot(modelGraph, _model));
+            builder.append("}\r\n");
+            out.write(builder.toString());
+            LOGGER.info(String.format("Wrote policy tree to %s", fileName));
+        }
 
-	private void errorAndExit(String message) {
+        catch (Exception e) {
 
-		LOGGER.error(message);
-		System.exit(-1);
-	}
-	
-	// ----------------------------------------------------------------------------------------
+            LOGGER.error(String.format("While writing policy tree for model %s to file", modelName));
+            LOGGER.error(String.format("Model graph is %s", modelGraph));
+            LOGGER.error(e.getMessage());
+            e.printStackTrace();
+            System.exit(-1);
+        }
+    }
 
-	public HashMap<String, DD> getDDs() {
+    @Override
+    public void enterEnvDef(EnvDefContext ctx) {
 
-		return this.dds;
-	}
 
-	public Optional<Model> getModel(String modelName) {
+        var envName = ctx.env_def().env_name().IDENTIFIER().getText();
 
-		return Optional.ofNullable(this.models.get(modelName));
-	}
+        LOGGER.info(String.format("Parsing environment %s", envName));
+
+        var S = ctx.env_def().states_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
+        var O = ctx.env_def().obs_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
+
+        DBN dynamics = (DBN) modelParser.visit(ctx.env_def().dbn_def());
+        var env = new PartiallyObservableEnv(S, O, dynamics, null);
+        env.name = envName;
+
+        envs.put(envName, env);
+
+        LOGGER.info(String.format("Parsed env %s", env));
+
+        super.enterEnvDef(ctx);
+    }
+
+    @Override
+    public void enterParenExecExpr(ParenExecExprContext ctx) {
+
+        super.enterParenExecExpr(ctx);
+    }
+
+    @Override
+    public void enterDDExecDef(DDExecDefContext ctx) {
+
+        this.enterDd_def(ctx.dd_def());
+        super.enterDDExecDef(ctx);
+    }
+
+    private void errorAndExit(String message) {
+
+        LOGGER.error(message);
+        System.exit(-1);
+    }
+
+    // ----------------------------------------------------------------------------------------
+
+    public HashMap<String, DD> getDDs() {
+
+        return this.dds;
+    }
+
+    public Optional<Model> getModel(String modelName) {
+
+        return Optional.ofNullable(this.models.get(modelName));
+    }
 
 }
