@@ -10,7 +10,7 @@
             "Console": {
                 "name": "STDOUT",
                 "PatternLayout": {
-                    "pattern": "%d [%t] %-5p %c - %m%n"
+                    "pattern": "%d %-5p %c{2} - %m%n"
                 }
             }
         },
