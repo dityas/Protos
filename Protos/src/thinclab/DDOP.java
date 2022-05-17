@@ -17,14 +17,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import thinclab.legacy.Config;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
@@ -56,7 +54,7 @@ public class DDOP {
 
 			if (dd2.getVar() == 0 && dd2.getVal() == 0)
 				return dd2;
-			else if (dd2.getVar() == 0 && dd2.getVal() == 1 && dd2.getConfig() == null)
+			else if (dd2.getVar() == 0 && dd2.getVal() == 1)
 				return dd1;
 
 			var _dds = Tuple.of(dd1, dd2);
@@ -80,7 +78,7 @@ public class DDOP {
 
 			if (dd1.getVar() == 0 && dd1.getVal() == 0)
 				return dd1;
-			else if (dd1.getVar() == 0 && dd1.getVal() == 0 && dd1.getConfig() == null)
+			else if (dd1.getVar() == 0 && dd1.getVal() == 1)
 				return dd2;
 
 			var _dds = Tuple.of(dd1, dd2);
@@ -122,8 +120,7 @@ public class DDOP {
 		else {
 
 			float newVal = dd1.getVal() * dd2.getVal();
-			int[][] newConfig = Config.merge(dd1.getConfig(), dd2.getConfig());
-			return DDleaf.getDD(newVal, newConfig);
+			return DDleaf.getDD(newVal);
 		}
 	}
 
@@ -146,7 +143,7 @@ public class DDOP {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.getDD(1 / dd.getVal(), dd.getConfig());
+			return DDleaf.getDD(1 / dd.getVal());
 
 		// dd is a node
 		else {
@@ -166,7 +163,7 @@ public class DDOP {
 		// dd1 precedes dd2
 		if (dd1.getVar() > dd2.getVar()) {
 
-			if (dd2.getVar() == 0 && dd2.getVal() == 0 && dd2.getConfig() == null)
+			if (dd2.getVar() == 0 && dd2.getVal() == 0)
 				return dd1;
 
 			var _dds = Tuple.of(dd1, dd2);
@@ -188,7 +185,7 @@ public class DDOP {
 		// dd2 precedes dd1 {
 		else if (dd2.getVar() > dd1.getVar()) {
 
-			if (dd1.getVar() == 0 && dd1.getVal() == 0 && dd1.getConfig() == null)
+			if (dd1.getVar() == 0 && dd1.getVal() == 0)
 				return dd2;
 
 			var _dds = Tuple.of(dd1, dd2);
@@ -230,8 +227,7 @@ public class DDOP {
 		else {
 
 			float newVal = dd1.getVal() + dd2.getVal();
-			int[][] newConfig = Config.merge(dd1.getConfig(), dd2.getConfig());
-			return DDleaf.getDD(newVal, newConfig);
+			return DDleaf.getDD(newVal);
 		}
 	}
 
@@ -260,7 +256,7 @@ public class DDOP {
 			if (dd.getVal() >= 0)
 				return dd;
 			else
-				return DDleaf.getDD(-dd.getVal(), dd.getConfig());
+				return DDleaf.getDD(-dd.getVal());
 		}
 
 		// dd is a node
@@ -280,7 +276,7 @@ public class DDOP {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.getDD(-dd.getVal(), dd.getConfig());
+			return DDleaf.getDD(-dd.getVal());
 
 		// dd is a node
 		else {
@@ -299,7 +295,7 @@ public class DDOP {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.getDD((float) Math.exp(dd.getVal()), dd.getConfig());
+			return DDleaf.getDD((float) Math.exp(dd.getVal()));
 
 		// dd is a node
 		else {
@@ -318,7 +314,7 @@ public class DDOP {
 
 		// dd is a leaf
 		if (dd.getVar() == 0)
-			return DDleaf.getDD((float) Math.pow(dd.getVal(), pow), dd.getConfig());
+			return DDleaf.getDD((float) Math.pow(dd.getVal(), pow));
 
 		// dd is a node
 		else {
@@ -515,7 +511,7 @@ public class DDOP {
 		// it's a leaf
 		if (dd.getVar() == 0) {
 
-			return DDleaf.getDD(Global.varDomSize.get(var - 1) * dd.getVal(), dd.getConfig());
+			return DDleaf.getDD(Global.varDomSize.get(var - 1) * dd.getVal());
 		}
 
 		DD result = (DD) hashtable.get(dd);

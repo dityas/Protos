@@ -30,12 +30,6 @@ public abstract class DD implements Serializable, Jsonable, Graphable {
 	} // should throw exception
 
 	abstract public float getVal();
-
-	public int[][] getConfig() {
-
-		return null;
-	} // should throw exception
-
 	abstract public int getNumLeaves();
 
 	// abstract public SortedSet getScope();

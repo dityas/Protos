@@ -12,7 +12,6 @@ public class DDleaf extends DD {
 	 */
 	private static final long serialVersionUID = -2608205879751348514L;
 	private float val;
-	private int[][] config;
 
 	/* precomputed hash, this may be a bad idea */
 	private int hash;
@@ -21,7 +20,6 @@ public class DDleaf extends DD {
 
 		this.val = val;
 		this.var = 0;
-		this.config = null;
 
 		this.precomputeHash();
 	}
@@ -30,7 +28,6 @@ public class DDleaf extends DD {
 
 		this.val = val;
 		this.var = 0;
-		this.config = config;
 
 		this.precomputeHash();
 	}
@@ -42,7 +39,7 @@ public class DDleaf extends DD {
 		 * This could be dangerous if the object attributes are changed in between
 		 */
 
-		this.hash = new HashCodeBuilder().append(this.val).append(Config.hashCode(this.config)).toHashCode();
+		this.hash = new HashCodeBuilder().append(this.val).toHashCode();
 	}
 
 	public static DD getDD(float val) {
@@ -94,12 +91,7 @@ public class DDleaf extends DD {
 
 		return val;
 	}
-
-	public int[][] getConfig() {
-
-		return config;
-	}
-
+	
 	public int getNumLeaves() {
 
 		return 1;
@@ -113,7 +105,7 @@ public class DDleaf extends DD {
 
 		DDleaf leaf = (DDleaf) obj;
 
-		if (val == leaf.val && Config.equals(config, leaf.config))
+		if (val == leaf.val)
 			return true;
 
 		else
@@ -131,17 +123,17 @@ public class DDleaf extends DD {
 
 	public DD store() {
 
-		return DDleaf.getDD(val, config);
+		return DDleaf.getDD(val);
 	}
 
 	public void display(String space) {
 
-		System.out.println(space + "leaf: " + Double.toString(val) + "  " + Config.toString(config));
+		System.out.println(space + "leaf: " + Double.toString(val));
 	}
 
 	public void display(String space, String prefix) {
 
-		System.out.println(space + prefix + Double.toString(val) + "  " + Config.toString(config));
+		System.out.println(space + prefix + Double.toString(val));
 	}
 
 	public void printSpuddDD(PrintStream ps) {
@@ -200,14 +192,12 @@ public class DDleaf extends DD {
 	@Override
 	public TreeSet<Integer> getVars() {
 
-		// TODO Auto-generated method stub
 		return new TreeSet<Integer>();
 	}
 
 	@Override
 	public JsonObject toJson() {
 
-		// TODO Auto-generated method stub
 		return null;
 	}
 
