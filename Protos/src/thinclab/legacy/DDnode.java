@@ -6,7 +6,6 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.JsonObject;
 import thinclab.utils.Tuple;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
@@ -14,367 +13,375 @@ import java.util.stream.IntStream;
 
 public class DDnode extends DD {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8410391598527547020L;
+    private static final long serialVersionUID = 8410391598527547020L;
 
-	private int numLeaves;
-	private DD children[];
+    private int numLeaves;
+    private DD children[];
 
-	private static final Logger LOGGER = LogManager.getLogger(DDnode.class);
+    private final int hash;
+    private final TreeSet<Integer> varSet;
 
-	private DDnode(int var, DD children[]) {
+    private static final Logger LOGGER = LogManager.getLogger(DDnode.class);
 
-		this.var = var;
-		this.children = children;
-		this.numLeaves = 0; // lazy temporary value
+    private DDnode(int var, DD children[]) {
 
-		//this.hash = this.precomputeHash();
-	}
+        this.var = var;
+        this.children = children;
+        this.numLeaves = 0; // lazy temporary value
 
-	private int computeHash() {
-		/*
-		 * Precomputes the hash code to avoid repeated computations and save time.
-		 * 
-		 * This could be dangerous if the object attributes are changed in between
-		 */
+        this.hash = this.computeHash();
+        this.varSet = this.getVarSet(); 
+    }
 
-		HashCodeBuilder builder = new HashCodeBuilder();
-		builder.append(this.var);
+    private int computeHash() {
+        /*
+         * Precomputes the hash code to avoid repeated computations and save time.
+         * 
+         * This could be dangerous if the object attributes are changed in between
+         */
 
-		for (int i = 0; i < children.length; i++) {
+        HashCodeBuilder builder = new HashCodeBuilder();
+        builder.append(this.var);
 
-			/* check for null children, if this happens, something is wrong */
-			if (this.children[i] != null)
-				builder.append(this.children[i].hashCode());
+        for (int i = 0; i < children.length; i++) {
 
-			else {
+            /* check for null children, if this happens, something is wrong */
+            if (this.children[i] != null)
+                builder.append(this.children[i].hashCode());
 
-				LOGGER.error("Null child at " + i + " something might be seriously wrong.");
-			}
-		}
+            else {
 
-		return builder.toHashCode();
-	}
+                LOGGER.error("Null child at " + i + " something might be seriously wrong.");
+            }
+        }
 
-	public static DD getDD(List<Integer> vars, List<Integer> vals, float val) {
+        return builder.toHashCode();
+    }
 
-		if (vars.size() == 0 && vals.size() == 0)
-			return DDleaf.getDD(val);
+    public static DD getDD(List<Integer> vars, List<Integer> vals, float val) {
 
-		else {
+        if (vars.size() == 0 && vals.size() == 0)
+            return DDleaf.getDD(val);
 
-			var _vars = new ArrayList<>(vars);
-			var _vals = new ArrayList<>(vals);
+        else {
 
-			var _var = _vars.remove(0);
-			var _val = _vals.remove(0);
+            var _vars = new ArrayList<>(vars);
+            var _vals = new ArrayList<>(vals);
 
-			var childDDs = IntStream.range(0, Global.varDomSize.get(_var - 1))
-					.mapToObj(i -> i == (_val - 1) ? DDnode.getDD(_vars, _vals, val) : DDleaf.getDD(0.0f))
-					.toArray(DD[]::new);
+            var _var = _vars.remove(0);
+            var _val = _vals.remove(0);
 
-			// LOGGER.debug(String.format("Childs are %s", Arrays.toString(childDDs)));
+            var childDDs = IntStream.range(0, Global.varDomSize.get(_var - 1))
+                .mapToObj(i -> i == (_val - 1) ? DDnode.getDD(_vars, _vals, val) : DDleaf.getDD(0.0f))
+                .toArray(DD[]::new);
 
-			var dd = DDnode.getDD(_var, childDDs);
-			return dd;
-		}
+            // LOGGER.debug(String.format("Childs are %s", Arrays.toString(childDDs)));
 
-	}
+            var dd = DDnode.getDD(_var, childDDs);
+            return dd;
+        }
 
-	public static DD getDDForChild(int var, int child) {
+    }
 
-		DD[] childDDs = new DD[Global.varDomSize.get(var - 1)];
+    public static DD getDDForChild(int var, int child) {
 
-		for (int i = 0; i < childDDs.length; i++) {
+        DD[] childDDs = new DD[Global.varDomSize.get(var - 1)];
 
-			if (i == child)
-				childDDs[i] = DDleaf.getDD(1.0f);
+        for (int i = 0; i < childDDs.length; i++) {
 
-			else
-				childDDs[i] = DDleaf.getDD(0.0f);
-		}
+            if (i == child)
+                childDDs[i] = DDleaf.getDD(1.0f);
 
-		var dd = DDnode.getDD(var, childDDs);
+            else
+                childDDs[i] = DDleaf.getDD(0.0f);
+        }
 
-		return dd;
-	}
+        var dd = DDnode.getDD(var, childDDs);
 
-	public static DD getDDForChild(String varName, String childName) {
+        return dd;
+    }
 
-		int varIndex = Global.varNames.indexOf(varName);
+    public static DD getDDForChild(String varName, String childName) {
 
-		if (varIndex < 0) {
+        int varIndex = Global.varNames.indexOf(varName);
 
-			LOGGER.error("Variable " + varName + " does not exist.");
-			System.exit(-1);
-		}
+        if (varIndex < 0) {
 
-		int var = varIndex + 1;
-		int childIndex = Global.valNames.get(varIndex).indexOf(childName);
+            LOGGER.error("Variable " + varName + " does not exist.");
+            System.exit(-1);
+        }
 
-		if (childIndex < 0) {
+        int var = varIndex + 1;
+        int childIndex = Global.valNames.get(varIndex).indexOf(childName);
 
-			LOGGER.error("Variable " + varName + " does not hold value " + childName);
-			System.exit(-1);
-		}
+        if (childIndex < 0) {
 
-		return DDnode.getDDForChild(var, childIndex);
-	}
+            LOGGER.error("Variable " + varName + " does not hold value " + childName);
+            System.exit(-1);
+        }
 
-	public static DD getUniformDist(int var) {
+        return DDnode.getDDForChild(var, childIndex);
+    }
 
-		if (var < 1) {
+    public static DD getUniformDist(int var) {
 
-			LOGGER.error("Invalid varName/var while making uniform distribution");
-			return null;
-		}
+        if (var < 1) {
 
-		int numVals = Global.varDomSize.get(var - 1);
-		float prob = 1.0f / numVals;
+            LOGGER.error("Invalid varName/var while making uniform distribution");
+            return null;
+        }
 
-		DD[] childDDs = new DD[numVals];
+        int numVals = Global.varDomSize.get(var - 1);
+        float prob = 1.0f / numVals;
 
-		for (int i = 0; i < numVals; i++) {
+        DD[] childDDs = new DD[numVals];
 
-			childDDs[i] = DDleaf.getDD(prob);
-		}
+        for (int i = 0; i < numVals; i++) {
 
-		return DDnode.getDD(var, childDDs);
-	}
+            childDDs[i] = DDleaf.getDD(prob);
+        }
 
-	public static DD getUniformDist(String varName) {
+        return DDnode.getDD(var, childDDs);
+    }
 
-		return DDnode.getUniformDist(Global.varNames.indexOf(varName) + 1);
-	}
+    public static DD getUniformDist(String varName) {
 
-	public static DD getDD(int var, DD[] children) {
+        return DDnode.getUniformDist(Global.varNames.indexOf(varName) + 1);
+    }
 
-		// try to aggregate children
-		boolean aggregate = true;
-		for (int i = 1; i < children.length; i++) {
+    public static DD getDD(int var, DD[] children) {
 
-			if (!children[0].equals(children[i])) {
+        // try to aggregate children
+        boolean aggregate = true;
+        for (int i = 1; i < children.length; i++) {
 
-				aggregate = false;
-				break;
-			}
-		}
+            if (!children[0].equals(children[i])) {
 
-		if (aggregate)
-			return children[0];
+                aggregate = false;
+                break;
+            }
+        }
 
-		// try look up node in nodeHashtable
-		DDnode node = new DDnode(var, children);
-		// WeakReference<DD> storedNode = ((WeakReference<DD>)
-		// Global.nodeHashtable.get(node));
+        if (aggregate)
+            return children[0];
 
-		// if (storedNode != null && storedNode.get() != null)
-		// return (DDnode) storedNode.get();
+        // try look up node in nodeHashtable
+        DDnode node = new DDnode(var, children);
+        // WeakReference<DD> storedNode = ((WeakReference<DD>)
+        // Global.nodeHashtable.get(node));
 
-		// store node in nodeHashtable
-		// Global.nodeHashtable.put(node, new WeakReference<DD>(node));
-		return node;
-	}
+        // if (storedNode != null && storedNode.get() != null)
+        // return (DDnode) storedNode.get();
 
-	public static DD getDistribution(int var, List<Tuple<String, Float>> probs) {
+        // store node in nodeHashtable
+        // Global.nodeHashtable.put(node, new WeakReference<DD>(node));
+        return node;
+    }
 
-		/*
-		 * For making DDs when all children are not defined.
-		 */
-		var childNames = Global.valNames.get(var - 1);
-		DD[] children = new DD[childNames.size()];
-		for (int i = 0; i < children.length; i++)
-			children[i] = DDleaf.getDD(0.0f);
+    public static DD getDistribution(int var, List<Tuple<String, Float>> probs) {
 
-		probs.stream().forEach(i ->
-			{
+        /*
+         * For making DDs when all children are not defined.
+         */
+        var childNames = Global.valNames.get(var - 1);
+        DD[] children = new DD[childNames.size()];
+        for (int i = 0; i < children.length; i++)
+            children[i] = DDleaf.getDD(0.0f);
 
-				int index = Collections.binarySearch(childNames, i._0());
-				if (index < 0) {
+        probs.stream().forEach(i ->
+                {
 
-					LOGGER.error(
-							String.format("Child %s does not exist in var %s: %s", i, var, Global.varNames.get(var)));
-					System.exit(-1);
-				}
+                    int index = Collections.binarySearch(childNames, i._0());
+                    if (index < 0) {
 
-				else
-					children[index] = DDleaf.getDD(i._1());
-			});
+                        LOGGER.error(
+                                String.format("Child %s does not exist in var %s: %s", i, var, Global.varNames.get(var)));
+                        System.exit(-1);
+                    }
 
-		return DDnode.getDD(var, children);
-	}
+                    else
+                        children[index] = DDleaf.getDD(i._1());
+                });
 
-	public void setChild(int child, DD childDD) {
+        return DDnode.getDD(var, children);
+    }
 
-		if (child >= children.length || child <= 0) {
+    public void setChild(int child, DD childDD) {
 
-			LOGGER.error(
-					String.format("Child %s does not exist for variable values", child, Global.valNames.get(var - 1)));
-			System.exit(-1);
-		}
+        if (child >= children.length || child <= 0) {
 
-		children[child - 1] = childDD;
+            LOGGER.error(
+                    String.format("Child %s does not exist for variable values", child, Global.valNames.get(var - 1)));
+            System.exit(-1);
+        }
 
-	}
+        children[child - 1] = childDD;
 
-	@Override
-	public boolean equals(Object obj) {
+    }
 
-		if (!(obj instanceof DDnode))
-			return false;
+    @Override
+    public boolean equals(Object obj) {
 
-		DDnode node = (DDnode) obj;
+        if (!(obj instanceof DDnode))
+            return false;
 
-		if (var != node.var)
-			return false;
+        DDnode node = (DDnode) obj;
 
-		for (int i = 0; i < children.length; i++) {
+        if (var != node.var)
+            return false;
 
-			if (!children[i].equals(node.children[i]))
-				return false;
-		}
+        for (int i = 0; i < children.length; i++) {
 
-		return true;
-	}
+            if (!children[i].equals(node.children[i]))
+                return false;
+        }
 
-	@Override
-	public int hashCode() {
+        return true;
+    }
 
-		return computeHash();
-	}
+    @Override
+    public int hashCode() {
 
-	public DD store() {
+        return hash;
+    }
 
-		DD[] children = new DD[this.children.length];
+    public DD store() {
 
-		for (int i = 0; i < this.children.length; i++) {
+        DD[] children = new DD[this.children.length];
 
-			children[i] = this.children[i].store();
-		}
+        for (int i = 0; i < this.children.length; i++) {
 
-		return DDnode.getDD(var, children);
-	}
+            children[i] = this.children[i].store();
+        }
 
-	public DD[] getChildren() {
+        return DDnode.getDD(var, children);
+    }
 
-		return children;
-	}
+    public DD[] getChildren() {
 
-	public int getNumLeaves() {
+        return children;
+    }
 
-		if (numLeaves == 0) {
+    public int getNumLeaves() {
 
-			for (int i = 0; i < children.length; i++) {
+        if (numLeaves == 0) {
 
-				numLeaves = numLeaves + children[i].getNumLeaves();
-			}
-		}
+            for (int i = 0; i < children.length; i++) {
 
-		return numLeaves;
-	}
+                numLeaves = numLeaves + children[i].getNumLeaves();
+            }
+        }
 
-	// ---------------------------------------------------------------------------------------
+        return numLeaves;
+    }
 
-	@Override
-	public String toString() {
+    // ---------------------------------------------------------------------------------------
 
-		return this.toSPUDD();
-	}
+    @Override
+    public String toString() {
 
-	@Override
-	public String toSPUDD(int spaces) {
-		/*
-		 * Returns tree as SPUDD string
-		 */
+        return this.toSPUDD();
+    }
 
-		var childNames = Global.valNames.get(this.var - 1);
+    @Override
+    public String toSPUDD(int spaces) {
+        /*
+         * Returns tree as SPUDD string
+         */
 
-		StringBuilder builder = new StringBuilder(100);
-		builder.append("  ".repeat(spaces)).append("(").append(Global.varNames.get(this.var - 1));
+        var childNames = Global.valNames.get(this.var - 1);
 
-		for (int i = 0; i < this.children.length; i++) {
+        StringBuilder builder = new StringBuilder(100);
+        builder.append("  ".repeat(spaces)).append("(").append(Global.varNames.get(this.var - 1));
 
-			if (this.children[i] instanceof DDleaf) {
+        for (int i = 0; i < this.children.length; i++) {
 
-				if (children[i].getVal() != 0.0f)
-					builder.append("  (").append(childNames.get(i)).append(" ").append(this.children[i].toSPUDD())
-							.append(")");
-			}
+            if (this.children[i] instanceof DDleaf) {
 
-			else
-				builder.append("\r\n").append("  ".repeat(spaces + 1)).append("(").append(childNames.get(i))
-						.append("\r\n").append(this.children[i].toSPUDD(spaces + 2)).append(")");
-		}
+                if (children[i].getVal() != 0.0f)
+                    builder.append("  (").append(childNames.get(i)).append(" ").append(this.children[i].toSPUDD())
+                        .append(")");
+            }
 
-		builder.append(")");
+            else
+                builder.append("\r\n").append("  ".repeat(spaces + 1)).append("(").append(childNames.get(i))
+                    .append("\r\n").append(this.children[i].toSPUDD(spaces + 2)).append(")");
+        }
 
-		return builder.toString();
-	}
+        builder.append(")");
 
-	@Override
-	public String toSPUDD() {
+        return builder.toString();
+    }
 
-		return this.toSPUDD(0);
-	}
+    @Override
+    public String toSPUDD() {
 
-	@Override
-	public String toDot() {
+        return this.toSPUDD(0);
+    }
 
-		var builder = new StringBuilder();
+    @Override
+    public String toDot() {
 
-		builder.append(this.hashCode()).append(" [label=\"");
-		builder.append(this.toLabel()).append("\"];");
-		
-		return builder.toString();
-	}
+        var builder = new StringBuilder();
 
-	@Override
-	public TreeSet<Integer> getVars() {
+        builder.append(this.hashCode()).append(" [label=\"");
+        builder.append(this.toLabel()).append("\"];");
 
-		var varSet = new TreeSet<Integer>(Collections.singleton(this.var));
-		Arrays.stream(this.children).forEach(c -> varSet.addAll(c.getVars()));
+        return builder.toString();
+    }
 
-		return varSet;
-	}
+    private TreeSet<Integer> getVarSet() {
 
-	@Override
-	public JsonObject toJson() {
+        var varSet = new TreeSet<Integer>(Collections.singleton(this.var));
 
-		return null;
-	}
+        for (int i = 0; i < this.children.length; i++) 
+            varSet.addAll(this.children[i].getVars());
 
-	@Override
-	public String toLabel() {
+        return varSet;
+    }
 
-		var builder = new StringBuilder();
+    @Override
+    public TreeSet<Integer> getVars() {
 
-		builder.append("(").append(Global.varNames.get(this.var - 1));
+        return varSet;
+    }
 
-		for (int i = 0; i < this.children.length; i++) {
+    @Override
+    public JsonObject toJson() {
 
-			if (this.children[i].equals(DD.zero))
-				continue;
+        return null;
+    }
 
-			if (this.children[i] instanceof DDleaf)
-				builder.append(" ( ").append(Global.valNames.get(this.var - 1).get(i)).append("  ")
-						.append(this.children[i].toLabel()).append(" ) ");
-			
-			else {
-				builder.append(" ( ").append("<DD for ")
-					.append(Global.varNames.get(children[i].var - 1)).append("> ) ");
-			}
-		}
+    @Override
+    public String toLabel() {
 
-		builder.append(" )");
-		return builder.toString();
-	}
+        var builder = new StringBuilder();
 
-	@Override
-	public float getVal() {
+        builder.append("(").append(Global.varNames.get(this.var - 1));
 
-		return 0;
-	}
+        for (int i = 0; i < this.children.length; i++) {
+
+            if (this.children[i].equals(DD.zero))
+                continue;
+
+            if (this.children[i] instanceof DDleaf)
+                builder.append(" ( ").append(Global.valNames.get(this.var - 1).get(i)).append("  ")
+                    .append(this.children[i].toLabel()).append(" ) ");
+
+            else {
+                builder.append(" ( ").append("<DD for ")
+                    .append(Global.varNames.get(children[i].var - 1)).append("> ) ");
+            }
+        }
+
+        builder.append(" )");
+        return builder.toString();
+    }
+
+    @Override
+    public float getVal() {
+
+        return 0;
+    }
 
 }

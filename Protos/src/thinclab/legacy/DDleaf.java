@@ -14,32 +14,19 @@ public class DDleaf extends DD {
 	private float val;
 
 	/* precomputed hash, this may be a bad idea */
-	private int hash;
+	private final int hash;
+    private final TreeSet<Integer> varSet = new TreeSet<>();
 
 	private DDleaf(float val) {
 
 		this.val = val;
 		this.var = 0;
 
-		this.precomputeHash();
+		this.hash = this.computeHash();
 	}
-
-	private DDleaf(float val, int[][] config) {
-
-		this.val = val;
-		this.var = 0;
-
-		this.precomputeHash();
-	}
-
-	private void precomputeHash() {
-		/*
-		 * Precomputes the hash code to avoid repeated computations and save time.
-		 * 
-		 * This could be dangerous if the object attributes are changed in between
-		 */
-
-		this.hash = new HashCodeBuilder().append(this.val).toHashCode();
+	
+	private int computeHash() {
+	    return new HashCodeBuilder().append(this.val).toHashCode();
 	}
 
 	public static DD getDD(float val) {
@@ -50,21 +37,6 @@ public class DDleaf extends DD {
 		// try to lookup leaf in leafHashtable
 		//WeakReference<DD> weakReference = (WeakReference<DD>) Global.leafHashtable.get(leaf);
 		//WeakReference<DD> storedLeaf = weakReference;
-		//if (storedLeaf != null)
-		//	return (DDleaf) storedLeaf.get();
-
-		// store leaf in leafHashtable
-		//Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf));
-		return leaf;
-	}
-
-	public static DD getDD(float val, int[][] config) {
-
-		// create new leaf
-		DDleaf leaf = new DDleaf(val, config);
-
-		// try to lookup leaf in leafHashtable
-		//WeakReference<DD> storedLeaf = (WeakReference<DD>) Global.leafHashtable.get(leaf);
 		//if (storedLeaf != null)
 		//	return (DDleaf) storedLeaf.get();
 
@@ -114,10 +86,6 @@ public class DDleaf extends DD {
 
 	@Override
 	public int hashCode() {
-//		Double valD = new Double(val);
-
-//		return valD.hashCode() + Config.hashCode(config);
-
 		return this.hash;
 	}
 
@@ -192,7 +160,7 @@ public class DDleaf extends DD {
 	@Override
 	public TreeSet<Integer> getVars() {
 
-		return new TreeSet<Integer>();
+		return this.varSet;
 	}
 
 	@Override
