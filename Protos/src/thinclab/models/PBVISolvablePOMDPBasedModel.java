@@ -50,11 +50,15 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 	
 	public String name;
 
-	protected TypedCacheMap<DD, HashMap<Integer, List<Tuple3<Integer, DD, Float>>>> belCache = new TypedCacheMap<>(1000);
+	protected TypedCacheMap<DD, HashMap<Integer, List<Tuple3<Integer, DD, Float>>>> 
+        belCache = new TypedCacheMap<>(1000);
 	protected TypedCacheMap<Tuple<DD, Integer>, DD> lCache = new TypedCacheMap<>(1000);
-	private static final Logger LOGGER = LogManager.getLogger(PBVISolvablePOMDPBasedModel.class);
+	private static final Logger LOGGER = 
+        LogManager.getLogger(PBVISolvablePOMDPBasedModel.class);
 
-	public PBVISolvablePOMDPBasedModel(List<String> S, List<String> O, String A, HashMap<String, Model> dynamics,
+	public PBVISolvablePOMDPBasedModel(
+            List<String> S, List<String> O, String A, 
+            HashMap<String, Model> dynamics,
 			HashMap<String, DD> R, float discount) {
 
 		// variable names
@@ -63,22 +67,33 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 		this.A = Global.valNames.get(Global.varNames.indexOf(A));
 
 		// variable indices
-		this.i_S = this.S.stream().map(s -> Global.varNames.indexOf(s) + 1).collect(Collectors.toList());
-		this.i_Om = this.O.stream().map(o -> Global.varNames.indexOf(o) + 1).collect(Collectors.toList());
+		this.i_S = this.S.stream()
+            .map(s -> Global.varNames.indexOf(s) + 1)
+            .collect(Collectors.toList());
+		this.i_Om = this.O.stream()
+            .map(o -> Global.varNames.indexOf(o) + 1)
+            .collect(Collectors.toList());
 		this.i_A = Global.varNames.indexOf(A) + 1;
 
 		// primed variable indices
-		this.i_S_p = this.i_S.stream().map(i -> i + (Global.NUM_VARS / 2)).collect(Collectors.toList());
-		this.i_Om_p = this.i_Om.stream().map(i -> i + (Global.NUM_VARS / 2)).collect(Collectors.toList());
+		this.i_S_p = this.i_S.stream()
+            .map(i -> i + (Global.NUM_VARS / 2))
+            .collect(Collectors.toList());
+		this.i_Om_p = this.i_Om.stream()
+            .map(i -> i + (Global.NUM_VARS / 2))
+            .collect(Collectors.toList());
 
 		// all possible observations
-		this.oAll = DDOP.cartesianProd(i_Om.stream().map(
-				o -> IntStream.range(1, Global.valNames.get(o - 1).size() + 1).boxed().collect(Collectors.toList()))
+		this.oAll = DDOP.cartesianProd(i_Om.stream()
+                .map(o -> IntStream.range(1, Global.valNames.get(o - 1).size() + 1)
+                    .boxed()
+                    .collect(Collectors.toList()))
 				.collect(Collectors.toList()));
 
 		// take out DBNs from set of models
 		var dyn = new HashMap<String, DBN>(5);
-		dyn.putAll(dynamics.entrySet().stream().filter(e -> e.getValue() instanceof DBN)
+		dyn.putAll(dynamics.entrySet().stream()
+                .filter(e -> e.getValue() instanceof DBN)
 				.collect(Collectors.toMap(e -> e.getKey(), e -> (DBN) e.getValue())));
 
 		// Populate dynamics for missing actions
@@ -93,10 +108,16 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 				}
 			});
 
-		this.TF = this.A.stream().map(a -> this.getTransitionFunction(dyn.get(a))).collect(Collectors.toList());
-		this.OF = this.A.stream().map(a -> this.getObsFunction(dyn.get(a))).collect(Collectors.toList());
+		this.TF = this.A.stream()
+            .map(a -> this.getTransitionFunction(dyn.get(a)))
+            .collect(Collectors.toList());
+		this.OF = this.A.stream()
+            .map(a -> this.getObsFunction(dyn.get(a)))
+            .collect(Collectors.toList());
 
-		var _R = this.A.stream().map(a -> R.containsKey(a) ? R.get(a) : DD.zero).collect(Collectors.toList());
+		var _R = this.A.stream()
+            .map(a -> R.containsKey(a) ? R.get(a) : DD.zero)
+            .collect(Collectors.toList());
 		
 		this.R = IntStream.range(0, _R.size()).boxed().map(i -> {
 			var r = new ArrayList<DD>(this.i_S.size() + 1);
@@ -112,8 +133,10 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 
 	protected List<DD> getTransitionFunction(DBN dbn) {
 
-		var Ta = i_S.stream().map(
-				s -> dbn.cpds.containsKey(s) ? dbn.cpds.get(s) : DBN.getSameTransitionDD(Global.varNames.get(s - 1)))
+		var Ta = i_S.stream()
+            .map(s -> dbn.cpds.containsKey(s) ? 
+                    dbn.cpds.get(s) 
+                    : DBN.getSameTransitionDD(Global.varNames.get(s - 1)))
 				.collect(Collectors.toList());
 
 		return Ta;
@@ -122,7 +145,9 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 	protected List<DD> getObsFunction(DBN dbn) {
 
 		var Oa = i_Om.stream()
-				.map(o -> dbn.cpds.containsKey(o) ? dbn.cpds.get(o) : DDnode.getUniformDist(o + (Global.NUM_VARS / 2)))
+				.map(o -> dbn.cpds.containsKey(o) ? 
+                        dbn.cpds.get(o) 
+                        : DDnode.getUniformDist(o + (Global.NUM_VARS / 2)))
 				.collect(Collectors.toList());
 
 		return Oa;
@@ -132,7 +157,7 @@ public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeq
 		belCache.clear();
 	}
 
-	// ----------------------------------------------------------------------------------------
+	// ------------------------------------------------------------------------------
 	// POSeqDecMakingModel implementations
 
 	@Override
