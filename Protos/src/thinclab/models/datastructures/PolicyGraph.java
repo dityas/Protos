@@ -262,6 +262,15 @@ public class PolicyGraph implements Jsonable {
 
 		LOGGER.info(String.format("Policy Graph for %s has %s nodes", m.getName(), nextState._0().adjMap.size()));
 
+        // mark start nodes
+        LOGGER.debug(String.format("Marking start nodes for %s beliefs", b_is.size()));
+        b_is.forEach(_b -> {
+
+            int id = DDOP.bestAlphaIndex(p.aVecs, _b, m.i_S());
+            var _n = G.nodeMap.get(id);
+            G.nodeMap.put(id, new PolicyNode(_n.alphaId, _n.actId, _n.actName, true));
+        });
+
 		return G;
 	}
 
