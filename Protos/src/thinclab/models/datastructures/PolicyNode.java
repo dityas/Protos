@@ -21,15 +21,25 @@ public class PolicyNode implements Jsonable {
 	final public String actName;
 	final public int alphaId;
 	final public int actId;
+    final public boolean start;
 	
 	public PolicyNode(int alphaId, int actId, String actName) {
 
 		this.alphaId = alphaId; 
 		this.actId = actId;
 		this.actName = actName;
+        this.start = false;
 	}
 	
-	@Override
+    public PolicyNode(int alphaId, int actId, String actName, boolean start) {
+
+		this.alphaId = alphaId; 
+		this.actId = actId;
+		this.actName = actName;
+        this.start = start;
+	}
+	
+    @Override
 	public String toString() {
 		
 		return new GsonBuilder().create().toJson(toJson());
@@ -65,6 +75,9 @@ public class PolicyNode implements Jsonable {
 		json.addProperty("alpha", alphaId);
 		json.addProperty("actId", actId);
 		json.addProperty("act", actName);
+
+        if (start)
+		    json.addProperty("start", start);
 		
 		return json;
 	}
