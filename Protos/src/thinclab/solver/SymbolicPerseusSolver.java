@@ -177,12 +177,14 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
                 Vn.aVecs.clear();
                 Vn.aVecs.addAll(Vn_p.aVecs);
 
-                //				var newV = b_is.parallelStream()
-                //						.map(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()))
-                //						.max((x, y) -> x.compareTo(y)).get();
-
-                LOGGER.info(String.format("i=%s, ||Vn' - Vn||=%.5f, |Vn|=%s, |B|=%s/%s, t=%.3f msec", i, bellmanError,
-                            Vn_p.aVecs.size(), this.usedBeliefs, B.size(), backupT));
+                if (i % 10 == 0) {
+                    LOGGER.info(
+                            String.format(
+                                "i=%s, ||Vn' - Vn||=%.5f, |Vn|=%s, |B|=%s/%s, t=%.3f msec", 
+                                i, bellmanError, 
+                                Vn_p.aVecs.size(), 
+                                this.usedBeliefs, B.size(), backupT));
+                }
 
                 if (bellmanError < 0.01 && i > 9) {
 

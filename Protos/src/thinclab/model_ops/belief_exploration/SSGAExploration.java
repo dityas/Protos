@@ -72,7 +72,7 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
         if (g.getAllNodes().size() >= maxB)
             return;
 
-        LOGGER.info(String.format("Exploring belief region starting from %s initial beliefs.", bs.size()));
+        // LOGGER.info(String.format("Exploring belief region starting from %s initial beliefs.", bs.size()));
         for (int n = 0; n < 30; n++) {
 
             if (g.getAllNodes().size() >= maxB)
