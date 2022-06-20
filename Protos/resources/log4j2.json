@@ -15,7 +15,7 @@
             }
         },
         "loggers": {
-            "root": {
+            "asyncroot": {
                 "level": "debug",
                 "AppenderRef": {
                     "ref": "STDOUT"
