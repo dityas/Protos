@@ -10,15 +10,22 @@ package thinclab.policy;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 import thinclab.DDOP;
 import thinclab.legacy.DD;
+import thinclab.utils.Jsonable;
 import thinclab.utils.Tuple;
 
 /*
  * @author adityas
  *
  */
-public class AlphaVectorPolicy implements Policy<DD> {
+public class AlphaVectorPolicy implements Policy<DD>, Jsonable {
 
 	public List<Tuple<Integer, DD>> aVecs;
 
@@ -38,6 +45,25 @@ public class AlphaVectorPolicy implements Policy<DD> {
 	public String toString() {
 		return aVecs.toString();
 	}
+
+    @Override
+    public JsonElement toJson() {
+
+        var json = new JsonArray();
+
+        aVecs.stream()
+            .forEach(a -> {
+                
+                var _json = new JsonObject();
+                _json.add("actId", new JsonPrimitive(a._0()));
+                _json.add("alpha", a._1().toJson());
+
+                json.add(_json);
+
+            });
+
+        return json;
+    }
 
 	public static AlphaVectorPolicy fromR(List<DD> R) {
 

@@ -1,18 +1,13 @@
-import static org.junit.jupiter.api.Assertions.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.ArrayUtils;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.models.POMDP;
 import thinclab.spuddx_parser.SpuddXMainParser;
+import thinclab.models.POMDP;
 
 /*
  *	THINC Lab at UGA | Cyber Deception Group
@@ -57,5 +52,35 @@ class TestAltOPs {
 
 		LOGGER.info("Running tests for alternate implementations of OPs");
 	}
+
+    @Test
+    void testDDtoJson() throws Exception {
+        System.gc();
+
+		LOGGER.info("Running Single agent tiger domain belief exploration test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
+				.getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+
+        LOGGER.debug(String.format("reward is %s", I.R()));
+
+        var jsons = I.R().stream()
+            .map(r -> r.toJson())
+            .collect(Collectors.toList());
+
+        LOGGER.debug(String.format("reward is %s", jsons));
+    }
 
 }

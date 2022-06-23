@@ -3,6 +3,9 @@ package thinclab.legacy;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import thinclab.utils.Tuple;
 import java.util.ArrayList;
@@ -330,6 +333,27 @@ public class DDnode extends DD {
         return builder.toString();
     }
 
+    @Override
+    public JsonElement toJson() {
+   
+        var _json = new JsonObject();
+        var _array = new JsonArray();
+
+        for (int i = 0; i < children.length; i++) {
+
+            var __json = new JsonObject();
+            __json.add(
+                    Global.valNames.get(var - 1).get(i), 
+                    children[i].toJson());
+
+            _array.add(__json);
+        }
+
+        _json.add(Global.varNames.get(var - 1), _array);
+
+        return _json;
+    }
+
     private TreeSet<Integer> getVarSet() {
 
         var varSet = new TreeSet<Integer>(Collections.singleton(this.var));
@@ -344,12 +368,6 @@ public class DDnode extends DD {
     public TreeSet<Integer> getVars() {
 
         return varSet;
-    }
-
-    @Override
-    public JsonObject toJson() {
-
-        return null;
     }
 
     @Override
