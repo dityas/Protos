@@ -5,6 +5,8 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.models.POMDP;
@@ -81,6 +83,12 @@ class TestAltOPs {
             .collect(Collectors.toList());
 
         LOGGER.debug(String.format("reward is %s", jsons));
+
+        var dds = jsons.stream()
+            .map(j -> DD.fromJson(j))
+            .collect(Collectors.toList());
+
+        LOGGER.info(String.format("Converted DDs are %s", dds));
     }
 
 }

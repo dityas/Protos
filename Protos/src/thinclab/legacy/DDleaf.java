@@ -3,6 +3,7 @@ package thinclab.legacy;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import java.util.TreeSet;
@@ -169,7 +170,10 @@ public class DDleaf extends DD {
 	@Override
 	public JsonElement toJson() {
 
-        return new JsonPrimitive(val);
+        var _json = new JsonObject();
+        _json.add("value", new JsonPrimitive(val));
+
+        return _json;
 	}
 
 	@Override

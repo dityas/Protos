@@ -8,7 +8,6 @@
 package thinclab.agents;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import thinclab.DDOP;

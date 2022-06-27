@@ -20,8 +20,6 @@ import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.legacy.TypedCacheMap;
 import thinclab.solver.PBVISolvable;
-import thinclab.utils.Graphable;
-import thinclab.utils.Jsonable;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 
@@ -29,7 +27,7 @@ import thinclab.utils.Tuple3;
  * @author adityas
  *
  */
-public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeqDecMakingModel<DD>, Jsonable, Graphable {
+public abstract class PBVISolvablePOMDPBasedModel implements PBVISolvable, POSeqDecMakingModel<DD> {
 
 	public final List<String> S;
 	public final List<String> O;

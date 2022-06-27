@@ -7,6 +7,8 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 import thinclab.utils.Tuple;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -337,19 +339,16 @@ public class DDnode extends DD {
     public JsonElement toJson() {
    
         var _json = new JsonObject();
-        var _array = new JsonArray();
+        _json.add("name", new JsonPrimitive(Global.varNames.get(var - 1)));
+        
+        var _array = new JsonObject();
 
-        for (int i = 0; i < children.length; i++) {
-
-            var __json = new JsonObject();
-            __json.add(
+        for (int i = 0; i < children.length; i++) 
+            _array.add(
                     Global.valNames.get(var - 1).get(i), 
                     children[i].toJson());
 
-            _array.add(__json);
-        }
-
-        _json.add(Global.varNames.get(var - 1), _array);
+        _json.add("value", _array);
 
         return _json;
     }
