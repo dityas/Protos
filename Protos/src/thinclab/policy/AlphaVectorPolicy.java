@@ -7,6 +7,7 @@
  */
 package thinclab.policy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -15,6 +16,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import thinclab.DDOP;
 import thinclab.legacy.DD;
@@ -28,6 +32,9 @@ import thinclab.utils.Tuple;
 public class AlphaVectorPolicy implements Policy<DD>, Jsonable {
 
 	public List<Tuple<Integer, DD>> aVecs;
+
+    private static final Logger LOGGER = 
+        LogManager.getLogger(AlphaVectorPolicy.class);
 
 	public AlphaVectorPolicy(List<Tuple<Integer, DD>> alphaVectors) {
 
@@ -63,6 +70,33 @@ public class AlphaVectorPolicy implements Policy<DD>, Jsonable {
             });
 
         return json;
+    }
+
+    public static AlphaVectorPolicy fromJson(JsonElement json) {
+
+        if (json instanceof JsonArray ja) {
+            
+            var aVecs = new ArrayList<Tuple<Integer, DD>>();
+
+            ja.forEach(j -> {
+
+                var _jo = j.getAsJsonObject();
+                var actId = _jo.get("actId").getAsInt();
+                var alpha = DD.fromJson(_jo.get("alpha"));
+
+                if (alpha.isPresent())
+                    aVecs.add(Tuple.of(actId, alpha.get()));
+
+                else
+                    LOGGER.error(
+                            String.format(
+                                "Error while loading %s", _jo));
+            });
+
+            return new AlphaVectorPolicy(aVecs);
+        }
+
+        return null;
     }
 
 	public static AlphaVectorPolicy fromR(List<DD> R) {

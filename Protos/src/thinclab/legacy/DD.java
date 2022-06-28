@@ -3,11 +3,9 @@ package thinclab.legacy;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 import thinclab.utils.Graphable;
 import thinclab.utils.Jsonable;

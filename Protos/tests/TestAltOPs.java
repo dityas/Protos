@@ -1,4 +1,10 @@
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.File;
+import java.util.List;
 import java.util.stream.Collectors;
+
+import com.google.gson.GsonBuilder;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -7,9 +13,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.spuddx_parser.SpuddXMainParser;
+import thinclab.utils.Utils;
 import thinclab.models.POMDP;
+import thinclab.policy.AlphaVectorPolicy;
+import thinclab.solver.SymbolicPerseusSolver;
 
 /*
  *	THINC Lab at UGA | Cyber Deception Group
@@ -91,4 +101,54 @@ class TestAltOPs {
         LOGGER.info(String.format("Converted DDs are %s", dds));
     }
 
+    @Test
+    void testPolicySerialization() throws Exception {
+        System.gc();
+
+		LOGGER.info("Running Single agent tiger domain belief exploration test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
+				.getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+		
+        var solver = new SymbolicPerseusSolver<POMDP>();
+		var policy = solver.solve(
+                List.of(DDleaf.getDD(0.5f)), 
+                I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
+
+        var gson = new GsonBuilder().setPrettyPrinting().create();
+        var json = gson.toJson(policy.toJson());
+
+        LOGGER.debug(
+                String.format(
+                    "Policy is %s", policy));
+
+        LOGGER.debug(
+                String.format(
+                    "Policy to json is %s", json));
+
+        LOGGER.debug(
+                String.format(
+                    "Recovered policy is %s",
+                    AlphaVectorPolicy.fromJson(policy.toJson())));
+
+        Utils.writeJsonToFile(policy.toJson(), "/tmp/policy.json");
+        
+        var policyFile = new File("/tmp/policy.json");
+        assertTrue(policyFile.exists());
+
+        policyFile.delete();
+
+    }
 }
