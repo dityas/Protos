@@ -8,9 +8,6 @@
 package thinclab.models;
 
 import java.util.List;
-import java.util.Set;
-import thinclab.models.datastructures.ReachabilityNode;
-import thinclab.utils.Tuple;
 
 /*
  * @author adityas

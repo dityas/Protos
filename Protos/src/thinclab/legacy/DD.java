@@ -7,6 +7,9 @@ import java.util.TreeSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import thinclab.utils.Graphable;
 import thinclab.utils.Jsonable;
 
@@ -18,6 +21,7 @@ public abstract class DD implements Serializable, Jsonable, Graphable {
     protected int var;
 
     private static final long serialVersionUID = 2478730562973454848L;
+    private static final Logger LOGGER = LogManager.getFormatterLogger(DD.class);
 
     public int getVar() {
 
@@ -71,6 +75,14 @@ public abstract class DD implements Serializable, Jsonable, Graphable {
                     .indexOf(
                             jo.get("name")
                             .getAsString()) + 1;
+
+                if (ddVar == 0) {
+                    LOGGER.error("Could not find %s in %s",
+                            jo.get("name").getAsString(),
+                            Global.varNames);
+
+                    return Optional.empty();
+                }
 
                 var values = jo.get("value").getAsJsonObject();
                 var dds = Global.valNames.get(ddVar - 1)
