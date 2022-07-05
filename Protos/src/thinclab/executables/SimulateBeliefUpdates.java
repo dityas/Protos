@@ -107,14 +107,19 @@ public class SimulateBeliefUpdates {
             System.out.print(">>> ");
             int aIndex = in.nextInt();
 
+            // obs likelihoods
+            var likelihoods = model.obsLikelihoods(b, aIndex);
+
             System.out.println();
             System.out.println("Enter observation index:");
 
             IntStream.range(0, allObsLabels.size())
                 .forEach(i -> {
+                    var obs = DDOP.restrict(
+                            likelihoods, model.i_Om_p(), allObs.get(i));
                     System.out.println(
-                            String.format("%s: %s", 
-                                i, allObsLabels.get(i)));
+                            String.format("%s: %s \t(likelihood: %s)", 
+                                i, allObsLabels.get(i), obs));
                 });
 
             System.out.print(">>> ");

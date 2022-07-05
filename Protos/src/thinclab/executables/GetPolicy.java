@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.models.POMDP;
+import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
@@ -80,6 +81,28 @@ public class GetPolicy {
     		var solver = new SymbolicPerseusSolver<POMDP>();
 	    	var policy = solver.solve(
                 List.of(b_i), I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
+
+            Utils.writeJsonToFile(policy.toJson(), policyFile);
+        }
+        
+        // Solve IPOMDP
+        if (line.hasOption("ipomdp")) {
+            var I = (IPOMDP) parser.getModel(modelName).orElseGet(() ->
+			{
+				LOGGER.error("Model %s not found", modelName);
+				System.exit(-1);
+				return null;
+			});
+
+            var b_i = parser.getDDs().get(biName);
+            if (b_i == null) {
+                LOGGER.error("Belief DD %s does not exist", biName);
+                System.exit(-1);
+            }
+
+    		var solver = new SymbolicPerseusSolver<IPOMDP>();
+	    	var policy = solver.solve(
+                List.of(b_i), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
 
             Utils.writeJsonToFile(policy.toJson(), policyFile);
         }
