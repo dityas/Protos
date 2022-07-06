@@ -18,6 +18,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 
 public class Global {
@@ -26,8 +32,6 @@ public class Global {
 	public static List<String> varNames = new ArrayList<>(10);
 	public static List<List<String>> valNames = new ArrayList<>(10);
 
-	// public static TypedCacheMap<String, HashMap<Tuple<Integer, DD>, String>>
-	// modelVars = new TypedCacheMap<>();
 	public static TypedCacheMap<String, HashMap<MjRepr<ReachabilityNode>, String>> modelVars = new TypedCacheMap<>();
 
 	public static int NUM_VARS = 0;
@@ -200,6 +204,27 @@ public class Global {
 		Collections.sort(varList, (a, b) -> ordering.indexOf(a) - ordering.indexOf(b));
 		return varList;
 	}
+
+    public static JsonElement toJson() {
+    
+        var _jsonArray = new JsonArray();
+        
+        IntStream.range(0, (NUM_VARS / 2)).forEach(i -> {
+
+            var _json = new JsonObject();
+            _json.add("name", new JsonPrimitive(varNames.get(i)));
+
+            var vals = new JsonArray();
+            valNames.get(i).forEach(v -> {
+                vals.add(v);
+            });
+
+            _json.add("values", vals);
+            _jsonArray.add(_json);
+        });
+
+        return _jsonArray;
+    }
 
 //	public static List<Tuple<Tuple<Integer, ReachabilityNode>, DD>> decoupleMj(DD b, int i_Mj) {
 //

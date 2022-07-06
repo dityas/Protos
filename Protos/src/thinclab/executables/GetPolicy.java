@@ -9,6 +9,8 @@ package thinclab.executables;
 
 import java.util.List;
 
+import com.google.gson.JsonObject;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -17,6 +19,7 @@ import org.apache.commons.cli.Options;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import thinclab.legacy.Global;
 import thinclab.models.POMDP;
 import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.policy.AlphaVectorPolicy;
@@ -82,7 +85,11 @@ public class GetPolicy {
 	    	var policy = solver.solve(
                 List.of(b_i), I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
 
-            Utils.writeJsonToFile(policy.toJson(), policyFile);
+            var _json = new JsonObject();
+            _json.add("variables", Global.toJson());
+            _json.add("policy", policy.toJson());
+
+            Utils.writeJsonToFile(_json, policyFile);
         }
         
         // Solve IPOMDP
