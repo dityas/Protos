@@ -23,13 +23,15 @@ import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.utils.Jsonable;
+import thinclab.utils.LispExpressible;
 import thinclab.utils.Tuple;
 
 /*
  * @author adityas
  *
  */
-public class AlphaVectorPolicy implements Policy<DD>, Jsonable {
+public class AlphaVectorPolicy implements Policy<DD>, 
+       Jsonable, LispExpressible {
 
 	public List<Tuple<Integer, DD>> aVecs;
 
@@ -70,6 +72,25 @@ public class AlphaVectorPolicy implements Policy<DD>, Jsonable {
             });
 
         return json;
+    }
+
+    @Override
+    public Object toLisp() {
+
+        var policyList = new ArrayList<Object>(aVecs.size());
+        policyList.add("list");
+
+        for (var alpha: aVecs) {
+
+            var vecList = new ArrayList<Object>(2);
+            vecList.add("list");
+            vecList.add(alpha._0());
+            vecList.add(alpha._1());
+
+            policyList.add(vecList);
+        }
+
+        return policyList;
     }
 
     public static AlphaVectorPolicy fromJson(JsonElement json) {

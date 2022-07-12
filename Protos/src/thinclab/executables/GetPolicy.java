@@ -47,7 +47,7 @@ public class GetPolicy {
 		opt.addOption("d", true, "path to the SPUDDX file");
 		opt.addOption("b", true, "name of the initial belief DD");
 		opt.addOption("m", true, "name of the POMDP/IPOMDP");
-		opt.addOption("p", true, "path to the JSON file to store the policy");
+		opt.addOption("p", true, "path to the file to store the policy");
 
 		CommandLine line = null;
 		line = cliParser.parse(opt, args);
