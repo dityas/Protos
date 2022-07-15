@@ -123,8 +123,6 @@ class TestANTLRSpuddParser {
 
 		printMemConsumption();
 
-		assertTrue(domainRunner.getDDs().size() == 4);
-
 	}
 
 	@Test

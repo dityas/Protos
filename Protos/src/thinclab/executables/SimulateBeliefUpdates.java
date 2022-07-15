@@ -186,7 +186,7 @@ public class SimulateBeliefUpdates {
                     });
         }
 
-        var b_i = parser.getDDs().get(biName);
+        var b_i = parser.getDD(biName);
         if (b_i == null) {
             LOGGER.error("Belief DD %s does not exist", biName);
             System.exit(-1);

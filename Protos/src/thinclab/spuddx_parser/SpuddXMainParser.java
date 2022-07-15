@@ -66,7 +66,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
     // parsed DDs
     private HashMap<String, DD> dds = new HashMap<>(10);
-    private DDParser ddParser = new DDParser(this.dds);
+    private DDParser ddParser = new DDParser(this.envMap);
 
     // parsed Models
     private HashMap<String, Model> models = new HashMap<>(10);
@@ -183,7 +183,8 @@ public class SpuddXMainParser extends SpuddXBaseListener {
         String ddName = ctx.dd_def().dd_name().IDENTIFIER().getText();
         DD dd = this.ddParser.visit(ctx.dd_def().dd_expr());
 
-        this.dds.put(ddName, dd);
+        // this.dds.put(ddName, dd);
+        this.envMap.put(ddName, dd);
         LOGGER.debug(String.format("Parsed DD %s", ddName));
 
         super.enterDDDef(ctx);
@@ -452,9 +453,10 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
     // ----------------------------------------------------------------------------------------
 
-    public HashMap<String, DD> getDDs() {
+    public DD getDD(String name) {
 
-        return this.dds;
+        var dd = envMap.get(name);
+        return dd instanceof DD _dd ? _dd : null;
     }
 
     public Optional<Model> getModel(String modelName) {

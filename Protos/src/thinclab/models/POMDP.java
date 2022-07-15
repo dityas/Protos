@@ -186,6 +186,15 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 	@Override
 	public void step() {}
 
+    public Object toLispObjects() {
+
+        var transitionFunction = new ArrayList<Object>(i_S().size() + 1);
+        transitionFunction.add("list");
+        transitionFunction.addAll(TF.get(0));
+
+        return transitionFunction;
+    }
+
 	// ----------------------------------------------------------------------------------------
 	// PBVISolvable implementations
 

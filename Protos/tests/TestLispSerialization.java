@@ -62,18 +62,6 @@ class TestLispSerialization {
         LOGGER.info("Reader read %s chars", data.length());
 
         var tokenizer = new StreamTokenizer(new BufferedReader(new FileReader(domainFile)));
-        
-        while(true) {
-
-            var tok = tokenizer.nextToken();
-            
-            var word = tok == StreamTokenizer.TT_NUMBER ? tokenizer.nval : tokenizer.sval;
-
-            LOGGER.debug("Tokenizer read %s", word);
-
-            if (tok == StreamTokenizer.TT_EOF)
-                break;
-        }
     }
     
     @Test
@@ -107,5 +95,35 @@ class TestLispSerialization {
 
         LOGGER.debug(String.format("Policy is %s", policy));
         System.out.println(LispExpressible.toString(policy.toLisp()));
+    }
+    
+    @Test
+    void testPOMDPToLisp() throws Exception {
+
+        LOGGER.info("Testing Policy to Lisp");
+
+        System.gc();
+
+		LOGGER.info("Running Single agent tiger domain belief exploration test");
+		String domainFile = this.getClass()
+            .getClassLoader()
+            .getResource("test_domains/test_tiger_domain.spudd")
+			.getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+
+        LOGGER.debug(String.format("POMDP is %s", I.toLispObjects()));
+        System.out.println(LispExpressible.toString(I.toLispObjects()));
     }
 }
