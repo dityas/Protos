@@ -37,6 +37,12 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		super(S, O, A, dynamics, R, discount);
 	}
 
+    public POMDP(List<String> S, List<String> O, String A, 
+            List<List<DD>> TF, List<List<DD>> OF, List<DD> R, float discount) {
+
+        super(S, O, A, TF, OF, R, discount);
+    }
+
 	@Override
 	public String toString() {
 

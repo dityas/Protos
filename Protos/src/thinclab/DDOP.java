@@ -1139,4 +1139,31 @@ public class DDOP {
 		
 		return json;
 	}
+
+    public static float l2NormSq(final DD d1, final DD d2) {
+
+        var diff = DDOP.pow(DDOP.sub(d1, d2), 2.0f);
+
+        if (diff instanceof DDleaf d)
+            return d.getVal();
+
+        else {
+
+            var sum = 0.0f;
+            for (int i = 0; i < diff.getChildren().length; i++)
+                sum += diff.getChildren()[i].getVal();
+
+            return sum;
+        }
+    }
+
+    public static float l2NormSq(List<DD> dds1, List<DD> dds2) {
+    
+        var norm = 0.0f;
+
+        for (int i = 0; i < dds1.size(); i++)
+            norm += DDOP.l2NormSq(dds1.get(i), dds2.get(i));
+
+        return norm / (float) dds1.size();
+    }
 }

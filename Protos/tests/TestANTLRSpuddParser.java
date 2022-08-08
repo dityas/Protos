@@ -1,8 +1,14 @@
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.InputStream;
+import java.io.StreamTokenizer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import thinclab.DDOP;
 import thinclab.RandomVariable;
+import thinclab.domain_lang.DomainLangInterpreter;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
@@ -237,8 +244,13 @@ class TestANTLRSpuddParser {
 				.getResource("test_domains/test_ipomdpl1_lisp.spudd")
 				.getFile();
 
-		var domainRunner = new SpuddXMainParser(domainFile);
-		domainRunner.run();
+        var reader = Arrays.asList(Files.readString(Paths.get(domainFile))
+            .replaceAll("[(]", " ( ")
+            .replaceAll("[)]", " ) ")
+            .strip()
+            .split("\\s+")); 
+
+        LOGGER.debug(String.format("Read %s", reader));
 
 		printMemConsumption();
 
