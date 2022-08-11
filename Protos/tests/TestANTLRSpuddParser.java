@@ -1,13 +1,7 @@
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.InputStream;
-import java.io.StreamTokenizer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.apache.logging.log4j.LogManager;
@@ -15,10 +9,8 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import thinclab.DDOP;
-import thinclab.RandomVariable;
 import thinclab.domain_lang.DomainLangInterpreter;
-import thinclab.legacy.DD;
+import thinclab.domain_lang.Parser;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.models.IPOMDP.IPOMDP;
@@ -26,7 +18,6 @@ import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.spuddx_parser.SpuddXLexer;
 import thinclab.spuddx_parser.SpuddXMainParser;
-import thinclab.spuddx_parser.SpuddXParserWrapper;
 
 /*
  *	THINC Lab at UGA | Cyber Deception Group
@@ -42,7 +33,8 @@ import thinclab.spuddx_parser.SpuddXParserWrapper;
  */
 class TestANTLRSpuddParser {
 
-	private static final Logger LOGGER = LogManager.getLogger(TestANTLRSpuddParser.class);
+	private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(TestANTLRSpuddParser.class);
 
 	public String domainFile;
 
@@ -244,13 +236,16 @@ class TestANTLRSpuddParser {
 				.getResource("test_domains/test_ipomdpl1_lisp.spudd")
 				.getFile();
 
-        var reader = Arrays.asList(Files.readString(Paths.get(domainFile))
-            .replaceAll("[(]", " ( ")
-            .replaceAll("[)]", " ) ")
-            .strip()
-            .split("\\s+")); 
+        // check file reading
+        var code = Parser.readFromFile(domainFile);
+        assertNotNull(code);
 
+        // check tokenizing
+        var reader = Parser.tokenize(code);
         LOGGER.debug(String.format("Read %s", reader));
+
+        // check parsing
+        DomainLangInterpreter.run(reader);
 
 		printMemConsumption();
 
