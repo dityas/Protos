@@ -1,0 +1,8 @@
+(define id (\ (x) x))
+(define car 
+    (java-method thinclab.domain_lang.SpuddUtils car java.util.List)
+)
+(define cdr 
+    (java-method thinclab.domain_lang.SpuddUtils cdr java.util.List)
+)
+

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -16,6 +17,11 @@ import org.apache.logging.log4j.Logger;
 public class Utils {
 
     private static final Logger LOGGER = LogManager.getFormatterLogger(Utils.class);
+
+    // Zip two lists
+    public static List<Tuple<?, ?>> zip(List<?> a, List<?> b) {
+        return null;
+    }
 
     // Write JSON object to file
     public static void writeJsonToFile(JsonElement json, String fileName) {

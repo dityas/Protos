@@ -42,7 +42,7 @@ public class DDOP {
 	 * consequences. Also, I absolutely hate java for this.
 	 */
 
-	private static final Logger LOGGER = LogManager.getLogger(DDOP.class);
+	private static final Logger LOGGER = LogManager.getFormatterLogger(DDOP.class);
 
 	// --------------------------------------------------------------------------------------------
 	// Arith ops
@@ -1140,30 +1140,14 @@ public class DDOP {
 		return json;
 	}
 
-    public static float l2NormSq(final DD d1, final DD d2) {
+    public static float l2NormSq(final DD d1, final DD d2, int dimensions) {
 
         var diff = DDOP.pow(DDOP.sub(d1, d2), 2.0f);
 
         if (diff instanceof DDleaf d)
-            return d.getVal();
+            return d.getVal() * dimensions;
 
-        else {
-
-            var sum = 0.0f;
-            for (int i = 0; i < diff.getChildren().length; i++)
-                sum += diff.getChildren()[i].getVal();
-
-            return sum;
-        }
-    }
-
-    public static float l2NormSq(List<DD> dds1, List<DD> dds2) {
-    
-        var norm = 0.0f;
-
-        for (int i = 0; i < dds1.size(); i++)
-            norm += DDOP.l2NormSq(dds1.get(i), dds2.get(i));
-
-        return norm / (float) dds1.size();
+        else
+            return addMultVarElim(List.of(diff), diff.getVars()).getVal();
     }
 }

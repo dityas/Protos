@@ -55,9 +55,12 @@ public class Parser {
         
         var term = line.remove(0);
 
-        if (term.contentEquals("(")) {
+        if (term == ")")
+            return null;
+
+        else if (term.contentEquals("(")) {
+
             var list = new ArrayList<Object>();
-            
             while(true) {
 
                 var next = parse(line);
