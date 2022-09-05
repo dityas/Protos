@@ -70,10 +70,164 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public HashMap<MjRepr<PolicyNode>, String> ECMap = new HashMap<>();
 	public HashMap<String, String> mjToECMap = new HashMap<>();
 
-	private static final Logger LOGGER = LogManager.getLogger(IPOMDP.class);
+	private static final Logger LOGGER = 
+        LogManager.getLogger(IPOMDP.class);
+	
+    
+    public IPOMDP(IPOMDP i) {
 
-	public IPOMDP(List<String> S, List<String> O, String A, String Aj, String Mj, String EC, String Thetaj,
-			List<Tuple<String, Model>> frames_j, HashMap<String, Model> dynamics, HashMap<String, DD> R, float discount,
+        super(i.S, i.O, i.A, i.TF, i.OF, i.R, i.discount);
+    }
+
+    public IPOMDP(List<String> S, List<String> O, String A, 
+            String Aj, String Mj, String EC, String Thetaj,
+			List<Tuple<String, Model>> frames_j, 
+            List<List<DD>> TF, List<List<DD>> OF, List<DD> R, 
+            float discount,
+			int H, String name) {
+
+        super(S, O, A, TF, OF, R, discount);
+
+		jointR = new ArrayList<DD>(this.R.size());
+		jointR.addAll(this.R);
+
+		this.name = name;
+
+		// random variable for opponent's action
+		this.i_Aj = Global.varNames.indexOf(Aj) + 1;
+		this.Aj = Global.valNames.get(i_Aj - 1);
+
+		// opponent's model variable
+		this.i_Mj = Global.varNames.indexOf(Mj) + 1;
+		this.i_Mj_p = this.i_Mj + (Global.NUM_VARS / 2);
+
+		this.i_EC = Global.varNames.indexOf(EC) + 1;
+		this.i_EC_p = this.i_EC + (Global.NUM_VARS / 2);
+
+		this.i_S.add(i_EC);
+		this.i_S_p.add(i_EC_p);
+
+		// random variable for frame of the opponent
+		this.i_Thetaj = Global.varNames.indexOf(Thetaj) + 1;
+		this.Thetaj = Global.valNames.get(i_Thetaj - 1);
+
+		this.H = H;
+
+		var _mjVars = new ArrayList<>(i_S());
+		_mjVars.remove(_mjVars.size() - 1);
+		_mjVars.add(i_Mj);
+
+		mjVars = _mjVars;
+
+		// initialize frames
+		this.framesj = frames_j.stream()
+				// make tuples (frameId, POMDP/IPOMDP)
+				.map(t -> Tuple.of(Global.valNames.get(i_Thetaj - 1).indexOf(t._0()),
+						(PBVISolvablePOMDPBasedModel) t._1()))
+				// make tuples (frameId, POMDP/IPOMDP, beliefs (reachability nodes))
+				.map(t -> Tuple.of(t._0(), t._1(),
+						Global.modelVars.get(Global.varNames.get(i_Mj - 1)).keySet().stream()
+								.filter(k -> k.frame == t._0()).map(k -> k._1()).collect(Collectors.toList())))
+				.collect(Collectors.toList());
+
+		Collections.sort(this.framesj, (f1, f2) -> f1._0() - f2._0());
+
+		// verify and prepare Oj
+		var incorrectFrame = this.framesj.stream().filter(f -> !f._1().Om().equals(this.framesj.get(0)._1().Om()))
+				.findAny();
+
+		if (incorrectFrame.isPresent()) {
+
+			LOGGER.error(String.format(
+					"All frame should have the same set of observation variables. %s seems to be different.",
+					incorrectFrame.get()));
+			System.exit(-1);
+		}
+
+		// prepare opponent's observations and obs functions
+		Omj = this.framesj.get(0)._1().Om();
+		i_Omj = this.framesj.get(0)._1().i_Om();
+		i_Omj_p = this.framesj.get(0)._1().i_Om_p();
+
+		var OjRestrictedAi = IntStream
+				.range(0, A().size()).mapToObj(i -> this.framesj.stream()
+						.map(f -> this.prepareOj_pGivenAjAiS_p(i + 1, f._1().O())).collect(Collectors.toList()))
+				.collect(Collectors.toList());
+
+		Oj = IntStream
+				.range(0,
+						A().size())
+				.mapToObj(i -> IntStream.range(0, Omj.size())
+						.mapToObj(o -> DDnode.getDD(i_Thetaj,
+								IntStream.range(0, this.framesj.size())
+										.mapToObj(f -> OjRestrictedAi.get(i).get(f).get(o)).toArray(DD[]::new)))
+						.collect(Collectors.toList()))
+				.collect(Collectors.toList());
+
+		allvars = new ArrayList<Integer>();
+		allvars.addAll(i_S());
+		allvars.add(i_Aj);
+		allvars.add(i_Thetaj);
+		allvars.addAll(i_Omj_p);
+
+		Collections.sort(allvars);
+
+		gaoivars = new ArrayList<Integer>();
+		gaoivars.addAll(i_S_p());
+		gaoivars.add(i_Aj);
+		gaoivars.add(i_Thetaj);
+
+		Collections.sort(gaoivars);
+
+		this.ecThetas = this.framesj.stream()
+				.map(f -> new MjThetaSpace(
+						f._2().stream().flatMap(n -> n.beliefs.stream()).collect(Collectors.toList()), f._0(), f._1()))
+				.collect(Collectors.toList());
+
+		// create interactive state space using mjs
+		updateIS();
+
+		// populate mj to EC map
+		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream().forEach(e ->
+			{
+
+				int frameId = e.getKey().frame;
+				var bel = e.getKey().m.beliefs.stream().findAny().get();
+				var frame = ecThetas.get(frameId);
+				
+				if (frame.m instanceof IPOMDP)
+					bel = ((IPOMDP) frame.m).getECDDFromMjDD(bel);
+
+				int alphaId = DDOP.bestAlphaIndex(frame.Vn.aVecs, bel, frame.m.i_S());
+//				int actId = frame.Vn.getBestActionIndex(bel, frame.m.i_S());
+				int actId = frame.Vn.aVecs.get(alphaId)._0();
+
+				var node = new MjRepr<>(frameId, new PolicyNode(alphaId, actId, frame.m.A().get(actId)));
+				var ec = ECMap.get(node);
+
+				if (ec == null) {
+
+					LOGGER.error(String.format("Panic! Could not find equivalence class for belief %s", e.getValue()));
+					LOGGER.debug(String.format("actId is %s, alphaId %s and frameId %s, act %s", 
+							actId, alphaId, frameId, frame.m.A().get(actId)));
+					LOGGER.debug(String.format("EC map is %s", ECMap));
+					LOGGER.debug(String.format("Belief is %s", bel));
+					
+					DDOP.printValuesForBelief(frame.Vn.aVecs, bel, mjVars, frame.m.A());
+					
+					System.exit(-1);
+				}
+
+				mjToECMap.put(e.getValue(), ECMap.get(node));
+			});
+
+    }
+
+	public IPOMDP(List<String> S, List<String> O, String A, 
+            String Aj, String Mj, String EC, String Thetaj,
+			List<Tuple<String, Model>> frames_j, 
+            HashMap<String, Model> dynamics, HashMap<String, DD> R, 
+            float discount,
 			int H, String name) {
 
 		// initialize dynamics like POMDP
@@ -501,7 +655,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	@Override
 	public DD step(DD b, String a, List<String> o) {
 
-		// TODO Auto-generated method stub
 		return null;
 	}
 

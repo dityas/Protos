@@ -51,10 +51,44 @@ public abstract class PBVISolvablePOMDPBasedModel implements
 
     protected TypedCacheMap<DD, HashMap<Integer, List<Tuple3<Integer, DD, Float>>>> 
         belCache = new TypedCacheMap<>(1000);
-    protected TypedCacheMap<Tuple<DD, Integer>, DD> lCache = new TypedCacheMap<>(1000);
+    protected TypedCacheMap<Tuple<DD, Integer>, DD> lCache = 
+        new TypedCacheMap<>(1000);
     private static final Logger LOGGER = 
         LogManager.getLogger(PBVISolvablePOMDPBasedModel.class);
 
+    public PBVISolvablePOMDPBasedModel(List<String> S, 
+            List<String> O, String A,
+            List<List<DD>> TF, List<List<DD>> OF,
+            List<DD> R, float discount) {
+
+        // variable names
+        this.S = Global.sortByVarOrdering(S, Global.varNames);
+        this.O = Global.sortByVarOrdering(O, Global.varNames);
+        this.A = Global.valNames.get(Global.varNames.indexOf(A));
+
+        // variable indices
+        this.i_S = makeIndices(this.S);
+        this.i_Om = makeIndices(this.O);
+        this.i_A = Global.varNames.indexOf(A) + 1;
+
+        // primed variable indices
+        this.i_S_p = makePrimeIndices(this.i_S);
+        this.i_Om_p = makePrimeIndices(i_Om);
+
+        // all possible observations
+        this.oAll = DDOP.cartesianProd(i_Om.stream()
+                .map(o -> IntStream.range(1, Global.valNames.get(o - 1).size() + 1)
+                    .boxed()
+                    .collect(Collectors.toList()))
+                .collect(Collectors.toList()));
+        
+        // init dynamics
+        this.TF = TF;
+        this.OF = OF;
+        this.R = R;
+        this.discount = discount;
+    }
+    
     public PBVISolvablePOMDPBasedModel(List<String> S, 
             List<String> O, String A,
             List<List<DD>> TF, List<List<DD>> OF,

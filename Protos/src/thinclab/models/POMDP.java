@@ -31,14 +31,16 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 	private static final Logger LOGGER = LogManager.getLogger(POMDP.class);
 
-	public POMDP(List<String> S, List<String> O, String A, HashMap<String, Model> dynamics, HashMap<String, DD> R,
+	public POMDP(List<String> S, List<String> O, String A, 
+            HashMap<String, Model> dynamics, HashMap<String, DD> R,
 			float discount) {
 
 		super(S, O, A, dynamics, R, discount);
 	}
 
     public POMDP(List<String> S, List<String> O, String A, 
-            List<List<DD>> TF, List<List<DD>> OF, List<DD> R, float discount) {
+            List<List<DD>> TF, List<List<DD>> OF, List<DD> R, 
+            float discount) {
 
         super(S, O, A, TF, OF, R, discount);
     }
