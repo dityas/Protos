@@ -38,6 +38,7 @@ public class Eval {
             return null;
     }
 
+    // Evaluate a list
     public static Either<Exception, List<Object>> evalList(
             List<Object> l, 
             Environment env) {
@@ -75,13 +76,14 @@ public class Eval {
         return DDleaf.getDD(n);
     }
 
-    // eval define
+    // add an object to the env
     public static Object addToEnv(String name, 
             Object obj, Environment env) {
         env.map.put(name, obj);
         return null;
     }
 
+    // evaluate define statements
     public static Either<Exception, Object> evalDefine(List<?> l, 
             Environment env) {
 
@@ -158,8 +160,18 @@ public class Eval {
                     error(String.format(
                             "Could not evaluate %s", func)));
     }
+    
+    // eval DDs
+    public static Either<Exception, Object> evalDDDef(Object parsed,
+            Environment env) {
 
 
+        
+        return null;
+    }
+
+
+    // main eval loop
     public static Either<Exception, Object> eval(Object parsed, 
             Environment env) {
 
