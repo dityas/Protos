@@ -32,7 +32,8 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
     private int usedBeliefs = 0;
 
-    private static final Logger LOGGER = LogManager.getLogger(SymbolicPerseusSolver.class);
+    private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(SymbolicPerseusSolver.class);
 
     /*
      * Perform backups and get the next value function for a given explored belief
@@ -62,7 +63,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
                 float val = DDOP.dotProduct(b, Vn.aVecs.get(a)._1(), m.i_S());
 
-                if (val >= bestVal) {
+                if (val > bestVal) {
 
                     bestVal = val;
                     bestA = Vn.aVecs.get(a)._0();
@@ -76,6 +77,9 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             if (newAlphab > bestVal)
                 newVn.add(newAlpha);
 
+//            else if (Math.abs(bestVal - newAlphab) < 1e-5f)
+//                newVn.addAll(Vn.aVecs);
+            
             else
                 newVn.add(Tuple.of(bestA, bestDD));
 

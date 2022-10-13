@@ -20,7 +20,9 @@ import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.POMDP;
 import thinclab.models.IPOMDP.IPOMDP;
+import thinclab.models.datastructures.PolicyGraph;
 import thinclab.policy.AlphaVectorPolicy;
+import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.utils.Utils;
 
@@ -48,14 +50,16 @@ public class SimulateBeliefUpdates {
             .collect(Collectors.toList());
 
         var in = new Scanner(System.in);
-        var b = b_i;
+        //        var b = model instanceof IPOMDP ? 
+        //            ((IPOMDP) model).getECDDFromMjDD(b_i) :
+        //            b_i;
 
         // start belief stepping
         while (true) {
 
             System.out.println();
 
-            var b_factors = DDOP.factors(b, model.i_S());
+            var b_factors = DDOP.factors(b_i, model.i_S());
             var b_EC = b_factors.get(b_factors.size() - 1);
 
             // print belief
@@ -72,14 +76,10 @@ public class SimulateBeliefUpdates {
                         String.format(
                             "Belief over Aj's frame is %s", 
                             DDOP.getFrameBelief(
-                                b, 
+                                b_i, 
                                 _model.PThetajGivenEC,
                                 _model.i_EC, 
                                 _model.i_S())));
-                System.out.println(
-                        String.format(
-                            "Belief of attacker level 2 is %s", 
-                            b_factors));
                 System.out.println(
                         String.format(
                             "Predicted actions: %s", 
@@ -92,7 +92,7 @@ public class SimulateBeliefUpdates {
             System.out.println();
             System.out.print("Enter action index: ");
             if (p != null) {
-                var suggestedA = p.getBestActionIndex(b, model.i_S());
+                var suggestedA = p.getBestActionIndex(b_i, model.i_S());
                 System.out.print(String.format("(policy suggests: %s)",
                             model.A().get(suggestedA)));
             }
@@ -108,10 +108,14 @@ public class SimulateBeliefUpdates {
             int aIndex = in.nextInt();
 
             // obs likelihoods
-            var likelihoods = model.obsLikelihoods(b, aIndex);
+            var likelihoods = model.obsLikelihoods(b_i, aIndex);
 
             System.out.println();
             System.out.println("Enter observation index:");
+            var obsNames = model.i_Om().stream()
+                .map(o -> Global.varNames.get(o - 1))
+                .collect(Collectors.toList());
+            System.out.println(obsNames);
 
             IntStream.range(0, allObsLabels.size())
                 .forEach(i -> {
@@ -132,9 +136,9 @@ public class SimulateBeliefUpdates {
                         model.A().get(aIndex), 
                         allObsLabels.get(oIndex),
                         DDOP.dotProduct(
-                            b, model.R().get(aIndex), model.i_S())));
+                            b_i, model.R().get(aIndex), model.i_S())));
 
-            b = model.beliefUpdate(b, aIndex, allObs.get(oIndex));
+            b_i = model.beliefUpdate(b_i, aIndex, allObs.get(oIndex));
         }
 
             }
@@ -150,7 +154,8 @@ public class SimulateBeliefUpdates {
         opt.addOption("d", true, "path to the SPUDDX file");
         opt.addOption("b", true, "name of the initial belief DD");
         opt.addOption("m", true, "name of the POMDP/IPOMDP");
-        opt.addOption("p", true, "path to the JSON file to store the policy");
+        opt.addOption("p", true, "path to the JSON file to store the policy" +
+                "(solve) for computing it online");
 
         CommandLine line = null;
         line = cliParser.parse(opt, args);
@@ -169,16 +174,20 @@ public class SimulateBeliefUpdates {
         parser.run();
 
         AlphaVectorPolicy p = null;
-
-        if (line.getOptionValue("p") != null)
-            p = AlphaVectorPolicy.fromJson(
-                    Utils.readJsonFromFile(line.getOptionValue("p")));
-        
         PBVISolvablePOMDPBasedModel model = null;
 
         // Solve POMDP
         if (line.hasOption("pomdp")) {
             model = (POMDP) parser.getModel(modelName).orElseGet(() ->
+                    {
+                        LOGGER.error("Model %s not found", modelName);
+                        System.exit(-1);
+                        return null;
+                    });
+        }
+
+        else {
+            model = (IPOMDP) parser.getModel(modelName).orElseGet(() ->
                     {
                         LOGGER.error("Model %s not found", modelName);
                         System.exit(-1);
@@ -192,7 +201,26 @@ public class SimulateBeliefUpdates {
             System.exit(-1);
         }
 
-        SimulateBeliefUpdates.runSimulator(model, b_i, p);
+        b_i = model instanceof IPOMDP _model ? 
+            _model.getECDDFromMjDD(b_i) : b_i;
 
+        if (line.getOptionValue("p") != null) {
+            if (line.getOptionValue("p").equals("solve"))
+                p = new SymbolicPerseusSolver<>()
+                    .solve(List.of(b_i), 
+                            model, 100, 10, 
+                            AlphaVectorPolicy.fromR(model.R()));
+
+            else
+                p = AlphaVectorPolicy.fromJson(
+                        Utils.readJsonFromFile(line.getOptionValue("p")));
+
+            System.out.println("Graph is:");
+            var G = PolicyGraph.makePolicyGraph(List.of(b_i), model, p);
+            System.out.println(G);
+            System.out.println();
+        }
+
+        SimulateBeliefUpdates.runSimulator(model, b_i, p);
     }
 }

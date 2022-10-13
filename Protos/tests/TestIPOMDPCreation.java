@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,8 +9,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import thinclab.legacy.Global;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.models.POMDP;
 import thinclab.models.IPOMDP.BjSpace;
+import thinclab.models.IPOMDP.IPOMDP;
+import thinclab.models.datastructures.PolicyGraph;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.utils.Tuple;
 import thinclab.utils.TwoWayMap;
@@ -28,7 +32,8 @@ import thinclab.utils.TwoWayMap;
  */
 class TestIPOMDPCreation {
 
-	private static final Logger LOGGER = LogManager.getLogger(TestIPOMDPCreation.class);
+	private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(TestIPOMDPCreation.class);
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -56,10 +61,13 @@ class TestIPOMDPCreation {
 	void testMjCreation() throws Exception {
 
 		System.gc();
-		/*
-		LOGGER.info("Creating Mj space from single agent tiger problem POMDP");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
-				.getFile();
+		LOGGER.info(
+                "Creating Mj space from single agent tiger problem POMDP");
+
+		String domainFile = this.getClass()
+            .getClassLoader()
+            .getResource("test_domains/test_tiger_domain.spudd")
+            .getFile();
 
 		// Run domain
 		var domainRunner = new SpuddXMainParser(domainFile);
@@ -74,27 +82,18 @@ class TestIPOMDPCreation {
 				return null;
 			});
 		
-		TwoWayMap<Tuple<Integer, DD>, String> mjMap = new TwoWayMap<>();
-		var frameSoln = new PBVISolvableFrameSolution(0, I, 5);
-		frameSoln.solve();
-		
-		var mjsList = frameSoln.mjList().stream().collect(Collectors.toList());
-		
-		LOGGER.debug(String.format("mjs are %s", mjsList));
-		
-		mjsList.stream().forEach(f ->
-			{
+        LOGGER.debug("Parsed POMDP %s", I);
+        var G = PolicyGraph.getPolicyGraphFromModel(
+                List.of(DDleaf.getDD(0.5f)), I);
 
-				mjMap.put(Tuple.of(f._0(), f._1()), "m" + mjMap.k2v.size());
-			});
+        LOGGER.debug("Policy graph is %s", G);
+        assertTrue(G.nodeMap.size() == 5);
+        LOGGER.debug("Policy graph looks correct");
 
-		var sortedVals = mjMap.k2v.values().stream().collect(Collectors.toList());
-		Collections.sort(sortedVals, (a, b) -> Integer.valueOf(a.split("m")[1]) - Integer.valueOf(b.split("m")[1]));
-		
-		LOGGER.debug(String.format("Renamed mjs are %s", sortedVals));
-		var b_js = frameSoln.bMjList().stream().map(b -> mjMap.k2v.get(b)).collect(Collectors.toList());
-		LOGGER.debug(String.format("b_js %s", b_js));
-		LOGGER.debug(String.format("b_js index in Mj is %s", Collections.binarySearch(sortedVals, "m10")));
-		*/
+        LOGGER.debug("Checking Mj set creation");
+        var mjs = IPOMDP.getOpponentModels(List.of(Tuple.of(0, G)));
+        LOGGER.debug("Got mj set %s", mjs);
+        assertTrue(G.nodeMap.size() == mjs.size());
+        LOGGER.debug("Mj set creation look correct");
 	}
 }

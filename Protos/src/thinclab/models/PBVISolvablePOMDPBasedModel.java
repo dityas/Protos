@@ -54,7 +54,7 @@ public abstract class PBVISolvablePOMDPBasedModel implements
     protected TypedCacheMap<Tuple<DD, Integer>, DD> lCache = 
         new TypedCacheMap<>(1000);
     private static final Logger LOGGER = 
-        LogManager.getLogger(PBVISolvablePOMDPBasedModel.class);
+        LogManager.getFormatterLogger(PBVISolvablePOMDPBasedModel.class);
 
     public PBVISolvablePOMDPBasedModel(List<String> S, 
             List<String> O, String A,
@@ -89,38 +89,38 @@ public abstract class PBVISolvablePOMDPBasedModel implements
         this.discount = discount;
     }
     
-    public PBVISolvablePOMDPBasedModel(List<String> S, 
-            List<String> O, String A,
-            List<List<DD>> TF, List<List<DD>> OF,
-            List<DD> R, float discount) {
-
-        // variable names
-        this.S = Global.sortByVarOrdering(S, Global.varNames);
-        this.O = Global.sortByVarOrdering(O, Global.varNames);
-        this.A = Global.valNames.get(Global.varNames.indexOf(A));
-
-        // variable indices
-        this.i_S = makeIndices(this.S);
-        this.i_Om = makeIndices(this.O);
-        this.i_A = Global.varNames.indexOf(A) + 1;
-
-        // primed variable indices
-        this.i_S_p = makePrimeIndices(this.i_S);
-        this.i_Om_p = makePrimeIndices(i_Om);
-
-        // all possible observations
-        this.oAll = DDOP.cartesianProd(i_Om.stream()
-                .map(o -> IntStream.range(1, Global.valNames.get(o - 1).size() + 1)
-                    .boxed()
-                    .collect(Collectors.toList()))
-                .collect(Collectors.toList()));
-        
-        // init dynamics
-        this.TF = TF;
-        this.OF = OF;
-        this.R = R;
-        this.discount = discount;
-    }
+//    public PBVISolvablePOMDPBasedModel(List<String> S, 
+//            List<String> O, String A,
+//            List<List<DD>> TF, List<List<DD>> OF,
+//            List<DD> R, float discount) {
+//
+//        // variable names
+//        this.S = Global.sortByVarOrdering(S, Global.varNames);
+//        this.O = Global.sortByVarOrdering(O, Global.varNames);
+//        this.A = Global.valNames.get(Global.varNames.indexOf(A));
+//
+//        // variable indices
+//        this.i_S = makeIndices(this.S);
+//        this.i_Om = makeIndices(this.O);
+//        this.i_A = Global.varNames.indexOf(A) + 1;
+//
+//        // primed variable indices
+//        this.i_S_p = makePrimeIndices(this.i_S);
+//        this.i_Om_p = makePrimeIndices(i_Om);
+//
+//        // all possible observations
+//        this.oAll = DDOP.cartesianProd(i_Om.stream()
+//                .map(o -> IntStream.range(1, Global.valNames.get(o - 1).size() + 1)
+//                    .boxed()
+//                    .collect(Collectors.toList()))
+//                .collect(Collectors.toList()));
+//        
+//        // init dynamics
+//        this.TF = TF;
+//        this.OF = OF;
+//        this.R = R;
+//        this.discount = discount;
+//    }
 
     public PBVISolvablePOMDPBasedModel(
             List<String> S, List<String> O, String A, 
@@ -160,16 +160,16 @@ public abstract class PBVISolvablePOMDPBasedModel implements
         var dyn = new HashMap<String, DBN>(5);
         dyn.putAll(dynamics.entrySet().stream()
                 .filter(e -> e.getValue() instanceof DBN)
-                .collect(Collectors.toMap(e -> e.getKey(), e -> (DBN) e.getValue())));
+                .collect(Collectors.toMap(
+                        e -> e.getKey(), e -> (DBN) e.getValue())));
 
         // Populate dynamics for missing actions
         Global.valNames.get(this.i_A - 1).stream().forEach(a ->
                 {
-
                     if (!dyn.containsKey(a)) {
-
-                        LOGGER.warn(String.format("Dynamics not defined for action %s. "
-                                    + "Will apply with SAME transitions and random observations for that action", a));
+                        LOGGER.warn("Dynamics not defined for action %s. "
+                            + "Will apply with SAME transitions and random "
+                            + "observations for that action", a);
                         dyn.put(a, new DBN(new HashMap<Integer, DD>(1)));
                     }
                 });

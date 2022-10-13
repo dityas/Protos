@@ -9,6 +9,7 @@ package thinclab.models.IPOMDP;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,12 +17,14 @@ import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
+import thinclab.RandomVariable;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.models.Model;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
+import thinclab.models.datastructures.PolicyGraph;
 import thinclab.models.datastructures.PolicyNode;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.models.datastructures.ReachabilityNode;
@@ -71,12 +74,48 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 	public HashMap<String, String> mjToECMap = new HashMap<>();
 
 	private static final Logger LOGGER = 
-        LogManager.getLogger(IPOMDP.class);
+        LogManager.getFormatterLogger(IPOMDP.class);
 	
     
     public IPOMDP(IPOMDP i) {
 
-        super(i.S, i.O, i.A, i.TF, i.OF, i.R, i.discount);
+        super(i.S, i.O, Global.varNames.get(i.i_A - 1), 
+                i.TF, i.OF, i.R, i.discount);
+		
+		jointR = i.jointR;
+
+		this.name = i.name;
+
+		// random variable for opponent's action
+		this.i_Aj = i.i_Aj;
+		this.Aj = i.Aj;
+
+		// opponent's model variable
+		this.i_Mj = i.i_Mj;
+		this.i_Mj_p = i.i_Mj_p;
+
+		this.i_EC = i.i_EC;
+		this.i_EC_p = i.i_EC_p;
+
+		this.i_S.add(i_EC);
+		this.i_S_p.add(i_EC_p);
+
+		// random variable for frame of the opponent
+		this.i_Thetaj = i.i_Thetaj;
+		this.Thetaj = i.Thetaj;
+
+		this.H = i.H;
+	    mjVars = i.mjVars;
+
+		Omj = i.Omj;
+		i_Omj = i.i_Omj;
+		i_Omj_p = i.i_Omj_p;
+
+		Oj = i.Oj;
+
+		allvars = i.allvars;
+		gaoivars = i.gaoivars;
+
     }
 
     public IPOMDP(List<String> S, List<String> O, String A, 
@@ -424,7 +463,42 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		R = jointR.stream().map(jr -> DDOP.addMultVarElim(List.of(PAjGivenEC, jr), List.of(i_Aj)))
 				.collect(Collectors.toList());
-	}
+    }
+
+    // ------------------------------------------------------------
+    // Helper functions for extracting relevant structures from
+    // lower level opponents
+    public static void getIS() {
+
+
+    }
+
+    // Gets combined Mj set for multiple frames
+    public static List<MjRepr<PolicyNode>> getOpponentModels(
+            Collection<Tuple<Integer, PolicyGraph>> frames) {
+
+        return frames.stream()
+            .flatMap(f -> getOpponentModelsForFrame(
+                        f._0(), f._1()).stream())
+            .collect(Collectors.toList());
+    }
+
+    // Get Mj set for a single frame from policy graph
+    // Should be extended to belief graph for non-EC IPOMDPs
+    public static List<MjRepr<PolicyNode>> getOpponentModelsForFrame(
+            int frame, PolicyGraph G) {
+
+        return G.adjMap.keySet().stream()
+            .map(n -> new MjRepr<>(frame, G.nodeMap.get(n)))
+            .collect(Collectors.toList());
+    }
+
+    public static RandomVariable getMjAsRandomVariable(
+            Collection<MjRepr<?>> MjSet) {
+        
+        
+        return null;
+    }
 
 	public void createIS() {
 
@@ -857,12 +931,17 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			float val = 0.0f;
 
 			var _a = a;
-			var argmaxGois = nextBa.parallelStream().map(nb -> getBestAlpha(nb, alphas, _a))
-					.collect(Collectors.toList());
+			var argmaxGois = nextBa.parallelStream()
+                .map(nb -> getBestAlpha(nb, alphas, _a))
+                .collect(Collectors.toList());
 
-			var argmax_iGaoi = argmaxGois.stream().map(a_ -> Tuple.of(a_._0(), a_._1())).collect(Collectors.toList());
+			var argmax_iGaoi = argmaxGois.stream()
+                .map(a_ -> Tuple.of(a_._0(), a_._1()))
+                .collect(Collectors.toList());
 
-			val = argmaxGois.stream().map(a_ -> a_._2()).reduce(0.0f, (a1_, a2_) -> a1_ + a2_);
+			val = argmaxGois.stream()
+                .map(a_ -> a_._2())
+                .reduce(0.0f, (a1_, a2_) -> a1_ + a2_);
 
 			val *= discount;
 			val += DDOP.dotProduct(b, R().get(a), i_S());

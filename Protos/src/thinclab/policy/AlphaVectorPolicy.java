@@ -22,6 +22,8 @@ import org.apache.logging.log4j.Logger;
 
 import thinclab.DDOP;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
+import thinclab.legacy.Global;
 import thinclab.utils.Jsonable;
 import thinclab.utils.LispExpressible;
 import thinclab.utils.Tuple;
@@ -42,6 +44,15 @@ public class AlphaVectorPolicy implements Policy<DD>,
 
 		this.aVecs = alphaVectors;
 	}
+
+    public void printPolicyValuationAtBelief(DD b, 
+            List<String> A, List<Integer> vars) {
+    
+        for (var aVec: aVecs)
+            System.out.println(String.format("Alpha: %s, a: %s, V: %s", 
+                    aVec._0(), A.get(aVec._0()), 
+                    DDOP.dotProduct(aVec._1(), b, vars)));
+    }
 
 	@Override
 	public int getBestActionIndex(DD belief, List<Integer> S) {
@@ -126,4 +137,12 @@ public class AlphaVectorPolicy implements Policy<DD>,
 				IntStream.range(0, R.size()).mapToObj(i -> Tuple.of(i, R.get(i))).collect(Collectors.toList()));
 	}
 
+    public static AlphaVectorPolicy randomPolicy(int sizeA) {
+		return new AlphaVectorPolicy(
+				IntStream.range(0, sizeA)
+                    .mapToObj(i -> 
+                        Tuple.of(i, 
+                            DDleaf.getDD(0.0f)))
+                    .collect(Collectors.toList()));
+    }
 }

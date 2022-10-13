@@ -362,7 +362,9 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			nextBels = new HashMap<Integer, List<Tuple3<Integer, DD, Float>>>(A().size());
 
 			var res = IntStream.range(0, A().size()).parallel().boxed()
-					.map(a -> Tuple.of(a, computeNextBaParallel(b, obsLikelihoods(b, a), a, g)))
+					.map(a -> Tuple.of(
+                                a, computeNextBaParallel(
+                                    b, obsLikelihoods(b, a), a, g)))
 					.collect(Collectors.toList());
 
 			for (var r : res)
