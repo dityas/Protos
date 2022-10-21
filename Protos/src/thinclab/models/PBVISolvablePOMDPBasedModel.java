@@ -197,11 +197,28 @@ public abstract class PBVISolvablePOMDPBasedModel implements
 
             }
 
+    protected static boolean underSpecifiedDBN(DBN dbn, List<Integer> vars) {
+        
+        var res = vars.stream()
+            .filter(v -> !dbn.cpds.containsKey(v))
+            .findAny();
+
+        if (res.isEmpty())
+            return false;
+
+        else {
+            LOGGER.error("Under specified DBN %s", dbn.getName());
+            System.exit(-1);
+            return true;
+        }
+    }
+
     protected List<DD> getTransitionFunction(DBN dbn) {
 
+        underSpecifiedDBN(dbn, i_S);
         var Ta = i_S.stream()
             .map(s -> dbn.cpds.containsKey(s) ? 
-                    dbn.cpds.get(s) 
+                    dbn.cpds.get(s)
                     : DBN.getSameTransitionDD(Global.varNames.get(s - 1)))
             .collect(Collectors.toList());
 
@@ -210,9 +227,10 @@ public abstract class PBVISolvablePOMDPBasedModel implements
 
     protected List<DD> getObsFunction(DBN dbn) {
 
+        underSpecifiedDBN(dbn, i_Om);
         var Oa = i_Om.stream()
             .map(o -> dbn.cpds.containsKey(o) ? 
-                    dbn.cpds.get(o) 
+                    dbn.cpds.get(o)
                     : DDnode.getUniformDist(o + (Global.NUM_VARS / 2)))
             .collect(Collectors.toList());
 

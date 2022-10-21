@@ -203,6 +203,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 						.collect(Collectors.toList()))
 				.collect(Collectors.toList());
 
+        LOGGER.info("Oj is %s", Oj);
+
 		allvars = new ArrayList<Integer>();
 		allvars.addAll(i_S());
 		allvars.add(i_Aj);
@@ -590,10 +592,10 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 						// convert everything into list
 						List<Integer> valList = new ArrayList<>(t._1().size() + 2);
 						valList.add(Global.valNames.get(i_EC - 1).indexOf(t._0()) + 1);
-
 						valList.addAll(t._1());
-
 						valList.add(Global.valNames.get(i_EC_p - 1).indexOf(t._2()) + 1);
+
+                        LOGGER.info("valList %s", valList);
 
 						return valList;
 					})
