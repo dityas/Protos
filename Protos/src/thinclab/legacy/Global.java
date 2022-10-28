@@ -69,6 +69,13 @@ public class Global {
 		Global.NUM_VARS += 1;
 	}
 
+    public static List<Integer> makePrimeIndices(List<Integer> indices) {
+
+        return indices.stream()
+            .map(i -> i + (Global.NUM_VARS / 2))
+            .collect(Collectors.toList());
+    }
+
 	public static void replaceValues(int var, List<String> vals) {
 
 		LOGGER.warn(String.format("Values of RV %s are being changed", Global.varNames.get(var - 1)));

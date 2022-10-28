@@ -203,8 +203,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 						.collect(Collectors.toList()))
 				.collect(Collectors.toList());
 
-        LOGGER.info("Oj is %s", Oj);
-
 		allvars = new ArrayList<Integer>();
 		allvars.addAll(i_S());
 		allvars.add(i_Aj);
@@ -424,12 +422,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 	public DD getECDDFromMjDD(DD mjDD) {
 
-		var vars = new ArrayList<>(i_S);
-		vars.remove(vars.size() - 1);
-		vars.add(i_Mj);
-
-		var factors = DDOP.factors(mjDD, vars);
-		var _mjDD = factors.remove(factors.size() - 1);
+        var enumerated = DDOP.getEnumeratedFactor(mjDD, i_Mj);
 
 		// accumulate
 		var _ecDDMap = Global.valNames.get(i_EC - 1).stream().collect(Collectors.toMap(v -> v, v -> DD.zero));
@@ -438,22 +431,16 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			{
 
 				var mj = Global.valNames.get(i_Mj - 1).get(i);
-				var dd = _ecDDMap.get(mjToECMap.get(mj));
+                var ec = mjToECMap.get(mj);
+				var dd = _ecDDMap.get(ec);
 
-				if (_mjDD instanceof DDnode)
-					_ecDDMap.put(mjToECMap.get(mj), DDOP.add(dd, _mjDD.getChildren()[i]));
-				
-				else 
-					_ecDDMap.put(mjToECMap.get(mj), DDOP.add(dd, _mjDD));
+				_ecDDMap.put(ec, DDOP.add(dd, enumerated.get(i)));
 			});
 
 		var ecDD = DDnode.getDD(i_EC,
 				Global.valNames.get(i_EC - 1).stream().map(v -> _ecDDMap.get(v)).toArray(DD[]::new));
 
-		factors.add(ecDD);
-		ecDD = DDOP.mult(factors);
-		
-		return ecDD;
+		return DDOP.reorder(ecDD);
 	}
 
 	public void updateIS() {
@@ -594,8 +581,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 						valList.add(Global.valNames.get(i_EC - 1).indexOf(t._0()) + 1);
 						valList.addAll(t._1());
 						valList.add(Global.valNames.get(i_EC_p - 1).indexOf(t._2()) + 1);
-
-                        LOGGER.info("valList %s", valList);
 
 						return valList;
 					})

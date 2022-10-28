@@ -50,11 +50,6 @@ public class SimulateBeliefUpdates {
             .collect(Collectors.toList());
 
         var in = new Scanner(System.in);
-        //        var b = model instanceof IPOMDP ? 
-        //            ((IPOMDP) model).getECDDFromMjDD(b_i) :
-        //            b_i;
-
-        // start belief stepping
         while (true) {
 
             System.out.println();
@@ -63,10 +58,11 @@ public class SimulateBeliefUpdates {
             var b_EC = b_factors.get(b_factors.size() - 1);
 
             // print belief
-            System.out.println("Current belief is:");
+            System.out.println("Factors:==");
             b_factors.forEach(_b -> {
                 System.out.println(_b);
             });
+            System.out.println("==========");
 
 
             // for IPOMDPs, print everything

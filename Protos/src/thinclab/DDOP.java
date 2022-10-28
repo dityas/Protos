@@ -914,7 +914,8 @@ public class DDOP {
 		return (i - 1);
 	}
 
-	public static Tuple<List<Integer>, List<Integer>> sample(List<DD> dd, List<Integer> varId) {
+	public static Tuple<List<Integer>, List<Integer>> sample(List<DD> dd, 
+            List<Integer> varId) {
 
 		var _vars = new ArrayList<>(varId);
 		var _dds = new ArrayList<>(dd);
@@ -1140,7 +1141,8 @@ public class DDOP {
 		return json;
 	}
 
-    public static float l2NormSq(final DD d1, final DD d2, int dimensions) {
+    public static float l2NormSq(final DD d1, 
+            final DD d2, int dimensions) {
 
         var diff = DDOP.pow(DDOP.sub(d1, d2), 2.0f);
 
@@ -1149,5 +1151,17 @@ public class DDOP {
 
         else
             return addMultVarElim(List.of(diff), diff.getVars()).getVal();
+    }
+
+    public static List<DD> getEnumeratedFactor(DD dd, int _var) {
+        
+        var enumerated = 
+            IntStream.range(
+                    0, Global.valNames.get(_var - 1).size())
+            .mapToObj(i -> 
+                    DDOP.restrict(dd, List.of(_var), List.of(i + 1)))
+            .collect(Collectors.toList());
+
+        return enumerated;
     }
 }

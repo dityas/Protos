@@ -34,9 +34,11 @@ public class MjThetaSpace implements Frame<PolicyNode> {
 	final public SymbolicPerseusSolver<PBVISolvablePOMDPBasedModel> s;
 	final public AlphaVectorPolicy Vn;
 
-	final private static Logger LOGGER = LogManager.getLogger(MjThetaSpace.class);
+	final private static Logger LOGGER = 
+        LogManager.getFormatterLogger(MjThetaSpace.class);
 
-	public MjThetaSpace(List<DD> b_j, int frame, PBVISolvablePOMDPBasedModel m) {
+	public MjThetaSpace(List<DD> b_j, int frame, 
+            PBVISolvablePOMDPBasedModel m) {
 
 		this.frame = frame;
 		this.m = m;
@@ -46,7 +48,9 @@ public class MjThetaSpace implements Frame<PolicyNode> {
 		var b_js = new ArrayList<DD>();
 
 		if (m instanceof IPOMDP)
-			b_js.addAll(b_j.stream().map(d -> ((IPOMDP) m).getECDDFromMjDD(d)).collect(Collectors.toList()));
+			b_js.addAll(b_j.stream()
+                    .map(d -> ((IPOMDP) m).getECDDFromMjDD(d))
+                    .collect(Collectors.toList()));
 		
 		else
 			b_js.addAll(b_j);
@@ -54,7 +58,7 @@ public class MjThetaSpace implements Frame<PolicyNode> {
 		this.Vn = s.solve(b_js, m, 100, 10, AlphaVectorPolicy.fromR(m.R()));
 
 		this.G = PolicyGraph.makePolicyGraph(b_js, m, Vn);
-		
+
 		LOGGER.debug(String.format("Graph has %s nodes and %s node sources", G.nodeMap.size(), G.adjMap.size()));
 
 		LOGGER.info(String.format("MjTheta space for frame %s initialized with %s EQ classes", frame, G.adjMap.size()));
