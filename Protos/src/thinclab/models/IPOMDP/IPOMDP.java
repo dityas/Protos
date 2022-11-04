@@ -116,6 +116,17 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		allvars = i.allvars;
 		gaoivars = i.gaoivars;
 
+        ecThetas = i.ecThetas;
+        framesj = i.framesj;
+        
+        PAjGivenEC = i.PAjGivenEC;
+        PEC_pGivenECAjOj_p = i.PEC_pGivenECAjOj_p;
+        PThetajGivenEC = i.PThetajGivenEC;
+        Taus = i.Taus;
+
+        ECMap.putAll(i.ECMap);
+        mjToECMap.putAll(i.mjToECMap);
+
     }
 
     public IPOMDP(List<String> S, List<String> O, String A, 
@@ -161,18 +172,26 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		// initialize frames
 		this.framesj = frames_j.stream()
 				// make tuples (frameId, POMDP/IPOMDP)
-				.map(t -> Tuple.of(Global.valNames.get(i_Thetaj - 1).indexOf(t._0()),
+				.map(t -> Tuple.of(Global.valNames
+                            .get(i_Thetaj - 1).indexOf(t._0()),
 						(PBVISolvablePOMDPBasedModel) t._1()))
-				// make tuples (frameId, POMDP/IPOMDP, beliefs (reachability nodes))
+				// make tuples (frameId, POMDP/IPOMDP, beliefs 
+                // (reachability nodes))
 				.map(t -> Tuple.of(t._0(), t._1(),
-						Global.modelVars.get(Global.varNames.get(i_Mj - 1)).keySet().stream()
-								.filter(k -> k.frame == t._0()).map(k -> k._1()).collect(Collectors.toList())))
+						Global.modelVars
+                        .get(Global.varNames
+                            .get(i_Mj - 1)).keySet().stream()
+								.filter(k -> k.frame == t._0())
+                                .map(k -> k._1())
+                                .collect(Collectors.toList())))
 				.collect(Collectors.toList());
 
 		Collections.sort(this.framesj, (f1, f2) -> f1._0() - f2._0());
 
 		// verify and prepare Oj
-		var incorrectFrame = this.framesj.stream().filter(f -> !f._1().Om().equals(this.framesj.get(0)._1().Om()))
+		var incorrectFrame = this.framesj.stream()
+            .filter(f -> !f._1().Om().equals(
+                        this.framesj.get(0)._1().Om()))
 				.findAny();
 
 		if (incorrectFrame.isPresent()) {

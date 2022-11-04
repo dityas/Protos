@@ -1113,13 +1113,14 @@ public class DDOP {
 		}
 	}
 	
-	public static JsonElement toJson(final DD d, final List<Integer> vars) {
-		
-		var gson = new GsonBuilder().setPrettyPrinting().create();
+	public static JsonElement toJson(final DD d,
+            final List<Integer> vars) {
 		
 		var dds = DDOP.factors(d, vars);
 		
-		var invalid = dds.stream().filter(_d -> _d.getVars().size() > 1).findAny();
+		var invalid = dds.stream()
+            .filter(_d -> _d.getVars().size() > 1)
+            .findAny();
 		
 		if (invalid.isPresent()) {
 			

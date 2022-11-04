@@ -1,11 +1,18 @@
 
 package thinclab.executables;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -30,6 +37,10 @@ import thinclab.utils.Tuple;
 import thinclab.utils.Utils;
 
 public class SimulateInteraction {
+
+    public static Path JSON_FILE = null;
+    public static GsonBuilder JSON = null;
+    public static JsonElement JSON_DATA = null;
 
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(SimulateBeliefUpdates.class);
@@ -84,77 +95,10 @@ public class SimulateInteraction {
                         List.of(m.i_EC))));
     }
 
-    public static Tuple<Integer, List<Integer>> inputActionObs(
-            PBVISolvablePOMDPBasedModel model,
-            DD b_i) {
-        
-        var in = new Scanner(System.in);
-
-        var allObs = model.oAll;
-        var allObsLabels = allObs.stream()
-            .map(os -> IntStream.range(0, os.size())
-                    .boxed()
-                    .map(i -> 
-                        Global.valNames
-                        .get(model.i_Om_p.get(i) - 1)
-                        .get(os.get(i) - 1))
-                    .collect(Collectors.toList()))
-            .collect(Collectors.toList());
-        
-        // Prompt for actions
-        System.out.println();
-        System.out.print("Enter action index: ");
-
-        System.out.println();
-        IntStream.range(0, model.A().size())
-            .forEach(i -> {
-                System.out.println(
-                        String.format("%s: %s", 
-                            i, model.A().get(i)));
-            });
-
-        System.out.print(">>> ");
-        int aIndex = in.nextInt();
-        
-        // obs likelihoods
-        var likelihoods = model.obsLikelihoods(b_i, aIndex);
-
-        System.out.println();
-        System.out.println("Enter observation index:");
-        var obsNames = model.i_Om().stream()
-            .map(o -> Global.varNames.get(o - 1))
-            .collect(Collectors.toList());
-        System.out.println(obsNames);
-
-        IntStream.range(0, allObsLabels.size())
-            .forEach(i -> {
-                var obs = DDOP.restrict(
-                        likelihoods, model.i_Om_p(), allObs.get(i));
-                System.out.println(
-                        String.format("%s: %s \t(likelihood: %s)", 
-                            i, allObsLabels.get(i), obs));
-            });
-
-        System.out.print(">>> ");
-        int oIndex = in.nextInt();
-
-        System.out.println();
-        System.out.println(
-                String.format(
-                    "Action: %s, obs: %s, reward: %s", 
-                    model.A().get(aIndex), 
-                    allObsLabels.get(oIndex),
-                    DDOP.dotProduct(
-                        b_i, model.R().get(aIndex), model.i_S())));
-
-        in.close();
-
-        return Tuple.of(aIndex, allObs.get(oIndex));
-    }
-
     public static void runSimulator(
             final IPOMDP model,
             final PBVISolvablePOMDPBasedModel jModel,
+            DD s,
             DD b_i,
             DD b_j,
             AlphaVectorPolicy p,
@@ -165,17 +109,9 @@ public class SimulateInteraction {
         X.remove(X.size() - 1);
         var X_p = Global.makePrimeIndices(X);
 
-        // sample state from initial belief of the defender
-        var state_factors = DDOP.factors(b_i, model.i_S());
-        state_factors.remove(state_factors.size() - 1);
+        var JSON_ARRAY = JSON_FILE == null ? null : new JsonArray();
 
-        var _s = DDOP.sample(
-                state_factors, 
-                model.i_S().subList(0, model.i_S().size() - 1));
-
-        var s = ddFromVarVals(_s);
-
-        while (true) {
+        for (int iter = 0; iter < 5; iter++) {
 
             System.out.println();
 
@@ -200,26 +136,18 @@ public class SimulateInteraction {
             printBeliefStats(jModel, b_j);
             System.out.println("=====================\r\n");
 
-            // Take user input
-            Tuple<Integer, List<Integer>> inputs = null;
-            if (true) {
-                inputs = inputActionObs(model, b_i);
-            }
-
-            var iAct = inputs == null ? p.getBestActionIndex(
-                    b_i, model.i_S()) :
-                inputs._0();
+            var iAct = p.getBestActionIndex(b_i, model.i_S());
+            System.out.printf("Agent %s took action %s\r\n",
+                    model.getName(), model.A().get(iAct));
 
             var jAct = jPolicy.getBestActionIndex(b_j, jModel.i_S());
-            System.out.printf("Agent %s took action %s",
+            System.out.printf("Agent %s took action %s\r\n",
                     jModel.getName(), jModel.A().get(jAct));
 
             s = updateState(s, X, model.T().get(iAct), model.i_Aj, jAct);
             
-            var iObs = inputs == null ? sampleObservations(s, 
-                    model.O().get(iAct), 
-                    model.i_Om_p(), X_p, model.i_Aj, jAct) :
-                Tuple.of(model.i_Om_p(), inputs._1());
+            var iObs = sampleObservations(s, model.O().get(iAct), 
+                    model.i_Om_p(), X_p, model.i_Aj, jAct);
 
             var jObs = sampleObservations(s, jModel.O().get(jAct), 
                     jModel.i_Om_p(), X_p, model.i_Aj, jAct);
@@ -232,10 +160,30 @@ public class SimulateInteraction {
                     jModel.getName());
             printVarVals(jObs);
 
+            // Write results
+            if (JSON_FILE != null) {
+
+                var json = new JsonObject();
+
+                json.addProperty("time step", iter);
+                json.add("iBel", DDOP.toJson(b_i, model.i_S()));
+                json.add("jBel", DDOP.toJson(b_j, jModel.i_S()));
+                json.add("state", DDOP.toJson(s, X));
+                json.addProperty("iAct", model.A().get(iAct));
+                json.addProperty("jAct", jModel.A().get(jAct));
+
+                JSON_ARRAY.add(json);
+            }
 
             b_i = model.beliefUpdate(b_i, iAct, iObs._1());
+            b_j = jModel.beliefUpdate(b_j, jAct, jObs._1());
         }
-            }
+
+        if (JSON_FILE != null) {
+            var gson = new GsonBuilder().setPrettyPrinting().create();
+            System.out.println(gson.toJson(JSON_ARRAY));
+        }
+    }
 
     public static DD ddFromVarVals(
             Tuple<List<Integer>, List<Integer>> varVals) {
@@ -286,10 +234,13 @@ public class SimulateInteraction {
 
         opt.addOption("h", false, "print help");
         opt.addOption("d", true, "path to the SPUDDX file");
+        opt.addOption("f", true, "write results to JSON file");
         opt.addOption("iBel", true, 
                 "name of the initial belief DD of agent i");
         opt.addOption("jBel", true, 
                 "name of the initial belief DD of agent j");
+        opt.addOption("iState", true, 
+                "name of the initial state DD");
         opt.addOption("iName", true, "name of agent i");
         opt.addOption("jName", true, "name of agent j");
         opt.addOption("p", true, 
@@ -305,10 +256,18 @@ public class SimulateInteraction {
         }
 
         String domainFile = line.getOptionValue("d");
+        String jsonFile = line.getOptionValue("f");
+
+        if (jsonFile != null) {
+            SimulateInteraction.JSON_FILE = Paths.get(jsonFile);
+            SimulateInteraction.JSON_DATA = new JsonObject();
+        }
+
         String iName = line.getOptionValue("iName");
         String jName = line.getOptionValue("jName");
         String iBel = line.getOptionValue("iBel");
         String jBel = line.getOptionValue("jBel");
+        String iState = line.getOptionValue("iState");
 
         // Parse SPUDDX file
         var parser = new SpuddXMainParser(domainFile);
@@ -335,6 +294,7 @@ public class SimulateInteraction {
 
         var b_i = parser.getDD(iBel);
         var b_j = parser.getDD(jBel);
+        var s = parser.getDD(iState);
         
         if (b_i == null) {
             LOGGER.error("Belief DD %s does not exist", iBel);
@@ -365,10 +325,9 @@ public class SimulateInteraction {
             System.out.println("Graph is:");
             var G = PolicyGraph.makePolicyGraph(List.of(b_i), model, p);
             System.out.println(G);
-            System.out.println();
         }
 
         SimulateInteraction.runSimulator(
-                model, jModel, b_i, b_j, p, jPolicy);
+                model, jModel, s, b_i, b_j, p, jPolicy);
     }
 }
