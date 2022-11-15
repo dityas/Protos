@@ -1,17 +1,17 @@
 
 package thinclab.executables;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import org.apache.commons.cli.CommandLine;
@@ -27,7 +27,6 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
-import thinclab.models.POMDP;
 import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.PolicyGraph;
 import thinclab.policy.AlphaVectorPolicy;
@@ -40,7 +39,7 @@ public class SimulateInteraction {
 
     public static Path JSON_FILE = null;
     public static GsonBuilder JSON = null;
-    public static JsonElement JSON_DATA = null;
+    public static JsonArray JSON_DATA = null; 
 
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(SimulateBeliefUpdates.class);
@@ -102,7 +101,8 @@ public class SimulateInteraction {
             DD b_i,
             DD b_j,
             AlphaVectorPolicy p,
-            AlphaVectorPolicy jPolicy) {
+            AlphaVectorPolicy jPolicy,
+            int length) {
 
         // prepare state and prime state indices for use later
         var X = new ArrayList<>(model.i_S());
@@ -111,7 +111,7 @@ public class SimulateInteraction {
 
         var JSON_ARRAY = JSON_FILE == null ? null : new JsonArray();
 
-        for (int iter = 0; iter < 5; iter++) {
+        for (int iter = 0; iter < length; iter++) {
 
             System.out.println();
 
@@ -145,7 +145,7 @@ public class SimulateInteraction {
                     jModel.getName(), jModel.A().get(jAct));
 
             s = updateState(s, X, model.T().get(iAct), model.i_Aj, jAct);
-            
+
             var iObs = sampleObservations(s, model.O().get(iAct), 
                     model.i_Om_p(), X_p, model.i_Aj, jAct);
 
@@ -179,11 +179,9 @@ public class SimulateInteraction {
             b_j = jModel.beliefUpdate(b_j, jAct, jObs._1());
         }
 
-        if (JSON_FILE != null) {
-            var gson = new GsonBuilder().setPrettyPrinting().create();
-            System.out.println(gson.toJson(JSON_ARRAY));
-        }
-    }
+        JSON_DATA.add(JSON_ARRAY);
+
+            }
 
     public static DD ddFromVarVals(
             Tuple<List<Integer>, List<Integer>> varVals) {
@@ -209,23 +207,23 @@ public class SimulateInteraction {
         var s_p = DDOP.addMultVarElim(dds, i_S);
         s_p = DDOP.restrict(s_p, List.of(i_Aj), List.of(jAct + 1));
         s_p = DDOP.primeVars(s_p, -(Global.NUM_VARS / 2));
-        
+
         var nextState = DDOP.sample(List.of(s_p), i_S);
         return ddFromVarVals(nextState);
-    }
+            }
 
     public static Tuple<List<Integer>, List<Integer>> sampleObservations(
             DD s, 
             List<DD> O, List<Integer> i_Om_p, List<Integer> i_S_p,
             int i_Aj, int jAct) {
-    
+
         var s_p = DDOP.primeVars(s, (Global.NUM_VARS / 2));
         var o = DDOP.restrict(O, List.of(i_Aj), List.of(jAct + 1));
         o.add(s_p);
 
         var oDD = DDOP.addMultVarElim(o, i_S_p);
         return DDOP.sample(List.of(oDD), i_Om_p);
-    }
+            }
 
     public static void main(String[] args) throws Exception {
 
@@ -246,6 +244,8 @@ public class SimulateInteraction {
         opt.addOption("p", true, 
                 "path to the JSON file to store the policy " +
                 "(solve) for computing it online");
+        opt.addOption("l", true, "length of the interaction");
+        opt.addOption("i", true, "number of interactions");
 
         CommandLine line = null;
         line = cliParser.parse(opt, args);
@@ -260,7 +260,7 @@ public class SimulateInteraction {
 
         if (jsonFile != null) {
             SimulateInteraction.JSON_FILE = Paths.get(jsonFile);
-            SimulateInteraction.JSON_DATA = new JsonObject();
+            SimulateInteraction.JSON_DATA = new JsonArray();
         }
 
         String iName = line.getOptionValue("iName");
@@ -268,6 +268,8 @@ public class SimulateInteraction {
         String iBel = line.getOptionValue("iBel");
         String jBel = line.getOptionValue("jBel");
         String iState = line.getOptionValue("iState");
+        int l = Integer.parseInt(line.getOptionValue("l"));
+        int i = Integer.parseInt(line.getOptionValue("i"));
 
         // Parse SPUDDX file
         var parser = new SpuddXMainParser(domainFile);
@@ -295,7 +297,7 @@ public class SimulateInteraction {
         var b_i = parser.getDD(iBel);
         var b_j = parser.getDD(jBel);
         var s = parser.getDD(iState);
-        
+
         if (b_i == null) {
             LOGGER.error("Belief DD %s does not exist", iBel);
             System.exit(-1);
@@ -327,7 +329,15 @@ public class SimulateInteraction {
             System.out.println(G);
         }
 
-        SimulateInteraction.runSimulator(
-                model, jModel, s, b_i, b_j, p, jPolicy);
+        for (int n = 0; n < i; n++) {
+            System.out.printf("Running interaction %s\r\n", n);
+            SimulateInteraction.runSimulator(
+                    model, jModel, s, b_i, b_j, p, jPolicy, l);
+        }
+
+        if (JSON_FILE != null) {
+            var gson = new GsonBuilder().setPrettyPrinting().create();
+            Files.writeString(JSON_FILE, gson.toJson(JSON_DATA));
+        }
     }
 }
