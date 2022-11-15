@@ -4,7 +4,6 @@ package thinclab.executables;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,6 +42,24 @@ public class SimulateInteraction {
 
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(SimulateBeliefUpdates.class);
+
+    public static JsonObject getVarValsJSON(
+            Tuple<List<Integer>, List<Integer>> varVals) {
+
+        var json = new JsonObject();
+        var repr = IntStream.range(0, varVals._0().size())
+            .mapToObj(i -> 
+                    Tuple.of(
+                        Global.varNames.get(varVals._0().get(i) - 1),
+                        Global.valNames.get(varVals._0().get(i) - 1)
+                        .get(varVals._1().get(i) - 1)))
+            .collect(Collectors.toList());
+
+        for(var o: repr)
+            json.addProperty(o._0(), o._1());
+
+        return json;
+    }
 
     public static void printVarVals(
             Tuple<List<Integer>, List<Integer>> varVals) {
@@ -167,7 +184,9 @@ public class SimulateInteraction {
 
                 json.addProperty("time step", iter);
                 json.add("iBel", DDOP.toJson(b_i, model.i_S()));
+                json.add("iObs", getVarValsJSON(iObs));
                 json.add("jBel", DDOP.toJson(b_j, jModel.i_S()));
+                json.add("jObs", getVarValsJSON(jObs));
                 json.add("state", DDOP.toJson(s, X));
                 json.addProperty("iAct", model.A().get(iAct));
                 json.addProperty("jAct", jModel.A().get(jAct));
