@@ -10,6 +10,7 @@ import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 import java.lang.ref.WeakReference;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ public class Global {
 	public static List<Integer> varDomSize = new ArrayList<>(10);
 	public static List<String> varNames = new ArrayList<>(10);
 	public static List<List<String>> valNames = new ArrayList<>(10);
+    public static Path RESULTS_DIR = null;
 
 	public static TypedCacheMap<String, HashMap<MjRepr<ReachabilityNode>, String>> modelVars = new TypedCacheMap<>();
 

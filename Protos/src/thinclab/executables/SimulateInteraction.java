@@ -26,6 +26,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
+import thinclab.models.POMDP;
 import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.PolicyGraph;
 import thinclab.policy.AlphaVectorPolicy;
@@ -36,7 +37,6 @@ import thinclab.utils.Utils;
 
 public class SimulateInteraction {
 
-    public static Path JSON_FILE = null;
     public static GsonBuilder JSON = null;
     public static JsonArray JSON_DATA = null; 
 
@@ -59,7 +59,7 @@ public class SimulateInteraction {
             json.addProperty(o._0(), o._1());
 
         return json;
-    }
+            }
 
     public static void printVarVals(
             Tuple<List<Integer>, List<Integer>> varVals) {
@@ -111,6 +111,75 @@ public class SimulateInteraction {
                         List.of(m.i_EC))));
     }
 
+    public static void 
+        runSimulatorSingleAgent(final PBVISolvablePOMDPBasedModel model,
+                DD s,
+                DD b_i,
+                AlphaVectorPolicy p,
+                int length) {
+
+            // prepare state and prime state indices for use later
+            var X = new ArrayList<>(model.i_S());
+            var X_p = Global.makePrimeIndices(X);
+
+            var JSON_ARRAY = Global.RESULTS_DIR == null ? null : new JsonArray();
+
+            for (int iter = 0; iter < length; iter++) {
+
+                System.out.println();
+
+                var s_factors = DDOP.factors(s, X);
+
+                // print belief
+                System.out.println("State:==");
+                s_factors.forEach(_b -> {
+                    System.out.println(_b);
+                });
+                System.out.println("====================");
+
+                // print belief of agent i
+                System.out.printf("==Belief of agent %s==\r\n", 
+                        model.getName());
+                printBeliefStats(model, b_i);
+                System.out.println("=====================");
+
+                var iAct = p.getBestActionIndex(b_i, model.i_S());
+                System.out.printf("Agent %s took action %s\r\n",
+                        model.getName(), model.A().get(iAct));
+
+                s = updateState(s, X, model.T().get(iAct));
+
+                var iObs = sampleObservations(s, model.O().get(iAct), 
+                        model.i_Om_p(), X_p);
+
+                System.out.printf("Agent %s gets observation ",
+                        model.getName());
+                printVarVals(iObs);
+
+                // Write results
+                if (Global.RESULTS_DIR != null) {
+
+                    var json = new JsonObject();
+
+                    json.addProperty("time step", iter);
+                    json.add("iBel", DDOP.toJson(b_i, model.i_S()));
+                    json.addProperty("iR", DDOP.dotProduct(
+                                model.R().get(iAct), b_i, model.i_S()));
+
+                    json.add("iObs", getVarValsJSON(iObs));
+                    json.add("state", DDOP.toJson(s, X));
+                    json.addProperty("iAct", model.A().get(iAct));
+
+                    JSON_ARRAY.add(json);
+                }
+
+                b_i = model.beliefUpdate(b_i, iAct, iObs._1());
+            }
+
+            JSON_DATA.add(JSON_ARRAY);
+
+        }
+
     public static void runSimulator(
             final IPOMDP model,
             final PBVISolvablePOMDPBasedModel jModel,
@@ -126,7 +195,7 @@ public class SimulateInteraction {
         X.remove(X.size() - 1);
         var X_p = Global.makePrimeIndices(X);
 
-        var JSON_ARRAY = JSON_FILE == null ? null : new JsonArray();
+        var JSON_ARRAY = Global.RESULTS_DIR == null ? null : new JsonArray();
 
         for (int iter = 0; iter < length; iter++) {
 
@@ -178,19 +247,21 @@ public class SimulateInteraction {
             printVarVals(jObs);
 
             // Write results
-            if (JSON_FILE != null) {
+            if (Global.RESULTS_DIR != null) {
 
                 var json = new JsonObject();
 
                 json.addProperty("time step", iter);
                 json.add("iBel", DDOP.toJson(b_i, model.i_S()));
+                json.addProperty("iR", DDOP.dotProduct(
+                            model.R().get(iAct), b_i, model.i_S()));
 
                 if (model instanceof IPOMDP) {
                     var i_theta_j = DDOP.getFrameBelief(
-                        b_i, 
-                        model.PThetajGivenEC,
-                        model.i_EC, 
-                        model.i_S());
+                            b_i, 
+                            model.PThetajGivenEC,
+                            model.i_EC, 
+                            model.i_S());
 
                     json.add(
                             "iThetaHat", 
@@ -200,14 +271,16 @@ public class SimulateInteraction {
 
                 json.add("iObs", getVarValsJSON(iObs));
                 json.add("jBel", DDOP.toJson(b_j, jModel.i_S()));
+                json.addProperty("jR", DDOP.dotProduct(
+                            jModel.R().get(jAct), b_j, jModel.i_S()));
 
                 if (jModel instanceof IPOMDP) {
                     var _j = (IPOMDP) jModel;
                     var j_theta_j = DDOP.getFrameBelief(
-                        b_j, 
-                        _j.PThetajGivenEC,
-                        _j.i_EC, 
-                        _j.i_S());
+                            b_j, 
+                            _j.PThetajGivenEC,
+                            _j.i_EC, 
+                            _j.i_S());
 
                     json.add(
                             "jThetaHat", 
@@ -245,6 +318,21 @@ public class SimulateInteraction {
     public static DD updateState(
             DD s,
             List<Integer> i_S,
+            List<DD> T) {
+
+        var dds = new ArrayList<>(T);
+        dds.add(s);
+
+        var s_p = DDOP.addMultVarElim(dds, i_S);
+        s_p = DDOP.primeVars(s_p, -(Global.NUM_VARS / 2));
+
+        var nextState = DDOP.sample(List.of(s_p), i_S);
+        return ddFromVarVals(nextState);
+            }
+
+    public static DD updateState(
+            DD s,
+            List<Integer> i_S,
             List<DD> T,
             int i_Aj,
             int jAct) {
@@ -273,6 +361,17 @@ public class SimulateInteraction {
         return DDOP.sample(List.of(oDD), i_Om_p);
             }
 
+    public static Tuple<List<Integer>, List<Integer>> sampleObservations(DD s,
+            List<DD> O, List<Integer> i_Om_p, List<Integer> i_S_p) {
+
+        var s_p = DDOP.primeVars(s, (Global.NUM_VARS / 2));
+        var o = new ArrayList<>(O);
+        o.add(s_p);
+
+        var oDD = DDOP.addMultVarElim(o, i_S_p);
+        return DDOP.sample(List.of(oDD), i_Om_p);
+    }
+
     public static void main(String[] args) throws Exception {
 
         CommandLineParser cliParser = new DefaultParser();
@@ -280,7 +379,7 @@ public class SimulateInteraction {
 
         opt.addOption("h", false, "print help");
         opt.addOption("d", true, "path to the SPUDDX file");
-        opt.addOption("f", true, "write results to JSON file");
+        opt.addOption("r", true, "results dir");
         opt.addOption("iBel", true, 
                 "name of the initial belief DD of agent i");
         opt.addOption("jBel", true, 
@@ -304,12 +403,10 @@ public class SimulateInteraction {
         }
 
         String domainFile = line.getOptionValue("d");
-        String jsonFile = line.getOptionValue("f");
+        String resultsDir = line.getOptionValue("r");
 
-        if (jsonFile != null) {
-            SimulateInteraction.JSON_FILE = Paths.get(jsonFile);
-            SimulateInteraction.JSON_DATA = new JsonArray();
-        }
+        Global.RESULTS_DIR = Paths.get(resultsDir);
+        SimulateInteraction.JSON_DATA = new JsonArray();
 
         String iName = line.getOptionValue("iName");
         String jName = line.getOptionValue("jName");
@@ -319,73 +416,128 @@ public class SimulateInteraction {
         int l = Integer.parseInt(line.getOptionValue("l"));
         int i = Integer.parseInt(line.getOptionValue("i"));
 
-        // Parse SPUDDX file
-        var parser = new SpuddXMainParser(domainFile);
-        parser.run();
+        // Single agent interaction
+        if (jName == null) {
+            var parser = new SpuddXMainParser(domainFile);
+            parser.run();
 
-        AlphaVectorPolicy p = null;
+            AlphaVectorPolicy p = null;
 
-        var model = (IPOMDP) parser.getModel(iName).orElseGet(() ->
-                {
-                    LOGGER.error("Model %s not found", iName);
-                    System.exit(-1);
-                    return null;
-                });
+            var model = (POMDP) parser.getModel(iName).orElseGet(() ->
+                    {
+                        LOGGER.error("Model %s not found", iName);
+                        System.exit(-1);
+                        return null;
+                    });
 
-        var jModel = model.framesj.stream()
-            .filter(_m -> _m._1().getName().equals(jName))
-            .findFirst()
-            .map(_m -> _m._1()).get();
+            var b_i = parser.getDD(iBel);
+            var s = parser.getDD(iState);
 
-        var jPolicy = model.ecThetas.stream()
-            .filter(_p -> _p.m.getName().equals(jName))
-            .findFirst()
-            .map(_p -> _p.Vn).get();
+            if (line.getOptionValue("p") != null) {
+                if (line.getOptionValue("p").equals("solve"))
+                    p = new SymbolicPerseusSolver<>()
+                        .solve(List.of(b_i), 
+                                model, 100, 20, 
+                                AlphaVectorPolicy.fromR(model.R()));
 
-        var b_i = parser.getDD(iBel);
-        var b_j = parser.getDD(jBel);
-        var s = parser.getDD(iState);
+                else
+                    p = AlphaVectorPolicy.fromJson(
+                            Utils.readJsonFromFile(
+                                line.getOptionValue("p")));
 
-        if (b_i == null) {
-            LOGGER.error("Belief DD %s does not exist", iBel);
-            System.exit(-1);
-        }
+                System.out.println("Graph is:");
+                var G = PolicyGraph.makePolicyGraph(List.of(b_i), model, p);
+                System.out.println(G);
+            }
 
-        if (b_j == null) {
-            LOGGER.error("Belief DD %s does not exist", jBel);
-            System.exit(-1);
-        }
+            for (int n = 0; n < i; n++) {
+                System.out.printf("Running interaction %s\r\n", n);
+                SimulateInteraction.runSimulatorSingleAgent(
+                        model, s, b_i, p, l);
+            }
 
-        b_i = model.getECDDFromMjDD(b_i);
-        b_j = jModel instanceof IPOMDP _jModel ?
-            _jModel.getECDDFromMjDD(b_j) : b_j;
-
-        if (line.getOptionValue("p") != null) {
-            if (line.getOptionValue("p").equals("solve"))
-                p = new SymbolicPerseusSolver<>()
-                    .solve(List.of(b_i), 
-                            model, 100, 20, 
-                            AlphaVectorPolicy.fromR(model.R()));
-
-            else
-                p = AlphaVectorPolicy.fromJson(
-                        Utils.readJsonFromFile(
-                            line.getOptionValue("p")));
-
-            System.out.println("Graph is:");
-            var G = PolicyGraph.makePolicyGraph(List.of(b_i), model, p);
-            System.out.println(G);
-        }
-
-        for (int n = 0; n < i; n++) {
-            System.out.printf("Running interaction %s\r\n", n);
-            SimulateInteraction.runSimulator(
-                    model, jModel, s, b_i, b_j, p, jPolicy, l);
-        }
-
-        if (JSON_FILE != null) {
             var gson = new GsonBuilder().setPrettyPrinting().create();
-            Files.writeString(JSON_FILE, gson.toJson(JSON_DATA));
+            Files.writeString(
+                    Path.of(
+                        Global.RESULTS_DIR.toAbsolutePath().toString(), 
+                        "trace.json"), 
+                    gson.toJson(JSON_DATA));
+
+        }
+
+        // Multi-agent interaction
+
+        else {
+            // Parse SPUDDX file
+            var parser = new SpuddXMainParser(domainFile);
+            parser.run();
+
+            AlphaVectorPolicy p = null;
+
+            var model = (IPOMDP) parser.getModel(iName).orElseGet(() ->
+                    {
+                        LOGGER.error("Model %s not found", iName);
+                        System.exit(-1);
+                        return null;
+                    });
+
+            var jModel = model.framesj.stream()
+                .filter(_m -> _m._1().getName().equals(jName))
+                .findFirst()
+                .map(_m -> _m._1()).get();
+
+            var jPolicy = model.ecThetas.stream()
+                .filter(_p -> _p.m.getName().equals(jName))
+                .findFirst()
+                .map(_p -> _p.Vn).get();
+
+            var b_i = parser.getDD(iBel);
+            var b_j = parser.getDD(jBel);
+            var s = parser.getDD(iState);
+
+            if (b_i == null) {
+                LOGGER.error("Belief DD %s does not exist", iBel);
+                System.exit(-1);
+            }
+
+            if (b_j == null) {
+                LOGGER.error("Belief DD %s does not exist", jBel);
+                System.exit(-1);
+            }
+
+            b_i = model.getECDDFromMjDD(b_i);
+            b_j = jModel instanceof IPOMDP _jModel ?
+                _jModel.getECDDFromMjDD(b_j) : b_j;
+
+            if (line.getOptionValue("p") != null) {
+                if (line.getOptionValue("p").equals("solve"))
+                    p = new SymbolicPerseusSolver<>()
+                        .solve(List.of(b_i), 
+                                model, 100, 20, 
+                                AlphaVectorPolicy.fromR(model.R()));
+
+                else
+                    p = AlphaVectorPolicy.fromJson(
+                            Utils.readJsonFromFile(
+                                line.getOptionValue("p")));
+
+                System.out.println("Graph is:");
+                var G = PolicyGraph.makePolicyGraph(List.of(b_i), model, p);
+                System.out.println(G);
+            }
+
+            for (int n = 0; n < i; n++) {
+                System.out.printf("Running interaction %s\r\n", n);
+                SimulateInteraction.runSimulator(
+                        model, jModel, s, b_i, b_j, p, jPolicy, l);
+            }
+
+            var gson = new GsonBuilder().setPrettyPrinting().create();
+            Files.writeString(
+                    Path.of(
+                        Global.RESULTS_DIR.toAbsolutePath().toString(), 
+                        "trace.json"), 
+                    gson.toJson(JSON_DATA));
         }
     }
 }

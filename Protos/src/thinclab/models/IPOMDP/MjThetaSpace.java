@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
+import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.PolicyGraph;
 import thinclab.models.datastructures.PolicyNode;
@@ -71,7 +72,8 @@ public class MjThetaSpace implements Frame<PolicyNode> {
         try {
             Files.writeString(
                     Paths.get(
-                        String.format("%s_%s_pol_graph.json",
+                        String.format("%s/%s_%s_pol_graph.json",
+                            Global.RESULTS_DIR.toAbsolutePath().toString(),
                             G.hashCode(), m.getName())),
                     G.toString());
         }

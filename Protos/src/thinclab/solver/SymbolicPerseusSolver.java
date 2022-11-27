@@ -77,9 +77,9 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             if (newAlphab > bestVal)
                 newVn.add(newAlpha);
 
-//            else if (Math.abs(bestVal - newAlphab) < 1e-5f)
-//                newVn.addAll(Vn.aVecs);
-            
+            //            else if (Math.abs(bestVal - newAlphab) < 1e-5f)
+            //                newVn.addAll(Vn.aVecs);
+
             else
                 newVn.add(Tuple.of(bestA, bestDD));
 
@@ -106,6 +106,21 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         return bellmanError;
     }
 
+    public static boolean beliefsValid(Collection<DD> B, List<Integer> vars) {
+        for(var _b: B)
+        {
+
+            if (!DDOP.verifyJointProbabilityDist(_b, vars)) {
+
+                LOGGER.error(String.format("Belief %s is not a valid probability distribution",
+                            DDOP.factors(_b, vars)));
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     @Override
     public AlphaVectorPolicy solve(final List<DD> b_is, final M m, int I, int H, AlphaVectorPolicy Vn) {
 
@@ -128,19 +143,14 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         LOGGER.info(String.format("Initial belief exploration for %s took %s msecs", m.getName(),
                     ((_now - _then) / 1000000.0)));
 
-        b_i.stream().forEach(_b ->
-                {
-
-                    if (!DDOP.verifyJointProbabilityDist(_b, m.i_S())) {
-
-                        LOGGER.error(String.format("Belief %s is not a valid probability distribution",
-                                    DDOP.factors(_b, m.i_S())));
-                        System.exit(-1);
-                    }
-                });
 
         var explorationProb = 0.4f;
         int round = 0;
+
+        if (!beliefsValid(b_i, m.i_S())) {
+            LOGGER.error("Belief region contains invalid beliefs");
+            System.exit(-1);
+        }
 
         while (explorationProb > 0.0f) {
 
@@ -156,6 +166,10 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
                             round, explorationProb, b_i.size()));
 
                 ES.expand(b_i, g, m, H, Vn);
+                if (!beliefsValid(g.getAllNodes(), m.i_S())) {
+                    LOGGER.error("Belief region contains invalid beliefs");
+                    System.exit(-1);
+                }
             }
 
             for (int i = 0; i < I; i++) {
@@ -215,6 +229,10 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
                     long expandThen = System.nanoTime();
 
                     ES.expand(b_is, g, m, H, Vn);
+                    if (!beliefsValid(g.getAllNodes(), m.i_S())) {
+                        LOGGER.error("Belief region contains invalid beliefs");
+                        System.exit(-1);
+                    }
 
                     if (Global.DEBUG) {
 
