@@ -1076,39 +1076,32 @@ public class DDOP {
 	
 	public static JsonObject toJson(final DD d, final int var) {
 		
-		var gson = new GsonBuilder().setPrettyPrinting().create();
 		var json = new JsonObject();
 		
 		if (d instanceof DDleaf) {
 			
-			var children = Global.valNames.get(var - 1).stream()
-					.map(v -> {
-						
-						var _json = new JsonObject();
-						_json.add(v, gson.toJsonTree(d.getVal()));
-						
-						return _json;
-					})
-					.collect(Collectors.toList());
+            var _json = new JsonObject();
+			Global.valNames.get(var - 1).stream()
+					.forEach(v -> {
+						_json.addProperty(v, d.getVal());	
+					});
 			
-			json.add(Global.varNames.get(var - 1), gson.toJsonTree(children));
+			json.add(Global.varNames.get(var - 1), _json);
 			
 			return json;
 		}
 		
 		else {
 			
-			var children = IntStream.range(0, d.getChildren().length).boxed()
-					.map(i -> {
-						
-						var _json = new JsonObject();
-						_json.add(Global.valNames.get(var - 1).get(i), gson.toJsonTree(d.getChildren()[i].getVal()));
-						
-						return _json;
-					})
-					.collect(Collectors.toList());
+            var _json = new JsonObject();
+			IntStream.range(0, d.getChildren().length)
+                .forEach(i -> {
+                    _json.addProperty(
+                            Global.valNames.get(var - 1).get(i), 
+                            d.getChildren()[i].getVal());
+					});
 			
-			json.add(Global.varNames.get(var - 1), gson.toJsonTree(children));
+			json.add(Global.varNames.get(var - 1), _json);
 			return json;
 		}
 	}
@@ -1128,16 +1121,14 @@ public class DDOP {
 			System.exit(-1);
 		}
 		
-		var jsonDDs = IntStream.range(0, vars.size()).boxed()
-				.map(i -> DDOP.toJson(dds.get(i), vars.get(i)))
-				.collect(Collectors.toList());
-	
-		
-		var json = new JsonArray();
-		
-		jsonDDs.forEach(j -> {
-			json.add(j);
-		});
+        var json = new JsonObject();
+		IntStream.range(0, vars.size()).boxed()
+				.forEach(i -> {
+                    
+                    json.add(
+                            Global.varNames.get(vars.get(i) - 1), 
+                            DDOP.toJson(dds.get(i), vars.get(i)));
+                });
 		
 		return json;
 	}

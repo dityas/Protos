@@ -184,8 +184,37 @@ public class SimulateInteraction {
 
                 json.addProperty("time step", iter);
                 json.add("iBel", DDOP.toJson(b_i, model.i_S()));
+
+                if (model instanceof IPOMDP) {
+                    var i_theta_j = DDOP.getFrameBelief(
+                        b_i, 
+                        model.PThetajGivenEC,
+                        model.i_EC, 
+                        model.i_S());
+
+                    json.add(
+                            "iThetaHat", 
+                            DDOP.toJson(i_theta_j, model.i_Thetaj));
+
+                }
+
                 json.add("iObs", getVarValsJSON(iObs));
                 json.add("jBel", DDOP.toJson(b_j, jModel.i_S()));
+
+                if (jModel instanceof IPOMDP) {
+                    var _j = (IPOMDP) jModel;
+                    var j_theta_j = DDOP.getFrameBelief(
+                        b_j, 
+                        _j.PThetajGivenEC,
+                        _j.i_EC, 
+                        _j.i_S());
+
+                    json.add(
+                            "jThetaHat", 
+                            DDOP.toJson(j_theta_j, _j.i_Thetaj));
+
+                }
+
                 json.add("jObs", getVarValsJSON(jObs));
                 json.add("state", DDOP.toJson(s, X));
                 json.addProperty("iAct", model.A().get(iAct));
@@ -335,7 +364,7 @@ public class SimulateInteraction {
             if (line.getOptionValue("p").equals("solve"))
                 p = new SymbolicPerseusSolver<>()
                     .solve(List.of(b_i), 
-                            model, 100, 10, 
+                            model, 100, 20, 
                             AlphaVectorPolicy.fromR(model.R()));
 
             else

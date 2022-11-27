@@ -30,14 +30,11 @@ def get_belief(trace, varname):
     for t in trace:
         i_bel, j_bel = t["iBel"], t["jBel"]
 
-        i_bel_ = get_state_val(i_bel, varname)
-        j_bel_ = get_state_val(j_bel, varname)
+        if varname in i_bel.keys():
+            i_bels.append(i_bel[varname][varname])
 
-        if len(i_bel_) > 0:
-            i_bels.append(i_bel_)
-
-        if len(j_bel_) > 0:
-            j_bels.append(j_bel_)
+        if varname in j_bel.keys():
+            j_bels.append(j_bel[varname][varname])
 
         df = pandas.DataFrame({f"b_i({varname})": i_bels,
                                f"b_j({varname})": j_bels})

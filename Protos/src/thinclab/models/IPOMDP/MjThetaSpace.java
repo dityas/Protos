@@ -7,9 +7,10 @@
  */
 package thinclab.models.IPOMDP;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,82 +29,96 @@ import thinclab.utils.Tuple3;
  */
 public class MjThetaSpace implements Frame<PolicyNode> {
 
-	final public int frame;
-	final public PolicyGraph G;
-	final public PBVISolvablePOMDPBasedModel m;
-	final public SymbolicPerseusSolver<PBVISolvablePOMDPBasedModel> s;
-	final public AlphaVectorPolicy Vn;
+    final public int frame;
+    final public PolicyGraph G;
+    final public PBVISolvablePOMDPBasedModel m;
+    final public SymbolicPerseusSolver<PBVISolvablePOMDPBasedModel> s;
+    final public AlphaVectorPolicy Vn;
 
-	final private static Logger LOGGER = 
+    final private static Logger LOGGER = 
         LogManager.getFormatterLogger(MjThetaSpace.class);
 
-	public MjThetaSpace(List<DD> b_j, int frame, 
+    public MjThetaSpace(List<DD> b_j, int frame, 
             PBVISolvablePOMDPBasedModel m) {
 
-		this.frame = frame;
-		this.m = m;
+        this.frame = frame;
+        this.m = m;
 
-		this.s = new SymbolicPerseusSolver<>();
+        this.s = new SymbolicPerseusSolver<>();
 
-		var b_js = new ArrayList<DD>();
+        var b_js = new ArrayList<DD>();
 
-		if (m instanceof IPOMDP)
-			b_js.addAll(b_j.stream()
+        if (m instanceof IPOMDP)
+            b_js.addAll(b_j.stream()
                     .map(d -> ((IPOMDP) m).getECDDFromMjDD(d))
                     .collect(Collectors.toList()));
-		
-		else
-			b_js.addAll(b_j);
 
-		this.Vn = s.solve(b_js, m, 100, 10, AlphaVectorPolicy.fromR(m.R()));
+        else
+            b_js.addAll(b_j);
 
-		this.G = PolicyGraph.makePolicyGraph(b_js, m, Vn);
+        this.Vn = s.solve(b_js, m, 100, 10, AlphaVectorPolicy.fromR(m.R()));
 
-		LOGGER.debug(String.format("Graph has %s nodes and %s node sources", G.nodeMap.size(), G.adjMap.size()));
+        this.G = PolicyGraph.makePolicyGraph(b_js, m, Vn);
 
-		LOGGER.info(String.format("MjTheta space for frame %s initialized with %s EQ classes", frame, G.adjMap.size()));
-		LOGGER.info(String.format("PolicyGraph for %s is %s", m.getName(), G.toString()));
+        LOGGER.debug("Graph has %s nodes and %s node sources", 
+                G.nodeMap.size(), G.adjMap.size());
 
-	}
+        LOGGER.info("MjTheta space for frame %s initialized with %s EQ classes",
+                frame, G.adjMap.size());
+        LOGGER.info("PolicyGraph for %s is %s",
+                m.getName(), G.toString());
 
-	@Override
-	public List<MjRepr<PolicyNode>> allModels() {
+        try {
+            Files.writeString(
+                    Paths.get(
+                        String.format("%s_%s_pol_graph.json",
+                            G.hashCode(), m.getName())),
+                    G.toString());
+        }
 
-		return G.adjMap.keySet().stream().map(n -> new MjRepr<>(frame, G.nodeMap.get(n))).collect(Collectors.toList());
-	}
+        catch (Exception e) {
+            LOGGER.error("Got error while writing policy graph to file: %s", e);
+        }
+    }
 
-	@Override
-	public List<MjRepr<PolicyNode>> bMj() {
+    @Override
+    public List<MjRepr<PolicyNode>> allModels() {
 
-		// TODO Auto-generated method stub
-		return null;
-	}
+        return G.adjMap.keySet().stream().map(n -> new MjRepr<>(frame, G.nodeMap.get(n))).collect(Collectors.toList());
+    }
 
-	@Override
-	public List<Tuple3<MjRepr<PolicyNode>, List<Integer>, MjRepr<PolicyNode>>> getTriples() {
+    @Override
+    public List<MjRepr<PolicyNode>> bMj() {
 
-		var triples = G.adjMap.entrySet().stream().flatMap(e -> G.edgeMap.entrySet().stream().map(f ->
-			{
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-				// for each edge, make a list of indices of child vals
-				var edge = new ArrayList<Integer>(f.getKey()._1().size() + 1);
-				edge.add(f.getKey()._0() + 1);
-				edge.addAll(f.getKey()._1());
+    @Override
+    public List<Tuple3<MjRepr<PolicyNode>, List<Integer>, MjRepr<PolicyNode>>> getTriples() {
 
-				var mj_p = e.getValue().get(f.getValue());
+        var triples = G.adjMap.entrySet().stream().flatMap(e -> G.edgeMap.entrySet().stream().map(f ->
+                    {
 
-				// if it is a leaf node, loop it back
-				if (mj_p == null)
-					return Tuple.of(new MjRepr<>(frame, G.nodeMap.get(e.getKey())), (List<Integer>) edge,
-							new MjRepr<>(frame, G.nodeMap.get(e.getKey())));
+                        // for each edge, make a list of indices of child vals
+                        var edge = new ArrayList<Integer>(f.getKey()._1().size() + 1);
+                        edge.add(f.getKey()._0() + 1);
+                        edge.addAll(f.getKey()._1());
 
-				else
-					return Tuple.of(new MjRepr<>(frame, G.nodeMap.get(e.getKey())), (List<Integer>) edge,
-							new MjRepr<>(frame, G.nodeMap.get(mj_p)));
+                        var mj_p = e.getValue().get(f.getValue());
 
-			})).collect(Collectors.toList());
+                        // if it is a leaf node, loop it back
+                        if (mj_p == null)
+                            return Tuple.of(new MjRepr<>(frame, G.nodeMap.get(e.getKey())), (List<Integer>) edge,
+                                    new MjRepr<>(frame, G.nodeMap.get(e.getKey())));
 
-		return triples;
-	}
+                        else
+                            return Tuple.of(new MjRepr<>(frame, G.nodeMap.get(e.getKey())), (List<Integer>) edge,
+                                    new MjRepr<>(frame, G.nodeMap.get(mj_p)));
+
+                    })).collect(Collectors.toList());
+
+        return triples;
+    }
 
 }

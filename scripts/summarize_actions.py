@@ -44,6 +44,7 @@ def get_joint_action(trace):
                            "j_act": j_actions,
                            "|".join(j_obs_name): j_obs_list})
     print(df)
+    print("===")
 
 
 if __name__ == "__main__":
