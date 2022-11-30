@@ -8,3 +8,5 @@ target/
 build
 .project
 .settings/*
+__pycache__/
+.ipynb_checkpoints/
