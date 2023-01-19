@@ -28,10 +28,25 @@ def pull_from_trace(trace, transform, key):
 
 def pull_actions(trace):
 
+    i_obs_keys = None
+    j_obs_keys = None
+    
     i_acts = pull_from_trace(trace, lambda x: x, "iAct")
-    j_acts = pull_from_trace(trace, lambda x: x, "jAct")
+    i_obs = pull_from_trace(trace, lambda x: x, "iObs")
+    i_obs_keys = list(i_obs[0].keys()) if i_obs[0] is not None else None
+    if i_obs_keys is not None:
+        i_obs = list(map(lambda x: "|".join([x[k] for k in i_obs_keys]),
+                         i_obs))
 
-    return pandas.DataFrame({"i_acts": i_acts, "j_acts": j_acts})
+    j_acts = pull_from_trace(trace, lambda x: x, "jAct")
+    j_obs = pull_from_trace(trace, lambda x: x, "jObs")
+    j_obs_keys = list(j_obs[0].keys()) if j_obs[0] is not None else None
+    if j_obs_keys is not None:
+        j_obs = list(map(lambda x: "|".join([x[k] for k in j_obs_keys]),
+                         j_obs))
+
+    return pandas.DataFrame({"i_acts": i_acts, str(i_obs_keys): i_obs, 
+                             "j_acts": j_acts, str(j_obs_keys): j_obs})
 
 
 def pull_rewards(trace):
@@ -40,6 +55,32 @@ def pull_rewards(trace):
     j_Rs = pull_from_trace(trace, lambda x: x, "jR")
 
     return pandas.DataFrame({"i_Rs": i_Rs, "j_Rs": j_Rs})
+
+
+def pull_frame_beliefs(trace):
+
+    theta_hat_i = pull_from_trace(trace, lambda x: x, "iThetaHat")
+    theta_hat_j = pull_from_trace(trace, lambda x: x, "jThetaHat")
+
+    if theta_hat_i[0] is not None:
+        key = list(theta_hat_i[0].keys())[0]
+        frames = list(theta_hat_i[0][key].keys())
+
+        theta_hat_i = list(map(lambda x: [x[key][f] for f in frames], 
+                               theta_hat_i))
+
+        theta_hat_i = pandas.DataFrame(data=theta_hat_i, columns=frames)
+
+    if theta_hat_j[0] is not None:
+        key = list(theta_hat_j[0].keys())[0]
+        frames = list(theta_hat_j[0][key].keys())
+
+        theta_hat_j = list(map(lambda x: [x[key][f] for f in frames], 
+                               theta_hat_j))
+
+        theta_hat_j = pandas.DataFrame(data=theta_hat_j, columns=frames)
+
+    return (theta_hat_i, theta_hat_j)
 
 
 def get_belief_keys(trace, var_name):

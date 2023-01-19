@@ -25,7 +25,6 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
-import thinclab.models.POMDP;
 import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.PolicyGraph;
 import thinclab.policy.AlphaVectorPolicy;
@@ -129,52 +128,16 @@ public class SimulateInteraction {
 
         for (int iter = 0; iter < length; iter++) {
 
-            System.out.println();
-
-            var s_factors = DDOP.factors(s, X);
-
-            // print belief
-            System.out.println("State:==");
-            s_factors.forEach(_b -> {
-                System.out.println(_b);
-            });
-            System.out.println("====================");
-
-            // print belief of agent i
-            System.out.printf("==Belief of agent %s==\r\n", 
-                    model.getName());
-            printBeliefStats(model, b_i);
-            System.out.println("=====================");
-
-            // print belief of agent i
-            System.out.printf("==Belief of agent %s==\r\n", 
-                    jModel.getName());
-            printBeliefStats(jModel, b_j);
-            System.out.println("=====================\r\n");
-
             var iAct = p.getBestActionIndex(b_i, model.i_S());
-            System.out.printf("Agent %s took action %s\r\n",
-                    model.getName(), model.A().get(iAct));
-
             var jAct = jPolicy.getBestActionIndex(b_j, jModel.i_S());
-            System.out.printf("Agent %s took action %s\r\n",
-                    jModel.getName(), jModel.A().get(jAct));
-
             var s_p = updateState(s, X, model.T().get(iAct), model.i_Aj, jAct);
-
             var iObs = sampleObservations(s_p, model.O().get(iAct), 
                     model.i_Om_p(), X_p, model.i_Aj, jAct);
-
-            var jObs = sampleObservations(s_p, jModel.O().get(jAct), 
-                    jModel.i_Om_p(), X_p, model.i_Aj, jAct);
-
-            System.out.printf("Agent %s gets observation ",
-                    model.getName());
-            printVarVals(iObs);
-
-            System.out.printf("Agent %s gets observation ",
-                    jModel.getName());
-            printVarVals(jObs);
+            var jObs = jModel instanceof IPOMDP ? 
+                sampleObservations(s_p, jModel.O().get(jAct), 
+                        jModel.i_Om_p(), X_p, ((IPOMDP) jModel).i_Aj, iAct) :
+                sampleObservations(s_p, jModel.O().get(jAct), 
+                        jModel.i_Om_p(), X_p);
 
             // Write results
             if (Global.RESULTS_DIR != null) {
@@ -276,6 +239,18 @@ public class SimulateInteraction {
         var oDD = DDOP.addMultVarElim(o, i_S_p);
         return DDOP.sample(List.of(oDD), i_Om_p);
             }
+
+    public static 
+        Tuple<List<Integer>, List<Integer>> sampleObservations(DD s,
+                List<DD> O, List<Integer> i_Om_p, List<Integer> i_S_p) {
+
+            var s_p = DDOP.primeVars(s, (Global.NUM_VARS / 2));
+            var o = new ArrayList<>(O);
+            o.add(s_p);
+
+            var oDD = DDOP.addMultVarElim(o, i_S_p);
+            return DDOP.sample(List.of(oDD), i_Om_p);
+        }
 
     public static void main(String[] args) throws Exception {
 
