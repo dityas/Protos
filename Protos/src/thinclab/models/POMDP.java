@@ -71,7 +71,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		return builder.toString();
 	}
 
-	// --------------------------------------------------------------------------------------
+	// -----------------------------------------------------------------------
 	// Implementation of BeliefBasedAgent<DD>
 
 	@Override
@@ -90,7 +90,8 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			// Sumout[S] P(O'=o| S, A=a) x P(S'| S, A=a) x P(S)
 			DD nextBelState = DDOP.addMultVarElim(dynamicsArray, i_S);
 
-			nextBelState = DDOP.primeVars(nextBelState, -(Global.NUM_VARS / 2));
+			nextBelState = DDOP.primeVars(
+                    nextBelState, -(Global.NUM_VARS / 2));
 			DD obsProb = DDOP.addMultVarElim(List.of(nextBelState), i_S);
 
 			if (obsProb.getVal() < 1e-8)

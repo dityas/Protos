@@ -129,6 +129,46 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
     }
 
+    public void solveOpponent() {
+
+		// create interactive state space using mjs
+		updateIS();
+
+		// populate mj to EC map
+		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream().forEach(e ->
+			{
+
+				int frameId = e.getKey().frame;
+				var bel = e.getKey().m.beliefs.stream().findAny().get();
+				var frame = ecThetas.get(frameId);
+				
+				if (frame.m instanceof IPOMDP)
+					bel = ((IPOMDP) frame.m).getECDDFromMjDD(bel);
+
+				int alphaId = DDOP.bestAlphaIndex(frame.Vn.aVecs, bel, frame.m.i_S());
+//				int actId = frame.Vn.getBestActionIndex(bel, frame.m.i_S());
+				int actId = frame.Vn.aVecs.get(alphaId)._0();
+
+				var node = new MjRepr<>(frameId, new PolicyNode(alphaId, actId, frame.m.A().get(actId)));
+				var ec = ECMap.get(node);
+
+				if (ec == null) {
+
+					LOGGER.error(String.format("Panic! Could not find equivalence class for belief %s", e.getValue()));
+					LOGGER.debug(String.format("actId is %s, alphaId %s and frameId %s, act %s", 
+							actId, alphaId, frameId, frame.m.A().get(actId)));
+					LOGGER.debug(String.format("EC map is %s", ECMap));
+					LOGGER.debug(String.format("Belief is %s", bel));
+					
+					DDOP.printValuesForBelief(frame.Vn.aVecs, bel, mjVars, frame.m.A());
+					
+					System.exit(-1);
+				}
+
+				mjToECMap.put(e.getValue(), ECMap.get(node));
+			});
+    }
+
     public IPOMDP(List<String> S, List<String> O, String A, 
             String Aj, String Mj, String EC, String Thetaj,
 			List<Tuple<String, Model>> frames_j, 
@@ -242,43 +282,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 						f._2().stream().flatMap(n -> n.beliefs.stream()).collect(Collectors.toList()), f._0(), f._1()))
 				.collect(Collectors.toList());
 
-		// create interactive state space using mjs
-		updateIS();
-
-		// populate mj to EC map
-		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream().forEach(e ->
-			{
-
-				int frameId = e.getKey().frame;
-				var bel = e.getKey().m.beliefs.stream().findAny().get();
-				var frame = ecThetas.get(frameId);
-				
-				if (frame.m instanceof IPOMDP)
-					bel = ((IPOMDP) frame.m).getECDDFromMjDD(bel);
-
-				int alphaId = DDOP.bestAlphaIndex(frame.Vn.aVecs, bel, frame.m.i_S());
-//				int actId = frame.Vn.getBestActionIndex(bel, frame.m.i_S());
-				int actId = frame.Vn.aVecs.get(alphaId)._0();
-
-				var node = new MjRepr<>(frameId, new PolicyNode(alphaId, actId, frame.m.A().get(actId)));
-				var ec = ECMap.get(node);
-
-				if (ec == null) {
-
-					LOGGER.error(String.format("Panic! Could not find equivalence class for belief %s", e.getValue()));
-					LOGGER.debug(String.format("actId is %s, alphaId %s and frameId %s, act %s", 
-							actId, alphaId, frameId, frame.m.A().get(actId)));
-					LOGGER.debug(String.format("EC map is %s", ECMap));
-					LOGGER.debug(String.format("Belief is %s", bel));
-					
-					DDOP.printValuesForBelief(frame.Vn.aVecs, bel, mjVars, frame.m.A());
-					
-					System.exit(-1);
-				}
-
-				mjToECMap.put(e.getValue(), ECMap.get(node));
-			});
-
+        solveOpponent();
     }
 
 	public IPOMDP(List<String> S, List<String> O, String A, 
@@ -387,43 +391,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 						f._2().stream().flatMap(n -> n.beliefs.stream()).collect(Collectors.toList()), f._0(), f._1()))
 				.collect(Collectors.toList());
 
-		// create interactive state space using mjs
-		updateIS();
-
-		// populate mj to EC map
-		Global.modelVars.get(Global.varNames.get(i_Mj - 1)).entrySet().stream().forEach(e ->
-			{
-
-				int frameId = e.getKey().frame;
-				var bel = e.getKey().m.beliefs.stream().findAny().get();
-				var frame = ecThetas.get(frameId);
-				
-				if (frame.m instanceof IPOMDP)
-					bel = ((IPOMDP) frame.m).getECDDFromMjDD(bel);
-
-				int alphaId = DDOP.bestAlphaIndex(frame.Vn.aVecs, bel, frame.m.i_S());
-//				int actId = frame.Vn.getBestActionIndex(bel, frame.m.i_S());
-				int actId = frame.Vn.aVecs.get(alphaId)._0();
-
-				var node = new MjRepr<>(frameId, new PolicyNode(alphaId, actId, frame.m.A().get(actId)));
-				var ec = ECMap.get(node);
-
-				if (ec == null) {
-
-					LOGGER.error(String.format("Panic! Could not find equivalence class for belief %s", e.getValue()));
-					LOGGER.debug(String.format("actId is %s, alphaId %s and frameId %s, act %s", 
-							actId, alphaId, frameId, frame.m.A().get(actId)));
-					LOGGER.debug(String.format("EC map is %s", ECMap));
-					LOGGER.debug(String.format("Belief is %s", bel));
-					
-					DDOP.printValuesForBelief(frame.Vn.aVecs, bel, mjVars, frame.m.A());
-					
-					System.exit(-1);
-				}
-
-				mjToECMap.put(e.getValue(), ECMap.get(node));
-			});
-
+        solveOpponent();
 	}
 
 	public List<DD> prepareOj_pGivenAjAiS_p(int ai, List<List<DD>> _Oj) {

@@ -178,79 +178,80 @@ public class Eval {
         if (parsed == null)
             return Right.of(null);
 
-        else if (parsed instanceof String s)
-            return evalRef(s, env);
-
-        else if (parsed instanceof DD n)
-            return Right.of(n);
-
-        else if (parsed instanceof Number n)
-            return Right.of(Float.valueOf((float) n));
-
+//        else if (parsed instanceof String s)
+//            return evalRef(s, env);
+//
+//        else if (parsed instanceof DD n)
+//            return Right.of(n);
+//
+//        else if (parsed instanceof Number n)
+//            return Right.of(Float.valueOf((float) n));
+//
         else if (parsed instanceof List l) {
+            return null;
 
-            var fn = SpuddUtils.car(l);
-            var fargs = SpuddUtils.cdr(l);
-
-            // regular defines
-            if (fn.equals("define")) 
-                return evalDefine(l, env);
-
-            // random variables
-            else if (fn.equals("defvar"))
-                return evalDefVar(l, env);
-
-            // set random vars
-            else if (fn.equals("compile_vars")) {
-
-                Global.primeVarsAndInitGlobals(env.vars);
-                IntStream.range(0, Global.varNames.size())
-                    .mapToObj(i -> 
-                            Tuple.of(Global.varNames.get(i), i + 1))
-                    .forEach(t -> addToEnv(t._0(), t._1(), env));
-
-                return Right.of(Global.varNames);
-            }
-
-            // lambda
-            else if (fn.equals("\\")) 
-                return makeLambda(l);
-
-            // java method
-            else if (fn.equals("java-method")) {
-
-                l.remove(0);
-
-                if (l.size() >= 2) {
-                    var className = (String) l.remove(0);
-                    var method = (String) l.remove(0);
-
-                    var types = l.size() > 0 ? l : List.of();
-
-                    return JavaMethod.makeMethod(
-                            className, method, types);
-                }
-
-                else return Left.of(
-                        error("java-mathod not defined properly"));
-            }
-
-            else {
-
-                var f = eval(fn, env);
-                Either<Exception, List<Object>> args = 
-                    evalList(fargs, env);
-
-                if (f instanceof Left)
-                    return f;
-
-                else if (args instanceof Left)
-                    return Left.of(args.left());
-
-                else
-                    return (Either<Exception, Object>) 
-                        evalLambda(f.right(), args.right(), env);
-            }
+//            var fn = SpuddUtils.car(l);
+//            var fargs = SpuddUtils.cdr(l);
+//
+//            // regular defines
+//            if (fn.equals("define")) 
+//                return evalDefine(l, env);
+//
+//            // random variables
+//            else if (fn.equals("defvar"))
+//                return evalDefVar(l, env);
+//
+//            // set random vars
+//            else if (fn.equals("compile_vars")) {
+//
+//                Global.primeVarsAndInitGlobals(env.vars);
+//                IntStream.range(0, Global.varNames.size())
+//                    .mapToObj(i -> 
+//                            Tuple.of(Global.varNames.get(i), i + 1))
+//                    .forEach(t -> addToEnv(t._0(), t._1(), env));
+//
+//                return Right.of(Global.varNames);
+//            }
+//
+//            // lambda
+//            else if (fn.equals("\\")) 
+//                return makeLambda(l);
+//
+//            // java method
+//            else if (fn.equals("java-method")) {
+//
+//                l.remove(0);
+//
+//                if (l.size() >= 2) {
+//                    var className = (String) l.remove(0);
+//                    var method = (String) l.remove(0);
+//
+//                    var types = l.size() > 0 ? l : List.of();
+//
+//                    return JavaMethod.makeMethod(
+//                            className, method, types);
+//                }
+//
+//                else return Left.of(
+//                        error("java-mathod not defined properly"));
+//            }
+//
+//            else {
+//
+//                var f = eval(fn, env);
+//                Either<Exception, List<Object>> args = 
+//                    evalList(fargs, env);
+//
+//                if (f instanceof Left)
+//                    return f;
+//
+//                else if (args instanceof Left)
+//                    return Left.of(args.left());
+//
+//                else
+//                    return (Either<Exception, Object>) 
+//                        evalLambda(f.right(), args.right(), env);
+//            }
         }
 
         else {

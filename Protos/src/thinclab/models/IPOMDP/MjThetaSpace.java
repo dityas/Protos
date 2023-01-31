@@ -69,17 +69,20 @@ public class MjThetaSpace implements Frame<PolicyNode> {
         LOGGER.info("PolicyGraph for %s is %s",
                 m.getName(), G.toString());
 
-        try {
-            Files.writeString(
-                    Paths.get(
-                        String.format("%s/%s_%s_pol_graph.json",
-                            Global.RESULTS_DIR.toAbsolutePath().toString(),
-                            G.hashCode(), m.getName())),
-                    G.toString());
-        }
+        if (Global.RESULTS_DIR != null) {
+            try {
+                Files.writeString(
+                        Paths.get(
+                            String.format("%s/%s_%s_pol_graph.json",
+                                Global.RESULTS_DIR
+                                .toAbsolutePath().toString(),
+                                G.hashCode(), m.getName())),
+                        G.toString());
+            }
 
-        catch (Exception e) {
-            LOGGER.error("Got error while writing policy graph to file: %s", e);
+            catch (Exception e) {
+                LOGGER.error("Got error while writing policy graph to file: %s", e);
+            }
         }
     }
 
@@ -92,33 +95,42 @@ public class MjThetaSpace implements Frame<PolicyNode> {
     @Override
     public List<MjRepr<PolicyNode>> bMj() {
 
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public List<Tuple3<MjRepr<PolicyNode>, List<Integer>, MjRepr<PolicyNode>>> getTriples() {
 
-        var triples = G.adjMap.entrySet().stream().flatMap(e -> G.edgeMap.entrySet().stream().map(f ->
-                    {
+        var triples = G.adjMap.entrySet().stream()
+            .flatMap(e -> G.edgeMap.entrySet().stream().map(f ->
+                        {
 
-                        // for each edge, make a list of indices of child vals
-                        var edge = new ArrayList<Integer>(f.getKey()._1().size() + 1);
-                        edge.add(f.getKey()._0() + 1);
-                        edge.addAll(f.getKey()._1());
+                            // for each edge, make a list of indices of child vals
+                            var edge = new ArrayList<Integer>(
+                                    f.getKey()._1().size() + 1);
+                            edge.add(f.getKey()._0() + 1);
+                            edge.addAll(f.getKey()._1());
 
-                        var mj_p = e.getValue().get(f.getValue());
+                            var mj_p = e.getValue().get(f.getValue());
 
-                        // if it is a leaf node, loop it back
-                        if (mj_p == null)
-                            return Tuple.of(new MjRepr<>(frame, G.nodeMap.get(e.getKey())), (List<Integer>) edge,
-                                    new MjRepr<>(frame, G.nodeMap.get(e.getKey())));
+                            // if it is a leaf node, loop it back
+                            if (mj_p == null)
+                                return Tuple.of(
+                                        new MjRepr<>(frame, 
+                                            G.nodeMap.get(e.getKey())), 
+                                        (List<Integer>) edge,
+                                        new MjRepr<>(frame, 
+                                            G.nodeMap.get(e.getKey())));
 
-                        else
-                            return Tuple.of(new MjRepr<>(frame, G.nodeMap.get(e.getKey())), (List<Integer>) edge,
-                                    new MjRepr<>(frame, G.nodeMap.get(mj_p)));
+                            else
+                                return Tuple.of(
+                                        new MjRepr<>(frame, 
+                                            G.nodeMap.get(e.getKey())), 
+                                        (List<Integer>) edge,
+                                        new MjRepr<>(frame, 
+                                            G.nodeMap.get(mj_p)));
 
-                    })).collect(Collectors.toList());
+                        })).collect(Collectors.toList());
 
         return triples;
     }
