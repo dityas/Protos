@@ -160,6 +160,15 @@ public class SimulateInteraction {
                             "iThetaHat", 
                             DDOP.toJson(i_theta_j, model.i_Thetaj));
 
+                    var PAj = 
+                        DDOP.addMultVarElim(
+                                List.of(b_i, model.PAjGivenEC), 
+                                model.i_S());
+
+                    json.add(
+                            "i_P(Aj)",
+                            DDOP.toJson(PAj, model.i_Aj));
+
                 }
 
                 json.add("iObs", getVarValsJSON(iObs));
@@ -178,6 +187,15 @@ public class SimulateInteraction {
                     json.add(
                             "jThetaHat", 
                             DDOP.toJson(j_theta_j, _j.i_Thetaj));
+                    
+                    var PAj = 
+                        DDOP.addMultVarElim(
+                                List.of(b_j, _j.PAjGivenEC), 
+                                _j.i_S());
+
+                    json.add(
+                            "j_P(Aj)",
+                            DDOP.toJson(PAj, _j.i_Aj));
 
                 }
 

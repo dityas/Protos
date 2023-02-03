@@ -10,7 +10,6 @@ package thinclab.models.datastructures;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
@@ -26,111 +25,134 @@ import thinclab.utils.Tuple3;
  * @author adityas
  *
  */
-public class ReachabilityGraph extends AbstractAOGraph<DD, Integer, List<Integer>> {
+public class ReachabilityGraph extends 
+AbstractAOGraph<DD, Integer, List<Integer>> {
 
-	private static final Logger LOGGER = LogManager.getLogger(ReachabilityGraph.class);
+    private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(ReachabilityGraph.class);
 
-	public ReachabilityGraph(final List<Tuple<Integer, List<Integer>>> AOSpace) {
+    public ReachabilityGraph(final List<Tuple<Integer,
+            List<Integer>>> AOSpace) {
 
-		AOSpace.stream().forEach(i -> this.edgeIndexMap.put(i, this.edgeIndexMap.size()));
-		LOGGER.info(String.format("Initialized reachability graph for branching factor %s", AOSpace.size()));
-	}
+        AOSpace.stream()
+            .forEach(i -> this.edgeIndexMap.put(
+                        i, this.edgeIndexMap.size()));
 
-	public static ReachabilityGraph fromDecMakingModel(POSeqDecMakingModel<?> m) {
+        LOGGER.info(
+                "Initialized reachability graph for branching factor %s", 
+                AOSpace.size());
+    }
 
-		// Make action observation space for agent I
-		var obsVars = m.i_Om().stream().map(i -> IntStream.range(1, Global.valNames.get(i - 1).size() + 1)
-				.mapToObj(j -> j).collect(Collectors.toList())).collect(Collectors.toList());
+    public static ReachabilityGraph 
+        fromDecMakingModel(POSeqDecMakingModel<?> m) {
 
-		var oSpace = DDOP.cartesianProd(obsVars);
-		var aoSpace = IntStream.range(0, m.A().size()).mapToObj(i -> i)
-				.flatMap(i -> oSpace.stream().map(o -> Tuple.of(i, o))).collect(Collectors.toList());
+            // Make action observation space for agent I
+            var obsVars = m.i_Om().stream()
+                .map(i -> IntStream.range(
+                            1, Global.valNames.get(i - 1).size() + 1)
+                        .mapToObj(j -> j)
+                        .collect(Collectors.toList()))
+                .collect(Collectors.toList());
 
-		return new ReachabilityGraph(aoSpace);
-	}
+            var oSpace = DDOP.cartesianProd(obsVars);
+            var aoSpace = IntStream.range(0, m.A().size())
+                .mapToObj(i -> i)
+                .flatMap(i -> oSpace.stream().map(o -> Tuple.of(i, o)))
+                .collect(Collectors.toList());
 
-	public List<Tuple3<DD, List<Integer>, DD>> getTriples() {
+            return new ReachabilityGraph(aoSpace);
+        }
 
-		var triples = connections.entrySet().stream().flatMap(e -> edgeIndexMap.entrySet().stream().map(f ->
-			{
+    public List<Tuple3<DD, List<Integer>, DD>> getTriples() {
 
-				// for each edge, make a list of indices of child vals
-				var edge = new ArrayList<Integer>(f.getKey()._1().size() + 1);
-				edge.add(f.getKey()._0() + 1);
-				edge.addAll(f.getKey()._1());
+        var triples = connections.entrySet().stream()
+            .flatMap(e -> edgeIndexMap.entrySet().stream()
+                    .map(f ->
+                        {
 
-				var mj_p = e.getValue().get(f.getValue());
+                            // for each edge, make a list of indices of child vals
+                            var edge = new ArrayList<Integer>(f.getKey()._1().size() + 1);
+                            edge.add(f.getKey()._0() + 1);
+                            edge.addAll(f.getKey()._1());
 
-				// if it is a leaf node, loop it back
-				if (mj_p == null)
-					return Tuple.of(revNodeIndex.get(e.getKey()), (List<Integer>) edge, revNodeIndex.get(e.getKey()));
+                            var mj_p = e.getValue().get(f.getValue());
 
-				else
-					return Tuple.of(revNodeIndex.get(e.getKey()), (List<Integer>) edge, revNodeIndex.get(mj_p));
-			})).collect(Collectors.toList());
+                            // if it is a leaf node, loop it back
+                            if (mj_p == null)
+                                return Tuple.of(
+                                        revNodeIndex.get(e.getKey()), 
+                                        (List<Integer>) edge, 
+                                        revNodeIndex.get(e.getKey()));
 
-		// LOGGER.debug(String.format("Triples are: %s", triples));
-		return triples;
-	}
+                            else
+                                return Tuple.of(
+                                        revNodeIndex.get(e.getKey()), 
+                                        (List<Integer>) edge, 
+                                        revNodeIndex.get(mj_p));
+                        })).collect(Collectors.toList());
 
-	@Override
-	public String toString() {
+        // LOGGER.debug(String.format("Triples are: %s", triples));
+        return triples;
+    }
 
-		var builder = new StringBuilder();
-		builder.append("Reachability Graph: [").append("\r\n").append("edges: {\r\n");
+    @Override
+    public String toString() {
 
-		this.edgeIndexMap.entrySet().stream().forEach(e ->
-			{
+        var builder = new StringBuilder();
+        builder.append("Reachability Graph: [").append("\r\n").append("edges: {\r\n");
 
-				builder.append("\t").append(e.getKey()).append(" -> ").append(e.getValue()).append("\r\n");
-			});
+        this.edgeIndexMap.entrySet().stream().forEach(e ->
+                {
 
-		builder.append("}\r\n");
-		builder.append("nodes: {\r\n");
+                    builder.append("\t").append(e.getKey()).append(" -> ").append(e.getValue()).append("\r\n");
+                });
 
-		this.connections.entrySet().stream().forEach(e ->
-			{
+        builder.append("}\r\n");
+        builder.append("nodes: {\r\n");
 
-				builder.append("\t").append(e.getKey()).append(" -> ").append(e.getValue()).append("\r\n");
-			});
+        this.connections.entrySet().stream().forEach(e ->
+                {
 
-		builder.append("}\r\n]");
+                    builder.append("\t").append(e.getKey()).append(" -> ").append(e.getValue()).append("\r\n");
+                });
 
-		return builder.toString();
-	}
+        builder.append("}\r\n]");
 
-	public String toDot(POSeqDecMakingModel<?> m) {
+        return builder.toString();
+    }
 
-		var nodeMap = new HashMap<DD, Integer>(connections.size());
+    public String toDot(POSeqDecMakingModel<?> m) {
 
-		var builder = new StringBuilder();
-		builder.append("digraph D {").append("\r\n").append("\t node [shape=record];\r\n");
+        var nodeMap = new HashMap<DD, Integer>(connections.size());
 
-//		for (var dd : connections.keySet()) {
-//
-//			nodeMap.put(dd, nodeMap.size());
-//			builder.append(nodeMap.get(dd)).append(" [label=\"").append(DDOP.factors(dd, m.i_S())).append("\"]\r\n");
-//		}
-//
-//		builder.append("\r\n");
-//
-//		for (var dd : connections.keySet()) {
-//
-//			for (var edge : edgeIndexMap.keySet()) {
-//
-//				if (connections.get(dd).get(edgeIndexMap.get(edge)) != null) {
-//
-//					builder.append(nodeMap.get(dd)).append(" -> ")
-//							.append(nodeMap.get(connections.get(dd).get(edgeIndexMap.get(edge)))).append(" [label=\" ")
-//							.append(m.A().get(edge._0())).append(" ").append(edge._1()).append("\"]\r\n");
-//				}
-//			}
-//
-//		}
+        var builder = new StringBuilder();
+        builder.append("digraph D {").append("\r\n").append("\t node [shape=record];\r\n");
 
-		builder.append("}\r\n]");
-		return builder.toString();
+        //		for (var dd : connections.keySet()) {
+        //
+        //			nodeMap.put(dd, nodeMap.size());
+        //			builder.append(nodeMap.get(dd)).append(" [label=\"").append(DDOP.factors(dd, m.i_S())).append("\"]\r\n");
+        //		}
+        //
+        //		builder.append("\r\n");
+        //
+        //		for (var dd : connections.keySet()) {
+        //
+        //			for (var edge : edgeIndexMap.keySet()) {
+        //
+        //				if (connections.get(dd).get(edgeIndexMap.get(edge)) != null) {
+        //
+        //					builder.append(nodeMap.get(dd)).append(" -> ")
+        //							.append(nodeMap.get(connections.get(dd).get(edgeIndexMap.get(edge)))).append(" [label=\" ")
+        //							.append(m.A().get(edge._0())).append(" ").append(edge._1()).append("\"]\r\n");
+        //				}
+        //			}
+        //
+        //		}
 
-	}
+        builder.append("}\r\n]");
+        return builder.toString();
+
+    }
 
 }

@@ -24,7 +24,8 @@ import thinclab.utils.Tuple;
  * @author adityas
  *
  */
-public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends AbstractAOGraph<DD, Integer, List<Integer>>, P extends Policy<DD>>
+public class 
+SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends AbstractAOGraph<DD, Integer, List<Integer>>, P extends Policy<DD>>
     implements ExplorationStrategy<DD, M, G, P> {
 
     private final float e;
@@ -32,18 +33,24 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
     private HashMap<Tuple<DD, Integer>, DD> likelihoodsCache = new HashMap<>();
 
-    private static final Logger LOGGER = LogManager.getLogger(SSGAExploration.class);
+    private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(SSGAExploration.class);
 
     public SSGAExploration(float explorationProb) {
 
         this.e = explorationProb;
         this.maxB = 200;
-        LOGGER.debug(String.format("Initialized SSGA exploration for exploration probability %s", e));
+        LOGGER.debug(
+                "Initialized SSGA exploration for exploration probability %s",
+                e);
     }
 
     public float getMinDistance(DD b, Collection<DD> beliefs) {
 
-        return beliefs.parallelStream().map(_b -> DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b)))).min((d1, d2) -> d1.compareTo(d2)).get();
+        return beliefs.parallelStream()
+            .map(_b -> DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b))))
+            .min((d1, d2) -> d1.compareTo(d2))
+            .get();
     }
 
     public boolean isUniqueBelief(DD b, Collection<DD> beliefs, float minDist) {
@@ -63,9 +70,9 @@ public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends Abstra
 
         if (Pa > 1 || Pa < 0) {
 
-            LOGGER.error(String.format(
-                        "Exploration prob for SSGA exploration is %s which makes greedy action selection prob %s", e,
-                        (1 - e)));
+            LOGGER.error(
+                    "Exploration prob for SSGA exploration is %s which makes" +
+                    " greedy action selection prob %s", e, (1 - e));
             System.exit(-1);
         }
 

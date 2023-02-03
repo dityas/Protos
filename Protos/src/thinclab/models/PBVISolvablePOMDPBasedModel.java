@@ -207,7 +207,7 @@ public abstract class PBVISolvablePOMDPBasedModel implements
             return false;
 
         else {
-            LOGGER.error("Under specified DBN %s", dbn.getName());
+            LOGGER.error("Under specified DBN %s", dbn);
             System.exit(-1);
             return true;
         }

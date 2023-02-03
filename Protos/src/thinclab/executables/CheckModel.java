@@ -1,17 +1,6 @@
 
 package thinclab.executables;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -20,28 +9,28 @@ import org.apache.commons.cli.Options;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import thinclab.DDOP;
-import thinclab.legacy.DD;
-import thinclab.legacy.DDnode;
-import thinclab.legacy.Global;
-import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.POMDP;
-import thinclab.models.datastructures.PolicyGraph;
-import thinclab.policy.AlphaVectorPolicy;
-import thinclab.solver.SymbolicPerseusSolver;
+import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.spuddx_parser.SpuddXMainParser;
-import thinclab.utils.Tuple;
-import thinclab.utils.Utils;
 
-public class CheckPOMDPModel {
+
+public class CheckModel {
 
     private static final Logger LOGGER = 
-        LogManager.getFormatterLogger(CheckPOMDPModel.class);
+        LogManager.getFormatterLogger(CheckModel.class);
 
     public static void printTransitions(POMDP model) {
 
-        System.out.println(model.T());
-    
+        for (int a = 0; a < model.A().size(); a++) {
+            for (int s = 0; s < model.S.size(); s++) {
+                
+                System.out.printf("T(%s' | %s, %s) = %s\r\n\r\n",
+                        model.S.get(s),
+                        model.S.get(s),
+                        model.A().get(a),
+                        model.T().get(a).get(s));
+            }
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -62,19 +51,22 @@ public class CheckPOMDPModel {
         }
 
         String domainFile = line.getOptionValue("d");
-
         String name = line.getOptionValue("name");
 
-        // Single agent interaction
         var parser = new SpuddXMainParser(domainFile);
         parser.run();
 
-        var model = (POMDP) parser.getModel(name).orElseGet(() ->
+        var model = parser.getModel(name).orElseGet(() ->
                 {
                     LOGGER.error("Model %s not found", name);
                     System.exit(-1);
                     return null;
                 });
 
+        if (model instanceof POMDP m)
+            CheckModel.printTransitions(m);
+
+//        else if (model instanceof IPOMDP m)
+//            CheckModel.printTransitions(m);
     }
 }

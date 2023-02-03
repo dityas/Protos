@@ -61,10 +61,11 @@ public class MjThetaSpace implements Frame<PolicyNode> {
 
         this.G = PolicyGraph.makePolicyGraph(b_js, m, Vn);
 
-        LOGGER.debug("Graph has %s nodes and %s node sources", 
+        LOGGER.debug(
+                "Graph has %s nodes and %s node sources", 
                 G.nodeMap.size(), G.adjMap.size());
-
-        LOGGER.info("MjTheta space for frame %s initialized with %s EQ classes",
+        LOGGER.info(
+                "MjTheta space for frame %s initialized with %s EQ classes",
                 frame, G.adjMap.size());
         LOGGER.info("PolicyGraph for %s is %s",
                 m.getName(), G.toString());

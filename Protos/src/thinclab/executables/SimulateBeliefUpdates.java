@@ -31,11 +31,9 @@ public class SimulateBeliefUpdates {
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(SimulateBeliefUpdates.class);
 
-    public static void runSimulator(
-            final PBVISolvablePOMDPBasedModel model,
+    public static void runSimulator(final PBVISolvablePOMDPBasedModel model,
             DD b_i,
             AlphaVectorPolicy p) {
-
 
         var allObs = model.oAll;
 
@@ -50,6 +48,9 @@ public class SimulateBeliefUpdates {
             .collect(Collectors.toList());
 
         var in = new Scanner(System.in);
+
+        var totalReward = 0.0f;
+
         while (true) {
 
             System.out.println();
@@ -66,22 +67,18 @@ public class SimulateBeliefUpdates {
 
 
             // for IPOMDPs, print everything
-
             if (model instanceof IPOMDP _model) {
-                System.out.println(
-                        String.format(
-                            "Belief over Aj's frame is %s", 
+                System.out.printf("Belief over Aj's frame is %s\r\n", 
                             DDOP.getFrameBelief(
                                 b_i, 
                                 _model.PThetajGivenEC,
                                 _model.i_EC, 
-                                _model.i_S())));
-                System.out.println(
-                        String.format(
-                            "Predicted actions: %s", 
+                                _model.i_S()));
+
+                System.out.printf("Predicted actions: %s\r\n", 
                             DDOP.addMultVarElim(
                                 List.of(_model.PAjGivenEC, b_EC), 
-                                List.of(_model.i_EC))));
+                                List.of(_model.i_EC)));
             }
 
             // Prompt for actions
@@ -89,15 +86,14 @@ public class SimulateBeliefUpdates {
             System.out.print("Enter action index: ");
             if (p != null) {
                 var suggestedA = p.getBestActionIndex(b_i, model.i_S());
-                System.out.print(String.format("(policy suggests: %s)",
-                            model.A().get(suggestedA)));
+                System.out.printf("(policy suggests: %s)\r\n", 
+                        model.A().get(suggestedA));
             }
             System.out.println();
             IntStream.range(0, model.A().size())
                 .forEach(i -> {
-                    System.out.println(
-                            String.format("%s: %s", 
-                                i, model.A().get(i)));
+                    System.out.printf("%s: %s\r\n", 
+                                i, model.A().get(i));
                 });
 
             System.out.print(">>> ");
@@ -117,27 +113,30 @@ public class SimulateBeliefUpdates {
                 .forEach(i -> {
                     var obs = DDOP.restrict(
                             likelihoods, model.i_Om_p(), allObs.get(i));
-                    System.out.println(
-                            String.format("%s: %s \t(likelihood: %s)", 
-                                i, allObsLabels.get(i), obs));
+
+                    if (DDOP.maxAll(DDOP.abs(DDOP.sub(obs, DD.zero))) > 1e-4f) {
+                        System.out.printf("%s: %s \t(likelihood: %s) \r\n", 
+                                    i, allObsLabels.get(i), obs);
+                    }
                 });
 
             System.out.print(">>> ");
             int oIndex = in.nextInt();
 
             System.out.println();
-            System.out.println(
-                    String.format(
-                        "Action: %s, obs: %s, reward: %s", 
+
+            var rew = DDOP.dotProduct(b_i, model.R().get(aIndex), model.i_S());
+            totalReward += rew;
+
+            System.out.printf(
+                        "a: %s, o: %s, R: %s, total R: %s\r\n", 
                         model.A().get(aIndex), 
-                        allObsLabels.get(oIndex),
-                        DDOP.dotProduct(
-                            b_i, model.R().get(aIndex), model.i_S())));
+                        allObsLabels.get(oIndex), 
+                        rew, totalReward);
 
             b_i = model.beliefUpdate(b_i, aIndex, allObs.get(oIndex));
         }
-
-            }
+    }
 
     public static void main(String[] args) throws Exception {
 
