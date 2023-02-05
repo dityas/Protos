@@ -14,6 +14,9 @@ import com.google.gson.JsonParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import thinclab.legacy.Global;
+import thinclab.models.datastructures.PolicyGraph;
+
 public class Utils {
 
     private static final Logger LOGGER = LogManager.getFormatterLogger(Utils.class);
@@ -61,5 +64,27 @@ public class Utils {
             System.exit(-1);
             return null;
         }
+    }
+
+    // Write policy graph to file
+    public static void serializePolicyGraph(PolicyGraph G, String modelName) {
+        if (Global.RESULTS_DIR != null) {
+            try {
+                Files.writeString(
+                        Paths.get(
+                            String.format("%s/%s_%s_pol_graph.json",
+                                Global.RESULTS_DIR
+                                .toAbsolutePath().toString(),
+                                G.hashCode(), modelName)),
+                        G.toString());
+            }
+
+            catch (Exception e) {
+                LOGGER.error("Got error while writing policy graph to file: %s", e);
+            }
+        }
+
+        else
+            LOGGER.error("Global.RESULTS_DIR not defined! Graph will not be stored");
     }
 }

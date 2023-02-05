@@ -1,0 +1,10 @@
+- Forget the OOP abstractions. Make the codebase simpler. It is trying to be too generic trying to comply to future refactors. 
+ANY ADDITION OTHER THAN CORE FUNCTIONALITY CAN BE ANOTHER REPO! KEEP THIS ONE CLEAN!
+- Add float quantization where DDs are being cached / or used in hashmaps.
+- Add softmax exploration instead of SSGA / SSEA
+- Write a simpler domain parser with some limited LISP-like functionality.
+- Serialize policies and models in ways that are human-readable / lisp-like and can be easily loaded and parsed into usable objects
+- Maybe limit the number of variables to say 1000. That way, primed vars can be defined 1001 onwards. This will greatly simplify priming / unpriming operations.
+Also, an added advantage will be to dynamically add variables after defining agents. Eg: level 0 POMDP vars can be defined first. Then after solving level 0,
+you can define level 1 interactive state space using the number of opponent models computed from level 1. This can be done by adding the Mj state variable after
+level 0 is defined.

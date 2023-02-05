@@ -8,6 +8,7 @@ import com.google.gson.JsonPrimitive;
 
 import java.util.TreeSet;
 import java.io.*;
+import java.lang.ref.WeakReference;
 
 public class DDleaf extends DD {
 
@@ -39,19 +40,16 @@ public class DDleaf extends DD {
 		DDleaf leaf = new DDleaf(val);
 
 		// try to lookup leaf in leafHashtable
-		//WeakReference<DD> weakReference = (WeakReference<DD>) Global.leafHashtable.get(leaf);
+		//WeakReference<DD> weakReference = 
+        //    (WeakReference<DD>) Global.leafHashtable.get(leaf);
 		//WeakReference<DD> storedLeaf = weakReference;
 		//if (storedLeaf != null)
 		//	return (DDleaf) storedLeaf.get();
 
-		// store leaf in leafHashtable
+		//// store leaf in leafHashtable
 		//Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf));
 		return leaf;
 	}
-
-	// public SortedSet getScope() {
-	// return new TreeSet();
-	// }
 
 	public int[] getVarSet() {
 

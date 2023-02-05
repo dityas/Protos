@@ -137,7 +137,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         // initial belief exploration
         var _then = System.nanoTime();
 
-        new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(0.999f).expand(b_i, g, m, H, Vn);
+        new SSGAExploration<M, ReachabilityGraph>(0.999f).expand(b_i, g, m, H, Vn);
 
         var _now = System.nanoTime();
         LOGGER.info(String.format("Initial belief exploration for %s took %s msecs", m.getName(),
@@ -155,7 +155,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         while (explorationProb > 0.0f) {
 
             int convergenceCount = 0;
-            var ES = new SSGAExploration<M, ReachabilityGraph, AlphaVectorPolicy>(explorationProb);
+            var ES = new SSGAExploration<M, ReachabilityGraph>(explorationProb);
 
             if (round > 0) {
 

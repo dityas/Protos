@@ -16,6 +16,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.policy.Policy;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
@@ -24,8 +25,8 @@ import thinclab.utils.Tuple3;
  * @author adityas
  *
  */
-public class BreadthFirstExploration<M extends POSeqDecMakingModel<DD>, G extends AbstractAOGraph<DD, Integer, List<Integer>>, P extends Policy<DD>>
-		implements ExplorationStrategy<DD, M, G, P> {
+public class BreadthFirstExploration<M extends POSeqDecMakingModel<DD>, G extends AbstractAOGraph<DD, Integer, List<Integer>>>
+		implements ExplorationStrategy<M, G> {
 
 	private final int maxB;
 	private boolean done = false;
@@ -38,7 +39,7 @@ public class BreadthFirstExploration<M extends POSeqDecMakingModel<DD>, G extend
 	}
 
 	@Override
-	public void expand(List<DD> bs, G g, M m, int T, P Vn) {
+	public void expand(List<DD> bs, G g, M m, int T, AlphaVectorPolicy Vn) {
 
 		bs.forEach(g::addNode);
 

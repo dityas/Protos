@@ -9,6 +9,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import thinclab.utils.Tuple;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -171,14 +173,14 @@ public class DDnode extends DD {
 
         // try look up node in nodeHashtable
         DDnode node = new DDnode(var, children);
-        // WeakReference<DD> storedNode = ((WeakReference<DD>)
-        // Global.nodeHashtable.get(node));
+        //WeakReference<DD> storedNode = ((WeakReference<DD>)
+        //        Global.nodeHashtable.get(node));
 
-        // if (storedNode != null && storedNode.get() != null)
-        // return (DDnode) storedNode.get();
+        //if (storedNode != null && storedNode.get() != null)
+        //    return (DDnode) storedNode.get();
 
-        // store node in nodeHashtable
-        // Global.nodeHashtable.put(node, new WeakReference<DD>(node));
+        //// store node in nodeHashtable
+        //Global.nodeHashtable.put(node, new WeakReference<DD>(node));
         return node;
     }
 
@@ -300,12 +302,13 @@ public class DDnode extends DD {
 
         for (int i = 0; i < this.children.length; i++) {
 
-            if (this.children[i] instanceof DDleaf) {
+            if (this.children[i] instanceof DDleaf || 
+                    this.children[i] instanceof FQDDleaf) {
 
                 if (children[i].getVal() != 0.0f)
                     builder.append("  (").append(childNames.get(i)).append(" ").append(this.children[i].toSPUDD())
                         .append(")");
-            }
+                    }
 
             else
                 builder.append("\r\n").append("  ".repeat(spaces + 1)).append("(").append(childNames.get(i))
@@ -336,10 +339,10 @@ public class DDnode extends DD {
 
     @Override
     public JsonElement toJson() {
-   
+
         var _json = new JsonObject();
         _json.add("name", new JsonPrimitive(Global.varNames.get(var - 1)));
-        
+
         var _array = new JsonObject();
 
         for (int i = 0; i < children.length; i++) 

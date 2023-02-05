@@ -34,9 +34,9 @@ AbstractAOGraph<DD, Integer, List<Integer>> {
     public ReachabilityGraph(final List<Tuple<Integer,
             List<Integer>>> AOSpace) {
 
-        AOSpace.stream()
-            .forEach(i -> this.edgeIndexMap.put(
-                        i, this.edgeIndexMap.size()));
+        // Build (action, observation) keys for the edgeIndexMap
+        for (var i: AOSpace)
+            edgeIndexMap.put(i, edgeIndexMap.size());
 
         LOGGER.info(
                 "Initialized reachability graph for branching factor %s", 
@@ -119,40 +119,6 @@ AbstractAOGraph<DD, Integer, List<Integer>> {
         builder.append("}\r\n]");
 
         return builder.toString();
-    }
-
-    public String toDot(POSeqDecMakingModel<?> m) {
-
-        var nodeMap = new HashMap<DD, Integer>(connections.size());
-
-        var builder = new StringBuilder();
-        builder.append("digraph D {").append("\r\n").append("\t node [shape=record];\r\n");
-
-        //		for (var dd : connections.keySet()) {
-        //
-        //			nodeMap.put(dd, nodeMap.size());
-        //			builder.append(nodeMap.get(dd)).append(" [label=\"").append(DDOP.factors(dd, m.i_S())).append("\"]\r\n");
-        //		}
-        //
-        //		builder.append("\r\n");
-        //
-        //		for (var dd : connections.keySet()) {
-        //
-        //			for (var edge : edgeIndexMap.keySet()) {
-        //
-        //				if (connections.get(dd).get(edgeIndexMap.get(edge)) != null) {
-        //
-        //					builder.append(nodeMap.get(dd)).append(" -> ")
-        //							.append(nodeMap.get(connections.get(dd).get(edgeIndexMap.get(edge)))).append(" [label=\" ")
-        //							.append(m.A().get(edge._0())).append(" ").append(edge._1()).append("\"]\r\n");
-        //				}
-        //			}
-        //
-        //		}
-
-        builder.append("}\r\n]");
-        return builder.toString();
-
     }
 
 }

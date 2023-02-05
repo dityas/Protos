@@ -372,7 +372,7 @@ public class SimulateInteraction {
 
             System.out.println("Graph is:");
             var G = PolicyGraph.makePolicyGraph(List.of(b_i), model, p);
-            System.out.println(G);
+            Utils.serializePolicyGraph(G, model.getName());
         }
 
         for (int n = 0; n < i; n++) {

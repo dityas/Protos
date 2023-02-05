@@ -17,21 +17,24 @@ import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
-import thinclab.policy.Policy;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 
 /*
  * @author adityas
  *
  */
-public class 
-SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends AbstractAOGraph<DD, Integer, List<Integer>>, P extends Policy<DD>>
-    implements ExplorationStrategy<DD, M, G, P> {
+public class SSGAExploration
+<M extends POSeqDecMakingModel<DD>, 
+    G extends AbstractAOGraph<DD, Integer, List<Integer>>> implements 
+    ExplorationStrategy<M, G> 
+{
 
     private final float e;
     public final int maxB;
 
-    private HashMap<Tuple<DD, Integer>, DD> likelihoodsCache = new HashMap<>();
+    private HashMap<Tuple<DD, Integer>, DD> likelihoodsCache = 
+        new HashMap<>();
 
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(SSGAExploration.class);
@@ -53,7 +56,8 @@ SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends AbstractAOGraph<DD,
             .get();
     }
 
-    public boolean isUniqueBelief(DD b, Collection<DD> beliefs, float minDist) {
+    public boolean isUniqueBelief(DD b, 
+            Collection<DD> beliefs, float minDist) {
 
         var _minDist = getMinDistance(b, beliefs);
         if (_minDist >= minDist)
@@ -64,7 +68,7 @@ SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends AbstractAOGraph<DD,
     }
 
     @Override
-    public void expand(List<DD> bs, G g, M m, int T, P Vn) {
+    public void expand(List<DD> bs, G g, M m, int T, AlphaVectorPolicy Vn) {
 
         float Pa = 1 - e;
 
