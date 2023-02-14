@@ -27,6 +27,10 @@ public abstract class AbstractAOGraph<N, A, O> implements ActionObservationGraph
 	
 	public int nodeCounter = 0;
 
+    public int getNodeCount() {
+        return nodeIndexMap.size();
+    }
+
 	@Override
 	public boolean addNode(N node) {
 

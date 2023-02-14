@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
+import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.utils.Tuple;
@@ -149,8 +150,9 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		var obs = new ArrayList<Integer>(i_Om.size());
 
 		for (int i = 0; i < i_Om_p.size(); i++) {
-
-			obs.add(Collections.binarySearch(Global.valNames.get(i_Om.get(i) - 1), o.get(i)) + 1);
+			obs.add(Collections.binarySearch(
+                        Global.valNames.get(i_Om.get(i) - 1), 
+                        o.get(i)) + 1);
 		}
 
 		return this.beliefUpdate(b, actIndex, obs);
@@ -219,7 +221,8 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		return results;
 	}
 
-	public Tuple<Float, Integer> Gaoi(final DD b, final int a, final List<Integer> o, final List<DD> alphas) {
+	public Tuple<Float, Integer> Gaoi(final DD b, 
+            final int a, final List<Integer> o, final List<DD> alphas) {
 
 		float bestVal = Float.NEGATIVE_INFINITY;
 		int bestAlpha = -1;
@@ -247,7 +250,8 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		return Tuple.of(bestVal, bestAlpha);
 	}
 	
-	public List<Tuple3<Integer, DD, Float>> computeNextBaParallelOptimized(DD b, int a, ReachabilityGraph g) {
+	public List<Tuple3<Integer, DD, Float>> computeNextBaParallelOptimized(DD b, 
+            int a, ReachabilityGraph g) {
 		
 		// compute that huge factor
 		var factors = new ArrayList<DD>(S().size() + O().size() + 1);
@@ -349,18 +353,20 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		return res;
 	}
 
-	public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
+	public Tuple<Integer, DD> backup(DD b,
+            List<DD> alphas, ReachabilityGraph g) {
 
 		int bestA = -1;
 		float bestVal = Float.NEGATIVE_INFINITY;
 
-		var nextBels = belCache.get(b);
+		var nextBels = belCache.get(FQDDleaf.quantize(b));
 
 		if (nextBels == null) {
 
 			long missThen = System.nanoTime();
 			// build cache entry for this belief
-			nextBels = new HashMap<Integer, List<Tuple3<Integer, DD, Float>>>(A().size());
+			nextBels = new HashMap<Integer, 
+                     List<Tuple3<Integer, DD, Float>>>(A().size());
 
 			var res = IntStream.range(0, A().size()).parallel().boxed()
 					.map(a -> Tuple.of(
@@ -371,14 +377,13 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			for (var r : res)
 				nextBels.put(r._0(), r._1());
 
-			belCache.put(b, nextBels);
+			belCache.put(FQDDleaf.quantize(b), nextBels);
 
 			if (Global.DEBUG) {
 
 				float missT = (System.nanoTime() - missThen) / 1000000.0f;
-				LOGGER.debug(String.format("Cache missed computation took %s msecs", missT));
+				LOGGER.debug("Cache missed computation took %s msecs", missT);
 			}
-
 		}
 
 		// compute everything from the cached entries
@@ -419,15 +424,46 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		var vec = constructAlphaVector(Gao.get(bestA), bestA);
 		vec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
 
-		return Tuple.of(bestA, vec);
+		return Tuple.of(bestA, DDOP.approximate(vec));
 	}
 	
-	private DD constructAlphaVector(ArrayList<Tuple<Integer, DD>> Gao, int bestA) {
+	private DD constructAlphaVector(ArrayList<Tuple<Integer, DD>> Gao,
+            int bestA) {
 
-		var vec = Gao.parallelStream().map(g -> project(g._1(), bestA, oAll.get(g._0()))).reduce(DD.zero,
-				(a, b) -> DDOP.add(a, b));
+		var vec = Gao.parallelStream()
+            .map(g -> project(g._1(), bestA, oAll.get(g._0())))
+            .reduce(DD.zero, (a, b) -> DDOP.add(a, b));
 
 		return vec;
 	}
+
+    private DD project(int a, DD vec) {
+
+        var ddArray = new ArrayList<DD>();
+        ddArray.addAll(TF.get(a));
+        ddArray.add(DDOP.primeVars(vec, (Global.NUM_VARS / 2)));
+
+        return DDOP.approximate(DDOP.addMultVarElim(ddArray, i_S_p));
+    }
+
+    @Override
+    public List<DD> MDPValueIteration(List<DD> QFn) {
+    
+        DD Vn = QFn.stream()
+            .reduce(
+                    DDleaf.getDD(Float.NEGATIVE_INFINITY),
+                    (q1, q2) -> DDOP.max(q1, q2));
+
+        int A = this.A.size();
+        var gamma = DDleaf.getDD(discount);
+        List<DD> nextVn = IntStream.range(0, A).boxed().parallel()
+            .map(a -> Tuple.of(
+                        R.get(a), 
+                        project(a, Vn)))
+            .map(q -> DDOP.add(q._0(), DDOP.mult(gamma, q._1())))
+            .collect(Collectors.toList());
+
+        return nextVn;
+    }
 
 }

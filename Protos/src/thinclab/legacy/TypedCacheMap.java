@@ -9,6 +9,9 @@ package thinclab.legacy;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /*
  * @author adityas
  *
@@ -21,6 +24,8 @@ public class TypedCacheMap<K, V> extends ConcurrentHashMap<K, V> {
 	 */
 
 	private static final long serialVersionUID = 6641216381317045223L;
+    private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(TypedCacheMap.class);
 
 	public int maxCapacity;
 
@@ -34,15 +39,6 @@ public class TypedCacheMap<K, V> extends ConcurrentHashMap<K, V> {
 
 		super();
 		this.maxCapacity = maxCapacity;
-	}
-
-	@Override
-	public V put(K key, V value) {
-
-		//if (this.size() > this.maxCapacity)
-		//	this.clear();
-
-		return super.put(key, value);
 	}
 	
 	public boolean clearIfFull() {

@@ -7,6 +7,7 @@ import thinclab.RandomVariable;
 import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.IPOMDP.MjRepr;
 import thinclab.models.datastructures.ReachabilityNode;
+import thinclab.utils.LispExpressible;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 import java.lang.ref.WeakReference;
@@ -43,8 +44,9 @@ public class Global {
 	public static int CONTEXT_FRAME_ID;
 
 	// hash tables
-	public static TypedCacheMap<DD, WeakReference<DD>> leafHashtable = new TypedCacheMap<>(10000);
+	public static TypedCacheMap<Float, WeakReference<DDleaf>> leafHashtable = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<DD, WeakReference<DD>> nodeHashtable = new TypedCacheMap<>(10000);
+	public static TypedCacheMap<Integer, FQDDleaf> qCache = new TypedCacheMap<>(200);
 	public static TypedCacheMap<Tuple<DD, DD>, DD> addCache = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<Tuple<DD, DD>, DD> multCache = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<Tuple<DD, Integer>, DD> addOutCache = new TypedCacheMap<>(10000);
@@ -57,7 +59,7 @@ public class Global {
 
 	// --------------------------------------------------------------------------
 
-	private static final Logger LOGGER = LogManager.getLogger(Global.class);
+	private static final Logger LOGGER = LogManager.getFormatterLogger(Global.class);
 
 	public static void addVariable(String varName, List<String> valNames) {
 
@@ -112,8 +114,6 @@ public class Global {
 		Global.multCache.clear();
 		Global.addOutCache.clear();
 		Global.dotProductCache.clear();
-		Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
-		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
 
 		System.gc();
 	}
@@ -125,12 +125,7 @@ public class Global {
 		Global.multCache.clearIfFull();
 		Global.addOutCache.clearIfFull();
 		Global.dotProductCache.clearIfFull();
-
-		if (Global.leafHashtable.clearIfFull()) {
-
-			Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
-			Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
-		}
+        Global.qCache.clearIfFull();
 
 		System.gc();
 	}
@@ -157,8 +152,6 @@ public class Global {
 		Global.multCache = new TypedCacheMap<>(10000);
 		Global.addOutCache = new TypedCacheMap<>(10000);
 		Global.dotProductCache = new TypedCacheMap<>(10000);
-		Global.leafHashtable.put(DD.zero, new WeakReference<DD>(DD.zero));
-		Global.leafHashtable.put(DD.one, new WeakReference<DD>(DD.one));
 	}
 
 	public static void logCacheSizes() {
@@ -462,4 +455,19 @@ public class Global {
 
 		return builder.toString();
 	}
+
+    public static String getVarsAsDDLangDefs() {
+
+        var vars = new ArrayList<Object>();
+        for (int v = 0; v < Global.varNames.size(); v++) {
+            
+            var _var = new ArrayList<>();
+            _var.add(varNames.get(v));
+            _var.addAll(valNames.get(v));
+
+            vars.add(_var);
+        }
+
+        return LispExpressible.toString(vars);
+    }
 }

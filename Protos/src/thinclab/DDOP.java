@@ -24,7 +24,9 @@ import com.google.gson.JsonObject;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
+import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 
 /*
@@ -226,6 +228,57 @@ public class DDOP {
 
 			float newVal = dd1.getVal() + dd2.getVal();
 			return DDleaf.getDD(newVal);
+		}
+	}
+
+	public static DD max(DD dd1, DD dd2) {
+
+		// dd1 precedes dd2
+		if (dd1.getVar() > dd2.getVar()) {
+
+			DD children[];
+			children = new DD[dd1.getChildren().length];
+			for (int i = 0; i < dd1.getChildren().length; i++) {
+
+				children[i] = DDOP.max(dd1.getChildren()[i], dd2);
+			}
+
+			DD result = DDnode.getDD(dd1.getVar(), children);
+			return result;
+		}
+
+		// dd2 precedes dd1 {
+		else if (dd2.getVar() > dd1.getVar()) {
+
+			DD children[];
+			children = new DD[dd2.getChildren().length];
+			for (int i = 0; i < dd2.getChildren().length; i++) {
+				children[i] = DDOP.max(dd2.getChildren()[i], dd1);
+			}
+
+			DD result = DDnode.getDD(dd2.getVar(), children);
+			return result;
+		}
+
+		// dd2 and dd1 have same root var
+		else if (dd1.getVar() > 0) {
+
+			DD children[];
+			children = new DD[dd1.getChildren().length];
+			for (int i = 0; i < dd1.getChildren().length; i++) {
+				children[i] = DDOP.max(dd1.getChildren()[i], dd2.getChildren()[i]);
+			}
+			DD result = DDnode.getDD(dd1.getVar(), children);
+			return result;
+		}
+
+		// dd1 and dd2 are leaves
+		else {
+
+            var val1 = dd1.getVal();
+            var val2 = dd2.getVal();
+
+            return val1 >= val2 ? DDleaf.getDD(val1) : DDleaf.getDD(val2);
 		}
 	}
 
@@ -806,6 +859,28 @@ public class DDOP {
 		return maxVal;
 	}
 
+    // Evaluate belief region according to a policy
+    public static List<Float> getBeliefRegionEval(Collection<DD> B,
+            AlphaVectorPolicy p, List<Integer> vars) {
+
+        return B.stream()
+            .map(b -> value_b(p.aVecs, b, vars))
+            .collect(Collectors.toList());
+    }
+
+    // Get evaluation difference between two policies
+    public static List<Float> getBeliefRegionEvalDiff(Collection<DD> B,
+            AlphaVectorPolicy p1, AlphaVectorPolicy p2,
+            List<Integer> vars) {
+    
+        return B.stream()
+            .map(b -> 
+                    Math.abs(
+                        value_b(p1.aVecs, b, vars)
+                        - value_b(p2.aVecs, b, vars)))
+            .collect(Collectors.toList());
+    }
+
 	public static int bestAlphaIndex(List<Tuple<Integer, DD>> Vn, DD b, Collection<Integer> Svars) {
 
 		float maxVal = Float.NEGATIVE_INFINITY;
@@ -911,6 +986,29 @@ public class DDOP {
 
 		return (i - 1);
 	}
+
+    public static int sample(List<Float> dist) {
+
+        float[] sums = new float[dist.size()];
+
+        float sum = 0f;
+        for (int i = 0; i < sums.length; i++) {
+            sum += dist.get(i);
+            sums[i] = sum;
+        }
+
+        float r = Global.random.nextFloat();
+
+        for (int i = 0; i < sums.length; i++) {
+            if ((sums[i] / sum) < r)
+                continue;
+
+            else
+                return i;
+        }
+    
+        return -1;
+    }
 
 	public static Tuple<List<Integer>, List<Integer>> sample(List<DD> dd, 
             List<Integer> varId) {
@@ -1022,6 +1120,92 @@ public class DDOP {
 		hashtable.put(dd, Float.valueOf(result));
 		return result;
 	}
+
+	// ---------------------------------------------------------------------------------------
+	// min all
+	public static float minAll(DD dd) {
+
+		HashMap<DD, Float> hashtable = new HashMap<>();
+		return minAll(dd, hashtable);
+	}
+
+	public static float minAll(DD dd, HashMap<DD, Float> hashtable) {
+
+		Float storedResult = (Float) hashtable.get(dd);
+
+		if (storedResult != null)
+			return storedResult.floatValue();
+
+		// it's a leaf
+		float result = Float.POSITIVE_INFINITY;
+
+		if (dd.getVar() == 0)
+			result = dd.getVal();
+
+		else {
+
+			DD[] children = dd.getChildren();
+
+			for (int i = 0; i < children.length; i++) {
+
+				float minVal = DDOP.minAll(children[i], hashtable);
+				if (result > minVal)
+					result = minVal;
+			}
+		}
+
+		hashtable.put(dd, Float.valueOf(result));
+		return result;
+	}
+
+    public static DD approximate(DD d) {
+
+        if (d instanceof DDleaf || d instanceof FQDDleaf)
+            return d;
+
+        var _min = DDOP.minAll(d);
+        var _max = DDOP.maxAll(d);
+
+        if ((_max - _min) < 1e-4f)
+            return DDleaf.getDD(_min);
+
+        else {
+
+            var children = new DD[d.getChildren().length];
+
+            for (int c = 0; c < children.length; c++)
+                children[c] = approximate(d.getChildren()[c]);
+
+            return DDnode.getDD(d.getVar(), children);
+        }
+    }
+
+    public static boolean canApproximate(DD d) {
+
+        if (d instanceof DDleaf || d instanceof FQDDleaf)
+            return false;
+
+        var canApprox = false;
+        var _min = DDOP.minAll(d);
+        var _max = DDOP.maxAll(d);
+
+        if ((_max - _min) < 1e-4f) {
+            canApprox = true;
+            return canApprox;
+        }
+
+        else {
+
+            for (var child: d.getChildren()) {
+                canApprox = canApprox | canApproximate(child);
+
+                if (canApprox)
+                    break;
+            }
+
+            return canApprox;
+        }
+    }
 
 	public static boolean verifyProbabilityDist(final DD d, final int var) {
 

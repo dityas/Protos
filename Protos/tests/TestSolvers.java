@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import thinclab.DDOP;
+import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
@@ -21,6 +22,7 @@ import thinclab.models.datastructures.ModelGraph;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.policy.AlphaVectorPolicy;
+import thinclab.solver.QMDPSolver;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.utils.Tuple;
@@ -39,7 +41,8 @@ import thinclab.utils.Tuple;
  */
 class TestSolvers {
 
-	private static final Logger LOGGER = LogManager.getLogger(TestSolvers.class);
+	private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(TestSolvers.class);
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -87,7 +90,7 @@ class TestSolvers {
 
 		var g = ReachabilityGraph.fromDecMakingModel(I);
 		var b_is = List.of(DDleaf.getDD(0.5f));
-		new BreadthFirstExploration<POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(b_is, g, I, 5,
+		new BreadthFirstExploration<POMDP, ReachabilityGraph>(100).expand(b_is, g, I, 5,
 				null);
 
 		IntStream.range(0, I.A().size()).forEach(i ->
@@ -96,6 +99,65 @@ class TestSolvers {
 				LOGGER.debug(String.format("backup for %s at %s is %s", I.A().get(i), DDleaf.getDD(0.5f),
 						I.backup(DDleaf.getDD(0.5f), I.R(), g)));
 			});
+		printMemConsumption();
+	}
+
+	@Test
+	void testQMDPSolver() throws Exception {
+
+		System.gc();
+
+		String domainFile = this.getClass()
+            .getClassLoader()
+            .getResource("test_domains/test_tiger_domain.spudd")
+            .getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+
+        var policy = QMDPSolver.solveQMDP(I);
+	}
+
+	@Test
+	void testQMDPSolverForIPOMDP() throws Exception {
+
+		System.gc();
+
+		String domainFile = this.getClass().getClassLoader()
+            .getResource("test_domains/test_ipomdpl1.spudd").getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+
+        List<DD> Qfn = I.R().stream()
+            .map(r -> DDOP.addMultVarElim(List.of(r, I.PAjGivenEC), List.of(I.i_Aj)))
+            .collect(Collectors.toList());
+
+        LOGGER.info("Initial Qfn is %s", Qfn);
+        var nextQfn = I.MDPValueIteration(Qfn);
+        LOGGER.info("Next Qfn is %s", nextQfn);
+		
+		System.gc();
 		printMemConsumption();
 	}
 
@@ -149,7 +211,7 @@ class TestSolvers {
 		LOGGER.debug(String.format("Graph is %s", ModelGraph.toDot(modelGraph, I)));
 
 		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
-		var bfe = new BreadthFirstExploration<POMDP, ReachabilityGraph, AlphaVectorPolicy>(100);
+		var bfe = new BreadthFirstExploration<POMDP, ReachabilityGraph>(100);
 
 		bfe.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 5, policy);
 
@@ -301,7 +363,7 @@ class TestSolvers {
 		assertTrue(bestAct == 0);
 
 		var G = ReachabilityGraph.fromDecMakingModel(I);
-		var ES = new SSGAExploration<IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(0.99f);
+		var ES = new SSGAExploration<IPOMDP, ReachabilityGraph>(0.99f);
 
 		int numNodes = G.getAllNodes().size();
 		LOGGER.debug(String.format("Graph  is %s", G));

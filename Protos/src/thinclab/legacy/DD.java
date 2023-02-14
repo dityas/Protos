@@ -12,8 +12,9 @@ import org.apache.logging.log4j.Logger;
 
 import thinclab.utils.Graphable;
 import thinclab.utils.Jsonable;
+import thinclab.utils.LispExpressible;
 
-public abstract class DD implements Serializable, Jsonable, Graphable {
+public abstract class DD implements Serializable, Jsonable, Graphable, LispExpressible {
 
     public static DD one = DDleaf.getDD(1);
     public static DD zero = DDleaf.getDD(0);
@@ -104,5 +105,4 @@ public abstract class DD implements Serializable, Jsonable, Graphable {
             return Optional.empty();
 
     }
-
 }

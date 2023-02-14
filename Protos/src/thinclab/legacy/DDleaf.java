@@ -1,6 +1,8 @@
 package thinclab.legacy;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -12,171 +14,177 @@ import java.lang.ref.WeakReference;
 
 public class DDleaf extends DD {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -2608205879751348514L;
-	private float val;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -2608205879751348514L;
+    private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(DDleaf.class);
+    private float val;
 
-	/* precomputed hash, this may be a bad idea */
-	private final int hash;
+    /* precomputed hash, this may be a bad idea */
+    private final int hash;
     private final TreeSet<Integer> varSet = new TreeSet<>();
 
-	private DDleaf(float val) {
+    private DDleaf(float val) {
 
-		this.val = val;
-		this.var = 0;
+        this.val = val;
+        this.var = 0;
 
-		this.hash = this.computeHash();
-	}
-	
-	private int computeHash() {
-	    return new HashCodeBuilder().append(this.val).toHashCode();
-	}
+        this.hash = this.computeHash();
+    }
 
-	public static DD getDD(float val) {
+    private int computeHash() {
+        return new HashCodeBuilder().append(this.val).toHashCode();
+    }
 
-		// create new leaf
-		DDleaf leaf = new DDleaf(val);
+    public static DD getDD(float val) {
 
-		// try to lookup leaf in leafHashtable
-		//WeakReference<DD> weakReference = 
-        //    (WeakReference<DD>) Global.leafHashtable.get(leaf);
-		//WeakReference<DD> storedLeaf = weakReference;
-		//if (storedLeaf != null)
-		//	return (DDleaf) storedLeaf.get();
+        var ref = Global.leafHashtable.get(val);
+        DDleaf leaf = ref != null ? ref.get() : null;
 
-		//// store leaf in leafHashtable
-		//Global.leafHashtable.put(leaf, new WeakReference<DD>(leaf));
-		return leaf;
-	}
+        if (leaf != null)
+            return leaf;
 
-	public int[] getVarSet() {
+        else {
 
-		return new int[0];
-	}
+            leaf = new DDleaf(val);
+            Global.leafHashtable.put(val, new WeakReference<>(leaf));
+            return leaf;
+        }
+    }
 
-	public float getSum() {
+    public int[] getVarSet() {
 
-		return val;
-	}
+        return new int[0];
+    }
 
-	public float getVal() {
+    public float getSum() {
 
-		return val;
-	}
-	
-	public int getNumLeaves() {
+        return val;
+    }
 
-		return 1;
-	}
+    public float getVal() {
 
-	@Override
-	public boolean equals(Object obj) {
+        return val;
+    }
 
-		if (obj.getClass() != getClass())
-			return false;
+    public int getNumLeaves() {
 
-		DDleaf leaf = (DDleaf) obj;
+        return 1;
+    }
 
-		if (val == leaf.val)
-			return true;
+    @Override
+    public boolean equals(Object obj) {
 
-		else
-			return false;
-	}
+        if (obj.getClass() != getClass())
+            return false;
 
-	@Override
-	public int hashCode() {
-		return this.hash;
-	}
+        DDleaf leaf = (DDleaf) obj;
 
-	public DD store() {
+        if (val == leaf.val)
+            return true;
 
-		return DDleaf.getDD(val);
-	}
+        else
+            return false;
+    }
 
-	public void display(String space) {
+    @Override
+    public int hashCode() {
+        return this.hash;
+    }
 
-		System.out.println(space + "leaf: " + Double.toString(val));
-	}
+    public DD store() {
 
-	public void display(String space, String prefix) {
+        return DDleaf.getDD(val);
+    }
 
-		System.out.println(space + prefix + Double.toString(val));
-	}
+    public void display(String space) {
 
-	public void printSpuddDD(PrintStream ps) {
+        System.out.println(space + "leaf: " + Double.toString(val));
+    }
 
-		ps.print("(" + Double.toString(val) + ")");
-	}
+    public void display(String space, String prefix) {
 
-	// for printing a single leaf as a diagram
-	public void printDotDD(PrintStream ps) {
+        System.out.println(space + prefix + Double.toString(val));
+    }
 
-		ps.println("digraph \"DD\" {");
-		ps.println("size = \"7.5,10\"\nratio=0.5;\ncenter = true;\nedge [dir = none];");
-		printDotDD(ps, "r");
-		ps.println("}");
-	}
+    public void printSpuddDD(PrintStream ps) {
 
-	public void printDotDD(PrintStream ps, String name) {
+        ps.print("(" + Double.toString(val) + ")");
+    }
 
-		ps.println("{ rank = same; node [shape=box, style=filled, color=goldenrod];\"" + name + "\" [label=\""
-				+ Double.toString(val) + "\"];}");
-	}
+    // for printing a single leaf as a diagram
+    public void printDotDD(PrintStream ps) {
 
-	// -------------------------------------------------------------------------
+        ps.println("digraph \"DD\" {");
+        ps.println("size = \"7.5,10\"\nratio=0.5;\ncenter = true;\nedge [dir = none];");
+        printDotDD(ps, "r");
+        ps.println("}");
+    }
 
-	@Override
-	public String toString() {
+    public void printDotDD(PrintStream ps, String name) {
 
-		return this.toSPUDD();
-	}
+        ps.println("{ rank = same; node [shape=box, style=filled, color=goldenrod];\"" + name + "\" [label=\""
+                + Double.toString(val) + "\"];}");
+    }
 
-	@Override
-	public String toSPUDD() {
+    // -------------------------------------------------------------------------
 
-		return this.toSPUDD(0);
-	}
+    @Override
+    public String toString() {
 
-	@Override
-	public String toSPUDD(int spaces) {
+        return this.toSPUDD();
+    }
 
-		var builder = new StringBuilder(10);
-		builder.append("  ".repeat(spaces)).append("(").append(this.val).append(")");
+    @Override
+    public String toSPUDD() {
 
-		return builder.toString();
-	}
-	
-	@Override
-	public String toDot() {
-		
-		var builder = new StringBuilder();
-		builder.append(this.hashCode()).append(" ");
-		builder.append(" [label=\"").append(toLabel()).append("\"];\r\n");
-		
-		return builder.toString();
-	}
+        return this.toSPUDD(0);
+    }
 
-	@Override
-	public TreeSet<Integer> getVars() {
+    @Override
+    public String toSPUDD(int spaces) {
 
-		return this.varSet;
-	}
+        var builder = new StringBuilder(10);
+        builder.append("  ".repeat(spaces)).append("(").append(this.val).append(")");
 
-	@Override
-	public JsonElement toJson() {
+        return builder.toString();
+    }
+
+    @Override
+    public String toDot() {
+
+        var builder = new StringBuilder();
+        builder.append(this.hashCode()).append(" ");
+        builder.append(" [label=\"").append(toLabel()).append("\"];\r\n");
+
+        return builder.toString();
+    }
+
+    @Override
+    public TreeSet<Integer> getVars() {
+
+        return this.varSet;
+    }
+
+    @Override
+    public JsonElement toJson() {
 
         var _json = new JsonObject();
         _json.add("value", new JsonPrimitive(val));
 
         return _json;
-	}
+    }
 
-	@Override
-	public String toLabel() {
+    @Override
+    public String toLabel() {
 
-		return String.format("%.5f", this.val);
-	}
+        return String.format("%.5f", this.val);
+    }
+
+    @Override
+    public Object toLisp() {
+        return this.val;
+    }
 }

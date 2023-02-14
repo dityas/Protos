@@ -403,4 +403,21 @@ public class DDnode extends DD {
         return 0;
     }
 
+    @Override
+    public Object toLisp() {
+        
+        var objList = new ArrayList<Object>();
+        objList.add(Global.varNames.get(this.var - 1));
+
+        for (int i = 0; i < children.length; i++) {
+            var childList = new ArrayList<Object>();
+            childList.add(Global.valNames.get(this.var).get(i));
+            childList.add(children[i].toLisp());
+
+            objList.add(childList);
+        }
+
+        return objList;
+    }
+
 }

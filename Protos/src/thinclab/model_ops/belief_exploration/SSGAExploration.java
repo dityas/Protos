@@ -14,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
+import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.POSeqDecMakingModel;
 import thinclab.models.datastructures.AbstractAOGraph;
@@ -42,7 +43,7 @@ public class SSGAExploration
     public SSGAExploration(float explorationProb) {
 
         this.e = explorationProb;
-        this.maxB = 200;
+        this.maxB = 300;
         LOGGER.debug(
                 "Initialized SSGA exploration for exploration probability %s",
                 e);
@@ -67,6 +68,14 @@ public class SSGAExploration
             return false;
     }
 
+    private void cacheIfNotPresent(DD b, int a, M m) {
+        if (!likelihoodsCache.containsKey(
+                    Tuple.of(FQDDleaf.quantize(b), a)))
+            likelihoodsCache.put(
+                    Tuple.of(FQDDleaf.quantize(b), a), 
+                    m.obsLikelihoods(b, a));
+    }
+
     @Override
     public void expand(List<DD> bs, G g, M m, int T, AlphaVectorPolicy Vn) {
 
@@ -80,13 +89,12 @@ public class SSGAExploration
             System.exit(-1);
         }
 
-        if (g.getAllNodes().size() >= maxB)
+        if (g.getNodeCount() >= maxB)
             return;
 
-        // LOGGER.info(String.format("Exploring belief region starting from %s initial beliefs.", bs.size()));
         for (int n = 0; n < 30; n++) {
 
-            if (g.getAllNodes().size() >= maxB)
+            if (g.getNodeCount() >= maxB)
                 break;
 
             for (int init_b = 0; init_b < bs.size(); init_b++) {
@@ -95,7 +103,7 @@ public class SSGAExploration
 
                 for (int i = 0; i < T; i++) {
 
-                    if (g.getAllNodes().size() >= maxB)
+                    if (g.getNodeCount() >= maxB)
                         break;
 
                     var usePolicy = DDOP.sampleIndex(List.of(e, Pa));
@@ -106,10 +114,9 @@ public class SSGAExploration
 
                         a = Vn.getBestActionIndex(b, m.i_S());
 
-                        if (!likelihoodsCache.containsKey(Tuple.of(b, a)))
-                            likelihoodsCache.put(Tuple.of(b, a), m.obsLikelihoods(b, a));
-
-                        var l = likelihoodsCache.get(Tuple.of(b, a));
+                        cacheIfNotPresent(b, a, m);
+                        var l = likelihoodsCache.get(
+                                Tuple.of(FQDDleaf.quantize(b), a));
 
                         var oSampled = DDOP.sample(List.of(l), m.i_Om_p());
 
@@ -134,14 +141,11 @@ public class SSGAExploration
                     // exploratory action
                     else if (usePolicy == 0) {
 
-                        // var nextBels = new ArrayList<Tuple<DD, Tuple<Integer, List<Integer>>>>();
-                        // for (int _a = 0; _a < m.A().size(); _a++) {
                         int _a = Global.random.nextInt(m.A().size());
 
-                        if (!likelihoodsCache.containsKey(Tuple.of(b, _a)))
-                            likelihoodsCache.put(Tuple.of(b, _a), m.obsLikelihoods(b, _a));
-
-                        var l = likelihoodsCache.get(Tuple.of(b, _a));
+                        cacheIfNotPresent(b, _a, m);
+                        var l = likelihoodsCache.get(
+                                Tuple.of(FQDDleaf.quantize(b), _a));
 
                         var oSampled = DDOP.sample(List.of(l), m.i_Om_p());
                         var _edge = Tuple.of(_a, oSampled._1());
@@ -150,42 +154,40 @@ public class SSGAExploration
                         if (b_ == null)
                             b_ = m.beliefUpdate(b, _edge._0(), _edge._1());
 
-                        // nextBels.add(Tuple.of(b_, _edge));
                         var dist = getMinDistance(b_, g.getAllNodes());
-
-                        // var bestBel = nextBels.parallelStream()
-                        // .map(bel -> Tuple.of(bel, getMinDistance(bel._0(), g.getAllNodes())))
-                        // .max((d1, d2) -> d1._1().compareTo(d2._1())).get();
-
                         if (dist > 0.01f)
                             g.addEdge(b, _edge, b_);
 
                         b = b_;
-                        }
-
-                        else {
-
-                            LOGGER.error("Error while sampling exploration probability");
-                            System.exit(-1);
-                        }
-
                     }
+
+                    else {
+
+                        LOGGER.error("Error while sampling exploration probability");
+                        System.exit(-1);
+                    }
+
                 }
             }
-
-            // likelihoodsCache.clear();
-            return;
         }
 
-        public void clearCaches() {
-
-            likelihoodsCache.clear();
-        }
-
-        @Override
-        public int getMaxB() {
-
-            return maxB;
-        }
-
+        return;
     }
+
+    public void clearCaches() {
+
+        likelihoodsCache.clear();
+    }
+
+    @Override
+    public int getMaxB() {
+
+        return maxB;
+    }
+
+    public HashMap<Tuple<DD, Integer>, DD> getLikelihoodsCache() {
+        LOGGER.warn("Calling a test method");
+        return this.likelihoodsCache;
+    }
+
+}

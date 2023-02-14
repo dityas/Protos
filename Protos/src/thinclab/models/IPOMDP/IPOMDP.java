@@ -21,6 +21,7 @@ import thinclab.RandomVariable;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
+import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.Model;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
@@ -868,7 +869,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 		int bestA = -1;
 		float bestVal = Float.NEGATIVE_INFINITY;
 
-		var nextBels = belCache.get(b);
+        // float quantization
+		var nextBels = belCache.get(FQDDleaf.quantize(b));
 
 		long missThen = System.nanoTime();
 
@@ -884,7 +886,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			for (var r : res)
 				nextBels.put(r._0(), r._1());
 
-			belCache.put(b, nextBels);
+            // Cache computed entry
+			belCache.put(FQDDleaf.quantize(b), nextBels);
 
 			if (Global.DEBUG) {
 
@@ -946,7 +949,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 			LOGGER.debug(String.format("Alpha vector construction took %s msecs", constT));
 		}
 
-		return Tuple.of(bestA, newVec);
+		return Tuple.of(bestA, DDOP.approximate(newVec));
 	}
 
 	private DD constructAlphaVector(ArrayList<Tuple<Integer, DD>> Gao, int bestA) {
@@ -956,5 +959,36 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
 		return vec;
 	}
+
+    private DD project(int a, DD vec) {
+
+        var ddArray = new ArrayList<DD>();
+        ddArray.addAll(TF.get(a));
+        ddArray.add(Taus.get(a));
+        ddArray.add(DDOP.primeVars(vec, (Global.NUM_VARS / 2)));
+
+        var dd = DDOP.approximate(DDOP.addMultVarElim(ddArray, i_S_p));
+        return DDOP.addMultVarElim(List.of(PAjGivenEC, dd), List.of(i_Aj));
+    }
+
+    @Override
+    public List<DD> MDPValueIteration(List<DD> Qfn) {
+        
+        DD Vn = Qfn.stream()
+            .reduce(
+                    DDleaf.getDD(Float.NEGATIVE_INFINITY),
+                    (q1, q2) -> DDOP.max(q1, q2));
+
+        int A = this.A.size();
+        var gamma = DDleaf.getDD(discount);
+        List<DD> nextVn = IntStream.range(0, A).boxed().parallel()
+            .map(a -> Tuple.of(
+                        R.get(a), 
+                        project(a, Vn)))
+            .map(q -> DDOP.add(q._0(), DDOP.mult(gamma, q._1())))
+            .collect(Collectors.toList());
+
+        return nextVn;
+    }
 
 }

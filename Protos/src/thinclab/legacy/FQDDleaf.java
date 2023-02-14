@@ -20,16 +20,27 @@ public class FQDDleaf extends DD {
     private final int hash;
     private final TreeSet<Integer> varSet = new TreeSet<>();
 
-    private FQDDleaf(float val) {
+    private FQDDleaf(int val) {
 
-        this.val = (int) (val * BINS);
+        this.val = val;
         this.var = 0;
 
         this.hash = this.computeHash();
     }
 
     public static FQDDleaf of(DDleaf dd) {
-        return new FQDDleaf(dd.getVal());
+
+        var val = (int) (BINS * dd.getVal());
+        var leaf = Global.qCache.get(val);
+
+        if (leaf != null)
+            return leaf;
+
+        else {
+            leaf = new FQDDleaf(val);
+            Global.qCache.put(val, leaf);
+            return leaf;
+        }
     }
 
     public static DD quantize(DD dd) {
@@ -168,4 +179,8 @@ public class FQDDleaf extends DD {
 
     public int getNumLeaves() { return 1; }
 
+    @Override
+    public Object toLisp() {
+        return val;
+    }
 }

@@ -32,8 +32,10 @@ import thinclab.utils.Tuple;
 public class PolicyGraph implements Jsonable {
 
     final public ConcurrentHashMap<Integer, PolicyNode> nodeMap;
-    final public ConcurrentHashMap<Tuple<Integer, List<Integer>>, Integer> edgeMap;
-    final public ConcurrentHashMap<List<Integer>, List<String>> edgeLabelMap;
+    final public ConcurrentHashMap<Tuple<Integer, List<Integer>>, Integer> 
+        edgeMap;
+    final public ConcurrentHashMap<List<Integer>, List<String>> 
+        edgeLabelMap;
     public ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, Integer>> adjMap = new ConcurrentHashMap<>();
 
     private static final Logger LOGGER = 

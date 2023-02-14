@@ -67,8 +67,6 @@ public class MjThetaSpace implements Frame<PolicyNode> {
         LOGGER.info(
                 "MjTheta space for frame %s initialized with %s EQ classes",
                 frame, G.adjMap.size());
-        LOGGER.info("PolicyGraph for %s is %s",
-                m.getName(), G.toString());
 
         if (Global.RESULTS_DIR != null) {
             try {
@@ -90,7 +88,9 @@ public class MjThetaSpace implements Frame<PolicyNode> {
     @Override
     public List<MjRepr<PolicyNode>> allModels() {
 
-        return G.adjMap.keySet().stream().map(n -> new MjRepr<>(frame, G.nodeMap.get(n))).collect(Collectors.toList());
+        return G.adjMap.keySet().stream()
+            .map(n -> new MjRepr<>(frame, G.nodeMap.get(n)))
+            .collect(Collectors.toList());
     }
 
     @Override

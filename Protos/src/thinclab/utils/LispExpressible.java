@@ -11,49 +11,17 @@ public interface LispExpressible {
 
     public Object toLisp();
 
-    public static String toString(Object s_expr) {
+    public static String toString(Object obj) {
+        return toString(obj, "");
+    }
+
+    public static String toString(Object s_expr, String spaces) {
 
         if (s_expr instanceof String strObject)
             return strObject;
 
         else if (s_expr instanceof Number numObject)
             return numObject.toString();
-
-        else if (s_expr instanceof DDnode ddNode) {
-
-            var builder = new StringBuilder();
-            builder.append("[")
-                .append(Global.varNames.get(ddNode.getVar() - 1));
-
-            for (int i = 0; i < ddNode.getChildren().length; i++) {
-
-                var child = ddNode.getChildren()[i];
-
-                if (child instanceof DDleaf ddLeaf) {
-
-                    if (ddLeaf.getVal() != 0.0f) 
-                        builder.append(" ");
-
-                }
-
-                else 
-                    builder.append("\r\n\t");
-
-                builder.append("[")
-                    .append(Global.valNames.get(
-                                ddNode.getVar() - 1).get(i))
-                    .append(" ")
-                    .append(LispExpressible.toString(child))
-                    .append("]");
-
-            }
-
-            builder.append("]");
-            return builder.toString();
-        }
-
-        else if (s_expr instanceof DDleaf ddLeaf) 
-            return Float.valueOf(ddLeaf.getVal()).toString();
 
         else if (s_expr instanceof List<?> listObject) {
 
@@ -63,10 +31,10 @@ public interface LispExpressible {
             for (Object obj: listObject) {
 
                 if (obj instanceof List<?>)
-                    builder.append("\r\n\t");
+                    builder.append("\r\n\t").append(spaces);
 
                 builder.append(" ");
-                builder.append(LispExpressible.toString(obj));
+                builder.append(LispExpressible.toString(obj, spaces.concat("\t")));
             }
 
             builder.append(")");

@@ -50,35 +50,35 @@ public class Parser {
         }
     }
 
-    // convert to lists/symbols
-    public static Object parse(List<String> line) {
+    public static Object parse(List<String> tokens) {
+
+        var token = tokens.remove(0);
         
-        var term = line.remove(0);
+        // If it's a list, parse it here as a Java ArrayList<>
+        if (token.equals("(")) {
+            var parsed = new ArrayList<Object>();
+            
+            // Till ")" is encountered
+            while (true) {
 
-        if (term == ")")
-            return null;
+                var _parsed = parse(tokens);
+                if (_parsed == null)
+                    break;
 
-        else if (term.contentEquals("(")) {
-
-            var list = new ArrayList<Object>();
-            while(true) {
-
-                var next = parse(line);
-                if (next instanceof String s) {
-                    if (s.contentEquals(")"))
-                        break;
-                }
-
-                list.add(next);
+                else
+                    parsed.add(_parsed);
             }
 
-            return list;
+            return parsed;
         }
 
-        else if (isNumber(term))
-            return Float.valueOf(term);
+        else if (token.equals(")"))
+            return null;
+
+        else if (isNumber(token))
+            return Float.valueOf(token);
 
         else
-            return term;
+            return token;
     }
 }

@@ -25,10 +25,10 @@ import thinclab.models.POMDP;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 
-class TestLispSerialization {
+class TestJSONSerialization {
 
 	private static final Logger LOGGER = 
-        LogManager.getFormatterLogger(TestLispSerialization.class);
+        LogManager.getFormatterLogger(TestJSONSerialization.class);
 
 	@BeforeEach
 	void setUp() throws Exception {
