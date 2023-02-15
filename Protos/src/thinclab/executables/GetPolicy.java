@@ -81,7 +81,7 @@ public class GetPolicy {
                 System.exit(-1);
             }
 
-    		var solver = new SymbolicPerseusSolver<POMDP>();
+    		var solver = new SymbolicPerseusSolver<POMDP>(I);
 	    	var policy = solver.solve(
                 List.of(b_i), I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
 

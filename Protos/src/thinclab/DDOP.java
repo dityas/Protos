@@ -968,6 +968,22 @@ public class DDOP {
 
 	// -----------------------------------------------------------------------------------------------------------
 
+	public static int sampleDist(List<Float> pdist) {
+
+        float r = Global.random.nextFloat();
+
+        for (int i = 0; i < pdist.size(); i++) {
+            if (pdist.get(i) < r)
+                continue;
+
+            else
+                return i;
+        }
+    
+        LOGGER.error("Could not sample %s from %s", r, pdist);
+        return -1;
+	}
+
 	public static int sampleIndex(List<Float> pdist) {
 
 		float thesum = 0.0f;

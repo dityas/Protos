@@ -55,14 +55,13 @@ public class Launcher {
 
 		var s = DDnode.getDDForChild("TigerLoc", "TR");
 
-		var Isolver = new SymbolicPerseusSolver<>();
-		var Jsolver = new SymbolicPerseusSolver<>();
+		var Isolver = new SymbolicPerseusSolver<>(I);
+		var Jsolver = new SymbolicPerseusSolver<>(J);
 
 		// LOGGER.debug("Initializing StochasticSimulation");
 		var b = DDOP.mult(DDleaf.getDD(0.5f), DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 1.0f))));
 
 		var agentI = new OfflineAgent(I, I.getECDDFromMjDD(b), Isolver, 100, 10);
-
 		var agentJ = new OfflineAgent(J, DDleaf.getDD(0.5f), Jsolver, 100, 10);
 
 		var sim = new StochasticSimulation<>();

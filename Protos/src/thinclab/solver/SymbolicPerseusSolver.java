@@ -34,16 +34,29 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
     implements PointBasedSolver<M, AlphaVectorPolicy> {
 
     private int usedBeliefs = 0;
+    public final M m;
+    public final AlphaVectorPolicy UB;
 
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(SymbolicPerseusSolver.class);
+
+    public SymbolicPerseusSolver(final M m) {
+
+        this.m = m;
+        LOGGER.info("Initialized symbolic Perseus for %s", this.m.getName());
+
+        // solve upper bound
+        UB = QMDPSolver.solveQMDP(this.m);
+        var actionSet = UB.getActions(this.m);
+        LOGGER.info("UB for %s contains actions %s", actionSet);
+    }
 
     /*
      * Perform backups and get the next value function for a given explored belief
      * region
      */
-
-    protected AlphaVectorPolicy solveForB(final M m, final Collection<DD> B, AlphaVectorPolicy Vn, ReachabilityGraph g) {
+    protected AlphaVectorPolicy solveForB(final M m, final Collection<DD> B, 
+            AlphaVectorPolicy Vn, ReachabilityGraph g) {
 
         List<Tuple<Integer, DD>> newVn = new ArrayList<>(10);
         this.usedBeliefs = 0;
@@ -53,8 +66,23 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
         while (_B.size() > 0) {
 
-            // DD b = _B.get(Global.random.nextInt(_B.size()));
-            DD b = _B.remove(0);
+            var index = Global.random.nextInt(_B.size());
+
+            if (newVn.size() > 0) {
+            
+                var diffs = 
+                    DDOP.getBeliefRegionEvalDiff(_B, 
+                            new AlphaVectorPolicy(newVn), 
+                            Vn, m.i_S());
+
+                index = DDOP.sample(diffs);
+            }
+
+            // It is extremely important to remove the belief at which
+            // the back up was just performed!!! Do not change this!!!
+            // It populates the belief region with low quality beliefs if not
+            // removed!!!
+            DD b = _B.remove(index);
 
             var newAlpha = m.backup(b, _Vn, g);
 
@@ -82,6 +110,9 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
             else
                 newVn.add(Tuple.of(bestA, bestDD));
+
+            // Just add the new alpha vector without comparing
+            // newVn.add(newAlpha);
 
             _B.removeIf(_b -> 
                     DDOP.value_b(Vn.aVecs, _b, m.i_S()) <=
@@ -133,99 +164,78 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         if (b_is.size() < 1)
             return Vn;
 
+        // QMDP approximation policy
         var qMDPPolicy = QMDPSolver.solveQMDP(m);
         qMDPPolicy.printSolutionSet(m);
 
-        var bVals = b_is.stream()
-            .map(b -> DDOP.value_b(qMDPPolicy.aVecs, b, m.i_S()))
-            .collect(Collectors.toList());
-
+        // QMDP policy's estimate of initial beliefs
+        var bVals = DDOP.getBeliefRegionEval(b_is, qMDPPolicy, m.i_S());
         LOGGER.info("MDP policy evaulates initial beliefs at %s", bVals);
+
+        // Start Perseus
         LOGGER.info("[*] Launching symbolic Perseus solver for model %s", m.getName());
 
+        // Make initial reachability graph
         var g = ReachabilityGraph.fromDecMakingModel(m);
         var b_i = new ArrayList<>(b_is);
-
         b_i.forEach(g::addNode);
 
-        // initial belief exploration
-        var _then = System.nanoTime();
-
-        new SSGAExploration<M, ReachabilityGraph>(0.1f)
-            .expand(b_i, g, m, H, qMDPPolicy);
-
-        var _now = System.nanoTime();
-        LOGGER.info("Initial belief exploration for %s took %s msecs", m.getName(),
-                ((_now - _then) / 1000000.0));
-
         var explorationProb = 0.2f;
-
         if (!beliefsValid(b_i, m.i_S())) {
             LOGGER.error("Belief region contains invalid beliefs");
             System.exit(-1);
         }
-
-        int convergenceCount = 0;
         var ES = new SSGAExploration<M, ReachabilityGraph>(explorationProb);
-
-        // Remove node erasing and init belief addition
         LOGGER.info("[+] Starting with exploration probability %s and %s initial beliefs",
                 explorationProb, b_i.size());
 
+        // initial belief exploration based on QMDP approximation
         ES.expand(b_i, g, m, H, qMDPPolicy);
         if (!beliefsValid(g.getAllNodes(), m.i_S())) {
             LOGGER.error("Belief region contains invalid beliefs");
             System.exit(-1);
         }
 
-        var vals = g.getAllNodes().stream()
-            .map(d -> DDOP.value_b(qMDPPolicy.aVecs, d, m.i_S()))
+        var vals = 
+            DDOP.getBeliefRegionEval(
+                    g.getAllNodes(), qMDPPolicy, m.i_S()).stream()
             .mapToDouble(Double::valueOf).average().orElse(Double.NaN);
-        LOGGER.info("QMDP policy explored belief region of values %s", vals);
+        LOGGER.info("QMDP policy explored belief region mean of values %s", 
+                vals);
 
+        int convergenceCount = 0;
+        var Vn_p = qMDPPolicy;
         for (int i = 0; i < I; i++) {
 
-            var _B = g.getAllNodes().stream()
-                .map(__b -> Tuple.of(
-                            __b, 
-                            qMDPPolicy.getEvalDifferenceAtBelief(Vn,
-                                __b, m.i_S())))
-                .collect(Collectors.toList());
-
-            Collections.sort(_B, (b1, b2) -> b2._1().compareTo(b1._1()));
-            var B = _B.stream()
-                .map(__b -> __b._0())
-                .collect(Collectors.toList());
+            var B = new ArrayList<>(g.getAllNodes());
 
             long then = System.nanoTime();
 
             // new value function after backups
-            var Vn_p = solveForB(m, B, Vn, g);
+            Vn_p = solveForB(m, B, Vn, g);
 
             float backupT = (System.nanoTime() - then) / 1000000000.0f;
             float bellmanError = computeBellmanError(B, m, Vn, Vn_p);
-            var evalDiffs = B.stream()
-                .map(b -> Vn_p.getEvalDifferenceAtBelief(Vn, b, m.i_S()))
+            var ubErrors =
+                DDOP.getBeliefRegionEvalDiff(
+                        B, qMDPPolicy, Vn_p, m.i_S())
+                .stream()
                 .collect(Collectors.toList());
 
-            float imp = evalDiffs.stream()
-                .reduce(Float.NaN, (v1, v2) -> v1 > v2 ? v1 : v2);
-            float det = evalDiffs.stream()
-                .reduce(Float.NaN, (v1, v2) -> v1 < v2 ? v1 : v2);
-
-            float ubError = computeBellmanError(B, m, qMDPPolicy, Vn_p);
-
-            // prepare for next iter
-            Vn.aVecs.clear();
-            Vn.aVecs.addAll(Vn_p.aVecs);
+            var minUBErr = ubErrors.stream()
+                .min((v1, v2) -> v1.compareTo(v2)).orElse(Float.NaN);
+            var maxUBErr = ubErrors.stream()
+                .max((v1, v2) -> v1.compareTo(v2)).orElse(Float.NaN);
 
             LOGGER.info(
-                    "i=%s, max||Vn' - Vn||=%.3f, min||Vn' - Vn||=%.3f, " +
+                    "i=%s, max||Vn' - Vn||=%.3f, " +
                     "|Vn|=%s, |B|=%s/%s, " +
-                    "||UB - Vn'||=%.5f", 
-                    i, imp, det,
+                    "|UB - Vn'|: min=%.3f max=%.3f", 
+                    i, bellmanError,
                     Vn_p.aVecs.size(), 
-                    this.usedBeliefs, B.size(), ubError);
+                    this.usedBeliefs, B.size(), minUBErr, maxUBErr);
+
+            Vn = Vn_p;
 
             if (bellmanError < 0.01 && i > 10) {
 
@@ -265,46 +275,19 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         if (Global.DEBUG)
             Global.logCacheSizes();
 
-        Vn.printSolutionSet(m);
+        Vn_p.printSolutionSet(m);
         g.removeAllNodes();
         System.gc();
         LOGGER.info("[*] Finished solving %s", m.getName());
 
         // Print if approximation can be done
-        for (int v1 = 0; v1 < Vn.aVecs.size(); v1++) {
-
+        for (int v1 = 0; v1 < Vn_p.aVecs.size(); v1++) {
             var vn = Vn.aVecs.get(v1);
             if (DDOP.canApproximate(vn._1()))
                 LOGGER.warn("A solution DD can be easily approximated");
-
-            var equalSet = 
-                new HashSet<Tuple3<
-                Tuple<Integer, Integer>, 
-                Tuple<Integer, Integer>, 
-                Float>>();
-
-            for (int v2 = 0; v2 < Vn.aVecs.size(); v2++) {
-
-                var _vn = Vn.aVecs.get(v2);
-                if (_vn.equals(vn))
-                    continue;
-
-                var diff = DDOP.maxAll(
-                        DDOP.abs(DDOP.sub(vn._1(), _vn._1())));
-
-                if (diff < 1e-4f)
-                    equalSet.add(
-                            Tuple.of(
-                                Tuple.of(v1, vn._0()), 
-                                Tuple.of(v2, _vn._0()), 
-                                diff));
-            }
-
-            if (equalSet.size() > 0)
-                LOGGER.warn("Found approx equal vecs %s", equalSet);
         }
 
-        return Vn;
+        return Vn_p;
     }
 
 }

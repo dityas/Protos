@@ -8,6 +8,7 @@
 package thinclab.policy;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -151,10 +152,11 @@ Policy<DD>, Jsonable, LispExpressible {
 
     }
 
-    public void printSolutionSet(PBVISolvablePOMDPBasedModel m) {
+    public Collection<String> getActions(PBVISolvablePOMDPBasedModel m) {
 
         var solnSet = aVecs.parallelStream()
             .map(a -> m.A().get(a._0())).collect(Collectors.toSet());
-        LOGGER.info("Policy contains actions: %s", solnSet);
+
+        return solnSet;
     }
 }
