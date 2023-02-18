@@ -82,8 +82,7 @@ public class GetPolicy {
             }
 
     		var solver = new SymbolicPerseusSolver<POMDP>(I);
-	    	var policy = solver.solve(
-                List.of(b_i), I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
+	    	var policy = solver.solve(List.of(b_i), 100, 10);
 
             var _json = new JsonObject();
             _json.add("variables", Global.toJson());
@@ -107,9 +106,8 @@ public class GetPolicy {
                 System.exit(-1);
             }
 
-    		var solver = new SymbolicPerseusSolver<IPOMDP>();
-	    	var policy = solver.solve(
-                List.of(b_i), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
+    		var solver = new SymbolicPerseusSolver<IPOMDP>(I);
+	    	var policy = solver.solve(List.of(b_i), 100, I.H);
 
             Utils.writeJsonToFile(policy.toJson(), policyFile);
         }

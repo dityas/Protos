@@ -1,4 +1,3 @@
-import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,8 +72,8 @@ class TestPolicyGraph {
 				return null;
 			});
 
-		var solver = new SymbolicPerseusSolver<POMDP>();
-		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
+		var solver = new SymbolicPerseusSolver<POMDP>(I);
+		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), 100, 10);
 
 		var G = PolicyGraph.makePolicyGraph(List.of(DDleaf.getDD(0.5f)), I, policy);
 		

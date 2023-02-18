@@ -974,11 +974,13 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
     @Override
     public List<DD> MDPValueIteration(List<DD> Qfn) {
         
+        // Vn = max_a[Qfn]
         DD Vn = Qfn.stream()
             .reduce(
                     DDleaf.getDD(Float.NEGATIVE_INFINITY),
                     (q1, q2) -> DDOP.max(q1, q2));
 
+        // Vn = R(a) + gamma * Sumout[S'][P(S'|S, a) * Tau(a) * Vn']
         int A = this.A.size();
         var gamma = DDleaf.getDD(discount);
         List<DD> nextVn = IntStream.range(0, A).boxed().parallel()

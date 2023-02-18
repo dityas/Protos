@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -71,10 +70,9 @@ class TestMisc {
         var model = (POMDP) domainRunner.getModel("agentI").get();
 
         var policy = 
-            new SymbolicPerseusSolver<>().solve(
+            new SymbolicPerseusSolver<>(model).solve(
                     List.of(DDleaf.getDD(0.5f)), 
-                    model, 100, 10, 
-                    AlphaVectorPolicy.fromR(model.R()));
+                    100, 10);
 
         var QMDPPolicy = QMDPSolver.solveQMDP(model);
 

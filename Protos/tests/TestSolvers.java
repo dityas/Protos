@@ -183,8 +183,8 @@ class TestSolvers {
 				return null;
 			});
 
-		var solver = new SymbolicPerseusSolver<POMDP>();
-		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
+		var solver = new SymbolicPerseusSolver<POMDP>(I);
+		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), 100, 10);
 
 		int bestAct = policy.getBestActionIndex(DDleaf.getDD(0.5f), I.i_S());
 
@@ -241,7 +241,7 @@ class TestSolvers {
 				return null;
 			});
 
-		var solver = new SymbolicPerseusSolver<IPOMDP>();
+		var solver = new SymbolicPerseusSolver<IPOMDP>(I);
 
 		var b_i = DDOP.mult(DDleaf.getDD(0.5f),
 				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
@@ -249,7 +249,7 @@ class TestSolvers {
 		LOGGER.debug(String.format("Level 1 recursive belief is %s", b_i));
 
 		var dd = I.getECDDFromMjDD(b_i);
-		var policy = solver.solve(List.of(dd), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
+		var policy = solver.solve(List.of(dd), 100, I.H);
 		int bestAct = policy.getBestActionIndex(dd, I.i_S());
 
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
@@ -289,7 +289,7 @@ class TestSolvers {
 				return null;
 			});
 
-		var solver = new SymbolicPerseusSolver<IPOMDP>();
+		var solver = new SymbolicPerseusSolver<IPOMDP>(I);
 
 		// Get agent J L2
 		var J = (IPOMDP) domainRunner.getModel("agentJl2").orElseGet(() ->
@@ -302,7 +302,7 @@ class TestSolvers {
 
 		var b_i = DDOP.mult(DDleaf.getDD(0.5f), DDnode.getDistribution(J.i_Mj, List.of(Tuple.of("m0", 1.0f))));
 
-		var policy = solver.solve(List.of(J.getECDDFromMjDD(b_i)), J, 100, J.H, AlphaVectorPolicy.fromR(J.R()));
+		var policy = solver.solve(List.of(J.getECDDFromMjDD(b_i)), 100, J.H);
 		int bestAct = policy.getBestActionIndex(b_i, J.i_S());
 
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
@@ -352,9 +352,9 @@ class TestSolvers {
 		var b_i = I.getECDDFromMjDD(DDOP.mult(DDleaf.getDD(0.5f),
 				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f)))));
 
-		var solver = new SymbolicPerseusSolver<IPOMDP>();
+		var solver = new SymbolicPerseusSolver<IPOMDP>(I);
 
-		var policy = solver.solve(List.of(b_i), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
+		var policy = solver.solve(List.of(b_i), 100, I.H);
 		int bestAct = policy.getBestActionIndex(b_i, I.i_S());
 
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
@@ -401,8 +401,8 @@ class TestSolvers {
 				return null;
 			});
 
-		var solver = new SymbolicPerseusSolver<POMDP>();
-		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
+		var solver = new SymbolicPerseusSolver<POMDP>(I);
+		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), 100, 10);
 
 		var modelGraph = ModelGraph.fromDecMakingModel(I);
 		var expansionStrat = new PolicyGraphExpansion<POMDP, AlphaVectorPolicy>();

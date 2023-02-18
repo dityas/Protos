@@ -122,10 +122,10 @@ class TestAltOPs {
 				return null;
 			});
 		
-        var solver = new SymbolicPerseusSolver<POMDP>();
+        var solver = new SymbolicPerseusSolver<POMDP>(I);
 		var policy = solver.solve(
                 List.of(DDleaf.getDD(0.5f)), 
-                I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
+                100, 10);
 
         var gson = new GsonBuilder().setPrettyPrinting().create();
         var json = gson.toJson(policy.toJson());

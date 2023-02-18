@@ -201,10 +201,8 @@ public class SimulateBeliefUpdates {
 
         if (line.getOptionValue("p") != null) {
             if (line.getOptionValue("p").equals("solve"))
-                p = new SymbolicPerseusSolver<>()
-                    .solve(List.of(b_i), 
-                            model, 100, 10, 
-                            AlphaVectorPolicy.fromR(model.R()));
+                p = new SymbolicPerseusSolver<>(model)
+                    .solve(List.of(b_i), 100, 10);
 
             else
                 p = AlphaVectorPolicy.fromJson(

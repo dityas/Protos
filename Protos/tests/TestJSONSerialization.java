@@ -1,13 +1,6 @@
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.StreamTokenizer;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -22,7 +15,6 @@ import thinclab.legacy.Global;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.utils.LispExpressible;
 import thinclab.models.POMDP;
-import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 
 class TestJSONSerialization {
@@ -115,10 +107,10 @@ class TestJSONSerialization {
 				return null;
 			});
 
-        var solver = new SymbolicPerseusSolver<POMDP>();
+        var solver = new SymbolicPerseusSolver<POMDP>(I);
 		var policy = solver.solve(
                 List.of(DDleaf.getDD(0.5f)), 
-                I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
+                100, 10);
 
         LOGGER.debug(String.format("Policy is %s", policy));
         System.out.println(LispExpressible.toString(policy.toLisp()));

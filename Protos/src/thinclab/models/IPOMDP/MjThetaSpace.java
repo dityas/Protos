@@ -45,7 +45,7 @@ public class MjThetaSpace implements Frame<PolicyNode> {
         this.frame = frame;
         this.m = m;
 
-        this.s = new SymbolicPerseusSolver<>();
+        this.s = new SymbolicPerseusSolver<>(this.m);
 
         var b_js = new ArrayList<DD>();
 
@@ -57,8 +57,7 @@ public class MjThetaSpace implements Frame<PolicyNode> {
         else
             b_js.addAll(b_j);
 
-        this.Vn = s.solve(b_js, m, 100, 10, AlphaVectorPolicy.fromR(m.R()));
-
+        this.Vn = s.solve(b_js, 100, 10);
         this.G = PolicyGraph.makePolicyGraph(b_js, m, Vn);
 
         LOGGER.debug(

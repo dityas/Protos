@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 import thinclab.DDOP;
 import thinclab.legacy.DDleaf;
+import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.policy.AlphaVectorPolicy;
@@ -30,10 +31,12 @@ public class QMDPSolver {
 
         for (int i = 0; i < 1000; i++) {
 
+            // max_a[Qfn]
             var Vs_p = Vn.stream().reduce(
                     DDleaf.getDD(Float.NEGATIVE_INFINITY), 
                     (v1, v2) -> DDOP.max(v1, v2));
 
+            // perform value iteration
             Vn = m.MDPValueIteration(Vn);
 
             var Vs = Vn.stream().reduce(
@@ -41,6 +44,7 @@ public class QMDPSolver {
                     (v1, v2) -> DDOP.max(v1, v2));
 
             var bErr = DDOP.maxAll(DDOP.abs(DDOP.sub(Vs, Vs_p)));
+            Global.clearHashtablesIfFull();            
 
             if (bErr < 1e-4) {
 

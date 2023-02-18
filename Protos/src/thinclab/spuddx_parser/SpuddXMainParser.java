@@ -21,8 +21,6 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import thinclab.env.Environment;
-import thinclab.env.PartiallyObservableEnv;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.PolicyTreeExpansion;
@@ -71,9 +69,6 @@ public class SpuddXMainParser extends SpuddXBaseListener {
     // parsed Models
     private HashMap<String, Model> models = new HashMap<>(10);
     private ModelsParser modelParser = new ModelsParser(this.ddParser, this.models);
-
-    // parsed environments
-    public HashMap<String, Environment<DD>> envs = new HashMap<>(10);
 
     // visitor for parsing variable definitions
     private VarDefVisitor varVisitor = new VarDefVisitor();
@@ -267,21 +262,21 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
         String name = ctx.pbvi_solv_def().solv_name().IDENTIFIER().getText();
 
-        if (ctx.pbvi_solv_def().POMDP() != null) {
-
-            SymbolicPerseusSolver<POMDP> solver = new SymbolicPerseusSolver<>();
-
-            this.solvers.put(name, solver);
-            LOGGER.debug(String.format("Parsed solver %s for POMDPs", name));
-        }
-
-        else if (ctx.pbvi_solv_def().IPOMDP() != null) {
-
-            SymbolicPerseusSolver<IPOMDP> solver = new SymbolicPerseusSolver<>();
-
-            this.solvers.put(name, solver);
-            LOGGER.debug(String.format("Parsed IPOMDP solver %s", name));
-        }
+//        if (ctx.pbvi_solv_def().POMDP() != null) {
+//
+//            SymbolicPerseusSolver<POMDP> solver = new SymbolicPerseusSolver<>();
+//
+//            this.solvers.put(name, solver);
+//            LOGGER.debug(String.format("Parsed solver %s for POMDPs", name));
+//        }
+//
+//        else if (ctx.pbvi_solv_def().IPOMDP() != null) {
+//
+//            SymbolicPerseusSolver<IPOMDP> solver = new SymbolicPerseusSolver<>();
+//
+//            this.solvers.put(name, solver);
+//            LOGGER.debug(String.format("Parsed IPOMDP solver %s", name));
+//        }
 
         super.enterPBVISolverDef(ctx);
     }
@@ -289,50 +284,50 @@ public class SpuddXMainParser extends SpuddXBaseListener {
     @Override
     public void enterSolvExpr(SolvExprContext ctx) {
 
-        String solverName = ctx.solv_cmd().solv_name().getText();
-        String modelName = ctx.solv_cmd().model_name().getText();
-        int backups = Integer.valueOf(ctx.solv_cmd().backups().getText());
-        int expHorizon = Integer.valueOf(ctx.solv_cmd().exp_horizon().getText());
-        List<DD> dds = ctx.solv_cmd().dd_list().dd_expr().stream().map(this.ddParser::visit)
-            .collect(Collectors.toList());
-
-        String policyName = ctx.policy_name().IDENTIFIER().getText();
-
-        var model = this.models.get(modelName);
-        if (model instanceof POMDP) {
-
-            POMDP _model = (POMDP) model;
-
-            if (!this.solvers.containsKey(solverName)) {
-
-                LOGGER.error(String.format("Solver %s for POMDP %s is not defined", solverName, modelName));
-                System.exit(-1);
-            }
-
-            SymbolicPerseusSolver<POMDP> solver = (SymbolicPerseusSolver<POMDP>) this.solvers.get(solverName);
-            var policy = solver.solve(dds, _model, backups, expHorizon, AlphaVectorPolicy.fromR(_model.R()));
-
-            this.policies.put(policyName, policy);
-            LOGGER.info(String.format("Solved %s and stored policy %s", modelName, policyName));
-
-        }
-
-        else if (model instanceof IPOMDP) {
-
-            IPOMDP _model = (IPOMDP) model;
-
-            if (!this.solvers.containsKey(solverName)) {
-
-                LOGGER.error(String.format("Solver %s for IPOMDP %s is not defined", solverName, modelName));
-                System.exit(-1);
-            }
-
-            SymbolicPerseusSolver<IPOMDP> solver = (SymbolicPerseusSolver<IPOMDP>) this.solvers.get(solverName);
-            var policy = solver.solve(dds, _model, backups, _model.H, AlphaVectorPolicy.fromR(_model.R()));
-
-            this.policies.put(policyName, policy);
-            LOGGER.info(String.format("Solved %s and stored policy %s", modelName, policyName));
-        }
+//        String solverName = ctx.solv_cmd().solv_name().getText();
+//        String modelName = ctx.solv_cmd().model_name().getText();
+//        int backups = Integer.valueOf(ctx.solv_cmd().backups().getText());
+//        int expHorizon = Integer.valueOf(ctx.solv_cmd().exp_horizon().getText());
+//        List<DD> dds = ctx.solv_cmd().dd_list().dd_expr().stream().map(this.ddParser::visit)
+//            .collect(Collectors.toList());
+//
+//        String policyName = ctx.policy_name().IDENTIFIER().getText();
+//
+//        var model = this.models.get(modelName);
+//        if (model instanceof POMDP) {
+//
+//            POMDP _model = (POMDP) model;
+//
+//            if (!this.solvers.containsKey(solverName)) {
+//
+//                LOGGER.error(String.format("Solver %s for POMDP %s is not defined", solverName, modelName));
+//                System.exit(-1);
+//            }
+//
+//            SymbolicPerseusSolver<POMDP> solver = (SymbolicPerseusSolver<POMDP>) this.solvers.get(solverName);
+//            var policy = solver.solve(dds, _model, backups, expHorizon, AlphaVectorPolicy.fromR(_model.R()));
+//
+//            this.policies.put(policyName, policy);
+//            LOGGER.info(String.format("Solved %s and stored policy %s", modelName, policyName));
+//
+//        }
+//
+//        else if (model instanceof IPOMDP) {
+//
+//            IPOMDP _model = (IPOMDP) model;
+//
+//            if (!this.solvers.containsKey(solverName)) {
+//
+//                LOGGER.error(String.format("Solver %s for IPOMDP %s is not defined", solverName, modelName));
+//                System.exit(-1);
+//            }
+//
+//            SymbolicPerseusSolver<IPOMDP> solver = (SymbolicPerseusSolver<IPOMDP>) this.solvers.get(solverName);
+//            var policy = solver.solve(dds, _model, backups, _model.H, AlphaVectorPolicy.fromR(_model.R()));
+//
+//            this.policies.put(policyName, policy);
+//            LOGGER.info(String.format("Solved %s and stored policy %s", modelName, policyName));
+//        }
 
         super.enterSolvExpr(ctx);
     }
@@ -414,20 +409,20 @@ public class SpuddXMainParser extends SpuddXBaseListener {
     public void enterEnvDef(EnvDefContext ctx) {
 
 
-        var envName = ctx.env_def().env_name().IDENTIFIER().getText();
-
-        LOGGER.info(String.format("Parsing environment %s", envName));
-
-        var S = ctx.env_def().states_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
-        var O = ctx.env_def().obs_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
-
-        DBN dynamics = (DBN) modelParser.visit(ctx.env_def().dbn_def());
-        var env = new PartiallyObservableEnv(S, O, dynamics, null);
-        env.name = envName;
-
-        envs.put(envName, env);
-
-        LOGGER.info(String.format("Parsed env %s", env));
+//        var envName = ctx.env_def().env_name().IDENTIFIER().getText();
+//
+//        LOGGER.info(String.format("Parsing environment %s", envName));
+//
+//        var S = ctx.env_def().states_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
+//        var O = ctx.env_def().obs_list().var_name().stream().map(s -> s.getText()).collect(Collectors.toList());
+//
+//        DBN dynamics = (DBN) modelParser.visit(ctx.env_def().dbn_def());
+//        var env = new PartiallyObservableEnv(S, O, dynamics, null);
+//        env.name = envName;
+//
+//        envs.put(envName, env);
+//
+//        LOGGER.info(String.format("Parsed env %s", env));
 
         super.enterEnvDef(ctx);
     }
