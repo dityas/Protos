@@ -9,7 +9,6 @@ package thinclab.solver;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -36,6 +35,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
     public final AlphaVectorPolicy UB;
 
     public AlphaVectorPolicy Vn;
+    public List<Float> beliefSamplingWeights;
 
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(SymbolicPerseusSolver.class);
@@ -54,37 +54,56 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
     }
 
     /*
+     * Mark beliefs that don't need updates 
+     */
+    void markUpdatedBeliefs(List<DD> B, List<Tuple<Integer, DD>> newVn) {
+
+        for (int i = 0; i < B.size(); i++) {
+
+            if (beliefSamplingWeights.get(i) == 0)
+                continue;
+
+            var b = B.get(i);
+
+            // if a belief is evaluated higher by the new policy,
+            // don't update it further for now
+            if (DDOP.value_b(Vn.aVecs, b, m.i_S()) 
+                    <= DDOP.value_b(newVn, b, m.i_S())) {
+                        beliefSamplingWeights.set(i, 0.0f);
+                    }
+        }
+    }
+
+    /*
      * Perform backups and get the next value function for a given explored belief
      * region
      */
-    protected AlphaVectorPolicy solveForB(final Collection<DD> B, 
+    protected AlphaVectorPolicy solveForB(final List<DD> B, 
             AlphaVectorPolicy Vn, ReachabilityGraph g) {
 
         List<Tuple<Integer, DD>> newVn = new ArrayList<>(10);
         this.usedBeliefs = 0;
 
-        var _B = new LinkedList<DD>(B);
-        var _Vn = Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList());
+        var _Vn = Vn.aVecs.stream()
+            .map(a -> a._1())
+            .collect(Collectors.toList());
 
-        while (_B.size() > 0) {
+        // Evaluate the difference between the evaluations of UB and Vn
+        beliefSamplingWeights = DDOP.getBeliefRegionEvalDiff(B, UB, Vn, m.i_S());
 
-            var index = Global.random.nextInt(_B.size());
+        while (true) {
 
-            if (newVn.size() > 0) {
-            
-                var diffs = 
-                    DDOP.getBeliefRegionEvalDiff(_B, 
-                            UB, 
-                            Vn, m.i_S());
-
-                index = DDOP.sample(diffs);
-            }
+            var index = DDOP.sample(beliefSamplingWeights);
+            if (index < 0)
+                break;
 
             // It is extremely important to remove the belief at which
             // the back up was just performed!!! Do not change this!!!
             // It populates the belief region with low quality beliefs if not
             // removed!!!
-            DD b = _B.remove(index);
+            DD b = B.get(index);
+            beliefSamplingWeights.set(index, 0.0f);
+
             var newAlpha = m.backup(b, _Vn, g);
 
             // Construct V_{n+1}(b)
@@ -112,10 +131,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             else
                 newVn.add(Tuple.of(bestA, bestDD));
 
-            _B.removeIf(_b -> 
-                    DDOP.value_b(Vn.aVecs, _b, m.i_S()) <=
-                    DDOP.value_b(newVn, _b, m.i_S()));
-
+            markUpdatedBeliefs(B, newVn);
             this.usedBeliefs++;
         }
 

@@ -1013,6 +1013,9 @@ public class DDOP {
             sums[i] = sum;
         }
 
+        if (sum == 0.0f)
+            return -1;
+
         float r = Global.random.nextFloat();
 
         for (int i = 0; i < sums.length; i++) {

@@ -46,7 +46,7 @@ public class QMDPSolver {
             var bErr = DDOP.maxAll(DDOP.abs(DDOP.sub(Vs, Vs_p)));
             Global.clearHashtablesIfFull();            
 
-            if (bErr < 1e-4) {
+            if (bErr < 0.001) {
 
                 LOGGER.info("QMDP value iteration converged at err %s", bErr);
                 break;
