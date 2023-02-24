@@ -19,14 +19,13 @@ public abstract class DD implements Serializable, Jsonable, Graphable, LispExpre
     public static DD one = DDleaf.getDD(1);
     public static DD zero = DDleaf.getDD(0);
 
-    protected int var;
+    protected int X;
 
     private static final long serialVersionUID = 2478730562973454848L;
     private static final Logger LOGGER = LogManager.getFormatterLogger(DD.class);
 
     public int getVar() {
-
-        return var;
+        return X;
     }
 
     public int getAddress() {
@@ -41,13 +40,7 @@ public abstract class DD implements Serializable, Jsonable, Graphable, LispExpre
 
     abstract public float getVal();
     abstract public int getNumLeaves();
-
-    // abstract public SortedSet getScope();
-    //abstract public int[] getVarSet();
-
     abstract public TreeSet<Integer> getVars();
-
-    //abstract public float getSum();
 
     abstract public DD store();
 

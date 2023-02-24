@@ -187,6 +187,62 @@ class TestMisc {
     }
 
     @Test
+    void testDDEquality() throws Exception {
+
+        System.gc();
+
+        LOGGER.info("Running Single agent tiger domain");
+        String domainFile = this.getClass().getClassLoader()
+            .getResource("test_domains/test_tiger_domain.spudd")
+            .getFile();
+
+        // Run domain
+        var domainRunner = new SpuddXMainParser(domainFile);
+        domainRunner.run();
+
+
+        var testDDs = new HashSet<DD>();
+        var testDDList = new ArrayList<DD>();
+
+        var val = 0.0f;
+
+        while (val < 1.0f) {
+
+            var dd = DDnode.getDD(
+                    1, 
+                    new DD[] {DDleaf.getDD(val), DDleaf.getDD(1 - val)});
+
+            testDDList.add(dd);
+            val += 0.0001f;
+        }
+
+        testDDs.addAll(testDDList);
+
+        LOGGER.info("DD list contains %s DDs and DD set contains %s",
+                testDDList.size(), testDDs.size());
+
+        var dd1 = testDDs.parallelStream()
+            .reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
+
+        Global.clearHashtables();
+        var dd2 = testDDList.parallelStream()
+            .reduce(DD.zero, (d1, d2) -> DDOP.add(d1, d2));
+
+        LOGGER.info("DD 1 is %s and DD2 is %s", dd1, dd2);
+
+        var equality = dd1.equals(dd2);
+        LOGGER.info("Equality is %s", equality);
+
+        var hashDD1 = dd1.hashCode();
+        var hashDD2 = dd2.hashCode();
+
+        LOGGER.info("Hashes are %s and %s", hashDD1, hashDD2);
+        LOGGER.info("Addresses are %s and %s", 
+                dd1.getAddress(), dd2.getAddress());
+    
+    }
+
+    @Test
     void testDDQuantization() throws Exception {
 
         System.gc();

@@ -302,12 +302,12 @@ public class DDOP {
 	public static DD abs(DD dd) {
 
 		// dd is a leaf
-		if (dd.getVar() == 0) {
+		if (dd instanceof DDleaf leaf) {
 
-			if (dd.getVal() >= 0)
-				return dd;
+			if (leaf.val >= 0)
+				return leaf;
 			else
-				return DDleaf.getDD(-dd.getVal());
+				return DDleaf.getDD(-leaf.val);
 		}
 
 		// dd is a node
@@ -446,16 +446,22 @@ public class DDOP {
 	public static DD addMultVarElim(final List<DD> dds, final Collection<Integer> vars) {
 
 		// check if any of the dds are zero
-		for (int i = 0; i < dds.size(); i++) {
+		//for (int i = 0; i < dds.size(); i++) {
 
-			if (dds.get(i) == null) {
+		//	if (dds.get(i) == null) 
+		//		LOGGER.error(String.format("null DD is %s", i));
+		//	
 
-				LOGGER.error(String.format("null DD is %s", i));
-			}
+		//	if (dds.get(i).getVar() == 0 && dds.get(i).getVal() == 0)
+		//		return DD.zero;
+		//}
 
-			if (dds.get(i).getVar() == 0 && dds.get(i).getVal() == 0)
-				return DD.zero;
-		}
+        for (var _dd : dds) {
+
+            if (_dd instanceof DDleaf dLeaf)
+                if (dLeaf.getVal() == 0.0f)
+                    return DD.zero;
+        }
 
 		var _vars = new HashSet<Integer>(vars);
 		var _dds = new ArrayList<DD>(dds);

@@ -10,7 +10,6 @@ import com.google.gson.JsonPrimitive;
 
 import thinclab.utils.Tuple;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +30,7 @@ public class DDnode extends DD {
 
     private DDnode(int var, DD children[]) {
 
-        this.var = var;
+        this.X = var;
         this.children = children;
         this.numLeaves = 0; // lazy temporary value
 
@@ -47,7 +46,7 @@ public class DDnode extends DD {
          */
 
         HashCodeBuilder builder = new HashCodeBuilder();
-        builder.append(this.var);
+        builder.append(this.X);
 
         for (int i = 0; i < children.length; i++) {
 
@@ -217,7 +216,7 @@ public class DDnode extends DD {
         if (child >= children.length || child <= 0) {
 
             LOGGER.error(
-                    String.format("Child %s does not exist for variable values", child, Global.valNames.get(var - 1)));
+                    String.format("Child %s does not exist for variable values", child, Global.valNames.get(X - 1)));
             System.exit(-1);
         }
 
@@ -228,21 +227,43 @@ public class DDnode extends DD {
     @Override
     public boolean equals(Object obj) {
 
-        if (!(obj instanceof DDnode))
-            return false;
+        //if (!(obj instanceof DDnode))
+        //    return false;
 
-        DDnode node = (DDnode) obj;
+        //DDnode node = (DDnode) obj;
 
-        if (var != node.var)
-            return false;
+        //if (var != node.var)
+        //    return false;
 
-        for (int i = 0; i < children.length; i++) {
+        //for (int i = 0; i < children.length; i++) {
 
-            if (!children[i].equals(node.children[i]))
+        //    if (!children[i].equals(node.children[i]))
+        //        return false;
+        //}
+
+        //return true;
+
+        if (obj == this)
+            return true;
+        
+        else if (obj instanceof DDnode node) {
+
+            if (X != node.X)
                 return false;
+
+            else {
+                for (int i = 0; i < children.length; i++) {
+
+                    if (!children[i].equals(node.children[i]))
+                        return false;
+                }
+            }
+
+            return true;
         }
 
-        return true;
+        else
+            return false;
     }
 
     @Override
@@ -260,7 +281,7 @@ public class DDnode extends DD {
             children[i] = this.children[i].store();
         }
 
-        return DDnode.getDD(var, children);
+        return DDnode.getDD(X, children);
     }
 
     public DD[] getChildren() {
@@ -295,10 +316,10 @@ public class DDnode extends DD {
          * Returns tree as SPUDD string
          */
 
-        var childNames = Global.valNames.get(this.var - 1);
+        var childNames = Global.valNames.get(this.X - 1);
 
         StringBuilder builder = new StringBuilder(100);
-        builder.append("  ".repeat(spaces)).append("(").append(Global.varNames.get(this.var - 1));
+        builder.append("  ".repeat(spaces)).append("(").append(Global.varNames.get(this.X - 1));
 
         for (int i = 0; i < this.children.length; i++) {
 
@@ -341,13 +362,13 @@ public class DDnode extends DD {
     public JsonElement toJson() {
 
         var _json = new JsonObject();
-        _json.add("name", new JsonPrimitive(Global.varNames.get(var - 1)));
+        _json.add("name", new JsonPrimitive(Global.varNames.get(X - 1)));
 
         var _array = new JsonObject();
 
         for (int i = 0; i < children.length; i++) 
             _array.add(
-                    Global.valNames.get(var - 1).get(i), 
+                    Global.valNames.get(X - 1).get(i), 
                     children[i].toJson());
 
         _json.add("value", _array);
@@ -357,10 +378,14 @@ public class DDnode extends DD {
 
     private TreeSet<Integer> getVarSet() {
 
-        var varSet = new TreeSet<Integer>(Collections.singleton(this.var));
+        var varSet = new TreeSet<Integer>();
+        varSet.add(X);
 
-        for (int i = 0; i < this.children.length; i++) 
-            varSet.addAll(this.children[i].getVars());
+        for (int i = 0; i < this.children.length; i++) {
+
+            if (children[i] instanceof DDnode)
+                varSet.addAll(children[i].getVars());
+        }
 
         return varSet;
     }
@@ -376,7 +401,7 @@ public class DDnode extends DD {
 
         var builder = new StringBuilder();
 
-        builder.append("(").append(Global.varNames.get(this.var - 1));
+        builder.append("(").append(Global.varNames.get(this.X - 1));
 
         for (int i = 0; i < this.children.length; i++) {
 
@@ -384,12 +409,12 @@ public class DDnode extends DD {
                 continue;
 
             if (this.children[i] instanceof DDleaf)
-                builder.append(" ( ").append(Global.valNames.get(this.var - 1).get(i)).append("  ")
+                builder.append(" ( ").append(Global.valNames.get(this.X - 1).get(i)).append("  ")
                     .append(this.children[i].toLabel()).append(" ) ");
 
             else {
                 builder.append(" ( ").append("<DD for ")
-                    .append(Global.varNames.get(children[i].var - 1)).append("> ) ");
+                    .append(Global.varNames.get(children[i].X - 1)).append("> ) ");
             }
         }
 
@@ -407,11 +432,11 @@ public class DDnode extends DD {
     public Object toLisp() {
         
         var objList = new ArrayList<Object>();
-        objList.add(Global.varNames.get(this.var - 1));
+        objList.add(Global.varNames.get(this.X - 1));
 
         for (int i = 0; i < children.length; i++) {
             var childList = new ArrayList<Object>();
-            childList.add(Global.valNames.get(this.var).get(i));
+            childList.add(Global.valNames.get(this.X).get(i));
             childList.add(children[i].toLisp());
 
             objList.add(childList);

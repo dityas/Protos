@@ -1,8 +1,6 @@
 package thinclab.legacy;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -18,9 +16,7 @@ public class DDleaf extends DD {
      * 
      */
     private static final long serialVersionUID = -2608205879751348514L;
-    private static final Logger LOGGER = 
-        LogManager.getFormatterLogger(DDleaf.class);
-    private float val;
+    public final float val;
 
     /* precomputed hash, this may be a bad idea */
     private final int hash;
@@ -29,13 +25,9 @@ public class DDleaf extends DD {
     private DDleaf(float val) {
 
         this.val = val;
-        this.var = 0;
+        X = 0;
 
-        this.hash = this.computeHash();
-    }
-
-    private int computeHash() {
-        return new HashCodeBuilder().append(this.val).toHashCode();
+        hash = new HashCodeBuilder().append(this.val).toHashCode();
     }
 
     public static DD getDD(float val) {
@@ -77,13 +69,17 @@ public class DDleaf extends DD {
     @Override
     public boolean equals(Object obj) {
 
-        if (obj.getClass() != getClass())
-            return false;
-
-        DDleaf leaf = (DDleaf) obj;
-
-        if (val == leaf.val)
+        if (obj == this)
             return true;
+
+        else if (obj instanceof DDleaf leaf) {
+
+            if (val == leaf.val)
+                return true;
+
+            else
+                return false;
+        }
 
         else
             return false;

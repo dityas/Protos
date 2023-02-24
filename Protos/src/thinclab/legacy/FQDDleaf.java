@@ -13,7 +13,7 @@ public class FQDDleaf extends DD {
     /**
      * 
      */
-    private int val;
+    private final int val;
     public static final int BINS = 255;
 
     /* precomputed hash, this may be a bad idea */
@@ -23,9 +23,9 @@ public class FQDDleaf extends DD {
     private FQDDleaf(int val) {
 
         this.val = val;
-        this.var = 0;
+        X = 0;
 
-        this.hash = this.computeHash();
+        hash = new HashCodeBuilder().append(this.val).toHashCode();
     }
 
     public static FQDDleaf of(DDleaf dd) {
@@ -87,20 +87,20 @@ public class FQDDleaf extends DD {
         return DDleaf.getDD((float) (val / (float) BINS));
     }
 
-    private int computeHash() {
-        return new HashCodeBuilder().append(this.val).toHashCode();
-    }
-
     @Override
     public boolean equals(Object obj) {
 
-        if (obj.getClass() != getClass())
-            return false;
-
-        FQDDleaf leaf = (FQDDleaf) obj;
-
-        if (val == leaf.val)
+        if (obj == this)
             return true;
+
+        else if (obj instanceof FQDDleaf leaf) {
+
+            if (val == leaf.val)
+                return true;
+
+            else
+                return false;
+        }
 
         else
             return false;
