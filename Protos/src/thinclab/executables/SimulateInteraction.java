@@ -21,6 +21,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.DDOP;
+import thinclab.Simulator;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
@@ -107,6 +108,37 @@ public class SimulateInteraction {
                     DDOP.addMultVarElim(
                         List.of(m.PAjGivenEC, b_EC), 
                         List.of(m.i_EC))));
+    }
+
+    public static void runMultiAgentInteraction(Simulator sim,
+            final IPOMDP agentI,
+            final PBVISolvablePOMDPBasedModel agentJ,
+            final AlphaVectorPolicy agentIPolicy,
+            final AlphaVectorPolicy agentJPolicy,
+            DD state, DD iBelief, DD jBelief, int length) {
+
+        // set initial state
+        sim.setState(state);
+
+        for (int i = 0; i < length; i++) {
+            
+            // get optimal actions
+            var optActI = agentIPolicy.getBestActionIndex(
+                    iBelief, agentI.i_S());
+            var optActJ = agentJPolicy.getBestActionIndex(
+                    jBelief, agentJ.i_S());
+
+            // step the simulator
+            var observations = sim.step(optActI, optActJ);
+
+            // update agent beliefs
+            iBelief = agentI.beliefUpdate(
+                    iBelief, optActI, observations._0()._1());
+            jBelief = agentJ.beliefUpdate(
+                    jBelief, optActJ, observations._1()._1());
+
+        }
+
     }
 
     public static void runSimulator(
@@ -323,6 +355,7 @@ public class SimulateInteraction {
 
         AlphaVectorPolicy p = null;
 
+        // Get the agent model
         var model = (IPOMDP) parser.getModel(iName).orElseGet(() ->
                 {
                     LOGGER.error("Model %s not found", iName);
@@ -330,16 +363,19 @@ public class SimulateInteraction {
                     return null;
                 });
 
+        // Get the opponent model
         var jModel = model.framesj.stream()
             .filter(_m -> _m._1().getName().equals(jName))
             .findFirst()
             .map(_m -> _m._1()).get();
 
+        // Get opponent policy
         var jPolicy = model.ecThetas.stream()
             .filter(_p -> _p.m.getName().equals(jName))
             .findFirst()
             .map(_p -> _p.Vn).get();
 
+        // Get initial beliefs and starting state
         var b_i = parser.getDD(iBel);
         var b_j = parser.getDD(jBel);
         var s = parser.getDD(iState);
@@ -354,10 +390,12 @@ public class SimulateInteraction {
             System.exit(-1);
         }
 
+        // Map beliefs to equivalence classes if we are dealing with IPOMDPs
         b_i = model.getECDDFromMjDD(b_i);
         b_j = jModel instanceof IPOMDP _jModel ?
             _jModel.getECDDFromMjDD(b_j) : b_j;
 
+        // Solve or load policy
         if (line.getOptionValue("p") != null) {
             if (line.getOptionValue("p").equals("solve"))
                 p = new SymbolicPerseusSolver<>(model)
@@ -368,22 +406,32 @@ public class SimulateInteraction {
                         Utils.readJsonFromFile(
                             line.getOptionValue("p")));
 
-            System.out.println("Graph is:");
             var G = PolicyGraph.makePolicyGraph(List.of(b_i), model, p);
             Utils.serializePolicyGraph(G, model.getName());
         }
 
+        // Run the interaction
+        var stateIndices = new ArrayList<>(model.i_S());
+        stateIndices.remove(stateIndices.size() - 1);
+
+        var sim = new Simulator(stateIndices,
+                model.i_A, jModel.i_A, 
+                model.i_Om_p(), jModel.i_Om_p(), 
+                model.T(), model.O(), jModel.O());
+
         for (int n = 0; n < i; n++) {
-            System.out.printf("Running interaction %s\r\n", n);
-            SimulateInteraction.runSimulator(
-                    model, jModel, s, b_i, b_j, p, jPolicy, l);
+            LOGGER.info("Running interaction %s", n);
+//            SimulateInteraction.runSimulator(
+//                    model, jModel, s, b_i, b_j, p, jPolicy, l);
+            runMultiAgentInteraction(sim, model, jModel, p, jPolicy, 
+                    s, b_i, b_j, l);
         }
 
-        var gson = new GsonBuilder().setPrettyPrinting().create();
-        Files.writeString(
-                Path.of(
-                    Global.RESULTS_DIR.toAbsolutePath().toString(), 
-                    "trace.json"), 
-                gson.toJson(JSON_DATA));
+//        var gson = new GsonBuilder().setPrettyPrinting().create();
+//        Files.writeString(
+//                Path.of(
+//                    Global.RESULTS_DIR.toAbsolutePath().toString(), 
+//                    "trace.json"), 
+//                gson.toJson(JSON_DATA));
     }
 }

@@ -18,9 +18,8 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
-import thinclab.model_ops.belief_exploration.SSGAExploration;
+import thinclab.model_ops.belief_exploration.MDPExploration;
 import thinclab.models.POMDP;
-import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.QMDPSolver;
 import thinclab.solver.SymbolicPerseusSolver;
@@ -76,17 +75,16 @@ class TestMisc {
 
         var QMDPPolicy = QMDPSolver.solveQMDP(model);
 
-        var expansionStrat = new SSGAExploration<>(0.2f);
-        var G = ReachabilityGraph.fromDecMakingModel(model);
-        G.addNode(DDleaf.getDD(0.5f));
-
-        for (int j = 0; j < 10; j++) {
-            expansionStrat.expand(
+        var expansionStrat = new MDPExploration<>(QMDPPolicy, 0.1f);
+        var exploredRegion = 
+            expansionStrat.explore(
                     List.of(DDleaf.getDD(0.5f)), 
-                    G, model, 10, policy);
-        }
+                    model, 10, 10);
 
-        var B = G.getAllNodes();
+        var B = exploredRegion.getAllNodes()
+            .stream()
+            .map(FQDDleaf::unquantize)
+            .collect(Collectors.toList());
         LOGGER.info("Exploration collected %s beliefs", B.size());
         
         var ubEvals = 
@@ -155,16 +153,17 @@ class TestMisc {
         var model = (POMDP) domainRunner.getModel("agentI").get();
 
         var policy = AlphaVectorPolicy.fromR(model.R());
-        var expansionStrat = new SSGAExploration<>(0.5f);
-
-        var G = ReachabilityGraph.fromDecMakingModel(model);
-        G.addNode(DDleaf.getDD(0.5f));
-
-        for (int j = 0; j < 10; j++) {
-            expansionStrat.expand(
+        var expansionStrat = new MDPExploration<>(policy, 0.1f);
+        var exploredRegion = 
+            expansionStrat.explore(
                     List.of(DDleaf.getDD(0.5f)), 
-                    G, model, 10, policy);
-        }
+                    model, 10, 10);
+
+        var B = exploredRegion.getAllNodes()
+            .stream()
+            .map(FQDDleaf::unquantize)
+            .collect(Collectors.toList());
+        LOGGER.info("Exploration collected %s beliefs", B.size());
 
         var cache = expansionStrat.getLikelihoodsCache();
         LOGGER.info("Cache has %s entries", cache.size());

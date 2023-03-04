@@ -8,7 +8,6 @@
 package thinclab.models.datastructures;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -31,6 +30,9 @@ AbstractAOGraph<DD, Integer, List<Integer>> {
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(ReachabilityGraph.class);
 
+    private int cacheHits = 0;
+    private int cacheMisses = 0;
+
     public ReachabilityGraph(final List<Tuple<Integer,
             List<Integer>>> AOSpace) {
 
@@ -41,6 +43,20 @@ AbstractAOGraph<DD, Integer, List<Integer>> {
         LOGGER.info(
                 "Initialized reachability graph for branching factor %s", 
                 AOSpace.size());
+    }
+
+    public void recordHit() {
+        cacheHits += 1;
+    }
+
+    public void recordMiss() {
+        cacheMisses += 1;
+    }
+
+    public void printCachingStats() {
+        LOGGER.info("%s hits and %s misses", cacheHits, cacheMisses);
+        LOGGER.info("hit fraction %s", 
+                ((float) cacheHits / (float) (cacheHits + cacheMisses)));
     }
 
     public static ReachabilityGraph 

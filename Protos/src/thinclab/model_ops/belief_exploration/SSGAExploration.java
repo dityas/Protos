@@ -16,8 +16,8 @@ import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
-import thinclab.models.POSeqDecMakingModel;
-import thinclab.models.datastructures.AbstractAOGraph;
+import thinclab.models.PBVISolvablePOMDPBasedModel;
+import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 
@@ -26,13 +26,13 @@ import thinclab.utils.Tuple;
  *
  */
 public class SSGAExploration
-<M extends POSeqDecMakingModel<DD>, 
-    G extends AbstractAOGraph<DD, Integer, List<Integer>>> implements 
-    ExplorationStrategy<M, G> 
+<M extends PBVISolvablePOMDPBasedModel> implements 
+    ExplorationStrategy<M> 
 {
 
     private final float e;
     public final int maxB;
+    private final AlphaVectorPolicy P;
 
     private HashMap<Tuple<DD, Integer>, DD> likelihoodsCache = 
         new HashMap<>();
@@ -40,9 +40,10 @@ public class SSGAExploration
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(SSGAExploration.class);
 
-    public SSGAExploration(float explorationProb) {
+    public SSGAExploration(AlphaVectorPolicy P, float explorationProb) {
 
         this.e = explorationProb;
+        this.P = P;
         this.maxB = 300;
         LOGGER.debug(
                 "Initialized SSGA exploration for exploration probability %s",
@@ -77,9 +78,10 @@ public class SSGAExploration
     }
 
     @Override
-    public void expand(List<DD> bs, G g, M m, int T, AlphaVectorPolicy Vn) {
+    public ReachabilityGraph explore(List<DD> bs, M m, int T, int maxI) {
 
         float Pa = 1 - e;
+        ReachabilityGraph g = ReachabilityGraph.fromDecMakingModel(m);
 
         if (Pa > 1 || Pa < 0) {
 
@@ -90,7 +92,7 @@ public class SSGAExploration
         }
 
         if (g.getNodeCount() >= maxB)
-            return;
+            return g;
 
         for (int n = 0; n < 30; n++) {
 
@@ -112,7 +114,7 @@ public class SSGAExploration
                     // greedy action
                     if (usePolicy == 1) {
 
-                        a = Vn.getBestActionIndex(b, m.i_S());
+                        a = P.getBestActionIndex(b, m.i_S());
 
                         cacheIfNotPresent(b, a, m);
                         var l = likelihoodsCache.get(
@@ -171,18 +173,12 @@ public class SSGAExploration
             }
         }
 
-        return;
+        return g;
     }
 
     public void clearCaches() {
 
         likelihoodsCache.clear();
-    }
-
-    @Override
-    public int getMaxB() {
-
-        return maxB;
     }
 
     public HashMap<Tuple<DD, Integer>, DD> getLikelihoodsCache() {

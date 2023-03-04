@@ -1,6 +1,8 @@
 package thinclab.legacy;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -19,6 +21,9 @@ public class FQDDleaf extends DD {
     /* precomputed hash, this may be a bad idea */
     private final int hash;
     private final TreeSet<Integer> varSet = new TreeSet<>();
+
+    private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(FQDDleaf.class);
 
     private FQDDleaf(int val) {
 
@@ -152,6 +157,10 @@ public class FQDDleaf extends DD {
     @Override
     public TreeSet<Integer> getVars() {
 
+        LOGGER.error("varSet being called on a quantized DD!!!");
+        var e = new Exception("Cannot operate on quantized DD");
+        e.printStackTrace();
+        System.exit(-1);
         return this.varSet;
     }
 

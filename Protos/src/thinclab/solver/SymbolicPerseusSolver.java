@@ -15,8 +15,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
+import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
-import thinclab.model_ops.belief_exploration.SSGAExploration;
+import thinclab.model_ops.belief_exploration.MDPExploration;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
@@ -27,7 +28,8 @@ import thinclab.utils.Tuple3;
  * @author adityas
  *
  */
-public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
+public class 
+SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
     implements PointBasedSolver<AlphaVectorPolicy> {
 
     private int usedBeliefs = 0;
@@ -56,7 +58,8 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
     /*
      * Mark beliefs that don't need updates 
      */
-    void markUpdatedBeliefs(List<DD> B, List<Tuple<Integer, DD>> newVn) {
+    void markUpdatedBeliefs(List<DD> B,
+            List<Tuple<Integer, DD>> newVn) {
 
         for (int i = 0; i < B.size(); i++) {
 
@@ -69,7 +72,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             // don't update it further for now
             if (DDOP.value_b(Vn.aVecs, b, m.i_S()) 
                     <= DDOP.value_b(newVn, b, m.i_S())) {
-                        beliefSamplingWeights.set(i, 0.0f);
+                beliefSamplingWeights.set(i, 0.0f);
                     }
         }
     }
@@ -170,7 +173,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
         return true;
     }
-    
+
     private void exitIfBeliefsInvalid(Collection<DD> B) {
 
         if (!beliefsValid(B)) {
@@ -199,25 +202,28 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         LOGGER.info("UB evaulates initial beliefs at %s", bVals);
 
         // Start Perseus
-        LOGGER.info("[*] Launching symbolic Perseus solver for model %s", m.getName());
+        LOGGER.info("[*] Launching symbolic Perseus solver for model %s", 
+                m.getName());
 
-        // Make initial reachability graph
-        var g = ReachabilityGraph.fromDecMakingModel(m);
-        var b_i = new ArrayList<>(b_is);
-        b_i.forEach(g::addNode);
-        exitIfBeliefsInvalid(b_i);
+        exitIfBeliefsInvalid(b_is);
 
-        // initial belief exploration based on QMDP approximation
+        // Belief exploration based on QMDP approximation
         var explorationProb = 0.05f;
-        var ES = new SSGAExploration<M, ReachabilityGraph>(explorationProb);
-        LOGGER.info("[+] Starting with exploration probability %s and %s initial beliefs",
-                explorationProb, b_i.size());
+        var ES = new MDPExploration<M>(UB, explorationProb);
+        LOGGER.info("[+] Starting with exploration probability %s and %s initial beliefs", 
+                explorationProb, b_is.size());
 
-        ES.expand(b_i, g, m, H, UB);
+        // get explored belief space
+        var exploredSpace = ES.explore(b_is, m, H, 500);
+        var B = exploredSpace.getAllNodes()
+            .stream()
+            .map(FQDDleaf::unquantize)
+            .collect(Collectors.toList());
 
+        // evaluate explored belef space
         var vals = 
             DDOP.getBeliefRegionEval(
-                    g.getAllNodes(), UB, m.i_S()).stream()
+                    B, UB, m.i_S()).stream()
             .mapToDouble(Double::valueOf).average().orElse(Double.NaN);
         LOGGER.info("QMDP policy explored belief region mean of values %s", 
                 vals);
@@ -226,12 +232,11 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         var Vn_p = UB;
         for (int i = 0; i < I; i++) {
 
-            var B = new ArrayList<>(g.getAllNodes());
 
             long then = System.nanoTime();
 
             // new value function after backups
-            Vn_p = solveForB(B, Vn, g);
+            Vn_p = solveForB(B, Vn, exploredSpace);
 
             // report error stats
             float backupT = (System.nanoTime() - then) / 1000000000.0f;
@@ -242,7 +247,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
                     + "bell err: %.3f, UB err: %.3f",
                     i, backupT, Vn_p.aVecs.size(), usedBeliefs, B.size(),
                     bellmanErrors._1(), UBErrors._1());
-            
+
             // Prepare for next backup
             Vn = Vn_p;
 
@@ -251,7 +256,7 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
                 convergenceCount += 1;
                 if (convergenceCount > 5) {
-                    
+
                     LOGGER.info("Declaring solution at Bellman error %s "
                             + "and iteration %s", bellmanErrors, i);
                     logConvergence();
@@ -264,17 +269,15 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
             Global.clearHashtablesIfFull();
 
-            // Expand belief region if close to convergence on current region
-            if (bellmanErrors._1() < 0.05f)
-                ES.expand(b_is, g, m, H, UB);
-
         } // end iterations over I
+        
+        exploredSpace.printCachingStats();
 
         Global.clearHashtablesIfFull();
         m.clearBackupCache();
         ES.clearCaches();
         System.gc();
-        g.removeAllNodes();
+        exploredSpace.removeAllNodes();
 
         // Log exit
         LOGGER.info("Vn contains actions %s", Vn.getActions(m));
@@ -289,5 +292,4 @@ public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
         return Vn;
     }
-
 }

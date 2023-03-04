@@ -80,20 +80,6 @@ class TestBeliefUpdate {
 		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
 		beliefGraph.addNode(DDleaf.getDD(0.5f));
 
-		// Initialize belief exploration
-		var BE = new BreadthFirstExploration<POMDP, ReachabilityGraph>(20);
-
-		long then = System.nanoTime();
-		for (int i = 0; i < 20; i++)
-			BE.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 10, AlphaVectorPolicy.fromR(I.R()));
-
-		long now = System.nanoTime();
-		float T = (now - then) / 1000.0f;
-		LOGGER.debug(String.format("BFS expansion took %s us", T));
-
-		assertTrue(beliefGraph.getAllNodes().size() <= 20);
-		LOGGER.debug(String.format("Graph is %s", beliefGraph));
-		printMemConsumption();
 	}
 
 	@Test

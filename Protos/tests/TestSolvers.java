@@ -13,6 +13,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
+import thinclab.model_ops.belief_exploration.MDPExploration;
 import thinclab.model_ops.belief_exploration.MjSpaceExpansion;
 import thinclab.model_ops.belief_exploration.PolicyGraphExpansion;
 import thinclab.model_ops.belief_exploration.SSGAExploration;
@@ -88,16 +89,17 @@ class TestSolvers {
 				return null;
 			});
 
-		var g = ReachabilityGraph.fromDecMakingModel(I);
 		var b_is = List.of(DDleaf.getDD(0.5f));
-		new BreadthFirstExploration<POMDP, ReachabilityGraph>(100).expand(b_is, g, I, 5,
-				null);
+        var explorationStrat = 
+            new MDPExploration<>(AlphaVectorPolicy.fromR(I.R()), 0.2f);
+
+        var exploredRegion = explorationStrat.explore(b_is, I, 10, 100);
 
 		IntStream.range(0, I.A().size()).forEach(i ->
 			{
 
 				LOGGER.debug(String.format("backup for %s at %s is %s", I.A().get(i), DDleaf.getDD(0.5f),
-						I.backup(DDleaf.getDD(0.5f), I.R(), g)));
+						I.backup(DDleaf.getDD(0.5f), I.R(), exploredRegion)));
 			});
 		printMemConsumption();
 	}
@@ -209,14 +211,6 @@ class TestSolvers {
 		LOGGER.debug(String.format("After expanding the MjSpace graph, no. of models are %s",
 				modelGraph.getAllNodes().size()));
 		LOGGER.debug(String.format("Graph is %s", ModelGraph.toDot(modelGraph, I)));
-
-		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
-		var bfe = new BreadthFirstExploration<POMDP, ReachabilityGraph>(100);
-
-		bfe.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 5, policy);
-
-		LOGGER.debug(String.format("After expanding the belief space graph, no. of models are %s",
-				beliefGraph.getAllNodes().size()));
 
 	}
 
@@ -361,22 +355,6 @@ class TestSolvers {
 				I.A().get(bestAct)));
 
 		assertTrue(bestAct == 0);
-
-		var G = ReachabilityGraph.fromDecMakingModel(I);
-		var ES = new SSGAExploration<IPOMDP, ReachabilityGraph>(0.99f);
-
-		int numNodes = G.getAllNodes().size();
-		LOGGER.debug(String.format("Graph  is %s", G));
-
-		G.addNode(b_i);
-		ES.expand(List.of(b_i), G, I, I.H, policy);
-
-		LOGGER.debug(
-				String.format("Starting size is %s and after expansion, it is %s", numNodes, G.getAllNodes().size()));
-		assertTrue(G.getAllNodes().size() > numNodes);
-
-		System.gc();
-		printMemConsumption();
 	}
 
 	@Test

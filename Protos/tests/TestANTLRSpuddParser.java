@@ -192,44 +192,6 @@ class TestANTLRSpuddParser {
 
 	}
 
-	@Test
-	void testIPOMDPL1BeliefUpdate() throws Exception {
-
-		System.gc();
-		printMemConsumption();
-
-		LOGGER.info("Testing L1 IPOMDP belief update");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd")
-				.getFile();
-
-		var domainRunner = new SpuddXMainParser(domainFile);
-		domainRunner.run();
-		
-		var I = domainRunner.getModel("agentI");
-		
-		if (I.isEmpty()) {
-			LOGGER.error(String.format("Could not find IPOMDP"));
-			System.exit(-1);
-		}
-		
-		var agent = (IPOMDP) I.get();
-		
-		var RG = ReachabilityGraph.fromDecMakingModel(agent);
-		var ES = new BreadthFirstExploration<IPOMDP, ReachabilityGraph>(100);
-		
-		//RG.addNode(agent.b_i());
-		
-		//RG = ES.expand(RG, agent, agent.H, null);
-		
-		//var _vars = new ArrayList<>(agent.i_S());
-		//_vars.add(agent.i_Mj);
-		
-		//RG.getAllNodes().forEach(d -> LOGGER.debug(DDOP.factors(d, _vars)));
-
-		printMemConsumption();
-
-	}
-
     @Test
     void testParser() throws Exception {
         

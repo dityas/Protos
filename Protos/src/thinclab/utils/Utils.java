@@ -70,13 +70,16 @@ public class Utils {
     public static void serializePolicyGraph(PolicyGraph G, String modelName) {
         if (Global.RESULTS_DIR != null) {
             try {
-                Files.writeString(
-                        Paths.get(
+
+                var fileName =
+                    Paths.get(
                             String.format("%s/%s_%s_pol_graph.json",
                                 Global.RESULTS_DIR
                                 .toAbsolutePath().toString(),
-                                G.hashCode(), modelName)),
-                        G.toString());
+                                G.hashCode(), modelName)); 
+                Files.writeString(fileName, G.toString());
+
+                LOGGER.info("Wrote policy graph to %s", fileName);
             }
 
             catch (Exception e) {

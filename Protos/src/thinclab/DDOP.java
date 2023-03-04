@@ -972,6 +972,17 @@ public class DDOP {
 		return DDnode.getDD(highestVar, children);
 	}
 
+    // Make DD from given random variable values
+    public static DD ddFromVals(List<Integer> vars, List<Integer> vals) {
+    
+        var dd = new ArrayList<DD>(vars.size());
+        for (int i = 0; i < vars.size(); i++)
+            dd.add(DDnode.getDDForChild(
+                        vars.get(i), vals.get(i) - 1));
+
+        return mult(dd);
+    }
+
 	// -----------------------------------------------------------------------------------------------------------
 
 	public static int sampleDist(List<Float> pdist) {
