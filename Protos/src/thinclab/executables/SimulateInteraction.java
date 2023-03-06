@@ -1,14 +1,10 @@
 
 package thinclab.executables;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -23,7 +19,6 @@ import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.Simulator;
 import thinclab.legacy.DD;
-import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.IPOMDP.IPOMDP;
@@ -31,84 +26,14 @@ import thinclab.models.datastructures.PolicyGraph;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
-import thinclab.utils.Tuple;
 import thinclab.utils.Utils;
+
 
 public class SimulateInteraction {
 
-    public static GsonBuilder JSON = null;
-    public static JsonArray JSON_DATA = null; 
 
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(SimulateInteraction.class);
-
-    public static JsonObject getVarValsJSON(
-            Tuple<List<Integer>, List<Integer>> varVals) {
-
-        var json = new JsonObject();
-        var repr = IntStream.range(0, varVals._0().size())
-            .mapToObj(i -> 
-                    Tuple.of(
-                        Global.varNames.get(varVals._0().get(i) - 1),
-                        Global.valNames.get(varVals._0().get(i) - 1)
-                        .get(varVals._1().get(i) - 1)))
-            .collect(Collectors.toList());
-
-        for(var o: repr)
-            json.addProperty(o._0(), o._1());
-
-        return json;
-            }
-
-    public static void printVarVals(
-            Tuple<List<Integer>, List<Integer>> varVals) {
-
-        var repr = IntStream.range(0, varVals._0().size())
-            .mapToObj(i -> 
-                    List.of(
-                        Global.varNames.get(varVals._0().get(i) - 1),
-                        Global.valNames.get(varVals._0().get(i) - 1)
-                        .get(varVals._1().get(i) - 1)))
-            .collect(Collectors.toList());
-
-        System.out.println(repr);
-            }
-
-    public static void printBeliefStats(PBVISolvablePOMDPBasedModel m,
-            DD b) {
-
-        var b_factors = DDOP.factors(b, m.i_S());
-        b_factors.forEach(_b -> {
-            System.out.println(_b);
-        });
-    }
-
-    public static void printBeliefStats(IPOMDP m, DD b) {
-
-        var b_factors = DDOP.factors(b, m.i_S());
-        var b_EC = b_factors.get(b_factors.size() - 1);
-
-        // print belief
-        b_factors.forEach(_b -> {
-            System.out.println(_b);
-        });
-
-        // for IPOMDPs, print everything
-        System.out.println(
-                String.format(
-                    "Belief over Aj's frame is %s", 
-                    DDOP.getFrameBelief(
-                        b, 
-                        m.PThetajGivenEC,
-                        m.i_EC, 
-                        m.i_S())));
-        System.out.println(
-                String.format(
-                    "Predicted actions: %s", 
-                    DDOP.addMultVarElim(
-                        List.of(m.PAjGivenEC, b_EC), 
-                        List.of(m.i_EC))));
-    }
 
     public static void runMultiAgentInteraction(Simulator sim,
             final IPOMDP agentI,
@@ -158,167 +83,6 @@ public class SimulateInteraction {
         }
     }
 
-    public static void runSimulator(
-            final IPOMDP model,
-            final PBVISolvablePOMDPBasedModel jModel,
-            DD s,
-            DD b_i,
-            DD b_j,
-            AlphaVectorPolicy p,
-            AlphaVectorPolicy jPolicy,
-            int length) {
-
-        // prepare state and prime state indices for use later
-        var X = new ArrayList<>(model.i_S());
-        X.remove(X.size() - 1);
-        var X_p = Global.makePrimeIndices(X);
-
-        var JSON_ARRAY = Global.RESULTS_DIR == null ? null : new JsonArray();
-
-        for (int iter = 0; iter < length; iter++) {
-
-            var iAct = p.getBestActionIndex(b_i, model.i_S());
-            var jAct = jPolicy.getBestActionIndex(b_j, jModel.i_S());
-            var s_p = updateState(s, X, model.T().get(iAct), model.i_Aj, jAct);
-            var iObs = sampleObservations(s_p, model.O().get(iAct), 
-                    model.i_Om_p(), X_p, model.i_Aj, jAct);
-            var jObs = jModel instanceof IPOMDP ? 
-                sampleObservations(s_p, jModel.O().get(jAct), 
-                        jModel.i_Om_p(), X_p, ((IPOMDP) jModel).i_Aj, iAct) :
-                sampleObservations(s_p, jModel.O().get(jAct), 
-                        jModel.i_Om_p(), X_p);
-
-            // Write results
-            if (Global.RESULTS_DIR != null) {
-
-                var json = new JsonObject();
-
-                json.addProperty("time step", iter);
-                json.add("iBel", DDOP.toJson(b_i, model.i_S()));
-                json.addProperty("iR", DDOP.dotProduct(
-                            model.R().get(iAct), b_i, model.i_S()));
-
-                if (model instanceof IPOMDP) {
-                    var i_theta_j = DDOP.getFrameBelief(
-                            b_i, 
-                            model.PThetajGivenEC,
-                            model.i_EC, 
-                            model.i_S());
-
-                    json.add(
-                            "iThetaHat", 
-                            DDOP.toJson(i_theta_j, model.i_Thetaj));
-
-                    var PAj = 
-                        DDOP.addMultVarElim(
-                                List.of(b_i, model.PAjGivenEC), 
-                                model.i_S());
-
-                    json.add(
-                            "i_P(Aj)",
-                            DDOP.toJson(PAj, model.i_Aj));
-
-                }
-
-                json.add("iObs", getVarValsJSON(iObs));
-                json.add("jBel", DDOP.toJson(b_j, jModel.i_S()));
-                json.addProperty("jR", DDOP.dotProduct(
-                            jModel.R().get(jAct), b_j, jModel.i_S()));
-
-                if (jModel instanceof IPOMDP) {
-                    var _j = (IPOMDP) jModel;
-                    var j_theta_j = DDOP.getFrameBelief(
-                            b_j, 
-                            _j.PThetajGivenEC,
-                            _j.i_EC, 
-                            _j.i_S());
-
-                    json.add(
-                            "jThetaHat", 
-                            DDOP.toJson(j_theta_j, _j.i_Thetaj));
-
-                    var PAj = 
-                        DDOP.addMultVarElim(
-                                List.of(b_j, _j.PAjGivenEC), 
-                                _j.i_S());
-
-                    json.add(
-                            "j_P(Aj)",
-                            DDOP.toJson(PAj, _j.i_Aj));
-
-                }
-
-                json.add("jObs", getVarValsJSON(jObs));
-                json.add("state", DDOP.toJson(s, X));
-                json.addProperty("iAct", model.A().get(iAct));
-                json.addProperty("jAct", jModel.A().get(jAct));
-
-                JSON_ARRAY.add(json);
-            }
-
-            b_i = model.beliefUpdate(b_i, iAct, iObs._1());
-            b_j = jModel.beliefUpdate(b_j, jAct, jObs._1());
-            s = s_p;
-        }
-
-        JSON_DATA.add(JSON_ARRAY);
-
-            }
-
-    public static DD ddFromVarVals(
-            Tuple<List<Integer>, List<Integer>> varVals) {
-
-        List<DD> _s = IntStream.range(0, varVals._0().size())
-            .mapToObj(i -> DDnode.getDDForChild(
-                        varVals._0().get(i), varVals._1().get(i) - 1))
-            .collect(Collectors.toList());
-
-        return DDOP.mult(_s);
-            }
-
-    public static DD updateState(
-            DD s,
-            List<Integer> i_S,
-            List<DD> T,
-            int i_Aj,
-            int jAct) {
-
-        var dds = new ArrayList<>(T);
-        dds.add(s);
-
-        var s_p = DDOP.addMultVarElim(dds, i_S);
-        s_p = DDOP.restrict(s_p, List.of(i_Aj), List.of(jAct + 1));
-        s_p = DDOP.primeVars(s_p, -(Global.NUM_VARS / 2));
-
-        var nextState = DDOP.sample(List.of(s_p), i_S);
-        return ddFromVarVals(nextState);
-            }
-
-    public static Tuple<List<Integer>, List<Integer>> sampleObservations(
-            DD s, 
-            List<DD> O, List<Integer> i_Om_p, List<Integer> i_S_p,
-            int i_Aj, int jAct) {
-
-        var s_p = DDOP.primeVars(s, (Global.NUM_VARS / 2));
-        var o = DDOP.restrict(O, List.of(i_Aj), List.of(jAct + 1));
-        o.add(s_p);
-
-        var oDD = DDOP.addMultVarElim(o, i_S_p);
-        return DDOP.sample(List.of(oDD), i_Om_p);
-            }
-
-    public static 
-        Tuple<List<Integer>, List<Integer>> sampleObservations(DD s,
-                List<DD> O, List<Integer> i_Om_p, List<Integer> i_S_p) {
-
-            var s_p = DDOP.primeVars(s, (Global.NUM_VARS / 2));
-            var o = new ArrayList<>(O);
-            o.add(s_p);
-
-            var oDD = DDOP.addMultVarElim(o, i_S_p);
-            return DDOP.sample(List.of(oDD), i_Om_p);
-        }
-
     public static void main(String[] args) throws Exception {
 
         CommandLineParser cliParser = new DefaultParser();
@@ -353,7 +117,6 @@ public class SimulateInteraction {
         String resultsDir = line.getOptionValue("r");
 
         Global.RESULTS_DIR = Path.of(resultsDir);
-        SimulateInteraction.JSON_DATA = new JsonArray();
 
         String iName = line.getOptionValue("iName");
         String jName = line.getOptionValue("jName");
