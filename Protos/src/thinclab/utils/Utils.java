@@ -38,7 +38,7 @@ public class Utils {
 
             writer.close();
 
-            LOGGER.info("Wrote %s to file %s", json, fileName);
+            LOGGER.info("Wrote JSON to file %s", fileName);
         }
 
         catch (Exception e) {

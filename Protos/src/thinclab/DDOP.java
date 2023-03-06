@@ -1291,6 +1291,22 @@ public class DDOP {
 
 		return true;
 	}
+
+    public static JsonObject beliefToFlatJSON(List<DD> factoredBelief,
+            List<Integer> vars) {
+        /*
+         * Creates a flat {columnname -> belief value} mapping from a factored
+         * belief distribution
+         */
+
+        var json = new JsonObject();
+        var parsedJson = toJson(factoredBelief, vars);
+
+        LOGGER.info("Get %s", parsedJson);
+
+        return null;
+    }
+
 	
 	public static JsonObject toJson(final DD d, final int var) {
 		
@@ -1299,10 +1315,9 @@ public class DDOP {
 		if (d instanceof DDleaf) {
 			
             var _json = new JsonObject();
-			Global.valNames.get(var - 1).stream()
-					.forEach(v -> {
-						_json.addProperty(v, d.getVal());	
-					});
+            
+            for (var val: Global.valNames.get(var - 1))
+                _json.addProperty(val, d.getVal());
 			
 			json.add(Global.varNames.get(var - 1), _json);
 			
@@ -1323,11 +1338,9 @@ public class DDOP {
 			return json;
 		}
 	}
-	
-	public static JsonElement toJson(final DD d,
+
+	public static JsonElement toJson(final List<DD> dds,
             final List<Integer> vars) {
-		
-		var dds = DDOP.factors(d, vars);
 		
 		var invalid = dds.stream()
             .filter(_d -> _d.getVars().size() > 1)
@@ -1335,20 +1348,27 @@ public class DDOP {
 		
 		if (invalid.isPresent()) {
 			
-			LOGGER.error(String.format("Cannot make JSON string from DD %s", invalid.get()));
+			LOGGER.error("Cannot make JSON string from DD %s", invalid.get());
 			System.exit(-1);
 		}
 		
         var json = new JsonObject();
-		IntStream.range(0, vars.size()).boxed()
-				.forEach(i -> {
-                    
-                    json.add(
-                            Global.varNames.get(vars.get(i) - 1), 
-                            DDOP.toJson(dds.get(i), vars.get(i)));
-                });
+
+        for (int i = 0; i < vars.size(); i++) {
+            var varName = Global.varNames.get(vars.get(i) - 1);
+            var ddJson = toJson(dds.get(i), vars.get(i));
+
+            json.add(varName, ddJson.get(varName));
+        }
 		
 		return json;
+	}
+	
+	public static JsonElement toJson(final DD d,
+            final List<Integer> vars) {
+		
+		var dds = DDOP.factors(d, vars);
+		return toJson(dds, vars);
 	}
 
     public static float l2NormSq(final DD d1, 

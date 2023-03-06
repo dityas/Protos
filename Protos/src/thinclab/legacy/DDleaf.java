@@ -143,7 +143,7 @@ public class DDleaf extends DD {
     public String toSPUDD(int spaces) {
 
         var builder = new StringBuilder(10);
-        builder.append("  ".repeat(spaces)).append("(").append(this.val).append(")");
+        builder.append("  ".repeat(spaces)).append(this.val);
 
         return builder.toString();
     }

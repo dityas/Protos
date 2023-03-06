@@ -17,20 +17,20 @@ public class Simulator {
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(Simulator.class);
 
-    private final List<Integer> stateIndices;
-    private final List<Integer> statePrimeIndices;
+    public final List<Integer> stateIndices;
+    public final List<Integer> statePrimeIndices;
 
-    private final List<List<DD>> transition;
-    private final List<List<DD>> observationI;
-    private final List<List<DD>> observationJ;
+    public final List<List<DD>> transition;
+    public final List<List<DD>> observationI;
+    public final List<List<DD>> observationJ;
 
-    private final List<Integer> obsIPrimeIndices;
-    private final List<Integer> obsJPrimeIndices;
+    public final List<Integer> obsIPrimeIndices;
+    public final List<Integer> obsJPrimeIndices;
 
-    private final int actionVarI;
-    private final int actionVarJ;
+    public final int actionVarI;
+    public final int actionVarJ;
 
-    private DD state;
+    public DD state;
 
     public Simulator(List<Integer> stateIndices,
             int actionVarI, int actionVarJ,
@@ -115,7 +115,7 @@ public class Simulator {
          */
     
         obsFn = DDOP.restrict(obsFn, 
-                List.of(otherActionVar), List.of(otherAction));
+                List.of(otherActionVar), List.of(otherAction + 1));
 
         return getObservation(obsFn, obsPrimeIndices);
     }

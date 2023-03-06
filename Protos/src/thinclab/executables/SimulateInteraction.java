@@ -40,7 +40,7 @@ public class SimulateInteraction {
     public static JsonArray JSON_DATA = null; 
 
     private static final Logger LOGGER = 
-        LogManager.getFormatterLogger(SimulateBeliefUpdates.class);
+        LogManager.getFormatterLogger(SimulateInteraction.class);
 
     public static JsonObject getVarValsJSON(
             Tuple<List<Integer>, List<Integer>> varVals) {
@@ -115,13 +115,14 @@ public class SimulateInteraction {
             final PBVISolvablePOMDPBasedModel agentJ,
             final AlphaVectorPolicy agentIPolicy,
             final AlphaVectorPolicy agentJPolicy,
-            DD state, DD iBelief, DD jBelief, int length) {
+            DD state, DD iBelief, DD jBelief, int length,
+            JsonArray recorder) {
 
         // set initial state
         sim.setState(state);
 
         for (int i = 0; i < length; i++) {
-            
+
             // get optimal actions
             var optActI = agentIPolicy.getBestActionIndex(
                     iBelief, agentI.i_S());
@@ -131,6 +132,23 @@ public class SimulateInteraction {
             // step the simulator
             var observations = sim.step(optActI, optActJ);
 
+            // Record the step in JSON
+            var step = new JsonObject();
+            var stateJSON = DDOP.toJson(sim.getState(), sim.stateIndices);
+            step.add("state", stateJSON);
+
+            var agentIJSON = DDOP.toJson(iBelief, agentI.i_S())
+                .getAsJsonObject();
+            agentIJSON.add("observation", observations._0().toJson());
+            step.add("agent_i", agentIJSON);
+
+            var agentJJSON = DDOP.toJson(jBelief, agentJ.i_S())
+                .getAsJsonObject();
+            agentJJSON.add("observation", observations._1().toJson());
+            step.add("agent_j", agentJJSON);
+
+            recorder.add(step);
+
             // update agent beliefs
             iBelief = agentI.beliefUpdate(
                     iBelief, optActI, observations._0()._1());
@@ -138,7 +156,6 @@ public class SimulateInteraction {
                     jBelief, optActJ, observations._1()._1());
 
         }
-
     }
 
     public static void runSimulator(
@@ -219,7 +236,7 @@ public class SimulateInteraction {
                     json.add(
                             "jThetaHat", 
                             DDOP.toJson(j_theta_j, _j.i_Thetaj));
-                    
+
                     var PAj = 
                         DDOP.addMultVarElim(
                                 List.of(b_j, _j.PAjGivenEC), 
@@ -421,17 +438,19 @@ public class SimulateInteraction {
 
         for (int n = 0; n < i; n++) {
             LOGGER.info("Running interaction %s", n);
-//            SimulateInteraction.runSimulator(
-//                    model, jModel, s, b_i, b_j, p, jPolicy, l);
-            runMultiAgentInteraction(sim, model, jModel, p, jPolicy, 
-                    s, b_i, b_j, l);
-        }
 
-//        var gson = new GsonBuilder().setPrettyPrinting().create();
-//        Files.writeString(
-//                Path.of(
-//                    Global.RESULTS_DIR.toAbsolutePath().toString(), 
-//                    "trace.json"), 
-//                gson.toJson(JSON_DATA));
+            // For recording the interaction
+            var recorder = new JsonArray();
+            runMultiAgentInteraction(sim, model, jModel, p, jPolicy, 
+                    s, b_i, b_j, l, recorder);
+
+            // Write the interaction to a file
+            if (Global.RESULTS_DIR != null) {
+                String fileName = String.format("%s/trace.%s.json", 
+                        Global.RESULTS_DIR, n);
+                LOGGER.info("Recording interaction %s to %s", n, fileName);
+                Utils.writeJsonToFile(recorder, fileName);
+            }
+        }
     }
 }
