@@ -75,7 +75,7 @@ public class SimulateInteractionSingleAgent {
 
             for (int iter = 0; iter < length; iter++) {
 
-                var iAct = p.getBestActionIndex(b_i, model.i_S());
+                var iAct = p.getBestActionIndex(b_i);
                 var s_p = updateState(s, X, model.T().get(iAct));
                 var iObs = sampleObservations(s_p, model.O().get(iAct), 
                         model.i_Om_p(), X_p);

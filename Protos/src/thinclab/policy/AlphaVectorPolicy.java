@@ -33,37 +33,74 @@ import thinclab.utils.Tuple;
  * @author adityas
  *
  */
-public class AlphaVectorPolicy implements 
+public class AlphaVectorPolicy extends ArrayList<AlphaVector> implements 
 Policy<DD>, Jsonable, LispExpressible {
 
-    public List<Tuple<Integer, DD>> aVecs;
-
+    //    public List<Tuple<Integer, DD>> aVecs;
+    //
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(AlphaVectorPolicy.class);
+    //
+    //    public AlphaVectorPolicy(List<Tuple<Integer, DD>> alphaVectors) {
+    //        this.aVecs = alphaVectors;
+    //    }
 
-    public AlphaVectorPolicy(List<Tuple<Integer, DD>> alphaVectors) {
-        this.aVecs = alphaVectors;
+    public final List<Integer> stateIndices;
+
+    public AlphaVectorPolicy(List<Integer> stateIndices) {
+        super();
+        this.stateIndices = stateIndices;
     }
 
-    public void printPolicyValuationAtBelief(DD b, 
-            List<String> A, List<Integer> vars) {
+    public AlphaVectorPolicy(Collection<AlphaVector> alphaVectors,
+            List<Integer> stateIndices) {
+        super(alphaVectors);
+        this.stateIndices = stateIndices;
+    }
 
-        for (var aVec: aVecs)
-            System.out.println(String.format("Alpha: %s, a: %s, V: %s", 
-                        aVec._0(), A.get(aVec._0()), 
-                        DDOP.dotProduct(aVec._1(), b, vars)));
+    public List<DD> getAsDDList() {
+
+        return stream()
+            .map(v -> v.getVector())
+            .collect(Collectors.toList());
+    }
+
+    public static AlphaVectorPolicy getLowerBound(PBVISolvablePOMDPBasedModel m) {
+
+        var policy = new AlphaVectorPolicy(m.i_S());
+        for (int i = 0; i < m.R().size(); i++)
+            policy.add(new AlphaVector(i, m.R().get(i), Float.NaN));
+
+        return policy;
     }
 
     @Override
-    public int getBestActionIndex(DD belief, List<Integer> S) {
+    public int getBestActionIndex(DD belief) {
+        /*
+         * Dot all vectors with given belief and return action Id of max
+         */
 
-        int i = DDOP.bestAlphaIndex(aVecs, belief, S);
-        return aVecs.get(i)._0();
+        float bestVal = Float.NEGATIVE_INFINITY;
+        AlphaVector best = null;
+
+        for (var vec: this) {
+
+            float val = DDOP.dotProduct(belief, 
+                    vec.getVector(), stateIndices);
+
+            if (val > bestVal) {
+                bestVal = val;
+                best = vec;
+            }
+
+        }
+
+        return best.getActId();
     }
 
     @Override
     public String toString() {
-        return aVecs.toString();
+        return "";
     }
 
     @Override
@@ -71,34 +108,13 @@ Policy<DD>, Jsonable, LispExpressible {
 
         var json = new JsonArray();
 
-        aVecs.stream()
-            .forEach(a -> {
-
-                var _json = new JsonObject();
-                _json.add("actId", new JsonPrimitive(a._0()));
-                _json.add("alpha", a._1().toJson());
-
-                json.add(_json);
-
-            });
-
         return json;
     }
 
     @Override
     public Object toLisp() {
 
-        var policyList = new ArrayList<Object>(aVecs.size());
-        policyList.add("alphaVectorPolicy");
-        for (var alpha: aVecs) {
-
-            var vecList = new ArrayList<Object>(2);
-            vecList.add(alpha._0());
-            vecList.add(alpha._1().toLisp());
-
-            policyList.add(vecList);
-        }
-
+        var policyList = new ArrayList<Object>(size());
         return policyList;
     }
 
@@ -121,41 +137,27 @@ Policy<DD>, Jsonable, LispExpressible {
                     LOGGER.error("Error while loading %s", _jo);
             });
 
-            return new AlphaVectorPolicy(aVecs);
+            return null;
         }
 
         return null;
     }
 
-    public static AlphaVectorPolicy fromR(List<DD> R) {
+    public static AlphaVectorPolicy fromR(List<DD> R,
+            List<Integer> stateIndices) {
 
         return new AlphaVectorPolicy(
                 IntStream.range(0, R.size())
-                .mapToObj(i -> Tuple.of(i, R.get(i)))
-                .collect(Collectors.toList()));
-    }
-
-    public static AlphaVectorPolicy randomPolicy(int sizeA) {
-        return new AlphaVectorPolicy(
-                IntStream.range(0, sizeA)
                 .mapToObj(i -> 
-                    Tuple.of(i, 
-                        DDleaf.getDD(0.0f)))
-                .collect(Collectors.toList()));
-    }
-
-    public float getEvalDifferenceAtBelief(AlphaVectorPolicy p,
-            DD b, List<Integer> vars) {
-        
-        return DDOP.value_b(aVecs, b, vars) 
-            - DDOP.value_b(p.aVecs, b, vars);
-
+                    new AlphaVector(i, R.get(i), DDOP.maxAll(R.get(i))))
+                .collect(Collectors.toList()), stateIndices);
     }
 
     public Collection<String> getActions(PBVISolvablePOMDPBasedModel m) {
 
-        var solnSet = aVecs.parallelStream()
-            .map(a -> m.A().get(a._0())).collect(Collectors.toSet());
+        var solnSet = stream()
+            .map(a -> m.A().get(a.getActId()))
+            .collect(Collectors.toSet());
 
         return solnSet;
     }

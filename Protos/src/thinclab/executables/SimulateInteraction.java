@@ -50,9 +50,9 @@ public class SimulateInteraction {
 
             // get optimal actions
             var optActI = agentIPolicy.getBestActionIndex(
-                    iBelief, agentI.i_S());
+                    iBelief);
             var optActJ = agentJPolicy.getBestActionIndex(
-                    jBelief, agentJ.i_S());
+                    jBelief);
 
             // step the simulator
             var observations = sim.step(optActI, optActJ);

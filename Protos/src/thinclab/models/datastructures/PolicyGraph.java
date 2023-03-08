@@ -80,12 +80,12 @@ public class PolicyGraph implements Jsonable {
                 });
 
         // populate policy nodes
-        nodeMap = new ConcurrentHashMap<>(p.aVecs.size());
+        nodeMap = new ConcurrentHashMap<>(p.size());
 
-        IntStream.range(0, p.aVecs.size()).forEach(i ->
+        IntStream.range(0, p.size()).forEach(i ->
                 {
 
-                    int actId = p.aVecs.get(i)._0();
+                    int actId = p.get(i).getActId();
                     nodeMap.put(i, new PolicyNode(i, actId, m.A().get(actId)));
                 });
     }
@@ -163,12 +163,12 @@ public class PolicyGraph implements Jsonable {
             return Tuple.of(G, b_is);
 
         DD b = b_is.remove(0);
-        if (G.adjMap.containsKey(DDOP.bestAlphaIndex(p.aVecs, b, m.i_S())))
+        if (G.adjMap.containsKey(DDOP.bestAlphaIndex(p, b)))
             return expandPolicyGraphDFS(b_is, G, m, p);
 
         // get start policy node
-        int alphaId = DDOP.bestAlphaIndex(p.aVecs, b, m.i_S());
-        int bestAct = p.aVecs.get(alphaId)._0();
+        int alphaId = DDOP.bestAlphaIndex(p, b);
+        int bestAct = p.get(alphaId).getActId();
 
         // create tuples (obs, alpha vector, next belief)
         var p_n = G.edgeMap.entrySet().parallelStream()
@@ -180,7 +180,7 @@ public class PolicyGraph implements Jsonable {
             .map(b_n -> Tuple.of(
                         b_n._0(), 
                         DDOP.bestAlphaIndex(
-                            p.aVecs, b_n._1(), m.i_S()),
+                            p, b_n._1()),
                         b_n._1()))
             .collect(Collectors.toList());
 
@@ -211,19 +211,19 @@ public class PolicyGraph implements Jsonable {
         // (next policy subgraph, next beliefs)
         var nextNodes = b_is.parallelStream()
             .filter(b -> !G.adjMap.containsKey(
-                        DDOP.bestAlphaIndex(p.aVecs, b, m.i_S())))
+                        DDOP.bestAlphaIndex(p, b)))
             .map(b ->
                     {
 
                         // get start policy node
-                        int alphaId = DDOP.bestAlphaIndex(p.aVecs, b, m.i_S());
-                        int bestAct = p.aVecs.get(alphaId)._0();
+                        int alphaId = DDOP.bestAlphaIndex(p, b);
+                        int bestAct = p.get(alphaId).getActId();
 
                         // create tuples (obs, alpha vector, next belief)
                         var p_n = G.edgeMap.entrySet().parallelStream().filter(ao -> ao.getKey()._0() == bestAct)
                             .map(ao -> Tuple.of(ao.getValue(), m.beliefUpdate(b, bestAct, ao.getKey()._1())))
                             .filter(b_n -> !b_n._1().equals(DD.zero))
-                            .map(b_n -> Tuple.of(b_n._0(), DDOP.bestAlphaIndex(p.aVecs, b_n._1(), m.i_S()),
+                            .map(b_n -> Tuple.of(b_n._0(), DDOP.bestAlphaIndex(p, b_n._1()),
                                         b_n._1()))
                             .filter(b_n -> !G.adjMap.containsKey(b_n._1())).collect(Collectors.toList());
 
@@ -298,7 +298,7 @@ public class PolicyGraph implements Jsonable {
         LOGGER.debug("Marking start nodes for %s beliefs", b_is.size());
         b_is.forEach(_b -> {
 
-            int id = DDOP.bestAlphaIndex(p.aVecs, _b, m.i_S());
+            int id = DDOP.bestAlphaIndex(p, _b);
             var _n = G.nodeMap.get(id);
             G.nodeMap.put(id, 
                     new PolicyNode(_n.alphaId, _n.actId, _n.actName, true));

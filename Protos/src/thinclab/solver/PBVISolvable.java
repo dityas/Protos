@@ -10,7 +10,7 @@ package thinclab.solver;
 import java.util.List;
 import thinclab.legacy.DD;
 import thinclab.models.datastructures.ReachabilityGraph;
-import thinclab.utils.Tuple;
+import thinclab.policy.AlphaVector;
 
 /*
  * @author adityas
@@ -22,7 +22,7 @@ public interface PBVISolvable {
 	 * Implementing class should perform backup operation of alpha vectors at a
 	 * given belief point
 	 */
-	public Tuple<Integer, DD> backup(final DD b, 
+	public AlphaVector backup(final DD b, 
             final List<DD> alphas, final ReachabilityGraph g);
 
     public List<DD> MDPValueIteration(List<DD> QFn);

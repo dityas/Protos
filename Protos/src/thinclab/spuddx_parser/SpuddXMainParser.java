@@ -9,9 +9,7 @@ package thinclab.spuddx_parser;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -23,16 +21,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
-import thinclab.model_ops.belief_exploration.PolicyTreeExpansion;
 import thinclab.models.DBN;
 import thinclab.models.Model;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.POMDP;
 import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.IPOMDP.MjRepr;
-import thinclab.models.datastructures.ModelGraph;
 import thinclab.models.datastructures.ReachabilityNode;
-import thinclab.policy.AlphaVectorPolicy;
 import thinclab.policy.Policy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXParser.DBNDefContext;
@@ -334,75 +329,7 @@ public class SpuddXMainParser extends SpuddXBaseListener {
 
     @Override
     public void enterPolTreeExpr(PolTreeExprContext ctx) {
-
-        List<DD> dds = ctx.dd_list().dd_expr().stream().map(this.ddParser::visit).collect(Collectors.toList());
-        String modelName = ctx.model_name().IDENTIFIER().getText();
-        String policyName = ctx.policy_name().IDENTIFIER().getText();
-        int expHorizon = Integer.valueOf(ctx.exp_horizon().FLOAT_NUM().getText());
-
-        if (!this.models.containsKey(modelName)) {
-
-            LOGGER.error(String.format(
-                        "Model %s not declared anywhere. How will I generate a policy tree for a model that does not even exist?"));
-            System.exit(-1);
-        }
-
-        if (!(this.models.get(modelName) instanceof PBVISolvablePOMDPBasedModel)) {
-
-            LOGGER.error(String.format("Model %s doesn't look like a POMDP or an IPOMDP"));
-            System.exit(-1);
-        }
-
-        if (!this.policies.containsKey(policyName)) {
-
-            LOGGER.error(String.format("Policy %s does not exist. Might be a typo."));
-            System.exit(-1);
-        }
-
-        if (!(this.policies.get(policyName) instanceof AlphaVectorPolicy)) {
-
-            LOGGER.error(String.format("Policy %s does not look like an alpha vector policy", policyName));
-            System.exit(-1);
-        }
-
-        var _model = (PBVISolvablePOMDPBasedModel) this.models.get(modelName);
-        var policy = (AlphaVectorPolicy) this.policies.get(policyName);
-
-        var initNodes = dds.stream()
-            .map(d -> ReachabilityNode.getStartNode(policy.getBestActionIndex(d, _model.i_S()), d))
-            .collect(Collectors.toList());
-
-        var modelGraph = ModelGraph.fromDecMakingModel(_model);
-        var expStrat =  /* new MjSpaceExpansion<>(); */ new PolicyTreeExpansion<>();
-
-        modelGraph = expStrat.expand(initNodes, modelGraph, _model, expHorizon, policy);
-        LOGGER.info(String.format("Made policy tree for model %s till time step %s", modelName, expHorizon));
-
-        String fileName = new StringBuilder().append(modelName).append("_").append(policyName).append(".poltree")
-            .toString();
-
-        try (PrintWriter out = new PrintWriter(fileName)) {
-
-            var builder = new StringBuilder();
-            builder.append("digraph G {\r\n");
-            //builder.append("layout=neato;\r\n");
-            builder.append("overlap=false;\r\n");
-            builder.append("sep=1.0;\r\n");
-            builder.append("splines=true;\r\n");
-            builder.append(ModelGraph.toDot(modelGraph, _model));
-            builder.append("}\r\n");
-            out.write(builder.toString());
-            LOGGER.info(String.format("Wrote policy tree to %s", fileName));
-        }
-
-        catch (Exception e) {
-
-            LOGGER.error(String.format("While writing policy tree for model %s to file", modelName));
-            LOGGER.error(String.format("Model graph is %s", modelGraph));
-            LOGGER.error(e.getMessage());
-            e.printStackTrace();
-            System.exit(-1);
-        }
+        super.enterPolTreeExpr(ctx);
     }
 
     @Override

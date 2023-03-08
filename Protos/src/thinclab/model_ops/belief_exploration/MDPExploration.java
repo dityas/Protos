@@ -107,7 +107,7 @@ ExplorationStrategy<M> {
         // get best action from MDP policy
         int a = (Global.random.nextFloat() <= e) ?
             Global.random.nextInt(m.A().size()) :
-            mdpPolicy.getBestActionIndex(b, m.i_S());
+            mdpPolicy.getBestActionIndex(b);
 
         // sample an observation
         var likelihoods = getObsLikelihoods(b, a, m, likelihoodsCache);

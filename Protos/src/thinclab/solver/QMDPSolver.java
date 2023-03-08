@@ -12,6 +12,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.IPOMDP.IPOMDP;
+import thinclab.policy.AlphaVector;
 import thinclab.policy.AlphaVectorPolicy;
 
 public class QMDPSolver {
@@ -53,6 +54,10 @@ public class QMDPSolver {
             }
         }
 
-        return AlphaVectorPolicy.fromR(Vn);
+        var policy = new AlphaVectorPolicy(m.i_S());
+        for (int i = 0; i < Vn.size(); i++)
+            policy.add(new AlphaVector(i, Vn.get(i), Float.NaN));
+
+        return policy;
     }
 }

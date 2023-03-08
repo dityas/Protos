@@ -29,6 +29,7 @@ import thinclab.models.datastructures.PolicyGraph;
 import thinclab.models.datastructures.PolicyNode;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.models.datastructures.ReachabilityNode;
+import thinclab.policy.AlphaVector;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 
@@ -146,9 +147,9 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
                     if (frame.m instanceof IPOMDP)
                         bel = ((IPOMDP) frame.m).getECDDFromMjDD(bel);
 
-                    int alphaId = DDOP.bestAlphaIndex(frame.Vn.aVecs, bel, frame.m.i_S());
+                    int alphaId = frame.Vn.getBestActionIndex(bel);
                     //				int actId = frame.Vn.getBestActionIndex(bel, frame.m.i_S());
-                    int actId = frame.Vn.aVecs.get(alphaId)._0();
+                    int actId = frame.Vn.get(alphaId).getActId();
 
                     var node = new MjRepr<>(frameId, new PolicyNode(alphaId, actId, frame.m.A().get(actId)));
                     var ec = ECMap.get(node);
@@ -161,7 +162,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
                         LOGGER.debug(String.format("EC map is %s", ECMap));
                         LOGGER.debug(String.format("Belief is %s", bel));
 
-                        DDOP.printValuesForBelief(frame.Vn.aVecs, bel, mjVars, frame.m.A());
 
                         System.exit(-1);
                     }
@@ -825,7 +825,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
     }
 
-    public Tuple<Integer, DD> backup(DD b, List<DD> alphas, ReachabilityGraph g) {
+    @Override
+    public AlphaVector backup(DD b, List<DD> alphas, ReachabilityGraph g) {
 
         int bestA = -1;
         float bestVal = Float.NEGATIVE_INFINITY;
@@ -889,7 +890,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
         var vec = constructAlphaVector(Gao.get(bestA), bestA);
         var newVec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
 
-        return Tuple.of(bestA, DDOP.approximate(newVec));
+        return new AlphaVector(bestA, DDOP.approximate(newVec), bestVal);
     }
 
     private DD constructAlphaVector(ArrayList<Tuple<Integer, DD>> Gao, int bestA) {

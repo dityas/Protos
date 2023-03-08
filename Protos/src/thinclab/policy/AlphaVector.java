@@ -4,10 +4,10 @@ package thinclab.policy;
 import thinclab.legacy.DD;
 import thinclab.utils.Tuple3;
 
-public class AlphaVector extends Tuple3<Integer, DD, DD> {
+public class AlphaVector extends Tuple3<Integer, DD, Float> {
 
-    public AlphaVector(int action, DD vec, DD witness) {
-        super(action, vec, witness);
+    public AlphaVector(int action, DD vec, float value) {
+        super(action, vec, value);
     }
 
     public int getActId() {
@@ -18,7 +18,7 @@ public class AlphaVector extends Tuple3<Integer, DD, DD> {
         return _1();
     }
 
-    public DD getWitness() {
+    public float getVal() {
         return _2();
     }
 

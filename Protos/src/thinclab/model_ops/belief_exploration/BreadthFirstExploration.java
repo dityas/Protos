@@ -21,14 +21,10 @@ import thinclab.models.datastructures.ReachabilityGraph;
 public class BreadthFirstExploration<M extends PBVISolvablePOMDPBasedModel>
 		implements ExplorationStrategy<M> {
 
-	private final int maxB;
-
 	private static final Logger LOGGER = LogManager.getLogger(BreadthFirstExploration.class);
 
 	public BreadthFirstExploration(int maxCachedB) {
-
         LOGGER.info("Initialized breadth-first exploration");
-		this.maxB = maxCachedB;
 	}
 
 	@Override

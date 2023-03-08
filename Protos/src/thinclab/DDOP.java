@@ -443,7 +443,8 @@ public class DDOP {
 		return bestVar;
 	}
 
-	public static DD addMultVarElim(final List<DD> dds, final Collection<Integer> vars) {
+	public static DD addMultVarElim(final List<DD> dds,
+            final Collection<Integer> vars) {
 
 		// check if any of the dds are zero
 		//for (int i = 0; i < dds.size(); i++) {
@@ -850,13 +851,13 @@ public class DDOP {
 		return results;
 	}
 
-	public static float value_b(List<Tuple<Integer, DD>> Vn, DD b, Collection<Integer> Svars) {
+	public static float value_b(List<DD> Vn, DD b, Collection<Integer> Svars) {
 
 		float maxVal = Float.NEGATIVE_INFINITY;
 
 		for (var vn : Vn) {
 
-			float val = DDOP.dotProduct(b, vn._1(), Svars);
+			float val = DDOP.dotProduct(b, vn, Svars);
 
 			if (val > maxVal)
 				maxVal = val;
@@ -865,36 +866,39 @@ public class DDOP {
 		return maxVal;
 	}
 
+    public static float value_b(AlphaVectorPolicy Vn, DD belief) {
+        
+        return value_b(Vn.getAsDDList(), belief, Vn.stateIndices);
+    }
+
     // Evaluate belief region according to a policy
     public static List<Float> getBeliefRegionEval(Collection<DD> B,
-            AlphaVectorPolicy p, List<Integer> vars) {
+            AlphaVectorPolicy p) {
 
         return B.stream()
-            .map(b -> value_b(p.aVecs, b, vars))
+            .map(b -> value_b(p, b))
             .collect(Collectors.toList());
     }
 
     // Get evaluation difference between two policies
     public static List<Float> getBeliefRegionEvalDiff(Collection<DD> B,
-            AlphaVectorPolicy p1, AlphaVectorPolicy p2,
-            List<Integer> vars) {
+            AlphaVectorPolicy p1, AlphaVectorPolicy p2) {
     
         return B.stream()
-            .map(b -> 
-                    Math.abs(
-                        value_b(p1.aVecs, b, vars)
-                        - value_b(p2.aVecs, b, vars)))
+            .map(b -> Math.abs(value_b(p1, b) - value_b(p2, b)))
             .collect(Collectors.toList());
     }
 
-	public static int bestAlphaIndex(List<Tuple<Integer, DD>> Vn, DD b, Collection<Integer> Svars) {
+	public static int bestAlphaIndex(AlphaVectorPolicy Vn,
+            DD b) {
 
 		float maxVal = Float.NEGATIVE_INFINITY;
 		int bestIndex = -1;
 
 		for (int i = 0; i < Vn.size(); i++) {
 
-			float val = DDOP.dotProduct(b, Vn.get(i)._1(), Svars);
+			float val = DDOP.dotProduct(b, 
+                    Vn.get(i).getVector(), Vn.stateIndices);
 
 			if (val > maxVal) {
 

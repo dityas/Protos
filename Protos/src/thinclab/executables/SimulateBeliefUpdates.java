@@ -85,7 +85,7 @@ public class SimulateBeliefUpdates {
             System.out.println();
             System.out.print("Enter action index: ");
             if (p != null) {
-                var suggestedA = p.getBestActionIndex(b_i, model.i_S());
+                var suggestedA = p.getBestActionIndex(b_i);
                 System.out.printf("(policy suggests: %s)\r\n", 
                         model.A().get(suggestedA));
             }

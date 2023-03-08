@@ -44,7 +44,7 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 
 	public ModelGraph<ReachabilityNode> expandLevel(List<ReachabilityNode> nodes, M m, P p, ModelGraph<ReachabilityNode> g, int h) {
 		
-		var nextNodes = new ReachabilityNode[p.aVecs.size()];
+		var nextNodes = new ReachabilityNode[p.size()];
 		var newEdges = new ArrayList<Tuple3<ReachabilityNode, Tuple<Integer, List<Integer>>, Integer>>();
 		
 		// for each node in the level
@@ -53,7 +53,7 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 			// for each belief
 			n.beliefs.forEach(b -> {
 				
-				var bestAct = p.getBestActionIndex(b, m.i_S());
+				var bestAct = p.getBestActionIndex(b);
 				
 				// for each edge with best action
 				g.edgeIndexMap.entrySet().stream().filter(e -> e.getKey()._0() == bestAct).forEach(e -> {
@@ -62,7 +62,7 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 					
 					if (!b_n.equals(DD.zero)) {
 						
-						int bestAlpha = DDOP.bestAlphaIndex(p.aVecs, b_n, m.i_S());
+						int bestAlpha = DDOP.bestAlphaIndex(p, b_n);
 						
 						var _node = nextNodes[bestAlpha];
 						
@@ -99,7 +99,7 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 		node.beliefs.forEach(b ->
 			{
 
-				int bestAct = p.getBestActionIndex(b, m.i_S());
+				int bestAct = p.getBestActionIndex(b);
 
 				// expand for each possible observation
 				g.edgeIndexMap.entrySet().stream().filter(e -> e.getKey()._0() == bestAct).forEach(e ->
@@ -111,7 +111,7 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 						if (!b_next.equals(DDleaf.getDD(Float.NaN))) {
 
 							ReachabilityNode _node = null;
-							int bestAlpha = DDOP.bestAlphaIndex(p.aVecs, b_next, m.i_S());
+							int bestAlpha = DDOP.bestAlphaIndex(p, b_next);
 
 							var __node = nextNodes.values().stream().filter(n -> n.alphaId == bestAlpha).findFirst();
 
@@ -123,7 +123,7 @@ public class PolicyGraphExpansion<M extends PBVISolvablePOMDPBasedModel, P exten
 
 							else {
 
-								_node = new ReachabilityNode(bestAlpha, p.aVecs.get(bestAlpha)._0());
+								_node = new ReachabilityNode(bestAlpha, p.get(bestAlpha).getActId());
 								_node.h = h;
 							}
 

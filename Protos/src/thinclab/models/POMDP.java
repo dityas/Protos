@@ -21,6 +21,7 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.policy.AlphaVector;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 
@@ -189,11 +190,6 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 		return beliefUpdate(b, a, o);
 	}
-
-//	@Override
-//	public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter) {
-//
-//	}
 	
 	@Override
 	public void step() {}
@@ -279,7 +275,8 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		return res;
 	}
 
-	public Tuple<Integer, DD> backup(DD b,
+    @Override
+	public AlphaVector backup(DD b,
             List<DD> alphas, ReachabilityGraph g) {
 
 		int bestA = -1;
@@ -350,7 +347,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		var vec = constructAlphaVector(Gao.get(bestA), bestA);
 		vec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
 
-		return Tuple.of(bestA, DDOP.approximate(vec));
+		return new AlphaVector(bestA, DDOP.approximate(vec), bestVal);
 	}
 	
 	private DD constructAlphaVector(ArrayList<Tuple<Integer, DD>> Gao,

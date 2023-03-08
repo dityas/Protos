@@ -7,7 +7,6 @@
  */
 package thinclab.solver;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +19,7 @@ import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.MDPExploration;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.policy.AlphaVector;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
@@ -46,7 +46,9 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
         this.m = m;
         LOGGER.info("Initialized symbolic Perseus for %s", this.m.getName());
-        Vn = AlphaVectorPolicy.fromR(this.m.R());
+
+        // initialize lower bound as the reward function
+        Vn = AlphaVectorPolicy.getLowerBound(m);
 
         // solve upper bound
         UB = QMDPSolver.solveQMDP(this.m);
@@ -59,7 +61,7 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
      * Mark beliefs that don't need updates 
      */
     void markUpdatedBeliefs(List<DD> B,
-            List<Tuple<Integer, DD>> newVn) {
+            AlphaVectorPolicy newVn) {
 
         for (int i = 0; i < B.size(); i++) {
 
@@ -70,29 +72,25 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
             // if a belief is evaluated higher by the new policy,
             // don't update it further for now
-            if (DDOP.value_b(Vn.aVecs, b, m.i_S()) 
-                    <= DDOP.value_b(newVn, b, m.i_S())) {
+            if (DDOP.value_b(Vn, b) <= DDOP.value_b(newVn, b))
                 beliefSamplingWeights.set(i, 0.0f);
-                    }
         }
     }
 
     /*
-     * Perform backups and get the next value function for a given explored belief
-     * region
+     * Perform backups and get the next value function for a given explored 
+     * belief region
      */
     protected AlphaVectorPolicy solveForB(final List<DD> B, 
             AlphaVectorPolicy Vn, ReachabilityGraph g) {
 
-        List<Tuple<Integer, DD>> newVn = new ArrayList<>(10);
+        var newVn = new AlphaVectorPolicy(m.i_S());
         this.usedBeliefs = 0;
 
-        var _Vn = Vn.aVecs.stream()
-            .map(a -> a._1())
-            .collect(Collectors.toList());
+        var _Vn = Vn.getAsDDList();
 
         // Evaluate the difference between the evaluations of UB and Vn
-        beliefSamplingWeights = DDOP.getBeliefRegionEvalDiff(B, UB, Vn, m.i_S());
+        beliefSamplingWeights = DDOP.getBeliefRegionEvalDiff(B, UB, Vn);
 
         while (true) {
 
@@ -111,40 +109,37 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
             // Construct V_{n+1}(b)
             float bestVal = Float.NEGATIVE_INFINITY;
-            int bestA = -1;
-            DD bestDD = DD.zero;
-            for (int a = 0; a < Vn.aVecs.size(); a++) {
+            AlphaVector bestVec = null;
 
-                float val = DDOP.dotProduct(b, Vn.aVecs.get(a)._1(), m.i_S());
+            for (var vec: Vn) {
+
+                float val = DDOP.dotProduct(b, vec.getVector(), m.i_S());
 
                 if (val > bestVal) {
 
                     bestVal = val;
-                    bestA = Vn.aVecs.get(a)._0();
-                    bestDD = Vn.aVecs.get(a)._1();
+                    bestVec = vec;
                 }
             }
 
-            var newAlphab = DDOP.dotProduct(b, newAlpha._1(), m.i_S());
-
             // If new \alpha.b > Vn(b) add it to new V
-            if (newAlphab > bestVal)
+            if (newAlpha.getVal() > bestVal)
                 newVn.add(newAlpha);
 
             else
-                newVn.add(Tuple.of(bestA, bestDD));
+                newVn.add(bestVec);
 
             markUpdatedBeliefs(B, newVn);
             this.usedBeliefs++;
         }
 
-        return new AlphaVectorPolicy(newVn);
+        return newVn;
     }
 
     public Tuple3<Float, Float, Float> getErrors(Collection<DD> B, 
             AlphaVectorPolicy Vn, AlphaVectorPolicy Vn_p) {
 
-        var diffs = DDOP.getBeliefRegionEvalDiff(B, Vn_p, Vn, m.i_S());
+        var diffs = DDOP.getBeliefRegionEvalDiff(B, Vn_p, Vn);
         var _min = diffs.stream()
             .min((v1, v2) -> v1.compareTo(v2))
             .orElse(Float.NaN);
@@ -198,7 +193,7 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         }
 
         // QMDP policy's estimate of initial beliefs
-        var bVals = DDOP.getBeliefRegionEval(b_is, UB, m.i_S());
+        var bVals = DDOP.getBeliefRegionEval(b_is, UB);
         LOGGER.info("UB evaulates initial beliefs at %s", bVals);
 
         // Start Perseus
@@ -221,9 +216,7 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             .collect(Collectors.toList());
 
         // evaluate explored belef space
-        var vals = 
-            DDOP.getBeliefRegionEval(
-                    B, UB, m.i_S()).stream()
+        var vals = DDOP.getBeliefRegionEval(B, UB).stream()
             .mapToDouble(Double::valueOf).average().orElse(Double.NaN);
         LOGGER.info("QMDP policy explored belief region mean of values %s", 
                 vals);
@@ -245,7 +238,7 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
             LOGGER.info("i=%2d, t=%.3f sec, |Vn|=%2d, |B|=%3d/%3d, "
                     + "bell err: %.3f, UB err: %.3f",
-                    i, backupT, Vn_p.aVecs.size(), usedBeliefs, B.size(),
+                    i, backupT, Vn_p.size(), usedBeliefs, B.size(),
                     bellmanErrors._1(), UBErrors._1());
 
             // Prepare for next backup
@@ -270,7 +263,7 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             Global.clearHashtablesIfFull();
 
         } // end iterations over I
-        
+
         exploredSpace.printCachingStats();
 
         Global.clearHashtablesIfFull();
@@ -284,9 +277,8 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         LOGGER.info("[*] Finished solving %s", m.getName());
 
         // Print if approximation can be done
-        for (int v1 = 0; v1 < Vn.aVecs.size(); v1++) {
-            var vn = Vn.aVecs.get(v1);
-            if (DDOP.canApproximate(vn._1()))
+        for (var vec: Vn) {
+            if (DDOP.canApproximate(vec.getVector()))
                 LOGGER.warn("A solution DD can be easily approximated");
         }
 

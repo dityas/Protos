@@ -53,7 +53,7 @@ public class BreadthFirstMjExpansion <M extends PBVISolvablePOMDPBasedModel, P e
 				n.beliefs.stream().forEach(b ->
 					{
 
-						int bestAct = p.getBestActionIndex(b, m.i_S());
+						int bestAct = p.getBestActionIndex(b);
 
 						edges.stream().filter(k -> k.getKey()._0() == bestAct).forEach(k ->
 							{
@@ -63,9 +63,9 @@ public class BreadthFirstMjExpansion <M extends PBVISolvablePOMDPBasedModel, P e
 								// if belief is valid, add it to the set of unexplored beliefs in next nodes
 								if (!b_next.equals(DD.zero)) {
 
-									int bestAlpha = DDOP.bestAlphaIndex(p.aVecs, b_next, m.i_S());
+									int bestAlpha = DDOP.bestAlphaIndex(p, b_next);
 									ReachabilityNode _node = new ReachabilityNode(bestAlpha,
-											p.aVecs.get(bestAlpha)._0());
+											p.get(bestAlpha).getActId());
 									
 									_node.h = 1;
 
@@ -83,7 +83,6 @@ public class BreadthFirstMjExpansion <M extends PBVISolvablePOMDPBasedModel, P e
 		for (var e : newEdges)
 			G.addEdge(e._0(), e._1(), e._2());
 		
-		// TODO Auto-generated method stub
 		return G;
 	}
 

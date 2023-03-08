@@ -88,17 +88,17 @@ class TestMisc {
         LOGGER.info("Exploration collected %s beliefs", B.size());
         
         var ubEvals = 
-            DDOP.getBeliefRegionEval(B, QMDPPolicy, model.i_S());
+            DDOP.getBeliefRegionEval(B, QMDPPolicy);
 
         var lbEvals = 
-            DDOP.getBeliefRegionEval(B, policy, model.i_S());
+            DDOP.getBeliefRegionEval(B, policy);
 
         LOGGER.info("UB evals are %s", ubEvals);
         LOGGER.info("LB evals are %s", lbEvals);
 
         var evalDiffs = 
             DDOP.getBeliefRegionEvalDiff(
-                    B, QMDPPolicy, policy, model.i_S());
+                    B, QMDPPolicy, policy);
 
         LOGGER.info("Diffs are %s", evalDiffs);
 
@@ -152,7 +152,7 @@ class TestMisc {
 
         var model = (POMDP) domainRunner.getModel("agentI").get();
 
-        var policy = AlphaVectorPolicy.fromR(model.R());
+        var policy = AlphaVectorPolicy.getLowerBound(model);
         var expansionStrat = new MDPExploration<>(policy, 0.1f);
         var exploredRegion = 
             expansionStrat.explore(

@@ -114,7 +114,7 @@ public class SSGAExploration
                     // greedy action
                     if (usePolicy == 1) {
 
-                        a = P.getBestActionIndex(b, m.i_S());
+                        a = P.getBestActionIndex(b);
 
                         cacheIfNotPresent(b, a, m);
                         var l = likelihoodsCache.get(
