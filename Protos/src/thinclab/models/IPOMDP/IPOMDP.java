@@ -718,7 +718,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
         for (int i = 0; i < alphas.size(); i++) {
 
             float val = DDOP.dotProduct(b, alphas.get(i), i_S());
-            if (val >= bestVal) {
+            if (val > bestVal) {
 
                 bestVal = val;
                 bestAlpha = i;

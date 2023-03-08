@@ -143,16 +143,6 @@ Policy<DD>, Jsonable, LispExpressible {
         return null;
     }
 
-    public static AlphaVectorPolicy fromR(List<DD> R,
-            List<Integer> stateIndices) {
-
-        return new AlphaVectorPolicy(
-                IntStream.range(0, R.size())
-                .mapToObj(i -> 
-                    new AlphaVector(i, R.get(i), DDOP.maxAll(R.get(i))))
-                .collect(Collectors.toList()), stateIndices);
-    }
-
     public Collection<String> getActions(PBVISolvablePOMDPBasedModel m) {
 
         var solnSet = stream()

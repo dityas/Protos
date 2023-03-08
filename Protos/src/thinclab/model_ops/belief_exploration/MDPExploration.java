@@ -37,7 +37,7 @@ ExplorationStrategy<M> {
         new HashMap<>();
 
     private static final Logger LOGGER = 
-        LogManager.getFormatterLogger(SSGAExploration.class);
+        LogManager.getFormatterLogger(MDPExploration.class);
 
     public MDPExploration(AlphaVectorPolicy mdpPolicy,
             float explorationProb) {
@@ -48,25 +48,6 @@ ExplorationStrategy<M> {
         LOGGER.debug(
                 "Initialized MDP exploration for exploration probability %s",
                 e);
-    }
-
-    public float getMinDistance(DD b, Collection<DD> beliefs) {
-
-        return beliefs.parallelStream()
-            .map(_b -> DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b))))
-            .min((d1, d2) -> d1.compareTo(d2))
-            .get();
-    }
-
-    public boolean isUniqueBelief(DD b, 
-            Collection<DD> beliefs, float minDist) {
-
-        var _minDist = getMinDistance(b, beliefs);
-        if (_minDist >= minDist)
-            return true;
-
-        else
-            return false;
     }
 
     public DD getObsLikelihoods(DD b, 
