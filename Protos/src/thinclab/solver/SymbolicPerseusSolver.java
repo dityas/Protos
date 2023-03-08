@@ -193,7 +193,15 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         }
 
         // QMDP policy's estimate of initial beliefs
-        var bVals = DDOP.getBeliefRegionEval(b_is, UB);
+        var bVals = b_is.stream()
+            .map(b -> UB.stream()
+                    .map(v -> 
+                        Tuple.of(
+                            m.A().get(v.getActId()), 
+                            DDOP.dotProduct(b, 
+                                v.getVector(), UB.stateIndices)))
+                    .collect(Collectors.toList()))
+            .collect(Collectors.toList());
         LOGGER.info("UB evaulates initial beliefs at %s", bVals);
 
         // Start Perseus
@@ -274,6 +282,10 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
         // Log exit
         LOGGER.info("Vn contains actions %s", Vn.getActions(m));
+        var valsAtWitnesses = Vn.stream()
+            .map(v -> Tuple.of(m.A().get(v.getActId()), v.getVal()))
+            .collect(Collectors.toList());
+        LOGGER.info("Vn values at witness points are %s", valsAtWitnesses);
         LOGGER.info("[*] Finished solving %s", m.getName());
 
         // Print if approximation can be done

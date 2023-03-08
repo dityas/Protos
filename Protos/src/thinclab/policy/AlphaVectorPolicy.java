@@ -74,6 +74,10 @@ Policy<DD>, Jsonable, LispExpressible {
         return policy;
     }
 
+    public List<Float> getValuesAtWitnessPoints() {
+        return stream().map(v -> v.getVal()).collect(Collectors.toList());
+    }
+
     @Override
     public int getBestActionIndex(DD belief) {
         /*
