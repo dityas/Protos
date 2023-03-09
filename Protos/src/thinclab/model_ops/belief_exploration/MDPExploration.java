@@ -7,14 +7,12 @@
  */
 package thinclab.model_ops.belief_exploration;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
-import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
@@ -54,7 +52,7 @@ ExplorationStrategy<M> {
             int a, M m, 
             HashMap<Tuple<DD, Integer>, DD> lCache) {
 
-        var key = Tuple.of(FQDDleaf.quantize(b), a);
+        var key = Tuple.of(b, a);
 
         // get likelihoods from cache
         var likelihoods = lCache.get(key);
@@ -95,7 +93,7 @@ ExplorationStrategy<M> {
         var o = DDOP.sample(List.of(likelihoods), m.i_Om_p());
 
         // update and store next belief
-        var qBelief = FQDDleaf.quantize(b);
+        var qBelief = b;
         var edge = Tuple.of(a, o._1());
         var nextBelief = exploredSpace.getNodeAtEdge(qBelief, edge);
 
@@ -103,11 +101,8 @@ ExplorationStrategy<M> {
         if (nextBelief == null) {
             nextBelief = m.beliefUpdate(b, a, o._1());
             exploredSpace.addEdge(
-                    qBelief, edge, FQDDleaf.quantize(nextBelief));
+                    qBelief, edge, nextBelief);
         }
-
-        else
-            nextBelief = FQDDleaf.unquantize(nextBelief);
 
         return nextBelief;
     }

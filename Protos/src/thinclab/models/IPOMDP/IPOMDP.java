@@ -21,7 +21,6 @@ import thinclab.RandomVariable;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
-import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.Model;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
@@ -832,7 +831,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
         float bestVal = Float.NEGATIVE_INFINITY;
 
         // float quantization
-        var nextBels = belCache.get(FQDDleaf.quantize(b));
+        var nextBels = belCache.get(b);
 
         if (nextBels == null) {
 
@@ -849,7 +848,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
                 nextBels.put(r._0(), r._1());
 
             // Cache computed entry
-            belCache.put(FQDDleaf.quantize(b), nextBels);
+            belCache.put(b, nextBels);
 
         }
 

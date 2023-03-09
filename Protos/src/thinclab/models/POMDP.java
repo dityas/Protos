@@ -18,7 +18,6 @@ import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
-import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVector;
@@ -254,8 +253,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 				.filter(o -> o._0() > 1e-6f).map(o ->
 					{
 
-						var b_n = g.getNodeAtEdge(
-                                FQDDleaf.quantize(b), 
+						var b_n = g.getNodeAtEdge(b, 
                                 Tuple.of(a, oAll.get(o._1())));
 
 						if (b_n == null) {
@@ -263,10 +261,8 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
                             g.recordMiss();
                         }
 
-                        else {
-                            b_n = FQDDleaf.unquantize(b_n);
+                        else
                             g.recordHit();
-                        }
                         
 						return Tuple.of(o._1(), b_n, o._0());
 					})
@@ -282,7 +278,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		int bestA = -1;
 		float bestVal = Float.NEGATIVE_INFINITY;
 
-		var nextBels = belCache.get(FQDDleaf.quantize(b));
+		var nextBels = belCache.get(b);
 
 		if (nextBels == null) {
 
@@ -300,7 +296,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			for (var r : res)
 				nextBels.put(r._0(), r._1());
 
-			belCache.put(FQDDleaf.quantize(b), nextBels);
+			belCache.put(b, nextBels);
 
 			if (Global.DEBUG) {
 
@@ -346,6 +342,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 		var vec = constructAlphaVector(Gao.get(bestA), bestA);
 		vec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
+        LOGGER.info("Val inside backup is %s", bestVal);
 
 		return new AlphaVector(bestA, DDOP.approximate(vec), bestVal);
 	}

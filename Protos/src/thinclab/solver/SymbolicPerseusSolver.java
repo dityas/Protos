@@ -7,6 +7,7 @@
  */
 package thinclab.solver;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,7 +15,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
-import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.MDPExploration;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
@@ -122,8 +122,11 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
                 }
             }
 
+            var newAlphaVal = DDOP.dotProduct(b, newAlpha.getVector(), m.i_S());
+            LOGGER.info("Val inside solver is %s", newAlphaVal);
+
             // If new \alpha.b > Vn(b) add it to new V
-            if (newAlpha.getVal() > bestVal)
+            if (newAlphaVal > bestVal)
                 newVn.add(newAlpha);
 
             else
@@ -218,10 +221,7 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
         // get explored belief space
         var exploredSpace = ES.explore(b_is, m, H, 500);
-        var B = exploredSpace.getAllNodes()
-            .stream()
-            .map(FQDDleaf::unquantize)
-            .collect(Collectors.toList());
+        var B = new ArrayList<>(exploredSpace.getAllNodes());
 
         // evaluate explored belef space
         var vals = DDOP.getBeliefRegionEval(B, UB).stream()

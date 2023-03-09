@@ -14,7 +14,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
-import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
@@ -71,9 +70,9 @@ public class SSGAExploration
 
     private void cacheIfNotPresent(DD b, int a, M m) {
         if (!likelihoodsCache.containsKey(
-                    Tuple.of(FQDDleaf.quantize(b), a)))
+                    Tuple.of(b, a)))
             likelihoodsCache.put(
-                    Tuple.of(FQDDleaf.quantize(b), a), 
+                    Tuple.of(b, a), 
                     m.obsLikelihoods(b, a));
     }
 
@@ -118,7 +117,7 @@ public class SSGAExploration
 
                         cacheIfNotPresent(b, a, m);
                         var l = likelihoodsCache.get(
-                                Tuple.of(FQDDleaf.quantize(b), a));
+                                Tuple.of(b, a));
 
                         var oSampled = DDOP.sample(List.of(l), m.i_Om_p());
 
@@ -147,7 +146,7 @@ public class SSGAExploration
 
                         cacheIfNotPresent(b, _a, m);
                         var l = likelihoodsCache.get(
-                                Tuple.of(FQDDleaf.quantize(b), _a));
+                                Tuple.of(b, _a));
 
                         var oSampled = DDOP.sample(List.of(l), m.i_Om_p());
                         var _edge = Tuple.of(_a, oSampled._1());

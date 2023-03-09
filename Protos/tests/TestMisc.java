@@ -16,7 +16,6 @@ import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
-import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.MDPExploration;
 import thinclab.models.POMDP;
@@ -83,7 +82,6 @@ class TestMisc {
 
         var B = exploredRegion.getAllNodes()
             .stream()
-            .map(FQDDleaf::unquantize)
             .collect(Collectors.toList());
         LOGGER.info("Exploration collected %s beliefs", B.size());
         
@@ -161,7 +159,6 @@ class TestMisc {
 
         var B = exploredRegion.getAllNodes()
             .stream()
-            .map(FQDDleaf::unquantize)
             .collect(Collectors.toList());
         LOGGER.info("Exploration collected %s beliefs", B.size());
 
@@ -241,58 +238,4 @@ class TestMisc {
     
     }
 
-    @Test
-    void testDDQuantization() throws Exception {
-
-        System.gc();
-
-        LOGGER.info("Running Single agent tiger domain");
-        String domainFile = this.getClass().getClassLoader()
-            .getResource("test_domains/test_tiger_domain.spudd")
-            .getFile();
-
-        // Run domain
-        var domainRunner = new SpuddXMainParser(domainFile);
-        domainRunner.run();
-
-
-        var testDDs = new HashSet<DD>();
-        var testDDList = new ArrayList<DD>();
-
-        var val = 0.0f;
-
-        while (val < 1.0f) {
-
-            var dd = DDnode.getDD(
-                    1, 
-                    new DD[] {DDleaf.getDD(val), DDleaf.getDD(1 - val)});
-
-            testDDList.add(dd);
-            val += 0.0001f;
-        }
-
-        testDDs.addAll(testDDList);
-
-        LOGGER.info("DD set contains %s DDs", testDDs.size());
-
-        var qDDs = testDDList.stream()
-            .map(d -> FQDDleaf.quantize(d))
-            .collect(Collectors.toList());
-
-        var qDDSet = new HashSet<DD>();
-        qDDSet.addAll(qDDs);
-
-        LOGGER.info("Quantized DD set contains %s DDs", qDDSet.size());
-
-        var diff = testDDList.stream()
-            .map(d -> DDOP.sub(d, FQDDleaf.unquantize(FQDDleaf.quantize(d))))
-            .map(d -> DDOP.maxAll(DDOP.abs(d)))
-            .max((d1, d2) -> d1.compareTo(d2)).orElse(0.0f);
-
-        var tolerance = diff - (1.0f / (float) FQDDleaf.BINS);
-
-        LOGGER.info("Max error is: %s", diff);
-        assertTrue(tolerance < 1e-5f);
-
-    }
 }
