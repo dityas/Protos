@@ -126,6 +126,8 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             }
 
             var newAlphab = DDOP.dotProduct(b, newAlpha._1(), m.i_S());
+            LOGGER.info("Value of new vector at witness is %s", newAlphab);
+            LOGGER.info("Belief inside solver is %s", DDOP.factors(b, m.i_S()));
 
             // If new \alpha.b > Vn(b) add it to new V
             if (newAlphab > bestVal)
@@ -210,7 +212,8 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         // Belief exploration based on QMDP approximation
         var explorationProb = 0.05f;
         var ES = new MDPExploration<M>(UB, explorationProb);
-        LOGGER.info("[+] Starting with exploration probability %s and %s initial beliefs", 
+        LOGGER.info("[+] Starting with exploration probability" +
+                " %s and %s initial beliefs", 
                 explorationProb, b_is.size());
 
         // get explored belief space
@@ -219,6 +222,9 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             .stream()
             .map(FQDDleaf::unquantize)
             .collect(Collectors.toList());
+
+        // check if all beliefs seem valid
+        exitIfBeliefsInvalid(B);
 
         // evaluate explored belef space
         var vals = 

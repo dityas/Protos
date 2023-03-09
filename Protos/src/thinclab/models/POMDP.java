@@ -347,6 +347,8 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			Gao.add(argmax_iGaoi);
 		}
 
+        LOGGER.info("Value of new vector inside backup is %s", bestVal);
+        LOGGER.info("Belief inside backup is %s", DDOP.factors(b, i_S()));
 		var vec = constructAlphaVector(Gao.get(bestA), bestA);
 		vec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
 
