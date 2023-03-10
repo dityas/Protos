@@ -147,13 +147,10 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
     private boolean beliefsValid(Collection<DD> B) {
 
-        for(var _b: B)
-        {
-
+        for(var _b: B) {
             if (!DDOP.verifyJointProbabilityDist(_b, m.i_S())) {
-
-                LOGGER.error(String.format("Belief %s is not a valid probability distribution",
-                            DDOP.factors(_b, m.i_S())));
+                LOGGER.error("Belief %s is not a valid probability distribution",
+                        DDOP.factors(_b, m.i_S()));
                 return false;
             }
         }
@@ -215,8 +212,7 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         // evaluate explored belef space
         var vals = DDOP.getBeliefRegionEval(B, UB).stream()
             .mapToDouble(Double::valueOf).average().orElse(Double.NaN);
-        LOGGER.info("QMDP policy explored belief region mean of values %s", 
-                vals);
+        LOGGER.info("QMDP policy explored belief region mean of values %s", vals);
 
         int convergenceCount = 0;
         var Vn_p = UB;
