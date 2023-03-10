@@ -19,7 +19,6 @@ import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.MDPExploration;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
-import thinclab.policy.AlphaVector;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
@@ -109,25 +108,18 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
             // Construct V_{n+1}(b)
             float bestVal = Float.NEGATIVE_INFINITY;
-            AlphaVector bestVec = null;
 
             for (var vec: newVn) {
 
                 float val = DDOP.dotProduct(b, vec.getVector(), m.i_S());
 
-                if (val > bestVal) {
-
+                if (val > bestVal)
                     bestVal = val;
-                    bestVec = vec;
-                }
             }
 
             // If new \alpha.b > Vn(b) add it to new V
             if (newAlpha.getVal() > bestVal)
                 newVn.add(newAlpha);
-
-            else
-                newVn.add(bestVec);
 
             markUpdatedBeliefs(B, newVn);
             this.usedBeliefs++;
