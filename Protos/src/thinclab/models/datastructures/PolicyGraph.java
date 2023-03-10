@@ -170,6 +170,10 @@ public class PolicyGraph implements Jsonable {
         int alphaId = DDOP.bestAlphaIndex(p, b);
         int bestAct = p.get(alphaId).getActId();
 
+        LOGGER.info("Expanding from vector index %s with val %s and action %s",
+                alphaId, p.get(alphaId).getVal(), 
+                m.A().get(p.get(alphaId).getActId()));
+
         // create tuples (obs, alpha vector, next belief)
         var p_n = G.edgeMap.entrySet().parallelStream()
             .filter(ao -> ao.getKey()._0() == bestAct)

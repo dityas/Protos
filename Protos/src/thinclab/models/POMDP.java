@@ -252,18 +252,7 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 				.map(o -> Tuple.of(DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal(), o))
 				.filter(o -> o._0() > 1e-6f).map(o ->
 					{
-
-						var b_n = g.getNodeAtEdge(b, 
-                                Tuple.of(a, oAll.get(o._1())));
-
-						if (b_n == null) {
-							b_n = beliefUpdate(b, a, oAll.get(o._1()));
-                            g.recordMiss();
-                        }
-
-                        else
-                            g.recordHit();
-                        
+						var b_n = beliefUpdate(b, a, oAll.get(o._1()));
 						return Tuple.of(o._1(), b_n, o._0());
 					})
 				.collect(Collectors.toList());
@@ -342,7 +331,6 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 
 		var vec = constructAlphaVector(Gao.get(bestA), bestA);
 		vec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
-        LOGGER.info("Val inside backup is %s", bestVal);
 
 		return new AlphaVector(bestA, DDOP.approximate(vec), bestVal);
 	}

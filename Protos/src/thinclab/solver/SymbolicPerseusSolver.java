@@ -122,11 +122,8 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
                 }
             }
 
-            var newAlphaVal = DDOP.dotProduct(b, newAlpha.getVector(), m.i_S());
-            LOGGER.info("Val inside solver is %s", newAlphaVal);
-
             // If new \alpha.b > Vn(b) add it to new V
-            if (newAlphaVal > bestVal)
+            if (newAlpha.getVal() > bestVal)
                 newVn.add(newAlpha);
 
             else
@@ -271,8 +268,6 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             Global.clearHashtablesIfFull();
 
         } // end iterations over I
-
-        exploredSpace.printCachingStats();
 
         Global.clearHashtablesIfFull();
         m.clearBackupCache();

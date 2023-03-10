@@ -146,8 +146,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
                     if (frame.m instanceof IPOMDP)
                         bel = ((IPOMDP) frame.m).getECDDFromMjDD(bel);
 
-                    int alphaId = frame.Vn.getBestActionIndex(bel);
-                    //				int actId = frame.Vn.getBestActionIndex(bel, frame.m.i_S());
+                    int alphaId = DDOP.bestAlphaIndex(frame.Vn, bel);
                     int actId = frame.Vn.get(alphaId).getActId();
 
                     var node = new MjRepr<>(frameId, new PolicyNode(alphaId, actId, frame.m.A().get(actId)));
@@ -718,12 +717,17 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
             float val = DDOP.dotProduct(b, alphas.get(i), i_S());
             if (val > bestVal) {
-
                 bestVal = val;
                 bestAlpha = i;
-
             }
+        }
 
+        if (bestAlpha == -1) {
+            LOGGER.error("Weird dot product at %s with alphas %s", 
+                    DDOP.factors(b, i_S()), alphas);
+            LOGGER.error("P(Aj | Mj) = %s", PAjGivenEC);
+            LOGGER.error("ECMap is %s", mjToECMap);
+            LOGGER.error("ECMap is %s", ECMap);
         }
 
         return Tuple.of(bestVal, bestAlpha);
@@ -742,60 +746,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
         var results = DDOP.addMultVarElim(factors, gaoivars);
 
         return results;
-    }
-
-    public List<Tuple3<Integer, DD, Float>> computeNextBaParallelOptimized(DD b, int a, ReachabilityGraph g) {
-
-        // compute that huge factor
-        var factors = new ArrayList<DD>(S().size() + S().size() + Omj.size() + 3);
-
-        factors.add(b);
-        factors.add(PAjGivenEC);
-        factors.add(PThetajGivenEC);
-        factors.add(Taus.get(a));
-        factors.addAll(T().get(a));
-        factors.addAll(O().get(a));
-
-        var vars = new ArrayList<Integer>(factors.size());
-        vars.addAll(i_S());
-        // vars.addAll(i_Omj_p);
-        vars.add(i_Aj);
-        vars.add(i_Thetaj);
-
-        var thatHugeFactor = DDOP.addMultVarElim(factors, vars);
-
-        DD l = DD.zero;
-
-        var key = Tuple.of(b, a);
-        if (lCache.containsKey(key))
-            l = lCache.get(key);
-
-        else {
-            l = DDOP.addMultVarElim(List.of(thatHugeFactor), i_S_p());
-            lCache.put(Tuple.of(b, a), l);
-        }
-
-        final var _l = l;
-
-        var _res = IntStream.range(0, oAll.size()).parallel().boxed()
-            .map(o -> Tuple.of(DDOP.restrict(_l, i_Om_p, oAll.get(o)).getVal(), o))
-            .filter(o -> o._0() > 1e-6f).map(o ->
-                    {
-
-                        var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o._1())));
-
-                        if (b_n == null)
-                            b_n = DDOP.div(
-                                    DDOP.primeVars(
-                                        DDOP.restrict(thatHugeFactor, i_Om_p, oAll.get(o._1())),
-                                        -(Global.NUM_VARS / 2)),
-                                    DDleaf.getDD(o._0()));
-
-                        return Tuple.of(o._1(), b_n, o._0());
-                    })
-        .collect(Collectors.toList());
-
-        return _res;
     }
 
     public List<Tuple3<Integer, DD, Float>> computeNextBaParallel(DD b, DD likelihoods, int a, ReachabilityGraph g) {
