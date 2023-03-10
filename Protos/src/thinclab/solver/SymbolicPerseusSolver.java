@@ -111,7 +111,7 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             float bestVal = Float.NEGATIVE_INFINITY;
             AlphaVector bestVec = null;
 
-            for (var vec: Vn) {
+            for (var vec: newVn) {
 
                 float val = DDOP.dotProduct(b, vec.getVector(), m.i_S());
 
