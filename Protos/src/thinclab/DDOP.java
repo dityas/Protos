@@ -24,7 +24,6 @@ import com.google.gson.JsonObject;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
-import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
@@ -1196,7 +1195,7 @@ public class DDOP {
 
     public static DD approximate(DD d) {
 
-        if (d instanceof DDleaf || d instanceof FQDDleaf)
+        if (d instanceof DDleaf)
             return d;
 
         var _min = DDOP.minAll(d);
@@ -1218,7 +1217,7 @@ public class DDOP {
 
     public static boolean canApproximate(DD d) {
 
-        if (d instanceof DDleaf || d instanceof FQDDleaf)
+        if (d instanceof DDleaf)
             return false;
 
         var canApprox = false;

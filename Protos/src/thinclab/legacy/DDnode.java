@@ -323,8 +323,7 @@ public class DDnode extends DD {
 
         for (int i = 0; i < this.children.length; i++) {
 
-            if (this.children[i] instanceof DDleaf || 
-                    this.children[i] instanceof FQDDleaf) {
+            if (this.children[i] instanceof DDleaf) {
 
                 if (children[i].getVal() != 0.0f)
                     builder.append("  (").append(childNames.get(i)).append(" ").append(this.children[i].toSPUDD())

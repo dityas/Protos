@@ -15,7 +15,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
-import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.MDPExploration;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
@@ -126,8 +125,6 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             }
 
             var newAlphab = DDOP.dotProduct(b, newAlpha._1(), m.i_S());
-            LOGGER.info("Value of new vector at witness is %s", newAlphab);
-            LOGGER.info("Belief inside solver is %s", DDOP.factors(b, m.i_S()));
 
             // If new \alpha.b > Vn(b) add it to new V
             if (newAlphab > bestVal)
@@ -220,7 +217,6 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         var exploredSpace = ES.explore(b_is, m, H, 500);
         var B = exploredSpace.getAllNodes()
             .stream()
-            .map(FQDDleaf::unquantize)
             .collect(Collectors.toList());
 
         // check if all beliefs seem valid
@@ -276,8 +272,6 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             Global.clearHashtablesIfFull();
 
         } // end iterations over I
-        
-        exploredSpace.printCachingStats();
 
         Global.clearHashtablesIfFull();
         m.clearBackupCache();

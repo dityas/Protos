@@ -21,7 +21,6 @@ import thinclab.RandomVariable;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
-import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.Model;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
@@ -745,60 +744,6 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
         return results;
     }
 
-    public List<Tuple3<Integer, DD, Float>> computeNextBaParallelOptimized(DD b, int a, ReachabilityGraph g) {
-
-        // compute that huge factor
-        var factors = new ArrayList<DD>(S().size() + S().size() + Omj.size() + 3);
-
-        factors.add(b);
-        factors.add(PAjGivenEC);
-        factors.add(PThetajGivenEC);
-        factors.add(Taus.get(a));
-        factors.addAll(T().get(a));
-        factors.addAll(O().get(a));
-
-        var vars = new ArrayList<Integer>(factors.size());
-        vars.addAll(i_S());
-        // vars.addAll(i_Omj_p);
-        vars.add(i_Aj);
-        vars.add(i_Thetaj);
-
-        var thatHugeFactor = DDOP.addMultVarElim(factors, vars);
-
-        DD l = DD.zero;
-
-        var key = Tuple.of(b, a);
-        if (lCache.containsKey(key))
-            l = lCache.get(key);
-
-        else {
-            l = DDOP.addMultVarElim(List.of(thatHugeFactor), i_S_p());
-            lCache.put(Tuple.of(b, a), l);
-        }
-
-        final var _l = l;
-
-        var _res = IntStream.range(0, oAll.size()).parallel().boxed()
-            .map(o -> Tuple.of(DDOP.restrict(_l, i_Om_p, oAll.get(o)).getVal(), o))
-            .filter(o -> o._0() > 1e-6f).map(o ->
-                    {
-
-                        var b_n = g.getNodeAtEdge(b, Tuple.of(a, oAll.get(o._1())));
-
-                        if (b_n == null)
-                            b_n = DDOP.div(
-                                    DDOP.primeVars(
-                                        DDOP.restrict(thatHugeFactor, i_Om_p, oAll.get(o._1())),
-                                        -(Global.NUM_VARS / 2)),
-                                    DDleaf.getDD(o._0()));
-
-                        return Tuple.of(o._1(), b_n, o._0());
-                    })
-        .collect(Collectors.toList());
-
-        return _res;
-    }
-
     public List<Tuple3<Integer, DD, Float>> computeNextBaParallel(DD b, DD likelihoods, int a, ReachabilityGraph g) {
 
         var res = IntStream.range(0, oAll.size()).parallel().boxed()
@@ -831,7 +776,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
         float bestVal = Float.NEGATIVE_INFINITY;
 
         // float quantization
-        var nextBels = belCache.get(FQDDleaf.quantize(b));
+        var nextBels = belCache.get(b);
 
         if (nextBels == null) {
 
@@ -848,7 +793,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
                 nextBels.put(r._0(), r._1());
 
             // Cache computed entry
-            belCache.put(FQDDleaf.quantize(b), nextBels);
+            belCache.put(b, nextBels);
 
         }
 

@@ -18,7 +18,6 @@ import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
-import thinclab.legacy.FQDDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.utils.Tuple;
@@ -258,18 +257,12 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 				.filter(o -> o._0() > 1e-6f).map(o ->
 					{
 
-						var b_n = g.getNodeAtEdge(
-                                FQDDleaf.quantize(b), 
+						var b_n = g.getNodeAtEdge(b, 
                                 Tuple.of(a, oAll.get(o._1())));
 
 						if (b_n == null) {
 							b_n = beliefUpdate(b, a, oAll.get(o._1()));
                             g.recordMiss();
-                        }
-
-                        else {
-                            b_n = FQDDleaf.unquantize(b_n);
-                            g.recordHit();
                         }
                         
 						return Tuple.of(o._1(), b_n, o._0());
@@ -285,11 +278,10 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 		int bestA = -1;
 		float bestVal = Float.NEGATIVE_INFINITY;
 
-		var nextBels = belCache.get(FQDDleaf.quantize(b));
+		var nextBels = belCache.get(b);
 
 		if (nextBels == null) {
 
-			long missThen = System.nanoTime();
 			// build cache entry for this belief
 			nextBels = new HashMap<Integer, 
                      List<Tuple3<Integer, DD, Float>>>(A().size());
@@ -303,13 +295,8 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			for (var r : res)
 				nextBels.put(r._0(), r._1());
 
-			belCache.put(FQDDleaf.quantize(b), nextBels);
+			belCache.put(b, nextBels);
 
-			if (Global.DEBUG) {
-
-				float missT = (System.nanoTime() - missThen) / 1000000.0f;
-				LOGGER.debug("Cache missed computation took %s msecs", missT);
-			}
 		}
 
 		// compute everything from the cached entries
@@ -347,8 +334,6 @@ public class POMDP extends PBVISolvablePOMDPBasedModel {
 			Gao.add(argmax_iGaoi);
 		}
 
-        LOGGER.info("Value of new vector inside backup is %s", bestVal);
-        LOGGER.info("Belief inside backup is %s", DDOP.factors(b, i_S()));
 		var vec = constructAlphaVector(Gao.get(bestA), bestA);
 		vec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
 

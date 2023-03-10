@@ -91,22 +91,5 @@ class TestSimulations {
 
         // map to belief over equivalence classes
 		b_i = I.getECDDFromMjDD(b_i);
-
-
-        // init simulator
-        var states = new ArrayList<>(I.i_S());
-        states.remove(states.size() - 1);
-
-        var initState = DDnode.getDDForChild(1, 0);
-        var sim = new Simulator(states, I.T(), I.i_A, I.i_Aj);
-        sim.setState(initState);
-
-        // test updates
-        for (int i = 0; i < 10; i++) {
-            sim.updateState(0, 0);
-            var nextState = sim.getState();
-
-            assertEquals(nextState, initState);
-        }
     }
 }

@@ -46,7 +46,6 @@ public class Global {
 	// hash tables
 	public static TypedCacheMap<Float, WeakReference<DDleaf>> leafHashtable = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<DD, WeakReference<DD>> nodeHashtable = new TypedCacheMap<>(10000);
-	public static TypedCacheMap<Integer, FQDDleaf> qCache = new TypedCacheMap<>(200);
 	public static TypedCacheMap<Tuple<DD, DD>, DD> addCache = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<Tuple<DD, DD>, DD> multCache = new TypedCacheMap<>(10000);
 	public static TypedCacheMap<Tuple<DD, Integer>, DD> addOutCache = new TypedCacheMap<>(10000);
@@ -125,7 +124,6 @@ public class Global {
 		Global.multCache.clearIfFull();
 		Global.addOutCache.clearIfFull();
 		Global.dotProductCache.clearIfFull();
-        Global.qCache.clearIfFull();
 
 		System.gc();
 	}
