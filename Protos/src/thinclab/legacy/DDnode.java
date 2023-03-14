@@ -54,10 +54,9 @@ public class DDnode extends DD {
             if (this.children[i] != null)
                 builder.append(this.children[i].hashCode());
 
-            else {
-
+            else 
                 LOGGER.error("Null child at " + i + " something might be seriously wrong.");
-            }
+            
         }
 
         return builder.toHashCode();

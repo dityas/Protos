@@ -76,12 +76,29 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         }
     }
 
-    /*
-     * Perform backups and get the next value function for a given explored 
-     * belief region
-     */
+    void checkForDominance(AlphaVectorPolicy Vn, Collection<DD> B) {
+        /*
+         * Check if a vector is completely dominated by other vectors
+         */
+        
+        var vals = Vn.parallelStream()
+            .map(v -> B.stream()
+                    .map(b -> DDOP.dotProduct(b, 
+                            v.getVector(), Vn.stateIndices))
+                    .collect(Collectors.toList()))
+            .collect(Collectors.toList());
+
+        for (var valList: vals)
+            LOGGER.info("valList is %s", valList);
+
+    }
+
     protected AlphaVectorPolicy solveForB(final List<DD> B, 
             AlphaVectorPolicy Vn, ReachabilityGraph g) {
+        /*
+         * Perform backups and get the next value function for a given explored 
+         * belief region
+         */
 
         var newVn = new AlphaVectorPolicy(m.i_S());
         this.usedBeliefs = 0;
