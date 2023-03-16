@@ -17,13 +17,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.DDOP;
-import thinclab.Simulator;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.PolicyGraph;
 import thinclab.policy.AlphaVectorPolicy;
+import thinclab.simulator.Simulator;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.utils.Utils;
@@ -54,25 +54,20 @@ public class SimulateInteraction {
             var optActJ = agentJPolicy.getBestActionIndex(
                     jBelief);
 
-            // step the simulator
-            var observations = sim.step(optActI, optActJ);
-
-            // Record the step in JSON
+            // Make JSON structures
             var step = new JsonObject();
             var stateJSON = DDOP.toJson(sim.getState(), sim.stateIndices);
-            step.add("state", stateJSON);
 
             var agentIJSON = DDOP.toJson(iBelief, agentI.i_S())
                 .getAsJsonObject();
-            agentIJSON.add("observation", observations._0().toJson());
-            step.add("agent_i", agentIJSON);
+            agentIJSON.addProperty("action", agentI.A().get(optActI));
 
             var agentJJSON = DDOP.toJson(jBelief, agentJ.i_S())
                 .getAsJsonObject();
-            agentJJSON.add("observation", observations._1().toJson());
-            step.add("agent_j", agentJJSON);
+            agentJJSON.addProperty("action", agentJ.A().get(optActJ));
 
-            recorder.add(step);
+            // step the simulator
+            var observations = sim.step(optActI, optActJ);
 
             // update agent beliefs
             iBelief = agentI.beliefUpdate(
@@ -80,6 +75,14 @@ public class SimulateInteraction {
             jBelief = agentJ.beliefUpdate(
                     jBelief, optActJ, observations._1()._1());
 
+            // add JSON data to recorder
+            agentIJSON.add("observation", observations._0().toJson());
+            agentJJSON.add("observation", observations._1().toJson());
+            step.add("state", stateJSON);
+            step.add("agent_i", agentIJSON);
+            step.add("agent_j", agentJJSON);
+
+            recorder.add(step);
         }
     }
 

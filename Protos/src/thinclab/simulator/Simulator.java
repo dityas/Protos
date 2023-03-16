@@ -1,5 +1,5 @@
 
-package thinclab;
+package thinclab.simulator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.datastructures.Observation;
