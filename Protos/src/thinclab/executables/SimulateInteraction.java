@@ -5,8 +5,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -16,13 +14,13 @@ import org.apache.commons.cli.Options;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.PolicyGraph;
 import thinclab.policy.AlphaVectorPolicy;
+import thinclab.simulator.SimulationSerializer;
 import thinclab.simulator.Simulator;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
@@ -41,7 +39,7 @@ public class SimulateInteraction {
             final AlphaVectorPolicy agentIPolicy,
             final AlphaVectorPolicy agentJPolicy,
             DD state, DD iBelief, DD jBelief, int length,
-            JsonArray recorder) {
+            SimulationSerializer recorder) {
 
         // set initial state
         sim.setState(state);
@@ -54,35 +52,19 @@ public class SimulateInteraction {
             var optActJ = agentJPolicy.getBestActionIndex(
                     jBelief);
 
-            // Make JSON structures
-            var step = new JsonObject();
-            var stateJSON = DDOP.toJson(sim.getState(), sim.stateIndices);
-
-            var agentIJSON = DDOP.toJson(iBelief, agentI.i_S())
-                .getAsJsonObject();
-            agentIJSON.addProperty("action", agentI.A().get(optActI));
-
-            var agentJJSON = DDOP.toJson(jBelief, agentJ.i_S())
-                .getAsJsonObject();
-            agentJJSON.addProperty("action", agentJ.A().get(optActJ));
-
             // step the simulator
             var observations = sim.step(optActI, optActJ);
+
+            // record the interaction step
+            recorder.recordStep(sim, iBelief, jBelief, 
+                    optActI, optActJ, 
+                    observations._0(), observations._1());
 
             // update agent beliefs
             iBelief = agentI.beliefUpdate(
                     iBelief, optActI, observations._0()._1());
             jBelief = agentJ.beliefUpdate(
                     jBelief, optActJ, observations._1()._1());
-
-            // add JSON data to recorder
-            agentIJSON.add("observation", observations._0().toJson());
-            agentJJSON.add("observation", observations._1().toJson());
-            step.add("state", stateJSON);
-            step.add("agent_i", agentIJSON);
-            step.add("agent_j", agentJJSON);
-
-            recorder.add(step);
         }
     }
 
@@ -206,7 +188,7 @@ public class SimulateInteraction {
             LOGGER.info("Running interaction %s", n);
 
             // For recording the interaction
-            var recorder = new JsonArray();
+            var recorder = new SimulationSerializer(model, jModel);
             runMultiAgentInteraction(sim, model, jModel, p, jPolicy, 
                     s, b_i, b_j, l, recorder);
 
@@ -215,7 +197,7 @@ public class SimulateInteraction {
                 String fileName = String.format("%s/trace.%s.json", 
                         Global.RESULTS_DIR, n);
                 LOGGER.info("Recording interaction %s to %s", n, fileName);
-                Utils.writeJsonToFile(recorder, fileName);
+                Utils.writeJsonToFile(recorder.recorder, fileName);
             }
         }
     }

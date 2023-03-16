@@ -119,6 +119,7 @@ ExplorationStrategy<M> {
         if (exploredSpace.getNodeCount() >= maxB)
             return exploredSpace;
 
+        int numIter = maxI;
         while ((maxI-- > 0) && exploredSpace.getNodeCount() < maxB) {
 
             // sample a random initial belief and explore a path
@@ -128,8 +129,8 @@ ExplorationStrategy<M> {
         }
 
         LOGGER.info("After %s iterations of length %s, " +
-                "explored belief regoin contains %s beliefs",
-                maxI, T, exploredSpace.getNodeCount());
+                "explored belief region contains %s beliefs",
+                (numIter - maxI), T, exploredSpace.getNodeCount());
 
         return exploredSpace;
     }
