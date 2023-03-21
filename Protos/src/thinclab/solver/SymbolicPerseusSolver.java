@@ -19,6 +19,7 @@ import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.MDPExploration;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.policy.AlphaVector;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
@@ -71,7 +72,10 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
             // if a belief is evaluated higher by the new policy,
             // don't update it further for now
-            if (DDOP.value_b(Vn, b) <= DDOP.value_b(newVn, b))
+            var diff = DDOP.value_b(Vn, b) - DDOP.value_b(newVn, b);
+            if (diff > 0.0)
+                beliefSamplingWeights.set(i, diff);
+            else
                 beliefSamplingWeights.set(i, 0.0f);
         }
     }
@@ -104,8 +108,6 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         this.usedBeliefs = 0;
 
         var _Vn = Vn.getAsDDList();
-
-        // Evaluate the difference between the evaluations of UB and Vn
         beliefSamplingWeights = DDOP.getBeliefRegionEvalDiff(B, UB, Vn);
 
         while (true) {
@@ -125,23 +127,31 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
             // Construct V_{n+1}(b)
             float bestVal = Float.NEGATIVE_INFINITY;
+            AlphaVector best = null;
 
-            for (var vec: newVn) {
+            for (var vec: Vn) {
 
                 float val = DDOP.dotProduct(b, vec.getVector(), m.i_S());
 
-                if (val > bestVal)
+                if (val > bestVal) { 
                     bestVal = val;
+                    best = vec;
+                }
+                
             }
 
-            // If new \alpha.b > Vn(b) add it to new V
-            if (newAlpha.getVal() > bestVal)
+            // If new \alpha.b >= Vn(b) add it to new V
+            if (newAlpha.getVal() >= bestVal)
                 newVn.add(newAlpha);
+
+            else
+                newVn.add(best);
 
             markUpdatedBeliefs(B, newVn);
             this.usedBeliefs++;
         }
 
+        beliefSamplingWeights = DDOP.getBeliefRegionEvalDiff(B, newVn, Vn);
         return newVn;
     }
 
@@ -199,16 +209,17 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         }
 
         // QMDP policy's estimate of initial beliefs
-        var bVals = b_is.stream()
-            .map(b -> UB.stream()
-                    .map(v -> 
-                        Tuple.of(
-                            m.A().get(v.getActId()), 
-                            DDOP.dotProduct(b, 
-                                v.getVector(), UB.stateIndices)))
-                    .collect(Collectors.toList()))
+        var ubVals = b_is.stream()
+            .map(b -> DDOP.bestAlphaWithValue(UB, b))
+            .map(v -> Tuple.of(m.A().get(v._0().getActId()), v._1()))
             .collect(Collectors.toList());
-        LOGGER.info("UB evaulates initial beliefs at %s", bVals);
+        LOGGER.info("UB evaulates initial beliefs at %s", ubVals);
+
+        var lbVals = b_is.stream()
+            .map(b -> DDOP.bestAlphaWithValue(Vn, b))
+            .map(v -> Tuple.of(m.A().get(v._0().getActId()), v._1()))
+            .collect(Collectors.toList());
+        LOGGER.info("LB evaulates initial beliefs at %s", lbVals);
 
         // Start Perseus
         LOGGER.info("[*] Launching symbolic Perseus solver for model %s", 
@@ -233,8 +244,7 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
         int convergenceCount = 0;
         var Vn_p = UB;
-        for (int i = 0; i < I; i++) {
-
+        for (int i = 0;; i++) {
 
             long then = System.nanoTime();
 

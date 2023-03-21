@@ -25,6 +25,7 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
+import thinclab.policy.AlphaVector;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 
@@ -880,6 +881,25 @@ public class DDOP {
         return B.stream()
             .map(b -> Math.abs(value_b(p1, b) - value_b(p2, b)))
             .collect(Collectors.toList());
+    }
+
+    public static Tuple<AlphaVector, Float> bestAlphaWithValue(AlphaVectorPolicy Vn,
+            DD b) {
+
+        float maxVal = Float.NEGATIVE_INFINITY;
+        AlphaVector best = null;
+
+        for (var v: Vn) {
+
+            var val = DDOP.dotProduct(b, v.getVector(), Vn.stateIndices);
+
+            if (val > maxVal) {
+                maxVal = val;
+                best = v;
+            }
+        }
+
+        return Tuple.of(best, maxVal);
     }
 
     public static int bestAlphaIndex(AlphaVectorPolicy Vn,

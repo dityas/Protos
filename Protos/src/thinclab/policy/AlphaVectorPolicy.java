@@ -11,12 +11,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,9 +65,24 @@ Policy<DD>, Jsonable, LispExpressible {
     public static AlphaVectorPolicy getLowerBound(PBVISolvablePOMDPBasedModel m) {
 
         var policy = new AlphaVectorPolicy(m.i_S());
-        for (int i = 0; i < m.R().size(); i++)
-            policy.add(new AlphaVector(i, m.R().get(i), Float.NaN));
 
+        var Rmin = Float.POSITIVE_INFINITY;
+        var worstAction = -1;
+
+        for (int a = 0; a < m.A().size(); a++) {
+
+            var Ra = DDOP.minAll(m.R().get(a));
+
+            if (Ra < Rmin) {
+                Rmin = Ra;
+                worstAction = a;
+            }
+        }
+
+        LOGGER.info("Lower bound is R(S, %s)=%s",
+                m.A().get(worstAction), Rmin);
+        var vector = DDleaf.getDD((1.0f/(1.0f - m.discount)) * Rmin);
+        policy.add(new AlphaVector(worstAction, vector, vector.getVal()));
         return policy;
     }
 
@@ -104,7 +116,8 @@ Policy<DD>, Jsonable, LispExpressible {
 
     @Override
     public String toString() {
-        return "";
+        return stream().map(v -> v.toString())
+            .collect(Collectors.toList()).toString();
     }
 
     @Override
