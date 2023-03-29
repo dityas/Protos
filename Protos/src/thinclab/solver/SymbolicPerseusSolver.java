@@ -22,7 +22,6 @@ import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVector;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
-import thinclab.utils.Tuple3;
 
 /*
  * @author adityas
@@ -78,23 +77,6 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             else
                 beliefSamplingWeights.set(i, 0.0f);
         }
-    }
-
-    void checkForDominance(AlphaVectorPolicy Vn, Collection<DD> B) {
-        /*
-         * Check if a vector is completely dominated by other vectors
-         */
-        
-        var vals = Vn.parallelStream()
-            .map(v -> B.stream()
-                    .map(b -> DDOP.dotProduct(b, 
-                            v.getVector(), Vn.stateIndices))
-                    .collect(Collectors.toList()))
-            .collect(Collectors.toList());
-
-        for (var valList: vals)
-            LOGGER.info("valList is %s", valList);
-
     }
 
     protected AlphaVectorPolicy solveForB(final List<DD> B, 
@@ -155,21 +137,13 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         return newVn;
     }
 
-    public Tuple3<Float, Float, Float> getErrors(Collection<DD> B, 
+    public float getBellmanError(Collection<DD> B, 
             AlphaVectorPolicy Vn, AlphaVectorPolicy Vn_p) {
 
-        var diffs = DDOP.getBeliefRegionEvalDiff(B, Vn_p, Vn);
-        var _min = diffs.stream()
-            .min((v1, v2) -> v1.compareTo(v2))
-            .orElse(Float.NaN);
-        var _max = diffs.stream()
+        return DDOP.getBeliefRegionEvalDiff(B, Vn_p, Vn)
+            .stream()
             .max((v1, v2) -> v1.compareTo(v2))
             .orElse(Float.NaN);
-        var avg = diffs.stream()
-            .mapToDouble(Double::valueOf)
-            .average().orElse(Double.NaN);
-
-        return Tuple.of(_min, _max, (float) avg);
     }
 
     private boolean beliefsValid(Collection<DD> B) {
@@ -253,25 +227,25 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
 
             // report error stats
             float backupT = (System.nanoTime() - then) / 1000000000.0f;
-            var bellmanErrors = getErrors(B, Vn, Vn_p);
-            var UBErrors = getErrors(B, Vn, UB);
+            var bellmanError = getBellmanError(B, Vn, Vn_p);
+            var UBError = getBellmanError(B, Vn, UB);
 
             LOGGER.info("i=%2d, t=%.3f sec, |Vn|=%2d, |B|=%3d/%3d, "
                     + "bell err: %.3f, UB err: %.3f",
                     i, backupT, Vn_p.size(), usedBeliefs, B.size(),
-                    bellmanErrors._1(), UBErrors._1());
+                    bellmanError, UBError);
 
             // Prepare for next backup
             Vn = Vn_p;
 
             // Congergence check
-            if (bellmanErrors._1() < 0.01 && i > 10) {
+            if (bellmanError < 0.01 && i > 10) {
 
                 convergenceCount += 1;
                 if (convergenceCount > 5) {
 
                     LOGGER.info("Declaring solution at Bellman error %s "
-                            + "and iteration %s", bellmanErrors, i);
+                            + "and iteration %s", bellmanError, i);
                     logConvergence();
                     break;
                 }

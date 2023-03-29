@@ -82,20 +82,28 @@ public class SimulationSerializer implements Jsonable {
         return beliefJSON;
     }
 
-    public void recordStep(Simulator sim, DD beliefI, DD beliefJ,
-            int actionI, int actionJ,
-            Observation obsI, Observation obsJ) {
-
-        var stateJSON = DDOP.toJson(sim.getState(), sim.stateIndices);
-        var agentIJSON = buildAgentJson(agentI, beliefI, actionI, obsI);
-        var agentJJSON = buildAgentJson(agentJ, beliefJ, actionJ, obsJ);
-
+    public void recordStep(JsonObject stateJSON, JsonObject agentIJSON,
+            JsonObject agentJJSON) {
+    
         var step = new JsonObject();
         step.add("state", stateJSON);
         step.add("agent_i", agentIJSON);
         step.add("agent_j", agentJJSON);
 
         recorder.add(step);
+    }
+
+    public void recordStep(DD state, List<Integer> stateIndices,
+            DD beliefI, DD beliefJ,
+            int actionI, int actionJ,
+            Observation obsI, Observation obsJ) {
+
+        var stateJSON = DDOP.toJson(state, stateIndices).getAsJsonObject();
+        var agentIJSON = buildAgentJson(agentI, beliefI, actionI, obsI);
+        var agentJJSON = buildAgentJson(agentJ, beliefJ, actionJ, obsJ);
+
+        recordStep(stateJSON, agentIJSON, agentJJSON);
+
     }
 
     @Override

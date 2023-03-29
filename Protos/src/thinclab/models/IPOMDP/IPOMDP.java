@@ -708,7 +708,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
     // ----------------------------------------------------------------------------------------
     // PBVISolvable implementations
 
-    public Tuple<Float, Integer> Gaoi(final DD b, final int a, final List<Integer> o, final List<DD> alphas) {
+    public Tuple<Float, Integer> Gaoi(final DD b, final List<DD> alphas) {
 
         float bestVal = Float.NEGATIVE_INFINITY;
         int bestAlpha = -1;
@@ -768,7 +768,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
         var b_n = nextBa._1();
         var prob = nextBa._2();
 
-        var bestAlpha = Gaoi(b_n, a, oAll.get(obsIndex), alphas);
+        var bestAlpha = Gaoi(b_n, alphas);
 
         return Tuple.of(obsIndex, alphas.get(bestAlpha._1()), (prob * bestAlpha._0()));
 
@@ -842,10 +842,12 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
         return new AlphaVector(bestA, DDOP.approximate(newVec), bestVal);
     }
 
-    private DD constructAlphaVector(ArrayList<Tuple<Integer, DD>> Gao, int bestA) {
+    private DD constructAlphaVector(ArrayList<Tuple<Integer, DD>> Gao,
+            int bestA) {
 
-        var vec = Gao.parallelStream().map(g -> project(g._1(), bestA, oAll.get(g._0()))).reduce(DD.zero,
-                (a, b) -> DDOP.add(a, b));
+        var vec = Gao.parallelStream()
+            .map(g -> project(g._1(), bestA, oAll.get(g._0())))
+            .reduce(DD.zero, (a, b) -> DDOP.add(a, b));
 
         return vec;
     }

@@ -86,7 +86,8 @@ public class Simulator {
                 Global.valNames.get(actionVarJ - 1).get(actionJ));
     }
 
-    public Tuple<Observation, Observation> step(int actionI, int actionJ) {
+    public Tuple<Observation, Observation> step(int actionI,
+            int actionJ) {
         /*
          * Update the state given actions and sample observations from the
          * next state for both agents
@@ -137,4 +138,5 @@ public class Simulator {
         return new Observation(
                 DDOP.sample(List.of(obsDist), obsPrimeIndices));
     }
+
 }

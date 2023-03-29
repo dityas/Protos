@@ -868,30 +868,36 @@ public class DDOP {
     // Evaluate belief region according to a policy
     public static List<Float> getBeliefRegionEval(Collection<DD> B,
             AlphaVectorPolicy p) {
+        /*
+         * Avoid using streams here to avoid the performance impact
+         */
 
-        return B.stream()
-            .map(b -> value_b(p, b))
-            .collect(Collectors.toList());
+        var vals = new ArrayList<Float>(B.size());
+        for (var b: B)
+            vals.add(value_b(p, b));
+
+        return vals;
     }
 
     // Get evaluation difference between two policies
     public static List<Float> getBeliefRegionEvalDiff(Collection<DD> B,
             AlphaVectorPolicy p1, AlphaVectorPolicy p2) {
 
-        return B.stream()
+        return B.parallelStream()
             .map(b -> Math.abs(value_b(p1, b) - value_b(p2, b)))
             .collect(Collectors.toList());
     }
 
-    public static Tuple<AlphaVector, Float> bestAlphaWithValue(AlphaVectorPolicy Vn,
-            DD b) {
+    public static Tuple<Integer, Float> bestAlphaIndexWithValue(
+            AlphaVectorPolicy Vn, DD b) {
 
         float maxVal = Float.NEGATIVE_INFINITY;
-        AlphaVector best = null;
+        int best = -1;
 
-        for (var v: Vn) {
+        for (int v = 0; v < Vn.size(); v++) {
 
-            var val = DDOP.dotProduct(b, v.getVector(), Vn.stateIndices);
+            var val = DDOP.dotProduct(b, 
+                    Vn.get(v).getVector(), Vn.stateIndices);
 
             if (val > maxVal) {
                 maxVal = val;
@@ -900,6 +906,13 @@ public class DDOP {
         }
 
         return Tuple.of(best, maxVal);
+            }
+
+    public static Tuple<AlphaVector, Float> bestAlphaWithValue(
+            AlphaVectorPolicy Vn, DD b) {
+
+        var indexWithVal = bestAlphaIndexWithValue(Vn, b);
+        return Tuple.of(Vn.get(indexWithVal._0()), indexWithVal._1());
     }
 
     public static int bestAlphaIndex(AlphaVectorPolicy Vn,
@@ -1308,22 +1321,6 @@ public class DDOP {
 
         return true;
     }
-
-    public static JsonObject beliefToFlatJSON(List<DD> factoredBelief,
-            List<Integer> vars) {
-        /*
-         * Creates a flat {columnname -> belief value} mapping from a factored
-         * belief distribution
-         */
-
-        var json = new JsonObject();
-        var parsedJson = toJson(factoredBelief, vars);
-
-        LOGGER.info("Get %s", parsedJson);
-
-        return null;
-    }
-
 
     public static JsonObject toJson(final DD d, final int var) {
 

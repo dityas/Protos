@@ -46,6 +46,8 @@ public class SimulateInteraction {
 
         for (int i = 0; i < length; i++) {
 
+            var initialState = sim.getState();
+
             // get optimal actions
             var optActI = agentIPolicy.getBestActionIndex(
                     iBelief);
@@ -56,7 +58,8 @@ public class SimulateInteraction {
             var observations = sim.step(optActI, optActJ);
 
             // record the interaction step
-            recorder.recordStep(sim, iBelief, jBelief, 
+            recorder.recordStep(initialState, sim.stateIndices,
+                    iBelief, jBelief, 
                     optActI, optActJ, 
                     observations._0(), observations._1());
 
