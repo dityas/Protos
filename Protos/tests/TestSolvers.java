@@ -95,8 +95,11 @@ class TestSolvers {
 		IntStream.range(0, I.A().size()).forEach(i ->
 			{
 
-				LOGGER.debug(String.format("backup for %s at %s is %s", I.A().get(i), DDleaf.getDD(0.5f),
-						I.backup(DDleaf.getDD(0.5f), I.R(), exploredRegion)));
+				LOGGER.debug("backup for %s at %s is %s", 
+                        I.A().get(i), DDleaf.getDD(0.5f),
+						I.backup(DDleaf.getDD(0.5f), 
+                            AlphaVectorPolicy.getLowerBound(I), 
+                            exploredRegion));
 			});
 		printMemConsumption();
 	}

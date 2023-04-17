@@ -18,12 +18,14 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.utils.Jsonable;
 import thinclab.utils.Tuple;
+import thinclab.utils.Tuple3;
 
 /*
  * @author adityas
@@ -154,6 +156,32 @@ public class PolicyGraph implements Jsonable {
 
         return json;
     }
+    
+    private List<Tuple3<Integer, Integer, DD>> getNextBeliefs(DD b, int a,
+            PBVISolvablePOMDPBasedModel m, AlphaVectorPolicy p) {
+        /*
+         * Gets next beliefs given an initial belief and an (optimal) action
+         */
+        
+        var nextBeliefList = 
+            new ArrayList<Tuple3<Integer, Integer, DD>>(m.oAll.size());
+        var likelihoods = m.obsLikelihoods(b, a);
+        for (var obs: m.oAll) {
+
+            var prob = DDOP.restrict(likelihoods, m.i_Om_p(), obs).getVal();
+            if (prob < 1e-6f)
+                continue;
+            
+            var nextBelief = m.beliefUpdate(b, a, obs);
+            nextBeliefList.add(
+                    Tuple.of(
+                        edgeMap.get(Tuple.of(a, obs)),
+                        DDOP.bestAlphaIndex(p, nextBelief), 
+                        nextBelief));
+        }
+
+        return nextBeliefList;
+    }
 
     public static Tuple<PolicyGraph, List<DD>> expandPolicyGraphDFS(
             List<DD> b_is, PolicyGraph G, PBVISolvablePOMDPBasedModel m, 
@@ -175,19 +203,7 @@ public class PolicyGraph implements Jsonable {
                 m.A().get(p.get(alphaId).getActId()));
 
         // create tuples (obs, alpha vector, next belief)
-        var p_n = G.edgeMap.entrySet().parallelStream()
-            .filter(ao -> ao.getKey()._0() == bestAct)
-            .map(ao -> Tuple.of(
-                        ao.getValue(), 
-                        m.beliefUpdate(b, bestAct, ao.getKey()._1())))
-            .filter(b_n -> !b_n._1().equals(DD.zero))
-            .map(b_n -> Tuple.of(
-                        b_n._0(), 
-                        DDOP.bestAlphaIndex(
-                            p, b_n._1()),
-                        b_n._1()))
-            .collect(Collectors.toList());
-
+        var p_n = G.getNextBeliefs(b, bestAct, m, p);
         var map = new ConcurrentHashMap<Integer, Integer>(10);
         var b_ns = new ArrayList<DD>(10);
 

@@ -11,6 +11,7 @@ import java.util.List;
 import thinclab.legacy.DD;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVector;
+import thinclab.policy.AlphaVectorPolicy;
 
 /*
  * @author adityas
@@ -23,7 +24,7 @@ public interface PBVISolvable {
 	 * given belief point
 	 */
 	public AlphaVector backup(final DD b, 
-            final List<DD> alphas, final ReachabilityGraph g);
+            final AlphaVectorPolicy Vn, final ReachabilityGraph g);
 
     public List<DD> MDPValueIteration(List<DD> QFn);
 }

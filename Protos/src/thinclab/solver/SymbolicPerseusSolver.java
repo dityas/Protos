@@ -89,7 +89,6 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
         var newVn = new AlphaVectorPolicy(m.i_S());
         this.usedBeliefs = 0;
 
-        var _Vn = Vn.getAsDDList();
         beliefSamplingWeights = DDOP.getBeliefRegionEvalDiff(B, UB, Vn);
 
         while (true) {
@@ -105,7 +104,7 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             DD b = B.get(index);
             beliefSamplingWeights.set(index, 0.0f);
 
-            var newAlpha = m.backup(b, _Vn, g);
+            var newAlpha = m.backup(b, Vn, g);
 
             // Construct V_{n+1}(b)
             float bestVal = Float.NEGATIVE_INFINITY;

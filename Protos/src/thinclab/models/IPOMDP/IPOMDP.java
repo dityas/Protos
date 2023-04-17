@@ -29,6 +29,7 @@ import thinclab.models.datastructures.PolicyNode;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.policy.AlphaVector;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 import thinclab.utils.Tuple3;
 
@@ -630,8 +631,10 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
         var prob = DDOP.addMultVarElim(List.of(b_p), stateVars);
 
-        if (DDOP.abs(DDOP.sub(prob, DD.zero)).getVal() < 1e-6)
-            return DD.zero;
+        if (DDOP.abs(DDOP.sub(prob, DD.zero)).getVal() < 1e-6) {
+            LOGGER.error("Zero probability observation");
+            return DDleaf.getDD(Float.NaN);
+        }
 
         b_p = DDOP.div(b_p, prob);
 
@@ -762,7 +765,8 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
         return res;
     }
 
-    public Tuple3<Integer, DD, Float> getBestAlpha(Tuple3<Integer, DD, Float> nextBa, List<DD> alphas, int a) {
+    public Tuple3<Integer, DD, Float> getBestAlpha(Tuple3<Integer, DD, Float> nextBa,
+            List<DD> alphas, int a) {
 
         var obsIndex = nextBa._0();
         var b_n = nextBa._1();
@@ -775,7 +779,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
     }
 
     @Override
-    public AlphaVector backup(DD b, List<DD> alphas, ReachabilityGraph g) {
+    public AlphaVector backup(DD b, AlphaVectorPolicy Vn, ReachabilityGraph g) {
 
         int bestA = -1;
         float bestVal = Float.NEGATIVE_INFINITY;
@@ -812,7 +816,7 @@ public class IPOMDP extends PBVISolvablePOMDPBasedModel {
 
             var _a = a;
             var argmaxGois = nextBa.parallelStream()
-                .map(nb -> getBestAlpha(nb, alphas, _a))
+                .map(nb -> getBestAlpha(nb, Vn.getAsDDList(), _a))
                 .collect(Collectors.toList());
 
             var argmax_iGaoi = argmaxGois.stream()
