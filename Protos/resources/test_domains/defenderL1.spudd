@@ -1,0 +1,2345 @@
+-- One last time. :)
+-- Increase probability of finding real data to 0.6
+
+-- Deploy only one type of decoy at L0 defender aggressive
+-- Tomorrow night deadline for JAIR format.
+-- L2 scenario by Friday night.
+
+
+(defvar PRIVS_DECEPTION         (user root none))
+(defvar C_DATA_DECOYS 		(yes no))
+(defvar S_DATA_DECOYS 		(yes no))
+(defvar HOST_HAS_DATA 		(sensitive_data critical_data none))
+(defvar ATTACKER_PRIVS 		(user root))
+(defvar DATA_ACCESS_PRIVS 	(user root))
+(defvar HOST_HAS_VULN 		(yes no))
+(defvar DATA_FOUND 		(yes no))
+(defvar VULN_FOUND 		(yes no))
+(defvar IMPACT_CAUSED 		(yes no))
+(defvar ATTACKER_STATUS 	(active inactive))
+
+(defvar OP_RESULT 		(success fail))
+(defvar PRIVS 		        (user root no_obs))
+(defvar VULN 		        (yes no))
+(defvar DATA 			(yes no))
+(defvar DISCREPANCY		(yes no))
+(defvar AO_COMPLETE 		(yes no))
+
+-- Defender's observations here
+(defvar S_DATA_DECOY_INT        (yes no))
+(defvar C_DATA_DECOY_INT        (yes no))
+(defvar LOG_INFERENCE           (file_recon sys_info persist_attempt none))
+
+-- L1 Attacker's model variable for modeling L0 defender
+(defvar AttL1ModelsDefL0        (m0 m1))
+
+-- L0 Defender's frames
+(defvar DefL0Frames             (passive active))
+
+(defvar ATT_ACTIONS             (
+                                    FILE_RECON_SDATA 
+                                    FILE_RECON_CDATA
+                                    VULN_RECON
+                                    PRIV_ESC
+                                    START_EXFIL
+                                    NOP
+                                    MANIPULATE_DATA
+                                    PERSIST
+                                    EXIT
+                                    CHECK_ROOT      
+                                )
+)
+
+(defvar DEF_ACTIONS
+                                (
+                                    NOP
+                                    DEPLOY_VULN
+                                    SHOW_ROOT_PRIVS
+                                    SHOW_USER_PRIVS
+                                    DEPLOY_CDATA_DEC
+                                    DEPLOY_SDATA_DEC
+                                    REMOVE_CDATA_DEC
+                                    REMOVE_SDATA_DEC
+                                )
+)
+
+(defdd initBeliefAttL0
+
+    (
+	(PRIVS_DECEPTION
+		(user 			(0.0))
+		(root 			(0.0))
+		(none 			(1.0))
+	)
+
+	* (C_DATA_DECOYS
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	* (S_DATA_DECOYS
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	* (HOST_HAS_DATA
+		(sensitive_data (0.5))
+		(critical_data 	(0.25))
+		(none 			(0.25))
+	)
+
+	* (DATA_ACCESS_PRIVS
+		(user 			(0.5))
+		(root 			(0.5))
+	)
+
+	* (HOST_HAS_VULN
+		(yes 			(0.5))
+		(no 			(0.5))
+	)
+
+	* (ATTACKER_PRIVS
+		(user			(0.5))
+		(root			(0.5))
+	)
+
+	* (DATA_FOUND
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	* (VULN_FOUND
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	* (IMPACT_CAUSED
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	* (ATTACKER_STATUS
+		(active 		(1.0))
+		(inactive 		(0.0))
+	)
+    )
+)
+
+---------------------------------------------------
+-- Make transitions for defender's actions.
+
+-- Defender deploys fake vulnerability
+(defdd deployVulnHostHasVuln
+    (HOST_HAS_VULN' yes)
+)
+
+-- Defender deploys sensitive data decoys
+(defdd deploySDataDecSDataDecoys
+    (S_DATA_DECOYS' yes)
+)
+
+-- Defender deploys critical data decoys
+(defdd deployCDataDecCDataDecoys
+    (C_DATA_DECOYS' yes)
+)
+
+-- Defender removes sensitive data decoys
+(defdd removeSDataDecSDataDecoys
+    (S_DATA_DECOYS' no)
+)
+
+-- Defender removess critical data decoys
+(defdd removeCDataDecCDataDecoys
+    (C_DATA_DECOYS' no)
+)
+
+-- Defender turns on privs deception to user
+(defdd showUserPrivsPrivsDecept
+    (PRIVS_DECEPTION' user)
+)
+
+-- Defender turns on privs deception to root
+(defdd showRootPrivsPrivsDecept
+    (PRIVS_DECEPTION' root)
+)
+
+-- L0 Attackers thoughts on what Defender will do
+(defdd l0AttDefActDist
+    (DEF_ACTIONS
+        (NOP               (0.999))           
+        (DEPLOY_VULN       (0.0001)) 
+        (SHOW_ROOT_PRIVS   (0.0001)) 
+        (SHOW_USER_PRIVS   (0.0001)) 
+        (DEPLOY_CDATA_DEC  (0.0001)) 
+        (DEPLOY_SDATA_DEC  (0.0001)) 
+        (REMOVE_CDATA_DEC  (0.0001)) 
+        (REMOVE_SDATA_DEC  (0.0001))
+    )
+)
+
+---------------------------------------------------
+
+
+
+---------------------------------------------------
+-- L0 Attacker's dynamics are defined here
+---------------------------------------------------
+
+-- Build default observation DDs for L0 attacker
+(defdd defaultOpResult
+    (OP_RESULT' success)
+)
+
+(defdd defaultPrivs
+    (PRIVS' no_obs)
+)
+
+(defdd defaultVuln
+    (VULN' no)
+)
+
+(defdd defaultInconsistency
+    (DISCREPANCY' no)
+)
+
+(defdd defaultData
+    (DATA' no)
+)
+
+(defdd defaultAOComplete
+    (AO_COMPLETE' no)
+)
+
+-- That looks like the end of default observations
+-- Make super messy and long joint action transitions here
+
+-- Attacker does NOP
+(defdd attNOP_PrivsDeception
+    (DEF_ACTIONS
+        (NOP               (SAME PRIVS_DECEPTION))           
+        (DEPLOY_VULN       (SAME PRIVS_DECEPTION)) 
+        (SHOW_ROOT_PRIVS   (showRootPrivsPrivsDecept)) 
+        (SHOW_USER_PRIVS   (showUserPrivsPrivsDecept)) 
+        (DEPLOY_CDATA_DEC  (SAME PRIVS_DECEPTION)) 
+        (DEPLOY_SDATA_DEC  (SAME PRIVS_DECEPTION)) 
+        (REMOVE_CDATA_DEC  (SAME PRIVS_DECEPTION)) 
+        (REMOVE_SDATA_DEC  (SAME PRIVS_DECEPTION))
+    )
+)
+
+(defdd attNOP_HostHasVuln
+    
+    (DEF_ACTIONS
+        (NOP               (SAME HOST_HAS_VULN))           
+        (DEPLOY_VULN       (deployVulnHostHasVuln)) 
+        (SHOW_ROOT_PRIVS   (SAME HOST_HAS_VULN)) 
+        (SHOW_USER_PRIVS   (SAME HOST_HAS_VULN)) 
+        (DEPLOY_CDATA_DEC  (SAME HOST_HAS_VULN)) 
+        (DEPLOY_SDATA_DEC  (SAME HOST_HAS_VULN)) 
+        (REMOVE_CDATA_DEC  (SAME HOST_HAS_VULN)) 
+        (REMOVE_SDATA_DEC  (SAME HOST_HAS_VULN))
+    )
+)
+
+(defdd attNOP_CDataDecoys
+    
+    (DEF_ACTIONS
+        (NOP               (SAME C_DATA_DECOYS))           
+        (DEPLOY_VULN       (SAME C_DATA_DECOYS)) 
+        (SHOW_ROOT_PRIVS   (SAME C_DATA_DECOYS)) 
+        (SHOW_USER_PRIVS   (SAME C_DATA_DECOYS)) 
+        (DEPLOY_CDATA_DEC  (deployCDataDecCDataDecoys)) 
+        (DEPLOY_SDATA_DEC  (SAME C_DATA_DECOYS)) 
+        (REMOVE_CDATA_DEC  (removeCDataDecCDataDecoys)) 
+        (REMOVE_SDATA_DEC  (SAME C_DATA_DECOYS))
+    )
+)
+
+(defdd attNOP_SDataDecoys
+    
+    (DEF_ACTIONS
+        (NOP               (SAME S_DATA_DECOYS))           
+        (DEPLOY_VULN       (SAME S_DATA_DECOYS)) 
+        (SHOW_ROOT_PRIVS   (SAME S_DATA_DECOYS)) 
+        (SHOW_USER_PRIVS   (SAME S_DATA_DECOYS)) 
+        (DEPLOY_CDATA_DEC  (SAME S_DATA_DECOYS)) 
+        (DEPLOY_SDATA_DEC  (deploySDataDecSDataDecoys)) 
+        (REMOVE_CDATA_DEC  (SAME S_DATA_DECOYS)) 
+        (REMOVE_SDATA_DEC  (removeSDataDecSDataDecoys))
+    )
+)
+
+(defdd attRewNOP
+    (ATTACKER_STATUS
+        (active 	(5.0))
+	(inactive 	(0.0))
+    )
+)
+
+(defdbn attActNOP
+    
+    (PRIVS_DECEPTION    # (DEF_ACTIONS) ((l0AttDefActDist * attNOP_PrivsDeception))) 
+    (C_DATA_DECOYS      # (DEF_ACTIONS) ((l0AttDefActDist * attNOP_CDataDecoys)))	
+    (S_DATA_DECOYS      # (DEF_ACTIONS) ((l0AttDefActDist * attNOP_SDataDecoys)))
+    (HOST_HAS_VULN      # (DEF_ACTIONS) ((l0AttDefActDist * attNOP_HostHasVuln)))
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+---- That's it with attacker's NOP
+
+---------------------------------------------------
+-- Attacker now does CHECK_ROOT
+
+-- This is the observation function for that
+(defdd checkRootPrivs
+    (ATTACKER_PRIVS'
+	(user   (PRIVS' user))
+	(root   (PRIVS' root))
+    )
+)
+
+(defdd checkRootUserDec
+    (ATTACKER_PRIVS'
+	(user   (PRIVS' user))
+
+	(root
+		(PRIVS'
+			(user 	(0.9))
+			(root 	(0.1))
+			(no_obs (0.0))
+		)
+	)
+    )
+)
+
+(defdd checkRootRootDec
+    (ATTACKER_PRIVS'
+	(user
+		(PRIVS'
+			(user 	(0.1))
+			(root 	(0.9))
+			(no_obs (0.0))
+		)
+	)
+
+	(root   (PRIVS' root))
+    )
+)
+
+(defdd checkRootDD
+    (PRIVS_DECEPTION'
+	(user 	(checkRootUserDec))
+	(root 	(checkRootRootDec))
+	(none 	(checkRootPrivs))
+    )
+)
+
+(defdd checkRootPrivsWrapper
+    (ATTACKER_STATUS'
+	(active 	(checkRootDD))
+	(inactive 	(defaultPrivs))
+    )
+)
+
+(defdd attRewCHECK_ROOT
+    (0.1)
+)
+
+(defdbn attActCHECK_ROOT
+    
+    (PRIVS_DECEPTION    # (DEF_ACTIONS) (l0AttDefActDist * attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_HostHasVuln)) 
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (checkRootPrivsWrapper))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- End attacker's CHECK_ROOT
+
+---------------------------------------------------
+-- Attacker does FILE_RECON_SDATA
+
+(defdd dataFoundYes
+
+    (DATA_FOUND
+	(yes
+		(DATA_FOUND' yes)
+	)
+
+	(no
+		(DATA_FOUND'
+			(yes 	(0.7))
+			(no 	(0.3))
+		)
+	)
+    )
+)
+
+
+(defdd dataFoundNo
+    (DATA_FOUND
+	(yes
+		(DATA_FOUND' yes)
+	)
+
+	(no
+		(DATA_FOUND' no)
+	)
+    )
+)
+
+
+(defdd fileReconSDataDataFoundNoDec
+    (HOST_HAS_DATA'
+	(sensitive_data
+		(DATA_ACCESS_PRIVS
+			(user
+				(ATTACKER_PRIVS
+					(user 	(dataFoundYes))
+					(root 	(dataFoundYes))
+				)
+			)
+
+			(root
+				(ATTACKER_PRIVS
+					(user 	(dataFoundNo))
+					(root 	(dataFoundYes))
+				)
+			)
+		)
+	)
+
+	(critical_data
+		(dataFoundNo)
+	)
+
+	(none 	(dataFoundNo))
+    )
+)
+
+(defdd fileReconSDataDataFoundDec
+    (dataFoundYes)
+)
+
+(defdd fileReconSDataDataFound
+
+    (S_DATA_DECOYS'
+	(yes 	(fileReconSDataDataFoundDec))
+	(no 	(fileReconSDataDataFoundNoDec))
+    )
+)
+
+(defdd fileReconSDataDataFoundWrapper
+    (ATTACKER_STATUS
+	(active 	(fileReconSDataDataFound))
+	(inactive 	(SAME DATA_FOUND))
+    )
+)
+
+(defdd fileReconSDataData
+    (DATA_FOUND'
+	(yes    (DATA' yes))
+	(no     (DATA' no))
+    )
+)
+
+(defdd fileReconSDataInconsistency
+    (HOST_HAS_DATA'
+	(sensitive_data
+		(C_DATA_DECOYS'
+			(yes
+				(DISCREPANCY'
+					(yes 	(0.6))
+					(no 	(0.4))
+				)
+			)
+
+			(no 	(defaultInconsistency))
+		)
+	)
+
+	(critical_data
+		(DISCREPANCY'
+			(yes 	(0.7))
+			(no 	(0.3))
+		)
+	)
+
+	(none
+		(C_DATA_DECOYS'
+			(yes
+				(DISCREPANCY'
+					(yes 	(0.6))
+					(no 	(0.4))
+				)
+			)
+
+			(no 	(defaultInconsistency))
+		)
+	)
+    )		
+)
+
+(defdd attRewFILE_RECON_SDATA
+    (1.0)
+)
+
+(defdbn attActFILE_RECON_SDATA
+    
+    (PRIVS_DECEPTION    # (DEF_ACTIONS) ((l0AttDefActDist * attNOP_PrivsDeception)))
+    (C_DATA_DECOYS      # (DEF_ACTIONS) ((l0AttDefActDist * attNOP_CDataDecoys)))
+    (S_DATA_DECOYS      # (DEF_ACTIONS) ((l0AttDefActDist * attNOP_SDataDecoys)))
+    (HOST_HAS_VULN      # (DEF_ACTIONS) ((l0AttDefActDist * attNOP_HostHasVuln)))
+    (DATA_FOUND         (fileReconSDataDataFoundWrapper))
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS              (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(fileReconSDataData))
+    (DISCREPANCY 	(fileReconSDataInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- End attacker's FILE_RECON_SDATA
+
+---------------------------------------------------
+-- Attacker does PRIV_ESC
+
+(defdd privEscSuccess
+    (VULN_FOUND
+	(yes
+	    (ATTACKER_PRIVS
+		(user
+		    (ATTACKER_PRIVS'
+			(user 	(0.01))
+			(root 	(0.99))
+		    )
+		)
+
+	        (root   (ATTACKER_PRIVS' root))
+	    )
+	)
+
+	(no
+	    (ATTACKER_PRIVS
+		(user   (ATTACKER_PRIVS' user))
+		(root   (ATTACKER_PRIVS' root))
+	    )
+	)
+    )
+)
+
+(defdd privEscHasVuln
+
+    (HOST_HAS_VULN
+	(yes 	(privEscSuccess))
+	(no 	(SAME ATTACKER_PRIVS))
+    )
+)
+
+(defdd privEscAttackerPrivsWrapper
+
+    (ATTACKER_STATUS
+	(active 	(privEscHasVuln))
+	(inactive 	(SAME ATTACKER_PRIVS))
+    )
+)
+
+(defdd privEscOpResult
+    (VULN_FOUND'
+	(yes    (OP_RESULT' success))
+	(no     (OP_RESULT' fail))
+    )
+)
+
+(defdd privEscOpResultWrapper
+    (ATTACKER_STATUS'
+	(active 	(privEscOpResult))
+	(inactive 	(defaultOpResult))
+    )
+)
+
+(defdd attRewPRIV_ESC
+    (1.0)
+)
+
+(defdbn attActPRIV_ESC
+    
+    (PRIVS_DECEPTION    # (DEF_ACTIONS) (l0AttDefActDist * attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_HostHasVuln))
+    (ATTACKER_PRIVS     (privEscAttackerPrivsWrapper))
+
+    (OP_RESULT          (privEscOpResultWrapper))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- End PRIV_ESC
+
+---------------------------------------------------
+-- Attacker does EXIT
+
+(defdd impactCausedReward
+    (HOST_HAS_DATA
+	(sensitive_data
+		(IMPACT_CAUSED
+			(yes 	(-30.0))
+			(no 	(0.0))
+		)
+	)
+
+	(critical_data 	(0.0))
+	(none 			(0.0))
+    )
+)
+
+(defdd exitReward
+    (C_DATA_DECOYS
+	(yes 	(0.0))
+	(no
+		(S_DATA_DECOYS
+			(yes 	(0.0))
+			(no 	(impactCausedReward))
+		)
+	)
+    )
+)
+
+(defdd exitRewardDD
+    (ATTACKER_STATUS
+	(active 	(exitReward))
+	(inactive 	(1.0))
+    )
+)
+
+(defdd attRewEXIT
+    (exitRewardDD)
+)
+
+(defdbn attActEXIT
+    
+    (PRIVS_DECEPTION    (# (DEF_ACTIONS) (l0AttDefActDist * attNOP_PrivsDeception))) 
+    (C_DATA_DECOYS      (# (DEF_ACTIONS) (l0AttDefActDist * attNOP_CDataDecoys)))
+    (S_DATA_DECOYS      (# (DEF_ACTIONS) (l0AttDefActDist * attNOP_SDataDecoys)))
+    (HOST_HAS_VULN      (# (DEF_ACTIONS) (l0AttDefActDist * attNOP_HostHasVuln)))
+    (ATTACKER_STATUS    (ATTACKER_STATUS' inactive))
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+ -- End EXIT dynamics
+
+---------------------------------------------------
+-- Attacker does PERSIST
+
+(defdd rewPERSIST
+    (100)
+)
+
+(defdbn attActPERSIST
+    
+    (PRIVS_DECEPTION    # (DEF_ACTIONS) (l0AttDefActDist * attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_HostHasVuln)) 
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- End PERSIST dynamics
+
+---------------------------------------------------
+-- Attacker does VULN_RECON
+
+(defdd vulnAppYes   
+    (VULN_FOUND
+	(yes
+		(VULN_FOUND' yes)
+	)
+
+	(no
+		(VULN_FOUND'
+			(yes 	(0.7))
+			(no 	(0.3))
+		)
+	)
+    )
+)
+
+(defdd vulnAppNo
+    (VULN_FOUND
+	(yes
+		(VULN_FOUND' yes)
+	)
+
+	(no
+		(VULN_FOUND'
+			(yes 	(0.1))
+			(no 	(0.9))
+		)
+	)
+    )
+)
+
+(defdd vulnAppVulnFoundNoDeception
+    (HOST_HAS_VULN
+	(yes 		(vulnAppYes))
+	(no 		(vulnAppNo))
+    )
+)
+
+(defdd vulnReconVulnFoundWrapper
+    (ATTACKER_STATUS
+	(active 	(vulnAppVulnFoundNoDeception))
+	(inactive 	(SAME VULN_FOUND))
+    )
+)
+
+(defdd vulnReconVuln
+    (VULN_FOUND'
+	(yes    (VULN' yes))
+	(no     (VULN' no))
+    )
+)
+
+(defdd vulnReconVulnWrapper
+    (ATTACKER_STATUS'
+	(active 	(vulnReconVuln))
+	(inactive 	(defaultVuln))
+    )
+)
+
+(defdd attRewVULN_RECON
+    (1)
+)
+
+(defdbn attActVULN_RECON
+    
+    (PRIVS_DECEPTION    # (DEF_ACTIONS) (l0AttDefActDist * attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_HostHasVuln))
+    (VULN_FOUND         (vulnReconVulnFoundWrapper))
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(vulnReconVulnWrapper))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- End VULN_RECON dynamics
+
+---------------------------------------------------
+-- Attacker does START_EXFIL
+
+(defdd impactCausedDataFound
+    (DATA_FOUND
+	(yes
+	    (IMPACT_CAUSED
+		(yes    (IMPACT_CAUSED' yes))
+
+		(no
+		    (IMPACT_CAUSED'
+			(yes 	(0.8))
+			(no 	(0.2))
+		    )
+	        )
+	    )
+	)
+
+	(no     (IMPACT_CAUSED' no))
+    )
+)
+
+(defdd startExfilTargetImpactedWrapper
+    (ATTACKER_STATUS
+	(active 	(impactCausedDataFound))
+	(inactive 	(SAME IMPACT_CAUSED))
+    )
+)
+
+(defdd startExfilAOCompleteDD
+    (IMPACT_CAUSED'
+	(yes    (AO_COMPLETE' yes))
+	(no     (AO_COMPLETE' no))
+    )
+)
+
+(defdd startExfilAOComplete
+
+    (ATTACKER_STATUS'
+	(active 	(startExfilAOCompleteDD))
+	(inactive 	(defaultAOComplete))
+    )
+)
+
+(defdd startExfilOpResultDD
+    (DATA_FOUND'
+	(yes    (OP_RESULT' success))
+	(no     (OP_RESULT' fail))
+    )
+)
+
+(defdd startExfilOpResult
+    (ATTACKER_STATUS'
+	(active 	(startExfilOpResultDD))
+	(inactive  	(defaultOpResult))
+    )
+)
+
+(defdd attRewSTART_EXFIL
+    (DATA_FOUND
+        (yes 	(0.5))
+        (no 	(1.0))
+    )
+)
+
+(defdbn attActSTART_EXFIL
+    
+    (PRIVS_DECEPTION    # (DEF_ACTIONS) (l0AttDefActDist * attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_HostHasVuln))
+    (IMPACT_CAUSED      (startExfilTargetImpactedWrapper))
+
+    (OP_RESULT          (startExfilOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(startExfilAOComplete))
+)
+
+-- End START_EXFIL dynamics
+
+---------------------------------------------------
+-- Attacker does MANIPULATE_DATA
+
+(defdbn attActMANIPULATE_DATA
+    
+    (PRIVS_DECEPTION    # (DEF_ACTIONS) (l0AttDefActDist * attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_HostHasVuln)) 
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- End MANIPULATE_DATA dynamics
+
+
+---------------------------------------------------
+-- Attacker does FILE_RECON_CDATA
+
+(defdbn attActFILE_RECON_CDATA
+    
+    (PRIVS_DECEPTION    # (DEF_ACTIONS) (l0AttDefActDist * attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      # (DEF_ACTIONS) (l0AttDefActDist * attNOP_HostHasVuln)) 
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- End FILE_RECON_CDATA dynamics
+
+
+---------------------------------------------------
+-- Attacker does PERSIST
+
+(defdbn attActPERSIST
+    
+    (PRIVS_DECEPTION    (# (DEF_ACTIONS) (l0AttDefActDist * attNOP_PrivsDeception))) 
+    (C_DATA_DECOYS      (# (DEF_ACTIONS) (l0AttDefActDist * attNOP_CDataDecoys)))
+    (S_DATA_DECOYS      (# (DEF_ACTIONS) (l0AttDefActDist * attNOP_SDataDecoys)))
+    (HOST_HAS_VULN      (# (DEF_ACTIONS) (l0AttDefActDist * attNOP_HostHasVuln)))
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- End PERSIST dynamics
+
+-- Finally define attacker POMDP here
+
+(defpomdp exfilAttL0
+
+    (S
+        (
+            PRIVS_DECEPTION 
+            C_DATA_DECOYS 
+            S_DATA_DECOYS 		            
+            HOST_HAS_DATA 		
+            ATTACKER_PRIVS 		
+            DATA_ACCESS_PRIVS 	
+            HOST_HAS_VULN 		
+            DATA_FOUND 		
+            VULN_FOUND 		
+            IMPACT_CAUSED 		
+            ATTACKER_STATUS 	
+        )
+    )
+
+    (O
+        (
+            OP_RESULT  
+            PRIVS	   
+            VULN	   
+            DATA 	   
+            DISCREPANCY
+            AO_COMPLETE
+        )
+    )
+
+    (A  ATT_ACTIONS)
+    
+    (dynamics
+        (FILE_RECON_SDATA     (attActFILE_RECON_SDATA)) 
+        (FILE_RECON_CDATA     (attActFILE_RECON_CDATA))
+        (VULN_RECON           (attActVULN_RECON))
+        (PRIV_ESC             (attActPRIV_ESC))
+        (START_EXFIL          (attActSTART_EXFIL))
+        (NOP                  (attActNOP))
+        (MANIPULATE_DATA      (attActMANIPULATE_DATA))
+        (PERSIST              (attActPERSIST))
+        (EXIT                 (attActEXIT))
+        (CHECK_ROOT           (attActCHECK_ROOT))
+    )
+
+    (R
+        (FILE_RECON_SDATA     -(attRewFILE_RECON_SDATA))
+        (FILE_RECON_CDATA     -(100))
+        (VULN_RECON           -(attRewVULN_RECON))
+        (PRIV_ESC             -(attRewPRIV_ESC))
+        (START_EXFIL          -(attRewSTART_EXFIL))
+        (NOP                  -(attRewNOP))
+        (MANIPULATE_DATA      -(100))
+        (PERSIST              -(100))
+        (EXIT                 -(attRewEXIT))
+        (CHECK_ROOT           -(attRewCHECK_ROOT))      
+    )
+
+    (discount 0.9)
+)
+
+---------------------------------------------------
+-- Defender's dynamics are defined here
+---------------------------------------------------
+
+(defdd l0DefAttActDist             
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (0.1))  
+        (FILE_RECON_CDATA      (0.1)) 
+        (VULN_RECON            (0.1)) 
+        (PRIV_ESC              (0.1)) 
+        (START_EXFIL           (0.1)) 
+        (NOP                   (0.1)) 
+        (MANIPULATE_DATA       (0.1)) 
+        (PERSIST               (0.1)) 
+        (EXIT                  (0.1)) 
+        (CHECK_ROOT            (0.1)) 
+    )
+)
+
+(defdd privEscLogInference
+    (LOG_INFERENCE'
+	(file_recon 	 	(0.25))
+	(sys_info 		(0.25))
+	(persist_attempt 	(0.25))
+	(none 			(0.25))
+    )
+)
+
+(defdd fileReconInferred
+    (LOG_INFERENCE'
+	(file_recon 		(0.6))
+	(sys_info 		(0.0))
+	(persist_attempt 	(0.0))
+	(none 			(0.4))
+    )
+)
+
+(defdd vulnReconInferred
+    (LOG_INFERENCE'
+	(file_recon 		(0.4))
+	(sys_info 		(0.5))
+	(persist_attempt 	(0.0))
+	(none 			(0.1))
+    )
+)
+
+(defdd sDataDecoyIntTrigger
+
+    (S_DATA_DECOYS'
+	(yes
+	    (DATA_FOUND'
+		(yes
+		    (S_DATA_DECOY_INT'
+			(yes 	(0.99))
+			(no 	(0.01))
+		    )
+		)
+
+		(no     (S_DATA_DECOY_INT' no))
+	    )
+	)
+
+	(no     (S_DATA_DECOY_INT' no))
+    )
+)
+
+(defdd cDataDecoyIntTrigger
+
+    (C_DATA_DECOYS'
+	(yes
+	    (DATA_FOUND'
+		(yes
+		    (C_DATA_DECOY_INT'
+			(yes 	(0.99))
+			(no 	(0.01))
+		    )
+		)
+
+		(no     (C_DATA_DECOY_INT' no))
+	    )
+	)
+
+	(no     (C_DATA_DECOY_INT' no))
+    )
+)
+
+(defdd sDataDecoyInt
+
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (sDataDecoyIntTrigger))  
+        (FILE_RECON_CDATA      (S_DATA_DECOY_INT' no)) 
+        (VULN_RECON            (S_DATA_DECOY_INT' no)) 
+        (PRIV_ESC              (S_DATA_DECOY_INT' no)) 
+        (START_EXFIL           (S_DATA_DECOY_INT' no)) 
+        (NOP                   (S_DATA_DECOY_INT' no)) 
+        (MANIPULATE_DATA       (S_DATA_DECOY_INT' no)) 
+        (PERSIST               (S_DATA_DECOY_INT' no)) 
+        (EXIT                  (S_DATA_DECOY_INT' no)) 
+        (CHECK_ROOT            (S_DATA_DECOY_INT' no)) 
+    )   
+)
+
+(defdd cDataDecoyInt
+    
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (C_DATA_DECOY_INT' no))  
+        (FILE_RECON_CDATA      (cDataDecoyIntTrigger)) 
+        (VULN_RECON            (C_DATA_DECOY_INT' no)) 
+        (PRIV_ESC              (C_DATA_DECOY_INT' no)) 
+        (START_EXFIL           (C_DATA_DECOY_INT' no)) 
+        (NOP                   (C_DATA_DECOY_INT' no)) 
+        (MANIPULATE_DATA       (C_DATA_DECOY_INT' no)) 
+        (PERSIST               (C_DATA_DECOY_INT' no)) 
+        (EXIT                  (C_DATA_DECOY_INT' no)) 
+        (CHECK_ROOT            (C_DATA_DECOY_INT' no)) 
+    )
+)
+
+(defdd defaultLogInference
+    (LOG_INFERENCE'
+	(file_recon 	        (0.1))
+	(sys_info               (0.1))
+	(persist_attempt 	(0.05))
+	(none 			(0.75))
+    )
+)
+
+(defdd persistenceAttemptTriggered
+    (IMPACT_CAUSED'
+	(yes 
+	    (LOG_INFERENCE'
+		(file_recon 		(0.0))
+		(sys_info 		(0.0))
+		(persist_attempt 	(0.7))
+		(none 			(0.3))
+	    )
+	)
+	(no 	(defaultLogInference))
+    )
+)
+
+(defdd logInference
+    
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (fileReconInferred))  
+        (FILE_RECON_CDATA      (fileReconInferred)) 
+        (VULN_RECON            (vulnReconInferred)) 
+        (PRIV_ESC              (privEscLogInference)) 
+        (START_EXFIL           (defaultLogInference)) 
+        (NOP                   (defaultLogInference)) 
+        (MANIPULATE_DATA       (defaultLogInference)) 
+        (PERSIST               (persistenceAttemptTriggered)) 
+        (EXIT                  (defaultLogInference)) 
+        (CHECK_ROOT            (defaultLogInference)) 
+    )
+)
+
+-- Defender's actions are,
+-- NOP
+-- DEPLOY_VULN
+-- SHOW_ROOT_PRIVS
+-- SHOW_USER_PRIVS
+-- DEPLOY_CDATA_DEC
+-- DEPLOY_SDATA_DEC
+-- REMOVE_CDATA_DEC
+-- REMOVE_SDATA_DEC
+
+---------------------------------------------------
+-- L0 Defender's NOP action
+
+(defdd defNOP_DataFound
+    
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (fileReconSDataDataFoundWrapper))  
+        (FILE_RECON_CDATA      (SAME DATA_FOUND)) 
+        (VULN_RECON            (SAME DATA_FOUND)) 
+        (PRIV_ESC              (SAME DATA_FOUND)) 
+        (START_EXFIL           (SAME DATA_FOUND)) 
+        (NOP                   (SAME DATA_FOUND)) 
+        (MANIPULATE_DATA       (SAME DATA_FOUND)) 
+        (PERSIST               (SAME DATA_FOUND)) 
+        (EXIT                  (SAME DATA_FOUND)) 
+        (CHECK_ROOT            (SAME DATA_FOUND)) 
+    )
+)
+
+(defdd defNOP_VulnFound
+    
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (SAME VULN_FOUND))  
+        (FILE_RECON_CDATA      (SAME VULN_FOUND)) 
+        (VULN_RECON            (vulnReconVulnFoundWrapper)) 
+        (PRIV_ESC              (SAME VULN_FOUND)) 
+        (START_EXFIL           (SAME VULN_FOUND)) 
+        (NOP                   (SAME VULN_FOUND)) 
+        (MANIPULATE_DATA       (SAME VULN_FOUND)) 
+        (PERSIST               (SAME VULN_FOUND)) 
+        (EXIT                  (SAME VULN_FOUND)) 
+        (CHECK_ROOT            (SAME VULN_FOUND)) 
+    )
+)
+
+(defdd defNOP_AttackerPrivs
+    
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (SAME ATTACKER_PRIVS))  
+        (FILE_RECON_CDATA      (SAME ATTACKER_PRIVS)) 
+        (VULN_RECON            (SAME ATTACKER_PRIVS)) 
+        (PRIV_ESC              (privEscAttackerPrivsWrapper)) 
+        (START_EXFIL           (SAME ATTACKER_PRIVS)) 
+        (NOP                   (SAME ATTACKER_PRIVS)) 
+        (MANIPULATE_DATA       (SAME ATTACKER_PRIVS)) 
+        (PERSIST               (SAME ATTACKER_PRIVS)) 
+        (EXIT                  (SAME ATTACKER_PRIVS)) 
+        (CHECK_ROOT            (SAME ATTACKER_PRIVS)) 
+    )
+)
+
+(defdd defNOP_ImpactCaused
+    
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (SAME IMPACT_CAUSED))  
+        (FILE_RECON_CDATA      (SAME IMPACT_CAUSED)) 
+        (VULN_RECON            (SAME IMPACT_CAUSED)) 
+        (PRIV_ESC              (SAME IMPACT_CAUSED)) 
+        (START_EXFIL           (startExfilTargetImpactedWrapper)) 
+        (NOP                   (SAME IMPACT_CAUSED)) 
+        (MANIPULATE_DATA       (SAME IMPACT_CAUSED)) 
+        (PERSIST               (SAME IMPACT_CAUSED)) 
+        (EXIT                  (SAME IMPACT_CAUSED)) 
+        (CHECK_ROOT            (SAME IMPACT_CAUSED)) 
+    )
+)
+
+(defdd defNOP_AttackerStatus
+    
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (SAME ATTACKER_STATUS))  
+        (FILE_RECON_CDATA      (SAME ATTACKER_STATUS)) 
+        (VULN_RECON            (SAME ATTACKER_STATUS)) 
+        (PRIV_ESC              (SAME ATTACKER_STATUS)) 
+        (START_EXFIL           (SAME ATTACKER_STATUS)) 
+        (NOP                   (SAME ATTACKER_STATUS)) 
+        (MANIPULATE_DATA       (SAME ATTACKER_STATUS)) 
+        (PERSIST               (SAME ATTACKER_STATUS)) 
+        (EXIT                  (ATTACKER_STATUS' inactive)) 
+        (CHECK_ROOT            (SAME ATTACKER_STATUS)) 
+    )
+)
+
+(defdbn defL0ActNOP
+
+    (ATTACKER_PRIVS    # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerPrivs))
+    (DATA_FOUND        # (ATT_ACTIONS) (l0DefAttActDist * defNOP_DataFound))
+    (VULN_FOUND        # (ATT_ACTIONS) (l0DefAttActDist * defNOP_VulnFound))
+    (IMPACT_CAUSED     # (ATT_ACTIONS) (l0DefAttActDist * defNOP_ImpactCaused))
+    (ATTACKER_STATUS   # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT  # (ATT_ACTIONS) (l0DefAttActDist * sDataDecoyInt))
+    (C_DATA_DECOY_INT  # (ATT_ACTIONS) (l0DefAttActDist * cDataDecoyInt))
+    (LOG_INFERENCE     # (ATT_ACTIONS) (l0DefAttActDist * logInference))
+)
+
+-- End Defender's NOP action
+
+---------------------------------------------------
+-- L0 Defender's DEPLOY_VULN action
+
+(defdbn defL0ActDEPLOY_VULN
+    
+    (HOST_HAS_VULN      (deployVulnHostHasVuln))
+    (ATTACKER_PRIVS     # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_DataFound)) 	
+    (VULN_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      # (ATT_ACTIONS) (l0DefAttActDist * defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * sDataDecoyInt))
+    (C_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * cDataDecoyInt))
+    (LOG_INFERENCE      # (ATT_ACTIONS) (l0DefAttActDist * logInference))
+)
+
+-- End Defender's DEPLOY_VULN action
+
+---------------------------------------------------
+-- L0 Defender's SHOW_ROOT_PRIVS action
+
+(defdbn defL0ActSHOW_ROOT_PRIVS
+    
+    (PRIVS_DECEPTION    (showRootPrivsPrivsDecept))
+    (ATTACKER_PRIVS     # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_DataFound)) 	
+    (VULN_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      # (ATT_ACTIONS) (l0DefAttActDist * defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * sDataDecoyInt))
+    (C_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * cDataDecoyInt))
+    (LOG_INFERENCE      # (ATT_ACTIONS) (l0DefAttActDist * logInference))
+
+)
+-- End Defender's SHOW_ROOT_PRIVS action
+
+---------------------------------------------------
+-- L0 Defender's SHOW_USER_PRIVS action
+
+(defdbn defL0ActSHOW_USER_PRIVS
+    
+    (PRIVS_DECEPTION    (showUserPrivsPrivsDecept))
+    (ATTACKER_PRIVS     # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_DataFound)) 	
+    (VULN_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      # (ATT_ACTIONS) (l0DefAttActDist * defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * sDataDecoyInt))
+    (C_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * cDataDecoyInt))
+    (LOG_INFERENCE      # (ATT_ACTIONS) (l0DefAttActDist * logInference))
+
+)
+
+-- End Defender's SHOW_USER_PRIVS action
+
+---------------------------------------------------
+-- L0 Defender's DEPLOY_SDATA_DEC action
+
+(defdbn defL0ActDEPLOY_SDATA_DEC
+    
+    (S_DATA_DECOYS      (deploySDataDecSDataDecoys))
+    (ATTACKER_PRIVS     # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_DataFound)) 	
+    (VULN_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      # (ATT_ACTIONS) (l0DefAttActDist * defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * sDataDecoyInt))
+    (C_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * cDataDecoyInt))
+    (LOG_INFERENCE      # (ATT_ACTIONS) (l0DefAttActDist * logInference))
+
+)
+
+-- End Defender's DEPLOY_SDATA_DEC action
+
+---------------------------------------------------
+-- L0 Defender's DEPLOY_CDATA_DEC action
+
+(defdbn defL0ActDEPLOY_CDATA_DEC
+    
+    (C_DATA_DECOYS      (deployCDataDecCDataDecoys))
+    (ATTACKER_PRIVS     # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_DataFound)) 	
+    (VULN_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      # (ATT_ACTIONS) (l0DefAttActDist * defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * sDataDecoyInt))
+    (C_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * cDataDecoyInt))
+    (LOG_INFERENCE      # (ATT_ACTIONS) (l0DefAttActDist * logInference))
+
+)
+
+-- End Defender's DEPLOY_CDATA_DEC action
+
+---------------------------------------------------
+-- L0 Defender's REMOVE_SDATA_DEC action
+
+(defdbn defL0ActREMOVE_SDATA_DEC
+    
+    (S_DATA_DECOYS      (removeSDataDecSDataDecoys))
+    (ATTACKER_PRIVS     # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_DataFound)) 	
+    (VULN_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      # (ATT_ACTIONS) (l0DefAttActDist * defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * sDataDecoyInt))
+    (C_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * cDataDecoyInt))
+    (LOG_INFERENCE      # (ATT_ACTIONS) (l0DefAttActDist * logInference))
+
+)
+
+-- End Defender's REMOVE_SDATA_DEC action
+
+---------------------------------------------------
+-- L0 Defender's REMOVE_CDATA_DEC action
+
+(defdbn defL0ActREMOVE_CDATA_DEC
+    
+    (C_DATA_DECOYS      (removeCDataDecCDataDecoys))
+    (ATTACKER_PRIVS     # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_DataFound)) 	
+    (VULN_FOUND         # (ATT_ACTIONS) (l0DefAttActDist * defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      # (ATT_ACTIONS) (l0DefAttActDist * defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    # (ATT_ACTIONS) (l0DefAttActDist * defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * sDataDecoyInt))
+    (C_DATA_DECOY_INT   # (ATT_ACTIONS) (l0DefAttActDist * cDataDecoyInt))
+    (LOG_INFERENCE      # (ATT_ACTIONS) (l0DefAttActDist * logInference))
+)
+
+-- End Defender's REMOVE_CDATA_DEC action
+
+-- Defender's reward (penalty if the attacker exits)
+
+(defdd exitCost
+    
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (0.0))  
+        (FILE_RECON_CDATA      (0.0)) 
+        (VULN_RECON            (0.0)) 
+        (PRIV_ESC              (0.0)) 
+        (START_EXFIL           (0.0)) 
+        (NOP                   (0.0)) 
+        (MANIPULATE_DATA       (0.0)) 
+        (PERSIST               (0.0)) 
+        (EXIT                  (-4.0)) 
+        (CHECK_ROOT            (0.0)) 
+    )
+)
+
+-- L0 defender's initial belief
+
+(defdd initBeliefDefL0
+
+    (
+	(PRIVS_DECEPTION
+		(user 			(0.0))
+		(root 			(0.0))
+		(none 			(1.0))
+	)
+
+	* (C_DATA_DECOYS
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	* (S_DATA_DECOYS
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	* (HOST_HAS_DATA
+		(sensitive_data         (0.0))
+		(critical_data 	        (0.0))
+		(none 			(1.0))
+	)
+
+	* (DATA_ACCESS_PRIVS
+		(user 			(0.5))
+		(root 			(0.5))
+	)
+
+	* (HOST_HAS_VULN
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	* (ATTACKER_PRIVS
+		(user			(0.5))
+		(root			(0.5))
+	)
+
+	* (DATA_FOUND
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	* (VULN_FOUND
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	* (IMPACT_CAUSED
+		(yes 			(0.0))
+		(no 			(1.0))
+	)
+
+	* (ATTACKER_STATUS
+		(active 		(1.0))
+		(inactive 		(0.0))
+	)
+    )
+)
+
+---------------------------------------------------
+-- Define L0 defender's POMDP here
+
+(defpomdp defL0
+
+    (S
+        (
+            PRIVS_DECEPTION 
+            C_DATA_DECOYS 
+            S_DATA_DECOYS 		            
+            HOST_HAS_DATA 		
+            ATTACKER_PRIVS 		
+            DATA_ACCESS_PRIVS 	
+            HOST_HAS_VULN 		
+            DATA_FOUND 		
+            VULN_FOUND 		
+            IMPACT_CAUSED 		
+            ATTACKER_STATUS 	
+        )
+    )
+
+    (O
+        (
+            S_DATA_DECOY_INT
+            C_DATA_DECOY_INT
+            LOG_INFERENCE
+        )
+    )
+
+    (A  DEF_ACTIONS)
+    
+    (dynamics
+        
+        (NOP                   (defL0ActNOP))
+        (DEPLOY_VULN           (defL0ActDEPLOY_VULN))
+        (SHOW_ROOT_PRIVS       (defL0ActSHOW_ROOT_PRIVS))
+        (SHOW_USER_PRIVS       (defL0ActSHOW_USER_PRIVS))
+        (DEPLOY_CDATA_DEC      (defL0ActDEPLOY_CDATA_DEC))
+        (DEPLOY_SDATA_DEC      (defL0ActDEPLOY_SDATA_DEC))
+        (REMOVE_CDATA_DEC      (defL0ActREMOVE_CDATA_DEC))
+        (REMOVE_SDATA_DEC      (defL0ActREMOVE_SDATA_DEC))
+    )
+
+    (R
+        (NOP                   (exitCost))  
+        (DEPLOY_VULN           (exitCost)) 
+        (SHOW_ROOT_PRIVS       (exitCost)) 
+        (SHOW_USER_PRIVS       (exitCost)) 
+        (DEPLOY_CDATA_DEC      (exitCost)) 
+        (DEPLOY_SDATA_DEC      (exitCost)) 
+        (REMOVE_CDATA_DEC      (exitCost)) 
+        (REMOVE_SDATA_DEC      (exitCost)) 
+    )
+
+    (discount 0.9)
+)
+
+-- End defender's L0 pomdp
+
+-----------------------------------------------
+-- Start level N attacker dynamics
+
+-- Attacker does NOP
+
+(defdbn attLNActNOP
+
+    (PRIVS_DECEPTION     (attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS       (attNOP_CDataDecoys))
+    (S_DATA_DECOYS       (attNOP_SDataDecoys))
+    (HOST_HAS_VULN       (attNOP_HostHasVuln))
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- Attacker does CHECK_ROOT
+
+(defdbn attLNActCHECK_ROOT
+    
+    (PRIVS_DECEPTION    (attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      (attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      (attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      (attNOP_HostHasVuln)) 
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (checkRootPrivsWrapper))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- Attacker does FILE_RECON_SDATA
+
+(defdbn attLNActFILE_RECON_SDATA
+    
+    (PRIVS_DECEPTION    (attNOP_PrivsDeception))
+    (C_DATA_DECOYS      (attNOP_CDataDecoys))
+    (S_DATA_DECOYS      (attNOP_SDataDecoys))
+    (HOST_HAS_VULN      (attNOP_HostHasVuln))
+    (DATA_FOUND         (fileReconSDataDataFoundWrapper))
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS              (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(fileReconSDataData))
+    (DISCREPANCY 	(fileReconSDataInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- Attacker does PRIV_ESC
+
+(defdbn attLNActPRIV_ESC
+    
+    (PRIVS_DECEPTION    (attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      (attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      (attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      (attNOP_HostHasVuln))
+    (ATTACKER_PRIVS     (privEscAttackerPrivsWrapper))
+
+    (OP_RESULT          (privEscOpResultWrapper))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- Attacker does EXIT
+
+(defdbn attLNActEXIT
+    
+    (PRIVS_DECEPTION    (attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      (attNOP_CDataDecoys))
+    (S_DATA_DECOYS      (attNOP_SDataDecoys))
+    (HOST_HAS_VULN      (attNOP_HostHasVuln))
+    (ATTACKER_STATUS    (ATTACKER_STATUS' inactive))
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- Attacker does PERSIST
+
+(defdbn attLNActPERSIST
+    
+    (PRIVS_DECEPTION    (attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      (attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      (attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      (attNOP_HostHasVuln)) 
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- Attacker does VULN_RECON
+
+(defdbn attLNActVULN_RECON
+    
+    (PRIVS_DECEPTION    (attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      (attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      (attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      (attNOP_HostHasVuln))
+    (VULN_FOUND         (vulnReconVulnFoundWrapper))
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(vulnReconVulnWrapper))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- Attacker does START_EXFIL
+
+(defdbn attLNActSTART_EXFIL
+    
+    (PRIVS_DECEPTION    (attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      (attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      (attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      (attNOP_HostHasVuln))
+    (IMPACT_CAUSED      (startExfilTargetImpactedWrapper))
+
+    (OP_RESULT          (startExfilOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(startExfilAOComplete))
+)
+
+-- Attacker does MANIPULATE_DATA
+
+(defdbn attLNActMANIPULATE_DATA
+    
+    (PRIVS_DECEPTION    (attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      (attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      (attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      (attNOP_HostHasVuln)) 
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- Attacker does FILE_RECON_CDATA
+
+(defdbn attLNActFILE_RECON_CDATA
+    
+    (PRIVS_DECEPTION    (attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      (attNOP_CDataDecoys))	
+    (S_DATA_DECOYS      (attNOP_SDataDecoys)) 
+    (HOST_HAS_VULN      (attNOP_HostHasVuln)) 
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- Attacker does PERSIST
+
+(defdbn attLNActPERSIST
+    
+    (PRIVS_DECEPTION    (attNOP_PrivsDeception)) 
+    (C_DATA_DECOYS      (attNOP_CDataDecoys))
+    (S_DATA_DECOYS      (attNOP_SDataDecoys))
+    (HOST_HAS_VULN      (attNOP_HostHasVuln))
+
+    (OP_RESULT          (defaultOpResult))
+    (PRIVS 	        (defaultPrivs))
+    (VULN 		(defaultVuln))
+    (DATA 		(defaultData))
+    (DISCREPANCY 	(defaultInconsistency))
+    (AO_COMPLETE 	(defaultAOComplete))
+)
+
+-- End level N attacker dynamics
+-----------------------------------------------
+
+-----------------------------------------------
+-- Defender's level N dynamics
+
+-- defender does NOP
+
+(defdbn defLNActNOP
+
+    (ATTACKER_PRIVS    (defNOP_AttackerPrivs))
+    (DATA_FOUND        (defNOP_DataFound))
+    (VULN_FOUND        (defNOP_VulnFound))
+    (IMPACT_CAUSED     (defNOP_ImpactCaused))
+    (ATTACKER_STATUS   (defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT  (sDataDecoyInt))
+    (C_DATA_DECOY_INT  (cDataDecoyInt))
+    (LOG_INFERENCE     (logInference))
+)
+
+-- defender does DEPLOY_VULN
+
+(defdbn defLNActDEPLOY_VULN
+    
+    (HOST_HAS_VULN      (deployVulnHostHasVuln))
+    (ATTACKER_PRIVS     (defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         (defNOP_DataFound)) 	
+    (VULN_FOUND         (defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      (defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    (defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   (sDataDecoyInt))
+    (C_DATA_DECOY_INT   (cDataDecoyInt))
+    (LOG_INFERENCE      (logInference))
+)
+
+-- defender does SHOW_ROOT_PRIVS
+
+(defdbn defLNActSHOW_ROOT_PRIVS
+    
+    (PRIVS_DECEPTION    (showRootPrivsPrivsDecept))
+    (ATTACKER_PRIVS     (defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         (defNOP_DataFound)) 	
+    (VULN_FOUND         (defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      (defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    (defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   (sDataDecoyInt))
+    (C_DATA_DECOY_INT   (cDataDecoyInt))
+    (LOG_INFERENCE      (logInference))
+
+)
+
+-- defender does SHOW_USER_PRIVS
+
+(defdbn defLNActSHOW_USER_PRIVS
+    
+    (PRIVS_DECEPTION    (showUserPrivsPrivsDecept))
+    (ATTACKER_PRIVS     (defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         (defNOP_DataFound)) 	
+    (VULN_FOUND         (defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      (defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    (defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   (sDataDecoyInt))
+    (C_DATA_DECOY_INT   (cDataDecoyInt))
+    (LOG_INFERENCE      (logInference))
+
+)
+
+-- defender does DEPLOY_SDATA_DEC
+
+(defdbn defLNActDEPLOY_SDATA_DEC
+    
+    (S_DATA_DECOYS      (deploySDataDecSDataDecoys))
+    (ATTACKER_PRIVS     (defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         (defNOP_DataFound)) 	
+    (VULN_FOUND         (defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      (defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    (defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   (sDataDecoyInt))
+    (C_DATA_DECOY_INT   (cDataDecoyInt))
+    (LOG_INFERENCE      (logInference))
+
+)
+
+-- defender does DEPLOY_CDATA_DEC
+
+(defdbn defLNActDEPLOY_CDATA_DEC
+    
+    (C_DATA_DECOYS      (deployCDataDecCDataDecoys))
+    (ATTACKER_PRIVS     (defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         (defNOP_DataFound)) 	
+    (VULN_FOUND         (defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      (defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    (defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   (sDataDecoyInt))
+    (C_DATA_DECOY_INT   (cDataDecoyInt))
+    (LOG_INFERENCE      (logInference))
+
+)
+
+-- defender does REMOVE_SDATA_DEC
+
+(defdbn defLNActREMOVE_SDATA_DEC
+    
+    (S_DATA_DECOYS      (removeSDataDecSDataDecoys))
+    (ATTACKER_PRIVS     (defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         (defNOP_DataFound)) 	
+    (VULN_FOUND         (defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      (defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    (defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   (sDataDecoyInt))
+    (C_DATA_DECOY_INT   (cDataDecoyInt))
+    (LOG_INFERENCE      (logInference))
+
+)
+
+-- defender does REMOVE_CDATA_DEC
+
+(defdbn defLNActREMOVE_CDATA_DEC
+    
+    (C_DATA_DECOYS      (removeCDataDecCDataDecoys))
+    (ATTACKER_PRIVS     (defNOP_AttackerPrivs)) 	
+    (DATA_FOUND         (defNOP_DataFound)) 	
+    (VULN_FOUND         (defNOP_VulnFound)) 	
+    (IMPACT_CAUSED      (defNOP_ImpactCaused)) 	
+    (ATTACKER_STATUS    (defNOP_AttackerStatus))
+
+    (S_DATA_DECOY_INT   (sDataDecoyInt))
+    (C_DATA_DECOY_INT   (cDataDecoyInt))
+    (LOG_INFERENCE      (logInference))
+)
+
+-- End level N defender dynamics
+-----------------------------------------------
+
+-----------------------------------------------
+-- define aggressive L0 defender here
+
+(defdd rewState
+    (S_DATA_DECOYS
+        (yes
+            (C_DATA_DECOYS
+                (yes    (0.0))
+                (no     (1.0))
+            )
+        )
+        (no
+            (C_DATA_DECOYS
+                (yes    (1.0))
+                (no     (0.0))
+            )
+        )
+    )
+)
+
+(defpomdp defL0Agg
+
+    (S
+        (
+            PRIVS_DECEPTION 
+            C_DATA_DECOYS 
+            S_DATA_DECOYS 		            
+            HOST_HAS_DATA 		
+            ATTACKER_PRIVS 		
+            DATA_ACCESS_PRIVS 	
+            HOST_HAS_VULN 		
+            DATA_FOUND 		
+            VULN_FOUND 		
+            IMPACT_CAUSED 		
+            ATTACKER_STATUS 	
+        )
+    )
+
+    (O
+        (
+            S_DATA_DECOY_INT
+            C_DATA_DECOY_INT
+            LOG_INFERENCE
+        )
+    )
+
+    (A  DEF_ACTIONS)
+    
+    (dynamics
+        
+        (NOP                   (defL0ActNOP))
+        (DEPLOY_VULN           (defL0ActDEPLOY_VULN))
+        (SHOW_ROOT_PRIVS       (defL0ActSHOW_ROOT_PRIVS))
+        (SHOW_USER_PRIVS       (defL0ActSHOW_USER_PRIVS))
+        (DEPLOY_CDATA_DEC      (defL0ActDEPLOY_CDATA_DEC))
+        (DEPLOY_SDATA_DEC      (defL0ActDEPLOY_SDATA_DEC))
+        (REMOVE_CDATA_DEC      (defL0ActREMOVE_CDATA_DEC))
+        (REMOVE_SDATA_DEC      (defL0ActREMOVE_SDATA_DEC))
+    )
+
+    (R
+        (NOP                   (rewState))  
+        (DEPLOY_VULN           (-(0.1))) 
+        (SHOW_ROOT_PRIVS       (-(0.1))) 
+        (SHOW_USER_PRIVS       (-(0.1))) 
+        (DEPLOY_CDATA_DEC      (-(0.1))) 
+        (DEPLOY_SDATA_DEC      (-(0.1))) 
+        (REMOVE_CDATA_DEC      (-(0.1))) 
+        (REMOVE_SDATA_DEC      (-(0.1))) 
+    )
+
+    (discount 0.9)
+)
+
+-- end aggressive L0 defender
+-----------------------------------------------
+
+-----------------------------------------------
+-- Define exfil L1 attacker
+
+(initmodelvar AttL1ModelsDefL0
+    (frames DefL0Frames)
+    (
+        (passive        (m0     (initBeliefDefL0)))
+        (active         (m1     (initBeliefDefL0)))
+    )
+)
+
+
+(defipomdp attL1Exfil
+
+    (S
+        (
+            PRIVS_DECEPTION 
+            C_DATA_DECOYS 
+            S_DATA_DECOYS 		            
+            HOST_HAS_DATA 		
+            ATTACKER_PRIVS 		
+            DATA_ACCESS_PRIVS 	
+            HOST_HAS_VULN 		
+            DATA_FOUND 		
+            VULN_FOUND 		
+            IMPACT_CAUSED 		
+            ATTACKER_STATUS 	
+        )
+    )
+
+    (O
+        (
+            OP_RESULT  
+            PRIVS	   
+            VULN	   
+            DATA 	   
+            DISCREPANCY
+            AO_COMPLETE  
+        )
+    )
+
+    (A  ATT_ACTIONS)
+    (Aj DEF_ACTIONS)
+
+    (Mj AttL1ModelsDefL0)
+
+    (Thetaj DefL0Frames
+        (passive        defL0)
+        (active         defL0Agg)
+    )
+
+    (dynamics
+        (FILE_RECON_SDATA     (attLNActFILE_RECON_SDATA)) 
+        (FILE_RECON_CDATA     (attLNActFILE_RECON_CDATA))
+        (VULN_RECON           (attLNActVULN_RECON))
+        (PRIV_ESC             (attLNActPRIV_ESC))
+        (START_EXFIL          (attLNActSTART_EXFIL))
+        (NOP                  (attLNActNOP))
+        (MANIPULATE_DATA      (attLNActMANIPULATE_DATA))
+        (PERSIST              (attLNActPERSIST))
+        (EXIT                 (attLNActEXIT))
+        (CHECK_ROOT           (attLNActCHECK_ROOT))
+    )
+
+    (R
+       
+        (FILE_RECON_SDATA     (-(0.1))) 
+        (FILE_RECON_CDATA     (-(0.1)))
+        (VULN_RECON           (-(0.1)))
+        (PRIV_ESC             (-(0.1)))
+        (START_EXFIL          (-(0.1)))
+        (NOP                  (IMPACT_CAUSED    (yes (1.0))      (no (0.0))))
+        (MANIPULATE_DATA      (-(0.1)))
+        (PERSIST              (-(0.1)))
+        (EXIT                 (-(0.1)))
+        (CHECK_ROOT           (-(0.1)))
+    )
+
+    (discount 0.9)
+    (H 4)
+)
+
+-- L1 attacker belief
+
+(defdd initL1AttBelief
+    (
+        (AttL1ModelsDefL0
+            (m0         (0.5))
+            (m1         (0.5))
+        )
+
+        * (initBeliefAttL0)
+    )
+)
+
+-- end L1 exfil attacker
+-----------------------------------------------
+
+
+-----------------------------------------------
+-- Start env def
+
+(defdd privsDeceptionEnv
+    (DEF_ACTIONS
+        (NOP                    (SAME PRIVS_DECEPTION))                  
+        (DEPLOY_VULN            (SAME PRIVS_DECEPTION))
+        (SHOW_ROOT_PRIVS        (showRootPrivsPrivsDecept)) 
+        (SHOW_USER_PRIVS        (showUserPrivsPrivsDecept)) 
+        (DEPLOY_CDATA_DEC       (SAME PRIVS_DECEPTION)) 
+        (DEPLOY_SDATA_DEC       (SAME PRIVS_DECEPTION)) 
+        (REMOVE_CDATA_DEC       (SAME PRIVS_DECEPTION)) 
+        (REMOVE_SDATA_DEC       (SAME PRIVS_DECEPTION)) 
+    ) 
+)
+
+(defdd CDataDecoysEnv
+    (DEF_ACTIONS
+        (NOP                    (SAME C_DATA_DECOYS))                  
+        (DEPLOY_VULN            (SAME C_DATA_DECOYS))
+        (SHOW_ROOT_PRIVS        (SAME C_DATA_DECOYS)) 
+        (SHOW_USER_PRIVS        (SAME C_DATA_DECOYS)) 
+        (DEPLOY_CDATA_DEC       (deployCDataDecCDataDecoys)) 
+        (DEPLOY_SDATA_DEC       (SAME C_DATA_DECOYS)) 
+        (REMOVE_CDATA_DEC       (removeCDataDecCDataDecoys)) 
+        (REMOVE_SDATA_DEC       (SAME C_DATA_DECOYS)) 
+    ) 
+)
+
+(defdd SDataDecoysEnv
+    (DEF_ACTIONS
+        (NOP                    (SAME S_DATA_DECOYS))                  
+        (DEPLOY_VULN            (SAME S_DATA_DECOYS))
+        (SHOW_ROOT_PRIVS        (SAME S_DATA_DECOYS)) 
+        (SHOW_USER_PRIVS        (SAME S_DATA_DECOYS)) 
+        (DEPLOY_SDATA_DEC       (deploySDataDecSDataDecoys)) 
+        (DEPLOY_CDATA_DEC       (SAME S_DATA_DECOYS)) 
+        (REMOVE_SDATA_DEC       (removeSDataDecSDataDecoys)) 
+        (REMOVE_CDATA_DEC       (SAME S_DATA_DECOYS)) 
+    ) 
+)
+
+(defdd hostHasDataEnv
+    (SAME HOST_HAS_DATA)
+)
+
+(defdd attackerPrivsEnv
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (SAME ATTACKER_PRIVS))  
+        (FILE_RECON_CDATA      (SAME ATTACKER_PRIVS)) 
+        (VULN_RECON            (SAME ATTACKER_PRIVS)) 
+        (PRIV_ESC              (privEscAttackerPrivsWrapper)) 
+        (START_EXFIL           (SAME ATTACKER_PRIVS)) 
+        (NOP                   (SAME ATTACKER_PRIVS)) 
+        (MANIPULATE_DATA       (SAME ATTACKER_PRIVS)) 
+        (PERSIST               (SAME ATTACKER_PRIVS)) 
+        (EXIT                  (SAME ATTACKER_PRIVS)) 
+        (CHECK_ROOT            (SAME ATTACKER_PRIVS)) 
+    )
+)
+
+(defdd dataAccessPrivsEnv
+    (SAME DATA_ACCESS_PRIVS)
+)
+
+(defdd hostHasVulnEnv
+    (DEF_ACTIONS
+        (NOP                    (SAME HOST_HAS_VULN))                  
+        (DEPLOY_VULN            (deployVulnHostHasVuln))
+        (SHOW_ROOT_PRIVS        (SAME HOST_HAS_VULN)) 
+        (SHOW_USER_PRIVS        (SAME HOST_HAS_VULN)) 
+        (DEPLOY_SDATA_DEC       (SAME HOST_HAS_VULN)) 
+        (DEPLOY_CDATA_DEC       (SAME HOST_HAS_VULN)) 
+        (REMOVE_SDATA_DEC       (SAME HOST_HAS_VULN)) 
+        (REMOVE_CDATA_DEC       (SAME HOST_HAS_VULN)) 
+    )
+)
+
+(defdd dataFoundEnv
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (fileReconSDataDataFoundWrapper))  
+        (FILE_RECON_CDATA      (SAME DATA_FOUND)) 
+        (VULN_RECON            (SAME DATA_FOUND)) 
+        (PRIV_ESC              (SAME DATA_FOUND)) 
+        (START_EXFIL           (SAME DATA_FOUND)) 
+        (NOP                   (SAME DATA_FOUND)) 
+        (MANIPULATE_DATA       (SAME DATA_FOUND)) 
+        (PERSIST               (SAME DATA_FOUND)) 
+        (EXIT                  (SAME DATA_FOUND)) 
+        (CHECK_ROOT            (SAME DATA_FOUND)) 
+    )
+)
+
+(defdd vulnFoundEnv
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (SAME VULN_FOUND))  
+        (FILE_RECON_CDATA      (SAME VULN_FOUND)) 
+        (VULN_RECON            (vulnReconVulnFoundWrapper)) 
+        (PRIV_ESC              (SAME VULN_FOUND)) 
+        (START_EXFIL           (SAME VULN_FOUND)) 
+        (NOP                   (SAME VULN_FOUND)) 
+        (MANIPULATE_DATA       (SAME VULN_FOUND)) 
+        (PERSIST               (SAME VULN_FOUND)) 
+        (EXIT                  (SAME VULN_FOUND)) 
+        (CHECK_ROOT            (SAME VULN_FOUND)) 
+    )
+)
+
+(defdd impactCausedEnv
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (SAME IMPACT_CAUSED))  
+        (FILE_RECON_CDATA      (SAME IMPACT_CAUSED)) 
+        (VULN_RECON            (SAME IMPACT_CAUSED)) 
+        (PRIV_ESC              (SAME IMPACT_CAUSED)) 
+        (START_EXFIL           (startExfilTargetImpactedWrapper)) 
+        (NOP                   (SAME IMPACT_CAUSED)) 
+        (MANIPULATE_DATA       (SAME IMPACT_CAUSED)) 
+        (PERSIST               (SAME IMPACT_CAUSED)) 
+        (EXIT                  (SAME IMPACT_CAUSED)) 
+        (CHECK_ROOT            (SAME IMPACT_CAUSED)) 
+    )
+)
+
+(defdd attackerStatusEnv
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (SAME ATTACKER_STATUS))  
+        (FILE_RECON_CDATA      (SAME ATTACKER_STATUS)) 
+        (VULN_RECON            (SAME ATTACKER_STATUS)) 
+        (PRIV_ESC              (SAME ATTACKER_STATUS)) 
+        (START_EXFIL           (SAME ATTACKER_STATUS)) 
+        (NOP                   (SAME ATTACKER_STATUS)) 
+        (MANIPULATE_DATA       (SAME ATTACKER_STATUS)) 
+        (PERSIST               (SAME ATTACKER_STATUS)) 
+        (EXIT                  (ATTACKER_STATUS' inactive)) 
+        (CHECK_ROOT            (SAME ATTACKER_STATUS)) 
+    )
+)
+
+(defdd opResultEnv
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (defaultOpResult))  
+        (FILE_RECON_CDATA      (defaultOpResult)) 
+        (VULN_RECON            (defaultOpResult)) 
+        (PRIV_ESC              (privEscOpResult)) 
+        (START_EXFIL           (startExfilOpResult)) 
+        (NOP                   (defaultOpResult)) 
+        (MANIPULATE_DATA       (defaultOpResult)) 
+        (PERSIST               (defaultOpResult)) 
+        (EXIT                  (defaultOpResult)) 
+        (CHECK_ROOT            (defaultOpResult)) 
+    )
+)
+
+(defdd privsEnv
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (defaultPrivs))  
+        (FILE_RECON_CDATA      (defaultPrivs)) 
+        (VULN_RECON            (defaultPrivs)) 
+        (PRIV_ESC              (defaultPrivs)) 
+        (START_EXFIL           (defaultPrivs)) 
+        (NOP                   (defaultPrivs)) 
+        (MANIPULATE_DATA       (defaultPrivs)) 
+        (PERSIST               (defaultPrivs)) 
+        (EXIT                  (defaultPrivs)) 
+        (CHECK_ROOT            (checkRootPrivsWrapper)) 
+    )
+)
+
+(defdd vulnEnv
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (defaultVuln))  
+        (FILE_RECON_CDATA      (defaultVuln)) 
+        (VULN_RECON            (vulnReconVulnWrapper)) 
+        (PRIV_ESC              (defaultVuln)) 
+        (START_EXFIL           (defaultVuln)) 
+        (NOP                   (defaultVuln)) 
+        (MANIPULATE_DATA       (defaultVuln)) 
+        (PERSIST               (defaultVuln)) 
+        (EXIT                  (defaultVuln)) 
+        (CHECK_ROOT            (defaultVuln)) 
+    )
+)
+
+(defdd dataEnv
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (fileReconSDataData))  
+        (FILE_RECON_CDATA      (defaultData)) 
+        (VULN_RECON            (defaultData)) 
+        (PRIV_ESC              (defaultData)) 
+        (START_EXFIL           (defaultData)) 
+        (NOP                   (defaultData)) 
+        (MANIPULATE_DATA       (defaultData)) 
+        (PERSIST               (defaultData)) 
+        (EXIT                  (defaultData)) 
+        (CHECK_ROOT            (defaultData)) 
+    )
+)
+
+(defdd discrepancyEnv
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (fileReconSDataInconsistency))  
+        (FILE_RECON_CDATA      (defaultInconsistency)) 
+        (VULN_RECON            (defaultInconsistency)) 
+        (PRIV_ESC              (defaultInconsistency)) 
+        (START_EXFIL           (defaultInconsistency)) 
+        (NOP                   (defaultInconsistency)) 
+        (MANIPULATE_DATA       (defaultInconsistency)) 
+        (PERSIST               (defaultInconsistency)) 
+        (EXIT                  (defaultInconsistency)) 
+        (CHECK_ROOT            (defaultInconsistency)) 
+    )
+)
+
+(defdd aoCompleteEnv
+    (ATT_ACTIONS
+        (FILE_RECON_SDATA      (defaultAOComplete))  
+        (FILE_RECON_CDATA      (defaultAOComplete)) 
+        (VULN_RECON            (defaultAOComplete)) 
+        (PRIV_ESC              (defaultAOComplete)) 
+        (START_EXFIL           (startExfilAOComplete)) 
+        (NOP                   (defaultAOComplete)) 
+        (MANIPULATE_DATA       (defaultAOComplete)) 
+        (PERSIST               (defaultAOComplete)) 
+        (EXIT                  (defaultAOComplete)) 
+        (CHECK_ROOT            (defaultAOComplete)) 
+    )
+)
+
+(defenv cyberDecEnv
+
+    (S
+        (
+            PRIVS_DECEPTION 
+            C_DATA_DECOYS 
+            S_DATA_DECOYS 		            
+            HOST_HAS_DATA 		
+            ATTACKER_PRIVS 		
+            DATA_ACCESS_PRIVS 	
+            HOST_HAS_VULN 		
+            DATA_FOUND 		
+            VULN_FOUND 		
+            IMPACT_CAUSED 		
+            ATTACKER_STATUS 	
+        )
+    )
+
+    (O
+        (
+            OP_RESULT  
+            PRIVS 	   
+            VULN 	   
+            DATA 	   
+            DISCREPANCY
+            AO_COMPLETE
+
+            S_DATA_DECOY_INT
+            C_DATA_DECOY_INT
+            LOG_INFERENCE
+        )        
+    )
+
+    (defdbn envDynamics
+        (PRIVS_DECEPTION        (privsDeceptionEnv))
+        (C_DATA_DECOYS          (CDataDecoysEnv)) 
+        (S_DATA_DECOYS 	        (SDataDecoysEnv))
+        (HOST_HAS_DATA 	        (hostHasDataEnv))
+        (ATTACKER_PRIVS         (attackerPrivsEnv))
+        (DATA_ACCESS_PRIVS 	(dataAccessPrivsEnv))
+        (HOST_HAS_VULN 	        (hostHasVulnEnv))
+        (DATA_FOUND             (dataFoundEnv))
+        (VULN_FOUND 		(vulnFoundEnv))
+        (IMPACT_CAUSED 	        (impactCausedEnv))
+        (ATTACKER_STATUS 	(attackerStatusEnv))
+        
+        (OP_RESULT              (opResultEnv))  
+        (PRIVS 	                (privsEnv)) 
+        (VULN 	                (vulnEnv)) 
+        (DATA 	                (dataEnv)) 
+        (DISCREPANCY            (discrepancyEnv)) 
+        (AO_COMPLETE            (aoCompleteEnv)) 
+        
+        (S_DATA_DECOY_INT       (sDataDecoyInt)) 
+        (C_DATA_DECOY_INT       (cDataDecoyInt)) 
+        (LOG_INFERENCE          (logInference)) 
+    )
+
+    (R
+        
+    )
+
+)
+
+-- end ENV def
+-----------------------------------------------
+
+(defdd initS
+
+    (
+        (PRIVS_DECEPTION none)
+
+        * (C_DATA_DECOYS no)
+
+        * (S_DATA_DECOYS no)
+
+        * (HOST_HAS_DATA none)
+
+        * (DATA_ACCESS_PRIVS root)
+
+        * (HOST_HAS_VULN no)
+
+        * (ATTACKER_PRIVS user)
+
+        * (DATA_FOUND no)
+
+        * (VULN_FOUND no)
+
+        * (IMPACT_CAUSED no)
+
+        * (ATTACKER_STATUS active)
+    )
+)
+
+

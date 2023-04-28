@@ -1,66 +1,101 @@
 package thinclab.legacy;
 
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.TreeSet;
 
-public abstract class DD implements Serializable {
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
-	public static DD one = DDleaf.getDD(1);
-	public static DD zero = DDleaf.getDD(0);
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-	protected int var;
+import thinclab.utils.Graphable;
+import thinclab.utils.Jsonable;
+import thinclab.utils.LispExpressible;
 
-	private static final long serialVersionUID = 2478730562973454848L;
+public abstract class DD implements Serializable, Jsonable, Graphable, LispExpressible {
 
-	public int getVar() {
+    public static DD one = DDleaf.getDD(1);
+    public static DD zero = DDleaf.getDD(0);
 
-		return var;
-	}
+    protected int X;
 
-	public int getAddress() {
+    private static final long serialVersionUID = 2478730562973454848L;
+    private static final Logger LOGGER = LogManager.getFormatterLogger(DD.class);
 
-		return super.hashCode();
-	}
+    public int getVar() {
+        return X;
+    }
 
-	public DD[] getChildren() {
+    public int getAddress() {
 
-		return null;
-	} // should throw exception
+        return super.hashCode();
+    }
 
-	public float getVal() {
+    public DD[] getChildren() {
 
-		return Float.NEGATIVE_INFINITY;
-	} // should throw exception
+        return null;
+    } // should throw exception
 
-	public int[][] getConfig() {
+    abstract public float getVal();
+    abstract public int getNumLeaves();
+    abstract public TreeSet<Integer> getVars();
 
-		return null;
-	} // should throw exception
+    abstract public DD store();
 
-	abstract public int getNumLeaves();
+    public static DD cast(DDleaf leaf) {
 
-	// abstract public SortedSet getScope();
-	//abstract public int[] getVarSet();
-	
-	abstract public TreeSet<Integer> getVars();
+        return (DD) leaf;
+    }
 
-	//abstract public float getSum();
+    public static DD cast(DDnode node) {
 
-	abstract public DD store();
+        return (DD) node;
+    }
 
-	public static DD cast(DDleaf leaf) {
+    abstract public String toDot();
 
-		return (DD) leaf;
-	}
+    abstract public String toSPUDD();
+    abstract public String toSPUDD(int spaces);
 
-	public static DD cast(DDnode node) {
+    public static Optional<DD> fromJson(JsonElement json) {
 
-		return (DD) node;
-	}
-	
-	abstract public String toDot();
+        if (json instanceof JsonObject jo) {
 
-	abstract public String toSPUDD();
-	abstract public String toSPUDD(int spaces);
+            if (jo.has("name")) {
 
+                var ddVar = Global.varNames
+                    .indexOf(
+                            jo.get("name")
+                            .getAsString()) + 1;
+
+                if (ddVar == 0) {
+                    LOGGER.error("Could not find %s in %s",
+                            jo.get("name").getAsString(),
+                            Global.varNames);
+
+                    return Optional.empty();
+                }
+
+                var values = jo.get("value").getAsJsonObject();
+                var dds = Global.valNames.get(ddVar - 1)
+                    .stream().map(v -> 
+                            DD.fromJson(values.get(v))
+                              .orElse(DDleaf.getDD(Float.NaN)))
+                    .toArray(DD[]::new);
+
+                return Optional.of(DDnode.getDD(ddVar, dds));
+            }
+
+            else
+                return Optional.ofNullable(DDleaf.getDD(
+                            jo.get("value")
+                            .getAsFloat()));
+        }
+
+        else 
+            return Optional.empty();
+
+    }
 }

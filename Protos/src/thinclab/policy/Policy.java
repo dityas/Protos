@@ -7,14 +7,11 @@
  */
 package thinclab.policy;
 
-import java.util.List;
-
 /*
  * @author adityas
  *
  */
 public interface Policy<R> {
 
-	public int getBestActionIndex(R belief, List<Integer> S);
-
+	public int getBestActionIndex(R belief);
 }

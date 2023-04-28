@@ -27,13 +27,13 @@ import thinclab.spuddx_parser.SpuddXParser.SumoutExprContext;
  */
 public class DDParser extends SpuddXBaseVisitor<DD> {
 
-	private HashMap<String, DD> declaredDDs;
+	private HashMap<String, Object> declaredDDs;
 	private static final Logger LOGGER = LogManager.getLogger(DDParser.class);
 
-	public DDParser(HashMap<String, DD> declaredDDs) {
+	public DDParser(HashMap<String, Object> env) {
 
 		super();
-		this.declaredDDs = declaredDDs;
+		this.declaredDDs = env;
 	}
 
 	@Override
@@ -125,7 +125,7 @@ public class DDParser extends SpuddXBaseVisitor<DD> {
 		String ddName = ctx.dd_ref().dd_name().IDENTIFIER().getText();
 
 		if (this.declaredDDs.containsKey(ddName))
-			return this.declaredDDs.get(ddName);
+			return (DD) this.declaredDDs.get(ddName);
 
 		else {
 

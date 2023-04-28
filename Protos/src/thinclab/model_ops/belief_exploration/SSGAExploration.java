@@ -7,140 +7,182 @@
  */
 package thinclab.model_ops.belief_exploration;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
-import thinclab.legacy.Global;
 import thinclab.legacy.DD;
-import thinclab.legacy.DDleaf;
-import thinclab.models.POSeqDecMakingModel;
-import thinclab.models.datastructures.AbstractAOGraph;
-import thinclab.policy.Policy;
+import thinclab.legacy.Global;
+import thinclab.models.PBVISolvablePOMDPBasedModel;
+import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 
 /*
  * @author adityas
  *
  */
-public class SSGAExploration<M extends POSeqDecMakingModel<DD>, G extends AbstractAOGraph<DD, Integer, List<Integer>>, P extends Policy<DD>>
-		implements ExplorationStrategy<DD, M, G, P> {
+public class SSGAExploration
+<M extends PBVISolvablePOMDPBasedModel> implements 
+    ExplorationStrategy<M> 
+{
 
-	private final float e;
-	private final int maxB;
+    private final float e;
+    public final int maxB;
+    private final AlphaVectorPolicy P;
 
-	private static final Logger LOGGER = LogManager.getLogger(SSGAExploration.class);
+    private HashMap<Tuple<DD, Integer>, DD> likelihoodsCache = 
+        new HashMap<>();
 
-	public SSGAExploration(float explorationProb) {
+    private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(SSGAExploration.class);
 
-		this.e = explorationProb;
-		this.maxB = 100;
-		LOGGER.debug(String.format("Initialized SSGA exploration for exploration probability %s", e));
-	}
+    public SSGAExploration(AlphaVectorPolicy P, float explorationProb) {
 
-	@Override
-	public G expand(List<DD> bs, G g, M m, int T, P Vn) {
+        this.e = explorationProb;
+        this.P = P;
+        this.maxB = 300;
+        LOGGER.debug(
+                "Initialized SSGA exploration for exploration probability %s",
+                e);
+    }
 
-		float Pa = 1 - e;
+    public float getMinDistance(DD b, Collection<DD> beliefs) {
 
-		if (Pa > 1 || Pa < 0) {
+        return beliefs.parallelStream()
+            .map(_b -> DDOP.maxAll(DDOP.abs(DDOP.sub(_b, b))))
+            .min((d1, d2) -> d1.compareTo(d2))
+            .get();
+    }
 
-			LOGGER.error(String.format(
-					"Exploration prob for SSGA exploration is %s which makes greedy action selection prob %s", e,
-					(1 - e)));
-			System.exit(-1);
-		}
-		
-		if (g.getAllNodes().size() >= maxB)
-			return g;
+    public boolean isUniqueBelief(DD b, 
+            Collection<DD> beliefs, float minDist) {
 
-		int startSize = g.getAllNodes().size();
+        var _minDist = getMinDistance(b, beliefs);
+        if (_minDist >= minDist)
+            return true;
 
-		for (int n = 0; n < 100; n++) {
+        else
+            return false;
+    }
 
-			for (DD b : bs) {
+    private void cacheIfNotPresent(DD b, int a, M m) {
+        if (!likelihoodsCache.containsKey(
+                    Tuple.of(b, a)))
+            likelihoodsCache.put(
+                    Tuple.of(b, a), 
+                    m.obsLikelihoods(b, a));
+    }
 
-				for (int i = 0; i < T; i++) {
+    @Override
+    public ReachabilityGraph explore(List<DD> bs, M m, int T, int maxI) {
 
-					if ((g.getAllNodes().size() - startSize) >= 20 || g.getAllNodes().size() >= maxB)
-						break;
+        float Pa = 1 - e;
+        ReachabilityGraph g = ReachabilityGraph.fromDecMakingModel(m);
 
-					var usePolicy = DDOP.sampleIndex(List.of(e, Pa));
-					int a = -1;
+        if (Pa > 1 || Pa < 0) {
 
-					// greedy action
-					if (usePolicy == 1) {
+            LOGGER.error(
+                    "Exploration prob for SSGA exploration is %s which makes" +
+                    " greedy action selection prob %s", e, (1 - e));
+            System.exit(-1);
+        }
 
-						a = Vn.getBestActionIndex(b, m.i_S());
-						var oSampled = DDOP.sample(List.of(m.obsLikelihoods(b, a)), m.i_Om_p());
+        if (g.getNodeCount() >= maxB)
+            return g;
 
-						var _edge = Tuple.of(a, oSampled._1());
-						var b_ = g.getNodeAtEdge(b, _edge);
+        for (int n = 0; n < 30; n++) {
 
-						if (b_ == null) {
+            if (g.getNodeCount() >= maxB)
+                break;
 
-							var b_n = m.beliefUpdate(b, _edge._0(), _edge._1());
-							g.addEdge(b, _edge, b_n);
-							b = b_n;
-						}
+            for (int init_b = 0; init_b < bs.size(); init_b++) {
 
-						else
-							b = b_;
+                DD b = bs.get(init_b);
 
-					}
+                for (int i = 0; i < T; i++) {
 
-					// exploratory action
-					else if (usePolicy == 0) {
+                    if (g.getNodeCount() >= maxB)
+                        break;
 
-						// a = Global.random.nextInt(m.A().size());
+                    var usePolicy = DDOP.sampleIndex(List.of(e, Pa));
+                    int a = -1;
 
-						var nextBs = new ArrayList<Tuple<Tuple<Integer, List<Integer>>, DD>>();
-						for (int _a = 0; _a < m.A().size(); _a++) {
+                    // greedy action
+                    if (usePolicy == 1) {
 
-							var oSampled = DDOP.sample(List.of(m.obsLikelihoods(b, _a)), m.i_Om_p());
+                        a = P.getBestActionIndex(b);
 
-							var _edge = Tuple.of(_a, oSampled._1());
-							var b_ = g.getNodeAtEdge(b, _edge);
+                        cacheIfNotPresent(b, a, m);
+                        var l = likelihoodsCache.get(
+                                Tuple.of(b, a));
 
-							if (b_ == null) {
+                        var oSampled = DDOP.sample(List.of(l), m.i_Om_p());
 
-								var b_n = m.beliefUpdate(b, _edge._0(), _edge._1());
-								nextBs.add(Tuple.of(_edge, b_n));
-							}
-							
-							else
-								nextBs.add(Tuple.of(_edge, b_));
+                        var _edge = Tuple.of(a, oSampled._1());
+                        var b_ = g.getNodeAtEdge(b, _edge);
 
-						}
+                        if (b_ == null) {
 
-						var distances = nextBs.stream()
-								.map(b_s -> g.getAllNodes().stream()
-										.map(b_c -> DDOP.maxAll(DDOP.abs(DDOP.sub(b_s._1(), b_c))))
-										.reduce(0.0f, (x, y) -> x > y ? x : y))
-								.collect(Collectors.toList());
+                            var b_n = m.beliefUpdate(b, _edge._0(), _edge._1());
 
-						int maxIndex = IntStream.range(0, nextBs.size()).reduce(0,
-								(p, q) -> distances.get(p) > distances.get(q) ? p : q);
+                            if (isUniqueBelief(b_n, g.getAllNodes(), 0.01f))
+                                g.addEdge(b, _edge, b_n);
 
-						var b_n = nextBs.get(maxIndex);
-						g.addEdge(b, b_n._0(), b_n._1());
-						b = b_n._1();
-					}
+                            b = b_n;
+                        }
 
-					else {
+                        else
+                            b = b_;
 
-						LOGGER.error("Error while sampling exploration probability");
-						System.exit(-1);
-					}
+                    }
 
-				}
-			}
-		}
+                    // exploratory action
+                    else if (usePolicy == 0) {
 
-		return g;
-	}
+                        int _a = Global.random.nextInt(m.A().size());
+
+                        cacheIfNotPresent(b, _a, m);
+                        var l = likelihoodsCache.get(
+                                Tuple.of(b, _a));
+
+                        var oSampled = DDOP.sample(List.of(l), m.i_Om_p());
+                        var _edge = Tuple.of(_a, oSampled._1());
+                        var b_ = g.getNodeAtEdge(b, _edge);
+
+                        if (b_ == null)
+                            b_ = m.beliefUpdate(b, _edge._0(), _edge._1());
+
+                        var dist = getMinDistance(b_, g.getAllNodes());
+                        if (dist > 0.01f)
+                            g.addEdge(b, _edge, b_);
+
+                        b = b_;
+                    }
+
+                    else {
+
+                        LOGGER.error("Error while sampling exploration probability");
+                        System.exit(-1);
+                    }
+
+                }
+            }
+        }
+
+        return g;
+    }
+
+    public void clearCaches() {
+
+        likelihoodsCache.clear();
+    }
+
+    public HashMap<Tuple<DD, Integer>, DD> getLikelihoodsCache() {
+        LOGGER.warn("Calling a test method");
+        return this.likelihoodsCache;
+    }
 
 }

@@ -3,6 +3,22 @@ grammar SpuddX;
 /*
 	Parser
 */
+/*
+domain: (expr)+
+		EOF
+		;
+		
+expr: list
+	| atom
+	| symbol
+	| LP expr RP
+	;
+	
+list : LP (expr)* RP ;
+atom : FLOAT_NUM ;
+symbol : SYMBOL ; 
+
+*/
 
 domain: var_defs
 		(all_def)*
@@ -18,12 +34,12 @@ all_def : model_name			# PreDefModel
 		| dd_def 				# DDDef
 		| pomdp_def 			# POMDPDef
 		| ipomdp_def 			# IPOMDPDef
+		| env_def 				# EnvDef
 		| dbn_def				# DBNDef
 		| pbvi_solv_def 		# PBVISolverDef
 		| modelvar_init_def		# ModelVarInitDef
 		| LP all_def RP 		# OtherDefParen
 		;
-		 
  
 pbvi_solv_def : LP 'defpbvisolv' type=(POMDP | IPOMDP) solv_name RP;
 
@@ -43,6 +59,7 @@ ipomdp_def : LP 'defipomdp' model_name
              action_var
 			 action_j_var
 			 model_j_var
+			 ec_var
 			 frame_def
              dynamics
              reward
@@ -50,7 +67,15 @@ ipomdp_def : LP 'defipomdp' model_name
              reachability
              RP
              ;
-             
+
+env_def : LP 'defenv' env_name
+		states_list
+		obs_list
+		dbn_def
+		reward
+		RP
+		;
+            
 modelvar_init_def : LP 'initmodelvar' var_name
 					LP 'frames' var_name RP
 					LP (model_init)+ RP 
@@ -64,6 +89,7 @@ obs_list 	: LP 'O' LP (var_name)+ RP RP ;
 action_var 	: LP 'A' (var_name)  RP ;
 action_j_var 	: LP 'Aj' (var_name)  RP ;
 model_j_var 	: LP 'Mj' (var_name)  RP ;
+ec_var 	: LP 'EC' (var_name)  RP ;
 actions_list 	: LP 'A' LP (var_name)+ RP RP ;
 frame_def 	: LP 'Thetaj' var_name (frame_tuple)+ RP ;
 frame_tuple : LP var_value model_name RP ;
@@ -84,10 +110,10 @@ dd_def : LP 'defdd' dd_name dd_expr RP ;
 
 dd_expr : dd_decl 											# AtomicExpr
 		| op=(OP_ADD | OP_SUB) term=dd_expr 				# NegExpr
-		| '#' LP (var_name)+ RP dd_expr 					# SumoutExpr
 		| LP dd_expr RP										# ParenExpr
 		| left=dd_expr op=(OP_MUL | OP_DIV) right=dd_expr	# MultDivExpr
 		| left=dd_expr op=(OP_ADD | OP_SUB) right=dd_expr	# AddSubExpr
+		| '#' LP (var_name)+ RP dd_expr 					# SumoutExpr
 		;
 		
 dd_decl : LP var_name (LP var_value dd_expr RP)+ RP 	# DDDecl
@@ -145,7 +171,10 @@ OP_SUB : '-' ;
 OP_MUL : '*' ;
 OP_DIV : '/' ;
 
-IDENTIFIER: [_]?[a-zA-Z][a-zA-Z0-9_']* ;
+
+/* SYMBOL : [a-zA-Z_'+'] ; */
+
+IDENTIFIER: [_]?[a-zA-Z][a-zA-Z0-9_'.]* ;
 FLOAT_NUM: [0-9]*['.']?[0-9]+ ;
 
 LP : '(' ;
@@ -153,3 +182,4 @@ RP : ')' ;
 
 WS : [ \t\r\n]+ -> skip ;
 LINE_COMMENT : '--' ~[\r\n]* -> skip ;
+

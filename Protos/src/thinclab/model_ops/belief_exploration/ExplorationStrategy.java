@@ -8,15 +8,16 @@
 package thinclab.model_ops.belief_exploration;
 
 import java.util.List;
-import thinclab.models.POSeqDecMakingModel;
-import thinclab.models.datastructures.AbstractAOGraph;
-import thinclab.policy.Policy;
+
+import thinclab.legacy.DD;
+import thinclab.models.PBVISolvablePOMDPBasedModel;
+import thinclab.models.datastructures.ReachabilityGraph;
 
 /*
  * @author adityas
  *
  */
-public interface ExplorationStrategy<B, A extends POSeqDecMakingModel<B>, G extends AbstractAOGraph<?, ?, ?>, P extends Policy<B>> {
+public interface ExplorationStrategy<M extends PBVISolvablePOMDPBasedModel> {
 
-	public G expand(List<B> bs, G g, A a, int T, P Vn);
+	public ReachabilityGraph explore(List<DD> bs, M m, int T, int maxI);
 }

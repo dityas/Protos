@@ -2,24 +2,28 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import thinclab.DDOP;
-import thinclab.RandomVariable;
-import thinclab.legacy.DD;
+import thinclab.domain_lang.Parser;
+import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
-import thinclab.models.IPOMDP;
+import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.spuddx_parser.SpuddXLexer;
 import thinclab.spuddx_parser.SpuddXMainParser;
-import thinclab.spuddx_parser.SpuddXParserWrapper;
+import thinclab.utils.Tuple;
 
 /*
  *	THINC Lab at UGA | Cyber Deception Group
@@ -35,7 +39,8 @@ import thinclab.spuddx_parser.SpuddXParserWrapper;
  */
 class TestANTLRSpuddParser {
 
-	private static final Logger LOGGER = LogManager.getLogger(TestANTLRSpuddParser.class);
+	private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(TestANTLRSpuddParser.class);
 
 	public String domainFile;
 
@@ -123,8 +128,6 @@ class TestANTLRSpuddParser {
 
 		printMemConsumption();
 
-		assertTrue(domainRunner.getDDs().size() == 4);
-
 	}
 
 	@Test
@@ -189,42 +192,38 @@ class TestANTLRSpuddParser {
 
 	}
 
-	@Test
-	void testIPOMDPL1BeliefUpdate() throws Exception {
+    @Test
+    void testParser() throws Exception {
+        
+        var test1 = "(define a 1)";
+        LOGGER.debug(
+                "test 1 parsed as %s", 
+                Parser.parse(Parser.tokenize(test1)));
+        
+        var type1 = Class.forName("thinclab.legacy.DD");
+        var type2 = Class.forName("thinclab.legacy.DD");
+        
+        var method = Class.forName("thinclab.DDOP")
+            .getMethod("add", type1, type2);
+    }
 
-		System.gc();
-		printMemConsumption();
+    @Test
+    void testRepl() throws Exception {
 
-		LOGGER.info("Testing L1 IPOMDP belief update");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd")
-				.getFile();
+        LOGGER.info("Starting repl");
+        Function<Integer, Integer> f = n -> n + 1;
+        LOGGER.debug("%s", f);
 
-		var domainRunner = new SpuddXMainParser(domainFile);
-		domainRunner.run();
-		
-		var I = domainRunner.getModel("agentI");
-		
-		if (I.isEmpty()) {
-			LOGGER.error(String.format("Could not find IPOMDP"));
-			System.exit(-1);
-		}
-		
-		var agent = (IPOMDP) I.get();
-		
-		var RG = ReachabilityGraph.fromDecMakingModel(agent);
-		var ES = new BreadthFirstExploration<DD, IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(100);
-		
-		//RG.addNode(agent.b_i());
-		
-		//RG = ES.expand(RG, agent, agent.H, null);
-		
-		//var _vars = new ArrayList<>(agent.i_S());
-		//_vars.add(agent.i_Mj);
-		
-		//RG.getAllNodes().forEach(d -> LOGGER.debug(DDOP.factors(d, _vars)));
+        var methods = Arrays.asList(Class
+            .forName("thinclab.legacy.DDnode")
+            .getMethods());
+        
+        var method = methods
+            .stream()
+            .filter(m -> m.getName().contains("getDD"))
+            .map(m -> Arrays.toString(m.getParameterTypes()))
+            .collect(Collectors.toList());
 
-		printMemConsumption();
-
-	}
-
+        LOGGER.debug("%s", method);
+    }
 }

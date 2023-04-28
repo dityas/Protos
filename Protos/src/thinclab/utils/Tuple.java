@@ -18,15 +18,10 @@ public class Tuple<L, R> {
 	private final L _0;
 	private final R _1;
 
-	private final int hash;
-
 	public Tuple(L first, R second) {
 
 		this._0 = first;
 		this._1 = second;
-
-		var builder = new HashCodeBuilder().append(_0).append(_1);
-		this.hash = builder.toHashCode();
 	}
 
 	public L _0() {
@@ -51,7 +46,7 @@ public class Tuple<L, R> {
 	@Override
 	public int hashCode() {
 
-		return this.hash;
+		return new HashCodeBuilder().append(_0).append(_1).toHashCode();
 	}
 
 	@Override

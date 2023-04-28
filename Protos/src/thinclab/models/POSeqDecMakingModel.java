@@ -41,5 +41,11 @@ public interface POSeqDecMakingModel<R> extends Model {
 	public R beliefUpdate(R b, String a, List<String> o);
 
 	public R obsLikelihoods(R b, int a);
+	
+	// step to next belief
+	//public void step(Set<Tuple<Integer, ReachabilityNode>> modelFilter);
+	public void step();
+	public R step(R b, int a, List<Integer> o);
+	public R step(R b, String a, List<String> o);
 
 }

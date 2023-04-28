@@ -5,9 +5,11 @@
 
 -- Model var for agent I modeling agent J
 (defvar agent_j (m0 m1 m2))
+(defvar AgentIL1EC (m0))
 
 -- Model var for agent J modeling agent I
 (defvar agent_il1 (m0 m1 m2))
+(defvar AgentJL2EC (m0))
 
 -- Variables to represent frames
 (defvar Frame_jl1 (frame1 frame2))
@@ -311,6 +313,7 @@
     (A 	Agent_actions)
     (Aj Agentj_actions)
     (Mj agent_j)
+    (EC AgentIL1EC)
     (Thetaj Frame_jl1 	
     	(frame1 agentJ)
     	(frame2 agentJ2)
@@ -349,9 +352,9 @@
 (initmodelvar agent_il1
 	(frames Frame_il2)
 	(
-		(frame1 	(m0 	(agent_j m0)))
-		(frame1		(m1 	(agent_j m1)))
-		(frame1 	(m2 	(agent_j m2)))
+		(frame1 	(m0 	(agent_j m0) * (0.5)))
+		(frame1		(m1 	(agent_j m1) * (0.5)))
+		(frame1 	(m2 	(agent_j m2) * (0.5)))
 	)
 )
 
@@ -368,6 +371,7 @@
     (A 	Agentj_actions)
     (Aj Agent_actions)
     (Mj agent_il1)
+    (EC AgentJL2EC)
     (Thetaj Frame_il2 	
     	(frame1 agentI)
     )

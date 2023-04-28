@@ -16,8 +16,8 @@ import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
-import thinclab.models.IPOMDP;
 import thinclab.models.POMDP;
+import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.spuddx_parser.SpuddXMainParser;
@@ -80,20 +80,6 @@ class TestBeliefUpdate {
 		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
 		beliefGraph.addNode(DDleaf.getDD(0.5f));
 
-		// Initialize belief exploration
-		var BE = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(20);
-
-		long then = System.nanoTime();
-		for (int i = 0; i < 20; i++)
-			beliefGraph = BE.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 10, AlphaVectorPolicy.fromR(I.R()));
-
-		long now = System.nanoTime();
-		float T = (now - then) / 1000.0f;
-		LOGGER.debug(String.format("BFS expansion took %s us", T));
-
-		assertTrue(beliefGraph.getAllNodes().size() <= 20);
-		LOGGER.debug(String.format("Graph is %s", beliefGraph));
-		printMemConsumption();
 	}
 
 	@Test

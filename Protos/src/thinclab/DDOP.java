@@ -15,14 +15,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import thinclab.legacy.Config;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
+import thinclab.policy.AlphaVector;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 
 /*
@@ -31,938 +35,1376 @@ import thinclab.utils.Tuple;
  */
 public class DDOP {
 
-	/*
-	 * I have been forced to not use functional patterns here to manage the
-	 * performance tradeoff. This is the critical section of the library on which
-	 * everything is built. Even a slight increase in execution time has drastic
-	 * consequences. Also, I absolutely hate java for this.
-	 */
-
-	private static final Logger LOGGER = LogManager.getLogger(DDOP.class);
-
-	// --------------------------------------------------------------------------------------------
-	// Arith ops
-
-	public static DD mult(DD dd1, DD dd2) {
-
-		// dd1 precedes dd2
-		if (dd1.getVar() > dd2.getVar()) {
-
-			if (dd2.getVar() == 0 && dd2.getVal() == 0)
-				return dd2;
-			else if (dd2.getVar() == 0 && dd2.getVal() == 1 && dd2.getConfig() == null)
-				return dd1;
-
-			var _dds = Tuple.of(dd1, dd2);
-			DD storedResult = (DD) Global.multCache.get(_dds);
-			if (storedResult != null)
-				return storedResult;
-
-			DD children[];
-			children = new DD[dd1.getChildren().length];
-			for (int i = 0; i < dd1.getChildren().length; i++) {
-
-				children[i] = DDOP.mult(dd1.getChildren()[i], dd2);
-			}
-			DD result = DDnode.getDD(dd1.getVar(), children);
-			Global.multCache.put(_dds, result);
-			return result;
-		}
-
-		// dd2 precedes dd1 {
-		else if (dd2.getVar() > dd1.getVar()) {
-
-			if (dd1.getVar() == 0 && dd1.getVal() == 0)
-				return dd1;
-			else if (dd1.getVar() == 0 && dd1.getVal() == 0 && dd1.getConfig() == null)
-				return dd2;
-
-			var _dds = Tuple.of(dd1, dd2);
-			DD storedResult = (DD) Global.multCache.get(_dds);
-			if (storedResult != null)
-				return storedResult;
-
-			DD children[];
-			children = new DD[dd2.getChildren().length];
-			for (int i = 0; i < dd2.getChildren().length; i++) {
-
-				children[i] = DDOP.mult(dd2.getChildren()[i], dd1);
-			}
-			DD result = DDnode.getDD(dd2.getVar(), children);
-			Global.multCache.put(_dds, result);
-			return result;
-		}
-
-		// dd2 and dd1 have same root var
-		else if (dd1.getVar() > 0) {
-
-			var _dds = Tuple.of(dd1, dd2);
-			DD storedResult = (DD) Global.multCache.get(_dds);
-			if (storedResult != null)
-				return storedResult;
-
-			DD children[];
-			children = new DD[dd1.getChildren().length];
-			for (int i = 0; i < dd1.getChildren().length; i++) {
-
-				children[i] = DDOP.mult(dd1.getChildren()[i], dd2.getChildren()[i]);
-			}
-			DD result = DDnode.getDD(dd1.getVar(), children);
-			Global.multCache.put(_dds, result);
-			return result;
-		}
-
-		// dd1 and dd2 are leaves
-		else {
-
-			float newVal = dd1.getVal() * dd2.getVal();
-			int[][] newConfig = Config.merge(dd1.getConfig(), dd2.getConfig());
-			return DDleaf.getDD(newVal, newConfig);
-		}
-	}
-
-	public static DD div(DD dd1, DD dd2) {
-
-		return DDOP.mult(dd1, DDOP.inv(dd2));
-	}
-
-	public static DD mult(List<DD> dds) {
-
-		DD ddProd = DD.one;
-		for (int i = 0; i < dds.size(); i++) {
-
-			ddProd = DDOP.mult(ddProd, dds.get(i));
-		}
-		return ddProd;
-	}
-
-	public static DD inv(DD dd) {
-
-		// dd is a leaf
-		if (dd.getVar() == 0)
-			return DDleaf.getDD(1 / dd.getVal(), dd.getConfig());
+    /*
+     * I have been forced to not use functional patterns here to manage the
+     * performance tradeoff. This is the critical section of the library on which
+     * everything is built. Even a slight increase in execution time has drastic
+     * consequences. Also, I absolutely hate java for this.
+     */
+
+    private static final Logger LOGGER = LogManager.getFormatterLogger(DDOP.class);
+
+    // --------------------------------------------------------------------------------------------
+    // Arith ops
+
+    public static DD mult(DD dd1, DD dd2) {
+
+        // dd1 precedes dd2
+        if (dd1.getVar() > dd2.getVar()) {
+
+            if (dd2.getVar() == 0 && dd2.getVal() == 0)
+                return dd2;
+            else if (dd2.getVar() == 0 && dd2.getVal() == 1)
+                return dd1;
+
+            var _dds = Tuple.of(dd1, dd2);
+            DD storedResult = (DD) Global.multCache.get(_dds);
+            if (storedResult != null)
+                return storedResult;
+
+            DD children[];
+            children = new DD[dd1.getChildren().length];
+            for (int i = 0; i < dd1.getChildren().length; i++) {
+
+                children[i] = DDOP.mult(dd1.getChildren()[i], dd2);
+            }
+            DD result = DDnode.getDD(dd1.getVar(), children);
+            Global.multCache.put(_dds, result);
+            return result;
+        }
+
+        // dd2 precedes dd1 {
+        else if (dd2.getVar() > dd1.getVar()) {
 
-		// dd is a node
-		else {
+            if (dd1.getVar() == 0 && dd1.getVal() == 0)
+                return dd1;
+            else if (dd1.getVar() == 0 && dd1.getVal() == 1)
+                return dd2;
+
+            var _dds = Tuple.of(dd1, dd2);
+            DD storedResult = (DD) Global.multCache.get(_dds);
+            if (storedResult != null)
+                return storedResult;
+
+            DD children[];
+            children = new DD[dd2.getChildren().length];
+            for (int i = 0; i < dd2.getChildren().length; i++) {
+
+                children[i] = DDOP.mult(dd2.getChildren()[i], dd1);
+            }
+            DD result = DDnode.getDD(dd2.getVar(), children);
+            Global.multCache.put(_dds, result);
+            return result;
+        }
+
+        // dd2 and dd1 have same root var
+        else if (dd1.getVar() > 0) {
+
+            var _dds = Tuple.of(dd1, dd2);
+            DD storedResult = (DD) Global.multCache.get(_dds);
+            if (storedResult != null)
+                return storedResult;
+
+            DD children[];
+            children = new DD[dd1.getChildren().length];
+            for (int i = 0; i < dd1.getChildren().length; i++) {
+
+                children[i] = DDOP.mult(dd1.getChildren()[i], dd2.getChildren()[i]);
+            }
+            DD result = DDnode.getDD(dd1.getVar(), children);
+            Global.multCache.put(_dds, result);
+            return result;
+        }
+
+        // dd1 and dd2 are leaves
+        else {
+
+            float newVal = dd1.getVal() * dd2.getVal();
+            return DDleaf.getDD(newVal);
+        }
+        }
+
+    public static DD div(DD dd1, DD dd2) {
+
+        return DDOP.mult(dd1, DDOP.inv(dd2));
+    }
+
+    public static DD mult(List<DD> dds) {
+
+        DD ddProd = DD.one;
+        for (int i = 0; i < dds.size(); i++) {
+
+            ddProd = DDOP.mult(ddProd, dds.get(i));
+        }
+        return ddProd;
+    }
+
+    public static DD inv(DD dd) {
+
+        // dd is a leaf
+        if (dd.getVar() == 0)
+            return DDleaf.getDD(1 / dd.getVal());
+
+        // dd is a node
+        else {
 
-			DD children[];
-			children = new DD[dd.getChildren().length];
-			for (int i = 0; i < dd.getChildren().length; i++) {
+            DD children[];
+            children = new DD[dd.getChildren().length];
+            for (int i = 0; i < dd.getChildren().length; i++) {
 
-				children[i] = DDOP.inv(dd.getChildren()[i]);
-			}
-			return DDnode.getDD(dd.getVar(), children);
-		}
-	}
+                children[i] = DDOP.inv(dd.getChildren()[i]);
+            }
+            return DDnode.getDD(dd.getVar(), children);
+        }
+    }
+
+    public static DD add(DD dd1, DD dd2) {
+
+        // dd1 precedes dd2
+        if (dd1.getVar() > dd2.getVar()) {
+
+            if (dd2.getVar() == 0 && dd2.getVal() == 0)
+                return dd1;
+
+            var _dds = Tuple.of(dd1, dd2);
+            DD storedResult = (DD) Global.addCache.get(_dds);
+            if (storedResult != null)
+                return storedResult;
+
+            DD children[];
+            children = new DD[dd1.getChildren().length];
+            for (int i = 0; i < dd1.getChildren().length; i++) {
+
+                children[i] = DDOP.add(dd1.getChildren()[i], dd2);
+            }
+            DD result = DDnode.getDD(dd1.getVar(), children);
+            Global.addCache.put(_dds, result);
+            return result;
+        }
+
+        // dd2 precedes dd1 {
+        else if (dd2.getVar() > dd1.getVar()) {
+
+            if (dd1.getVar() == 0 && dd1.getVal() == 0)
+                return dd2;
 
-	public static DD add(DD dd1, DD dd2) {
+            var _dds = Tuple.of(dd1, dd2);
+            DD storedResult = (DD) Global.addCache.get(_dds);
+            if (storedResult != null)
+                return storedResult;
 
-		// dd1 precedes dd2
-		if (dd1.getVar() > dd2.getVar()) {
+            DD children[];
+            children = new DD[dd2.getChildren().length];
+            for (int i = 0; i < dd2.getChildren().length; i++) {
 
-			if (dd2.getVar() == 0 && dd2.getVal() == 0 && dd2.getConfig() == null)
-				return dd1;
+                children[i] = DDOP.add(dd2.getChildren()[i], dd1);
+            }
+            DD result = DDnode.getDD(dd2.getVar(), children);
+            Global.addCache.put(_dds, result);
+            return result;
+        }
 
-			var _dds = Tuple.of(dd1, dd2);
-			DD storedResult = (DD) Global.addCache.get(_dds);
-			if (storedResult != null)
-				return storedResult;
+        // dd2 and dd1 have same root var
+        else if (dd1.getVar() > 0) {
 
-			DD children[];
-			children = new DD[dd1.getChildren().length];
-			for (int i = 0; i < dd1.getChildren().length; i++) {
+            var _dds = Tuple.of(dd1, dd2);
+            DD storedResult = (DD) Global.addCache.get(_dds);
+            if (storedResult != null)
+                return storedResult;
 
-				children[i] = DDOP.add(dd1.getChildren()[i], dd2);
-			}
-			DD result = DDnode.getDD(dd1.getVar(), children);
-			Global.addCache.put(_dds, result);
-			return result;
-		}
+            DD children[];
+            children = new DD[dd1.getChildren().length];
+            for (int i = 0; i < dd1.getChildren().length; i++) {
 
-		// dd2 precedes dd1 {
-		else if (dd2.getVar() > dd1.getVar()) {
+                children[i] = DDOP.add(dd1.getChildren()[i], dd2.getChildren()[i]);
+            }
+            DD result = DDnode.getDD(dd1.getVar(), children);
+            Global.addCache.put(_dds, result);
+            return result;
+        }
 
-			if (dd1.getVar() == 0 && dd1.getVal() == 0 && dd1.getConfig() == null)
-				return dd2;
+        // dd1 and dd2 are leaves
+        else {
 
-			var _dds = Tuple.of(dd1, dd2);
-			DD storedResult = (DD) Global.addCache.get(_dds);
-			if (storedResult != null)
-				return storedResult;
+            float newVal = dd1.getVal() + dd2.getVal();
+            return DDleaf.getDD(newVal);
+        }
+        }
 
-			DD children[];
-			children = new DD[dd2.getChildren().length];
-			for (int i = 0; i < dd2.getChildren().length; i++) {
+    public static DD max(DD dd1, DD dd2) {
 
-				children[i] = DDOP.add(dd2.getChildren()[i], dd1);
-			}
-			DD result = DDnode.getDD(dd2.getVar(), children);
-			Global.addCache.put(_dds, result);
-			return result;
-		}
+        // dd1 precedes dd2
+        if (dd1.getVar() > dd2.getVar()) {
 
-		// dd2 and dd1 have same root var
-		else if (dd1.getVar() > 0) {
+            DD children[];
+            children = new DD[dd1.getChildren().length];
+            for (int i = 0; i < dd1.getChildren().length; i++) {
 
-			var _dds = Tuple.of(dd1, dd2);
-			DD storedResult = (DD) Global.addCache.get(_dds);
-			if (storedResult != null)
-				return storedResult;
+                children[i] = DDOP.max(dd1.getChildren()[i], dd2);
+            }
 
-			DD children[];
-			children = new DD[dd1.getChildren().length];
-			for (int i = 0; i < dd1.getChildren().length; i++) {
+            DD result = DDnode.getDD(dd1.getVar(), children);
+            return result;
+        }
 
-				children[i] = DDOP.add(dd1.getChildren()[i], dd2.getChildren()[i]);
-			}
-			DD result = DDnode.getDD(dd1.getVar(), children);
-			Global.addCache.put(_dds, result);
-			return result;
-		}
+        // dd2 precedes dd1 {
+        else if (dd2.getVar() > dd1.getVar()) {
 
-		// dd1 and dd2 are leaves
-		else {
+            DD children[];
+            children = new DD[dd2.getChildren().length];
+            for (int i = 0; i < dd2.getChildren().length; i++) {
+                children[i] = DDOP.max(dd2.getChildren()[i], dd1);
+            }
 
-			float newVal = dd1.getVal() + dd2.getVal();
-			int[][] newConfig = Config.merge(dd1.getConfig(), dd2.getConfig());
-			return DDleaf.getDD(newVal, newConfig);
-		}
-	}
+            DD result = DDnode.getDD(dd2.getVar(), children);
+            return result;
+        }
 
-	public static DD sub(DD dd1, DD dd2) {
+        // dd2 and dd1 have same root var
+        else if (dd1.getVar() > 0) {
 
-		return DDOP.add(dd1, DDOP.neg(dd2));
-	}
+            DD children[];
+            children = new DD[dd1.getChildren().length];
+            for (int i = 0; i < dd1.getChildren().length; i++) {
+                children[i] = DDOP.max(dd1.getChildren()[i], dd2.getChildren()[i]);
+            }
+            DD result = DDnode.getDD(dd1.getVar(), children);
+            return result;
+        }
 
-	public static DD add(List<DD> dds) {
+        // dd1 and dd2 are leaves
+        else {
 
-		DD ddSum = DD.zero;
+            var val1 = dd1.getVal();
+            var val2 = dd2.getVal();
 
-		for (int i = 0; i < dds.size(); i++) {
+            return val1 >= val2 ? DDleaf.getDD(val1) : DDleaf.getDD(val2);
+        }
+        }
 
-			ddSum = DDOP.add(ddSum, dds.get(i));
-		}
+    public static DD sub(DD dd1, DD dd2) {
 
-		return ddSum;
-	}
+        return DDOP.add(dd1, DDOP.neg(dd2));
+    }
 
-	public static DD abs(DD dd) {
+    public static DD add(List<DD> dds) {
 
-		// dd is a leaf
-		if (dd.getVar() == 0) {
+        DD ddSum = DD.zero;
 
-			if (dd.getVal() >= 0)
-				return dd;
-			else
-				return DDleaf.getDD(-dd.getVal(), dd.getConfig());
-		}
+        for (int i = 0; i < dds.size(); i++) {
 
-		// dd is a node
-		else {
+            ddSum = DDOP.add(ddSum, dds.get(i));
+        }
 
-			DD children[];
-			children = new DD[dd.getChildren().length];
-			for (int i = 0; i < dd.getChildren().length; i++) {
+        return ddSum;
+    }
 
-				children[i] = DDOP.abs(dd.getChildren()[i]);
-			}
-			return DDnode.getDD(dd.getVar(), children);
-		}
-	}
+    public static DD abs(DD dd) {
 
-	public static DD neg(DD dd) {
+        // dd is a leaf
+        if (dd instanceof DDleaf leaf) {
 
-		// dd is a leaf
-		if (dd.getVar() == 0)
-			return DDleaf.getDD(-dd.getVal(), dd.getConfig());
+            if (leaf.val >= 0)
+                return leaf;
+            else
+                return DDleaf.getDD(-leaf.val);
+        }
 
-		// dd is a node
-		else {
+        // dd is a node
+        else {
 
-			DD children[];
-			children = new DD[dd.getChildren().length];
-			for (int i = 0; i < dd.getChildren().length; i++) {
+            DD children[];
+            children = new DD[dd.getChildren().length];
+            for (int i = 0; i < dd.getChildren().length; i++) {
 
-				children[i] = DDOP.neg(dd.getChildren()[i]);
-			}
-			return DDnode.getDD(dd.getVar(), children);
-		}
-	}
+                children[i] = DDOP.abs(dd.getChildren()[i]);
+            }
+            return DDnode.getDD(dd.getVar(), children);
+        }
+    }
 
-	public static DD exp(DD dd) {
+    public static DD neg(DD dd) {
 
-		// dd is a leaf
-		if (dd.getVar() == 0)
-			return DDleaf.getDD((float) Math.exp(dd.getVal()), dd.getConfig());
+        // dd is a leaf
+        if (dd.getVar() == 0)
+            return DDleaf.getDD(-dd.getVal());
 
-		// dd is a node
-		else {
+        // dd is a node
+        else {
 
-			DD children[];
-			children = new DD[dd.getChildren().length];
-			for (int i = 0; i < dd.getChildren().length; i++) {
+            DD children[];
+            children = new DD[dd.getChildren().length];
+            for (int i = 0; i < dd.getChildren().length; i++) {
 
-				children[i] = DDOP.exp(dd.getChildren()[i]);
-			}
-			return DDnode.getDD(dd.getVar(), children);
-		}
-	}
+                children[i] = DDOP.neg(dd.getChildren()[i]);
+            }
+            return DDnode.getDD(dd.getVar(), children);
+        }
+    }
 
-	public static DD pow(DD dd, float pow) {
+    public static DD exp(DD dd) {
 
-		// dd is a leaf
-		if (dd.getVar() == 0)
-			return DDleaf.getDD((float) Math.pow(dd.getVal(), pow), dd.getConfig());
+        // dd is a leaf
+        if (dd.getVar() == 0)
+            return DDleaf.getDD((float) Math.exp(dd.getVal()));
 
-		// dd is a node
-		else {
+        // dd is a node
+        else {
 
-			DD children[];
-			children = new DD[dd.getChildren().length];
-			for (int i = 0; i < dd.getChildren().length; i++) {
+            DD children[];
+            children = new DD[dd.getChildren().length];
+            for (int i = 0; i < dd.getChildren().length; i++) {
 
-				children[i] = DDOP.pow(dd.getChildren()[i], pow);
-			}
-			return DDnode.getDD(dd.getVar(), children);
-		}
-	}
+                children[i] = DDOP.exp(dd.getChildren()[i]);
+            }
+            return DDnode.getDD(dd.getVar(), children);
+        }
+    }
 
-	public static List<DD> pow(List<DD> dds, float pow) {
+    public static DD pow(DD dd, float pow) {
 
-		var newdds = new ArrayList<DD>(dds.size());
-		for (int i = 0; i < dds.size(); i++)
-			newdds.add(DDOP.pow(dds.get(i), pow));
+        // dd is a leaf
+        if (dd.getVar() == 0)
+            return DDleaf.getDD((float) Math.pow(dd.getVal(), pow));
 
-		return newdds;
-	}
+        // dd is a node
+        else {
 
-	// --------------------------------------------------------------------------------------------
-	// Add out
+            DD children[];
+            children = new DD[dd.getChildren().length];
+            for (int i = 0; i < dd.getChildren().length; i++) {
 
-	public static int selectVarGreedily(List<DD> ddArray, List<Integer> vars) {
+                children[i] = DDOP.pow(dd.getChildren()[i], pow);
+            }
+            return DDnode.getDD(dd.getVar(), children);
+        }
+    }
 
-		// estimate cost of eliminating each var
-		float bestSize = Float.POSITIVE_INFINITY;
-		int bestVar = 0;
-		for (int i = 0; i < vars.size(); i++) {
+    public static List<DD> pow(List<DD> dds, float pow) {
 
-			var newVarSet = new HashSet<Integer>(5);
-			float sizeEstimate = 1;
-			int nAffectedDds = 0;
-			for (int ddId = 0; ddId < ddArray.size(); ddId++) {
+        var newdds = new ArrayList<DD>(dds.size());
+        for (int i = 0; i < dds.size(); i++)
+            newdds.add(DDOP.pow(dds.get(i), pow));
 
-				var _ddVars = ddArray.get(ddId).getVars();
-				if (_ddVars.contains(vars.get(i))) {
+        return newdds;
+    }
 
-					newVarSet.addAll(_ddVars);
-					sizeEstimate *= ddArray.get(ddId).getNumLeaves();
-					nAffectedDds += 1;
-				}
-			}
+    // --------------------------------------------------------------------------------------------
+    // Add out
 
-			// # of affected DDs <= 1 or # of vars is <= 2
-			if (nAffectedDds <= 1 || newVarSet.size() <= 2) {
+    public static int getLeastAffectingVar(List<DD> ddArray,
+            List<Integer> vars) {
 
-				return vars.get(i);
-			}
 
-			// compute sizeUpperBound:
-			// sizeUpperBound = min(sizeEstimate, prod(varDomSize(newScope)));
-			float sizeUpperBound = 1;
-			for (var _var : newVarSet) {
+        return -1;
+    }
 
-				sizeUpperBound *= Global.valNames.get(_var - 1).size();
-				if (sizeUpperBound >= sizeEstimate)
-					break;
-			}
+    public static int selectVarGreedily(List<DD> ddArray,
+            Collection<Integer> vars) {
 
-			if (sizeUpperBound < sizeEstimate)
-				sizeEstimate = sizeUpperBound;
+        // estimate cost of eliminating each var
+        float bestSize = Float.POSITIVE_INFINITY;
+        int bestVar = 0;
+        for (var theVar: vars) {
 
-			// revise bestVar
-			if (sizeUpperBound < bestSize) {
+            var newVarSet = new HashSet<Integer>(5);
+            float sizeEstimate = 1;
+            int nAffectedDds = 0;
+            for (var dd: ddArray) {
 
-				bestSize = sizeUpperBound;
-				bestVar = vars.get(i);
-			}
-		}
+                var _ddVars = dd.getVars();
+                if (_ddVars.contains(theVar)) {
 
-		return bestVar;
-	}
+                    newVarSet.addAll(_ddVars);
+                    sizeEstimate *= dd.getNumLeaves();
+                    nAffectedDds += 1;
+                }
+            }
 
-	public static DD addMultVarElim(final Collection<DD> dds, final Collection<Integer> vars) {
+            // # of affected DDs <= 1 or # of vars is <= 2
+            if (nAffectedDds <= 1 || newVarSet.size() <= 2)
+                return theVar;
 
-		var _vars = new HashSet<Integer>(vars);
-		var _dds = new ArrayList<DD>(dds);
+            // compute sizeUpperBound:
+            // sizeUpperBound = min(sizeEstimate, prod(varDomSize(newScope)));
+            float sizeUpperBound = 1;
+            for (var _var : newVarSet) {
 
-		// check if any of the dds are zero
-		for (int i = 0; i < _dds.size(); i++) {
+                sizeUpperBound *= Global.valNames.get(_var - 1).size();
+                if (sizeUpperBound >= sizeEstimate)
+                    break;
+            }
 
-			if (_dds.get(i).getVar() == 0 && _dds.get(i).getVal() == 0)
-				return DD.zero;
-		}
+            if (sizeUpperBound < sizeEstimate)
+                sizeEstimate = sizeUpperBound;
 
-		// eliminate variables one by one
-		while (!_vars.isEmpty()) {
+            // revise bestVar
+            if (sizeUpperBound < bestSize) {
 
-			// eliminate deterministic variables
-			boolean deterministic = true;
-			while (deterministic && _vars.size() > 0) {
+                bestSize = sizeUpperBound;
+                bestVar = theVar;
+            }
+        }
 
-				deterministic = false;
-				for (int ddId = 0; ddId < _dds.size(); ddId++) {
+        return bestVar;
+    }
 
-					var varIds = _dds.get(ddId).getVars();
-					if (varIds.size() == 1 && _vars.containsAll(varIds)) {
+    public static DD addMultVarElim(final List<DD> dds,
+            final Collection<Integer> vars) {
 
-						DD[] children = _dds.get(ddId).getChildren();
-						int valId = -1;
-						for (int childId = 0; childId < children.length; childId++) {
+        for (var _dd : dds) {
 
-							float value = children[childId].getVal();
-							if (value == 1 && !deterministic) {
+            if (_dd instanceof DDleaf dLeaf)
+                if (dLeaf.getVal() == 0.0f)
+                    return DD.zero;
+        }
 
-								deterministic = true;
-								valId = childId + 1;
-							} else if ((value != 0 && value != 1) || (value == 1 && deterministic)) {
+        var varsToEliminate = new HashSet<Integer>(vars);
+        var _dds = new ArrayList<DD>(dds);
 
-								deterministic = false;
-								break;
-							}
-						}
-						if (deterministic) {
+        // eliminate variables one by one
+        while (!varsToEliminate.isEmpty()) {
 
-							_vars.removeAll(varIds);
-							_dds.remove(ddId);
+            // eliminate deterministic variables
+            boolean deterministic = true;
+            while (deterministic && varsToEliminate.size() > 0) {
 
-							for (int i = 0; i < _dds.size(); i++) {
+                deterministic = false;
+                for (int ddId = 0; ddId < _dds.size(); ddId++) {
 
-								if (_dds.get(i).getVars().containsAll(varIds))
-									_dds.set(i, DDOP.restrict(_dds.get(i), new ArrayList<>(varIds), List.of(valId)));
-							}
-							break;
-						}
-					}
-				}
-			}
+                    var varIds = _dds.get(ddId).getVars();
+                    if (varIds.size() == 1 && varsToEliminate.containsAll(varIds)) {
 
-			if (_vars.isEmpty())
-				break;
+                        DD[] children = _dds.get(ddId).getChildren();
+                        int valId = -1;
+                        for (int childId = 0; childId < children.length; childId++) {
 
-			// greedily choose var to eliminate
-			int bestVar = DDOP.selectVarGreedily(_dds, new ArrayList<Integer>(_vars));
+                            float value = children[childId].getVal();
+                            if (value == 1 && !deterministic) {
 
-			// multiply together trees that depend on var
-			DD newDd = DD.one;
-			for (int ddId = 0; ddId < _dds.size(); ddId++) {
+                                deterministic = true;
+                                valId = childId + 1;
+                            } else if ((value != 0 && value != 1) || (value == 1 && deterministic)) {
 
-				var _dd = _dds.get(ddId);
-				if (_dd.getVars().contains(bestVar)) {
+                                deterministic = false;
+                                break;
+                            }
+                        }
+                        if (deterministic) {
 
-					newDd = DDOP.mult(newDd, _dd);
-					_dds.remove(ddId);
-					ddId--;
-				}
-			}
+                            varsToEliminate.removeAll(varIds);
+                            _dds.remove(ddId);
 
-			// sumout bestVar from newDd
-			newDd = DDOP.addout(newDd, bestVar);
-			if (newDd.getVar() == 0 && newDd.getVal() == 0)
-				return DD.zero;
+                            for (int i = 0; i < _dds.size(); i++) {
 
-			// add new tree to dds
-			_dds.add(newDd);
+                                if (_dds.get(i).getVars().containsAll(varIds))
+                                    _dds.set(i, DDOP.restrict(_dds.get(i), new ArrayList<>(varIds), List.of(valId)));
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
 
-			// remove bestVar from vars
-			_vars.remove(bestVar);
-		}
+            if (varsToEliminate.isEmpty())
+                break;
 
-		// multiply remaining trees and the newly added one; the resulting tree
-		// is now free of any variable that appeared in vars
+            // greedily choose var to eliminate
+            int bestVar = DDOP.selectVarGreedily(_dds, varsToEliminate);
 
-		var result = DDOP.mult(_dds);
+            // multiply together trees that depend on var
+            DD newDd = DD.one;
+            for (int ddId = 0; ddId < _dds.size(); ddId++) {
 
-		return result;
-	}
+                var _dd = _dds.get(ddId);
+                if (_dd.getVars().contains(bestVar)) {
 
-	public static DD addout(DD dd, int var) {
+                    newDd = DDOP.mult(newDd, _dd);
+                    _dds.remove(ddId);
+                    ddId--;
+                }
+            }
 
-		var cacheKey = Tuple.of(dd, var);
-		if (Global.addOutCache.containsKey(cacheKey))
-			return Global.addOutCache.get(cacheKey);
+            // sumout bestVar from newDd
+            newDd = DDOP.addout(newDd, bestVar);
+            if (newDd.getVar() == 0 && newDd.getVal() == 0)
+                return DD.zero;
 
-		HashMap<DD, DD> hashtable = new HashMap<>();
-		var result = addout(dd, var, hashtable);
+            // add new tree to dds
+            _dds.add(newDd);
 
-		Global.addOutCache.put(cacheKey, result);
+            // remove bestVar from vars
+            varsToEliminate.remove(bestVar);
+        }
 
-		return result;
-	}
+        // multiply remaining trees and the newly added one; the resulting tree
+        // is now free of any variable that appeared in vars
 
-	public static DD addout(DD dd, int var, HashMap<DD, DD> hashtable) {
+        var result = DDOP.mult(_dds);
+        return result;
+    }
 
-		// it's a leaf
-		if (dd.getVar() == 0) {
+    public static DD addout(DD dd, int var) {
 
-			return DDleaf.getDD(Global.varDomSize.get(var - 1) * dd.getVal(), dd.getConfig());
-		}
+        var cacheKey = Tuple.of(dd, var);
+        if (Global.addOutCache.containsKey(cacheKey)) 
+            return Global.addOutCache.get(cacheKey);
 
-		DD result = (DD) hashtable.get(dd);
-		if (result != null)
-			return result;
+        HashMap<DD, DD> hashtable = new HashMap<>();
+        var result = addout(dd, var, hashtable);
 
-		// root is variable that must be eliminated
-		if (dd.getVar() == var) {
+        Global.addOutCache.put(cacheKey, result);
 
-			// have to collapse all children into a new node
-			result = DDOP.add(Arrays.asList(dd.getChildren()));
-		}
+        return result;
+    }
 
-		// descend down the tree until 'var' is found
-		else {
+    public static DD addout(DD dd, int var, HashMap<DD, DD> hashtable) {
 
-			DD children[];
-			children = new DD[dd.getChildren().length];
-			for (int i = 0; i < dd.getChildren().length; i++) {
+        // it's a leaf
+        if (dd.getVar() == 0) {
 
-				children[i] = DDOP.addout(dd.getChildren()[i], var);
-			}
-			result = DDnode.getDD(dd.getVar(), children);
-		}
+            return DDleaf.getDD(Global.varDomSize.get(var - 1) * dd.getVal());
+        }
 
-		// store result
-		hashtable.put(dd, result);
-		return result;
-	}
+        DD result = (DD) hashtable.get(dd);
+        if (result != null)
+            return result;
 
-	public static List<DD> factors(final DD dd, final List<Integer> vars) {
+        // root is variable that must be eliminated
+        if (dd.getVar() == var) {
 
-		var factordds = new ArrayList<DD>(vars.size());
-		var _vars = new ArrayList<Integer>(vars);
+            // have to collapse all children into a new node
+            //			if (dd.getChildren().length > 9 && dd.getVars().size() > 2)
+            //				result = Arrays.stream(dd.getChildren()).parallel()
+            //					.reduce(DDleaf.getDD(0.0f), (d1, d2) -> DDOP.add(d1, d2));
 
-		for (int i = 0; i < _vars.size(); i++) {
+            //			else
+            result = DDOP.add(Arrays.asList(dd.getChildren()));
+        }
 
-			var _var = _vars.remove(0);
+        // descend down the tree until 'var' is found
+        else {
 
-			factordds.add(DDOP.addMultVarElim(List.of(dd), _vars));
-			_vars.add(_var);
-		}
+            DD children[];
+            children = new DD[dd.getChildren().length];
 
-		return factordds;
-	}
+            for (int i = 0; i < dd.getChildren().length; i++) {
 
-	public static String toDotRecord(final DD dd, final List<Integer> vars) {
+                children[i] = DDOP.addout(dd.getChildren()[i], var);
+            }
+            result = DDnode.getDD(dd.getVar(), children);
+        }
 
-		var factordds = new ArrayList<DD>(vars.size());
-		var _vars = new ArrayList<Integer>(vars);
+        // store result
+        hashtable.put(dd, result);
+        return result;
+    }
 
-		for (int i = 0; i < _vars.size(); i++) {
+    public static List<DD> factors(final DD dd, final List<Integer> vars) {
 
-			var _var = _vars.remove(0);
+        var factordds = new ArrayList<DD>(vars.size());
+        var _vars = new ArrayList<Integer>(vars);
+        var _dds = List.of(dd);
 
-			factordds.add(DDOP.addMultVarElim(List.of(dd), _vars));
-			_vars.add(_var);
-		}
+        for (int i = 0; i < vars.size(); i++) {
 
-		var builder = new StringBuilder();
-		builder.append(" ")
-				.append(String.join(" | ", factordds.stream().map(d -> d.toDot()).collect(Collectors.toList())))
-				.append(" ");
+            var _var = _vars.remove(0);
 
-		return builder.toString();
-	}
+            factordds.add(DDOP.addMultVarElim(_dds, _vars));
+            _vars.add(_var);
+        }
 
-	public static DD getFrameBelief(final DD b, final DD PThetajGivenMj, final int i_Mj, final List<Integer> vars) {
+        return factordds;
+    }
 
-		int mjIndex = vars.indexOf(i_Mj);
-		var _vars = new ArrayList<>(vars);
+    public static String toDotRecord(final DD dd, final List<Integer> vars) {
 
-		if (mjIndex < 0) {
+        var factordds = new ArrayList<DD>(vars.size());
+        var _vars = new ArrayList<Integer>(vars);
 
-			LOGGER.error("While getting belief over frame, i_Mj %s is not in i_S %s", i_Mj, vars);
-			System.exit(-1);
-		}
+        for (int i = 0; i < _vars.size(); i++) {
 
-		var _dontCare = _vars.remove(mjIndex);
-		DD b_Mj = DDOP.addMultVarElim(List.of(b), _vars);
-		DD b_Thetaj = DDOP.addMultVarElim(List.of(b_Mj, PThetajGivenMj), List.of(i_Mj));
+            var _var = _vars.remove(0);
 
-		return b_Thetaj;
-	}
+            factordds.add(DDOP.addMultVarElim(List.of(dd), _vars));
+            _vars.add(_var);
+        }
 
-	// -------------------------------------------------------------------------------------------------
-	// restrict
+        var builder = new StringBuilder();
+        builder.append(" ")
+            .append(String.join(" | ", factordds.stream().map(d -> d.toDot()).collect(Collectors.toList())))
+            .append(" ");
 
-	public static DD restrict(DD dd, final List<Integer> vars, final List<Integer> vals) {
+        return builder.toString();
+    }
 
-		if (dd.getVar() == 0)
-			return dd;
+    public static DD getFrameBelief(final DD b, final DD PThetajGivenMj, final int i_Mj, final List<Integer> vars) {
 
-		int varIndex = vars.indexOf(dd.getVar());
-		if (varIndex >= 0) {
+        int mjIndex = vars.indexOf(i_Mj);
+        var _vars = new ArrayList<>(vars);
 
-			var _vars = new ArrayList<>(vars);
-			var _vals = new ArrayList<>(vals);
+        if (mjIndex < 0) {
 
-			_vars.remove(varIndex);
-			var _val = _vals.remove(varIndex);
+            LOGGER.error("While getting belief over frame, i_Mj %s is not in i_S %s", i_Mj, vars);
+            System.exit(-1);
+        }
 
-			if (_vars.size() == 0)
-				return dd.getChildren()[_val - 1];
+        var _dontCare = _vars.remove(mjIndex);
+        DD b_Mj = DDOP.addMultVarElim(List.of(b), _vars);
+        DD b_Thetaj = DDOP.addMultVarElim(List.of(b_Mj, PThetajGivenMj), List.of(i_Mj));
 
-			else
-				return DDOP.restrict(dd.getChildren()[_val - 1], _vars, _vals);
-		}
+        return b_Thetaj;
+    }
 
-		DD[] children = new DD[dd.getChildren().length];
-		for (int i = 0; i < children.length; i++) {
+    // -------------------------------------------------------------------------------------------------
+    // restrict
 
-			children[i] = DDOP.restrict(dd.getChildren()[i], vars, vals);
-		}
+    public static DD restrict(DD dd, final List<Integer> vars, final List<Integer> vals) {
 
-		return DDnode.getDD(dd.getVar(), children);
-	}
+        if (dd.getVar() == 0)
+            return dd;
 
-	public static List<DD> restrict(List<DD> dds, final List<Integer> vars, final List<Integer> vals) {
+        int varIndex = vars.indexOf(dd.getVar());
+        if (varIndex >= 0) {
 
-		ArrayList<DD> result = new ArrayList<>(dds.size());
+            var _vars = new ArrayList<>(vars);
+            var _vals = new ArrayList<>(vals);
 
-		for (int i = 0; i < dds.size(); i++) {
+            _vars.remove(varIndex);
+            var _val = _vals.remove(varIndex);
 
-			result.add(DDOP.restrict(dds.get(i), vars, vals));
-		}
+            if (_vars.size() == 0)
+                return dd.getChildren()[_val - 1];
 
-		return result;
-	}
+            else
+                return DDOP.restrict(dd.getChildren()[_val - 1], _vars, _vals);
+        }
 
-	// --------------------------------------------------------------------------------------------------
-	// rename / prime variables
-	public static DD primeVars(DD dd, int n) {
+        DD[] children = new DD[dd.getChildren().length];
+        for (int i = 0; i < children.length; i++) {
 
-		HashMap<DD, DD> hashtable = new HashMap<>(10);
-		return DDOP.primeVars(dd, n, hashtable);
-	}
+            children[i] = DDOP.restrict(dd.getChildren()[i], vars, vals);
+        }
 
-	public static DD primeVars(DD dd, int n, HashMap<DD, DD> hashtable) {
+        return DDnode.getDD(dd.getVar(), children);
+    }
 
-		// dd is a leaf
-		if (dd.getVar() == 0)
-			return dd;
+    public static List<DD> restrict(List<DD> dds, final List<Integer> vars, final List<Integer> vals) {
 
-		// dd is a node
-		else {
+        ArrayList<DD> result = new ArrayList<>(dds.size());
 
-			DD result = (DD) hashtable.get(dd);
-			if (result != null)
-				return result;
+        for (int i = 0; i < dds.size(); i++) {
 
-			DD children[];
-			children = new DD[dd.getChildren().length];
-			for (int i = 0; i < dd.getChildren().length; i++) {
+            result.add(DDOP.restrict(dds.get(i), vars, vals));
+        }
 
-				children[i] = DDOP.primeVars(dd.getChildren()[i], n);
-			}
-			result = DDnode.getDD(dd.getVar() + n, children);
-			hashtable.put(dd, result);
-			return result;
-		}
-	}
+        return result;
+    }
 
-	public static List<DD> primeVars(List<DD> dds, int n) {
+    // --------------------------------------------------------------------------------------------------
+    // rename / prime variables
+    public static DD primeVars(DD dd, int n) {
 
-		var primedDds = new ArrayList<DD>(dds.size());
-		for (int i = 0; i < dds.size(); i++) {
+        HashMap<DD, DD> hashtable = new HashMap<>(10);
+        return DDOP.primeVars(dd, n, hashtable);
+    }
 
-			primedDds.add(DDOP.primeVars(dds.get(i), n));
-		}
-		return primedDds;
-	}
+    public static DD primeVars(DD dd, int n, HashMap<DD, DD> hashtable) {
 
-	// ------------------------------------------------------------------------------------------------
+        // dd is a leaf
+        if (dd.getVar() == 0)
+            return dd;
 
-	public static float dotProduct(DD dd1, DD dd2, Collection<Integer> vars) {
+        // dd is a node
+        else {
 
-		if ((dd1.getVar() == 0 && dd1.getVal() == 0) || (dd2.getVar() == 0 && dd2.getVal() == 0))
-			return 0;
+            DD result = (DD) hashtable.get(dd);
+            if (result != null)
+                return result;
 
-		var _vars = new HashSet<Integer>(vars);
-		var _computation = Tuple.of(dd1, dd2, _vars);
+            DD children[];
+            children = new DD[dd.getChildren().length];
+            for (int i = 0; i < dd.getChildren().length; i++)
+                children[i] = DDOP.primeVars(dd.getChildren()[i], n);
 
-		var result = Global.dotProductCache.get(_computation);
-		if (result != null)
-			return result;
+            result = DDnode.getDD(dd.getVar() + n, children);
+            hashtable.put(dd, result);
 
-		// dd1 precedes dd2
-		if (dd1.getVar() > dd2.getVar()) {
+            return result;
+        }
+    }
 
-			_vars.remove(dd1.getVar());
-			float dp = 0;
-			for (int i = 0; i < dd1.getChildren().length; i++) {
+    public static List<DD> primeVars(List<DD> dds, int n) {
 
-				dp += DDOP.dotProduct(dd1.getChildren()[i], dd2, _vars);
-			}
+        var primedDds = new ArrayList<DD>(dds.size());
+        for (int i = 0; i < dds.size(); i++) {
 
-			Global.dotProductCache.put(_computation, dp);
-			return dp;
-		}
+            primedDds.add(DDOP.primeVars(dds.get(i), n));
+        }
+        return primedDds;
+    }
 
-		// dd2 precedes dd1 {
-		else if (dd2.getVar() > dd1.getVar()) {
+    // ------------------------------------------------------------------------------------------------
 
-			_vars.remove(dd2.getVar());
-			float dp = 0;
-			for (int i = 0; i < dd2.getChildren().length; i++) {
+    public static float dotProduct(DD dd1, DD dd2, Collection<Integer> vars) {
 
-				dp += DDOP.dotProduct(dd2.getChildren()[i], dd1, _vars);
-			}
-			Global.dotProductCache.put(_computation, dp);
-			return dp;
-		}
+        if ((dd1.getVar() == 0 && dd1.getVal() == 0) || (dd2.getVar() == 0 && dd2.getVal() == 0))
+            return 0;
 
-		// dd2 and dd1 have same root var
-		else if (dd1.getVar() > 0) {
+        var _vars = new HashSet<Integer>(vars);
+        var _computation = Tuple.of(dd1, dd2, _vars);
 
-			_vars.remove(dd1.getVar());
-			float dp = 0;
-			for (int i = 0; i < dd1.getChildren().length; i++) {
+        var result = Global.dotProductCache.get(_computation);
+        if (result != null)
+            return result;
 
-				dp += DDOP.dotProduct(dd1.getChildren()[i], dd2.getChildren()[i], _vars);
-			}
-			Global.dotProductCache.put(_computation, dp);
-			return dp;
-		}
+        // dd1 precedes dd2
+        if (dd1.getVar() > dd2.getVar()) {
 
-		// dd1 and dd2 are leaves
-		else {
+            _vars.remove(dd1.getVar());
+            float dp = 0;
+            for (int i = 0; i < dd1.getChildren().length; i++) {
 
-			float _result = dd1.getVal() * dd2.getVal();
-			for (var _v : _vars) {
+                dp += DDOP.dotProduct(dd1.getChildren()[i], dd2, _vars);
+            }
 
-				_result *= Global.valNames.get(_v - 1).size();
-			}
+            Global.dotProductCache.put(_computation, dp);
+            return dp;
+        }
 
-			return _result;
-		}
-	}
+        // dd2 precedes dd1 {
+        else if (dd2.getVar() > dd1.getVar()) {
 
-	public static List<List<Float>> dotProduct(List<DD> dds1, List<DD> dds2, Collection<Integer> vars) {
+            _vars.remove(dd2.getVar());
+            float dp = 0;
+            for (int i = 0; i < dd2.getChildren().length; i++) {
 
-		List<List<Float>> results = new ArrayList<>(dds1.size());
-		for (int i = 0; i < dds1.size(); i++) {
+                dp += DDOP.dotProduct(dd2.getChildren()[i], dd1, _vars);
+            }
+            Global.dotProductCache.put(_computation, dp);
+            return dp;
+        }
 
-			List<Float> _results = new ArrayList<>(dds2.size());
+        // dd2 and dd1 have same root var
+        else if (dd1.getVar() > 0) {
 
-			for (int j = 0; j < dds2.size(); j++) {
+            _vars.remove(dd1.getVar());
+            float dp = 0;
+            for (int i = 0; i < dd1.getChildren().length; i++) {
 
-				_results.add(DDOP.dotProduct(dds1.get(i), dds2.get(j), vars));
-			}
-			results.add(_results);
-		}
+                // try {
+                dp += DDOP.dotProduct(dd1.getChildren()[i], dd2.getChildren()[i], _vars);
+                // }
+                // catch (Exception e) {
 
-		return results;
-	}
+                // LOGGER.debug(String.format("DD1 is %s", Arrays.toString(dd1.getChildren())));
+                // LOGGER.debug(String.format("DD2 is %s", Arrays.toString(dd2.getChildren())));
+                // LOGGER.debug(String.format("Children are %s and %s and _vars are %s",
+                // dd1.getChildren().length, dd2.getChildren().length, _vars));
+                // LOGGER.debug(String.format("Root vars are %s and %s",
+                // Global.varNames.get(dd1.getVar() - 1), Global.varNames.get(dd2.getVar()-1)));
+                // LOGGER.debug(String.format("Children are %s and %s",
+                // Global.valNames.get(dd1.getVar() - 1), Global.valNames.get(dd2.getVar() -
+                // 1)));
 
-	public static float value_b(List<Tuple<Integer, DD>> Vn, DD b, Collection<Integer> Svars) {
+                // e.printStackTrace();
+                // System.exit(-1);
+                // }
+            }
+            Global.dotProductCache.put(_computation, dp);
+            return dp;
+        }
 
-		float maxVal = Float.NEGATIVE_INFINITY;
+        // dd1 and dd2 are leaves
+        else {
 
-		for (int i = 0; i < Vn.size(); i++) {
+            float _result = dd1.getVal() * dd2.getVal();
+            for (var _v : _vars) {
 
-			float val = DDOP.dotProduct(b, Vn.get(i)._1(), Svars);
+                _result *= Global.valNames.get(_v - 1).size();
+            }
 
-			if (val > maxVal)
-				maxVal = val;
-		}
+            return _result;
+        }
+        }
 
-		return maxVal;
-	}
+    public static List<List<Float>> dotProduct(List<DD> dds1, List<DD> dds2, Collection<Integer> vars) {
 
-	public static int bestAlphaIndex(List<Tuple<Integer, DD>> Vn, DD b, Collection<Integer> Svars) {
+        List<List<Float>> results = new ArrayList<>(dds1.size());
+        for (int i = 0; i < dds1.size(); i++) {
 
-		float maxVal = Float.NEGATIVE_INFINITY;
-		int bestIndex = -1;
+            List<Float> _results = new ArrayList<>(dds2.size());
 
-		for (int i = 0; i < Vn.size(); i++) {
+            for (int j = 0; j < dds2.size(); j++) {
 
-			float val = DDOP.dotProduct(b, Vn.get(i)._1(), Svars);
+                _results.add(DDOP.dotProduct(dds1.get(i), dds2.get(j), vars));
+            }
+            results.add(_results);
+        }
 
-			if (val > maxVal) {
+        return results;
+    }
 
-				maxVal = val;
-				bestIndex = i;
-			}
-		}
+    public static float value_b(List<DD> Vn, DD b, Collection<Integer> Svars) {
 
-		return bestIndex;
-	}
+        float maxVal = Float.NEGATIVE_INFINITY;
 
-	public static <T> List<List<T>> cartesianProd(List<List<T>> a, List<List<T>> b) {
+        for (var vn : Vn) {
 
-		var prod = a.stream()
-				.map(x -> b.stream().map(y -> Stream.concat(x.stream(), y.stream()).collect(Collectors.toList()))
-						.collect(Collectors.toList()))
-				.flatMap(z -> z.stream()).collect(Collectors.toList());
+            float val = DDOP.dotProduct(b, vn, Svars);
 
-		return prod;
-	}
+            if (val > maxVal)
+                maxVal = val;
+        }
 
-	public static <T> List<List<T>> cartesianProd(List<List<T>> sets) {
+        return maxVal;
+    }
 
-		var prod = sets.stream()
-				.map(s -> s.stream().map(t -> Collections.singletonList(t)).collect(Collectors.toList()))
-				.reduce((x, y) -> DDOP.cartesianProd(x, y)).orElse(new ArrayList<List<T>>(1));
+    public static float value_b(AlphaVectorPolicy Vn, DD belief) {
 
-		return prod;
-	}
+        return value_b(Vn.getAsDDList(), belief, Vn.stateIndices);
+    }
 
-	// -----------------------------------------------------------------------------------------------------------
+    // Evaluate belief region according to a policy
+    public static List<Float> getBeliefRegionEval(Collection<DD> B,
+            AlphaVectorPolicy p) {
+        /*
+         * Avoid using streams here to avoid the performance impact
+         */
 
-	public static DD reorder(DD dd) {
+        var vals = new ArrayList<Float>(B.size());
+        for (var b: B)
+            vals.add(value_b(p, b));
 
-		// it's a leaf
-		if (dd.getVar() == 0)
-			return dd;
+        return vals;
+    }
 
-		// it's a node
-		var _vars = dd.getVars();
-		int highestVar = _vars.last();
-		DD[] children = new DD[Global.valNames.get(highestVar - 1).size()];
-		for (int i = 0; i < children.length; i++) {
+    // Get evaluation difference between two policies
+    public static List<Float> getBeliefRegionEvalDiff(Collection<DD> B,
+            AlphaVectorPolicy p1, AlphaVectorPolicy p2) {
 
-			DD restDd = DDOP.restrict(dd, List.of(highestVar), List.of((i + 1)));
-			children[i] = DDOP.reorder(restDd);
-		}
-		return DDnode.getDD(highestVar, children);
-	}
+        return B.parallelStream()
+            .map(b -> Math.abs(value_b(p1, b) - value_b(p2, b)))
+            .collect(Collectors.toList());
+    }
 
-	// -----------------------------------------------------------------------------------------------------------
+    public static Tuple<Integer, Float> bestAlphaIndexWithValue(
+            AlphaVectorPolicy Vn, DD b) {
 
-	public static int sampleIndex(List<Float> pdist) {
+        float maxVal = Float.NEGATIVE_INFINITY;
+        int best = -1;
 
-		float thesum = 0.0f;
-		int i = 0;
+        for (int v = 0; v < Vn.size(); v++) {
 
-		for (i = 0; i < pdist.size(); i++)
-			thesum += pdist.get(i);
+            var val = DDOP.dotProduct(b, 
+                    Vn.get(v).getVector(), Vn.stateIndices);
 
-		float ssum = 0.0f;
-		float r = Global.random.nextFloat();
+            if (val > maxVal) {
+                maxVal = val;
+                best = v;
+            }
+        }
 
-		i = 0;
+        return Tuple.of(best, maxVal);
+            }
 
-		while (ssum < r && i < pdist.size())
-			ssum += pdist.get(i++) / thesum;
+    public static Tuple<AlphaVector, Float> bestAlphaWithValue(
+            AlphaVectorPolicy Vn, DD b) {
 
-		return (i - 1);
-	}
+        var indexWithVal = bestAlphaIndexWithValue(Vn, b);
+        return Tuple.of(Vn.get(indexWithVal._0()), indexWithVal._1());
+    }
 
-	public static Tuple<List<Integer>, List<Integer>> sample(List<DD> dd, List<Integer> varId) {
+    public static int bestAlphaIndex(AlphaVectorPolicy Vn,
+            DD b) {
 
-		var _vars = new ArrayList<>(varId);
-		var _dds = new ArrayList<>(dd);
-		var _varSamples = new ArrayList<Integer>(varId.size());
-		var _valSamples = new ArrayList<Integer>(varId.size());
+        float maxVal = Float.NEGATIVE_INFINITY;
+        int bestIndex = -1;
 
-		while (!_vars.isEmpty()) {
+        for (int i = 0; i < Vn.size(); i++) {
 
-			int v = _vars.remove(0);
-			var sample = DDOP.sample(DDOP.addMultVarElim(_dds, _vars), v);
-			_dds = (ArrayList<DD>) DDOP.restrict(_dds, sample._0(), sample._1());
-			_varSamples.addAll(sample._0());
-			_valSamples.addAll(sample._1());
-		}
+            float val = DDOP.dotProduct(b, 
+                    Vn.get(i).getVector(), Vn.stateIndices);
 
-		return Tuple.of(_varSamples, _valSamples);
-	}
+            if (val > maxVal) {
 
-	public static Tuple<List<Integer>, List<Integer>> sample(DD dd, int varId) {
+                maxVal = val;
+                bestIndex = i;
+            }
+        }
 
-		// for variables
-		var _varList = new ArrayList<Integer>(1);
-		_varList.add(varId);
+        if (bestIndex < 0) {
+            LOGGER.error("Error while getting best action at %s", b);
+            System.exit(-1);
+        }
 
-		// for values
-		var _valList = new ArrayList<Integer>(1);
+        return bestIndex;
+    }
 
-		// it's a leaf
-		if (dd.getVar() == 0) {
+    public static void printValuesForBelief(
+            List<Tuple<Integer, DD>> Vn, DD b, Collection<Integer> Svars, List<String> actionNames) {
 
-			_valList.add(Global.random.nextInt(Global.valNames.get(varId - 1).size()) + 1);
-			return Tuple.of(_varList, _valList);
-		}
 
-		// it's a node
-		else {
+        var values = Vn.parallelStream()
+            .map(a -> Tuple.of(a._0(), actionNames.get(a._0()), DDOP.dotProduct(b, a._1(), Svars)))
+            .collect(Collectors.toList());
 
-			float sum = 0;
-			DD[] children = dd.getChildren();
-			for (int childId = 0; childId < children.length; childId++) {
+        LOGGER.debug("Values of belief are:");
 
-				sum += children[childId].getVal();
-			}
+        var idx_values = IntStream.range(0, values.size()).boxed()
+            .map(i -> Tuple.of(i, values.get(i))).collect(Collectors.toList());
 
-			float randomVal = Global.random.nextFloat() * sum;
-			sum = 0;
-			for (int childId = 0; childId < children.length; childId++) {
+        Collections.sort(idx_values, (x, y) -> x._1()._2().compareTo(y._1()._2()));
 
-				sum += children[childId].getVal();
-				if (sum >= randomVal) {
+        idx_values.forEach(v -> {
+            LOGGER.debug(String.format("%s", v));
+        });
 
-					_valList.add(childId + 1);
-					return Tuple.of(_varList, _valList);
-				}
-			}
+            }
 
-			// return last non-zero child
-			for (int childId = children.length - 1; childId >= 0; childId--) {
+    public static <T> List<List<T>> cartesianProd(List<List<T>> a, List<List<T>> b) {
 
-				if (children[childId].getVal() > 0) {
+        var prod = a.stream()
+            .map(x -> b.stream().map(y -> Stream.concat(x.stream(), y.stream()).collect(Collectors.toList()))
+                    .collect(Collectors.toList()))
+            .flatMap(z -> z.stream()).collect(Collectors.toList());
 
-					_valList.add(childId + 1);
-					return Tuple.of(_varList, _valList);
-				}
-			}
+        return prod;
+    }
 
-			// otherwise there is a bug
-			LOGGER.error("Bug in sample multinomial");
-			return null;
-		}
-	}
+    public static <T> List<List<T>> cartesianProd(List<List<T>> sets) {
 
-	// ---------------------------------------------------------------------------------------
-	// max all
-	public static float maxAll(DD dd) {
+        var prod = sets.stream()
+            .map(s -> s.stream().map(t -> Collections.singletonList(t)).collect(Collectors.toList()))
+            .reduce((x, y) -> DDOP.cartesianProd(x, y)).orElse(new ArrayList<List<T>>(1));
 
-		HashMap<DD, Float> hashtable = new HashMap<>();
-		return maxAll(dd, hashtable);
-	}
+        return prod;
+    }
 
-	public static float maxAll(DD dd, HashMap<DD, Float> hashtable) {
+    // -----------------------------------------------------------------------------------------------------------
 
-		Float storedResult = (Float) hashtable.get(dd);
+    public static DD reorder(DD dd) {
 
-		if (storedResult != null)
-			return storedResult.floatValue();
+        // it's a leaf
+        if (dd.getVar() == 0)
+            return dd;
 
-		// it's a leaf
-		float result = Float.NEGATIVE_INFINITY;
+        // it's a node
+        var _vars = dd.getVars();
+        int highestVar = _vars.last();
+        DD[] children = new DD[Global.valNames.get(highestVar - 1).size()];
+        for (int i = 0; i < children.length; i++) {
 
-		if (dd.getVar() == 0)
-			result = dd.getVal();
+            DD restDd = DDOP.restrict(dd, List.of(highestVar), List.of((i + 1)));
+            children[i] = DDOP.reorder(restDd);
+        }
+        return DDnode.getDD(highestVar, children);
+    }
 
-		else {
+    // Make DD from given random variable values
+    public static DD ddFromVals(List<Integer> vars, List<Integer> vals) {
 
-			DD[] children = dd.getChildren();
+        var dd = new ArrayList<DD>(vars.size());
+        for (int i = 0; i < vars.size(); i++)
+            dd.add(DDnode.getDDForChild(
+                        vars.get(i), vals.get(i) - 1));
 
-			for (int i = 0; i < children.length; i++) {
+        return mult(dd);
+    }
 
-				float maxVal = DDOP.maxAll(children[i], hashtable);
-				if (result < maxVal)
-					result = maxVal;
-			}
-		}
+    // -----------------------------------------------------------------------------------------------------------
 
-		hashtable.put(dd, Float.valueOf(result));
-		return result;
-	}
-}
+    public static int sampleDist(List<Float> pdist) {
+
+        float r = Global.random.nextFloat();
+
+        for (int i = 0; i < pdist.size(); i++) {
+            if (pdist.get(i) < r)
+                continue;
+
+            else
+                return i;
+        }
+
+        LOGGER.error("Could not sample %s from %s", r, pdist);
+        return -1;
+    }
+
+    public static int sampleIndex(List<Float> pdist) {
+
+        float thesum = 0.0f;
+        int i = 0;
+
+        for (i = 0; i < pdist.size(); i++)
+            thesum += pdist.get(i);
+
+        float ssum = 0.0f;
+        float r = Global.random.nextFloat();
+
+        i = 0;
+
+        while (ssum < r && i < pdist.size())
+            ssum += pdist.get(i++) / thesum;
+
+        return (i - 1);
+    }
+
+    public static int sample(List<Float> dist) {
+
+        float[] sums = new float[dist.size()];
+
+        float sum = 0f;
+        for (int i = 0; i < sums.length; i++) {
+            sum += dist.get(i);
+            sums[i] = sum;
+        }
+
+        if (sum == 0.0f)
+            return -1;
+
+        float r = Global.random.nextFloat();
+
+        for (int i = 0; i < sums.length; i++) {
+            if ((sums[i] / sum) < r)
+                continue;
+
+            else
+                return i;
+        }
+
+        return -1;
+    }
+
+    public static Tuple<List<Integer>, List<Integer>> sample(List<DD> dd, 
+            List<Integer> varId) {
+
+        var _vars = new ArrayList<>(varId);
+        var _dds = new ArrayList<>(dd);
+        var _varSamples = new ArrayList<Integer>(varId.size());
+        var _valSamples = new ArrayList<Integer>(varId.size());
+
+        while (!_vars.isEmpty()) {
+
+            int v = _vars.remove(0);
+            var sample = DDOP.sample(DDOP.addMultVarElim(_dds, _vars), v);
+            _dds = (ArrayList<DD>) DDOP.restrict(_dds, sample._0(), sample._1());
+            _varSamples.addAll(sample._0());
+            _valSamples.addAll(sample._1());
+        }
+
+        return Tuple.of(_varSamples, _valSamples);
+    }
+
+    public static Tuple<List<Integer>, List<Integer>> sample(DD dd, int varId) {
+
+        // for variables
+        var _varList = new ArrayList<Integer>(1);
+        _varList.add(varId);
+
+        // for values
+        var _valList = new ArrayList<Integer>(1);
+
+        // it's a leaf
+        if (dd.getVar() == 0) {
+
+            _valList.add(Global.random.nextInt(Global.valNames.get(varId - 1).size()) + 1);
+            return Tuple.of(_varList, _valList);
+        }
+
+        // it's a node
+        else {
+
+            float sum = 0;
+            DD[] children = dd.getChildren();
+            for (int childId = 0; childId < children.length; childId++) {
+
+                sum += children[childId].getVal();
+            }
+
+            float randomVal = Global.random.nextFloat() * sum;
+            sum = 0;
+            for (int childId = 0; childId < children.length; childId++) {
+
+                sum += children[childId].getVal();
+                if (sum >= randomVal) {
+
+                    _valList.add(childId + 1);
+                    return Tuple.of(_varList, _valList);
+                }
+            }
+
+            // return last non-zero child
+            for (int childId = children.length - 1; childId >= 0; childId--) {
+
+                if (children[childId].getVal() > 0) {
+
+                    _valList.add(childId + 1);
+                    return Tuple.of(_varList, _valList);
+                }
+            }
+
+            // otherwise there is a bug
+            LOGGER.error("Bug in sample multinomial");
+            return null;
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // max all
+    public static float maxAll(DD dd) {
+
+        HashMap<DD, Float> hashtable = new HashMap<>();
+        return maxAll(dd, hashtable);
+    }
+
+    public static float maxAll(DD dd, HashMap<DD, Float> hashtable) {
+
+        Float storedResult = (Float) hashtable.get(dd);
+
+        if (storedResult != null)
+            return storedResult.floatValue();
+
+        // it's a leaf
+        float result = Float.NEGATIVE_INFINITY;
+
+        if (dd.getVar() == 0)
+            result = dd.getVal();
+
+        else {
+
+            DD[] children = dd.getChildren();
+
+            for (int i = 0; i < children.length; i++) {
+
+                float maxVal = DDOP.maxAll(children[i], hashtable);
+                if (result < maxVal)
+                    result = maxVal;
+            }
+        }
+
+        hashtable.put(dd, Float.valueOf(result));
+        return result;
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // min all
+    public static float minAll(DD dd) {
+
+        HashMap<DD, Float> hashtable = new HashMap<>();
+        return minAll(dd, hashtable);
+    }
+
+    public static float minAll(DD dd, HashMap<DD, Float> hashtable) {
+
+        Float storedResult = (Float) hashtable.get(dd);
+
+        if (storedResult != null)
+            return storedResult.floatValue();
+
+        // it's a leaf
+        float result = Float.POSITIVE_INFINITY;
+
+        if (dd.getVar() == 0)
+            result = dd.getVal();
+
+        else {
+
+            DD[] children = dd.getChildren();
+
+            for (int i = 0; i < children.length; i++) {
+
+                float minVal = DDOP.minAll(children[i], hashtable);
+                if (result > minVal)
+                    result = minVal;
+            }
+        }
+
+        hashtable.put(dd, Float.valueOf(result));
+        return result;
+    }
+
+    public static DD approximate(DD d) {
+
+        if (d instanceof DDleaf)
+            return d;
+
+        var _min = DDOP.minAll(d);
+        var _max = DDOP.maxAll(d);
+
+        if ((_max - _min) < 1e-4f)
+            return DDleaf.getDD(_min);
+
+        else {
+
+            var children = new DD[d.getChildren().length];
+
+            for (int c = 0; c < children.length; c++)
+                children[c] = approximate(d.getChildren()[c]);
+
+            return DDnode.getDD(d.getVar(), children);
+        }
+    }
+
+    public static boolean canApproximate(DD d) {
+
+        if (d instanceof DDleaf)
+            return false;
+
+        var canApprox = false;
+        var _min = DDOP.minAll(d);
+        var _max = DDOP.maxAll(d);
+
+        if ((_max - _min) < 1e-4f) {
+            canApprox = true;
+            return canApprox;
+        }
+
+        else {
+
+            for (var child: d.getChildren()) {
+                canApprox = canApprox | canApproximate(child);
+
+                if (canApprox)
+                    break;
+            }
+
+            return canApprox;
+        }
+    }
+
+    public static boolean verifyProbabilityDist(final DD d, final int var) {
+
+        if (d instanceof DDleaf) {
+
+            float m = d.getVal() * Global.valNames.get(var - 1).size();
+
+            if (Math.abs(1.0f - m) > 1e-4f)
+                return false;
+        }
+
+        else {
+
+            float m = IntStream.range(0, Global.valNames.get(var - 1).size()).boxed()
+                .map(i -> {
+
+                    if (d.getChildren()[i] instanceof DDleaf)
+                        return d.getChildren()[i].getVal();
+
+                    else
+                        return Float.POSITIVE_INFINITY;
+                }).reduce(0.0f, (p1, p2) -> p1 + p2);
+
+            if (Math.abs(1.0f - m) > 1e-4f)
+                return false;
+
+        }
+
+        return true;
+    }
+
+    public static boolean verifyJointProbabilityDist(final DD d, final List<Integer> vars) {
+
+        var _vars = new ArrayList<Integer>(vars);
+
+        for (int i = 0; i < _vars.size(); i++) {
+
+            var _var = _vars.remove(0);
+
+            var f = DDOP.addMultVarElim(List.of(d), _vars);
+
+            if (!verifyProbabilityDist(f, _var))
+                return false;
+
+            _vars.add(_var);
+        }
+
+        return true;
+    }
+
+    public static JsonObject toJson(final DD d, final int var) {
+
+        var json = new JsonObject();
+
+        if (d instanceof DDleaf) {
+
+            var _json = new JsonObject();
+
+            for (var val: Global.valNames.get(var - 1))
+                _json.addProperty(val, d.getVal());
+
+            json.add(Global.varNames.get(var - 1), _json);
+
+            return json;
+        }
+
+        else {
+
+            var _json = new JsonObject();
+            IntStream.range(0, d.getChildren().length)
+                .forEach(i -> {
+                    _json.addProperty(
+                            Global.valNames.get(var - 1).get(i), 
+                            d.getChildren()[i].getVal());
+                });
+
+            json.add(Global.varNames.get(var - 1), _json);
+            return json;
+        }
+    }
+
+    public static JsonElement toJson(final List<DD> dds,
+            final List<Integer> vars) {
+
+        var invalid = dds.stream()
+            .filter(_d -> _d.getVars().size() > 1)
+            .findAny();
+
+        if (invalid.isPresent()) {
+
+            LOGGER.error("Cannot make JSON string from DD %s", invalid.get());
+            System.exit(-1);
+        }
+
+        var json = new JsonObject();
+
+        for (int i = 0; i < vars.size(); i++) {
+            var varName = Global.varNames.get(vars.get(i) - 1);
+            var ddJson = toJson(dds.get(i), vars.get(i));
+
+            json.add(varName, ddJson.get(varName));
+        }
+
+        return json;
+    }
+
+    public static JsonElement toJson(final DD d,
+            final List<Integer> vars) {
+
+        var dds = DDOP.factors(d, vars);
+        return toJson(dds, vars);
+    }
+
+    public static float l2NormSq(final DD d1, 
+            final DD d2, int dimensions) {
+
+        var diff = DDOP.pow(DDOP.sub(d1, d2), 2.0f);
+
+        if (diff instanceof DDleaf d)
+            return d.getVal() * dimensions;
+
+        else
+            return addMultVarElim(List.of(diff), diff.getVars()).getVal();
+    }
+
+    public static List<DD> getEnumeratedFactor(DD dd, int _var) {
+
+        var enumerated = 
+            IntStream.range(
+                    0, Global.valNames.get(_var - 1).size())
+            .mapToObj(i -> 
+                    DDOP.restrict(dd, List.of(_var), List.of(i + 1)))
+            .collect(Collectors.toList());
+
+        return enumerated;
+    }
+    }

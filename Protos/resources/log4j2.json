@@ -10,12 +10,12 @@
             "Console": {
                 "name": "STDOUT",
                 "PatternLayout": {
-                    "pattern": "%d [%t] %-5p %c - %m%n"
+                    "pattern": "%d{HH:mm:ss,SSS} %-5p %c{1} - %m%n"
                 }
             }
         },
         "loggers": {
-            "root": {
+            "asyncroot": {
                 "level": "debug",
                 "AppenderRef": {
                     "ref": "STDOUT"

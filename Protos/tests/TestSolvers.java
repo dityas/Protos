@@ -12,16 +12,15 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
-import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
+import thinclab.model_ops.belief_exploration.MDPExploration;
 import thinclab.model_ops.belief_exploration.MjSpaceExpansion;
 import thinclab.model_ops.belief_exploration.PolicyGraphExpansion;
-import thinclab.model_ops.belief_exploration.SSGAExploration;
-import thinclab.models.IPOMDP;
 import thinclab.models.POMDP;
+import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.ModelGraph;
-import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.models.datastructures.ReachabilityNode;
 import thinclab.policy.AlphaVectorPolicy;
+import thinclab.solver.QMDPSolver;
 import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.utils.Tuple;
@@ -40,7 +39,8 @@ import thinclab.utils.Tuple;
  */
 class TestSolvers {
 
-	private static final Logger LOGGER = LogManager.getLogger(TestSolvers.class);
+	private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(TestSolvers.class);
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -86,17 +86,80 @@ class TestSolvers {
 				return null;
 			});
 
-		var g = ReachabilityGraph.fromDecMakingModel(I);
 		var b_is = List.of(DDleaf.getDD(0.5f));
-		var _g = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100).expand(b_is, g, I, 5,
-				null);
+        var explorationStrat = 
+            new MDPExploration<>(AlphaVectorPolicy.getLowerBound(I), 0.2f);
+
+        var exploredRegion = explorationStrat.explore(b_is, I, 10, 100);
 
 		IntStream.range(0, I.A().size()).forEach(i ->
 			{
 
-				LOGGER.debug(String.format("backup for %s at %s is %s", I.A().get(i), DDleaf.getDD(0.5f),
-						I.backup(DDleaf.getDD(0.5f), I.R(), _g)));
+				LOGGER.debug("backup for %s at %s is %s", 
+                        I.A().get(i), DDleaf.getDD(0.5f),
+						I.backup(DDleaf.getDD(0.5f), 
+                            AlphaVectorPolicy.getLowerBound(I), 
+                            exploredRegion));
 			});
+		printMemConsumption();
+	}
+
+	@Test
+	void testQMDPSolver() throws Exception {
+
+		System.gc();
+
+		String domainFile = this.getClass()
+            .getClassLoader()
+            .getResource("test_domains/test_tiger_domain.spudd")
+            .getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+
+        var policy = QMDPSolver.solveQMDP(I);
+	}
+
+	@Test
+	void testQMDPSolverForIPOMDP() throws Exception {
+
+		System.gc();
+
+		String domainFile = this.getClass().getClassLoader()
+            .getResource("test_domains/test_ipomdpl1.spudd").getFile();
+
+		// Run domain
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		// Get agent I
+		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Model not found");
+				System.exit(-1);
+				return null;
+			});
+
+        List<DD> Qfn = I.R().stream()
+            .map(r -> DDOP.addMultVarElim(List.of(r, I.PAjGivenEC), List.of(I.i_Aj)))
+            .collect(Collectors.toList());
+
+        LOGGER.info("Initial Qfn is %s", Qfn);
+        var nextQfn = I.MDPValueIteration(Qfn);
+        LOGGER.info("Next Qfn is %s", nextQfn);
+		
+		System.gc();
 		printMemConsumption();
 	}
 
@@ -122,23 +185,23 @@ class TestSolvers {
 				return null;
 			});
 
-		var solver = new SymbolicPerseusSolver<POMDP>();
-		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
+		var solver = new SymbolicPerseusSolver<POMDP>(I);
+		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), 100, 10);
 
-		int bestAct = policy.getBestActionIndex(DDleaf.getDD(0.5f), I.i_S());
+		int bestAct = policy.getBestActionIndex(DDleaf.getDD(0.5f));
 
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
 				I.A().get(bestAct)));
 
 		assertTrue(bestAct == 0);
-		assertTrue(policy.aVecs.size() == 5);
+		assertTrue(policy.size() == 5);
 
 		LOGGER.debug(String.format("Solved policy is %s", policy));
 		printMemConsumption();
-		
+
 		LOGGER.info("Testing MjSpace representation");
 		var initNodes = List.of(DDleaf.getDD(0.5f)).stream()
-				.map(d -> ReachabilityNode.getStartNode(policy.getBestActionIndex(d, I.i_S()), d))
+				.map(d -> ReachabilityNode.getStartNode(policy.getBestActionIndex(d), d))
 				.collect(Collectors.toList());
 
 		var modelGraph = ModelGraph.fromDecMakingModel(I);
@@ -148,14 +211,6 @@ class TestSolvers {
 		LOGGER.debug(String.format("After expanding the MjSpace graph, no. of models are %s",
 				modelGraph.getAllNodes().size()));
 		LOGGER.debug(String.format("Graph is %s", ModelGraph.toDot(modelGraph, I)));
-		
-		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
-		var bfe = new BreadthFirstExploration<DD, POMDP, ReachabilityGraph, AlphaVectorPolicy>(100);
-		
-		beliefGraph = bfe.expand(List.of(DDleaf.getDD(0.5f)), beliefGraph, I, 5, policy);
-		
-		LOGGER.debug(String.format("After expanding the belief space graph, no. of models are %s",
-				beliefGraph.getAllNodes().size()));
 
 	}
 
@@ -180,44 +235,29 @@ class TestSolvers {
 				return null;
 			});
 
-		var solver = new SymbolicPerseusSolver<IPOMDP>();
+		var solver = new SymbolicPerseusSolver<IPOMDP>(I);
 
 		var b_i = DDOP.mult(DDleaf.getDD(0.5f),
 				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
-		var policy = solver.solve(List.of(b_i), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
-		int bestAct = policy.getBestActionIndex(b_i, I.i_S());
+
+		LOGGER.debug(String.format("Level 1 recursive belief is %s", b_i));
+
+		var dd = I.getECDDFromMjDD(b_i);
+		var policy = solver.solve(List.of(dd), 100, I.H);
+		int bestAct = policy.getBestActionIndex(dd);
 
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
 				I.A().get(bestAct)));
 
 		assertTrue(bestAct == 0);
-
-		DD b_ = b_i;
-
-		LOGGER.info(String.format("Suggested optimal action for %s  is %s which resolves to %s",
-				DDOP.factors(b_, I.i_S()), bestAct, I.A().get(bestAct)));
-
-		assertTrue(bestAct == 0);
-
+		
 		LOGGER.info(String.format("Agent hears %s, %s ", Global.valNames.get(I.i_Om.get(0) - 1).get(0),
 				Global.valNames.get(I.i_Om.get(1) - 1).get(2)));
-		b_ = I.beliefUpdate(b_, bestAct, List.of(1, 3));
-		bestAct = policy.getBestActionIndex(b_, I.i_S());
+		dd = I.beliefUpdate(dd, bestAct, List.of(1, 3));
+		bestAct = policy.getBestActionIndex(dd);
 
 		assertTrue(bestAct == 0);
-
-		LOGGER.info("Testing MjSpace representation");
-		var initNodes = List.of(b_i).stream()
-				.map(d -> ReachabilityNode.getStartNode(policy.getBestActionIndex(d, I.i_S()), d))
-				.collect(Collectors.toList());
-
-		var modelGraph = ModelGraph.fromDecMakingModel(I);
-		var expStrat = new MjSpaceExpansion<>(); /* new PolicyGraphExpansion<>(); */
-
-		modelGraph = expStrat.expand(initNodes, modelGraph, I, I.H, policy);
-		LOGGER.debug(String.format("After expanding the MjSpace graph, no. of models are %s",
-				modelGraph.getAllNodes().size()));
-
+		
 		System.gc();
 		printMemConsumption();
 	}
@@ -243,10 +283,7 @@ class TestSolvers {
 				return null;
 			});
 
-		var solver = new SymbolicPerseusSolver<IPOMDP>();
-
-		var _b_i = DDOP.mult(DDleaf.getDD(0.5f),
-				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f))));
+		var solver = new SymbolicPerseusSolver<IPOMDP>(I);
 
 		// Get agent J L2
 		var J = (IPOMDP) domainRunner.getModel("agentJl2").orElseGet(() ->
@@ -259,30 +296,30 @@ class TestSolvers {
 
 		var b_i = DDOP.mult(DDleaf.getDD(0.5f), DDnode.getDistribution(J.i_Mj, List.of(Tuple.of("m0", 1.0f))));
 
-		var policy = solver.solve(List.of(b_i), J, 100, J.H, AlphaVectorPolicy.fromR(J.R()));
-		int bestAct = policy.getBestActionIndex(b_i, J.i_S());
+		var policy = solver.solve(List.of(J.getECDDFromMjDD(b_i)), 100, J.H);
+		int bestAct = policy.getBestActionIndex(b_i);
 
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
 				I.A().get(bestAct)));
 
 		assertTrue(bestAct == 0);
 
-		DD b_ = b_i;
-
-		LOGGER.info(String.format("Suggested optimal action for %s  is %s which resolves to %s",
-				DDOP.factors(b_, J.i_S()), bestAct, J.A().get(bestAct)));
-
-		assertTrue(bestAct == 0);
-
-		LOGGER.info(String.format("Agent hears %s, %s ", Global.valNames.get(J.i_Om.get(0) - 1).get(0),
-				Global.valNames.get(J.i_Om.get(1) - 1).get(2)));
-		b_ = J.beliefUpdate(b_, bestAct, List.of(1, 3));
-		bestAct = policy.getBestActionIndex(b_, J.i_S());
-
-		assertTrue(bestAct == 0);
-
-		System.gc();
-		printMemConsumption();
+//		DD b_ = b_i;
+//
+//		LOGGER.info(String.format("Suggested optimal action for %s  is %s which resolves to %s",
+//				DDOP.factors(b_, J.i_S()), bestAct, J.A().get(bestAct)));
+//
+//		assertTrue(bestAct == 0);
+//
+//		LOGGER.info(String.format("Agent hears %s, %s ", Global.valNames.get(J.i_Om.get(0) - 1).get(0),
+//				Global.valNames.get(J.i_Om.get(1) - 1).get(2)));
+//		b_ = J.beliefUpdate(b_, bestAct, List.of(1, 3));
+//		bestAct = policy.getBestActionIndex(b_, J.i_S());
+//
+//		assertTrue(bestAct == 0);
+//
+//		System.gc();
+//		printMemConsumption();
 	}
 
 	@Test
@@ -306,27 +343,18 @@ class TestSolvers {
 				return null;
 			});
 
-		var solver = new SymbolicPerseusSolver<IPOMDP>();
+		var b_i = I.getECDDFromMjDD(DDOP.mult(DDleaf.getDD(0.5f),
+				DDnode.getDistribution(I.i_Mj, List.of(Tuple.of("m0", 0.5f), Tuple.of("m1", 0.5f)))));
 
-		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), I, 100, I.H, AlphaVectorPolicy.fromR(I.R()));
-		int bestAct = policy.getBestActionIndex(DDleaf.getDD(0.5f), I.i_S());
+		var solver = new SymbolicPerseusSolver<IPOMDP>(I);
+
+		var policy = solver.solve(List.of(b_i), 100, I.H);
+		int bestAct = policy.getBestActionIndex(b_i);
 
 		LOGGER.info(String.format("Suggested optimal action for tiger problem is %s which resolves to %s", bestAct,
 				I.A().get(bestAct)));
 
 		assertTrue(bestAct == 0);
-
-		var G = ReachabilityGraph.fromDecMakingModel(I);
-		var ES = new SSGAExploration<IPOMDP, ReachabilityGraph, AlphaVectorPolicy>(0.0f);
-
-		int numNodes = G.getAllNodes().size();
-
-		G = ES.expand(List.of(DDleaf.getDD(0.5f)), G, I, I.H, policy);
-
-		assertTrue(G.getAllNodes().size() > numNodes);
-
-		System.gc();
-		printMemConsumption();
 	}
 
 	@Test
@@ -351,13 +379,13 @@ class TestSolvers {
 				return null;
 			});
 
-		var solver = new SymbolicPerseusSolver<POMDP>();
-		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), I, 100, 10, AlphaVectorPolicy.fromR(I.R()));
+		var solver = new SymbolicPerseusSolver<POMDP>(I);
+		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), 100, 10);
 
 		var modelGraph = ModelGraph.fromDecMakingModel(I);
 		var expansionStrat = new PolicyGraphExpansion<POMDP, AlphaVectorPolicy>();
 
-		var initNode = new ReachabilityNode(-1, policy.getBestActionIndex(DDleaf.getDD(0.5f), I.i_S()));
+		var initNode = new ReachabilityNode(-1, policy.getBestActionIndex(DDleaf.getDD(0.5f)));
 		initNode.beliefs.add(DDleaf.getDD(0.5f));
 		initNode.h = 0;
 

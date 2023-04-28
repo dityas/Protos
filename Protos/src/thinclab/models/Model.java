@@ -19,4 +19,8 @@ public interface Model {
 	public List<Integer> i_S();
 
 	public List<String> S();
+	
+	default String getName() {
+		return "Unnamed Model";
+	}
 }
