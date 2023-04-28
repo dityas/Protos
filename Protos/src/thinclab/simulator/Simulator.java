@@ -79,11 +79,6 @@ public class Simulator {
 
         var nextState = DDOP.sample(List.of(s_p), stateIndices);
         state = DDOP.ddFromVals(nextState._0(), nextState._1());
-
-        LOGGER.info("State updated to %s after actions (%s, %s)",
-                DDOP.factors(state, stateIndices),
-                Global.valNames.get(actionVarI - 1).get(actionI),
-                Global.valNames.get(actionVarJ - 1).get(actionJ));
     }
 
     public Tuple<Observation, Observation> step(int actionI,
@@ -105,7 +100,6 @@ public class Simulator {
                 obsJPrimeIndices,
                 actionVarI, actionI);
 
-        LOGGER.info("Sampled observations %s and %s", obsI, obsJ);
         return Tuple.of(obsI, obsJ);
     }
 

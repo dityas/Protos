@@ -132,7 +132,7 @@ SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
             this.usedBeliefs++;
         }
 
-        beliefSamplingWeights = DDOP.getBeliefRegionEvalDiff(B, newVn, Vn);
+        // beliefSamplingWeights = DDOP.getBeliefRegionEvalDiff(B, newVn, Vn);
         return newVn;
     }
 
