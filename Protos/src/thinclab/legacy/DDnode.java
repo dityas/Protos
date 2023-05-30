@@ -226,22 +226,6 @@ public class DDnode extends DD {
     @Override
     public boolean equals(Object obj) {
 
-        //if (!(obj instanceof DDnode))
-        //    return false;
-
-        //DDnode node = (DDnode) obj;
-
-        //if (var != node.var)
-        //    return false;
-
-        //for (int i = 0; i < children.length; i++) {
-
-        //    if (!children[i].equals(node.children[i]))
-        //        return false;
-        //}
-
-        //return true;
-
         if (obj == this)
             return true;
         
