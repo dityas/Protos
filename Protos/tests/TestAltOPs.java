@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.ADD;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
@@ -35,7 +36,7 @@ import thinclab.solver.SymbolicPerseusSolver;
  */
 class TestAltOPs {
 
-	private static final Logger LOGGER = LogManager.getLogger(TestAltOPs.class);
+	private static final Logger LOGGER = LogManager.getFormatterLogger(TestAltOPs.class);
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -150,5 +151,12 @@ class TestAltOPs {
 
         policyFile.delete();
 
+    }
+
+    @Test
+    void testAlternateADD() throws Exception {
+    
+        var newDDLeaf = ADD.of(0.0f);
+        LOGGER.info("New ADD value is %s", newDDLeaf);
     }
 }
