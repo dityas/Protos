@@ -33,10 +33,6 @@ import thinclab.utils.Tuple;
  *	email: shinde.aditya386@gmail.com
  */
 
-/*
- * @author adityas
- *
- */
 class TestANTLRSpuddParser {
 
 	private static final Logger LOGGER = 

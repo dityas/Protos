@@ -25,18 +25,7 @@ import thinclab.solver.SymbolicPerseusSolver;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.utils.Tuple;
 
-/*
- *	THINC Lab at UGA | Cyber Deception Group
- *
- *	Author: Aditya Shinde
- * 
- *	email: shinde.aditya386@gmail.com
- */
 
-/*
- * @author adityas
- *
- */
 class TestSolvers {
 
 	private static final Logger LOGGER = 

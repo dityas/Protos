@@ -1,10 +1,8 @@
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
@@ -15,26 +13,13 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
-import thinclab.model_ops.belief_exploration.BreadthFirstExploration;
 import thinclab.models.POMDP;
 import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
-import thinclab.policy.AlphaVectorPolicy;
 import thinclab.spuddx_parser.SpuddXMainParser;
 import thinclab.utils.Tuple;
 
-/*
- *	THINC Lab at UGA | Cyber Deception Group
- *
- *	Author: Aditya Shinde
- * 
- *	email: shinde.aditya386@gmail.com
- */
 
-/*
- * @author adityas
- *
- */
 class TestBeliefUpdate {
 
 	private static final Logger LOGGER = LogManager.getLogger(TestBeliefUpdate.class);
