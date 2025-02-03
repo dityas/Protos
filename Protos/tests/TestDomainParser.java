@@ -1,6 +1,7 @@
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import thinclab.domain_parser.Interpreter;
 import thinclab.domain_parser.Parser;
 import thinclab.legacy.Global;
 
@@ -24,15 +26,15 @@ class TestDomainParser {
 	private static final Logger LOGGER = 
         LogManager.getFormatterLogger(TestDomainParser.class);
 
-	public String domainFile;
+	public String pomdpDomain;
 
 	@BeforeEach
 	void setUp() throws Exception {
 
 		Global.clearAll();
-		this.domainFile = this.getClass()
+		this.pomdpDomain = this.getClass()
             .getClassLoader()
-            .getResource("test_domains/test_var_decls.spudd")
+            .getResource("test_domains/test_pomdp.dom")
             .getFile();
 	}
 
@@ -54,11 +56,11 @@ class TestDomainParser {
 	@Test
 	void testDomainParser() throws Exception {
 
-        LOGGER.debug("Testing domain parser");
-        var test0 = "(start (def v 0.0)\r\n(def s hello world))";
-        var test0Stream = new ByteArrayInputStream(test0.getBytes("UTF-8"));
+        LOGGER.debug("Testing POMDP domain");
+        var test0Stream = new FileInputStream(this.pomdpDomain);
         var parser = new Parser(test0Stream);
-        LOGGER.debug(parser.parse());
+        var interpreter = new Interpreter();
+        interpreter.eval(parser.parse());
 	}
 
 }

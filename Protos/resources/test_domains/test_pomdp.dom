@@ -1,0 +1,4 @@
+(vars
+    (HostType   (critical honeypot critical_honeypot))
+    (AttPrivs   (user root))
+)

@@ -3,11 +3,15 @@ package thinclab.domain_parser;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class Interpreter {
+import thinclab.RandomVariable;
+import thinclab.legacy.Global;
+
+public class Interpreter extends InterpreterUtils {
 
     public HashMap<String, Object> env = new HashMap<>();
 
@@ -18,11 +22,29 @@ public class Interpreter {
         if (list.obj == null)
             return list;
         else
-            return InterpreterUtils.cons(eval(list.obj),
-                    (Cons) evalList(list.next));
+            return cons(eval(list.obj), (Cons) evalList(list.next));
     }
 
-    public void evalRVar() {
+    private RandomVariable makeRVar(Cons varDecl) {
+        String varName = (String) car(varDecl);
+        var vals = flattenCons((Cons) car(cdr(varDecl))).stream()
+            .map(v -> (String) v).collect(Collectors.toList());
+
+        return new RandomVariable(varName, vals);
+    }
+
+    public void evalVars(Cons varList) {
+
+        var rvarList = new ArrayList<RandomVariable>();
+        while (varList != null) {
+            rvarList.add(makeRVar((Cons) car(varList)));
+            varList = cdr(varList);
+        }
+
+        Global.primeVarsAndInitGlobals(rvarList);
+
+        for (int i = 0; i < Global.varNames.size(); i++)
+            env.put(Global.varNames.get(i), i);
     }
 
     public Object evalStmt(Cons list) {
@@ -34,15 +56,13 @@ public class Interpreter {
             throw new RuntimeException(
                     String.format("%s is not a valid statement", list));
 
-        String first = (String) InterpreterUtils.car(list);
-        Cons rest = InterpreterUtils.cdr(list);
+        String first = (String) car(list);
+        Cons rest = cdr(list);
 
         // defines
         if (first.equals("def")) {
             if (rest.obj instanceof String name)
-                InterpreterUtils.def(name,
-                        eval(InterpreterUtils.car(InterpreterUtils.cdr(rest))),
-                        env);
+                def(name, eval(car(cdr(rest))), env);
 
             else
                 throw new RuntimeException(
@@ -50,19 +70,13 @@ public class Interpreter {
         }
 
         // random variables
-        if (first.equals("rvar")) {
-            if (rest.obj instanceof String name) {
-
-            }
-
-            else
-                throw new RuntimeException(
-                        String.format("%s not a valid name", rest));
+        if (first.equals("vars")) {
+            evalVars(rest);
         }
         
         // scope
         if (first.equals("scope")) {
-            return InterpreterUtils.scope(env);
+            return scope(env);
         }
 
         return null;

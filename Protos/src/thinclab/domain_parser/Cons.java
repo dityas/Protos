@@ -19,11 +19,7 @@ public class Cons {
         var head = this;
         while (head != null) {
             builder.append(head.obj.toString());
-
-            if (head.obj instanceof Cons)
-                builder.append("\r\n");
-            else
-                builder.append(" ");
+            builder.append(" ");
 
             head = head.next;
         }
