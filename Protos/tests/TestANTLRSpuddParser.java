@@ -187,39 +187,4 @@ class TestANTLRSpuddParser {
 		printMemConsumption();
 
 	}
-
-    @Test
-    void testParser() throws Exception {
-        
-        var test1 = "(define a 1)";
-        LOGGER.debug(
-                "test 1 parsed as %s", 
-                Parser.parse(Parser.tokenize(test1)));
-        
-        var type1 = Class.forName("thinclab.legacy.DD");
-        var type2 = Class.forName("thinclab.legacy.DD");
-        
-        var method = Class.forName("thinclab.DDOP")
-            .getMethod("add", type1, type2);
-    }
-
-    @Test
-    void testRepl() throws Exception {
-
-        LOGGER.info("Starting repl");
-        Function<Integer, Integer> f = n -> n + 1;
-        LOGGER.debug("%s", f);
-
-        var methods = Arrays.asList(Class
-            .forName("thinclab.legacy.DDnode")
-            .getMethods());
-        
-        var method = methods
-            .stream()
-            .filter(m -> m.getName().contains("getDD"))
-            .map(m -> Arrays.toString(m.getParameterTypes()))
-            .collect(Collectors.toList());
-
-        LOGGER.debug("%s", method);
-    }
 }
