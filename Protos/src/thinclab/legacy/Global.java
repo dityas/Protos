@@ -68,7 +68,6 @@ public class Global {
 		Global.valNames.add(valNames);
 		Global.varDomSize.add(valNames.size());
 
-		LOGGER.debug(String.format("Add var %s with values %s", varName, valNames));
 		Global.NUM_VARS += 1;
 	}
 

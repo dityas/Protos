@@ -11,6 +11,18 @@ public class Cons {
         this.next = next;
     }
 
+    public int length() {
+         int l = 0;
+         var head = this;
+
+         while (head != null) {
+             l += 1;
+             head = head.next;
+         }
+
+         return l;
+    }
+
     @Override
     public String toString() {
         var builder = new StringBuilder();
@@ -19,7 +31,9 @@ public class Cons {
         var head = this;
         while (head != null) {
             builder.append(head.obj.toString());
-            builder.append(" ");
+
+            if (head.next != null)
+                builder.append(" ");
 
             head = head.next;
         }

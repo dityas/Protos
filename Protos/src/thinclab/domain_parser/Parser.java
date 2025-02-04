@@ -56,6 +56,11 @@ public class Parser {
                 break;
             }
 
+            // single line comment
+            else if (c == ';') {
+                while (next() != '\n') {}
+            }
+
             else {
                 expr.append((char) c);
                 while (true) {

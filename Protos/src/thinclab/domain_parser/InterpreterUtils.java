@@ -1,12 +1,18 @@
 package thinclab.domain_parser;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+
+import thinclab.legacy.DD;
 
 public class InterpreterUtils {
 
     // Primitive functions
+
+    public static DD dd(int varIndex, Object rest) {
+
+        return null;
+    }
     
     public static List<Object> flattenCons(Cons list) {
 
@@ -20,17 +26,8 @@ public class InterpreterUtils {
         return objList;
     }
 
-    public static Cons scope(HashMap<String, Object> env) {
-
-        var list = cons("env", null);
-        var head = list;
-
-        for (var name: env.keySet()) {
-            list.next = cons(cons(name, cons(env.get(name), null)), null);
-            list = list.next;
-        }
-
-        return head;
+    public static Cons scope(AssocList env) {
+        return env.vars;
     }
 
     public static Object car(Cons list) {
@@ -46,7 +43,7 @@ public class InterpreterUtils {
     }
 
     public static void def(String name, Object obj,
-            HashMap<String, Object> env) {
+            AssocList env) {
         env.put(name, obj);
     }
 

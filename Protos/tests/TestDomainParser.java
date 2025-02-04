@@ -10,7 +10,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import thinclab.domain_parser.Interpreter;
+import thinclab.domain_parser.InterpreterUtils;
 import thinclab.domain_parser.Parser;
+import thinclab.domain_parser.AssocList;
 import thinclab.legacy.Global;
 
 /*
@@ -59,8 +61,10 @@ class TestDomainParser {
         LOGGER.debug("Testing POMDP domain");
         var test0Stream = new FileInputStream(this.pomdpDomain);
         var parser = new Parser(test0Stream);
-        var interpreter = new Interpreter();
-        interpreter.eval(parser.parse());
+        var env = new AssocList();
+        Interpreter.eval(parser.parse(), env);
+        LOGGER.debug(env.vars);
+        LOGGER.debug(env.vals);
 	}
 
 }

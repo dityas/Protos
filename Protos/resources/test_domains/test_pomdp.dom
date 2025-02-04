@@ -1,4 +1,34 @@
+(start
+
 (vars
-    (HostType   (critical honeypot critical_honeypot))
-    (AttPrivs   (user root))
+    (TigerLoc   (left right))
+    (Growl      (left right))
+
+    (Actions    (open-left open-right listen))
+)
+
+(def id (\ (i) i))
+(print (id TigerLoc))
+(print (id id))
+
+; single line comment about something that should be ignored
+
+; (def init_loc   (uniform TigerLoc))
+; (def open_door  (uniform TigerLoc'))
+; (def growl_obs
+;     (dd TigerLoc'
+;         (left
+;             (dd Growl'
+;                 (left   0.85)
+;                 (right  0.15)
+;             )
+;         )
+;         (right
+;             (dd Growl'
+;                 (left   0.15)
+;                 (right  0.85)
+;             )
+;         )
+;     )
+; )
 )
