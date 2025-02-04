@@ -14,6 +14,14 @@ public class Interpreter extends InterpreterUtils {
     private static Logger LOGGER =
         LogManager.getFormatterLogger(Interpreter.class);
 
+    public static void populateEnv(AssocList env) throws Exception {
+
+        // cons
+        var cons = InterpreterUtils.class.getDeclaredMethod(
+                "cons", Object.class, Cons.class);
+        env.put("cons", new NativeFunc(cons));
+    }
+
     public static Object evalList(Cons list, AssocList env) {
         if (list == null || list.obj == null)
             return list;

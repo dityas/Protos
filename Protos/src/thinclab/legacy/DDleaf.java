@@ -130,7 +130,7 @@ public class DDleaf extends DD {
     @Override
     public String toString() {
 
-        return this.toSPUDD();
+        return String.format("%s", this.val);
     }
 
     @Override

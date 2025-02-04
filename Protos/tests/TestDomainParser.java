@@ -63,8 +63,8 @@ class TestDomainParser {
         var parser = new Parser(test0Stream);
         var env = new AssocList();
         Interpreter.eval(parser.parse(), env);
-        LOGGER.debug(env.vars);
-        LOGGER.debug(env.vals);
+        Interpreter.populateEnv(env);
+        LOGGER.debug(env);
 	}
 
 }

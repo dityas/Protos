@@ -3,7 +3,7 @@ package thinclab.domain_parser;
 
 public class AssocList {
     /*
-     * Just a associative list to use as a hashmap for the parser
+     * Just an associative list to use as a hashmap for the parser
      */
 
     public AssocList parent = null;

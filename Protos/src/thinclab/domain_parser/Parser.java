@@ -5,6 +5,8 @@ import java.io.InputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import thinclab.legacy.DDleaf;
+
 public class Parser {
     /*
      * Parses domain files and DDs as S expressions
@@ -98,7 +100,7 @@ public class Parser {
         String token = getNextToken();
 
         if (isNumber(token))
-            return Float.parseFloat(token);
+            return DDleaf.getDD(Float.parseFloat(token));
 
         else if (token.equals("(")) {
             
@@ -121,7 +123,6 @@ public class Parser {
                     cons.next = new Cons(parsed, null);
                     cons = cons.next;
                 }
-
             }
 
             return head;
