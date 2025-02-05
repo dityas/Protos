@@ -4,14 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import thinclab.legacy.DD;
+import thinclab.legacy.DDnode;
 
 public class InterpreterUtils {
 
     // Primitive functions
+    
+    public static DD uniform(Integer varIndex) {
+        return DDnode.getUniformDist((int) varIndex);
+    }
 
     public static DD dd(int varIndex, Object rest) {
 
         return null;
+    }
+
+    public static Object type(Object obj) {
+        return obj.getClass();
     }
     
     public static List<Object> flattenCons(Cons list) {

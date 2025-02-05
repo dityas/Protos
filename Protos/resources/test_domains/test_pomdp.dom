@@ -7,9 +7,23 @@
     (Actions    (open-left open-right listen))
 )
 
+; test basic lambdas
 (def id (\ (i) i))
 (print (id TigerLoc))
 (print (id id))
+
+; test dd leaf
+(def test_leaf 1.555)
+(print test_leaf)
+(print (type test_leaf))
+
+; test uniform distributions
+(def test_uni_dd1 (uniform TigerLoc))
+(def test_uni_dd2 (uniform Growl))
+(print test_uni_dd1)
+(print test_uni_dd2)
+(print (type test_uni_dd1))
+(print (type test_uni_dd2))
 
 ; single line comment about something that should be ignored
 

@@ -1,12 +1,15 @@
 package thinclab.domain_parser;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import thinclab.RandomVariable;
+import thinclab.legacy.DDleaf;
+import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 
 public class Interpreter extends InterpreterUtils {
@@ -14,12 +17,22 @@ public class Interpreter extends InterpreterUtils {
     private static Logger LOGGER =
         LogManager.getFormatterLogger(Interpreter.class);
 
-    public static void populateEnv(AssocList env) throws Exception {
+    public static void loadStd(AssocList env) throws Exception {
 
         // cons
         var cons = InterpreterUtils.class.getDeclaredMethod(
                 "cons", Object.class, Cons.class);
         env.put("cons", new NativeFunc(cons));
+
+        // type
+        var type = InterpreterUtils.class.getDeclaredMethod(
+                "type", Object.class);
+        env.put("type", new NativeFunc(type));
+
+        // uniform
+        var uniform = InterpreterUtils.class.getDeclaredMethod(
+                "uniform", Integer.class);
+        env.put("uniform", new NativeFunc(uniform));
     }
 
     public static Object evalList(Cons list, AssocList env) {
@@ -48,7 +61,7 @@ public class Interpreter extends InterpreterUtils {
         Global.primeVarsAndInitGlobals(rvarList);
 
         for (int i = 0; i < Global.varNames.size(); i++)
-            env.put(Global.varNames.get(i), i);
+            env.put(Global.varNames.get(i), i + 1);
     }
 
     public static Object evalStmt(Cons list, AssocList env) {
@@ -64,10 +77,13 @@ public class Interpreter extends InterpreterUtils {
 
         // start
         if (first.equals("start")) {
+            Object res = null;
             while (rest != null) {
-                eval(rest.obj, env);
+                res = eval(rest.obj, env);
                 rest = cdr(rest);
             }
+
+            return res;
         }
 
         // defines
@@ -78,11 +94,14 @@ public class Interpreter extends InterpreterUtils {
             else
                 throw new RuntimeException(
                         String.format("%s not a valid name", rest));
+
+            return null;
         }
 
         // random variables
         else if (first.equals("vars")) {
             evalVars(rest, env);
+            return null;
         }
         
         // scope
@@ -108,6 +127,7 @@ public class Interpreter extends InterpreterUtils {
         // exit
         else if (first.equals("exit")) {
             System.exit(0);
+            return null;
         }
 
         else if (env.containsKey(first)) {
@@ -125,7 +145,6 @@ public class Interpreter extends InterpreterUtils {
         else throw new RuntimeException(
                 String.format("Could not eval %s", first));
 
-        return null;
     }
 
     public static Object eval(Object statement, AssocList env) {
@@ -139,19 +158,21 @@ public class Interpreter extends InterpreterUtils {
             else return env.get(symbol);
         }
 
-        else if (statement instanceof Float num)
-            return num;
+        else if (statement instanceof DDleaf dd)
+            return dd;
 
         else if (statement instanceof Cons list)
             return evalStmt(list, env);
 
-        return null;
+        else throw new RuntimeException(
+                String.format("Could not eval %s", statement));
     }
 
-    public static void repl() {
+    public static void repl() throws Exception {
 
         var parser = new Parser(System.in);
         var env = new AssocList();
+        loadStd(env);
 
         while (true) {
             System.out.print(">>> ");

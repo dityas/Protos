@@ -62,9 +62,8 @@ class TestDomainParser {
         var test0Stream = new FileInputStream(this.pomdpDomain);
         var parser = new Parser(test0Stream);
         var env = new AssocList();
+        Interpreter.loadStd(env);
         Interpreter.eval(parser.parse(), env);
-        Interpreter.populateEnv(env);
-        LOGGER.debug(env);
 	}
 
 }

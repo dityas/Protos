@@ -177,7 +177,7 @@ public class DDnode extends DD {
         //if (storedNode != null && storedNode.get() != null)
         //    return (DDnode) storedNode.get();
 
-        //// store node in nodeHashtable
+        // store node in nodeHashtable
         //Global.nodeHashtable.put(node, new WeakReference<DD>(node));
         return node;
     }
