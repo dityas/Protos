@@ -15,34 +15,39 @@
 ; test dd leaf
 (def test_leaf 1.555)
 (print test_leaf)
-(print (type test_leaf))
 
 ; test uniform distributions
 (def test_uni_dd1 (uniform TigerLoc))
 (def test_uni_dd2 (uniform Growl))
 (print test_uni_dd1)
 (print test_uni_dd2)
-(print (type test_uni_dd1))
-(print (type test_uni_dd2))
 
 ; single line comment about something that should be ignored
 
-; (def init_loc   (uniform TigerLoc))
-; (def open_door  (uniform TigerLoc'))
-; (def growl_obs
-;     (dd TigerLoc'
-;         (left
-;             (dd Growl'
-;                 (left   0.85)
-;                 (right  0.15)
-;             )
-;         )
-;         (right
-;             (dd Growl'
-;                 (left   0.15)
-;                 (right  0.85)
-;             )
-;         )
-;     )
-; )
+(def init_loc   (uniform TigerLoc))
+(def open_door  (uniform TigerLoc'))
+(def test_dd
+(dd TigerLoc
+    (left 0.85)
+    (right 0.15)
+)
+)
+(print test_dd)
+(def growl_obs
+    (dd TigerLoc'
+        (left
+            (dd Growl'
+                (left   0.85)
+                (right  0.15)
+            )
+        )
+        (right
+            (dd Growl'
+                (left   0.15)
+                (right  0.85)
+            )
+        )
+    )
+)
+(print growl_obs)
 )

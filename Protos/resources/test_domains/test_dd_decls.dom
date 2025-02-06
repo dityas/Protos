@@ -1,46 +1,27 @@
-(defvar HOST_HAS_DATA (critical sensitive none))
-(defvar DATA_LOCATED (critical sensitive none other))
-(defvar HOST_HAS_VULN (yes no))
-(defvar ATTACKER_PRIVS (none user admin))
-(defvar DATA_ACCESS_PRIVS (user admin))
-	
-(defvar DATA_FOUND_OBS (yes no))
-(defvar VULN_FOUND_OBS (yes no))
-(defvar PRIVS_OBS (user admin none))
-	
-(defvar Attacker_actions (FRECON_SDATA FRECON_CDATA EXIT NO_OP))
+(start
 
-(defdd dataLocCData
+; Basic attacker MDP domain
+(vars
+    (HostHasData    (yes no))
+    (DataLocated    (yes no))
+    (HostHasVuln    (yes no))
+    (AttackerPrivs  (none user admin))
+    (DataAccessPrivs    (user admin))
 
-	(HOST_HAS_DATA'
-		(critical
-			(DATA_LOCATED'
-				(critical 	(0.9))
-				(sensitive 	(0.0))
-				(none 		(0.05))
-				(other 		(0.05))
-			)
-		)
-		
-		(sensitive
-			(DATA_LOCATED'
-				(critical 	(0.0))
-				(sensitive 	(0.5))
-				(none 		(0.25))
-				(other 		(0.25))
-			)
-		)
-		
-		(none
-			(DATA_LOCATED'
-				(critical 	(0.0))
-				(sensitive 	(0.0))
-				(none 		(0.5))
-				(other 		(0.5))
-			)
-		)
-	)
+; Random variable for attacker actions
+    (AttActions     (file_recon exit no_op))
 )
+
+
+; Effect of file recon action
+(def dd_file_recon_
+(dd AttackerPrivs
+    (none (eye ))
+)
+)
+
+	
+
 
 (defdd dataLocSData
 
@@ -129,3 +110,4 @@
 		(none 	(DATA_LOCATED' none))
 	)
 ) 
+)

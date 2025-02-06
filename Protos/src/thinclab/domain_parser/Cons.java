@@ -29,7 +29,7 @@ public class Cons {
         builder.append("(");
 
         var head = this;
-        while (head != null) {
+        while (head != null && head.obj != null) {
             builder.append(head.obj.toString());
 
             if (head.next != null)

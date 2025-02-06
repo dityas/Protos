@@ -60,10 +60,7 @@ class TestDomainParser {
 
         LOGGER.debug("Testing POMDP domain");
         var test0Stream = new FileInputStream(this.pomdpDomain);
-        var parser = new Parser(test0Stream);
-        var env = new AssocList();
-        Interpreter.loadStd(env);
-        Interpreter.eval(parser.parse(), env);
+        Interpreter.evalStream(test0Stream);
 	}
 
 }

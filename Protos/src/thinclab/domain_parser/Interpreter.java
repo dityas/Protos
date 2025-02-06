@@ -1,5 +1,7 @@
 package thinclab.domain_parser;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,26 +16,8 @@ import thinclab.legacy.Global;
 
 public class Interpreter extends InterpreterUtils {
 
-    private static Logger LOGGER =
+    public static Logger LOGGER =
         LogManager.getFormatterLogger(Interpreter.class);
-
-    public static void loadStd(AssocList env) throws Exception {
-
-        // cons
-        var cons = InterpreterUtils.class.getDeclaredMethod(
-                "cons", Object.class, Cons.class);
-        env.put("cons", new NativeFunc(cons));
-
-        // type
-        var type = InterpreterUtils.class.getDeclaredMethod(
-                "type", Object.class);
-        env.put("type", new NativeFunc(type));
-
-        // uniform
-        var uniform = InterpreterUtils.class.getDeclaredMethod(
-                "uniform", Integer.class);
-        env.put("uniform", new NativeFunc(uniform));
-    }
 
     public static Object evalList(Cons list, AssocList env) {
         if (list == null || list.obj == null)
@@ -124,6 +108,22 @@ public class Interpreter extends InterpreterUtils {
             return func;
         }
 
+        // static java method 
+        else if (first.equals("jmethod")) {
+            var method = InterpreterUtils.jmethod(rest);
+            return method;
+        }
+
+        // cons list 
+        else if (first.equals("list")) {
+            return evalList(rest, env);
+        }
+
+        // dd cons 
+        else if (first.equals("dd")) {
+            return evalDD(rest, env);
+        }
+
         // exit
         else if (first.equals("exit")) {
             System.exit(0);
@@ -168,11 +168,33 @@ public class Interpreter extends InterpreterUtils {
                 String.format("Could not eval %s", statement));
     }
 
+    public static AssocList evalStream(InputStream stream) {
+
+        try {
+
+            // load std lib
+            var env = new AssocList();
+            var stdParser = new Parser(new ByteArrayInputStream(InterpreterUtils.std.getBytes()));
+            eval(stdParser.parse(), env);
+
+            // eval input stream
+            var parser = new Parser(stream);
+            eval(parser.parse(), env);
+            return env;
+
+        } catch (Exception e) {
+            LOGGER.error("Could not parse stream: %s", e.getMessage());
+            return null;
+        }
+    }
+
     public static void repl() throws Exception {
 
-        var parser = new Parser(System.in);
         var env = new AssocList();
-        loadStd(env);
+        var stdParser = new Parser(new ByteArrayInputStream(InterpreterUtils.std.getBytes()));
+        eval(stdParser.parse(), env);
+
+        var parser = new Parser(System.in);
 
         while (true) {
             System.out.print(">>> ");
