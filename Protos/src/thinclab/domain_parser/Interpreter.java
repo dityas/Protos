@@ -52,9 +52,16 @@ public class Interpreter extends InterpreterUtils {
         if (list.obj == null)
             return null;
 
-        if (!(list.obj instanceof String))
-            throw new RuntimeException(
-                    String.format("%s is not a valid statement", list));
+        if (!(list.obj instanceof String)) {
+            var fname = eval(car(list), env);
+            var params = evalList(cdr(list), env);
+
+            if (fname instanceof Closure cname)
+                return cname.eval((Cons) params, env);
+
+            else throw new RuntimeException(
+                    String.format("Cannot eval %s", list));
+        }
 
         String first = (String) car(list);
         Cons rest = cdr(list);
