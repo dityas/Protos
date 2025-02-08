@@ -1012,6 +1012,19 @@ public class DDOP {
         return mult(dd);
     }
 
+    // get identity
+	public static DD eye(int varIndex) {
+
+		int primedVarIndex = (Global.NUM_VARS / 2) + varIndex;
+
+		var children = Global.valNames.get(primedVarIndex).stream().map(c -> DDnode.getDDForChild(varName + "'", c))
+				.toArray(DD[]::new);
+
+		var dd = DDnode.getDD(varIndex + 1, children);
+
+		return DDOP.reorder(dd);
+	}
+
     // -----------------------------------------------------------------------------------------------------------
 
     public static int sampleDist(List<Float> pdist) {
