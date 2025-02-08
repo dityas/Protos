@@ -1016,13 +1016,20 @@ public class DDOP {
 	public static DD eye(int varIndex) {
 
 		int primedVarIndex = (Global.NUM_VARS / 2) + varIndex;
+        int numVals = Global.valNames.get(varIndex - 1).size();
 
-		var children = Global.valNames.get(primedVarIndex).stream().map(c -> DDnode.getDDForChild(varName + "'", c))
-				.toArray(DD[]::new);
+        var ddVals = new DD[numVals];
 
-		var dd = DDnode.getDD(varIndex + 1, children);
+        for (int i = 0; i < numVals; i++) {
 
-		return DDOP.reorder(dd);
+            var ddi = new DD[numVals];
+            for (int primedI = 0; primedI < numVals; primedI++)
+                ddi[primedI] = (i == primedI) ? DDleaf.getDD(1.0f) : DDleaf.getDD(0.0f);
+            
+            ddVals[i] = DDnode.getDD(primedVarIndex, ddi);
+        }
+
+		return DDOP.reorder(DDnode.getDD(varIndex, ddVals));
 	}
 
     // -----------------------------------------------------------------------------------------------------------

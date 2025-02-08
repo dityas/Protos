@@ -1,0 +1,38 @@
+(start
+
+(vars
+    (TigerLoc   (left right))
+    (GrowlLoc   (left right))
+
+; Agent actions
+    (Actions    (listen open_left open_right))
+)
+
+; Transition for open door actions
+(def open_door_dd (uniform TigerLoc'))
+
+; Transition for listening action
+(def listen_dd (eye TigerLoc))
+
+; Growl observation
+(def growl_obs
+    (dd TigerLoc'
+        (left
+            (GrowlLoc'
+                (left 0.85)
+                (right 0.15)
+            )
+        )
+        (right
+            (GrowlLoc'
+                (left 0.15)
+                (right 0.85)
+            )
+        )
+    )
+)
+
+; Initial belief
+(def init_belief (uniform TigerLoc))
+
+)

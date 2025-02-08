@@ -1,9 +1,9 @@
 package thinclab.domain_parser;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -11,7 +11,6 @@ import org.apache.logging.log4j.Logger;
 
 import thinclab.RandomVariable;
 import thinclab.legacy.DDleaf;
-import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
 
 public class Interpreter extends InterpreterUtils {
@@ -94,7 +93,29 @@ public class Interpreter extends InterpreterUtils {
             evalVars(rest, env);
             return null;
         }
+
+        // if statement
+        else if (first.equals("if")) {
+
+            var cond = car(rest);
+            var thenStmt = car(cdr(rest));
+            var elseStmt = car(cdr(cdr(rest)));
+
+            return (eval(cond, env).equals(true)) ? eval(thenStmt, env) : eval(elseStmt, env);
+        }
         
+        // load files
+        else if (first.equals("load")) {
+            String filename = (String) car(rest);
+            try {
+                Parser fParser = new Parser(new FileInputStream(filename));
+                return eval(fParser.parse(), env);
+            } catch (Exception e) {
+                LOGGER.error("Could not load %s: %s", filename, e.getMessage());
+                return null;
+            }
+        }
+
         // scope
         else if (first.equals("scope")) {
             return scope(env);

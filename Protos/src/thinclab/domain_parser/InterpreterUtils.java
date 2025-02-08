@@ -14,19 +14,27 @@ public class InterpreterUtils {
 
     public static String std = new StringBuilder()
         .append("(start\r\n")
-        .append("(def cons (jmethod thinclab.domain_parser.InterpreterUtils cons java.lang.Object thinclab.domain_parser.Cons))\r\n")
+        .append("(def cons  (jmethod thinclab.domain_parser.InterpreterUtils cons java.lang.Object thinclab.domain_parser.Cons))\r\n")
+        .append("(def car   (jmethod thinclab.domain_parser.InterpreterUtils car thinclab.domain_parser.Cons))\r\n")
+        .append("(def cdr   (jmethod thinclab.domain_parser.InterpreterUtils cdr thinclab.domain_parser.Cons))\r\n")
         .append("(def alist (jmethod thinclab.domain_parser.InterpreterUtils flattenCons thinclab.domain_parser.Cons))\r\n")
+        .append("(def eq    (jmethod thinclab.domain_parser.InterpreterUtils eq java.lang.Object java.lang.Object))\r\n")
         .append("(def uniform (jmethod thinclab.legacy.DDnode getUniformDist int))\r\n")
-        .append("(def + (jmethod thinclab.DDOP add thinclab.legacy.DD thinclab.legacy.DD))\r\n")
-        .append("(def * (jmethod thinclab.DDOP mult thinclab.legacy.DD thinclab.legacy.DD))\r\n")
-        .append("(def / (jmethod thinclab.DDOP div thinclab.legacy.DD thinclab.legacy.DD))\r\n")
-        .append("(def - (jmethod thinclab.DDOP sub thinclab.legacy.DD thinclab.legacy.DD))\r\n")
+        .append("(def eye   (jmethod thinclab.DDOP eye int))\r\n")
+        .append("(def +     (jmethod thinclab.DDOP add thinclab.legacy.DD thinclab.legacy.DD))\r\n")
+        .append("(def *     (jmethod thinclab.DDOP mult thinclab.legacy.DD thinclab.legacy.DD))\r\n")
+        .append("(def /     (jmethod thinclab.DDOP div thinclab.legacy.DD thinclab.legacy.DD))\r\n")
+        .append("(def -     (jmethod thinclab.DDOP sub thinclab.legacy.DD thinclab.legacy.DD))\r\n")
+        .append("(def map   (\\ (f l) (if (eq l ()) () (cons (f (car l)) (map f (cdr l))))))\r\n")
+        .append("(def reduce    (\\ (f i l) (if (eq l ()) i (reduce f (f i (car l)) (cdr l)))))\r\n")
         .append(")\r\n")
         .toString();
 
-    public static DD dd(int varIndex, Object rest) {
+    public static boolean eq(Object first, Object second) {
 
-        return null;
+        if (first == null && second == null) return true;
+        else if (first == null || second == null) return false;
+        else return first.equals(second);
     }
 
     public static DD evalDD(Cons list, AssocList env) {
@@ -92,6 +100,10 @@ public class InterpreterUtils {
 
     public static void def(String name, Object obj,
             AssocList env) {
+
+        if (env.containsKey(name))
+            Interpreter.LOGGER.warn("Overwriting %s", name);
+
         env.put(name, obj);
     }
 
