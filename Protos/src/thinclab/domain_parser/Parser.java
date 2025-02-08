@@ -102,6 +102,9 @@ public class Parser {
         if (isNumber(token))
             return DDleaf.getDD(Float.parseFloat(token));
 
+        else if (token.equals("'"))
+            return new Cons("list", (Cons) parse());
+
         else if (token.equals("(")) {
             
             Cons head = new Cons(null, null);

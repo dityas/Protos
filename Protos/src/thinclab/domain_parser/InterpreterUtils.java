@@ -3,6 +3,7 @@ package thinclab.domain_parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
@@ -63,7 +64,7 @@ public class InterpreterUtils {
             valDefs = cdr(valDefs);
         }
 
-        return DDnode.getDD(ddVar, ddVals);
+        return DDOP.reorder(DDnode.getDD(ddVar, ddVals));
     }
 
     public static Object type(Object obj) {

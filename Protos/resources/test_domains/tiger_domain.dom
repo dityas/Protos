@@ -18,13 +18,13 @@
 (def growl_obs
     (dd TigerLoc'
         (left
-            (GrowlLoc'
+            (dd GrowlLoc'
                 (left 0.85)
                 (right 0.15)
             )
         )
         (right
-            (GrowlLoc'
+            (dd GrowlLoc'
                 (left 0.15)
                 (right 0.85)
             )
@@ -34,5 +34,35 @@
 
 ; Initial belief
 (def init_belief (uniform TigerLoc))
+
+; Action diagram for open_right
+(def action_open_right
+    (action (idx Action open_right
+        '(TigerLoc open_door_dd)
+        '(GrowlLoc growl_obs)
+    ))
+)
+
+; POMDP definition
+(def tiger_pomdp
+    (pomdp
+        ; States
+        '(TigerLoc)
+
+        ; Observations
+        '(GrowlLoc)
+
+        ; Action variable
+        Actions
+
+        ; Action diagrams
+        '(action_open_left action_open_right action_listen)
+
+        ; Rewards
+
+        ; Discount
+        0.9
+    )
+)
 
 )
