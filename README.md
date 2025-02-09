@@ -1,4 +1,13 @@
 # Protos
+## Disclaimer
+In software, there is always that one project run by that one guy who completely
+changes the API every 6 months consistently breaking everything downstream. This
+is one of those projects and I am one of those guys. Maybe eventually as I ride
+out the Dunning-Kruger curve, I will have an epiphany and one day make everything
+simple, and freeze it to keep it usable.
+Today (02/09/25) is not that day however, I am rewriting the parsing system... :(
+
+
 ## A factored I-POMDP solver
 
 Protos is a factored IPOMDP solver developed at [THINC Lab @ UGA](http://thinc.cs.uga.edu/). It uses Jesse Hoey's implementation of the symbolic Perseus and with some modifications, extends it to I-POMDPs.
