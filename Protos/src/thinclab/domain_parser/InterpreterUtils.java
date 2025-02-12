@@ -1,6 +1,7 @@
 package thinclab.domain_parser;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import thinclab.DDOP;
@@ -8,6 +9,8 @@ import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
+import thinclab.models.ActionDiagram;
+import thinclab.utils.Tuple;
 
 public class InterpreterUtils {
 
@@ -20,6 +23,7 @@ public class InterpreterUtils {
         .append("(def cdr   (jmethod thinclab.domain_parser.InterpreterUtils cdr thinclab.domain_parser.Cons))\r\n")
         .append("(def alist (jmethod thinclab.domain_parser.InterpreterUtils flattenCons thinclab.domain_parser.Cons))\r\n")
         .append("(def eq    (jmethod thinclab.domain_parser.InterpreterUtils eq java.lang.Object java.lang.Object))\r\n")
+        .append("(def action    (jmethod thinclab.domain_parser.InterpreterUtils makeAction thinclab.domain_parser.Cons thinclab.domain_parser.Cons))\r\n")
         .append("(def uniform (jmethod thinclab.legacy.DDnode getUniformDist int))\r\n")
         .append("(def eye   (jmethod thinclab.DDOP eye int))\r\n")
         .append("(def +     (jmethod thinclab.DDOP add thinclab.legacy.DD thinclab.legacy.DD))\r\n")
@@ -36,6 +40,31 @@ public class InterpreterUtils {
         if (first == null && second == null) return true;
         else if (first == null || second == null) return false;
         else return first.equals(second);
+    }
+
+    public static ActionDiagram makeAction(Cons action, Cons dds) {
+
+        var ddList = new ArrayList<Tuple<Integer, DD>>();
+        var head = dds;
+
+        int actionVar = (int) car(action);
+        String actionName = (String) car(cdr(action));
+        int actionIdx = Global.valNames.get(actionVar - 1).indexOf(actionName);
+
+        while (head != null) {
+
+            Cons tuple = (Cons) car(head);
+            int stateIndex = (int) car(tuple);
+            DD transition = (DD) car(cdr(tuple));
+
+            ddList.add(Tuple.of(stateIndex, transition));
+
+            head = cdr(head);
+        }
+
+        Collections.sort(ddList, (x1, x2) -> x1._0().compareTo(x2._0()));
+
+        return ActionDiagram.getActionDiagram(actionIdx, ddList);
     }
 
     public static DD evalDD(Cons list, AssocList env) {

@@ -53,7 +53,7 @@ public class Parser {
             else if (Character.isWhitespace(c))
                 continue;
 
-            else if (c == '(' || c == ')') {
+            else if (c == '(' || c == ')' || c == '[' || c == ']' || c == '\'') {
                 expr.append((char) c);
                 break;
             }
@@ -67,7 +67,7 @@ public class Parser {
                 expr.append((char) c);
                 while (true) {
                     var s = next();
-                    if (s == -1 || s == '(' || s == ')') {
+                    if (s == -1 || s == '(' || s == ')' || s == '[' || s == ']') {
                         currentChar = s;
                         break;
                     }
@@ -95,6 +95,31 @@ public class Parser {
         }
     }
 
+    public Object parseList(Cons start) {
+
+        var cons = start;
+
+        while (true) {
+
+            var parsed = parse();
+
+            if (parsed == null) {
+                cons.next = null;
+                break;
+            }
+
+            else if (cons.obj == null)
+                cons.obj = parsed;
+
+            else {
+                cons.next = new Cons(parsed, null);
+                cons = cons.next;
+            }
+        }
+
+        return start;
+    }
+
     public Object parse() {
 
         String token = getNextToken();
@@ -103,35 +128,19 @@ public class Parser {
             return DDleaf.getDD(Float.parseFloat(token));
 
         else if (token.equals("'"))
-            return new Cons("list", (Cons) parse());
+            return new Cons("quote", new Cons(parse(), null));
 
         else if (token.equals("(")) {
-            
             Cons head = new Cons(null, null);
-            var cons = head;
-
-            while (true) {
-
-                var parsed = parse();
-
-                if (parsed == null) {
-                    cons.next = null;
-                    break;
-                }
-
-                else if (cons.obj == null)
-                    cons.obj = parsed;
-
-                else {
-                    cons.next = new Cons(parsed, null);
-                    cons = cons.next;
-                }
-            }
-
-            return head;
+            return parseList(head); 
         }
 
-        else if (token.equals(")") || token.length() < 1)
+        else if (token.equals("[")) {
+            Cons head = new Cons("list", null);
+            return parseList(head); 
+        }
+
+        else if (token.equals(")") || token.equals("]") || token.length() < 1)
             return null;
         
         return token;

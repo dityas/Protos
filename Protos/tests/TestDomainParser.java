@@ -36,7 +36,7 @@ class TestDomainParser {
 		Global.clearAll();
 		this.pomdpDomain = this.getClass()
             .getClassLoader()
-            .getResource("test_domains/test_pomdp.dom")
+            .getResource("test_domains/tiger_domain.dom")
             .getFile();
 	}
 

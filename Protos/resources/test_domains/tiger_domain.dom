@@ -37,32 +37,61 @@
 
 ; Action diagram for open_right
 (def action_open_right
-    (action (idx Action open_right
-        '(TigerLoc open_door_dd)
-        '(GrowlLoc growl_obs)
-    ))
-)
-
-; POMDP definition
-(def tiger_pomdp
-    (pomdp
-        ; States
-        '(TigerLoc)
-
-        ; Observations
-        '(GrowlLoc)
-
-        ; Action variable
-        Actions
-
-        ; Action diagrams
-        '(action_open_left action_open_right action_listen)
-
-        ; Rewards
-
-        ; Discount
-        0.9
+    (action 
+        [Actions 'open_right]
+        [
+            [TigerLoc open_door_dd]
+            [GrowlLoc (uniform GrowlLoc')]
+        ]
     )
 )
+
+; Action diagram for open_left is similar to open_right
+(def action_open_left
+    (action 
+        [Actions 'open_left]
+        [
+            [TigerLoc open_door_dd]
+            [GrowlLoc (uniform GrowlLoc')]
+        ]
+    )
+)
+
+; Action diagram for listen
+(def action_listen
+    (action 
+        [Actions 'listen]
+        [
+            [TigerLoc listen_dd]
+            [GrowlLoc growl_obs]
+        ]
+    )
+)
+
+(print action_open_right)
+(print action_listen)
+(print action_open_left)
+
+;; POMDP definition
+;(def tiger_pomdp
+;    (pomdp
+;        ; States
+;        '(TigerLoc)
+;
+;        ; Observations
+;        '(GrowlLoc)
+;
+;        ; Action variable
+;        Actions
+;
+;        ; Action diagrams
+;        '(action_open_left action_open_right action_listen)
+;
+;        ; Rewards
+;
+;        ; Discount
+;        0.9
+;    )
+;)
 
 )

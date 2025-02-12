@@ -94,6 +94,16 @@ public class Interpreter extends InterpreterUtils {
             return null;
         }
 
+        // variable index
+        else if (first.equals("vidx")) {
+            var varName = (String) car(rest);
+            var valName = (String) car(cdr(rest));
+            var varIndex = Global.varNames.indexOf(varName);
+            var valIndex = Global.valNames.get(varIndex).indexOf(valName);
+
+            return valIndex;
+        }
+
         // if statement
         else if (first.equals("if")) {
 
@@ -146,6 +156,10 @@ public class Interpreter extends InterpreterUtils {
         else if (first.equals("list")) {
             return evalList(rest, env);
         }
+
+        // quote
+        else if (first.equals("quote"))
+            return car(rest);
 
         // dd cons 
         else if (first.equals("dd")) {
