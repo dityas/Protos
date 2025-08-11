@@ -1,0 +1,97 @@
+(start
+
+(vars
+    (TigerLoc   (left right))
+    (GrowlLoc   (left right))
+
+; Agent actions
+    (Actions    (listen open_left open_right))
+)
+
+; Transition for open door actions
+(def open_door_dd (uniform TigerLoc'))
+
+; Transition for listening action
+(def listen_dd (eye TigerLoc))
+
+; Growl observation
+(def growl_obs
+    (dd TigerLoc'
+        (left
+            (dd GrowlLoc'
+                (left 0.85)
+                (right 0.15)
+            )
+        )
+        (right
+            (dd GrowlLoc'
+                (left 0.15)
+                (right 0.85)
+            )
+        )
+    )
+)
+
+; Initial belief
+(def init_belief (uniform TigerLoc))
+
+; Action diagram for open_right
+(def action_open_right
+    (action 
+        [Actions 'open_right]
+        [
+            [TigerLoc open_door_dd]
+            [GrowlLoc (uniform GrowlLoc')]
+        ]
+    )
+)
+
+; Action diagram for open_left is similar to open_right
+(def action_open_left
+    (action 
+        [Actions 'open_left]
+        [
+            [TigerLoc open_door_dd]
+            [GrowlLoc (uniform GrowlLoc')]
+        ]
+    )
+)
+
+; Action diagram for listen
+(def action_listen
+    (action 
+        [Actions 'listen]
+        [
+            [TigerLoc listen_dd]
+            [GrowlLoc growl_obs]
+        ]
+    )
+)
+
+(print action_open_right)
+(print action_listen)
+(print action_open_left)
+
+;; POMDP definition
+;(def tiger_pomdp
+;    (pomdp
+;        ; States
+;        '(TigerLoc)
+;
+;        ; Observations
+;        '(GrowlLoc)
+;
+;        ; Action variable
+;        Actions
+;
+;        ; Action diagrams
+;        '(action_open_left action_open_right action_listen)
+;
+;        ; Rewards
+;
+;        ; Discount
+;        0.9
+;    )
+;)
+
+)

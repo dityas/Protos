@@ -1,0 +1,3 @@
+(defvar States  (s1 s2))
+(defvar Actions (a1 a2))
+(defvar Mj      (mj1 mj2 mj3 mj4))

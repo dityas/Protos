@@ -9,7 +9,9 @@ package thinclab.solver;
 
 import java.util.List;
 import thinclab.legacy.DD;
-import thinclab.utils.Tuple;
+import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.policy.AlphaVector;
+import thinclab.policy.AlphaVectorPolicy;
 
 /*
  * @author adityas
@@ -18,10 +20,11 @@ import thinclab.utils.Tuple;
 public interface PBVISolvable {
 
 	/*
-	 * Implementing class should solve \Gamma_{a, o}^i(s). For POMDP backups, this
-	 * is
-	 * 
-	 * g_{a, o}^i(s) = \Sum_{s'} p(o | s', a) p(s' | s, a) \alpha^i(s')
+	 * Implementing class should perform backup operation of alpha vectors at a
+	 * given belief point
 	 */
-	public Tuple<Float, DD> Gaoi(final DD b, final int a, List<DD> alphaPrimes);
+	public AlphaVector backup(final DD b, 
+            final AlphaVectorPolicy Vn, final ReachabilityGraph g);
+
+    public List<DD> MDPValueIteration(List<DD> QFn);
 }

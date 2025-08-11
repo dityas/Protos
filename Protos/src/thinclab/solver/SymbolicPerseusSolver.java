@@ -1,153 +1,272 @@
-/*
- *	THINC Lab at UGA | Cyber Deception Group
- *
- *	Author: Aditya Shinde
- * 
- *	email: shinde.aditya386@gmail.com
- */
 package thinclab.solver;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
-import thinclab.legacy.DDleaf;
 import thinclab.legacy.Global;
-import thinclab.model_ops.belief_exploration.ExplorationStrategy;
-import thinclab.models.POSeqDecMakingModel;
+import thinclab.model_ops.belief_exploration.MDPExploration;
+import thinclab.models.PBVISolvablePOMDPBasedModel;
 import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.policy.AlphaVector;
 import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 
-/*
- * @author adityas
- *
- */
-public class SymbolicPerseusSolver<M extends POSeqDecMakingModel<DD> & PBVISolvable>
-		implements PointBasedSolver<M, ReachabilityGraph, AlphaVectorPolicy<DD>> {
 
-	private int usedBeliefs = 0;
+public class 
+SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
+    implements PointBasedSolver<AlphaVectorPolicy> {
 
-	private static final Logger LOGGER = LogManager.getLogger(SymbolicPerseusSolver.class);
+    private int usedBeliefs = 0;
+    public final M m;
+    public final AlphaVectorPolicy UB;
 
-	protected Tuple<Integer, DD> Gab(final M m, final DD b, List<DD> primedAVecs) {
+    public AlphaVectorPolicy Vn;
+    public List<Float> beliefSamplingWeights;
 
-		// compute in parallel if there are multiple \alpha vectors and dimensionality
-		// is huge
-		var aStream = IntStream.range(0, m.A().size());
-		if (primedAVecs.size() > 2 && (m.i_S().size() + m.i_Om().size()) > 5)
-			aStream = aStream.parallel();
+    private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(SymbolicPerseusSolver.class);
 
-		// For each action and observation pair (a, o), and each \alpha(s'), compute the
-		// dot product for \Gamma_{a, o} with b and get the best \alpha. Sum across
-		// observations
-		var Gao = aStream.mapToObj(_a -> m.Gaoi(b, _a, primedAVecs)).collect(Collectors.toList());
-		var Ga = m.R().stream().map(r -> Tuple.of(DDOP.dotProduct(b, r, m.i_S()), r)).collect(Collectors.toList());
+    public SymbolicPerseusSolver(final M m) {
 
-		// construct \alpha vector for best Ga + Gao
-		int bestA = -1;
-		float bestVal = Float.NEGATIVE_INFINITY;
-		DD bestAlpha = DDleaf.getDD(Float.NaN);
+        this.m = m;
+        LOGGER.info("Initialized symbolic Perseus for %s", this.m.getName());
 
-		for (int i = 0; i < m.A().size(); i++) {
+        // initialize lower bound as the reward function
+        Vn = AlphaVectorPolicy.getLowerBound(m);
 
-			var val = Ga.get(i)._0() + Gao.get(i)._0();
-			if (val > bestVal) {
+        // solve upper bound
+        UB = QMDPSolver.solveQMDP(this.m);
+        var actionSet = UB.getActions(this.m);
+        LOGGER.info("UB for %s contains actions %s", 
+                this.m.getName(), actionSet);
+    }
 
-				bestA = i;
-				bestVal = val;
-				bestAlpha = DDOP.add(Ga.get(i)._1(), Gao.get(i)._1());
-			}
-		}
+    /*
+     * Mark beliefs that don't need updates 
+     */
+    void markUpdatedBeliefs(List<DD> B,
+            AlphaVectorPolicy newVn) {
 
-		return new Tuple<>(bestA, bestAlpha);
-	}
+        for (int i = 0; i < B.size(); i++) {
 
-	protected Tuple<Integer, DD> backup(final M m, final DD b, List<DD> aVecs) {
+            if (beliefSamplingWeights.get(i) == 0)
+                continue;
 
-		var primedAVecs = aVecs.stream().map(a -> DDOP.primeVars(a, Global.NUM_VARS / 2)).collect(Collectors.toList());
-		return Gab(m, b, primedAVecs);
-	}
+            var b = B.get(i);
 
-	/*
-	 * Perform backups and get the next value function for a given explored belief
-	 * region
-	 */
-	protected AlphaVectorPolicy<DD> solveForB(final M m, List<DD> B, AlphaVectorPolicy<DD> Vn) {
+            // if a belief is evaluated higher by the new policy,
+            // don't update it further for now
+            var diff = DDOP.value_b(Vn, b) - DDOP.value_b(newVn, b);
+            if (diff > 0.0)
+                beliefSamplingWeights.set(i, diff);
+            else
+                beliefSamplingWeights.set(i, 0.0f);
+        }
+    }
 
-		List<Tuple<Integer, DD>> newVn = new ArrayList<>(10);
-		this.usedBeliefs = 0;
+    protected AlphaVectorPolicy solveForB(final List<DD> B, 
+            AlphaVectorPolicy Vn, ReachabilityGraph g) {
+        /*
+         * Perform backups and get the next value function for a given explored 
+         * belief region
+         */
 
-		while (B.size() > 0) {
+        var newVn = new AlphaVectorPolicy(m.i_S());
+        this.usedBeliefs = 0;
 
-			DD b = B.remove(Global.random.nextInt(B.size()));
-			var newAlpha = backup(m, b, Vn.aVecs.stream().map(a -> a._1()).collect(Collectors.toList()));
+        beliefSamplingWeights = DDOP.getBeliefRegionEvalDiff(B, UB, Vn);
 
-			// Construct V_{n+1}(b)
-			var Vnb = Vn.aVecs.stream().map(a -> Tuple.of(DDOP.dotProduct(b, a._1(), m.i_S()), a._0(), a._1())).reduce(
-					Tuple.of(Float.NEGATIVE_INFINITY, -1, DDleaf.zero), (v1, v2) -> v1._0() >= v2._0() ? v1 : v2);
+        while (true) {
 
-			var newAlphab = DDOP.dotProduct(b, newAlpha._1(), m.i_S());
+            var index = DDOP.sample(beliefSamplingWeights);
+            if (index < 0)
+                break;
 
-			// If new \alpha.b > Vn(b) add it to new V
-			if (newAlphab > Vnb._0())
-				newVn.add(newAlpha);
+            // It is extremely important to remove the belief at which
+            // the back up was just performed!!! Do not change this!!!
+            // It populates the belief region with low quality beliefs if not
+            // removed!!!
+            DD b = B.get(index);
+            beliefSamplingWeights.set(index, 0.0f);
 
-			else
-				newVn.add(Tuple.of(Vnb._1(), Vnb._2()));
+            var newAlpha = m.backup(b, Vn, g);
 
-			B = B.stream().filter(_b -> DDOP.value_b(Vn.aVecs, _b, m.i_S()) > DDOP.value_b(newVn, _b, m.i_S()))
-					.collect(Collectors.toList());
+            // Construct V_{n+1}(b)
+            float bestVal = Float.NEGATIVE_INFINITY;
+            AlphaVector best = null;
 
-			this.usedBeliefs++;
-		}
+            for (var vec: Vn) {
 
-		return new AlphaVectorPolicy<DD>(newVn);
-	}
+                float val = DDOP.dotProduct(b, vec.getVector(), m.i_S());
 
-	@Override
-	public AlphaVectorPolicy<DD> solve(List<DD> bs, final M m, int I, int H, ExplorationStrategy<DD, M, ReachabilityGraph, AlphaVectorPolicy<DD>> ES, AlphaVectorPolicy<DD> Vn) {
+                if (val > bestVal) { 
+                    bestVal = val;
+                    best = vec;
+                }
+                
+            }
 
-		ReachabilityGraph RG = ReachabilityGraph.fromDecMakingModel(m);
-		
-		bs.forEach(RG::addNode);
+            // If new \alpha.b >= Vn(b) add it to new V
+            if (newAlpha.getVal() >= bestVal)
+                newVn.add(newAlpha);
 
-		for (int i = 0; i < I; i++) {
+            else
+                newVn.add(best);
 
-			// expand belief region
-			RG = ES.expand(RG, m, H, Vn);
-			var B = new ArrayList<DD>(RG.getAllNodes());
-			long then = System.nanoTime();
+            markUpdatedBeliefs(B, newVn);
+            this.usedBeliefs++;
+        }
 
-			// new value function after backups
-			var Vn_p = solveForB(m, B, Vn);
+        // beliefSamplingWeights = DDOP.getBeliefRegionEvalDiff(B, newVn, Vn);
+        return newVn;
+    }
 
-			float backupT = (System.nanoTime() - then) / 1000000.0f;
-			float bellmanError = B.stream()
-					.map(_b -> Math.abs(DDOP.value_b(Vn.aVecs, _b, m.i_S()) - DDOP.value_b(Vn_p.aVecs, _b, m.i_S())))
-					.reduce(Float.NEGATIVE_INFINITY, (v1, v2) -> v1 > v2 ? v1 : v2);
+    public float getBellmanError(Collection<DD> B, 
+            AlphaVectorPolicy Vn, AlphaVectorPolicy Vn_p) {
 
-			// prepare for next iter
-			Vn.aVecs.clear();
-			Vn.aVecs.addAll(Vn_p.aVecs);
+        return DDOP.getBeliefRegionEvalDiff(B, Vn_p, Vn)
+            .stream()
+            .max((v1, v2) -> v1.compareTo(v2))
+            .orElse(Float.NaN);
+    }
 
-			LOGGER.info(
-					String.format("iter: %s | bell err: %.5f | time: %.3f msec | num vectors: %s | beliefs used: %s/%s",
-							i, bellmanError, backupT, Vn_p.aVecs.size(), this.usedBeliefs, B.size()));
+    private boolean beliefsValid(Collection<DD> B) {
 
-			if (bellmanError < 0.001 && i > 5) {
+        for(var _b: B) {
+            if (!DDOP.verifyJointProbabilityDist(_b, m.i_S())) {
+                LOGGER.error("Belief %s is not a valid probability distribution",
+                        DDOP.factors(_b, m.i_S()));
+                return false;
+            }
+        }
 
-				LOGGER.info(String.format("Declaring solution at Bellman error %s and iteration %s", bellmanError, i));
-				break;
-			}
+        return true;
+    }
 
-		}
+    private void exitIfBeliefsInvalid(Collection<DD> B) {
 
-		RG.removeAllNodes();
-		return Vn;
-	}
+        if (!beliefsValid(B)) {
+            LOGGER.error("Belief region contains invalid beliefs");
+            System.exit(-1);
+        }
+    }
+
+    private void logConvergence() {
+        LOGGER.info("Convergence, software version 7.0, "
+                + "looking at life through the eyes of a tired heart.");
+        LOGGER.info("Eating seeds as a past time activity, "
+                + "the toxicity of my city of my city.");
+    }
+
+    @Override
+    public AlphaVectorPolicy solve(final List<DD> b_is, int I, int H) {
+
+        if (b_is.size() < 1) {
+            LOGGER.error("[!] No initial beliefs. Returning upper bound");
+            return UB;
+        }
+
+        // QMDP policy's estimate of initial beliefs
+        var ubVals = b_is.stream()
+            .map(b -> DDOP.bestAlphaWithValue(UB, b))
+            .map(v -> Tuple.of(m.A().get(v._0().getActId()), v._1()))
+            .collect(Collectors.toList());
+        LOGGER.info("UB evaulates initial beliefs at %s", ubVals);
+
+        var lbVals = b_is.stream()
+            .map(b -> DDOP.bestAlphaWithValue(Vn, b))
+            .map(v -> Tuple.of(m.A().get(v._0().getActId()), v._1()))
+            .collect(Collectors.toList());
+        LOGGER.info("LB evaulates initial beliefs at %s", lbVals);
+
+        // Start Perseus
+        LOGGER.info("[*] Launching symbolic Perseus solver for model %s", 
+                m.getName());
+
+        exitIfBeliefsInvalid(b_is);
+
+        // Belief exploration based on QMDP approximation
+        var explorationProb = 0.05f;
+        var ES = new MDPExploration<M>(UB, explorationProb);
+        LOGGER.info("[+] Starting with exploration probability %s and %s initial beliefs", 
+                explorationProb, b_is.size());
+
+        // get explored belief space
+        var exploredSpace = ES.explore(b_is, m, H, 500);
+        var B = new ArrayList<>(exploredSpace.getAllNodes());
+
+        // evaluate explored belef space
+        var vals = DDOP.getBeliefRegionEval(B, UB).stream()
+            .mapToDouble(Double::valueOf).average().orElse(Double.NaN);
+        LOGGER.info("QMDP policy explored belief region mean of values %s", vals);
+
+        int convergenceCount = 0;
+        var Vn_p = UB;
+        for (int i = 0;; i++) {
+
+            long then = System.nanoTime();
+
+            // new value function after backups
+            Vn_p = solveForB(B, Vn, exploredSpace);
+
+            // report error stats
+            float backupT = (System.nanoTime() - then) / 1000000000.0f;
+            var bellmanError = getBellmanError(B, Vn, Vn_p);
+            var UBError = getBellmanError(B, Vn, UB);
+
+            LOGGER.info("i=%2d, t=%.3f sec, |Vn|=%2d, |B|=%3d/%3d, "
+                    + "bell err: %.3f, UB err: %.3f",
+                    i, backupT, Vn_p.size(), usedBeliefs, B.size(),
+                    bellmanError, UBError);
+
+            // Prepare for next backup
+            Vn = Vn_p;
+
+            // Congergence check
+            if (bellmanError < 0.01 && i > 10) {
+
+                convergenceCount += 1;
+                if (convergenceCount > 5) {
+
+                    LOGGER.info("Declaring solution at Bellman error %s "
+                            + "and iteration %s", bellmanError, i);
+                    logConvergence();
+                    break;
+                }
+            }
+
+            else
+                convergenceCount = 0;
+
+            Global.clearHashtablesIfFull();
+
+        } // end iterations over I
+
+        Global.clearHashtablesIfFull();
+        m.clearBackupCache();
+        ES.clearCaches();
+        System.gc();
+        exploredSpace.removeAllNodes();
+
+        // Log exit
+        LOGGER.info("Vn contains actions %s", Vn.getActions(m));
+        var valsAtWitnesses = Vn.stream()
+            .map(v -> Tuple.of(m.A().get(v.getActId()), v.getVal()))
+            .collect(Collectors.toList());
+        LOGGER.info("Vn values at witness points are %s", valsAtWitnesses);
+        LOGGER.info("[*] Finished solving %s", m.getName());
+
+        // Print if approximation can be done
+        for (var vec: Vn) {
+            if (DDOP.canApproximate(vec.getVector()))
+                LOGGER.warn("A solution DD can be easily approximated");
+        }
+
+        return Vn;
+    }
 }

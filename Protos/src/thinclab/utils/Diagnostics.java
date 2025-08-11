@@ -118,9 +118,9 @@ public class Diagnostics {
 		LOGGER.debug("Cache sizes: "
 				+ " LEAF: " + Global.leafHashtable.size()
 				+ " NODE: " + Global.nodeHashtable.size()
-				+ " ADD: " + Global.addHashtable.size()
-				+ " DOT: " + Global.dotProductHashtable.size()
-				+ " MULT: " + Global.multHashtable.size());
+				+ " ADD: " + Global.addCache.size()
+				+ " DOT: " + Global.dotProductCache.size()
+				+ " MULT: " + Global.multCache.size());
 	}
 	
 	public static void logMemConsumption(String mileStone) {

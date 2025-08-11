@@ -1,0 +1,226 @@
+(defvar TigerLoc (TL TR))
+(defvar agent_j (m0 m1 m2))
+(defvar agentIL1EC (m0))
+(defvar Frame_jl1 (frame1))
+(defvar Agent_actions (OL OR L))
+(defvar Agentj_actions (OL OR L))
+(defvar Growl_j (GL GR))
+(defvar Growl (GL GR))
+(defvar Creak (CL CR SL))
+
+(initmodelvar agent_j
+	(frames Frame_jl1)
+	(
+		(frame1 	(m0 	(0.5)))
+		(frame1 	(m1 	
+			(TigerLoc 	(TR 	(0.85)) 	(TL 	(0.15)))
+		))
+		(frame1 	(m2 	
+			(TigerLoc 	(TR 	(0.15)) 	(TL 	(0.85)))
+		))
+	)
+)
+
+(defdd initLoc
+		(TigerLoc 	UNIFORM)
+)
+
+(defdd openDoorDD
+		(TigerLoc' UNIFORM)
+)
+
+(defdd aIDist
+	(Agent_actions
+		(OL 	(0.005))
+		(OR 	(0.005))
+		(L 		(0.99))
+	)
+)
+
+(defdd growlObsDD
+		(TigerLoc'
+			(TL
+				(Growl_j'
+					(GL 	(0.85))
+					(GR 	(0.15))
+				)
+			)
+			
+			(TR
+				(Growl_j'
+					(GL 	(0.15))
+					(GR 	(0.85))
+				)
+			)
+		)
+)
+
+(defdd iListensCreak
+	(Agentj_actions
+		(OL
+			(Creak'
+				(CL 	(0.9))
+				(CR 	(0.05))
+				(SL 	(0.05))
+			)
+		)
+		
+		(OR
+			(Creak'
+				(CL 	(0.05))
+				(CR 	(0.9))
+				(SL 	(0.05))
+			)
+		)
+		
+		(L
+			(Creak'
+				(CL 	(0.05))
+				(CR 	(0.05))
+				(SL 	(0.9))
+			)
+		)
+	)
+)
+
+(defdd iListensGrowl
+	(TigerLoc'
+		(TL 	(Growl'	(GL	(0.85)) 	(GR 	(0.15))))
+		(TR 	(Growl'	(GR	(0.85)) 	(GL 	(0.15))))
+	)
+)
+
+(defdd iListensDD
+	
+	(Agentj_actions
+		(OL
+			(TigerLoc' UNIFORM)
+		)
+		
+		(OR
+			(TigerLoc' UNIFORM)
+		)
+		
+		(L
+			(TigerLoc
+				(TL 	(TigerLoc' TL))
+				(TR 	(TigerLoc' TR))
+			)
+		)
+	)
+	
+)
+
+(defdd jListensDD
+	(Agent_actions
+		(OL 	(TigerLoc' UNIFORM))
+		(OR 	(TigerLoc' UNIFORM))
+		(L 		(SAME TigerLoc))
+	)
+)
+
+(defdbn actionIOpen
+	(TigerLoc 	(TigerLoc' 	UNIFORM))
+	(Growl 		(Growl' 	UNIFORM))
+	(Creak 		(Creak' 	UNIFORM))
+	
+)
+
+(defdbn actionIListen
+	(TigerLoc 	(iListensDD))
+	(Growl 		(iListensGrowl))
+	(Creak 		(iListensCreak))
+)
+
+(defdbn actionOpenAny
+	(TigerLoc 	(openDoorDD))
+	(Growl_j 	(Growl_j' UNIFORM))
+)
+
+(defdbn actionL
+	(TigerLoc 	(# (Agent_actions) (aIDist * jListensDD)))
+	(Growl_j 		(growlObsDD))
+)
+
+(defpomdp agentJ
+    (S 	
+        (TigerLoc)
+    )
+
+    (O
+        (Growl_j)
+    )
+
+    (A 	Agentj_actions)
+        
+    (dynamics
+        (OL 	(actionOpenAny))
+        (OR 	(actionOpenAny))
+        (L 		(actionL))
+    )
+        
+    (R
+        (OL 	(TigerLoc 
+                    (TL 	(-100))
+                    (TR 	(10))
+        ))
+        
+        (OR		(TigerLoc
+                    (TL 	(10))
+                    (TR 	(-100))
+        ))
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)	
+)
+
+(defipomdp agentI
+    (S 	
+        (TigerLoc)
+    )
+
+    (O
+        (Growl Creak)
+    )
+
+    (A 	Agent_actions)
+    (Aj Agentj_actions)
+    (Mj agent_j)
+    (EC agentIL1EC)
+    (Thetaj Frame_jl1 	
+    	(frame1 agentJ)
+    )
+        
+    (dynamics
+        (OL 	(actionIOpen))
+        (OR 	(actionIOpen))
+        (L 		(actionIListen))
+    )
+            
+    (R
+        (OL 	
+        	(TigerLoc 
+                (TL 	(-100))
+                (TR 	(10))
+        	)
+        )
+        
+        (OR		
+        			
+            (TigerLoc
+                (TR 	(-100))
+                (TL 	(10))
+            )
+       	)
+            
+        (L 		(-1))
+    )
+        
+    (discount 0.9)
+    (H 4)	
+)
+
+
+(defpbvisolv pomdp agentISolver)

@@ -18,306 +18,293 @@ import org.apache.logging.log4j.Logger;
 import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
-import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
-import thinclab.solver.PBVISolvable;
+import thinclab.models.datastructures.ReachabilityGraph;
+import thinclab.policy.AlphaVector;
+import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
+import thinclab.utils.Tuple3;
 
 /*
  * @author adityas
  *
  */
-public class POMDP implements POSeqDecMakingModel<DD>, PBVISolvable {
+public class POMDP extends PBVISolvablePOMDPBasedModel {
 
-	public final List<String> S;
-	public final List<String> O;
-	public final List<String> A;
-	public final DD b_i;
-	public final float discount;
+    private static final Logger LOGGER = 
+        LogManager.getFormatterLogger(POMDP.class);
 
-	public final List<Integer> i_S;
-	public final List<Integer> i_Om;
-	public final int i_A;
+    public POMDP(List<String> S, List<String> O, String A, 
+            HashMap<String, Model> dynamics, HashMap<String, DD> R,
+            float discount) {
 
-	public final List<Integer> i_S_p;
-	public final List<Integer> i_Om_p;
-	public final List<List<Integer>> oAll;
+        super(S, O, A, dynamics, R, discount);
+    }
 
-	public final List<List<DD>> TF;
-	public final List<List<DD>> OF;
-	public final List<DD> R;
+    public POMDP(List<String> S, List<String> O, String A, 
+            List<List<DD>> TF, List<List<DD>> OF, List<DD> R, 
+            float discount) {
 
-	private static final Logger LOGGER = LogManager.getLogger(POMDP.class);
+        super(S, O, A, TF, OF, R, discount);
+    }
 
-	public POMDP(List<String> S, List<String> O, String A, HashMap<String, Model> dynamics, HashMap<String, DD> R,
-			DD initialBelief, float discount) {
+    @Override
+    public String toString() {
 
-		// variable names
-		this.S = this.sortByVarOrdering(S, Global.varNames);
-		this.O = this.sortByVarOrdering(O, Global.varNames);
-		this.A = Global.valNames.get(Global.varNames.indexOf(A));
+        var builder = new StringBuilder();
 
-		// variable indices
-		this.i_S = this.S.stream().map(s -> Global.varNames.indexOf(s) + 1).collect(Collectors.toList());
-		this.i_Om = this.O.stream().map(o -> Global.varNames.indexOf(o) + 1).collect(Collectors.toList());
-		this.i_A = Global.varNames.indexOf(A) + 1;
+        builder.append("POMDP: [").append("\r\n");
+        builder.append("S : ").append(this.S).append("\r\n");
+        builder.append("S vars : ").append(this.i_S).append("\r\n");
+        builder.append("O : ").append(this.O).append("\r\n");
+        builder.append("O vars : ").append(this.i_Om).append("\r\n");
+        builder.append("A : ").append(this.A).append("\r\n");
+        builder.append("A var : ").append(this.i_A).append("\r\n");
 
-		// primed variable indices
-		this.i_S_p = this.i_S.stream().map(i -> i + (Global.NUM_VARS / 2)).collect(Collectors.toList());
-		this.i_Om_p = this.i_Om.stream().map(i -> i + (Global.NUM_VARS / 2)).collect(Collectors.toList());
+        builder.append("TF funct. : ").append("\r\n");
 
-		// all possible observations
-		this.oAll = DDOP.cartesianProd(i_Om.stream().map(
-				o -> IntStream.range(1, Global.valNames.get(o - 1).size() + 1).boxed().collect(Collectors.toList()))
-				.collect(Collectors.toList()));
+        builder.append("OF funct. : ").append(this.OF).append("\r\n");
 
-		// take out DBNs from set of models
-		var dyn = new HashMap<String, DBN>(5);
-		dyn.putAll(dynamics.entrySet().stream().filter(e -> e.getValue() instanceof DBN)
-				.collect(Collectors.toMap(e -> e.getKey(), e -> (DBN) e.getValue())));
+        builder.append("R : ").append("\r\n");
 
-		// Populate dynamics for missing actions
-		Global.valNames.get(this.i_A - 1).stream().forEach(a ->
-			{
+        builder.append("discount : ").append(this.discount).append("\r\n");
 
-				if (!dyn.containsKey(a)) {
+        builder.append("]").append("\r\n");
 
-					LOGGER.warn(String.format("Dynamics not defined for action %s. "
-							+ "Will apply with SAME transitions and random observations for that action", a));
-					dyn.put(a, new DBN(new HashMap<Integer, DD>(1)));
-				}
-			});
+        return builder.toString();
+    }
 
-		this.TF = this.A.stream().map(a -> this.getTransitionFunction(dyn.get(a))).collect(Collectors.toList());
-		this.OF = this.A.stream().map(a -> this.getObsFunction(dyn.get(a))).collect(Collectors.toList());
+    // -----------------------------------------------------------------------
+    // Implementation of BeliefBasedAgent<DD>
 
-		this.R = this.A.stream().map(a -> R.containsKey(a) ? R.get(a) : DD.zero).collect(Collectors.toList());
+    @Override
+    public DD beliefUpdate(DD b, int a, List<Integer> o) {
 
-		this.b_i = initialBelief;
-		this.discount = discount;
-	}
+        var OFao = DDOP.restrict(this.OF.get(a), i_Om_p, o);
 
-	protected List<DD> getTransitionFunction(DBN dbn) {
+        // concat b, TF and OF
+        var dynamicsArray = new ArrayList<DD>(1 + i_S.size() + i_Om.size());
+        dynamicsArray.add(b);
+        dynamicsArray.addAll(TF.get(a));
+        dynamicsArray.addAll(OFao);
 
-		var Ta = i_S.stream().map(
-				s -> dbn.cpds.containsKey(s) ? dbn.cpds.get(s) : DBN.getSameTransitionDD(Global.varNames.get(s - 1)))
-				.collect(Collectors.toList());
+        // Sumout[S] P(O'=o| S, A=a) x P(S'| S, A=a) x P(S)
+        DD nextBelState = DDOP.addMultVarElim(dynamicsArray, i_S);
 
-		return Ta;
-	}
+        nextBelState = DDOP.primeVars(
+                nextBelState, -(Global.NUM_VARS / 2));
+        DD obsProb = DDOP.addMultVarElim(List.of(nextBelState), i_S);
 
-	protected List<DD> getObsFunction(DBN dbn) {
+        if (obsProb.getVal() < 1e-8) {
+            LOGGER.error("Zero probability observation");
+            return DDleaf.getDD(Float.NaN);
+        }
 
-		var Oa = i_Om.stream()
-				.map(o -> dbn.cpds.containsKey(o) ? dbn.cpds.get(o) : DDnode.getUniformDist(o + (Global.NUM_VARS / 2)))
-				.collect(Collectors.toList());
+        nextBelState = DDOP.div(nextBelState, obsProb);
 
-		return Oa;
-	}
+        return nextBelState;
+    }
 
-	private List<String> sortByVarOrdering(List<String> varList, List<String> ordering) {
+    @Override
+    public DD beliefUpdate(DD b, String a, List<String> o) {
 
-		var unknownVar = varList.stream().filter(v -> ordering.indexOf(v) < 0).findFirst();
-		if (unknownVar.isPresent()) {
+        int actIndex = Collections.binarySearch(this.A, a);
+        var obs = new ArrayList<Integer>(i_Om.size());
 
-			LOGGER.error(String.format("Symbol %s is not defined in %s", unknownVar.get(), ordering));
-			return null;
-		}
+        for (int i = 0; i < i_Om_p.size(); i++) {
+            obs.add(Collections.binarySearch(
+                        Global.valNames.get(i_Om.get(i) - 1), 
+                        o.get(i)) + 1);
+        }
 
-		Collections.sort(varList, (a, b) -> ordering.indexOf(a) - ordering.indexOf(b));
-		return varList;
-	}
+        return this.beliefUpdate(b, actIndex, obs);
+    }
 
-	@Override
-	public String toString() {
+    @Override
+    public DD obsLikelihoods(DD b, int a) {
 
-		var builder = new StringBuilder();
+        var dynamics = new ArrayList<DD>(1 + S().size() + Om().size());
+        dynamics.add(b);
+        dynamics.addAll(T().get(a));
+        dynamics.addAll(O().get(a));
 
-		builder.append("POMDP: [").append("\r\n");
-		builder.append("S : ").append(this.S).append("\r\n");
-		builder.append("S vars : ").append(this.i_S).append("\r\n");
-		builder.append("O : ").append(this.O).append("\r\n");
-		builder.append("O vars : ").append(this.i_Om).append("\r\n");
-		builder.append("A : ").append(this.A).append("\r\n");
-		builder.append("A var : ").append(this.i_A).append("\r\n");
+        var _vars = new ArrayList<Integer>(i_S().size() + i_S_p.size());
+        _vars.addAll(i_S);
+        _vars.addAll(i_S_p);
 
-		builder.append("TF funct. : ").append("\r\n");
+        return DDOP.addMultVarElim(dynamics, _vars);
+    }
 
-		builder.append("OF funct. : ").append(this.OF).append("\r\n");
+    // ----------------------------------------------------------------------------------------
+    // Mj Space transformations. (Only here to conform to POSeqDecModel interface)
+    // This will probably change in the future
 
-		builder.append("R : ").append("\r\n");
+    @Override
+    public DD step(DD b, int a, List<Integer> o) {
 
-		builder.append("b : ").append(this.b_i).append("\r\n");
-		builder.append("discount : ").append(this.discount).append("\r\n");
+        return beliefUpdate(b, a, o);
+    }
 
-		builder.append("]").append("\r\n");
+    @Override
+    public DD step(DD b, String a, List<String> o) {
 
-		return builder.toString();
-	}
+        return beliefUpdate(b, a, o);
+    }
 
-	// --------------------------------------------------------------------------------------
-	// Implementation of BeliefBasedAgent<DD>
+    @Override
+    public void step() {}
 
-	@Override
-	public DD beliefUpdate(DD b, int a, List<Integer> o) {
+    public Object toLispObjects() {
 
-		var OFao = DDOP.restrict(this.OF.get(a), i_Om_p, o);
+        var transitionFunction = new ArrayList<Object>(i_S().size() + 1);
+        transitionFunction.add("list");
+        transitionFunction.addAll(TF.get(0));
 
-		// concat b, TF and OF
-		var dynamicsArray = new ArrayList<DD>(1 + i_S.size() + i_Om.size());
-		dynamicsArray.add(b);
-		dynamicsArray.addAll(TF.get(a));
-		dynamicsArray.addAll(OFao);
+        return transitionFunction;
+    }
 
-		// Sumout[S] P(O'=o| S, A=a) x P(S'| S, A=a) x P(S)
-		DD nextBelState = DDOP.addMultVarElim(dynamicsArray, i_S);
+    // ----------------------------------------------------------------------------------------
+    // PBVISolvable implementations
 
-		nextBelState = DDOP.primeVars(nextBelState, -(Global.NUM_VARS / 2));
-		DD obsProb = DDOP.addMultVarElim(List.of(nextBelState), i_S);
+    public DD project(DD d, int a, List<Integer> o) {
 
-		if (obsProb.getVal() < 1e-8)
-			return DDleaf.getDD(Float.NaN);
+        var factors = new ArrayList<DD>(S.size() + Om().size() + 1);
+        factors.addAll(DDOP.restrict(O().get(a), i_Om_p, o));
+        factors.addAll(T().get(a));
+        factors.add(DDOP.primeVars(d, Global.NUM_VARS / 2));
 
-		nextBelState = DDOP.div(nextBelState, obsProb);
+        var results = DDOP.addMultVarElim(factors, i_S_p());
 
-		return nextBelState;
-	}
+        return results;
+    }
 
-	@Override
-	public DD beliefUpdate(DD b, String a, List<String> o) {
+    public List<Tuple3<Integer, DD, Float>> computeNextBaParallel(DD b, DD likelihoods, int a, ReachabilityGraph g) {
 
-		int actIndex = Collections.binarySearch(this.A, a);
-		var obs = new ArrayList<Integer>(i_Om.size());
+        var res = IntStream.range(0, oAll.size()).parallel().boxed()
+            .map(o -> Tuple.of(DDOP.restrict(likelihoods, i_Om_p, oAll.get(o)).getVal(), o))
+            .filter(o -> o._0() > 1e-6f).map(o ->
+                    {
+                        var b_n = beliefUpdate(b, a, oAll.get(o._1()));
+                        return Tuple.of(o._1(), b_n, o._0());
+                    })
+        .collect(Collectors.toList());
 
-		for (int i = 0; i < i_Om_p.size(); i++) {
+        return res;
+    }
 
-			obs.add(Collections.binarySearch(Global.valNames.get(i_Om.get(i) - 1), o.get(i)) + 1);
-		}
+    public int getBestProjectionIndexAtO(DD nextBelief, AlphaVectorPolicy Vn) {
+        return DDOP.bestAlphaIndex(Vn, nextBelief);
+    }
 
-		return this.beliefUpdate(b, actIndex, obs);
-	}
+    @Override
+    public AlphaVector backup(DD b,
+            AlphaVectorPolicy Vn, ReachabilityGraph g) {
 
-	@Override
-	public DD obsLikelihoods(DD b, int a) {
+        int bestA = -1;
+        float bestVal = Float.NEGATIVE_INFINITY;
 
-		var dynamics = new ArrayList<DD>(1 + S().size() + Om().size());
-		dynamics.add(b);
-		dynamics.addAll(T().get(a));
-		dynamics.addAll(O().get(a));
+        var nextBels = belCache.get(b);
 
-		var _vars = new ArrayList<Integer>(i_S().size() + i_S_p.size());
-		_vars.addAll(i_S);
-		_vars.addAll(i_S_p);
+        if (nextBels == null) {
 
-		return DDOP.addMultVarElim(dynamics, _vars);
-	}
+            // build cache entry for this belief
+            nextBels = new HashMap<Integer, 
+                     List<Tuple3<Integer, DD, Float>>>(A().size());
 
-	// ----------------------------------------------------------------------------------------
-	// POSeqDecMakingModel implementations
+            var res = IntStream.range(0, A().size()).parallel().boxed()
+                .map(a -> Tuple.of(
+                            a, computeNextBaParallel(
+                                b, obsLikelihoods(b, a), a, g)))
+                .collect(Collectors.toList());
 
-	@Override
-	public List<Integer> i_S() {
+            for (var r : res)
+                nextBels.put(r._0(), r._1());
 
-		return this.i_S;
-	}
+            belCache.put(b, nextBels);
+        }
 
-	@Override
-	public List<Integer> i_S_p() {
+        // compute everything from the cached entries
+        var Gao = new ArrayList<ArrayList<Tuple<Integer, DD>>>(A().size());
 
-		return this.i_S_p;
-	}
+        for (int a = 0; a < A().size(); a++) {
 
-	@Override
-	public List<Integer> i_Om_p() {
+            var nextBa = nextBels.get(a);
+            float val = 0.0f;
+            var argmax_iGaoi = new ArrayList<Tuple<Integer, DD>>(nextBa.size());
 
-		return this.i_Om_p;
-	}
+            // project to next belief for all observations and compute values
+            for (int o = 0; o < nextBa.size(); o++) {
 
-	@Override
-	public List<String> S() {
+                var obsIndex = nextBa.get(o)._0();
+                var b_n = nextBa.get(o)._1();
+                var prob = nextBa.get(o)._2();
 
-		return this.S;
-	}
+                // var bestAlpha = Gaoi(b_n, a, oAll.get(obsIndex), alphas);
+                var bestAlphaIndex = DDOP.bestAlphaIndex(Vn, b_n);
+                var bestAlpha = Vn.get(bestAlphaIndex);
+                var bestAlphaVal = DDOP.dotProduct(Vn.get(bestAlphaIndex).getVector(), 
+                        b_n, Vn.stateIndices);
 
-	@Override
-	public DD b_i() {
+                argmax_iGaoi.add(Tuple.of(obsIndex, bestAlpha.getVector()));
+                val += (prob * bestAlphaVal);
+            }
 
-		return this.b_i;
-	}
+            // compute value of a and check best action and best value
+            val *= discount;
+            val += DDOP.dotProduct(b, R().get(a), i_S());
 
-	@Override
-	public List<Integer> i_Om() {
+            if (val >= bestVal) {
 
-		return this.i_Om;
-	}
+                bestVal = val;
+                bestA = a;
+            }
 
-	@Override
-	public int i_A() {
+            Gao.add(argmax_iGaoi);
+        }
 
-		return this.i_A;
-	}
+        var vec = constructAlphaVector(Gao.get(bestA), bestA);
+        vec = DDOP.add(R().get(bestA), DDOP.mult(DDleaf.getDD(discount), vec));
 
-	@Override
-	public List<String> Om() {
+        return new AlphaVector(bestA, DDOP.approximate(vec), bestVal);
+    }
 
-		return this.O;
-	}
+    private DD constructAlphaVector(ArrayList<Tuple<Integer, DD>> Gao,
+            int bestA) {
 
-	@Override
-	public List<String> A() {
+        var vec = Gao.parallelStream()
+            .map(g -> project(g._1(), bestA, oAll.get(g._0())))
+            .reduce(DD.zero, (a, b) -> DDOP.add(a, b));
 
-		return this.A;
-	}
+        return vec;
+    }
 
-	@Override
-	public List<List<DD>> O() {
+    private DD project(int a, DD vec) {
 
-		return this.OF;
-	}
+        var ddArray = new ArrayList<DD>();
+        ddArray.addAll(TF.get(a));
+        ddArray.add(DDOP.primeVars(vec, (Global.NUM_VARS / 2)));
 
-	@Override
-	public List<List<DD>> T() {
+        return DDOP.approximate(DDOP.addMultVarElim(ddArray, i_S_p));
+    }
 
-		return this.TF;
-	}
+    @Override
+    public List<DD> MDPValueIteration(List<DD> QFn) {
 
-	@Override
-	public List<DD> R() {
+        DD Vn = QFn.stream()
+            .reduce(
+                    DDleaf.getDD(Float.NEGATIVE_INFINITY),
+                    (q1, q2) -> DDOP.max(q1, q2));
 
-		return this.R;
-	}
+        int A = this.A.size();
+        var gamma = DDleaf.getDD(discount);
+        List<DD> nextVn = IntStream.range(0, A).boxed().parallel()
+            .map(a -> Tuple.of(
+                        R.get(a), 
+                        project(a, Vn)))
+            .map(q -> DDOP.add(q._0(), DDOP.mult(gamma, q._1())))
+            .collect(Collectors.toList());
 
-	// ----------------------------------------------------------------------------------------
-	// PBVISolvable implementations
-
-	@Override
-	public Tuple<Float, DD> Gaoi(DD b, int a, List<DD> alphaPrimes) {
-
-		List<Tuple<Float, DD>> Gaoi = new ArrayList<>(oAll.size());
-
-		for (int _o = 0; _o < oAll.size(); _o++) {
-
-			List<Tuple<Float, DD>> _Gaoi = new ArrayList<>();
-
-			for (int i = 0; i < alphaPrimes.size(); i++) {
-
-				var _factors = new ArrayList<DD>(TF.get(a).size() + OF.get(a).size() + 1);
-				_factors.addAll(T().get(a));
-				_factors.addAll(DDOP.restrict(O().get(a), i_Om_p, oAll.get(_o)));
-				_factors.add(alphaPrimes.get(i));
-
-				DD gaoi = DDOP.mult(DDleaf.getDD(discount), DDOP.addMultVarElim(_factors, i_S_p));
-				_Gaoi.add(Tuple.of(DDOP.dotProduct(b, gaoi, i_S), gaoi));
-
-			}
-
-			Gaoi.add(_Gaoi.stream().reduce(Tuple.of(Float.NEGATIVE_INFINITY, DDleaf.zero),
-					(a1, a2) -> a1._0() > a2._0() ? a1 : a2));
-
-		}
-
-		return Gaoi.stream().reduce(Tuple.of(0f, DDleaf.zero),
-				(t1, t2) -> Tuple.of(t1._0() + t2._0(), DDOP.add(t1._1(), t2._1())));
-	}
+        return nextVn;
+    }
 
 }

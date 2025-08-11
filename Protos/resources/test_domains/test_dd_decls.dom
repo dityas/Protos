@@ -1,0 +1,58 @@
+(start
+
+; Basic attacker MDP domain
+(vars
+    (PrivsDeception (user root))
+    (CDataDecoys    (yes no))
+    (SDataDecoys    (yes no))
+    (HostHasData    (sensitive critical none))
+    (HostHasVuln    (yes no))
+    (AttPrivs       (user root))
+    (DataAccPrivs   (user root))
+    (DataFound      (yes no))
+    (VulnFound      (yes no))
+    (ImpactCaused   (yes no))
+    (AttActive      (yes no))
+
+; Random variable for attacker actions
+)
+
+
+; Initial belief of the attacker
+(def init_belief_att
+    (reduce * 1.0
+        (list
+            (uniform PrivsDeception)
+            (dd CDataDecoys (no 1.0))
+            (dd SDataDecoys (no 1.0))
+            (dd HostHasData
+                (sensitive 0.5)
+                (critical 0.5)
+            )
+            (uniform HostHasVuln)
+            (uniform AttPrivs)
+            (uniform DataAccPrivs)
+            (dd DataFound (no 1.0))
+            (dd VulnFound (no 1.0))
+            (dd ImpactCaused (no 1.0))
+            (dd AttActive (yes 1.0))
+        )
+    )
+)
+
+; Transition of the DataFound state
+(def data_found_yes
+    (dd DataFound
+        (yes (dd DataFound' (yes 1.0)))
+        (no
+            (dd DataFound'
+                (yes 0.7)
+                (no 0.3)
+            )
+        )
+    )
+)
+
+(def data_found_no (eye DataFound))
+
+)

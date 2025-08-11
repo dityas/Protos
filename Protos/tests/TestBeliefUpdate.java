@@ -1,38 +1,25 @@
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import thinclab.DDOP;
 import thinclab.legacy.DD;
 import thinclab.legacy.DDleaf;
 import thinclab.legacy.DDnode;
 import thinclab.legacy.Global;
-import thinclab.legacy.OP;
 import thinclab.models.POMDP;
+import thinclab.models.IPOMDP.IPOMDP;
 import thinclab.models.datastructures.ReachabilityGraph;
 import thinclab.spuddx_parser.SpuddXMainParser;
-import thinclab.spuddx_parser.SpuddXParserWrapper;
+import thinclab.utils.Tuple;
 
-/*
- *	THINC Lab at UGA | Cyber Deception Group
- *
- *	Author: Aditya Shinde
- * 
- *	email: shinde.aditya386@gmail.com
- */
 
-/*
- * @author adityas
- *
- */
 class TestBeliefUpdate {
 
 	private static final Logger LOGGER = LogManager.getLogger(TestBeliefUpdate.class);
@@ -58,8 +45,7 @@ class TestBeliefUpdate {
 		LOGGER.info(String.format("Used mem: %s", (total - free)));
 		Global.logCacheSizes();
 	}
-	
-	/*
+
 	@Test
 	void testTigerProblemSSGABeliefExploration() throws Exception {
 
@@ -70,51 +56,17 @@ class TestBeliefUpdate {
 				.getFile();
 
 		// Parse domain
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		var randomVars = parserWrapper.getVariableDeclarations();
+		var runner = new SpuddXMainParser(domainFile);
+		runner.run();
 
-		// Initialize random variables
-		Global.primeVarsAndInitGlobals(randomVars);
+		var I = (POMDP) runner.getModel("agentI").get();
 
-		// Get POMDP models
-		var models = parserWrapper.getModels();
-		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
-
-		models.clear();
-		models = null;
-		parserWrapper = null;
-
-		// Get agent I
-		var I = pomdps.get("agentI");
-		
-		// Initialize belief update mechanism
-		var BU = new POMDPBeliefUpdate();
-		
-		// Make action observation space for agent I
-		var obsVars = Arrays.stream(I.Ovars).mapToObj(i -> Global.valNames.get(i - 1)).collect(Collectors.toList());
-		obsVars.add(Global.valNames.get(I.Avar - 1));
-		var aoSpace = OP.cartesianProd(obsVars);
-	
 		// Make belief region for agent I
-		var beliefGraph = new ReachabilityGraph(aoSpace);
-		beliefGraph.addNode(I.b);
-		
-		// Initialize belief exploration
-		var BE = new POMDPBreadthFirstBeliefExploration(20);
-		
-		long then = System.nanoTime();
-		for (int i = 0; i < 20; i++)
-			beliefGraph = BE.expandRG(I, BU, beliefGraph);
-		
-		long now = System.nanoTime();
-		float T = (now - then) / 1000.0f;
-		LOGGER.debug(String.format("BFS expansion took %s us", T));
-		
-		assertTrue(beliefGraph.getAllNodes().size() <= 20);
-		LOGGER.debug(String.format("Graph is %s", beliefGraph));
-		printMemConsumption();
+		var beliefGraph = ReachabilityGraph.fromDecMakingModel(I);
+		beliefGraph.addNode(DDleaf.getDD(0.5f));
+
 	}
-	*/
+
 	@Test
 	void testSimpleTigerProblemBeliefUpdate() throws Exception {
 
@@ -127,15 +79,17 @@ class TestBeliefUpdate {
 		var domainRunner = new SpuddXMainParser(domainFile);
 		domainRunner.run();
 
-		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() -> {
-			LOGGER.error("Could not find POMDP agentI");
-			System.exit(-1);
-			return null;
-		});
+		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Could not find POMDP agentI");
+				System.exit(-1);
+				return null;
+			});
 
 		System.gc();
 
-		DD initBelief = I.b_i();
+		DD initBelief = DDleaf.getDD(0.5f);
 		DD bListenGL = I.beliefUpdate(initBelief, "L", Collections.singletonList("GL"));
 
 		DD tl = DDleaf.getDD(0.85f);
@@ -147,7 +101,7 @@ class TestBeliefUpdate {
 		LOGGER.debug(String.format("Expected to be: %s", bPrime));
 
 		printMemConsumption();
-		assertTrue(OP.abs(OP.sub(bListenGL, bPrime)).getVal() < 1e-8f);
+		assertTrue(DDOP.abs(DDOP.sub(bListenGL, bPrime)).getVal() < 1e-8f);
 
 		DD bListenGR = I.beliefUpdate(bListenGL, "L", Collections.singletonList("GR"));
 
@@ -158,59 +112,147 @@ class TestBeliefUpdate {
 		LOGGER.debug(String.format("Expected to be: %s", bPrime));
 
 		printMemConsumption();
-		assertTrue(OP.abs(OP.sub(bListenGR, bPrime)).getVal() < 1e-8f);
+		assertTrue(DDOP.abs(DDOP.sub(bListenGR, bPrime)).getVal() < 1e-8f);
 
 	}
-	
-	/*
+
 	@Test
-	void timeSimpleTigerProblemBeliefUpdate() throws Exception {
+	void testL1TigerProblemlikelihood() throws Exception {
 
 		System.gc();
 
-		LOGGER.info("Timing Single agent tiger domain belief update with string based obs and actions");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
-				.getFile();
+		LOGGER.info("Running Single agent tiger domain belief update test");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd").getFile();
 
-		SpuddXParserWrapper parserWrapper = new SpuddXParserWrapper(domainFile);
-		var randomVars = parserWrapper.getVariableDeclarations();
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
 
-		Global.primeVarsAndInitGlobals(randomVars);
+		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
 
-		var models = parserWrapper.getModels();
-		var pomdps = SpuddXParserWrapper.getPOMDPs(models);
+				LOGGER.error("Could not find IPOMDP agentI");
+				System.exit(-1);
+				return null;
+			});
 
-		models.clear();
-		models = null;
-		parserWrapper = null;
 		System.gc();
 
-		var I = pomdps.get("agentI");
-		var BE = new POMDPBeliefUpdate();
+		//DD initBelief = ;
+		//var likelihoods = DDOP.factors(I.obsLikelihoods(initBelief, 0), I.i_Om_p());
 
-		var rand = new Random();
-		var actions = (ArrayList<String>) IntStream.range(0, 1000).mapToObj(i -> I.A.get(rand.nextInt(3)))
-				.collect(Collectors.toList());
-		var obs = OP.cartesianProd(
+		//LOGGER.debug(String.format("Initial belief: %s", initBelief));
+		//LOGGER.debug(String.format("Likelihoods: %s", likelihoods));
+	}
+
+	@Test
+	void testL1TigerProblemBeliefUpdate() throws Exception {
+
+		System.gc();
+
+		LOGGER.info("Testing Single agent tiger domain belief update");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl1.spudd").getFile();
+
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		var I = (IPOMDP) domainRunner.getModel("agentI").orElseGet(() ->
+			{
+
+				LOGGER.error("Could not find IPOMDP agentI");
+				System.exit(-1);
+				return null;
+			});
+
+		System.gc();
+
+		var obs = DDOP.cartesianProd(
 				I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList()));
-		var os = IntStream.range(0, 1000).mapToObj(i -> obs.get(rand.nextInt(2))).collect(Collectors.toList());
 
-		DD b = I.b;
+		DD b = DDleaf.getDD(0.5f);
+		var beliefs = new ArrayList<DD>();
+		var aos = new ArrayList<Tuple<Integer, List<Integer>>>();
 
-		long then = System.nanoTime();
-		for (int i = 0; i < 1000; i++) {
+		for (int a = 0; a < I.A().size(); a++) {
 
-			b = BE.beliefUpdate(I, b, actions.get(i), os.get(i));
+			for (int o = 0; o < I.oAll.size(); o++) {
+
+				beliefs.add(I.beliefUpdate(b, a, I.oAll.get(o)));
+				aos.add(Tuple.of(a, I.oAll.get(o)));
+			}
+		}
+		/*
+		IntStream.range(0, aos.size()).forEach(i ->
+			{
+
+				var ao = aos.get(i);
+				var a = I.A().get(ao._0());
+
+				var initMjBeliefs = DDOP.factors(DDleaf.getDD(0.5f), I.i_S()).get(1).getChildren();
+				var initL0Beliefs = IntStream.range(0, initMjBeliefs.length).boxed()
+						.filter(j -> !initMjBeliefs[j].equals(DDleaf.getDD(0.0f)))
+						.map(j -> Global.valNames.get(I.i_Mj - 1).get(j)).collect(Collectors.toList());
+
+				var MjBeliefs = DDOP.factors(beliefs.get(i), I.i_S()).get(1).getChildren();
+				var l0Beliefs = IntStream.range(0, MjBeliefs.length).boxed()
+						.filter(j -> !MjBeliefs[j].equals(DDleaf.getDD(0.0f)))
+						.map(j -> Global.valNames.get(I.i_Mj - 1).get(j)).collect(Collectors.toList());
+
+				LOGGER.debug(String.format("Checking for %s from %s", l0Beliefs, initL0Beliefs));
+				LOGGER.debug(String.format("%s is %s", initL0Beliefs,
+						initL0Beliefs.stream().map(j -> I.mjMap.v2k.get(j)).collect(Collectors.toList())));
+
+			});
+		*/
+	}
+
+	@Test
+	void testL2TigerProblemBeliefUpdate() throws Exception {
+
+		System.gc();
+
+		LOGGER.info("Testing Single agent tiger domain belief update for level 2");
+		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_ipomdpl2.spudd").getFile();
+
+		var domainRunner = new SpuddXMainParser(domainFile);
+		domainRunner.run();
+
+		var I = (IPOMDP) domainRunner.getModel("agentJl2").orElseGet(() ->
+			{
+
+				LOGGER.error("Could not find IPOMDP agentI");
+				System.exit(-1);
+				return null;
+			});
+
+		System.gc();
+
+		var obs = DDOP.cartesianProd(
+				I.O.stream().map(o -> Global.valNames.get(Global.varNames.indexOf(o))).collect(Collectors.toList()));
+		/*
+		DD b = I.b_i();
+		var beliefs = new ArrayList<DD>();
+		var aos = new ArrayList<Tuple<Integer, List<Integer>>>();
+
+		for (int a = 0; a < I.A().size(); a++) {
+
+			for (int o = 0; o < I.oAll.size(); o++) {
+
+				beliefs.add(I.beliefUpdate(b, a, I.oAll.get(o)));
+				aos.add(Tuple.of(a, I.oAll.get(o)));
+			}
 		}
 
-		LOGGER.debug(String.format("Last belief is %s for action %s", b, actions.get(999)));
-		long now = System.nanoTime();
-		long timeElapsed = (now - then);
-		float avgTime = timeElapsed / 1000.0f;
+		IntStream.range(0, aos.size()).forEach(i ->
+			{
 
-		LOGGER.info(String.format("1000 random belief updates on the tiger problem took %s ns total and %s ns on avg",
-				timeElapsed, avgTime));
+				var ao = aos.get(i);
+				var a = I.A().get(ao._0());
 
+				LOGGER.debug(String.format("Starting from %s, for action %s and obs %s, the update is %s",
+						DDOP.factors(b, I.i_S()), a, ao._1(), DDOP.factors(beliefs.get(i), I.i_S())));
+
+			});
+		*/
 	}
-	*/
+
 }

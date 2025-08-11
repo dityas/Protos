@@ -14,6 +14,4 @@ package thinclab.policy;
 public interface Policy<R> {
 
 	public int getBestActionIndex(R belief);
-
-	public String getBestAction(R belief);
 }

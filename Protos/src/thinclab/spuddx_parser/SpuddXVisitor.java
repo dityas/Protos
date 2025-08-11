@@ -51,6 +51,20 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPOMDPDef(SpuddXParser.POMDPDefContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code IPOMDPDef}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIPOMDPDef(SpuddXParser.IPOMDPDefContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code EnvDef}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEnvDef(SpuddXParser.EnvDefContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code DBNDef}
 	 * labeled alternative in {@link SpuddXParser#all_def}.
 	 * @param ctx the parse tree
@@ -64,6 +78,13 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitPBVISolverDef(SpuddXParser.PBVISolverDefContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ModelVarInitDef}
+	 * labeled alternative in {@link SpuddXParser#all_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModelVarInitDef(SpuddXParser.ModelVarInitDefContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code OtherDefParen}
 	 * labeled alternative in {@link SpuddXParser#all_def}.
@@ -84,6 +105,30 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPomdp_def(SpuddXParser.Pomdp_defContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#ipomdp_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIpomdp_def(SpuddXParser.Ipomdp_defContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#env_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEnv_def(SpuddXParser.Env_defContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#modelvar_init_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModelvar_init_def(SpuddXParser.Modelvar_init_defContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#model_init}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModel_init(SpuddXParser.Model_initContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#states_list}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -102,11 +147,47 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAction_var(SpuddXParser.Action_varContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#action_j_var}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAction_j_var(SpuddXParser.Action_j_varContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#model_j_var}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModel_j_var(SpuddXParser.Model_j_varContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#ec_var}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEc_var(SpuddXParser.Ec_varContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#actions_list}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitActions_list(SpuddXParser.Actions_listContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#frame_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFrame_def(SpuddXParser.Frame_defContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#frame_tuple}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFrame_tuple(SpuddXParser.Frame_tupleContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#frame_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFrame_name(SpuddXParser.Frame_nameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dynamics}.
 	 * @param ctx the parse tree
@@ -144,6 +225,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDiscount(SpuddXParser.DiscountContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#reachability}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReachability(SpuddXParser.ReachabilityContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#dd_def}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -177,6 +264,13 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitParenExpr(SpuddXParser.ParenExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code SumoutExpr}
+	 * labeled alternative in {@link SpuddXParser#dd_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSumoutExpr(SpuddXParser.SumoutExprContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code AddSubExpr}
 	 * labeled alternative in {@link SpuddXParser#dd_expr}.
@@ -263,12 +357,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExec_block(SpuddXParser.Exec_blockContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code DDExecExpr}
+	 * Visit a parse tree produced by the {@code DDExecDef}
 	 * labeled alternative in {@link SpuddXParser#exec_expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDDExecExpr(SpuddXParser.DDExecExprContext ctx);
+	T visitDDExecDef(SpuddXParser.DDExecDefContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code SolvExpr}
 	 * labeled alternative in {@link SpuddXParser#exec_expr}.
@@ -276,6 +370,13 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitSolvExpr(SpuddXParser.SolvExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code PolTreeExpr}
+	 * labeled alternative in {@link SpuddXParser#exec_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPolTreeExpr(SpuddXParser.PolTreeExprContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code ParenExecExpr}
 	 * labeled alternative in {@link SpuddXParser#exec_expr}.
@@ -289,6 +390,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitSolv_cmd(SpuddXParser.Solv_cmdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#dd_list}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDd_list(SpuddXParser.Dd_listContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#backups}.
 	 * @param ctx the parse tree
@@ -307,6 +414,12 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitEnv_name(SpuddXParser.Env_nameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#policy_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPolicy_name(SpuddXParser.Policy_nameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SpuddXParser#action_name}.
 	 * @param ctx the parse tree
@@ -343,4 +456,10 @@ public interface SpuddXVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitSolv_name(SpuddXParser.Solv_nameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SpuddXParser#pol_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPol_name(SpuddXParser.Pol_nameContext ctx);
 }

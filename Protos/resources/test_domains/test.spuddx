@@ -1,0 +1,41 @@
+(vars
+    (TigerLoc   TL TR)
+    (Growl      GL GR)
+    (Actions    OL OR L)
+)
+
+(dd initLoc (uniform TigerLoc))
+(dd openDoor (uniform TigerLoc'))
+
+(dd growlObs
+    (TigerLoc'
+        (TL     (Growl' GL 0.85))
+        (TR     (Growl' GR 0.15))
+    )
+)
+
+(dd tigerLocT
+    (TigerLoc
+        (TL
+            (Actions
+                (L      (TigerLoc' TL))
+                (else   (uniform TigerLoc'))
+            )
+        )
+
+        (TR
+            (Actions
+                (L      (TigerLoc' TR))
+                (else   (uniform TigerLoc'))
+            )
+        )
+    )
+)
+
+(pomdp
+    (TigerLoc)
+    (Growl)
+    (Actions)
+
+    (tigerLocT)
+)
