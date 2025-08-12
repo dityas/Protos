@@ -17,21 +17,33 @@ import thinclab.policy.AlphaVectorPolicy;
 import thinclab.utils.Tuple;
 
 
-public class 
-SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
+public class SymbolicPerseusSolver<M extends PBVISolvablePOMDPBasedModel>
     implements PointBasedSolver<AlphaVectorPolicy> {
 
     private int usedBeliefs = 0;
-    public final M m;
-    public final AlphaVectorPolicy UB;
+    public M m;
+    public AlphaVectorPolicy UB;
 
     public AlphaVectorPolicy Vn;
     public List<Float> beliefSamplingWeights;
 
+    // Config for solvers
+    private final int maxIter;
+    private final int horizon;
+
     private static final Logger LOGGER = 
         LogManager.getFormatterLogger(SymbolicPerseusSolver.class);
 
-    public SymbolicPerseusSolver(final M m) {
+    public SymbolicPerseusSolver(int maxIter, int horizon) {
+
+        this.maxIter = maxIter;
+        this.horizon = horizon;
+
+        LOGGER.info("Initialized Symbolic Perseus for horizon %s and max. iterations",
+                this.horizon, this.maxIter);
+    }
+
+    public void putM(final M m) {
 
         this.m = m;
         LOGGER.info("Initialized symbolic Perseus for %s", this.m.getName());

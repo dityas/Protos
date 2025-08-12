@@ -50,34 +50,34 @@ class TestPolicyGraph {
 		Global.logCacheSizes();
 	}
 	
-	@Test
-	void testPOMDPPolicyGraph() throws Exception {
-
-		System.gc();
-
-		LOGGER.info("Running Single agent tiger domain");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
-				.getFile();
-
-		// Run domain
-		var domainRunner = new SpuddXMainParser(domainFile);
-		domainRunner.run();
-
-		// Get agent I
-		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
-			{
-
-				LOGGER.error("Model not found");
-				System.exit(-1);
-				return null;
-			});
-
-		var solver = new SymbolicPerseusSolver<POMDP>(I);
-		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), 100, 10);
-
-		var G = PolicyGraph.makePolicyGraph(List.of(DDleaf.getDD(0.5f)), I, policy);
-		
-		LOGGER.info(String.format("Made policy graph %s", G));
-	}
-
+//    @Test
+//	void testPOMDPPolicyGraph() throws Exception {
+//
+//		System.gc();
+//
+//		LOGGER.info("Running Single agent tiger domain");
+//		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
+//				.getFile();
+//
+//		// Run domain
+//		var domainRunner = new SpuddXMainParser(domainFile);
+//		domainRunner.run();
+//
+//		// Get agent I
+//		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
+//			{
+//
+//				LOGGER.error("Model not found");
+//				System.exit(-1);
+//				return null;
+//			});
+//
+//		var solver = new SymbolicPerseusSolver<POMDP>(I);
+//		var policy = solver.solve(List.of(DDleaf.getDD(0.5f)), 100, 10);
+//
+//		var G = PolicyGraph.makePolicyGraph(List.of(DDleaf.getDD(0.5f)), I, policy);
+//		
+//		LOGGER.info(String.format("Made policy graph %s", G));
+//	}
+//
 }

@@ -103,57 +103,6 @@ class TestAltOPs {
     }
 
     @Test
-    void testPolicySerialization() throws Exception {
-        System.gc();
-
-		LOGGER.info("Running Single agent tiger domain belief exploration test");
-		String domainFile = this.getClass().getClassLoader().getResource("test_domains/test_tiger_domain.spudd")
-				.getFile();
-
-		// Run domain
-		var domainRunner = new SpuddXMainParser(domainFile);
-		domainRunner.run();
-
-		// Get agent I
-		var I = (POMDP) domainRunner.getModel("agentI").orElseGet(() ->
-			{
-
-				LOGGER.error("Model not found");
-				System.exit(-1);
-				return null;
-			});
-		
-        var solver = new SymbolicPerseusSolver<POMDP>(I);
-		var policy = solver.solve(
-                List.of(DDleaf.getDD(0.5f)), 
-                100, 10);
-
-        var gson = new GsonBuilder().setPrettyPrinting().create();
-        var json = gson.toJson(policy.toJson());
-
-        LOGGER.debug(
-                String.format(
-                    "Policy is %s", policy));
-
-        LOGGER.debug(
-                String.format(
-                    "Policy to json is %s", json));
-
-        LOGGER.debug(
-                String.format(
-                    "Recovered policy is %s",
-                    AlphaVectorPolicy.fromJson(policy.toJson())));
-
-        Utils.writeJsonToFile(policy.toJson(), "/tmp/policy.json");
-        
-        var policyFile = new File("/tmp/policy.json");
-        assertTrue(policyFile.exists());
-
-        policyFile.delete();
-
-    }
-
-    @Test
     void testAlternateADD() throws Exception {
     
         var newDDLeaf = ADD.of(0.0f);

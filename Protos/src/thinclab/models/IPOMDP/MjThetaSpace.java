@@ -43,7 +43,8 @@ public class MjThetaSpace implements Frame<PolicyNode> {
         this.frame = frame;
         this.m = m;
 
-        this.s = new SymbolicPerseusSolver<>(this.m);
+        this.s = new SymbolicPerseusSolver<>(100, 10);
+        this.s.putM(this.m);
 
         var b_js = new ArrayList<DD>();
 

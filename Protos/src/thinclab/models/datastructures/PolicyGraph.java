@@ -278,8 +278,10 @@ public class PolicyGraph implements Jsonable {
     public static PolicyGraph getPolicyGraphFromModel(final List<DD> b_i,
             PBVISolvablePOMDPBasedModel m) {
 
-        var policy = 
-            new SymbolicPerseusSolver<>(m).solve(b_i, 100, 10);
+        var solver = new SymbolicPerseusSolver<>(100, 10);
+        solver.putM(m);
+
+        var policy = solver.solve(b_i, 100, 10);
 
         return PolicyGraph.makePolicyGraph(b_i, m, policy);
     }
